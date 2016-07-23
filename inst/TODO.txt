@@ -1,0 +1,8 @@
+http://gallery.rcpp.org/articles/using-rcppprogress/
+
+
+mettre des espaces entre les opérateurs
+passer les tests du CRAN
+exporter un rapport
+faire la fonction de calcul de puissance
+possibilite d'arreter l'analyse de la pair si ex aequo

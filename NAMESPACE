@@ -1,0 +1,24 @@
+useDynLib(BuyseTest)
+
+# import
+import("Rcpp")
+import("methods")
+importFrom("stats4","summary")
+importFrom("survival","survfit","Surv")
+
+# export fonctions
+export(
+	"BuyseTest",
+	"constStrata",
+	"initSurvival",
+	"BuyseTest_Gehan_cpp",
+	"BuyseTest_PetoEfronPeron_cpp"
+	)
+
+exportClasses(
+	"BuyseRes"
+)
+
+exportMethods(
+	"summary"
+)

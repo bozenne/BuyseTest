@@ -1,0 +1,5 @@
+ID,pair,time,cens,treat
+1,1,10,0,control
+2,1,20,1,6-MP
+3,1,12,1,control
+4,1,32,1,6-MP
