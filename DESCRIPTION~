@@ -23,8 +23,7 @@ License: GPL-3
 Depends:
     R (>= 2.10),
     survival,
-    Rcpp (>= 0.10.5),
-    data.table
+    Rcpp (>= 0.10.5)
 Imports:
     methods,
     stats4
@@ -38,14 +37,11 @@ LinkingTo: Rcpp, RcppArmadillo
 Collate:
     'BuyseTest-package.R'
     'FCT_BuyseTest.R'
-    'FCT_Valid.R'
-    'FCT_simul.R'
-    'FCT_support.R'
     'FCTi-computation.R'
     'FCTi-initilization.R'
-    'OBJECT_BuyseTest.R'
-    'METHOD_summary.R'
-    'METHOD_print.R'
+    'FCT_support.R'
+    'OBJET_BuyseTest.R'
+    'OMETHOD_summary.R'    
     'RcppExports.R'
 Packaged: 2015-04-23 15:51:33 UTC; ozennebr
 RoxygenNote: 5.0.0
