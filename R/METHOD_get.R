@@ -32,7 +32,7 @@ setMethod(f ="getCount",
               type <- c("favorable","unfavorable","neutral","uninf")
             }
             
-            validCharacter(type, validLength = NULL, validValues = c("count_favorable","count_unfavorable","count_neutral","count_uninf"), method = "getCount")
+            validCharacter(type, validLength = NULL, validValues = c("favorable","unfavorable","neutral","uninf"), method = "getCount")
             
             out <- NULL
             if("favorable" %in% type){out <- c(out, favorable = object@count_favorable)}

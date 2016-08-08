@@ -53,7 +53,7 @@
 
 setClass(
   
-  Class="BuyseRes",
+  Class = "BuyseRes",
   
   representation(
     delta = "matrix", 
@@ -61,96 +61,42 @@ setClass(
     count_unfavorable = "matrix",
     count_neutral = "matrix",    
     count_uninf = "matrix",
-    index_neutralT="vector",
+    index_neutralT = "vector",
     index_neutralC = "vector",
-    index_uninfT="vector",
-    index_uninfC="vector",
+    index_uninfT = "vector",
+    index_uninfC = "vector",
     n_pairs = "numeric",
     delta_boot = "array", 
     p.value = "vector",    
     Delta_quantile = "matrix",
     endpoint = "vector",
     threshold = "vector",
-    strata = "vector"
+    strata = "vector",
+    levels.treatment = "vector"
   ),
   
   validity = function(object){
     #cat("--- BuyseRes : checking --- ")
     
-    n.strata <- nrow(object@delta)
-    n.outcome <- ncol(object@delta)
+    n.strata <- length(object@strata)
+    n.outcome <- length(object@endpoint)
     
-    if(nrow(object@count_favorable)!=n.strata || ncol(object@count_favorable)!=n.outcome)
-    {stop("validity[BuyseRes] : \'@count_favorable\' does not match  \'@delta\' dimensions \n",
-          "dim(@delta) : ",n.strata," ",n.outcome," \n",
-          "dim(@count_favorable) : ",row(object@count_favorable)," ",ncol(object@count_favorable)," \n")
-    }
+    validDimension(object@delta, name1 = "@delta", validDimension =  c(n.strata, n.outcome), type = c("NROW","NCOL"), method = "validity[BuyseTest]")
+    validDimension(object@count_favorable, name1 = "@count_favorable", validDimension =  c(n.strata, n.outcome), type = c("NROW","NCOL"), method = "validity[BuyseTest]")
+    validDimension(object@count_unfavorable, name1 = "@count_unfavorable", validDimension =  c(n.strata, n.outcome), type = c("NROW","NCOL"), method = "validity[BuyseTest]")
+    validDimension(object@count_neutral, name1 = "@count_neutral", validDimension =  c(n.strata, n.outcome), type = c("NROW","NCOL"), method = "validity[BuyseTest]")
+    validDimension(object@count_uninf, name1 = "@count_uninf", validDimension =  c(n.strata, n.outcome), type = c("NROW","NCOL"), method = "validity[BuyseTest]")
     
-    if(nrow(object@count_unfavorable)!=n.strata || ncol(object@count_unfavorable)!=n.outcome)
-    {stop("validity[BuyseRes] : \'@count_unfavorable\' does not match  \'@delta\' dimensions \n",
-          "dim(@delta) : ",n.strata," ",n.outcome," \n",
-          "dim(@count_favorable) : ",row(object@count_unfavorable)," ",ncol(object@count_unfavorable)," \n")
-    }
+    validDimension(object@index_neutralT, name1 = "@index_neutralT", value2 = object@index_neutralC, name2 = "@index_neutralC", type = c("length"), method = "validity[BuyseTest]")
+    validDimension(object@index_uninfT, name1 = "@index_uninfT", value2 = object@index_uninfC, name2 = "@index_uninfC", type = c("length"), method = "validity[BuyseTest]")
     
-    if(nrow(object@count_neutral)!=n.strata || ncol(object@count_neutral)!=n.outcome)
-    {stop("validity[BuyseRes] : \'@count_neutral\' does not match  \'@delta\' dimensions \n",
-          "dim(@delta) : ",n.strata," ",n.outcome," \n",
-          "dim(@count_neutral) : ",row(object@count_neutral)," ",ncol(object@count_neutral)," \n")
-    }
+    validDimension(object@p.value, name1 = "@p.value", validDimension = n.outcome, type = c("length"), method = "validity[BuyseTest]")
     
-    if(nrow(object@count_uninf)!=n.strata || ncol(object@count_uninf)!=n.outcome)
-    {stop("validity[BuyseRes] : \'@count_uninf\' does not match  \'@delta\' dimensions \n",
-          "dim(@delta) : ",n.strata," ",n.outcome," \n",
-          "dim(@count_uninf) : ",row(object@count_uninf)," ",ncol(object@count_uninf)," \n")
-    }
+    validDimension(object@delta_boot, name1 = "@delta_boot", validDimension =  c(n.strata, n.outcome), type = c("NROW","NCOL"), method = "validity[BuyseTest]")
+    validDimension(object@Delta_quantile, name1 = "@Delta_quantile", validDimension =  c(2, n.outcome), type = c("NROW","NCOL"), method = "validity[BuyseTest]")
     
-    if(length(object@index_neutralT)!=length(object@index_neutralC))
-    {stop("validity[BuyseRes] : \'@index_neutralT\' does not match  \'@index_neutralC\' dimensions \n",
-          "length(@index_neutralT) : ",length(object@index_neutralT)," \n",
-          "length(@index_neutralC) : ",length(object@index_neutralC)," \n")
-    }
-    
-    if(length(object@index_uninfT)!=length(object@index_uninfC))
-    {stop("validity[BuyseRes] : \'@index_uninfT\' does not match  \'@index_uninfT\' dimensions \n",
-          "length(@index_uninfT) : ",length(object@index_uninfT)," \n",
-          "length(@index_uninfC) : ",length(object@index_uninfC)," \n")
-    }
-    
-    #     if(object@n_pairs %% 1 != 0)
-    #     {stop("validity[BuyseRes] : wrong specification of \'@n_pairs\' \n",
-    #           "\'n_pairs\' must be an integer \n",
-    #           "@n_pairs : ",object@n_pairs," \n")
-    #     }
-    
-    if(length(object@p.value)!=n.outcome)
-    {stop("validity[BuyseRes] : wrong specification of \'@n.outcome\' \n",
-          "must have length n.outcome : ",n.outcome," \n",
-          "length(@p.value) : ",length(object@p.value)," \n")
-    }
-    
-    if(dim(object@delta_boot)[1]!=n.strata || dim(object@delta_boot)[2]!=n.outcome)
-    {stop("validity[BuyseRes] : wrong specification of \'@delta_boot\' \n",
-          "must have dim[1]=",n.strata," and dim[2]=",n.outcome," \n",
-          "dim(object@delta_boot) : ",paste(dim(object@delta_boot),collapse=" ")," \n")
-    }
-    
-    if(nrow(object@Delta_quantile)!=2 || ncol(object@Delta_quantile)!=n.outcome)
-    {stop("validity[BuyseRes] : wrong specification of \'@Delta_quantile\' \n",
-          "must have dimensions : 2 ",n.outcome," \n",
-          "dim(@Delta_quantile) : ",nrow(object@Delta_quantile)," ",ncol(object@Delta_quantile)," \n")
-    }
-    
-    if(length(object@endpoint)!=n.outcome)
-    {stop("validity[BuyseRes] : wrong specification of \'@endpoint\' \n",
-          "must have length n.outcome : ",n.outcome," \n",
-          "length(@endpoint) : ",length(object@endpoint)," \n")
-    }
-    
-    if(length(object@threshold)!=n.outcome)
-    {stop("validity[BuyseRes] : wrong specification of \'@threshold\' \n",
-          "must have length n.outcome : ",n.outcome," \n",
-          "length(@threshold) : ",length(object@threshold)," \n")
-    }
+    validDimension(object@threshold, name1 = "@threshold", validDimension = n.outcome, type = c("length"), method = "validity[BuyseTest]")
+    validDimension(object@levels.treatment, name1 = "@levels.treatment", validDimension = 2, type = c("length"), method = "validity[BuyseTest]")
     
     #cat(" : valid BuyseRes  \n")
     return(TRUE)} 

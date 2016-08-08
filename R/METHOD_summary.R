@@ -67,8 +67,8 @@ setMethod(f ="summary",
             }
             
             # mise en forme
-            n.endpoint <- ncol(object@delta)
-            n.strata <- nrow(object@delta)
+            n.endpoint <- length(object@endpoint)
+            n.strata <- length(object@strata)
             
             table <- list(nb=data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15)),
                           pc=data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15)))
@@ -154,9 +154,9 @@ setMethod(f ="summary",
             }
             
             if(n.strata == 1){
-              keep.cols <- setdiff(names(table$nb), "strata")
+              keep.cols <- which(names(table$nb) %in% setdiff(names(table$nb), "strata"))
               table$nb <- table$nb[,keep.cols,drop = FALSE]
-              keep.cols <- setdiff(names(table$pc), "strata")
+              keep.cols <- which(names(table$pc) %in% setdiff(names(table$pc), "strata"))
               table$pc <- table$pc[,keep.cols,drop = FALSE]
             }
             
@@ -165,7 +165,7 @@ setMethod(f ="summary",
             
             if(!is.na(digit[1]) && digit[1]>=0){
             param.signif <- c("pc.total","pc.favorable","pc.unfavorable","pc.neutral","pc.uninf")
-            table$pc[,param.signif] <- sapply(table$pc[,param.signif],signif,digit=digit[1])
+            table$pc[,param.signif] <- sapply(table$pc[,param.signif],round,digit=digit[1])
             }
             if("n.bootstrap" %in% names(table$pc) && !is.na(digit[2]) && digit[2]>=0){
             param.signif <- c("delta","Delta","CIinf.Delta","CIsup.Delta")
@@ -179,8 +179,15 @@ setMethod(f ="summary",
                                     "nb" = table$nb,
                                     "pc" = table$pc
               )
-              table.print$Delta[is.na(table.print$Delta)] <- ""
+              emptyCol <- which(names(table.print) %in% c("Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
+              for(iterCol in emptyCol){
+                table.print[is.na(table.print[,iterCol]), iterCol] <- ""
+              }
               table.print$threshold[is.na(table.print$threshold)] <- ""
+              cat("        BuyseTest \n")
+              cat("> Groups: ",object@levels.treatment[1],"(control) vs. ",object@levels.treatment[2],"(Treatment) \n")
+              if(n.strata>1){cat("> ",n.strata," strata \n", sep = "")}
+              cat("> ",n.endpoint," endpoint",if(n.endpoint>1){"s"}, "\n", sep = "")
               print(table.print, row.names = FALSE)         
             }
             

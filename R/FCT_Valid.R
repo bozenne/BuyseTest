@@ -1,10 +1,3 @@
-#**********************************************************************
-#**********************************************************************
-#*************         validation functions         *******************
-#**********************************************************************
-#**********************************************************************
-#
-
 #' @name validFCTs
 #' @aliases validClass
 #' @aliases validDimension
@@ -22,22 +15,24 @@
 #' @param name1 the name of the (first) argument.
 #' @param name2 the name of the second argument.
 #' @param validClass the acceptable classes(s) for the argument. 
-#' @param validDimension the acceptable dimension for the argument. If \code{NULL} no test is performed.
+#' @param validDimension the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.
 #' @param validLength the acceptable length(s) for the argument. If \code{NULL} no test is performed.
 #' @param validValues the acceptable value(s) for the argument. If \code{NULL} no test is performed. Can also be "character" or "character_or_logical".
 #' @param superClasses uses the \code{is} function instead of \code{class} to test the class of the object.
 #' @param refuse.NULL should an error be output if value is \code{NULL}.
 #' @param refuse.NA should an error be output if value contains \code{NA}.
 #' @param refuse.duplicates should an error be output if value contains duplicated values.
+#' @param refuse.values values that must not appear in the argument
 #' @param type For \code{validDimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.
 #' @param requiredValues values that must appear in the argument
-#' @param requiredValues values that must not appear in the argument
 #' @param min the minimum acceptable value
 #' @param max the maximum acceptable value
 #' @param method the name of the function using the argument.
 #' @param addPP add ": " after the name of the function in the error message.
 #' 
 #' @return An invisible \code{TRUE} or an error message.
+#' 
+#' @keywords function check
 
 #' @rdname validFCTs
 validCharacter <- function(value1, name1 = as.character(substitute(value1)), validLength, 
@@ -114,7 +109,7 @@ validClass <- function(value1, name1 = as.character(substitute(value1)), validCl
     }  
     
   }else{
- 
+    
     if( class(value1) %in% validClass == FALSE){
       stop(method, "class of \'", name1, "\' must be \"", paste(validClass,collapse="\" \""),"\"  \n", 
            "proposed class : ", class(value1)[[1]], "\n")
@@ -181,10 +176,10 @@ validDimension <- function(value1, value2 = NULL, name1 = as.character(substitut
     }
     
   }
-    
+  
   return(invisible(TRUE))
 }
-  
+
 #' @rdname validFCTs
 validInteger <- function(value1, name1 = as.character(substitute(value1)), validLength, 
                          validValues = NULL, min = NULL, max = NULL, 
@@ -248,7 +243,7 @@ validLogical <- function(value1, name1 = as.character(substitute(value1)), valid
 
 #' @rdname validFCTs
 validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.NULL = TRUE,
-                       validLength = NULL, validValues = NULL, requiredValues = NULL, forbiddenValues = NULL,
+                       validLength = NULL, validValues = NULL, requiredValues = NULL, refuse.values = NULL,
                        method = NULL, addPP = TRUE){
   
   if(!is.null(method) && addPP){
@@ -268,7 +263,7 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
   if(is.null(value1)){
     
     if(refuse.NULL == TRUE){
-    stop(method, "names of \'", name1, "\' must not be NULL \n")
+      stop(method, "names of \'", name1, "\' must not be NULL \n")
     }
     
   }else{
@@ -298,9 +293,9 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
       
     }
     
-    if(!is.null(forbiddenValues) && any(value1 %in% forbiddenValues)){
+    if(!is.null(refuse.values) && any(value1 %in% refuse.values)){
       
-      stop(method, "\'", name1, "\' contains forbidden names:", paste(value1[value1 %in% forbiddenValues], collapse = " "), "\"\n")  
+      stop(method, "\'", name1, "\' contains forbidden names:", paste(value1[value1 %in% refuse.values], collapse = " "), "\"\n")  
       
     }
     
@@ -404,8 +399,8 @@ validPath <- function(value1, name1 = as.character(substitute(value1)), type,
   
   if(type == "dir"){ 
     if(checkFsep == TRUE && substr(value1, start = nchar(value1), stop = nchar(value1)) != "/"){
-    warning(method, "possible bad specification of \'", name1, "\' \n", 
-            "it should end with a fsep (e.g. \"/\") \n")
+      warning(method, "possible bad specification of \'", name1, "\' \n", 
+              "it should end with a fsep (e.g. \"/\") \n")
     }
   }else if(type == "file" && !is.null(extension)){
     fileExtension <- tools::file_ext(value1) 

@@ -8,6 +8,7 @@
 #' @details
 #' \code{calcBootstrap} performs the bootstrap iterations in sequential or parallel mode. \cr
 #' \code{calcCI} post process the results to obtain the p.value and the confidence interval. \cr
+#' \code{warper_BTboot} resample the data for the cpp function. \cr
 #' 
 #' @keywords function internal BuyseTest
 
@@ -18,15 +19,16 @@ calcBootstrap <- function(envir){
     if(envir$trace>1){cat("Sequential boostrap \n")}
     if(envir$trace>0){
       envir$index.trace <- unique(round(seq(1,envir$n.bootstrap,length.out=101)[-1])) # number of iterations corresponding to each percentage of progress in the bootstrap computation
-      envir$cpu_name <- "cpu 1 : " # 1 seul cpu est utilise
+      envir$cpu_name <- "cpu 1 : " # only 1 cpu is used
       envir$title_pb <- paste(envir$cpu_name,"bootstrap iterations",sep="") # title of the bar displaying the progress
       label_pb <- envir$label_pb <- paste(envir$cpu_name,"0% done ",sep="") # inital legend of the bar displaying the progress
       pb <- envir$pb <- tcltk::tkProgressBar(envir$title_pb,envir$label_pb,0, 1, 0) # create and display the progress bar         
+      on.exit(close(envir$pb)) # close the bar
+    }else{
+      envir$index.trace <- -1
     }
     if(!is.null(envir$seed)){set.seed(envir$seed)} # set the seed 
-    envir$delta_boot[] <- vapply(1:envir$n.bootstrap,function(x){envir$boot_ci(x,envir=envir)},matrix(1.5,envir$n.strata,envir$D)) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
-    if(envir$trace>0){close(envir$pb)}  # close the bar
-    
+    envir$delta_boot[] <- vapply(1:envir$n.bootstrap,function(x){warper_BTboot(x,envir=envir)},matrix(1.5,envir$n.strata,envir$D)) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
     
   }else{ ## parallel boostrap
     #envir$cpus <- 1 #browser()
@@ -44,7 +46,7 @@ calcBootstrap <- function(envir){
     
     ## wrapper function to be called by each cpu
     wrapper <- function(x){
-      return(vapply(1:envir$nParallel.bootstrap,function(x){envir$boot_ci(x,envir=envir)},matrix(1.5,envir$n.strata,envir$D))) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
+      return(vapply(1:envir$nParallel.bootstrap,function(x){warper_BTboot(x,envir=envir)},matrix(1.5,envir$n.strata,envir$D))) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
     }
     
     pid <- snowfall::sfClusterEval(Sys.getpid()) # identifier of each R session
@@ -146,6 +148,151 @@ calcCI <- function(delta,delta_boot,endpoint,D,alternative,alpha,
   res$n.bootstrap_real <- n.bootstrap_real
   return(res)
 }
+
+
+#' @rdname internal-computation
+warper_BTboot <- function(x,envir){
+  #### prepare ####
+  Mnew.Treatment <- NULL
+  Mnew.Control <- NULL
+  if(envir$D.TTE > 0){ 
+    Mnew.delta_Treatment <- NULL
+    Mnew.delta_Control <- NULL
+    if(envir$method == "Peto"){
+      new.survivalT <- vector(length = envir$D.TTE, mode = "list")
+      new.survivalC <- vector(length = envir$D.TTE, mode = "list")
+    }
+  }
+  new.strataT <- list()
+  new.strataC <- list()
+  
+  ## for data management
+  new.nT <- 0
+  new.nC <- 0
+ 
+  for(iterS in 1:envir$n.strata){  ## randomisation : new allocation of the treatment and control arm
+    groupT <- rbinom(envir$n.eachStrataT[iterS], size=1, prob=envir$prob.alloc)
+    groupC <- rbinom(envir$n.eachStrataC[iterS], size=1, prob=envir$prob.alloc)
+    
+    indexT.T <- which(groupT==1)
+    indexT.C <- which(groupC==1)
+    indexC.T <- which(groupT==0)
+    indexC.C <- which(groupC==0)
+    
+    nboot.T <- length(indexT.T) + length(indexT.C)
+    nboot.C <- length(indexC.T) + length(indexC.C)
+   
+    ## test whether there are observations in each group
+    if(nboot.T==0 || nboot.C==0){
+      boot.failure <- TRUE ; break ;
+    }else{
+      boot.failure <- FALSE
+    }
+    
+    ## update dataset
+    Mnew.Treatment <- rbind(Mnew.Treatment, 
+                            envir$M.Treatment[indexT.T,,drop=FALSE], 
+                            envir$M.Control[indexT.C,,drop=FALSE])
+    Mnew.Control <- rbind(Mnew.Control, 
+                          envir$M.Treatment[indexC.T,,drop=FALSE],
+                          envir$M.Control[indexC.C,,drop=FALSE]) 
+    
+    ## update strata - the new strata index minus 1 (for C++ compatibility, vector begin at 0)
+    new.strataT[[iterS]] <- seq(from = new.nT, by = 1, length = nboot.T) 
+    new.strataC[[iterS]] <- seq(from = new.nC, by = 1, length = nboot.C)
+    
+    ## update censoring variables
+    if(envir$D.TTE>0){ 
+      Mnew.delta_Treatment <- rbind(Mnew.delta_Treatment, 
+                                    envir$M.delta_Treatment[indexT.T,,drop=FALSE], 
+                                    envir$M.delta_Control[indexT.C,,drop=FALSE])
+      Mnew.delta_Control <- rbind(Mnew.delta_Control, 
+                                  envir$M.delta_Treatment[indexC.T,,drop=FALSE],
+                                  envir$M.delta_Control[indexC.C,,drop=FALSE])
+      
+      if(envir$method == "Peto"){
+        for(iter_endpointTTE in 1:envir$D.TTE){
+          new.survivalT[[iter_endpointTTE]] <- rbind(new.survivalT[[iter_endpointTTE]], 
+                                                     envir$list_survivalT[[iter_endpointTTE]][indexT.T,], 
+                                                     envir$list_survivalC[[iter_endpointTTE]][indexT.C,])
+          new.survivalC[[iter_endpointTTE]] <- rbind(new.survivalC[[iter_endpointTTE]], 
+                                                     envir$list_survivalT[[iter_endpointTTE]][indexC.T,], 
+                                                     envir$list_survivalC[[iter_endpointTTE]][indexC.C,])
+        }
+      }else if(envir$method == "Efron"){ # set last event to non-censored
+        Mnewstrata.Treatment <- Mnew.Treatment[new.strataT[[iterS]]+1,which(envir$type==3),drop=FALSE]
+        Mnewstrata.Control <- Mnew.Control[new.strataC[[iterS]]+1,which(envir$type==3),drop=FALSE]
+        
+        for(iter_endpointTTE in 1:envir$D.TTE){
+          indexT_maxCensored <- which.max(Mnewstrata.Treatment[,iter_endpointTTE])
+          Mnew.delta_Treatment[new.strataT[[iterS]][indexT_maxCensored]+1,iter_endpointTTE] <- 1
+          indexC_maxCensored <- which.max(Mnewstrata.Control[,iter_endpointTTE])
+          Mnew.delta_Control[new.strataC[[iterS]][indexC_maxCensored]+1,iter_endpointTTE] <- 1
+        }
+      }
+    }else {
+      Mnew.delta_Treatment <- matrix(-1,1,1)
+      Mnew.delta_Control <- matrix(-1,1,1)
+    }
+    
+    new.nT <- new.nT + nboot.T
+    new.nC <- new.nC + nboot.C
+  }
+  
+  if(boot.failure == FALSE){
+    if(envir$method %in% c("Efron","Peron")){ # update survival
+      res_init <- initSurvival(M.Treatment=Mnew.Treatment,M.Control=Mnew.Control,
+                               M.delta_Treatment=Mnew.delta_Treatment,M.delta_Control=Mnew.delta_Control,
+                               endpoint=envir$endpoint,D.TTE=envir$D.TTE,type=envir$type,threshold=envir$threshold,
+                               index.strataT=new.strataT,index.strataC=new.strataC,n.strata=envir$n.strata,
+                               method=envir$method)
+    }
+    
+    #### Computation
+    if(envir$method %in% c("Peto","Efron","Peron")){
+      delta_boot <-   BuyseTest_PetoEfronPeron_cpp(Treatment=Mnew.Treatment,Control=Mnew.Control,threshold=envir$threshold,type=envir$type,
+                                                   delta_Treatment=Mnew.delta_Treatment,delta_Control=Mnew.delta_Control,
+                                                   D=envir$D,returnIndex=FALSE,
+                                                   strataT=new.strataT,strataC=new.strataC,n_strata=envir$n.strata,n_TTE=envir$D.TTE,
+                                                   Wscheme=envir$Wscheme,index_survivalM1=envir$index_survivalM1,threshold_TTEM1=envir$threshold_TTEM1,
+                                                   list_survivalT=if(envir$method %in% c("Efron","Peron")){res_init$list_survivalT}else{new.survivalT},
+                                                   list_survivalC=if(envir$method %in% c("Efron","Peron")){res_init$list_survivalC}else{new.survivalC},
+                                                   PEP=which(c("Peto","Efron","Peron") == envir$method))$delta
+      
+    }else if(envir$method=="Gehan"){
+      delta_boot <-   BuyseTest_Gehan_cpp(Treatment=Mnew.Treatment,Control=Mnew.Control,threshold=envir$threshold,type=envir$type,
+                                          delta_Treatment=Mnew.delta_Treatment,delta_Control=Mnew.delta_Control,
+                                          D=envir$D,returnIndex=FALSE,
+                                          strataT=new.strataT,strataC=new.strataC,n_strata=envir$n.strata,n_TTE=envir$D.TTE)$delta
+    }
+  }else{
+    delta_boot <- matrix(NA,nrow=envir$n.strata,ncol=envir$D)
+  }
+
+  if(x == envir$index.trace[1]){ ## display
+    # if the following percentage of iterations is reached
+    # the label on the bar is updated and the progress bar is displayed
+    # then the first element of index.trace to test for the next percentage of iterations
+    
+    if(envir$cpus==1){
+      pc_done <- envir$index.trace[1]/envir$n.bootstrap
+      label_pb <- paste(envir$cpu_name,round(100*pc_done),"% done",sep="")
+      tcltk::setTkProgressBar(pb=envir$pb, value=pc_done,title=paste(envir$title_pb,"(",round(100*pc_done),"%)",sep=""), label=label_pb)
+      envir$index.trace <- envir$index.trace[-1]                 
+    }else{
+      pc_done <- envir$index.trace[1]/envir$nParallel.bootstrap
+      label_pb <- paste(cpu_name,round(100*pc_done),"% done",sep="")
+      tcltk::setTkProgressBar(pb=pb, value=pc_done,title=paste(title_pb,"(",round(100*pc_done),"%)",sep=""), label=label_pb)
+      envir$index.trace <- envir$index.trace[-1]                 
+    } 
+  }
+  
+  ## export
+  return(delta_boot)
+}
+
+
+
 
 
 
