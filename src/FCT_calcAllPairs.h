@@ -10,48 +10,61 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
+struct structAllPairs {
+  double count_favorable;
+  double count_unfavorable;
+  double count_neutral;
+  double count_uninf;
+  vector<int> index_neutralT;
+  vector<int> index_neutralC;
+  vector<int> index_uninfT;
+  vector<int> index_uninfC;
+  vector<double> w;
+  vector<int> index_w;
+};
+
 //// SUMMARY : calcAll functions ////
-List calcAllPairs_BinaryOutcome_cpp(const arma::colvec& Treatment, const arma::colvec& Control);
+structAllPairs calcAllPairs_BinaryOutcome_cpp(const arma::colvec& Treatment, const arma::colvec& Control);
 
-List calcSubsetPairs_BinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, int nNeutral_pairs,
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, int nUninf_pairs);
+structAllPairs calcSubsetPairs_BinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, int nNeutral_pairs,
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, int nUninf_pairs);
 
-List calcSubsetPairs_WeightedBinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, int nNeutral_pairs,
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, int nUninf_pairs,
+structAllPairs calcSubsetPairs_WeightedBinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, int nNeutral_pairs,
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, int nUninf_pairs,
 const arma::vec& Wpairs);
 
-List calcAllPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold);
+structAllPairs calcAllPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold);
 
-List calcSubsetPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, int nNeutral_pairs, 
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, int nUninf_pairs);
+structAllPairs calcSubsetPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, int nNeutral_pairs, 
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, int nUninf_pairs);
 
-List calcSubsetPairs_WeightedContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, int nNeutral_pairs, 
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, int nUninf_pairs,
+structAllPairs calcSubsetPairs_WeightedContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, int nNeutral_pairs, 
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, int nUninf_pairs,
 const arma::vec& Wpairs);
 
-List calcAllPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
+structAllPairs calcAllPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
 const arma::colvec& deltaT, const arma::colvec& deltaC);
 
-List calcSubsetPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, const arma::colvec& deltaT, const arma::colvec& deltaC, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, int nNeutral_pairs,
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, int nUninf_pairs);
+structAllPairs calcSubsetPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold, const arma::colvec& deltaT, const arma::colvec& deltaC, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, int nNeutral_pairs,
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, int nUninf_pairs);
 
-List calcAllPairs_TTEOutcome_PetoEfronPeron_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold,
+structAllPairs calcAllPairs_TTEOutcome_PetoEfronPeron_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold,
 const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
 const int PEP);
 
-List calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
+structAllPairs calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(const arma::colvec& Treatment, const arma::colvec& Control, double threshold, 
 const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, int nNeutral_pairs, 
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, int nUninf_pairs,
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, int nNeutral_pairs, 
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, int nUninf_pairs,
 const arma::vec& Wpairs, double threshold_M1,  const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int PEP);
 
 //  fct1 : perform pairwise comparisons over all possible pairs for a binary endpoint //////////////////////////////////////////
-inline List calcAllPairs_BinaryOutcome_cpp(const arma::colvec& Treatment, const arma::colvec& Control){
+inline structAllPairs calcAllPairs_BinaryOutcome_cpp(const arma::colvec& Treatment, const arma::colvec& Control){
   
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
@@ -80,23 +93,24 @@ inline List calcAllPairs_BinaryOutcome_cpp(const arma::colvec& Treatment, const 
   }
   
   //// export ////
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1
-    Named("count_neutral")  = count_neutral, // 2 
-    Named("count_uninf")  = count_uninf, // 3 
-    Named("index_neutralT")  = index_neutralT, // 4
-    Named("index_neutralC")  = index_neutralC, // 5
-    Named("index_uninfT")  = index_uninfT, // 6 
-    Named("index_uninfC")  = index_uninfC // 7
-    ));
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = index_neutralT;
+  res.index_neutralC = index_neutralC;
+  res.index_uninfT = index_uninfT;
+  res.index_uninfC = index_uninfC;
+    
+  return(res);
     
 }
 
 //  fct1bis : perform pairwise comparisons over a prespecified subset of pairs for a binary endpoint ////////////////////////////////////////////////////////////
-inline List calcSubsetPairs_BinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, const int nNeutral_pairs,
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int nUninf_pairs){
+inline structAllPairs calcSubsetPairs_BinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs,
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   
@@ -147,23 +161,24 @@ const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int 
   }
   
   //// export ////
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1
-    Named("count_neutral")  = count_neutral, // 2
-    Named("count_uninf")  = count_uninf, // 3 
-    Named("index_neutralT")  = indexNew_neutralT, // 4 
-    Named("index_neutralC")  = indexNew_neutralC, // 5
-    Named("index_uninfT")  = indexNew_uninfT, // 6
-    Named("index_uninfC")  = indexNew_uninfC // 7
-    ));
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = indexNew_neutralT;
+  res.index_neutralC = indexNew_neutralC;
+  res.index_uninfT = indexNew_uninfT;
+  res.index_uninfC = indexNew_uninfC;
+  
+  return(res);
     
 }
 
 //  fct1ter : perform a weighted pairwise comparisons over a prespecified subset of pairs for a binary endpoint ///////////////////////////
-inline List calcSubsetPairs_WeightedBinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, const int nNeutral_pairs,
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int nUninf_pairs,
+inline structAllPairs calcSubsetPairs_WeightedBinaryOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs,
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
 const arma::vec& Wpairs){
   
   int iter_T,iter_C;  // index of the treatment / control patient of the pair in the treatment / control arm
@@ -215,24 +230,25 @@ const arma::vec& Wpairs){
   //// export ////
   index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end()); // merging
   
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1                   
-    Named("count_neutral")  = count_neutral, // 2  
-    Named("count_uninf")  = count_uninf, // 3
-    Named("index_neutralT")  = indexNew_neutralT, // 4
-    Named("index_neutralC")  = indexNew_neutralC, // 5
-    Named("index_uninfT")  = indexNew_uninfT, // 6
-    Named("index_uninfC")  = indexNew_uninfC, // 7
-    Named("w")  = -1, // 8
-    Named("index_w")  = index_wNeutral // 9
-    ));
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = indexNew_neutralT;
+  res.index_neutralC = indexNew_neutralC;
+  res.index_uninfT = indexNew_uninfT;
+  res.index_uninfC = indexNew_uninfC;
+  //res.w = -1.0;
+  res.index_w = index_wNeutral;
+  
+  return(res);
     
 }
 
 
 //  fct2 : perform pairwise comparisons over all possible pairs for a continuous endpoint ///////////////////////////////
-inline List calcAllPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold){
+inline structAllPairs calcAllPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold){
   
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
@@ -261,23 +277,24 @@ inline List calcAllPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, c
   }
   
   //// export ////
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1  
-    Named("count_neutral")  = count_neutral, // 2  
-    Named("count_uninf")  = count_uninf, // 3
-    Named("index_neutralT")  = index_neutralT, // 4
-    Named("index_neutralC")  = index_neutralC, // 5
-    Named("index_uninfT")  = index_uninfT, // 6
-    Named("index_uninfC")  = index_uninfC // 7
-    ));
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = index_neutralT;
+  res.index_neutralC = index_neutralC;
+  res.index_uninfT = index_uninfT;
+  res.index_uninfC = index_uninfC;
+  
+  return(res);
     
 }
 
 //  fct2bis : perform pairwise comparisons over a prespecified subset of pairs for a continuous endpoint//////////////////////
-inline List calcSubsetPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, const int nNeutral_pairs, 
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int nUninf_pairs){
+inline structAllPairs calcSubsetPairs_ContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   
@@ -326,24 +343,25 @@ const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int 
   }
   
   //// export ////
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1 
-    Named("count_neutral")  = count_neutral, // 2 
-    Named("count_uninf")  = count_uninf, // 3  
-    Named("index_neutralT")  = indexNew_neutralT, // 4
-    Named("index_neutralC")  = indexNew_neutralC, // 5
-    Named("index_uninfT")  = indexNew_uninfT, // 6
-    Named("index_uninfC")  = indexNew_uninfC // 7
-    ));
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = indexNew_neutralT;
+  res.index_neutralC = indexNew_neutralC;
+  res.index_uninfT = indexNew_uninfT;
+  res.index_uninfC = indexNew_uninfC;
+  
+  return(res);
     
 }
 
 
 //  fct2ter : perform a weighted pairwise comparisons over a prespecified subset of pairs for a continuous endpoint //////////////////
-inline List calcSubsetPairs_WeightedContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, const int nNeutral_pairs, 
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int nUninf_pairs,
+inline structAllPairs calcSubsetPairs_WeightedContinuousOutcome_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
 const arma::vec& Wpairs){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
@@ -394,24 +412,25 @@ const arma::vec& Wpairs){
   //// export ////
   index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
   
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1
-    Named("count_neutral")  = count_neutral, // 2
-    Named("count_uninf")  = count_uninf, // 3
-    Named("index_neutralT")  = indexNew_neutralT, // 4
-    Named("index_neutralC")  = indexNew_neutralC, // 5
-    Named("index_uninfT")  = indexNew_uninfT, // 6
-    Named("index_uninfC")  = indexNew_uninfC, // 7
-    Named("w")  = -1, // 8
-    Named("index_w")  = index_wNeutral // 9
-    ));
-    
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = indexNew_neutralT;
+  res.index_neutralC = indexNew_neutralC;
+  res.index_uninfT = indexNew_uninfT;
+  res.index_uninfC = indexNew_uninfC;
+  //res.w = -1.0;
+  res.index_w = index_wNeutral;
+  
+  return(res);
+  
 }
 
 
 //  fct3 : perform pairwise comparisons over all possible pairs for a TTE endpoint ///////////////////////////////////////////
-inline List calcAllPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+inline structAllPairs calcAllPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
 const arma::colvec& deltaT, const arma::colvec& deltaC){
   
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
@@ -440,25 +459,25 @@ const arma::colvec& deltaT, const arma::colvec& deltaC){
   }}
   
   //// export ////
-  
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1     
-    Named("count_neutral")  = count_neutral, // 2  //
-    Named("count_uninf")  = count_uninf, // 3    //  
-    Named("index_neutralT")  = index_neutralT, // 4
-    Named("index_neutralC")  = index_neutralC, // 5
-    Named("index_uninfT")  = index_uninfT, // 6
-    Named("index_uninfC")  = index_uninfC // 7 
-    ));
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = index_neutralT;
+  res.index_neutralC = index_neutralC;
+  res.index_uninfT = index_uninfT;
+  res.index_uninfC = index_uninfC;
+   
+  return(res);
     
 }
 
 //  fct3bis : perform pairwise comparisons over a prespecified subset of pairs for a TTE endpoint ///////////////////////////
-inline List calcSubsetPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+inline structAllPairs calcSubsetPairs_TTEOutcome_Gehan_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
 const arma::colvec& deltaT, const arma::colvec& deltaC, 
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, const int nNeutral_pairs,
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int nUninf_pairs){
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs,
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   
@@ -503,21 +522,22 @@ const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int 
   }
   
   //// export ////    
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1
-    Named("count_neutral")  = count_neutral, // 2     
-    Named("count_uninf")  = count_uninf, // 3   
-    Named("index_neutralT")  = indexNew_neutralT, // 4
-    Named("index_neutralC")  = indexNew_neutralC, // 5
-    Named("index_uninfT")  = indexNew_uninfT, // 6
-    Named("index_uninfC")  = indexNew_uninfC // 7
-    ));
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = indexNew_neutralT;
+  res.index_neutralC = indexNew_neutralC;
+  res.index_uninfT = indexNew_uninfT;
+  res.index_uninfC = indexNew_uninfC;
+ 
+  return(res);
     
 }
 
 //  fct3ter : perform a weighted pairwise comparisons over all possible pairs for a TTE endpoint //////////////////////
-inline List calcAllPairs_TTEOutcome_PetoEfronPeron_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+inline structAllPairs calcAllPairs_TTEOutcome_PetoEfronPeron_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
 const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
 const int PEP){
   
@@ -577,25 +597,25 @@ const int PEP){
   
   
   //// export ////
-  return(List::create(
-    Named("count_favorable")  = count_favorable, // 0
-    Named("count_unfavorable")  = count_unfavorable, // 1     
-    Named("count_neutral")  = count_neutral, // 2
-    Named("count_uninf")  = count_uninf, // 3
-    Named("index_neutralT")  = index_neutralT, // 4
-    Named("index_neutralC")  = index_neutralC, // 5
-    Named("index_uninfT")  = index_uninfT, // 6
-    Named("index_uninfC")  = index_uninfC, // 7
-    Named("w")  = wUninf // 8 
-    ));
-    
+  structAllPairs res;
+  res.count_favorable = count_favorable;
+  res.count_unfavorable = count_unfavorable;
+  res.count_neutral = count_neutral;
+  res.count_uninf = count_uninf;
+  res.index_neutralT = index_neutralT;
+  res.index_neutralC = index_neutralC;
+  res.index_uninfT = index_uninfT;
+  res.index_uninfC = index_uninfC;
+  res.w = wUninf;
+  
+  return(res);
 }
 
 //  fct3quater : perform a weighted pairwise comparisons over a prespecified subset of pairs for a TTE endpoint //////////////////
-inline List calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+inline structAllPairs calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
 const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-const IntegerVector& index_neutralT, const IntegerVector& index_neutralC, const int nNeutral_pairs, 
-const IntegerVector& index_uninfT, const IntegerVector& index_uninfC, const int nUninf_pairs,
+const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
+const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
 const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int PEP){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
@@ -754,17 +774,17 @@ const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, 
       wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
       index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
       
-      return(List::create(
-        Named("count_favorable")  = count_favorable, // 0
-        Named("count_unfavorable")  = count_unfavorable, // 1        
-        Named("count_neutral")  = count_neutral, // 2
-        Named("count_uninf")  = count_uninf, // 3
-        Named("index_neutralT")  = indexNew_neutralT, // 4
-        Named("index_neutralC")  = indexNew_neutralC, // 5
-        Named("index_uninfT")  = indexNew_uninfT, // 6
-        Named("index_uninfC")  = indexNew_uninfC, // 7
-        Named("w")  = wNeutral, // 8
-        Named("index_w")  = index_wNeutral // 9
-        ));
-        
+      structAllPairs res;
+      res.count_favorable = count_favorable;
+      res.count_unfavorable = count_unfavorable;
+      res.count_neutral = count_neutral;
+      res.count_uninf = count_uninf;
+      res.index_neutralT = indexNew_neutralT;
+      res.index_neutralC = indexNew_neutralC;
+      res.index_uninfT = indexNew_uninfT;
+      res.index_uninfC = indexNew_uninfC;
+      res.w = wNeutral;
+      res.index_w = index_wNeutral;
+      
+      return(res);
 }
