@@ -164,13 +164,13 @@ setMethod(f ="summary",
             if(length(digit) == 1){digit <- rep(digit,2)}
             
             if(!is.na(digit[1]) && digit[1]>=0){
-            param.signif <- c("pc.total","pc.favorable","pc.unfavorable","pc.neutral","pc.uninf")
-            table$pc[,param.signif] <- sapply(table$pc[,param.signif],round,digit=digit[1])
+              param.signif <- c("pc.total","pc.favorable","pc.unfavorable","pc.neutral","pc.uninf")
+              table$pc[,param.signif] <- sapply(table$pc[,param.signif],round,digit=digit[1])
             }
             if("n.bootstrap" %in% names(table$pc) && !is.na(digit[2]) && digit[2]>=0){
-            param.signif <- c("delta","Delta","CIinf.Delta","CIsup.Delta")
-            table$nb[,param.signif] <- sapply(table$nb[,param.signif],signif,digit=digit[2])
-            table$pc[,param.signif] <- sapply(table$pc[,param.signif],signif,digit=digit[2])
+              param.signif <- c("delta","Delta","CIinf.Delta","CIsup.Delta")
+              table$nb[,param.signif] <- sapply(table$nb[,param.signif],signif,digit=digit[2])
+              table$pc[,param.signif] <- sapply(table$pc[,param.signif],signif,digit=digit[2])
             }
             
             # affichage
