@@ -4,13 +4,6 @@
 #%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#### local 
-# path <- "E:/Creation_package/Package_BuyseTest/BuyseTest" # path to the uncompressed tar.gz file
-# Rcpp::sourceCpp(file.path(path,"src/FCT_BuyseTest.cpp"),rebuild=TRUE)
-# source(file.path(path,"R/FCT_buyseTest.R"))
-# source(file.path(path,"R/OBJET_buyseTest.R"))
-# source(file.path(path,"R/FCT_buyseInit.R"))
-
 options(error=function() traceback(2)) 
 options(max.print=10000)
 

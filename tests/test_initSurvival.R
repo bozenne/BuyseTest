@@ -7,24 +7,15 @@
 # See initSurvival function file BuyseInit.R (approx. line 433)
 #
 
-## no teste : saut au moment du dernier evenement.
+## no test : saut au moment du dernier evenement.
 
-#### local 
-# path <- "E:/Creation_package/Package_BuyseTest/BuyseTest" # path to the uncompressed tar.gz file
-# Rcpp::sourceCpp(file.path(path,"src/FCT_BuyseTest.cpp"),rebuild=TRUE)
-# source(file.path(path,"R/FCT_buyseTest.R"))
-# source(file.path(path,"R/OBJET_buyseTest.R"))
-# source(file.path(path,"R/FCT_buyseInit.R"))
-
-options(error=function() traceback(2)) 
-options(max.print=10000)
-
-#### package
-require(BuyseTest)
-
-#### save
-save <- FALSE #   TRUE #  
+#### spec
+library(BuyseTest)
+library(testthat)
+library(lava)
 precision <- 10^{-7}
+n.patients <- 200
+save <- FALSE
 
 #### 1- No strata ####
 M.Treatment <- cbind(time=1:5)

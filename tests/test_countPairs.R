@@ -4,28 +4,19 @@
 #%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#### local 
-# path <- "E:/Creation_package/Package_BuyseTest/BuyseTest" # path to the uncompressed tar.gz file
-# Rcpp::sourceCpp(file.path(path,"src/FCT_BuyseTest.cpp"),rebuild=TRUE)
-# source(file.path(path,"R/FCT_buyseTest.R"))
-# source(file.path(path,"R/OBJET_buyseTest.R"))
-# source(file.path(path,"R/FCT_buyseInit.R"))
-
 options(error=function() traceback(2)) 
 options(max.print=10000)
 
 #### package
-require(BuyseTest)
+library(BuyseTest)
+library(testthat)
 precision <- 10^{-7}
 
 #### function
 valid.summary <- function(BuyseSummary,precision=10^{-7}){
   index_global <- which(BuyseSummary$nb$strata=="global")
   diff <- BuyseSummary$nb[index_global[-1],"n.total"] - rowSums(BuyseSummary$nb[index_global[-length(index_global)],c("n.neutral","n.uninf")])
-  return(list(diff=diff,
-              test=any(abs(diff)>precision)
-              )
-  )
+  return(diff)
 }
 
 #### 1- binary endpoint ####

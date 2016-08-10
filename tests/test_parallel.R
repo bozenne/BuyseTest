@@ -4,65 +4,72 @@
 #%%%%%
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-#### local 
-# path <- "E:/Creation_package/Package_BuyseTest/BuyseTest" # path to the uncompressed tar.gz file
-# Rcpp::sourceCpp(file.path(path,"src/FCT_BuyseTest.cpp"),rebuild=TRUE)
-# source(file.path(path,"R/FCT_buyseTest.R"))
-# source(file.path(path,"R/OBJET_buyseTest.R"))
-# source(file.path(path,"R/FCT_buyseInit.R"))
-
-options(error=function() traceback(2)) 
-options(max.print=10000)
-
-require(BuyseTest)
-
+#### spec
+library(BuyseTest)
+library(testthat)
+library(lava)
+precision <- 10^{-7}
+n.patients <- 500
+save <- FALSE
+# butils:::package.source("BuyseTest", Rcode = TRUE, Ccode = TRUE)
 
 #### data ####
-res = NULL #start with an empty dataset
-
-n.Treatment <- 5
-n.Control <- 5
-n<-n.Treatment+n.Control
-group<-c(rep(1, n.Treatment),rep(0, n.Control))
-lambda.T <- 0.5
-lambda.C <- 1
-TpsFin <-1.5936
-TimeEvent<-c(rexp(n.Treatment,rate=lambda.T),
-             rexp(n.Control,rate=lambda.C))
-Time.Cens<-runif(n,0,TpsFin)
-Time<-pmin(Time.Cens,TimeEvent)
-Event<-Time==TimeEvent
-Event<-as.numeric(Event)
-tab<-data.frame(group,Time,Event)
-#plot(survfit(Surv(time=Time, event=Event) ~ group, data=tab))
-seedGPC<-15
+set.seed(10)
+dt.BT <- simulBT(n.patients)
 
 #### model ####
-n.bootstrap <- 1000
+n.bootstrap <- 10
+seedGPC <- 15
 
-BuyseresG<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Gehan",seed=seedGPC)
+#### pb avec Wscheme dans initData
+ls.times <- list()
+ls.sum <- list()
+for(method in c("Gehan","Peto","Efron","Peron")){
+  cat("method: ",method,"\n")
+  
+  ls.times[[method]] <- system.time(
+    ls.sum[[method]] <- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                        type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=0,method=method,seed=seedGPC)
+  )
+  print(ls.times[[method]])
+  summary(ls.sum[[method]])
+}
 
-BuyseresG_parallel<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Gehan",seed=seedGPC,cpus=2)
+BuyseresG
+BuyseresP<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=100,trace=2,method="Efron",seed=seedGPC)
+BuyseresP
+BuyseresE<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=100,trace=2,method="Efron",seed=seedGPC)
+BuyseresE
+BuyseresE<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=100,trace=2,method="Efron",seed=seedGPC)
+BuyseresE
 
-BuyseresP<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peto",seed=seedGPC)
 
-BuyseresP_parallel<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peto",seed=seedGPC,cpus=2)
+BuyseresG<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Gehan",seed=seedGPC)
 
-BuyseresE<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Efron",seed=seedGPC)
+BuyseresG_parallel<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Gehan",seed=seedGPC,cpus=2)
 
-BuyseresE_parallel<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Efron",seed=seedGPC,cpus=2)
+BuyseresP<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peto",seed=seedGPC)
 
-BuyseresPer<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peron",seed=seedGPC)
+BuyseresP_parallel<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peto",seed=seedGPC,cpus=2)
 
-BuyseresPer_parallel<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peron",seed=seedGPC,cpus=2)
+BuyseresE<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Efron",seed=seedGPC)
+
+BuyseresE_parallel<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Efron",seed=seedGPC,cpus=2)
+
+BuyseresPer<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peron",seed=seedGPC)
+
+BuyseresPer_parallel<- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
+                      type="TTE",censoring="event1",threshold=0,n.bootstrap=n.bootstrap,trace=2,method="Peron",seed=seedGPC,cpus=2)
 
 summary(BuyseresG)
 summary(BuyseresG_parallel)
