@@ -4,12 +4,15 @@
 \alias{calcBootstrap}
 \alias{calcCI}
 \alias{internal-computation}
+\alias{warper_BTboot}
 \title{internal functions for BuyseTest - computations}
 \usage{
 calcBootstrap(envir)
 
 calcCI(delta, delta_boot, endpoint, D, alternative, alpha, n.bootstrap, cpus,
   trace)
+
+warper_BTboot(x, envir)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to perform calculations.
@@ -17,6 +20,7 @@ Functions called by \code{\link{BuyseTest}} to perform calculations.
 \details{
 \code{calcBootstrap} performs the bootstrap iterations in sequential or parallel mode. \cr
 \code{calcCI} post process the results to obtain the p.value and the confidence interval. \cr
+\code{warper_BTboot} resample the data for the cpp function. \cr
 }
 \keyword{BuyseTest}
 \keyword{function}

@@ -15,7 +15,7 @@
 \usage{
 initCensoring(censoring, endpoint, type, D, D.TTE, treatment, strata)
 
-initData(dataT, dataS, type, endpoint, D, censoring, index.strataT,
+initData(dataT, dataC, type, endpoint, D, censoring, index.strataT,
   index.strataC, n.strata, method, D.TTE, threshold, Wscheme = NULL, trace,
   test = TRUE)
 
@@ -25,7 +25,7 @@ initHypothesis(hypothesis, type, D)
 
 initSpace(nchar)
 
-initStrata(strata, dataT, dataS, n.Treatment, n.Control, endpoint, censoring)
+initStrata(strata, dataT, dataC, n.Treatment, n.Control, endpoint, censoring)
 
 initSurvival(M.Treatment, M.Control, M.delta_Treatment, M.delta_Control,
   endpoint, D.TTE, type, threshold, index.strataT, index.strataC, n.strata,

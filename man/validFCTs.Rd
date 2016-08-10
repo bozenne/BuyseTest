@@ -34,7 +34,7 @@ validLogical(value1, name1 = as.character(substitute(value1)), validLength,
 
 validNames(value1, name1 = as.character(substitute(value1)),
   refuse.NULL = TRUE, validLength = NULL, validValues = NULL,
-  requiredValues = NULL, forbiddenValues = NULL, method = NULL,
+  requiredValues = NULL, refuse.values = NULL, method = NULL,
   addPP = TRUE)
 
 validNumeric(value1, name1 = as.character(substitute(value1)), validLength,
@@ -70,7 +70,7 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 
 \item{name2}{the name of the second argument.}
 
-\item{validDimension}{the acceptable dimension for the argument. If \code{NULL} no test is performed.}
+\item{validDimension}{the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.}
 
 \item{type}{For \code{validDimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.}
 
@@ -82,7 +82,7 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 
 \item{requiredValues}{values that must appear in the argument}
 
-\item{requiredValues}{values that must not appear in the argument}
+\item{refuse.values}{values that must not appear in the argument}
 }
 \value{
 An invisible \code{TRUE} or an error message.
@@ -90,4 +90,6 @@ An invisible \code{TRUE} or an error message.
 \description{
 Check the validity of the arguments in functions
 }
+\keyword{check}
+\keyword{function}
 

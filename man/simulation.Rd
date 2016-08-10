@@ -58,7 +58,7 @@ simulBT_TTE(n.T, n.C = NULL, rates.T = 2, rates.C = NULL,
 Simulate binary, continuous or time to event data, possibly with strata.
 }
 \details{
-It is built on the lvm and sim functions from the lava package.
+Built on the lvm and sim functions from the lava package.
 }
 \examples{
 simulBT(1e3)

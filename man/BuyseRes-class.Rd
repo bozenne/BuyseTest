@@ -43,6 +43,8 @@ Wrapper function BuyseRes
 \item{\code{@Delta_quantile}}{:  the randomization test-based 2.5\% and the 97.5\% quantiles of the cumulative chance of a better outcome (in rows) for each endpoint (in columns). \emph{matrix}.}
 
 \item{\code{@endpoint}}{: the name of the endpoint. \emph{character vector}.}
+
+\item{\code{@strata}}{: the name of the strata \emph{character vector}.}
 }}
 \examples{
   n.Treatment_testBin <- 500
