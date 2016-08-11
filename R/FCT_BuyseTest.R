@@ -13,6 +13,7 @@
 #' @param method Is defined when at least one time-to-event outcome is analyzed. Defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations.  Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}. See details. 
 #' @param n.bootstrap the number of bootstrap samples used for computing the confidence interval and the p.values. \emph{integer}. Default is \code{0} meaning no bootstrap (and thus only ponctual estimation).
 #' @param prob.alloc the resampling probability for assignement to the experimental group in the bootstrap samples. \emph{double}. Default is \code{NULL} indicating to use the proportion of patients in the experimental group.
+#' @param stratified Should the boostrap be a stratified bootstrap? \emph{logical}. Default is \code{FALSE}.
 #' @param alternative a \emph{character} specifying the alternative hypothesis. Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. Default is \code{"two.sided"}.
 #' @param seed the seed to consider for the bootstrap. \emph{integer}. Default is \code{10}.
 #' @param cpus the number of CPU to use. \emph{integer}. Default is \code{1}.
@@ -55,8 +56,8 @@
 #'     
 #' @keywords function BuyseTest
 #' @export
-BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,censoring=NULL,method="Peron",
-                      n.bootstrap=0,prob.alloc=NULL, alternative = "two.sided",seed=10,cpus=1,trace=3){
+BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata = NULL, censoring = NULL, method = "Peron",
+                      n.bootstrap = 0, prob.alloc = NULL, stratified = FALSE, alternative = "two.sided", seed = 10, cpus = 1, trace = 3){
   
   
   #### 1- data management + tests ####
@@ -66,10 +67,10 @@ BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,ce
   validCharacter(treatment, validLength = 1, method = "BuyseTest")
   validNames(data, requiredValues = treatment, validLength = NULL, method = "BuyseTest")
   levels.treatment <- levels(as.factor(data[[treatment]])) # extraction of the levels of the treatment variable
-  if(length(levels.treatment) != 2){
+  if (length(levels.treatment) != 2) {
     stop("BuyseTest : wrong specification of \'treatment\' \n",
          "the corresponding column in \'data\' must have exactly 2 levels \n",
-         "proposed levels : ",paste(levels.treatment,collapse=" "),"\n")
+         "proposed levels : ",paste(levels.treatment,collapse = " "),"\n")
   }
   
   ## endpoint
@@ -83,24 +84,24 @@ BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,ce
   type[type %in% c("timeToEvent","TTE")] <- "3"
   type <- as.numeric(type) # type is an integer equal to 1 (binary endpoint), 2 (continuous endpoint) or 3 (time to event endpoint)
   
-  D.TTE <- sum(type==3) # number of time to event endpoints
+  D.TTE <- sum(type == 3) # number of time to event endpoints
   
   ## censoring: (see .Rd internal-intilisation, section details for details)
-  censoring <- initCensoring(censoring=censoring,endpoint=endpoint,type=type,D=D,D.TTE=D.TTE,
-                             treatment=treatment,strata=strata)
+  censoring <- initCensoring(censoring = censoring, endpoint = endpoint, type = type, D = D, D.TTE = D.TTE,
+                             treatment = treatment, strata = strata)
   validNames(data, requiredValues = censoring, validLength = NULL, refuse.NULL = FALSE, method = "BuyseTest")
   
   ## data: split the data according to the two levels
-  if(!is.null(strata)){
+  if (!is.null(strata)) {
     validNames(data, requiredValues = strata, validLength = NULL, method = "BuyseTest")
   }
   
-  if(is.data.table(data)){
-    dataT <- data[data[[treatment]]==levels.treatment[2], c(endpoint,strata,censoring),with=FALSE]
-    dataC <- data[data[[treatment]]==levels.treatment[1], c(endpoint,strata,censoring),with=FALSE]
-  }else if(is.data.frame(data)){
-    dataT <- as.data.table(data[data[[treatment]]==levels.treatment[2],c(endpoint,strata,censoring),drop=FALSE])
-    dataC <- as.data.table(data[data[[treatment]]==levels.treatment[1],c(endpoint,strata,censoring),drop=FALSE])
+  if (is.data.table(data)) {
+    dataT <- data[data[[treatment]] == levels.treatment[2], c(endpoint, strata, censoring), with = FALSE]
+    dataC <- data[data[[treatment]] == levels.treatment[1], c(endpoint, strata, censoring), with = FALSE]
+  }else if (is.data.frame(data)) {
+    dataT <- as.data.table(data[data[[treatment]] == levels.treatment[2], c(endpoint, strata, censoring), drop = FALSE])
+    dataC <- as.data.table(data[data[[treatment]] == levels.treatment[1], c(endpoint, strata, censoring), drop = FALSE])
   }else{
     stop("BuyseTest : data must be a data.frame or a data.table \n")
   }
@@ -108,13 +109,13 @@ BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,ce
   n.Control <- NROW(dataC) # number of patient in the control arm
   
   ## threshold: (see .Rd internal-intilisation, section details for details)
-  threshold <- initThreshold(threshold=threshold,type=type,D=D,
-                             method=method,endpoint=endpoint)
+  threshold <- initThreshold(threshold = threshold, type = type, D = D,
+                             method = method, endpoint = endpoint)
   
   ## strata: (see .Rd internal-intilisation, section details for details)
-  res <- initStrata(strata=strata,
-                    dataT=dataT,dataC=dataC,n.Treatment=n.Treatment,n.Control=n.Control,
-                    endpoint=endpoint,censoring=censoring)
+  res <- initStrata(strata = strata,
+                    dataT = dataT, dataC = dataC, n.Treatment = n.Treatment, n.Control = n.Control,
+                    endpoint = endpoint, censoring = censoring)
   
   index.strataT <- res$index.strataT 
   index.strataC <- res$index.strataC 
@@ -123,9 +124,9 @@ BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,ce
   
   ## method
   validCharacter(method, validLength = 1, validValues = c("Gehan","Peto","Efron","Peron"), method = "BuyseTest")
-  if(D.TTE==0){
+  if (D.TTE == 0) {
     method <- "Gehan"
-    if("method" %in% names(Buysecall) && trace>0){
+    if ("method" %in% names(Buysecall) && trace > 0) {
       message("NOTE : there is no survival endpoint, \'method\' argument is ignored \n")
     }
   }
@@ -137,61 +138,64 @@ BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,ce
   validInteger(n.bootstrap, validLength = 1, min = 0, method = "BuyseTest")
   
   ## proba
-  if(is.null(prob.alloc)){ # if prob.alloc is not set by the user
-    prob.alloc <- n.Treatment/(n.Treatment+n.Control)  # it is set to the proportion of patients in the treatment arm.
+  if (is.null(prob.alloc)) { # if prob.alloc is not set by the user
+    prob.alloc <- n.Treatment/(n.Treatment + n.Control)  # it is set to the proportion of patients in the treatment arm.
   }else{
     validNumeric(prob.alloc, validLength = 1, min = 0, max = 1, method = "BuyseTest")
   }
+  
+  # stratified
+  validLogical(stratified, validLength = 1, method = "BuyseTest")
   
   ## seed
   validInteger(seed, validLength = 1, refuse.NULL = FALSE, min = 1, method = "BuyseTest")
   
   ## cpu
-  if(cpus!=1){
+  if (cpus != 1) {
     #### test package
-    test.package <- requireNamespace("snow",quietly=TRUE)
-    if("package:snow" %in% search()==FALSE){
+    test.package <- requireNamespace("snow",quietly = TRUE)
+    if ("package:snow" %in% search() == FALSE) {
       test.package <- try(attachNamespace("snow"), silent = TRUE)
-      if("package:snow" %in% search()==FALSE){
+      if ("package:snow" %in% search() == FALSE) {
         stop("BuyseTest : this function with argument cpus>1 requires to have installed the snow package to work \n")
       }
     }
     
-    if("package:parallel" %in% search()==FALSE){
+    if ("package:parallel" %in% search() == FALSE) {
       test.package <- try(attachNamespace("parallel"), silent = TRUE)
-      if("package:parallel" %in% search()==FALSE){
+      if ("package:parallel" %in% search() == FALSE) {
         stop("BuyseTest : this function with argument cpus>1 requires to have installed the parallel package to work \n")
       }
     }
     
-    test.package <- requireNamespace("snowfall",quietly=TRUE)
-    if(test.package==FALSE){
+    test.package <- requireNamespace("snowfall",quietly = TRUE)
+    if (test.package == FALSE) {
       stop("BuyseTest : this function with argument cpus>1 requires to have installed the snowfall package to work \n")
     }
     
-    test.package <- requireNamespace("parallel",quietly=TRUE)
-    if(test.package==FALSE){
+    test.package <- requireNamespace("parallel",quietly = TRUE)
+    if (test.package == FALSE) {
       stop("BuyseTest : this function with argument cpus>1 requires to have installed the parallel package to work \n")
     }
     
-    test.package <- requireNamespace("tcltk",quietly=TRUE)
-    if(test.package==FALSE){
+    test.package <- requireNamespace("tcltk",quietly = TRUE)
+    if (test.package == FALSE) {
       stop("BuyseTest : this function with argument cpus>1 and trace>0 requires to have installed the tcltk package to work \n")
     }    
     
   }
   
-  if(cpus=="all"){ 
+  if (cpus == "all") { 
     cpus <- parallel::detectCores() # this function detect the number of CPU cores 
-  }else{  # if several cpus are intended to be used, check this correspond to a valid number of CPU cores
+  }else{# if several cpus are intended to be used, check this correspond to a valid number of CPU cores
     validInteger(cpus, validLength = 1, validValues = 1:parallel::detectCores(), method = "BuyseTest")
   }
   
   ## data (again)
-  res <- initData(dataT=dataT, dataC=dataC,type=type,endpoint=endpoint,D=D,censoring=censoring,
-                  index.strataT=index.strataT,index.strataC=index.strataC,n.strata=n.strata,                  
-                  method=method,D.TTE=D.TTE,threshold=threshold,Wscheme=NULL,
-                  test=TRUE,trace=trace)
+  res <- initData(dataT = dataT, dataC = dataC,type = type,endpoint = endpoint, D = D, censoring = censoring,
+                  index.strataT = index.strataT, index.strataC = index.strataC, n.strata = n.strata,                  
+                  method = method,D.TTE = D.TTE, threshold = threshold, Wscheme = NULL,
+                  test = TRUE, trace = trace)
   
   M.Treatment <- res$M.Treatment
   M.Control <- res$M.Control 
@@ -204,38 +208,39 @@ BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,ce
   list_survivalC <- res$list_survivalC
   
   #### 2- General display #### 
-  if(trace>1){
+  if (trace > 1) {
     printGeneral(levels.treatment = levels.treatment,
                  levels.strata = levels.strata, n.strata = n.strata,
                  endpoint = endpoint, threshold = threshold, censoring = censoring, type = type, D = D, D.TTE = D.TTE,
                  method = method, 
-                 Wscheme = if(method %in% c("Peto","Efron","Peron")){Wscheme}else{NULL}, 
-                 threshold_TTEM1 = if(method %in% c("Peto","Efron","Peron")){Wscheme}else{NULL})
+                 Wscheme = if (method %in% c("Peto","Efron","Peron")) {Wscheme} else {NULL}, 
+                 threshold_TTEM1 = if (method %in% c("Peto","Efron","Peron")) {Wscheme} else {NULL})
   }
   
   #### 2- Punctual estimation ####
-  if(trace>1){cat("Punctual estimation \n")}
+  if (trace > 1) {cat("Punctual estimation \n")}
   
-  if(method %in% c("Peto","Efron","Peron")){  
+  if (method %in% c("Peto","Efron","Peron")) {  
     time <- system.time({
-      resPonctual <-   BuyseTest_PetoEfronPeron_cpp(Treatment=M.Treatment,Control=M.Control,threshold=threshold,type=type,
-                                                    delta_Treatment=M.delta_Treatment,delta_Control=M.delta_Control,
-                                                    D=D,returnIndex=TRUE,
-                                                    strataT=index.strataT,strataC=index.strataC,n_strata=n.strata,n_TTE=D.TTE,
-                                                    Wscheme=Wscheme,index_survivalM1=index_survivalM1,threshold_TTEM1=threshold_TTEM1,list_survivalT=list_survivalT,list_survivalC=list_survivalC,
-                                                    PEP=which(c("Peto","Efron","Peron") == method)
+      resPonctual <- BuyseTest_PetoEfronPeron_cpp(Treatment = M.Treatment, Control = M.Control, threshold = threshold, type = type,
+                                                  delta_Treatment = M.delta_Treatment, delta_Control = M.delta_Control,
+                                                  D = D, returnIndex = TRUE,
+                                                  strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE,
+                                                  Wscheme = Wscheme,index_survivalM1 = index_survivalM1, threshold_TTEM1 = threshold_TTEM1, 
+                                                  list_survivalT = list_survivalT, list_survivalC = list_survivalC,
+                                                  PEP = which(c("Peto", "Efron", "Peron") == method)
       )
     })
-  }else if(method=="Gehan"){
+  }else if (method == "Gehan") {
     time <- system.time({
-      resPonctual <-   BuyseTest_Gehan_cpp(Treatment=M.Treatment,Control=M.Control,threshold=threshold,type=type,
-                                           delta_Treatment=M.delta_Treatment,delta_Control=M.delta_Control,
-                                           D=D,returnIndex=TRUE,
-                                           strataT=index.strataT,strataC=index.strataC,n_strata=n.strata,n_TTE=D.TTE)    
+      resPonctual <-   BuyseTest_Gehan_cpp(Treatment = M.Treatment, Control = M.Control, threshold = threshold, type = type,
+                                           delta_Treatment = M.delta_Treatment, delta_Control = M.delta_Control,
+                                           D = D, returnIndex = TRUE,
+                                           strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE)    
     })
   }
   
-  if(trace>1){cat("   # done \n")}
+  if (trace > 1) {cat("   # done \n")}
   
   #### 3- transfomration into BuyseRes object ####
   BuyseRes.object <- BuyseRes(
@@ -259,35 +264,37 @@ BuyseTest <- function(data,treatment,endpoint,type,threshold=NULL,strata=NULL,ce
   )
   
   #### 4- Bootstrap ####
-  if(n.bootstrap==0){
-    if(trace>1){
+  if (n.bootstrap == 0) {
+    if (trace > 1) {
       message("*** only ponctual estimation requested ***\n",
               "set \'n.bootstrap\' argument to a strictly postive value for confidence interval and p.value \n"
       )}
     
   }else{
     
-    if(trace>1){
-      printBoostrap(prob.alloc, n.bootstrap, cpus, time, seed)
+    if (trace > 1) {
+      printBoostrap(prob.alloc, n.bootstrap, stratified, cpus, time, seed)
     }
     
-    n.eachStrataT <- unlist(lapply(index.strataT, length))
+    n.eachStrataT <- unlist(lapply(index.strataT, length)) # those variables are used during the boostrap and passed to the wrapper through the environment
     n.eachStrataC <- unlist(lapply(index.strataC, length))
+    nCumSum.strataControl <- cumsum(c(1,n.eachStrataC))
+    nCumSum.strataTreatment <- cumsum(c(1,n.eachStrataT))
     
     ### to be finished !!!
     export_names <- c("nParallel.bootstrap","n.Treatment","prob.alloc","strataT","strataC","M.Treatment","M.Control","threshold","type","D","n.strata","D.TTE")
-    if(D.TTE>0){export_names <- c(export_names,"M.delta_Treatment","M.delta_Control")}
-    if(method %in% c("Peto","Efron","Peron")){export_names <- c(export_names,"Wscheme","list_survivalT","list_survivalC")}
+    if (D.TTE > 0) {export_names <- c(export_names,"M.delta_Treatment","M.delta_Control")}
+    if (method %in% c("Peto","Efron","Peron")) {export_names <- c(export_names,"Wscheme","list_survivalT","list_survivalC")}
     
-    delta_boot <- array(NA,dim=c(n.strata,D,n.bootstrap))
+    delta_boot <- array(NA, dim = c(n.strata, D, n.bootstrap))
     
     #### computation
     calcBootstrap(environment())
     
     #### post treatment
-    if(trace>1){cat("Post-Treatment \n")}
-    res <- calcCI(delta=resPonctual$delta,delta_boot=delta_boot,endpoint=endpoint,D=D,alternative=alternative,alpha=0.05,
-                  n.bootstrap=n.bootstrap,cpus=cpus,trace=TRUE)
+    if (trace > 1) {cat("Post-Treatment \n")}
+    res <- calcCI(delta = resPonctual$delta, delta_boot = delta_boot, endpoint = endpoint, D = D, alternative = alternative, alpha = 0.05,
+                  n.bootstrap = n.bootstrap, cpus = cpus, trace = TRUE)
     p.value <- res$p.value  
     Delta_quantile <-  res$Delta_quantile
     

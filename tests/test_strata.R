@@ -15,7 +15,7 @@ library(testthat)
 library(lava)
 library(data.table)
 precision <- 10^{-7}
-n.patients <- 200
+n.patients <- c(90,100)
 n.bootstrap <- 10
 save <- FALSE
 
@@ -25,24 +25,21 @@ source("tests/FCT_check.R")
 
 #### 1- Check number of pairs ####
 set.seed(10)
-n.patients <- 10
 argsBin <- list(p.T = c(0.5,0.75))
 argsCont <- list(mu.T = 1:3, sigma.T = rep(1,3))
 argsTTE <- list(rates.T = 1:3, rates.Censor = rep(1,3))
 
 #### binary #### 
-data_Bin <- simulBT(n.patients, argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
+data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
 data_BinS <- rbind(cbind(data_Bin, strata = 1),
-                       cbind(data_Bin, strata = 2),
-                       cbind(data_Bin, strata = 3))
+                   cbind(data_Bin, strata = 2),
+                   cbind(data_Bin, strata = 3))
 
 
 BT_Bin1 <- BuyseTest(data=data_BinS,endpoint=c("Y_bin1","Y_bin2"),
-                                treatment="Treatment", type=c("bin","bin"),strata="strata",
-                                n.bootstrap=n.bootstrap,trace=0)
-summary(BT_Bin1)
-
-summary(BT_Bin1)
+                     treatment="Treatment", type=c("bin","bin"),strata="strata",
+                     n.bootstrap=n.bootstrap,trace=0)
+BT_Bin1
 
 test_that("count pairs summary - Binary",{
   valTest <- as.double(validPairs(BT_Bin1, type = "sum"))
@@ -55,7 +52,7 @@ test_that("identical strata - Binary",{
 
 #### continuous ####
 set.seed(10)
-data_Cont <- simulBT(n.patients, argsBin = NULL, argsCont = argsCont, argsTTE = NULL)
+data_Cont <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = argsCont, argsTTE = NULL)
 data_ContS <- rbind(cbind(data_Cont, strata = 1),
                         cbind(data_Cont, strata = 2),
                         cbind(data_Cont, strata = 3))
@@ -77,7 +74,7 @@ test_that("identical strata - Continuous",{
 
 #### TTE ####
 set.seed(10)
-data_TTE <- simulBT(n.patients, argsBin = NULL, argsCont = NULL, argsTTE = argsTTE)
+data_TTE <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = NULL, argsTTE = argsTTE)
 data_TTES <- rbind(cbind(data_TTE, strata = 1),
                    cbind(data_TTE, strata = 2),
                    cbind(data_TTE, strata = 3))
@@ -103,7 +100,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
 
 #### mixed outcomes ####
 set.seed(10)
-data_Mix <- simulBT(n.patients, argsBin = argsBin, argsCont = argsCont, argsTTE = argsTTE)
+data_Mix <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = argsCont, argsTTE = argsTTE)
 data_MixS <- rbind(cbind(data_Mix, strata = 1),
                    cbind(data_Mix, strata = 2),
                    cbind(data_Mix, strata = 3))
