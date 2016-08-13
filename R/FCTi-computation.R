@@ -33,9 +33,11 @@ calcBootstrap <- function(envir){
                                  matrix(1.5, envir$n.strata, envir$D)) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
     
   }else {## parallel boostrap
+    
     #envir$cpus <- 1 #browser()
     if (envir$trace > 1) {cat("Parallel boostrap \n")}
     envir$nParallel.bootstrap <- round(envir$n.bootstrap/envir$cpus) # number of bootstrap sample by cpu
+    envir$warper_BTboot <- warper_BTboot
     
     # init
     if (envir$trace == 3) { # affect the cpus
@@ -49,7 +51,7 @@ calcBootstrap <- function(envir){
     ## wrapper function to be called by each cpu
     wrapper <- function(x){
       return(vapply(1:envir$nParallel.bootstrap,
-                    function(x){warper_BTboot(x, envir = envir)},
+                    function(x){envir$warper_BTboot(x, envir = envir)},
                     matrix(1.5, envir$n.strata, envir$D))) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
     }
     
@@ -65,16 +67,17 @@ calcBootstrap <- function(envir){
       invisible(snowfall::sfClusterEval(title_pb <- paste(cpu_name, "bootstrap iterations", sep = ""))) # affect the title the progress bar to each cpu 
       invisible(snowfall::sfClusterEval(label_pb <- paste(cpu_name, " 0% done", sep = ""))) # affect the initial legend of the progress bar to each cpu 
       invisible(snowfall::sfClusterEval(pb <- tcltk::tkProgressBar(title_pb, label_pb, 0, 1, 0))) # affect and display the progress bar to each cpu 
+    }else{
+      envir$index.trace <- -1
     }
     
     ## export the needed variables
     snowfall::sfExport("envir")
     
     ## bootstrap    
-    if (!is.null(envir$seed)) {      
+    if (!is.null(envir$seed)) { 
       snowfall::sfClusterEval(set.seed(envir$seed + cpu_index - 1))
     }
-    
     resIter <- snowfall::sfClusterApply(rep(NA, envir$cpus), wrapper) # call the cpu to perform bootstrap computations
     
     if (envir$trace == 3) { # free the cpus
@@ -176,26 +179,29 @@ warper_BTboot <- function(x,envir){
   new.nC <- 0
   
   if (envir$stratified == FALSE) {
-    groupT.all <- rbinom(envir$n.Treatment, size = 1, prob = envir$prob.alloc)
-    groupC.all <- rbinom(envir$n.Control, size = 1, prob = envir$prob.alloc)
+    groupT.Tall <- which(rbinom(envir$n.Treatment, size = 1, prob = envir$prob.alloc) == 1)
+    groupT.Call <- which(rbinom(envir$n.Control, size = 1, prob = envir$prob.alloc) == 1)
   }
   
   for (iterS in 1:envir$n.strata) {  ## randomisation : new allocation of the treatment and control arm
     
+    indexStrataT <- seq(envir$nCumSum.strataTreatment[iterS],envir$nCumSum.strataTreatment[iterS + 1] - 1)
+    indexStrataC <- seq(envir$nCumSum.strataControl[iterS],envir$nCumSum.strataControl[iterS + 1] - 1)
+    
     if (envir$stratified) {
-      indexT.T <- sample.int(envir$n.eachStrataT[iterS], 
+      indexT.T <- sample.int(indexStrataT, 
                              size = round(envir$n.eachStrataT[iterS]*envir$prob.alloc), 
                              replace = FALSE)
-      indexT.C <- sample.int(envir$n.eachStrataC[iterS], 
+      indexT.C <- sample.int(indexStrataC, 
                              size = round(envir$n.eachStrataC[iterS]*envir$prob.alloc), 
                              replace = FALSE)
     }else{
-      indexT.T <- which(groupT.all[envir$nCumSum.strataTreatment[iterS]:(envir$nCumSum.strataTreatment[iterS + 1] - 1)] == 1)
-      indexT.C <- which(groupC.all[envir$nCumSum.strataControl[iterS]:(envir$nCumSum.strataControl[iterS + 1] - 1)] == 1)
+      indexT.T <- intersect(groupT.Tall, indexStrataT)
+      indexT.C <- intersect(groupT.Call, indexStrataC)
     }
     
-    indexC.T <- setdiff(seq_len(envir$n.eachStrataT[iterS]),indexT.T)
-    indexC.C <- setdiff(seq_len(envir$n.eachStrataC[iterS]),indexT.C)
+    indexC.T <- setdiff(indexStrataT,indexT.T)
+    indexC.C <- setdiff(indexStrataC,indexT.C)
     
     nboot.T <- length(indexT.T) + length(indexT.C)
     nboot.C <- length(indexC.T) + length(indexC.C)
@@ -259,33 +265,36 @@ warper_BTboot <- function(x,envir){
   
   if (boot.failure == FALSE) {
     if (envir$method %in% c("Efron","Peron")) { # update survival
-      res_init <- initSurvival(M.Treatment = Mnew.Treatment,M.Control = Mnew.Control,
-                               M.delta_Treatment = Mnew.delta_Treatment,M.delta_Control = Mnew.delta_Control,
-                               endpoint = envir$endpoint,D.TTE = envir$D.TTE,type = envir$type,threshold = envir$threshold,
-                               index.strataT = new.strataT,index.strataC = new.strataC,n.strata = envir$n.strata,
-                               method = envir$method)
+      res_init <- BuyseTest::initSurvival(M.Treatment = Mnew.Treatment,M.Control = Mnew.Control,
+                                          M.delta_Treatment = Mnew.delta_Treatment,M.delta_Control = Mnew.delta_Control,
+                                          endpoint = envir$endpoint,D.TTE = envir$D.TTE,type = envir$type,threshold = envir$threshold,
+                                          index.strataT = new.strataT,index.strataC = new.strataC,n.strata = envir$n.strata,
+                                          method = envir$method)
     }
     
     #### Computation
     if (envir$method %in% c("Peto","Efron","Peron")) {
-      delta_boot <-   BuyseTest_PetoEfronPeron_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold,type = envir$type,
-                                                   delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
-                                                   D = envir$D,returnIndex = FALSE,
-                                                   strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE,
-                                                   Wscheme = envir$Wscheme,index_survivalM1 = envir$index_survivalM1,threshold_TTEM1 = envir$threshold_TTEM1,
-                                                   list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
-                                                   list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
-                                                   PEP = which(c("Peto","Efron","Peron") == envir$method))$delta
+      delta_boot <-   BuyseTest::BuyseTest_PetoEfronPeron_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold,type = envir$type,
+                                                              delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
+                                                              D = envir$D,returnIndex = FALSE,
+                                                              strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE,
+                                                              Wscheme = envir$Wscheme,index_survivalM1 = envir$index_survivalM1,threshold_TTEM1 = envir$threshold_TTEM1,
+                                                              list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
+                                                              list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
+                                                              PEP = which(c("Peto","Efron","Peron") == envir$method))$delta
       
     }else if (envir$method == "Gehan") {
-      delta_boot <-   BuyseTest_Gehan_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold,type = envir$type,
-                                          delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
-                                          D = envir$D,returnIndex = FALSE,
-                                          strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE)$delta
+      
+      delta_boot <- BuyseTest::BuyseTest_Gehan_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold,type = envir$type,
+                                                   delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
+                                                   D = envir$D,returnIndex = FALSE,
+                                                   strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE)$delta
+     
     }
   }else{
     delta_boot <- matrix(NA, nrow = envir$n.strata, ncol = envir$D)
   }
+  
   
   if (x == envir$index.trace[1]) { ## display
     # if the following percentage of iterations is reached

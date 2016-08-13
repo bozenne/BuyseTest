@@ -191,7 +191,8 @@ validInteger <- function(value1, name1 = as.character(substitute(value1)), valid
   }
   
   validNumeric(value1 = value1, name1 = name1, validLength = validLength, min = min, max = max, 
-               refuse.NA = refuse.NA, refuse.NULL = refuse.NULL, refuse.duplicates = refuse.duplicates, method = method)
+               validValues = validValues, refuse.NA = refuse.NA, refuse.NULL = refuse.NULL, refuse.duplicates = refuse.duplicates, 
+               method = method)
   
   #### check integer
   if(!is.null(value1) && any(value1 %% 1 > 0)){

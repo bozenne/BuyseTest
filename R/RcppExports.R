@@ -30,11 +30,13 @@
 NULL
 
 #' @rdname BuyseTest_cpp
+#' @export
 BuyseTest_Gehan_cpp <- function(Treatment, Control, threshold, type, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE) {
     .Call('BuyseTest_BuyseTest_Gehan_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, type, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE)
 }
 
 #' @rdname BuyseTest_cpp
+#' @export
 BuyseTest_PetoEfronPeron_cpp <- function(Treatment, Control, threshold, type, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, PEP) {
     .Call('BuyseTest_BuyseTest_PetoEfronPeron_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, type, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, PEP)
 }

@@ -382,6 +382,7 @@ initStrata <- function(strata,
 }
 
 #' @rdname internal-intilisation
+#' @export
 initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control,
                          endpoint,D.TTE,type,threshold,
                          index.strataT,index.strataC,n.strata,
