@@ -7,21 +7,21 @@
 # check whether when using identical values across strata, the result is the same across strata
 # check consistency with results from previous version (on common slots)
 
-# PB with the bootstrap !!!!!!
-
 #### spec
 # library(BuyseTest) # butils:::package.source("BuyseTest", Rcode = TRUE, Ccode = TRUE)
 library(testthat)
 library(lava)
 library(data.table)
+source("tests/FCT_check.R")
+
 precision <- 10^{-7}
 n.patients <- c(90,100)
 n.bootstrap <- 10
-save <- FALSE
 
+save <- FALSE
+conv2df <- FALSE
 
 #### function
-source("tests/FCT_check.R")
 
 #### 1- Check number of pairs ####
 set.seed(10)
@@ -34,6 +34,7 @@ data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin,
 data_BinS <- rbind(cbind(data_Bin, strata = 1),
                    cbind(data_Bin, strata = 2),
                    cbind(data_Bin, strata = 3))
+if(conv2df){data_BinS <- as.data.frame(data_BinS)}
 
 
 BT_Bin1 <- BuyseTest(data=data_BinS,endpoint=c("Y_bin1","Y_bin2"),
@@ -56,6 +57,7 @@ data_Cont <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, a
 data_ContS <- rbind(cbind(data_Cont, strata = 1),
                         cbind(data_Cont, strata = 2),
                         cbind(data_Cont, strata = 3))
+if(conv2df){data_ContS <- as.data.frame(data_ContS)}
 
 BT_Cont1 <- BuyseTest(data=data_ContS,endpoint=c("Y_cont1","Y_cont2"),
                                  treatment="Treatment", type=c("cont","cont"),threshold=c(1,1),strata="strata",
@@ -78,7 +80,9 @@ data_TTE <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, ar
 data_TTES <- rbind(cbind(data_TTE, strata = 1),
                    cbind(data_TTE, strata = 2),
                    cbind(data_TTE, strata = 3))
+if(conv2df){data_TTES <- as.data.frame(data_TTES)}
 
+## different endpoints
 BT_TTE1 <- vector(length = 4, mode = "list")
 names(BT_TTE1) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
@@ -98,14 +102,34 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
+## same endpoint
+BT_TTE2 <- vector(length = 4, mode = "list")
+names(BT_TTE2) <- c("Gehan","Peto","Efron","Peron")
+for(method in c("Gehan","Peto","Efron","Peron")){
+  BT_TTE2[[method]] <- BuyseTest(data=data_TTES,endpoint=c("Y_TTE1","Y_TTE1","Y_TTE1"),method=method,
+                                 treatment="Treatment",censoring=c("event1","event1","event1"),strata="strata",
+                                 type=c("TTE","TTE","TTE"),threshold=c(1,0.5,0.25),
+                                 n.bootstrap = n.bootstrap, trace=0)
+  (BT_TTE2[[method]])
+  
+  test_that("count pairs summary - TTE",{
+    valTest <- as.double(validPairs(BT_TTE2[[method]], type = "sum"))
+    expect_equal(valTest, rep(0, times = length(valTest)))
+  })
+  test_that("identical strata - TTE",{
+    valTest <- as.vector(na.omit(as.double(validPairs(BT_TTE2[[method]], type = "strata"))))
+    expect_equal(valTest, rep(0, times = length(valTest)))
+  })
+}
+
 #### mixed outcomes ####
 set.seed(10)
 data_Mix <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = argsCont, argsTTE = argsTTE)
 data_MixS <- rbind(cbind(data_Mix, strata = 1),
                    cbind(data_Mix, strata = 2),
                    cbind(data_Mix, strata = 3))
+if(conv2df){data_MixS <- as.data.frame(data_MixS)}
 
-#### without strata ####
 BT_Mix <- vector(length = 4, mode = "list")
 names(BT_Mix) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
@@ -128,6 +152,13 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
+#### Real data ####
+data(veteran, package = "survival")
+
+BT_veteran <- BuyseTest(data = veteran, endpoint = "time", treatment = "trt", strata = "celltype",
+                        type = "timeToEvent", censoring = "status",threshold = 0, 
+                        n.bootstrap = n.bootstrap, trace = 0)
+BT_veteran
 
 ##### export
 version <- packageVersion("BuyseTest")
@@ -136,8 +167,9 @@ dir <- paste0("tests/Results-version",version)
 if(!is.null(save) && save == TRUE){
   results_strata <- list(OutcomeBin = list(data = data_BinS, BT = BT_Bin1),
                          OutcomeCont = list(data = data_ContS, BT = BT_Cont1),
-                         OutcomeTTE = list(data = data_TTES, BT = BT_TTE1), 
-                         OutcomeMix = list(data = data_MixS, BT = BT_Mix))
+                         OutcomeTTE = list(data = data_TTES, BT1 = BT_TTE1, BT2 = BT_TTE2), 
+                         OutcomeMix = list(data = data_MixS, BT = BT_Mix),
+                         veteran = list(data = veteran, BT = BT_veteran))
   if(dir.exists(dir) == FALSE){dir.create(dir)}
   save(results_strata, file = file.path(dir,"test_strata.RData"))
 }else if(!is.null(save) && save == FALSE){
@@ -146,14 +178,20 @@ if(!is.null(save) && save == TRUE){
   test_that("comparison with the previous version", {
     expect_equalBT(BT_Bin1, results_strata$OutcomeBin$BT)
     expect_equalBT(BT_Cont1, results_strata$OutcomeCont$BT)
-    expect_equalBT(BT_TTE1$Gehan, results_strata$OutcomeTTE$BT$Gehan)
-    expect_equalBT(BT_TTE1$Peto, results_strata$OutcomeTTE$BT$Peto)
-    expect_equalBT(BT_TTE1$Efron, results_strata$OutcomeTTE$BT$Efron)
-    expect_equalBT(BT_TTE1$Peron, results_strata$OutcomeTTE$BT$Peron)
+    expect_equalBT(BT_TTE1$Gehan, results_strata$OutcomeTTE$BT1$Gehan)
+    expect_equalBT(BT_TTE1$Peto, results_strata$OutcomeTTE$BT1$Peto)
+    expect_equalBT(BT_TTE1$Efron, results_strata$OutcomeTTE$BT1$Efron)
+    expect_equalBT(BT_TTE1$Peron, results_strata$OutcomeTTE$BT1$Peron)
+    expect_equalBT(BT_TTE2$Gehan, results_strata$OutcomeTTE$BT2$Gehan)
+    expect_equalBT(BT_TTE2$Peto, results_strata$OutcomeTTE$BT2$Peto)
+    expect_equalBT(BT_TTE2$Efron, results_strata$OutcomeTTE$BT2$Efron)
+    expect_equalBT(BT_TTE2$Peron, results_strata$OutcomeTTE$BT2$Peron)
     
     expect_equalBT(BT_Mix$Gehan, results_strata$OutcomeMix$BT$Gehan)
     expect_equalBT(BT_Mix$Peto, results_strata$OutcomeMix$BT$Peto)
     expect_equalBT(BT_Mix$Efron, results_strata$OutcomeMix$BT$Efron)
     expect_equalBT(BT_Mix$Peron, results_strata$OutcomeMix$BT$Peron)
+  
+    expect_equalBT(BT_veteran, results_strata$veteran$BT)
   })
 }
