@@ -254,9 +254,9 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
     index_uninfT = resPonctual$index_uninfT,
     index_uninfC = resPonctual$index_uninfC,
     n_pairs = resPonctual$n_pairs,
-    delta_boot = array(NA,dim = c(n.strata,D,1)), 
-    p.value = rep(NA,D),    
-    Delta_quantile = matrix(NA,nrow = 2, ncol = D, dimnames = list(c("2.5%","97.5%"))),
+#     delta_boot = array(NA,dim = c(n.strata,D,1)), 
+#     p.value = rep(NA,D),    
+#     Delta_quantile = matrix(NA,nrow = 2, ncol = D, dimnames = list(c("2.5%","97.5%"))),
     endpoint = endpoint,
     threshold = threshold,
     strata = levels.strata,
@@ -280,12 +280,7 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
     n.eachStrataC <- unlist(lapply(index.strataC, length))
     nCumSum.strataControl <- cumsum(c(1,n.eachStrataC))
     nCumSum.strataTreatment <- cumsum(c(1,n.eachStrataT))
-    
-    ### to be finished !!!
-    export_names <- c("nParallel.bootstrap","n.Treatment","prob.alloc","strataT","strataC","M.Treatment","M.Control","threshold","type","D","n.strata","D.TTE")
-    if (D.TTE > 0) {export_names <- c(export_names,"M.delta_Treatment","M.delta_Control")}
-    if (method %in% c("Peto","Efron","Peron")) {export_names <- c(export_names,"Wscheme","list_survivalT","list_survivalC")}
-    
+       
     delta_boot <- array(NA, dim = c(n.strata, D, n.bootstrap))
     
     #### computation

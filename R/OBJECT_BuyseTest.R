@@ -56,23 +56,23 @@ setClass(
   Class = "BuyseRes",
   
   representation(
-    delta = "matrix", 
     count_favorable = "matrix",      
     count_unfavorable = "matrix",
     count_neutral = "matrix",    
     count_uninf = "matrix",
+    delta = "matrix", 
+    delta_boot = "array", 
+    Delta_quantile = "matrix",
+    endpoint = "vector",
     index_neutralT = "vector",
     index_neutralC = "vector",
     index_uninfT = "vector",
     index_uninfC = "vector",
+    levels.treatment = "vector",
     n_pairs = "numeric",
-    delta_boot = "array", 
     p.value = "vector",    
-    Delta_quantile = "matrix",
-    endpoint = "vector",
-    threshold = "vector",
     strata = "vector",
-    levels.treatment = "vector"
+    threshold = "vector"
   ),
   
   validity = function(object){
@@ -104,7 +104,55 @@ setClass(
   
 )
 
-#' Wrapper function BuyseRes
+#' Initialize BuyseTest objects 
+#'
+#' @rdname BuyseRes-class
+methods::setMethod(
+  f = "initialize", 
+  signature = "BuyseRes", 
+  definition = function(.Object, 
+                        count_favorable, count_unfavorable, count_neutral, count_uninf, 
+                        delta, delta_boot, Delta_quantile, p.value,
+                        index_neutralT, index_neutralC, index_uninfT, index_uninfC, 
+                        endpoint, levels.treatment, n_pairs,  strata, threshold){
+    
+    n.strata <- length(strata)
+    D <- length(endpoint)
+    
+    if(missing(delta_boot)){
+      delta_boot <- array(NA,dim = c(n.strata,D,1))
+    }
+    if(missing(p.value)){
+      p.value <- rep(NA,D)
+    }
+    if(missing(Delta_quantile)){
+      Delta_quantile <- matrix(NA,nrow = 2, ncol = D, dimnames = list(c("2.5%","97.5%")))
+    }
+    
+    .Object@delta <- delta
+    .Object@count_favorable <- count_favorable      
+    .Object@count_unfavorable <- count_unfavorable
+    .Object@count_neutral <- count_neutral   
+    .Object@count_uninf <- count_uninf
+    .Object@index_neutralT <- index_neutralT
+    .Object@index_neutralC <- index_neutralC
+    .Object@index_uninfT <- index_uninfT
+    .Object@index_uninfC <- index_uninfC
+    .Object@n_pairs <- n_pairs
+    .Object@delta_boot <- delta_boot
+    .Object@p.value <- p.value    
+    .Object@Delta_quantile <- Delta_quantile
+    .Object@endpoint <- endpoint
+    .Object@threshold <- threshold
+    .Object@strata <- strata
+    .Object@levels.treatment <- levels.treatment
+    
+    validObject(.Object)
+    return(.Object)
+    
+})
+
+#' Wrapper for creating BuyseRes objects
 #'
 #' @rdname BuyseRes-class
 #' @export
