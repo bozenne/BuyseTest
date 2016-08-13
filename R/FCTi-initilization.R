@@ -492,7 +492,6 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
         rownames(list_survivalC[[iter_endpointTTE]])[index.strataC[[iter_strata]]] <- time_control    
     
       }else if(method=="Peto"){ # Peto
-        
         time_treatment <- Mstrata.Treatment[,endpoint[type==3][iter_endpointTTE]] # store the event times of the treatment arm for a given TTE endpoint
         time_control <- Mstrata.Control[,endpoint[type==3][iter_endpointTTE]] # store the event times of the control arm for a given TTE endpoint
         

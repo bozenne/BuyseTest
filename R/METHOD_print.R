@@ -49,6 +49,6 @@ setMethod(f ="show",
            table$threshold[is.na(table$threshold)] <- ""
            print(table, row.names = FALSE)
            
-           return(NULL)
+           return(invisible(NULL))
           }
 )
