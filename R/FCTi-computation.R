@@ -45,6 +45,7 @@ calcBootstrap <- function(envir){
       suppressWarnings(suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = envir$cpus))) # warning si proxy dans commandArgs() (provient de la fonction searchCommandline)
     }
     pid <- unlist(snowfall::sfClusterEval(Sys.getpid())) # identifier of each R session
+    snowfall::sfExport("pid")
     
     ## wrapper function to be called by each cpu
     wrapper <- function(x){
@@ -52,6 +53,7 @@ calcBootstrap <- function(envir){
                     function(x){envir$warper_BTboot(x, envir = envir)},
                     matrix(1.5, envir$n.strata, envir$D))) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
     }
+    
     ## export the needed variables
     envir$nParallel.bootstrap <- round(envir$n.bootstrap/envir$cpus) # number of bootstrap sample by cpu
     envir$warper_BTboot <- warper_BTboot
@@ -64,20 +66,18 @@ calcBootstrap <- function(envir){
     snowfall::sfExport("envir")
     
     ## seed
-    invisible(snowfall::sfClusterEval(envir$cpu_index <- which(envir$pid %in% Sys.getpid()))) # identify to index of the session of each cpu 
     if (!is.null(envir$seed)) { 
-      snowfall::sfClusterEval(set.seed(envir$seed + envir$cpu_index - 1))
+      invisible(snowfall::sfClusterEval(set.seed(envir$seed + which(pid %in% Sys.getpid()) - 1)))
     }
     
     ## trace
     if (envir$trace > 0) {
       snowfall::sfLibrary("tcltk", character.only = TRUE) # export tcltk library (required for the progress bar) to each cpu
-      invisible(snowfall::sfClusterEval(envir$cpu_name <- paste("cpu ", envir$cpu_index, " : ", sep = ""))) # identify the name of each cpu session
-      invisible(snowfall::sfClusterEval(title_pb <- paste(envir$cpu_name, "bootstrap iterations", sep = ""))) # affect the title the progress bar to each cpu 
-      invisible(snowfall::sfClusterEval(label_pb <- paste(envir$cpu_name, " 0% done", sep = ""))) # affect the initial legend of the progress bar to each cpu 
-      invisible(snowfall::sfClusterEval(pb <- tcltk::tkProgressBar(title_pb, label_pb, 0, 1, 0))) # affect and display the progress bar to each cpu 
+      invisible(snowfall::sfClusterEval(title_pb <- paste0("cpu ", which(pid %in% Sys.getpid()), ": bootstrap iterations"))) # affect the title the progress bar to each cpu 
+      invisible(snowfall::sfClusterEval(label_pb <- paste0("cpu ", which(pid %in% Sys.getpid()), ": 0% done"))) # affect the initial legend of the progress bar to each cpu 
+      envir$pb <- snowfall::sfClusterEval(tcltk::tkProgressBar(title_pb, label_pb, 0, 1, 0)) # affect and display the progress bar to each cpu 
+      snowfall::sfExport("envir")
     }
-    #snowfall::sfClusterEval(tcltk::setTkProgressBar(pb = envir$pb, value = 1))
   
     ## bootstrap    
     resIter <- snowfall::sfClusterApply(rep(NA, envir$cpus), wrapper) # call the cpu to perform bootstrap computations
@@ -181,8 +181,8 @@ warper_BTboot <- function(x,envir){
   new.nC <- 0
   
   if (envir$stratified == FALSE) {
-    groupT.Tall <- which(rbinom(envir$n.Treatment, size = 1, prob = envir$prob.alloc) == 1)
-    groupT.Call <- which(rbinom(envir$n.Control, size = 1, prob = envir$prob.alloc) == 1)
+    groupT.Tall <- which(stats::rbinom(envir$n.Treatment, size = 1, prob = envir$prob.alloc) == 1)
+    groupT.Call <- which(stats::rbinom(envir$n.Control, size = 1, prob = envir$prob.alloc) == 1)
   }
   
   for (iterS in 1:envir$n.strata) {  ## randomisation : new allocation of the treatment and control arm
@@ -311,10 +311,11 @@ warper_BTboot <- function(x,envir){
     }else{
       pc_done <- envir$index.trace[1]/envir$nParallel.bootstrap
       
-      title_pb <- paste0("cpu ", envir$cpu_index, ": bootstrap iterations")
-      label_pb <- paste0("cpu ", envir$cpu_index, ": ",round(100 * pc_done), "% done")
+      cpu_index <- which(envir$pid %in% Sys.getpid())
+      title_pb <- paste0("cpu ", cpu_index, ": bootstrap iterations")
+      label_pb <- paste0("cpu ", cpu_index, ": ",round(100 * pc_done), "% done")
       
-      tcltk::setTkProgressBar(pb = pb, value = pc_done,title = paste(title_pb,"(",round(100 * pc_done),"%)",sep = ""), label = label_pb)
+      tcltk::setTkProgressBar(pb = envir$pb[[cpu_index]], value = pc_done,title = paste(title_pb,"(",round(100 * pc_done),"%)",sep = ""), label = label_pb)
       envir$index.trace <- envir$index.trace[-1]                 
     } 
   }

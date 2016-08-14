@@ -77,7 +77,7 @@ Uninformative pairs correspond to pairs for which the censoring prevend from cla
   library(BuyseTest)
   BuyseTest_veteran_Gehan <- BuyseTest(data=veteran,endpoint="time",treatment="trt",
                                        strata="celltype",type="timeToEvent",censoring="status",threshold=0,
-                                       n.bootstrap=1000,method="Gehan",cpus="all")
+                                       n.bootstrap=10000,method="Gehan",cpus="all")
   
   summary_veteran_Gehan <- summary(BuyseTest_veteran_Gehan)
   

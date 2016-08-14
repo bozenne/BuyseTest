@@ -10,6 +10,7 @@
 #' @param show the type of result to print. Can be \code{"nb"} or \code{"pc"} or \code{NULL} (nothing is printed). Default is \code{"pc"}.
 #' @param strata the name of the strata to be displayed \emph{character vector}. Default is \code{"global"} which displays the overall results.
 #' @param digit the number of digit to use for printing the results. \emph{integer}. Default is \code{3}. 
+#' @param ... arguments to be passed from the generic method to the class specific method [not relevant to the user]
 #' 
 #' @details WARNING : the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment under the null hypothesis. It thus may not be valid if this hypothesis is rejected. In particular, if the cumulative proportion in favor of the treatment is close to 1, the upper limit of the confidence interval may exceed 1. 
 #' 

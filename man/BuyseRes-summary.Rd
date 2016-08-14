@@ -15,6 +15,8 @@ summary(object, ...)
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
 
+\item{...}{xxxx}
+
 \item{show}{the type of result to print. Can be \code{"nb"} or \code{"pc"} or \code{NULL} (nothing is printed). Default is \code{"pc"}.}
 
 \item{strata}{the name of the strata to be displayed \emph{character vector}. Default is \code{"global"} which displays the overall results.}

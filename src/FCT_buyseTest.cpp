@@ -1,9 +1,9 @@
+// [[Rcpp::depends(RcppArmadillo)]]
 #include <iostream>
 #include <RcppArmadillo.h>
 #include <Rmath.h>
 #include "FCT_calcOnePair.h"
 #include "FCT_calcAllPairs.h"
-// [[Rcpp::depends("RcppArmadillo")]]
 
 using namespace Rcpp ;
 using namespace std ;
@@ -56,7 +56,7 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
   vector<int> index_neutralC(0) ; // index of the neutral pairs of the control arm
   vector<int> index_uninfT(0) ; // index of the uninformative pairs of the treatment arm
   vector<int> index_uninfC(0) ; // index of the uninformative pairs of the control arm
-
+  
   arma::mat TreatmentK; // Endpoint(s) for treated restrected to strata k
   arma::mat ControlK; // Endpoint(s) for controls restrescted to stata k
   arma::mat delta_TreatmentK ; // statut for TTE endpoints for treated restrected to strata k
@@ -107,7 +107,7 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
                                                  resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
                                                  resK.index_uninfT, resK.index_uninfC, resK.count_uninf);    
       }
-    
+      
       if(type[iter_d]==2){ // continuous endpoint
         resK = calcSubsetPairs_ContinuousOutcome_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
                                                      resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
@@ -298,9 +298,9 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
                                                                resK.index_neutralT,resK.index_neutralC, size_neutral,
                                                                resK.index_uninfT,resK.index_uninfC, size_uninf,
                                                                w, threshold_TTEM1[iter_dTTE], 
-                                                               list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT),
-                                                               list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
-                                                               PEP); 
+                                                                                 list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT),
+                                                                                 list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
+                                                                                 PEP); 
         }
         iter_dTTE++; // increment the number of time to event endpoints that have been used
       }

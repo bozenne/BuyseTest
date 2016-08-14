@@ -5,8 +5,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #### spec
-# butils:::package.source("BuyseTest", Rcode = TRUE, Ccode = TRUE)
-library(BuyseTest)
+library(BuyseTest) # butils:::package.source("BuyseTest", Rcode = TRUE, Ccode = TRUE)
 library(testthat)
 library(data.table)
 library(lava)

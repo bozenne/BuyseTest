@@ -1,10 +1,7 @@
-// std::copy(vec.begin(), vec.end(),std::ostream_iterator<double>(Rcout, " "));        
-
+// [[Rcpp::depends("RcppArmadillo")]]
 #include <iostream>
 #include <RcppArmadillo.h>
 #include <Rmath.h>
-//#include "FCT0_calcOnePair.cpp"
-// [[Rcpp::depends("RcppArmadillo")]]
 
 using namespace Rcpp ;
 using namespace std ;

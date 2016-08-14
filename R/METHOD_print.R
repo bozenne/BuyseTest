@@ -40,6 +40,7 @@
 #'   BuyseTest_object
 #' 
 #' @keywords summary BuyseRes-method
+
 #' @exportMethod show
 setMethod(f = "show",
           signature = "BuyseRes",

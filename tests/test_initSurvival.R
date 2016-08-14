@@ -139,7 +139,7 @@ M.Control <-  cbind(time=c(1:5-0.1,5,5))
 threshold <- 0.001 # threshold smaller than the interval between two events
 
 for(iter_dataset in 1:3){
-  if(save){results_initSurvival$NoStrata[[iter_dataset]] <- list()}
+  if(identical(save,TRUE)){results_initSurvival$NoStrata[[iter_dataset]] <- list()}
   
   if(iter_dataset==1){ # death and censoring at the last event
     M.delta_Treatment <- cbind(time=c(1,0,1,1,1))
@@ -156,7 +156,7 @@ for(iter_dataset in 1:3){
     
     #### Compute survival
     if(method == "Efron"){ # necessary because efron forces the last observation to be an event
-      Survival_noStrata <- initData(dataT=setNames(data.table(M.Treatment, M.delta_Treatment), c("time","censoring")),
+      Survival_noStrata <- BuyseTest:::initData(dataT=setNames(data.table(M.Treatment, M.delta_Treatment), c("time","censoring")),
                                   dataC=setNames(data.table(M.Control, M.delta_Control), c("time","censoring")), 
                                   D=1,
                                   type=3, endpoint="time", censoring="censoring", method="Efron", 
@@ -164,7 +164,7 @@ for(iter_dataset in 1:3){
                                   index.strataC=list(seq(0,nrow(M.Control)-1)),n.strata=1,
                                   D.TTE=1, threshold=threshold, Wscheme = NULL, trace=TRUE, test = TRUE)
      }else{
-      Survival_noStrata <- initSurvival(M.Treatment=M.Treatment, 
+      Survival_noStrata <- BuyseTest:::initSurvival(M.Treatment=M.Treatment, 
                                         M.Control=M.Control, 
                                         M.delta_Treatment=M.delta_Treatment, 
                                         M.delta_Control=M.delta_Control, 
@@ -309,7 +309,7 @@ index.StrataC <- list(0:6,7:13)
 for(method in c("Peto","Efron","Peron")){
 
   if(method == "Efron"){ # necessary because efron forces the last observation to be an event
-    Survival_Strata <- initData(dataT=setNames(data.table(M.Treatment, M.delta_Treatment), c("time","censoring")),
+    Survival_Strata <- BuyseTest:::initData(dataT=setNames(data.table(M.Treatment, M.delta_Treatment), c("time","censoring")),
                                   dataC=setNames(data.table(M.Control, M.delta_Control), c("time","censoring")), 
                                   D=1,
                                   type=3, endpoint="time", censoring="censoring", method="Efron", 
@@ -317,7 +317,7 @@ for(method in c("Peto","Efron","Peron")){
                                   index.strataC=index.StrataC,n.strata=2,
                                   D.TTE=1, threshold=threshold, Wscheme = NULL, trace=TRUE, test = TRUE)
   }else{
-    Survival_Strata <- initSurvival(M.Treatment=M.Treatment, 
+    Survival_Strata <- BuyseTest:::initSurvival(M.Treatment=M.Treatment, 
                                       M.Control=M.Control, 
                                       M.delta_Treatment=M.delta_Treatment, 
                                       M.delta_Control=M.delta_Control, 

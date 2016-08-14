@@ -539,8 +539,8 @@ initThreshold <- function(threshold,type,D,method,endpoint){
   if(is.null(threshold)){
     threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
     if(any(type==1)){threshold[type==1] <- NA} # except for threshold corresponding to binary endpoints that are set to NA.
-  }else  if(any(na.omit(threshold)==0)){
-    threshold[na.omit(which(threshold==0))] <- 10^{-12}
+  }else  if(any(stats::na.omit(threshold)==0)){
+    threshold[stats::na.omit(which(threshold==0))] <- 10^{-12}
   }
  
   validNumeric(threshold, validLength = D, refuse.NA = FALSE , method = "BuyseTest")
@@ -614,7 +614,7 @@ initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
       
       # keep only the last repeated endpoints
       index_rowTTE <- sapply(unique(endpoint.TTE[index_rowTTE]),
-                                   function(x){tail(index_rowTTE[endpoint.TTE[index_rowTTE]==x],1)})
+                                   function(x){utils::tail(index_rowTTE[endpoint.TTE[index_rowTTE]==x],1)})
       
       # if survival endpoint remove similar endpoints
       if(endpoint[iter_endpoint] %in% endpoint.TTE[index_rowTTE]){

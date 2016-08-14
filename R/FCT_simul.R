@@ -78,7 +78,7 @@ simulBT_bin <- function(n.T, n.C = NULL, p.T = 0.5, p.C = NULL, n.strata = NULL,
   validNumeric(n.strata, validLength = 1, refuse.NULL = FALSE, min = 1, method = "simulBT")
   
   #### model
-  formula.lvm <- lapply(paste0(paste0("Y_bin",1:n.endpoints),"~1", sep = ""),as.formula)
+  formula.lvm <- lapply(paste0(paste0("Y_bin",1:n.endpoints),"~1", sep = ""),stats::as.formula)
   simul <- lava::lvm(formula.lvm)
     
   ## Treatment
@@ -127,7 +127,7 @@ simulBT_cont <- function(n.T, n.C = NULL, mu.T = 0, sigma.T = 1, mu.C = NULL, si
   validNumeric(n.strata, validLength = 1, refuse.NULL = FALSE, min = 1, method = "simulBT")
   
   #### model
-  formula.lvm <- lapply(paste0(paste0("Y_cont",1:n.endpoints),"~1", sep = ""),as.formula)
+  formula.lvm <- lapply(paste0(paste0("Y_cont",1:n.endpoints),"~1", sep = ""),stats::as.formula)
   simul <- lava::lvm(formula.lvm)
   
   ## Treatment
@@ -174,7 +174,7 @@ simulBT_TTE <- function(n.T, n.C = NULL, rates.T = 2, rates.C = NULL, rates.Cens
   validNumeric(n.strata, validLength = 1, refuse.NULL = FALSE, min = 1, method = "simulBT")
   
   #### model
-  formula.lvm <- lapply(paste0(paste0("Y_TTE",1:n.endpoints),"~1", sep = ""),as.formula)
+  formula.lvm <- lapply(paste0(paste0("Y_TTE",1:n.endpoints),"~1", sep = ""),stats::as.formula)
   simul <- lava::lvm(formula.lvm)
   
   ## Treatment
@@ -184,7 +184,7 @@ simulBT_TTE <- function(n.T, n.C = NULL, rates.T = 2, rates.C = NULL, rates.Cens
     lava::distribution(simul.T, paste0("T_TTE",iterE)) <- lava::coxExponential.lvm(rate=rates.T[iterE])
     lava::distribution(simul.T, paste0("Cens_TTE",iterE)) <- lava::coxExponential.lvm(rate=rates.Censor[iterE])
     txtSurv <- paste0(paste0("Y_TTE",iterE), "~min(",paste0("T_TTE",iterE),"=1,",paste0("Cens_TTE",iterE),"=0)")
-    simul.T <- lava::eventTime(simul.T, as.formula(txtSurv), paste0("event",iterE))
+    simul.T <- lava::eventTime(simul.T, stats::as.formula(txtSurv), paste0("event",iterE))
   }
   if(!is.null(n.strata)){
     lava::categorical(simul.T, labels = letters[1:n.strata]) <- "strata" 
@@ -197,7 +197,7 @@ simulBT_TTE <- function(n.T, n.C = NULL, rates.T = 2, rates.C = NULL, rates.Cens
     lava::distribution(simul.C, paste0("T_TTE",iterE)) <- lava::coxExponential.lvm(rate=rates.C[iterE])
     lava::distribution(simul.C, paste0("Cens_TTE",iterE)) <- lava::coxExponential.lvm(rate=rates.Censor[iterE])
     txtSurv <- paste0(paste0("Y_TTE",iterE), "~min(",paste0("T_TTE",iterE),"=1,",paste0("Cens_TTE",iterE),"=0)")
-    simul.C <- lava::eventTime(simul.C, as.formula(txtSurv), paste0("event",iterE))
+    simul.C <- lava::eventTime(simul.C, stats::as.formula(txtSurv), paste0("event",iterE))
   }
   if(!is.null(n.strata)){
     lava::categorical(simul.C, labels = letters[1:n.strata]) <- "strata" 
