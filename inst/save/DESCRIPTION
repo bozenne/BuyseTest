@@ -24,14 +24,15 @@ Depends:
     R (>= 2.10),
     survival,
     Rcpp (>= 0.10.5),
-    data.table,
-    snowfall
+    data.table
 Imports:
     methods,
-    stats4,
-    tcltk,
-    lava
-Suggests:    
+    stats4
+Suggests:
+    snow,
+    snowfall,
+    parallel,
+    tcltk
 LazyLoad: yes
 LinkingTo: Rcpp, RcppArmadillo
 Collate:

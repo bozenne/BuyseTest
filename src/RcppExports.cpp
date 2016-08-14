@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // BuyseTest_Gehan_cpp
-List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const IntegerVector& type, const arma::mat& delta_Treatment, const arma::mat& delta_Control, const int D, const bool returnIndex, List& strataT, List& strataC, const int n_strata, const int n_TTE);
+List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const IntegerVector& type, const arma::mat& delta_Treatment, const arma::mat& delta_Control, const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE);
 RcppExport SEXP BuyseTest_BuyseTest_Gehan_cpp(SEXP TreatmentSEXP, SEXP ControlSEXP, SEXP thresholdSEXP, SEXP typeSEXP, SEXP delta_TreatmentSEXP, SEXP delta_ControlSEXP, SEXP DSEXP, SEXP returnIndexSEXP, SEXP strataTSEXP, SEXP strataCSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
@@ -20,8 +20,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type delta_Control(delta_ControlSEXP);
     Rcpp::traits::input_parameter< const int >::type D(DSEXP);
     Rcpp::traits::input_parameter< const bool >::type returnIndex(returnIndexSEXP);
-    Rcpp::traits::input_parameter< List& >::type strataT(strataTSEXP);
-    Rcpp::traits::input_parameter< List& >::type strataC(strataCSEXP);
+    Rcpp::traits::input_parameter< const std::vector< arma::uvec >& >::type strataT(strataTSEXP);
+    Rcpp::traits::input_parameter< const std::vector< arma::uvec >& >::type strataC(strataCSEXP);
     Rcpp::traits::input_parameter< const int >::type n_strata(n_strataSEXP);
     Rcpp::traits::input_parameter< const int >::type n_TTE(n_TTESEXP);
     __result = Rcpp::wrap(BuyseTest_Gehan_cpp(Treatment, Control, threshold, type, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE));
@@ -29,7 +29,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // BuyseTest_PetoEfronPeron_cpp
-List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const IntegerVector& type, const arma::mat& delta_Treatment, const arma::mat& delta_Control, const int D, const bool returnIndex, List& strataT, List& strataC, const int n_strata, const int n_TTE, const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, List& list_survivalT, List& list_survivalC, const int PEP);
+List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const IntegerVector& type, const arma::mat& delta_Treatment, const arma::mat& delta_Control, const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, const std::vector< arma::mat >& list_survivalT, const std::vector< arma::mat >& list_survivalC, const int PEP);
 RcppExport SEXP BuyseTest_BuyseTest_PetoEfronPeron_cpp(SEXP TreatmentSEXP, SEXP ControlSEXP, SEXP thresholdSEXP, SEXP typeSEXP, SEXP delta_TreatmentSEXP, SEXP delta_ControlSEXP, SEXP DSEXP, SEXP returnIndexSEXP, SEXP strataTSEXP, SEXP strataCSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP WschemeSEXP, SEXP index_survivalM1SEXP, SEXP threshold_TTEM1SEXP, SEXP list_survivalTSEXP, SEXP list_survivalCSEXP, SEXP PEPSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
@@ -42,15 +42,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type delta_Control(delta_ControlSEXP);
     Rcpp::traits::input_parameter< const int >::type D(DSEXP);
     Rcpp::traits::input_parameter< const bool >::type returnIndex(returnIndexSEXP);
-    Rcpp::traits::input_parameter< List& >::type strataT(strataTSEXP);
-    Rcpp::traits::input_parameter< List& >::type strataC(strataCSEXP);
+    Rcpp::traits::input_parameter< const std::vector< arma::uvec >& >::type strataT(strataTSEXP);
+    Rcpp::traits::input_parameter< const std::vector< arma::uvec >& >::type strataC(strataCSEXP);
     Rcpp::traits::input_parameter< const int >::type n_strata(n_strataSEXP);
     Rcpp::traits::input_parameter< const int >::type n_TTE(n_TTESEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Wscheme(WschemeSEXP);
     Rcpp::traits::input_parameter< const IntegerVector >::type index_survivalM1(index_survivalM1SEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type threshold_TTEM1(threshold_TTEM1SEXP);
-    Rcpp::traits::input_parameter< List& >::type list_survivalT(list_survivalTSEXP);
-    Rcpp::traits::input_parameter< List& >::type list_survivalC(list_survivalCSEXP);
+    Rcpp::traits::input_parameter< const std::vector< arma::mat >& >::type list_survivalT(list_survivalTSEXP);
+    Rcpp::traits::input_parameter< const std::vector< arma::mat >& >::type list_survivalC(list_survivalCSEXP);
     Rcpp::traits::input_parameter< const int >::type PEP(PEPSEXP);
     __result = Rcpp::wrap(BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, type, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, PEP));
     return __result;

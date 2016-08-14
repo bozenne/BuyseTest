@@ -33,13 +33,10 @@ calcBootstrap <- function(envir){
                                  matrix(1.5, envir$n.strata, envir$D)) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
     
   }else {## parallel boostrap
-    
-    #envir$cpus <- 1 #browser()
+     #envir$cpus <- 1 #browser()
     if (envir$trace > 1) {cat("Parallel boostrap \n")}
-    envir$nParallel.bootstrap <- round(envir$n.bootstrap/envir$cpus) # number of bootstrap sample by cpu
-    envir$warper_BTboot <- warper_BTboot
     
-    # init
+    ## init
     if (envir$trace == 3) { # affect the cpus
       snowfall::sfInit(parallel = TRUE, cpus = envir$cpus)  
     }else if (envir$trace %in% c(1,2)) { 
@@ -47,6 +44,7 @@ calcBootstrap <- function(envir){
     } else {
       suppressWarnings(suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = envir$cpus))) # warning si proxy dans commandArgs() (provient de la fonction searchCommandline)
     }
+    pid <- unlist(snowfall::sfClusterEval(Sys.getpid())) # identifier of each R session
     
     ## wrapper function to be called by each cpu
     wrapper <- function(x){
@@ -54,30 +52,34 @@ calcBootstrap <- function(envir){
                     function(x){envir$warper_BTboot(x, envir = envir)},
                     matrix(1.5, envir$n.strata, envir$D))) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
     }
-    
-    pid <- snowfall::sfClusterEval(Sys.getpid()) # identifier of each R session
-    snowfall::sfExport("pid")
-    invisible(snowfall::sfClusterEval(cpu_index <- which(pid %in% Sys.getpid()))) # identify to index of the session of each cpu 
-    
+    ## export the needed variables
+    envir$nParallel.bootstrap <- round(envir$n.bootstrap/envir$cpus) # number of bootstrap sample by cpu
+    envir$warper_BTboot <- warper_BTboot
+    envir$pid <- pid
     if (envir$trace > 0) {
       envir$index.trace <- unique(round(seq(1, envir$nParallel.bootstrap, length.out = 101)[-1])) # number of iterations corresponding to each percentage of progress in the bootstrap computation
-      
-      snowfall::sfLibrary("tcltk", character.only = TRUE) # export tcltk library (required for the progress bar) to each cpu
-      invisible(snowfall::sfClusterEval(cpu_name <- paste("cpu ", cpu_index, " : ", sep = ""))) # identify the name of each cpu session
-      invisible(snowfall::sfClusterEval(title_pb <- paste(cpu_name, "bootstrap iterations", sep = ""))) # affect the title the progress bar to each cpu 
-      invisible(snowfall::sfClusterEval(label_pb <- paste(cpu_name, " 0% done", sep = ""))) # affect the initial legend of the progress bar to each cpu 
-      invisible(snowfall::sfClusterEval(pb <- tcltk::tkProgressBar(title_pb, label_pb, 0, 1, 0))) # affect and display the progress bar to each cpu 
     }else{
       envir$index.trace <- -1
     }
-    
-    ## export the needed variables
     snowfall::sfExport("envir")
     
-    ## bootstrap    
+    ## seed
+    invisible(snowfall::sfClusterEval(envir$cpu_index <- which(envir$pid %in% Sys.getpid()))) # identify to index of the session of each cpu 
     if (!is.null(envir$seed)) { 
-      snowfall::sfClusterEval(set.seed(envir$seed + cpu_index - 1))
+      snowfall::sfClusterEval(set.seed(envir$seed + envir$cpu_index - 1))
     }
+    
+    ## trace
+    if (envir$trace > 0) {
+      snowfall::sfLibrary("tcltk", character.only = TRUE) # export tcltk library (required for the progress bar) to each cpu
+      invisible(snowfall::sfClusterEval(envir$cpu_name <- paste("cpu ", envir$cpu_index, " : ", sep = ""))) # identify the name of each cpu session
+      invisible(snowfall::sfClusterEval(title_pb <- paste(envir$cpu_name, "bootstrap iterations", sep = ""))) # affect the title the progress bar to each cpu 
+      invisible(snowfall::sfClusterEval(label_pb <- paste(envir$cpu_name, " 0% done", sep = ""))) # affect the initial legend of the progress bar to each cpu 
+      invisible(snowfall::sfClusterEval(pb <- tcltk::tkProgressBar(title_pb, label_pb, 0, 1, 0))) # affect and display the progress bar to each cpu 
+    }
+    #snowfall::sfClusterEval(tcltk::setTkProgressBar(pb = envir$pb, value = 1))
+  
+    ## bootstrap    
     resIter <- snowfall::sfClusterApply(rep(NA, envir$cpus), wrapper) # call the cpu to perform bootstrap computations
     
     if (envir$trace == 3) { # free the cpus
@@ -308,7 +310,10 @@ warper_BTboot <- function(x,envir){
       envir$index.trace <- envir$index.trace[-1]                 
     }else{
       pc_done <- envir$index.trace[1]/envir$nParallel.bootstrap
-      label_pb <- paste(cpu_name,round(100 * pc_done), "% done", sep = "")
+      
+      title_pb <- paste0("cpu ", envir$cpu_index, ": bootstrap iterations")
+      label_pb <- paste0("cpu ", envir$cpu_index, ": ",round(100 * pc_done), "% done")
+      
       tcltk::setTkProgressBar(pb = pb, value = pc_done,title = paste(title_pb,"(",round(100 * pc_done),"%)",sep = ""), label = label_pb)
       envir$index.trace <- envir$index.trace[-1]                 
     } 

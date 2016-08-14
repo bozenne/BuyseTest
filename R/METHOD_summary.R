@@ -1,7 +1,7 @@
 #' @docType methods
 #' @name BuyseRes-summary
 #' @title Summary Method for Class "BuyseRes"
-#' @aliases summary BuyseRes-method
+#' @aliases summary BuyseRes-summary
 #' @include OBJECT_BuyseTest.R
 #' 
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
@@ -43,21 +43,29 @@
 #'   #### no strata
 #'   \dontrun{
 #'     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-#'                                   treatment="treatment",show=c("bin","bin"),n.bootstrap=10000)
+#'                                   treatment="treatment",type,=c("bin","bin"),n.bootstrap=10000)
 #'   }
 #'   \dontshow{
 #'     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-#'                                   treatment="treatment",show=c("bin","bin"),
+#'                                   treatment="treatment",type=c("bin","bin"),
 #'                                   n.bootstrap=10,trace=0)
 #'   }
 #'   
 #'   summary_BuyseTest_object <- summary(BuyseTest_object)
 #' 
 #' @keywords summary BuyseRes-method
+
+#' @rdname BuyseRes-summary
+setGeneric(name = "summary", 
+           def = function(object, ...){standardGeneric("summary")}
+)
+
+
+#' @rdname BuyseRes-summary
 #' @exportMethod summary
-setMethod(f ="summary",
-          signature ="BuyseRes",
-          definition = function(object,show="pc",strata=NULL,digit=c(2,3)){
+setMethod(f = "summary",
+          signature = "BuyseRes",
+          definition = function(object, show = "pc", strata = NULL, digit = c(2,3)){
             
             # preparation
             if(!is.null(show) && show %in% c("nb","pc") == FALSE){

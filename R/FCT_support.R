@@ -44,7 +44,7 @@ constStrata <- function(data,strata,sep=".",lex.order = FALSE,trace=TRUE,as.nume
          "available variables in data : ",paste(names(data)[names(data) %in% strata == FALSE],collapse=" "),"\n")
   }
   
-  if(is.data.table(data)){
+  if(data.table::is.data.table(data)){
     resInteractions <- data[,interaction(.SD[[1]],drop = TRUE,lex.order=lex.order,sep=sep), .SDcols = strata]
   }else{
     resInteractions <- interaction(as.list(data[,strata]),drop = TRUE,lex.order=lex.order,sep=sep)

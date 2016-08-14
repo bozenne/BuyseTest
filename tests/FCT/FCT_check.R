@@ -36,7 +36,7 @@ expect_equalPairsBT <- function(BuyseRes1, BuyseRes2){
 }
 
 expect_equalBT <- function(BuyseRes1, BuyseRes2, slots = NULL, trace = 1){
-  if(is.null(slots)){slots <- intersect(names(attributes(BuyseRes1)), names(attributes(BuyseRes2)))}
+  if(is.null(slots)){slots <- setdiff(intersect(names(attributes(BuyseRes1)), names(attributes(BuyseRes2))), "class")}
   
   test.strata1 <- !("try-error" %in% class(try(BuyseRes1@strata, silent = TRUE)))
   test.strata2 <- !("try-error" %in% class(try(BuyseRes2@strata, silent = TRUE)))

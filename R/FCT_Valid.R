@@ -29,6 +29,8 @@
 #' @param max the maximum acceptable value
 #' @param method the name of the function using the argument.
 #' @param addPP add ": " after the name of the function in the error message.
+#' @param extension check that the file has the specified extension (excluding \code{.}).
+#' @param checkFsep check whether the path ends with a separator.
 #' 
 #' @return An invisible \code{TRUE} or an error message.
 #' 
@@ -256,7 +258,7 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
     value1 <- colnames(value1)
   }
   
-  if(is.data.table(value1) || is.data.frame(value1) || is.list(value1)){
+  if(data.table::is.data.table(value1) || is.data.frame(value1) || is.list(value1)){
     value1 <- names(value1)
   }
   
@@ -280,8 +282,7 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
     
     if(!is.null(requiredValues) && any(requiredValues %in% value1 == FALSE)){
       
-      stop(method, "\'", name1, "\' must contains specific names \n",
-           "missing names : \"",paste(requiredValues[requiredValues %in% value1 == FALSE], collapse = "\" \""),"\" \n", 
+      stop(method, "\'", name1, "\' must contains: \"",paste(requiredValues[requiredValues %in% value1 == FALSE], collapse = "\" \""),"\" \n", 
            "proposed names : \"", paste(value1, collapse = "\" \""), "\"\n")  
       
     }

@@ -83,6 +83,10 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 \item{requiredValues}{values that must appear in the argument}
 
 \item{refuse.values}{values that must not appear in the argument}
+
+\item{extension}{check that the file has the specified extension (excluding \code{.}).}
+
+\item{checkFsep}{check whether the path ends with a separator.}
 }
 \value{
 An invisible \code{TRUE} or an error message.

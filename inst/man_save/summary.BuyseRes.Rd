@@ -1,0 +1,60 @@
+\name{summaryRes-methods}
+\title{Summary Method for Class "BuyseRes"}
+\alias{summary,BuyseRes-method}
+\description{
+Summarize the results from the \code{\link{BuyseTest}} function.
+}
+\usage{
+\S4method{summary}{BuyseRes}(object,type="pc",digit=3,trace=TRUE)
+}
+\arguments{
+  \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e.,
+ output of \code{\link{BuyseTest}}}
+  \item{type}{the type of result to print. Can be \code{"nb"} or \code{"pc"}. Default is \code{"pc"}.}
+  \item{digit}{the number of digit to use for printing the results. \emph{integer}. Default is \code{3}.}
+  \item{trace}{should the main results be printed ? \emph{logical}. Default is \code{TRUE}.}
+}
+\details{
+WARNING : the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment under the null hypothesis. It thus may not be valid if this hypothesis is rejected. In particular, if the cumulative proportion in favor of the treatment is close to 1, the upper limit of the confidence interval may exceed 1. 
+}
+\value{
+  A \code{"List"} composed of two matrices containing the endpoint (and the strata) in rows and the results of the pairwise comparison in columns:
+  \itemize{
+\item\code{[[nb]]} : The favorable, unfavorable, neutral and uninformative pairs are reported in number of pairs classified in each category \cr (\code{"n.favorable","n.unfavorable","n.neutral","n.uninformative"}). 
+\item\code{[[pc]]} : The favorable, unfavorable, neutral and uninformative pairs are reported in percentage of pair classified in each category \cr (\code{"pc.favorable","pc.unfavorable","pc.neutral","pc.uninformative"}). 
+}
+\code{"delta"} indicates for each endpoint (and each strata) thechance of a better outcome and \code{"Delta"} the cumulative chance of a better outcome. \cr
+The confidence interval and the p.value are given for the cumulative chance of a better outcome (\code{"CIinf.Delta","CIsup.Delta","p.value"})
+}
+\seealso{
+ \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
+ \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object.
+}
+\examples{
+n.Treatment_testBin <- 500
+n.Control_testBin <- 500
+prob.Treatment_testBin <- c(0.5,0.75)
+prob.Control_testBin <- c(0.5,0.25)
+
+set.seed(10)
+data_testBin <- data.frame(treatment=c(rep(1,n.Treatment_testBin),rep(0,n.Treatment_testBin)))
+data_testBin$endpoint1 <- c(rbinom(n.Treatment_testBin,size=1,prob=prob.Treatment_testBin[1]),
+                            rbinom(n.Control_testBin,size=1,prob=prob.Control_testBin[1]))
+data_testBin$endpoint2 <- c(rbinom(n.Control_testBin,size=1,prob=prob.Treatment_testBin[2]),
+                            rbinom(n.Control_testBin,size=1,prob=prob.Control_testBin[2]))
+data_testBin$strata <- rbinom(n.Treatment_testBin+n.Control_testBin,size=4,prob=0.5)
+
+#### no strata
+\dontrun{
+  BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
+                                 treatment="treatment",type=c("bin","bin"),n.bootstrap=10000)
+}
+\dontshow{
+  BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
+                                 treatment="treatment",type=c("bin","bin"),
+								 n.bootstrap=10,trace=0)
+}
+
+summary_BuyseTest_object <- summary(BuyseTest_object)
+}
+\keyword{methods}

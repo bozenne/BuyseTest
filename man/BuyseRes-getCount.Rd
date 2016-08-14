@@ -4,10 +4,13 @@
 \name{BuyseRes-getCount}
 \alias{BuyseRes-get}
 \alias{BuyseRes-getCount}
-\alias{get}
+\alias{getCount}
+\alias{getCount,BuyseRes-method}
 \title{get Method for Class "BuyseRes"}
 \usage{
-\S4method{getCount}{BuyseRes}(object, type = NULL)
+getCount(object, type)
+
+\S4method{getCount}{BuyseRes}(object, type)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}

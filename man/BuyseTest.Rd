@@ -8,8 +8,8 @@
 \usage{
 BuyseTest(data, treatment, endpoint, type, threshold = NULL, strata = NULL,
   censoring = NULL, method = "Peron", n.bootstrap = 0,
-  prob.alloc = NULL, alternative = "two.sided", seed = 10, cpus = 1,
-  trace = 3)
+  prob.alloc = NULL, stratified = FALSE, alternative = "two.sided",
+  seed = 10, cpus = 1, trace = 3)
 }
 \arguments{
 \item{data}{A \code{data.frame} containing the variables.}
@@ -22,6 +22,8 @@ BuyseTest(data, treatment, endpoint, type, threshold = NULL, strata = NULL,
 
 \item{threshold}{the thresholds, one for each endpoint variable. \emph{numeric vector}. Default is \code{NULL} indicating no threshold.}
 
+\item{strata}{the name of the strata variable(s). \emph{numeric vector}. Default is \code{NULL} indicating only one strata.}
+
 \item{censoring}{the name of the censoring variable(s), one for each endpoint. \emph{character vector}. Default is \code{NULL}.}
 
 \item{method}{Is defined when at least one time-to-event outcome is analyzed. Defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations.  Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}. See details.}
@@ -30,6 +32,8 @@ BuyseTest(data, treatment, endpoint, type, threshold = NULL, strata = NULL,
 
 \item{prob.alloc}{the resampling probability for assignement to the experimental group in the bootstrap samples. \emph{double}. Default is \code{NULL} indicating to use the proportion of patients in the experimental group.}
 
+\item{stratified}{Should the boostrap be a stratified bootstrap? \emph{logical}. Default is \code{FALSE}.}
+
 \item{alternative}{a \emph{character} specifying the alternative hypothesis. Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. Default is \code{"two.sided"}.}
 
 \item{seed}{the seed to consider for the bootstrap. \emph{integer}. Default is \code{10}.}
@@ -37,8 +41,6 @@ BuyseTest(data, treatment, endpoint, type, threshold = NULL, strata = NULL,
 \item{cpus}{the number of CPU to use. \emph{integer}. Default is \code{1}.}
 
 \item{trace}{Should the execution of the function be traced ? \emph{integer}. Default is \code{3}.}
-
-\item{the}{name of the strata variable(s). \emph{numeric vector}. Default is \code{NULL} indicating only one strata.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.
@@ -69,39 +71,39 @@ Uninformative pairs correspond to pairs for which the censoring prevend from cla
 #### real example : Veteran dataset of the survival package ####
 #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
 #### method = "Gehan"
+
 \dontrun{
-data(veteran,package="survival")
-require(BuyseTest)
-BuyseTest_veteran_Gehan <- BuyseTest(data=veteran,endpoint="time",treatment="trt",
-                                     strata="celltype",type="timeToEvent",censoring="status",threshold=0,
-                                     n.bootstrap=1000,method="Gehan",cpus="all")
-
-summary_veteran_Gehan <- summary(BuyseTest_veteran_Gehan)
-
-#### method = "Peron"
-
-BuyseTest_veteran_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",
-                                     strata="celltype",type="timeToEvent",censoring="status",threshold=0,
-                                     n.bootstrap=1000,method="Peron",cpus="all")
-
-summary_veteran_Peron <- summary(BuyseTest_veteran_Peron)
+  data(veteran,package="survival")
+  library(BuyseTest)
+  BuyseTest_veteran_Gehan <- BuyseTest(data=veteran,endpoint="time",treatment="trt",
+                                       strata="celltype",type="timeToEvent",censoring="status",threshold=0,
+                                       n.bootstrap=1000,method="Gehan",cpus="all")
+  
+  summary_veteran_Gehan <- summary(BuyseTest_veteran_Gehan)
+  
+  #### method = "Peron"
+  
+  BuyseTest_veteran_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",
+                                       strata="celltype",type="timeToEvent",censoring="status",threshold=0,
+                                       n.bootstrap=1000,method="Peron",cpus="all")
+  
+  summary_veteran_Peron <- summary(BuyseTest_veteran_Peron)
 }
-
 
 #### Several endpoints :
 #######Survival, a time-to-event endpoint
 #######Toxicity, a continuous/ordinal endpoint : 6 grades of maximal adverse event 
 
+set.seed(10)
+
 n.Treatment <- 100
-n.Control<- 100
+n.Control <- 100
 prob.Treatment_TOX <- c(0.5,0.25,0.10,0.075,0.05,0.025)
 prob.Control_TOX <- c(0.7,0.15,0.05,0.05,0.025,0.025)
 
 lambda.Treatment_TTE <- 0.6
 lambda.Control_TTE <- 1
 
-
-set.seed(10)
 data_test <- data.frame(treatment=c(rep(1,n.Treatment),
                                     rep(0,n.Control)  ))
 data_test$toxicity <- c(apply(rmultinom(n.Treatment,size=1,
@@ -129,7 +131,7 @@ plot(resKM_tempo)
 BuyseTest_severalendpoint_Gehan <- BuyseTest(data=data_test,method="Gehan",
                                              endpoint=c("Survival","toxicityInv","Survival","toxicityInv","Survival","toxicityInv"),
                                              treatment="treatment",
-                                             censoring=c("event",NA,"event1",NA,"event",NA),
+                                             censoring=c("event",NA,"event",NA,"event",NA),
                                              type=c("TTE","cont","TTE","cont","TTE","cont"),
                                              threshold=c(1.5,3,0.75,2,0.25,1),n.bootstrap=1000,trace=2,cpus="all")
 summary(BuyseTest_severalendpoint_Gehan)
@@ -151,7 +153,7 @@ Peto R, Peto J (1972) Asymptotically efficient rank invariant test procedures \e
 Gehan EA (1965) A generalized two-sample Wilcoxon test for doubly censored data \emph{Biometrika} \bold{vol. 52(3)} 650-653 \cr
 }
 \seealso{
-\code{\link{summary,BuyseRes-method}} for a summary of the results of generalized pairwise comparison. \cr
+\code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
 \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
 \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
 }

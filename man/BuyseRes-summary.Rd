@@ -2,11 +2,13 @@
 % Please edit documentation in R/METHOD_summary.R
 \docType{methods}
 \name{BuyseRes-summary}
-\alias{BuyseRes-method}
 \alias{BuyseRes-summary}
 \alias{summary}
+\alias{summary,BuyseRes-method}
 \title{Summary Method for Class "BuyseRes"}
 \usage{
+summary(object, ...)
+
 \S4method{summary}{BuyseRes}(object, show = "pc", strata = NULL,
   digit = c(2, 3))
 }
@@ -51,11 +53,11 @@ WARNING : the confidence interval is computed using quantiles of the distributio
   #### no strata
   \dontrun{
     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-                                  treatment="treatment",show=c("bin","bin"),n.bootstrap=10000)
+                                  treatment="treatment",type,=c("bin","bin"),n.bootstrap=10000)
   }
   \dontshow{
     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-                                  treatment="treatment",show=c("bin","bin"),
+                                  treatment="treatment",type=c("bin","bin"),
                                   n.bootstrap=10,trace=0)
   }
   

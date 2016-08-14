@@ -2,7 +2,6 @@
 % Please edit documentation in R/METHOD_print.R
 \docType{methods}
 \name{BuyseRes-show}
-\alias{BuyseRes-method}
 \alias{BuyseRes-show}
 \alias{show}
 \title{Show Method for Class "BuyseRes"}

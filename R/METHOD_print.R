@@ -1,7 +1,7 @@
 #' @docType methods
 #' @name BuyseRes-show
 #' @title Show Method for Class "BuyseRes"
-#' @aliases show BuyseRes-method
+#' @aliases show BuyseRes-show
 #' @include OBJECT_BuyseTest.R METHOD_summary.R
 #' 
 #' @description Display the main results stored in a \code{\link{BuyseRes}} object.
@@ -41,8 +41,8 @@
 #' 
 #' @keywords summary BuyseRes-method
 #' @exportMethod show
-setMethod(f ="show",
-          signature ="BuyseRes",
+setMethod(f = "show",
+          signature = "BuyseRes",
           definition = function(object){
             
            table <- summary(object, strata="global", show = NULL)$pc

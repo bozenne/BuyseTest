@@ -48,12 +48,12 @@ simulBT <- function(n.T, n.C = NULL, n.strata = NULL, format = "data.table",
   if(!is.null(argsCont)){
     resCont <- do.call("simulBT_cont", args = c(list(n.T = n.T, n.C = n.C, n.strata = n.strata, format = "data.table"),
                                     argsCont))
-    if(is.null(res)){res <- resCont}else{res <- cbind(res, resCont[,Treatment := NULL])}
+    if(is.null(res)){res <- resCont}else{res <- cbind(res, resCont[,"Treatment" := NULL])}
   }
   if(!is.null(argsTTE)){
     resTTE <- do.call("simulBT_TTE", args = c(list(n.T = n.T, n.C = n.C, n.strata = n.strata, format = "data.table"),
                                     argsTTE))
-    if(is.null(res)){res <- resTTE}else{res <- cbind(res, resTTE[,Treatment := NULL])}
+    if(is.null(res)){res <- resTTE}else{res <- cbind(res, resTTE[,"Treatment" := NULL])}
   }
   
   res <- do.call(format, args = res)
@@ -87,7 +87,7 @@ simulBT_bin <- function(n.T, n.C = NULL, p.T = 0.5, p.C = NULL, n.strata = NULL,
     lava::distribution(simul.T, paste0("Y_bin",iterE)) <- lava::binomial.lvm(link = "identity", p = p.T[iterE])
   }
   if(!is.null(n.strata)){
-    categorical(simul.T, labels = letters[1:n.strata]) <- "strata" 
+    lava::categorical(simul.T, labels = letters[1:n.strata]) <- "strata" 
   }
   df.T <- cbind(Treatment = 1, lava::sim(simul.T, n.T))
   
@@ -97,7 +97,7 @@ simulBT_bin <- function(n.T, n.C = NULL, p.T = 0.5, p.C = NULL, n.strata = NULL,
     lava::distribution(simul.C, paste0("Y_bin",iterE)) <- lava::binomial.lvm(link = "identity", p = p.C[iterE])
   }
   if(!is.null(n.strata)){
-    categorical(simul.C, labels = letters[1:n.strata]) <- "strata" 
+    lava::categorical(simul.C, labels = letters[1:n.strata]) <- "strata" 
   }
   df.C <- cbind(Treatment = 0, lava::sim(simul.C, n.C))
   
@@ -136,7 +136,7 @@ simulBT_cont <- function(n.T, n.C = NULL, mu.T = 0, sigma.T = 1, mu.C = NULL, si
     lava::distribution(simul.T, paste0("Y_cont",iterE)) <- lava::gaussian.lvm(link = "identity", mean = mu.T[iterE], sd = sigma.T[iterE])
   }
   if(!is.null(n.strata)){
-    categorical(simul.T, labels = letters[1:n.strata]) <- "strata" 
+    lava::categorical(simul.T, labels = letters[1:n.strata]) <- "strata" 
   }
   df.T <- cbind(Treatment = 1, lava::sim(simul.T, n.T))
   
@@ -146,7 +146,7 @@ simulBT_cont <- function(n.T, n.C = NULL, mu.T = 0, sigma.T = 1, mu.C = NULL, si
     lava::distribution(simul.C, paste0("Y_cont",iterE)) <- lava::gaussian.lvm(link = "identity", mean = mu.C[iterE], sd = sigma.C[iterE])
   }
   if(!is.null(n.strata)){
-    categorical(simul.C, labels = letters[1:n.strata]) <- "strata" 
+    lava::categorical(simul.C, labels = letters[1:n.strata]) <- "strata" 
   }
   df.C <- cbind(Treatment = 0, lava::sim(simul.C, n.C))
   
@@ -187,7 +187,7 @@ simulBT_TTE <- function(n.T, n.C = NULL, rates.T = 2, rates.C = NULL, rates.Cens
     simul.T <- lava::eventTime(simul.T, as.formula(txtSurv), paste0("event",iterE))
   }
   if(!is.null(n.strata)){
-    categorical(simul.T, labels = letters[1:n.strata]) <- "strata" 
+    lava::categorical(simul.T, labels = letters[1:n.strata]) <- "strata" 
   }
   df.T <- cbind(Treatment = 1, lava::sim(simul.T, n.T))
   
@@ -200,7 +200,7 @@ simulBT_TTE <- function(n.T, n.C = NULL, rates.T = 2, rates.C = NULL, rates.Cens
     simul.C <- lava::eventTime(simul.C, as.formula(txtSurv), paste0("event",iterE))
   }
   if(!is.null(n.strata)){
-    categorical(simul.C, labels = letters[1:n.strata]) <- "strata" 
+    lava::categorical(simul.C, labels = letters[1:n.strata]) <- "strata" 
   }
   df.C <- cbind(Treatment = 0, lava::sim(simul.C, n.C))
   

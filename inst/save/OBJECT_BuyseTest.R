@@ -1,31 +1,28 @@
 #' @name BuyseRes-class
-#' @rdname BuyseRes-class
 #' @title Class "BuyseRes" (output of BuyseTest)
 #' @aliases  BuyseRes BuyseRes-class
 #' 
 #' @description A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
 #' 
-#' @slot levels.treatment the name of each group. \emph{character vector}.
-#' @slot endpoint the name of the endpoint. \emph{character vector}.
-#' @slot strata the name of the strata \emph{character vector}.
-#' @slot threshold the threshold associated to each endpoint \emph{numeric vector}.
-#' @slot n_pairs the total number of pairs. \emph{integer}.
-#' @slot count_favorable the probability for a random pair to be favorable for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
-#' @slot count_unfavorable the probability for a random pair to be unfavorable for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
-#' @slot count_neutral the probability for a random pair to be neutral for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
-#' @slot count_uninf the probability for a random pair to be uninformative for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
-#' @slot index_neutralT the index in the dataset of the treatment observations from remaining neutral pairs. \emph{integer vector}.
-#' @slot index_neutralC the index in the dataset of the control observations from remaining neutral pairs. \emph{integer vector}.
-#' @slot index_uninfT the index in the dataset of the treatment observations from remaining uninformative pairs. \emph{integer vector}.
-#' @slot index_uninfC the index in the dataset of the control observations from remaining uninformative pairs. \emph{integer vector}.
-#' @slot delta the chance of a better outcome (net difference between the probability for a random pair to be favorable minus the probability to be unfavorable divided by the total number of pairs) for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
-#' @slot delta_boot the chance of a better outcome within each strata (first dimension), over the endpoint (second dimension) and for each bootstrap dataset (third dimension). \emph{array}.
-#' @slot Delta_quantile the randomization test-based 2.5\% and the 97.5\% quantiles of the cumulative chance of a better outcome (in rows) for each endpoint (in columns). \emph{matrix}.
-#' @slot p.value the p.value associated to the chance of a better outcome at each prioritized endpoint. \emph{numeric vector}.
+#' @slot @delta: the chance of a better outcome (net difference between the probability for a random pair to be favorable minus the probability to be unfavorable divided by the total number of pairs) for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
+#' @slot @count_favorable :  the probability for a random pair to be favorable for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
+#' @slot @count_unfavorable.group : the probability for a random pair to be unfavorable for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
+#' @slot @count_neutral :  the probability for a random pair to be neutral for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
+#' @slot @count_uninf : the probability for a random pair to be uninformative for each strata (in rows) and each endpoint (in columns). \emph{matrix}.
+#' @slot @index_neutralT :  the index in the dataset of the treatment observations from remaining neutral pairs. \emph{integer vector}.
+#' @slot @index_neutralC : the index in the dataset of the control observations from remaining neutral pairs. \emph{integer vector}.
+#' @slot @index_uninfT :  the index in the dataset of the treatment observations from remaining uninformative pairs. \emph{integer vector}.
+#' @slot @index_uninfC : the index in the dataset of the control observations from remaining uninformative pairs. \emph{integer vector}.
+#' @slot @n_pairs :  the total number of pairs. \emph{integer}.
+#' @slot @delta_boot :  the chance of a better outcome within each strata (first dimension), over the endpoint (second dimension) and for each bootstrap dataset (third dimension). \emph{array}.
+#' @slot @p.value : the p.value associated to the chance of a better outcome at each prioritized endpoint. \emph{numeric vector}.
+#' @slot @Delta_quantile :  the randomization test-based 2.5\% and the 97.5\% quantiles of the cumulative chance of a better outcome (in rows) for each endpoint (in columns). \emph{matrix}.
+#' @slot @endpoint : the name of the endpoint. \emph{character vector}.
+#' @slot @strata : the name of the strata \emph{character vector}.
 #'   
 #' @seealso 
 #' \code{\link{BuyseTest}} for the function computing generalized pairwise comparisons. \cr
-#' \code{\link{BuyseRes-summary}} for the summary of the BuyseTest function results
+#' \code{\link{summary,BuyseRes-method}} for the summary of the BuyseTest function results
 #' 
 #' @examples
 #'   n.Treatment_testBin <- 500
@@ -53,28 +50,29 @@
 
 #' @rdname BuyseRes-class
 #' @exportClass BuyseRes
+
 setClass(
   
   Class = "BuyseRes",
   
   representation(
-    levels.treatment = "vector",
-    endpoint = "vector",
-    strata = "vector",
-    threshold = "vector",
-    n_pairs = "numeric",
     count_favorable = "matrix",      
     count_unfavorable = "matrix",
     count_neutral = "matrix",    
     count_uninf = "matrix",
+    delta = "matrix", 
+    delta_boot = "array", 
+    Delta_quantile = "matrix",
+    endpoint = "vector",
     index_neutralT = "vector",
     index_neutralC = "vector",
     index_uninfT = "vector",
     index_uninfC = "vector",
-    delta = "matrix", 
-    delta_boot = "array", 
-    Delta_quantile = "matrix",
-    p.value = "vector"    
+    levels.treatment = "vector",
+    n_pairs = "numeric",
+    p.value = "vector",    
+    strata = "vector",
+    threshold = "vector"
   ),
   
   validity = function(object){
@@ -102,16 +100,21 @@ setClass(
     
     #cat(" : valid BuyseRes  \n")
     return(TRUE)} 
+  
+  
 )
 
+#' Initialize BuyseTest objects 
+#'
+#' @rdname BuyseRes-class
 methods::setMethod(
   f = "initialize", 
   signature = "BuyseRes", 
   definition = function(.Object, 
-                        levels.treatment,endpoint, strata, threshold, n_pairs, 
                         count_favorable, count_unfavorable, count_neutral, count_uninf, 
+                        delta, delta_boot, Delta_quantile, p.value,
                         index_neutralT, index_neutralC, index_uninfT, index_uninfC, 
-                        delta, delta_boot, Delta_quantile, p.value){
+                        endpoint, levels.treatment, n_pairs,  strata, threshold){
     
     n.strata <- length(strata)
     D <- length(endpoint)
@@ -149,4 +152,7 @@ methods::setMethod(
     
 })
 
+#' Wrapper for creating BuyseRes objects
+#'
+#' @rdname BuyseRes-class
 BuyseRes <- function(...) new("BuyseRes", ...) 

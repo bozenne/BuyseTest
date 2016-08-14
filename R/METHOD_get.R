@@ -1,11 +1,7 @@
-setGeneric(name = "getCount", 
-           def = function(object, ...){standardGeneric("getCount")}
-)
-
 #' @docType methods
 #' @name BuyseRes-getCount
 #' @title get Method for Class "BuyseRes"
-#' @aliases get BuyseRes-get
+#' @aliases getCount BuyseRes-get 
 #' @include OBJECT_BuyseTest.R
 #' 
 #' @description Extract the number of pairs.
@@ -21,14 +17,21 @@ setGeneric(name = "getCount",
 #' BT <- BuyseTest(data=dt,endpoint="Y_TTE1",treatment="Treatment",type="timeToEvent",censoring="event1", n.bootstrap = 0)
 #' getCount(BT)
 #' getCount(BT, type = "favorable")
-#' 
+#'
 #' @keywords getCount BuyseRes-method
+
+#' @rdname BuyseRes-getCount
+setGeneric(name = "getCount", 
+           def = function(object, type){standardGeneric("getCount")}
+)
+
+#' @rdname BuyseRes-getCount
 #' @exportMethod getCount
-setMethod(f ="getCount",
-          signature ="BuyseRes",
-          definition = function(object, type = NULL){
+setMethod(f = "getCount",
+          signature = "BuyseRes",
+          definition = function(object, type){
             
-            if(is.null(type)){
+            if(missing(type)){
               type <- c("favorable","unfavorable","neutral","uninf")
             }
             

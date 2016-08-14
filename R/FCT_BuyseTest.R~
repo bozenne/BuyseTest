@@ -7,7 +7,7 @@
 #' @param treatment the name of the treatment variable identifying the control and the experimental group. \emph{character}.
 #' @param endpoint the name of the endpoint variable(s). \emph{character vector}.
 #' @param threshold the thresholds, one for each endpoint variable. \emph{numeric vector}. Default is \code{NULL} indicating no threshold.
-#' @param strata the name of the strata variable(s). \emph{numeric vector}. Default is \code{NULL} indicating only one strata.
+#' @param the name of the strata variable(s). \emph{numeric vector}. Default is \code{NULL} indicating only one strata.
 #' @param censoring the name of the censoring variable(s), one for each endpoint. \emph{character vector}. Default is \code{NULL}.
 #' @param type the type of each endpoint. \emph{character vector}. Can be \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
 #' @param method Is defined when at least one time-to-event outcome is analyzed. Defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations.  Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}. See details. 
@@ -47,12 +47,12 @@
 #' Gehan EA (1965) A generalized two-sample Wilcoxon test for doubly censored data \emph{Biometrika} \bold{vol. 52(3)} 650-653 \cr
 #'
 #' @seealso 
-#' \code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
+#' \code{\link{summary,BuyseRes-method}} for a summary of the results of generalized pairwise comparison. \cr
 #' \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
 #' \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
 #' 
 #' @example
-#' examples/EX_BuyseTest.R
+#' R/EX_BuyseTest.R
 #'     
 #' @keywords function BuyseTest
 #' @export
@@ -96,12 +96,12 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
     validNames(data, requiredValues = strata, validLength = NULL, method = "BuyseTest")
   }
   
-  if (data.table::is.data.table(data)) {
+  if (is.data.table(data)) {
     dataT <- data[data[[treatment]] == levels.treatment[2], c(endpoint, strata, censoring), with = FALSE]
     dataC <- data[data[[treatment]] == levels.treatment[1], c(endpoint, strata, censoring), with = FALSE]
   }else if (is.data.frame(data)) {
-    dataT <- data.table::as.data.table(data[data[[treatment]] == levels.treatment[2], c(endpoint, strata, censoring), drop = FALSE])
-    dataC <- data.table::as.data.table(data[data[[treatment]] == levels.treatment[1], c(endpoint, strata, censoring), drop = FALSE])
+    dataT <- as.data.table(data[data[[treatment]] == levels.treatment[2], c(endpoint, strata, censoring), drop = FALSE])
+    dataC <- as.data.table(data[data[[treatment]] == levels.treatment[1], c(endpoint, strata, censoring), drop = FALSE])
   }else{
     stop("BuyseTest : data must be a data.frame or a data.table \n")
   }
@@ -151,6 +151,40 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
   validInteger(seed, validLength = 1, refuse.NULL = FALSE, min = 1, method = "BuyseTest")
   
   ## cpu
+  if (cpus != 1) {
+    #### test package
+    test.package <- requireNamespace("snow",quietly = TRUE)
+    if ("package:snow" %in% search() == FALSE) {
+      test.package <- try(attachNamespace("snow"), silent = TRUE)
+      if ("package:snow" %in% search() == FALSE) {
+        stop("BuyseTest : this function with argument cpus>1 requires to have installed the snow package to work \n")
+      }
+    }
+    
+    if ("package:parallel" %in% search() == FALSE) {
+      test.package <- try(attachNamespace("parallel"), silent = TRUE)
+      if ("package:parallel" %in% search() == FALSE) {
+        stop("BuyseTest : this function with argument cpus>1 requires to have installed the parallel package to work \n")
+      }
+    }
+    
+    test.package <- requireNamespace("snowfall",quietly = TRUE)
+    if (test.package == FALSE) {
+      stop("BuyseTest : this function with argument cpus>1 requires to have installed the snowfall package to work \n")
+    }
+    
+    test.package <- requireNamespace("parallel",quietly = TRUE)
+    if (test.package == FALSE) {
+      stop("BuyseTest : this function with argument cpus>1 requires to have installed the parallel package to work \n")
+    }
+    
+    test.package <- requireNamespace("tcltk",quietly = TRUE)
+    if (test.package == FALSE) {
+      stop("BuyseTest : this function with argument cpus>1 and trace>0 requires to have installed the tcltk package to work \n")
+    }    
+    
+  }
+  
   if (cpus == "all") { 
     cpus <- parallel::detectCores() # this function detect the number of CPU cores 
   }else{# if several cpus are intended to be used, check this correspond to a valid number of CPU cores
