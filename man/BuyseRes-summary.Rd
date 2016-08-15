@@ -4,6 +4,7 @@
 \name{BuyseRes-summary}
 \alias{BuyseRes-summary}
 \alias{summary}
+\alias{summary,BuyseRes}
 \alias{summary,BuyseRes-method}
 \title{Summary Method for Class "BuyseRes"}
 \usage{
@@ -15,7 +16,7 @@ summary(object, ...)
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
 
-\item{...}{xxxx}
+\item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 
 \item{show}{the type of result to print. Can be \code{"nb"} or \code{"pc"} or \code{NULL} (nothing is printed). Default is \code{"pc"}.}
 

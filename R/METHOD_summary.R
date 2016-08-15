@@ -1,7 +1,7 @@
 #' @docType methods
 #' @name BuyseRes-summary
 #' @title Summary Method for Class "BuyseRes"
-#' @aliases summary BuyseRes-summary
+#' @aliases summary summary,BuyseRes
 #' @include OBJECT_BuyseTest.R
 #' 
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.

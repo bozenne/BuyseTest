@@ -1,7 +1,7 @@
 #' @docType methods
 #' @name BuyseRes-getCount
 #' @title get Method for Class "BuyseRes"
-#' @aliases getCount BuyseRes-get 
+#' @aliases getCount show,getCount
 #' @include OBJECT_BuyseTest.R
 #' 
 #' @description Extract the number of pairs.

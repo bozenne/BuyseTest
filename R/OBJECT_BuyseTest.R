@@ -1,5 +1,4 @@
 #' @name BuyseRes-class
-#' @rdname BuyseRes-class
 #' @title Class "BuyseRes" (output of BuyseTest)
 #' @aliases  BuyseRes BuyseRes-class
 #' 

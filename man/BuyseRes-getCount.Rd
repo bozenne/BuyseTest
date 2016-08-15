@@ -2,10 +2,10 @@
 % Please edit documentation in R/METHOD_get.R
 \docType{methods}
 \name{BuyseRes-getCount}
-\alias{BuyseRes-get}
 \alias{BuyseRes-getCount}
 \alias{getCount}
 \alias{getCount,BuyseRes-method}
+\alias{show,getCount}
 \title{get Method for Class "BuyseRes"}
 \usage{
 getCount(object, type)
