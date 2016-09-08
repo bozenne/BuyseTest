@@ -24,17 +24,16 @@ Depends:
     R (>= 2.10),
     survival,
     Rcpp (>= 0.10.5),
-    data.table
+    RcppArmadillo,
+    data.table,
+    snowfall
 Imports:
     methods,
-    stats4
+    stats4,
+    tcltk,
+    lava
 Suggests:
-    snow,
-    snowfall,
-    parallel,
-    tcltk
-LazyLoad: yes
-LinkingTo: Rcpp, RcppArmadillo
+    
 Collate:
     'BuyseTest-package.R'
     'FCT_BuyseTest.R'
@@ -49,5 +48,4 @@ Collate:
     'METHOD_summary.R'
     'METHOD_print.R'
     'RcppExports.R'
-Packaged: 2015-04-23 15:51:33 UTC; ozennebr
-RoxygenNote: 5.0.0
+RoxygenNote: NA

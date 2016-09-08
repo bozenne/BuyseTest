@@ -1,7 +1,7 @@
 #' @docType methods
 #' @name BuyseRes-getCount
 #' @title get Method for Class "BuyseRes"
-#' @aliases getCount show,getCount
+#' @aliases getCount BuyseRes-get 
 #' @include OBJECT_BuyseTest.R
 #' 
 #' @description Extract the number of pairs.
@@ -14,8 +14,7 @@
 #' 
 #' @examples
 #' dt <- simulBT(1e2)
-#' BT <- BuyseTest(data=dt,endpoint="Y_TTE1",treatment="Treatment",
-#'                 type="timeToEvent",censoring="event1", n.bootstrap = 0)
+#' BT <- BuyseTest(data=dt,endpoint="Y_TTE1",treatment="Treatment",type="timeToEvent",censoring="event1", n.bootstrap = 0)
 #' getCount(BT)
 #' getCount(BT, type = "favorable")
 #'

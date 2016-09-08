@@ -41,11 +41,10 @@
 #' @return An \R object of class \code{\linkS4class{BuyseRes}}.
 #' 
 #' @references 
-#' Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
-#' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. Statistical Methods in Medical Research. \cr
-#' Efron B (1967). \bold{The two sample problem with censored data}. \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} 4:831-583 \cr
-#' Peto R, Peto J (1972). \bold{Asymptotically efficient rank invariant test procedures}. \emph{Journal of the Royal Statistical Society - series A} 135(2):185-198 \cr
-#' Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
+#' Marc Buyse (2010) Generalized pairwise comparisons of prioritized endpoints in the two-sample problem. \emph{Statistics in Medicine} \bold{vol. 29} 3245-3257 \cr
+#' Efron B (1967) The two sample problem with censored data \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} \bold{vol. 4} 831-583 \cr
+#' Peto R, Peto J (1972) Asymptotically efficient rank invariant test procedures \emph{J R Stat Soc A} \bold{vol. 135(2)} 185-198 \cr
+#' Gehan EA (1965) A generalized two-sample Wilcoxon test for doubly censored data \emph{Biometrika} \bold{vol. 52(3)} 650-653 \cr
 #'
 #' @seealso 
 #' \code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
@@ -53,7 +52,7 @@
 #' \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
 #' 
 #' @example
-#' R/examples/EX_BuyseTest.R
+#' examples/EX_BuyseTest.R
 #'     
 #' @keywords function BuyseTest
 #' @export

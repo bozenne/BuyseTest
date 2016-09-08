@@ -64,7 +64,8 @@ Built on the lvm and sim functions from the lava package.
 simulBT(1e3)
 simulBT(1e3, argsBin = list(p.T = c(3:5/10)), argsCont = NULL, argsTTE = NULL)
 simulBT(1e3, argsBin = NULL, argsCont = list(mu.T = c(3:5/10), sigma.T = rep(1,3)), argsTTE = NULL)
-simulBT(1e3, argsBin = NULL, argsCont = NULL, argsTTE = list(rates.T = c(3:5/10), rates.Censor = rep(1,3)))
+simulBT(1e3, argsBin = NULL, argsCont = NULL, 
+        argsTTE = list(rates.T = c(3:5/10), rates.Censor = rep(1,3)))
 
 }
 \keyword{function}
