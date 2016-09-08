@@ -7,7 +7,7 @@ Implementation of the Generalized Pairwise Comparisons
 
 ** Installation
 
-You can download the last stable version on CRAN using:
+You can download the last stable version on =CRAN= using:
 #+BEGIN_SRC R :exports both :eval never
 install.packages("BuyseTest")
 #+END_SRC
@@ -19,6 +19,7 @@ install_github("bozenne/BuyseTest")
 #+END_SRC
 
 ** Citation
+To cite this package in a publications please use:
 #+BEGIN_QUOTE
 Julien Péron, Marc Buyse, Brice Ozenne, Laurent Roche, Pascal Roy (2016).
 An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring.
