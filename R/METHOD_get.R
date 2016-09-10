@@ -14,7 +14,7 @@
 #' @examples
 #' dt <- simulBT(1e2)
 #' BT <- BuyseTest(data=dt,endpoint="Y_TTE1",treatment="Treatment",
-#'                 type="timeToEvent",censoring="event1", n.bootstrap = 0)
+#'                 type="timeToEvent",censoring="event1", n.bootstrap = 0, trace = 0)
 #' getCount(BT)
 #' getCount(BT, type = "favorable")
 #'

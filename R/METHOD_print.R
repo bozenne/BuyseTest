@@ -33,7 +33,7 @@
 #'   }
 #'   \dontshow{
 #'     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-#'                                   treatment="treatment",type=c("bin","bin"),
+#'                                   treatment="treatment",type=c("bin","bin"), trace = 0,
 #'                                   n.bootstrap=10,trace=0)
 #'   }
 #'   
