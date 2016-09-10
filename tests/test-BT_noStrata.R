@@ -16,12 +16,13 @@ library(lava)
 library(data.table)
 library(survival)
 
+BuyseTest.options(trace = 0)
 
 #### additional spec
 n.patients <- c(90,100)
 n.bootstrap <- 1000
 precision <- 10^{-7}
-save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
+save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE
 
 #### function - file FCT/FCT_check.R ####
@@ -137,7 +138,7 @@ if(conv2df){data_Bin <- as.data.frame(data_Bin)}
 
 BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("Y_bin1","Y_bin2"),
                      treatment="Treatment", type=c("bin","bin"),
-                     n.bootstrap=n.bootstrap,trace=0)
+                     n.bootstrap=n.bootstrap)
 
 test_that("bootstrap approximately matches fisher test - Binary",{
   fisherP <- fisher.test(table(data_Bin$Y_bin1,data_Bin$Treatment))$p.value
@@ -156,7 +157,7 @@ if(conv2df){data_Cont <- as.data.frame(data_Cont)}
 
 BT_Cont1 <- BuyseTest(data=data_Cont,endpoint=c("Y_cont1","Y_cont2"),
                       treatment="Treatment", type=c("cont","cont"),threshold=c(0,1),
-                      n.bootstrap=n.bootstrap,trace=0)
+                      n.bootstrap=n.bootstrap)
 
 test_that("bootstrap approximately matches wilcoxon test - Continuous",{
   wilcoxRes <- wilcox.test(data_Cont[Treatment==0,Y_cont1],
@@ -185,7 +186,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   BT_TTE1[[method]] <- BuyseTest(data=data_TTE,endpoint=c("Y_TTE1","Y_TTE2","Y_TTE3"),method=method,
                                  treatment="Treatment",censoring=c("event1","event2","event1"),
                                  type=c("TTE","TTE","TTE"),threshold=c(0,0.5,0.25),
-                                 n.bootstrap = n.bootstrapTempo, trace=0)
+                                 n.bootstrap = n.bootstrapTempo)
   
   test_that("count pairs summary - TTE different endpoint",{
     valTest <- as.double(validPairs(BT_TTE1[[method]], type = "sum"))
@@ -202,7 +203,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   BT_TTE2[[method]] <- BuyseTest(data=data_TTE,endpoint=c("Y_TTE1","Y_TTE1","Y_TTE1"),method=method,
                                  treatment="Treatment",censoring=c("event1","event1","event1"),
                                  type=c("TTE","TTE","TTE"),threshold=c(1,0.5,0.25),
-                                 n.bootstrap = 10, trace=0)
+                                 n.bootstrap = 10)
   
   test_that("count pairs summary - TTE same endpoint",{
     valTest <- as.double(validPairs(BT_TTE2[[method]], type = "sum"))
@@ -224,7 +225,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
                                 treatment="Treatment",censoring=c("event1",NA,NA,"event1",NA),
                                 type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                                 threshold=c(0.5,1,NA,0.25,0.5),
-                                n.bootstrap = 10, trace=0)
+                                n.bootstrap = 10)
   
   test_that("count pairs summary - mixed",{
     valTest <- as.double(validPairs(BT_Mix[[method]], type = "sum"))
@@ -237,7 +238,7 @@ data(veteran, package = "survival")
 
 BT_veteran <- BuyseTest(data = veteran, endpoint = "time", treatment = "trt", 
                         type = "timeToEvent", censoring = "status",threshold = 0, 
-                        n.bootstrap = 10, trace = 0)
+                        n.bootstrap = 10)
 BT_veteran
 
 ##### export

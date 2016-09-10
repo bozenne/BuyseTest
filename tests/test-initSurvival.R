@@ -22,7 +22,7 @@ library(survival)
 #### additional spec
 n.patients <- 200
 precision <- 10^{-7}
-save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
+save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE
 
 #### data ####

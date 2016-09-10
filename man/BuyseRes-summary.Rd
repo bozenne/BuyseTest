@@ -53,14 +53,13 @@ WARNING : the confidence interval is computed using quantiles of the distributio
                               rbinom(n.Control_testBin,size=1,prob=prob.Control_testBin[2]))
   data_testBin$strata <- rbinom(n.Treatment_testBin+n.Control_testBin,size=4,prob=0.5)
   
-  #### no strata
   \dontrun{
     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
                                   treatment="treatment",type,=c("bin","bin"),n.bootstrap=10000)
   }
   \dontshow{
     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-                                  treatment="treatment",type=c("bin","bin"),
+                                  treatment="treatment",type=c("bin","bin"), 
                                   n.bootstrap=10,trace=0)
   }
   

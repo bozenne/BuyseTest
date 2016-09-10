@@ -61,7 +61,7 @@ A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
   
   #### no strata, n.bootsrap=0
   BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-                                treatment="treatment", type=c("bin","bin"))
+                                treatment="treatment", type=c("bin","bin"), trace = 0)
   
   class(BuyseTest_object)
   

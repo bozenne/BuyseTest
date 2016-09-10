@@ -20,6 +20,8 @@ precision <- 10^{-7}
 save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE
 
+BuyseTest.options(trace = 0)
+
 #### data ####
 set.seed(10)
 dt.BT <- simulBT(n.patients)
@@ -33,7 +35,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ # method <- "Gehan"
   ls.times[[method]] <- system.time(
     ls.sum[[method]] <- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
                                   type="TTE",censoring="event1",threshold=0, cpus = "all",
-                                  n.bootstrap=n.bootstrap,trace=1,method=method)
+                                  n.bootstrap=n.bootstrap,method=method)
   )
 }
 

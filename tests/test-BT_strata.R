@@ -20,8 +20,10 @@ library(survival)
 n.patients <- c(90,100)
 n.bootstrap <- 10
 precision <- 10^{-7}
-save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
+save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE
+
+BuyseTest.options(trace = 0)
 
 #### function - file FCT/FCT_check.R ####
 validPairs <- function(BuyseRes, type = c("strata","sum")){
@@ -140,7 +142,7 @@ if(conv2df){data_BinS <- as.data.frame(data_BinS)}
 
 BT_Bin1 <- BuyseTest(data=data_BinS,endpoint=c("Y_bin1","Y_bin2"),
                      treatment="Treatment", type=c("bin","bin"),strata="strata",
-                     n.bootstrap=n.bootstrap,trace=0)
+                     n.bootstrap=n.bootstrap)
 BT_Bin1
 
 test_that("count pairs summary - Binary",{
@@ -162,7 +164,7 @@ if(conv2df){data_ContS <- as.data.frame(data_ContS)}
 
 BT_Cont1 <- BuyseTest(data=data_ContS,endpoint=c("Y_cont1","Y_cont2"),
                                  treatment="Treatment", type=c("cont","cont"),threshold=c(1,1),strata="strata",
-                                 n.bootstrap=n.bootstrap,trace=0)
+                                 n.bootstrap=n.bootstrap)
 
 summary(BT_Cont1)
 
@@ -190,7 +192,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   BT_TTE1[[method]] <- BuyseTest(data=data_TTES,endpoint=c("Y_TTE1","Y_TTE2","Y_TTE3"),method=method,
                                  treatment="Treatment",censoring=c("event1","event2","event1"),strata="strata",
                                  type=c("TTE","TTE","TTE"),threshold=c(0.75,0.5,0.25),
-                                 n.bootstrap = n.bootstrap, trace=0)
+                                 n.bootstrap = n.bootstrap)
   (BT_TTE1[[method]])
   
   test_that("count pairs summary - TTE",{
@@ -210,7 +212,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   BT_TTE2[[method]] <- BuyseTest(data=data_TTES,endpoint=c("Y_TTE1","Y_TTE1","Y_TTE1"),method=method,
                                  treatment="Treatment",censoring=c("event1","event1","event1"),strata="strata",
                                  type=c("TTE","TTE","TTE"),threshold=c(1,0.5,0.25),
-                                 n.bootstrap = n.bootstrap, trace=0)
+                                 n.bootstrap = n.bootstrap)
   (BT_TTE2[[method]])
   
   test_that("count pairs summary - TTE",{
@@ -239,7 +241,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
                                 treatment="Treatment",censoring=c("event1",NA,NA,"event1",NA),strata="strata",
                                 type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                                 threshold=c(0.5,1,NA,0.25,0.5),
-                                n.bootstrap = n.bootstrap, trace=0)
+                                n.bootstrap = n.bootstrap)
   
   SBT_Mix <- summary(BT_Mix[[method]])
   
@@ -258,7 +260,7 @@ data(veteran, package = "survival")
 
 BT_veteran <- BuyseTest(data = veteran, endpoint = "time", treatment = "trt", strata = "celltype",
                         type = "timeToEvent", censoring = "status",threshold = 0, 
-                        n.bootstrap = n.bootstrap, trace = 0)
+                        n.bootstrap = n.bootstrap)
 BT_veteran
 
 ##### export

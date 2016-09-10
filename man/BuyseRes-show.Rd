@@ -36,7 +36,7 @@ Display the main results stored in a \code{\link{BuyseRes}} object.
   }
   \dontshow{
     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-                                  treatment="treatment",type=c("bin","bin"),
+                                  treatment="treatment",type=c("bin","bin"), 
                                   n.bootstrap=10,trace=0)
   }
   

@@ -9,6 +9,8 @@
 library(testthat)
 library(BuyseTest)
 
+BuyseTest.options(trace = 0)
+
 #### 1- test 2 pairs ####
 
 ## a)
@@ -22,7 +24,7 @@ gehan4 <- data.table(ID = 1:4,
 
 test_that("2 pairs - Gehan",{
   BT <- BuyseTest(data=gehan4,endpoint="time",treatment="treat",
-                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,trace=0,method="Gehan")
+                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,method="Gehan")
   
   expect_equal(as.double(BT@count_favorable),0)
   expect_equal(as.double(BT@count_unfavorable),2)
@@ -35,7 +37,7 @@ test_that("2 pairs - Gehan",{
 
 test_that("2 pairs - Peto",{
   BT <- BuyseTest(data=gehan4,endpoint="time",treatment="treat",
-                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,trace=0,method="Peto")
+                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,method="Peto")
   
   expect_equal(as.double(BT@count_favorable),1/3)
   expect_equal(as.double(BT@count_unfavorable),3)
@@ -48,7 +50,7 @@ test_that("2 pairs - Peto",{
 
 test_that("2 pairs - Efron",{
   BT <- BuyseTest(data=gehan4,endpoint="time",treatment="treat",
-                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,trace=0,method="Efron")
+                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,method="Efron")
   
   expect_equal(as.double(BT@count_favorable),0)
   expect_equal(as.double(BT@count_unfavorable),4)
@@ -61,7 +63,7 @@ test_that("2 pairs - Efron",{
 
 test_that("2 pairs - Peron",{
   BT <- BuyseTest(data=gehan4,endpoint="time",treatment="treat",
-                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,trace=0,method="Peron")
+                  type="TTE",censoring="cens",threshold=0,n.bootstrap=0,method="Peron")
   
   expect_equal(as.double(BT@count_favorable),0)
   expect_equal(as.double(BT@count_unfavorable),4)
@@ -96,7 +98,7 @@ tab<-data.frame(group,Time,Event)
 
 test_that("2 pairs - Gehan",{
   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,trace=0,method="Gehan",seed=11)
+                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Gehan",seed=11)
   
   expect_equal(as.double(BT@count_favorable),6)
   expect_equal(as.double(BT@count_unfavorable),8)
@@ -108,7 +110,7 @@ test_that("2 pairs - Gehan",{
 
 test_that("2 pairs - Peto",{
   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,trace=0,method="Peto",seed=11)
+                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peto",seed=11)
   
   expect_equal(as.double(BT@count_favorable),40.95, tolerance = 1e-3)
   expect_equal(as.double(BT@count_unfavorable),41.67, tolerance = 1e-3)
@@ -120,7 +122,7 @@ test_that("2 pairs - Peto",{
 
 test_that("2 pairs - Efron",{
   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,trace=0,method="Efron",seed=11)
+                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Efron",seed=11)
   
   expect_equal(as.double(BT@count_favorable),11.11, tolerance = 1e-3)
   expect_equal(as.double(BT@count_unfavorable),11.11, tolerance = 1e-3)
@@ -133,7 +135,7 @@ test_that("2 pairs - Efron",{
 
 test_that("2 pairs - Peron",{
   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,trace=0,method="Peron",seed=11)
+                  type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peron",seed=11)
  
   expect_equal(as.double(BT@count_favorable), 11.11, tolerance = 1e-3)
   expect_equal(as.double(BT@count_unfavorable), 11.11, tolerance = 1e-3)
@@ -155,13 +157,13 @@ tab<-data.frame(group,Time,Event)
 
 
 Buyseres.Gehan <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                            type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,trace=2,method="Gehan",seed=11)
+                            type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,method="Gehan",seed=11)
 Buyseres.Peto <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                           type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,trace=2,method="Peto",seed=11)
+                           type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,method="Peto",seed=11)
 Buyseres.Efron <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                            type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,trace=2,method="Efron",seed=11)
+                            type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,method="Efron",seed=11)
 Buyseres.Peron <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                            type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,trace=2,method="Peron",seed=11)
+                            type="TTE",censoring="Event",threshold=0.1,n.bootstrap=0,method="Peron",seed=11)
 
 summary(Buyseres.Gehan)
 # strata pc.total pc.favorable pc.unfavorable pc.neutral pc.uninf delta Delta n.bootstrap
@@ -296,7 +298,7 @@ tab<-as.data.frame(tab)
 
 seedGPC<-20150115
 BuyseresE<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=1000,trace=0,method="Efron",seed=seedGPC)
+                      type="TTE",censoring="Event",threshold=0,n.bootstrap=1000,method="Efron",seed=seedGPC)
 summary(BuyseresE)
 plot(survfit(Surv(time=Time, event=Event) ~ group, data=tab))
 summary(survfit(Surv(time=Time, event=Event) ~ group, data=tab))
@@ -304,6 +306,6 @@ summary(survfit(Surv(time=Time, event=Event) ~ group, data=tab))
 
 seedGPC<-20150115
 BuyseresE<- BuyseTest(data=tab,endpoint="Time",treatment="group",
-                      type="TTE",censoring="Event",threshold=0,n.bootstrap=1,trace=0,method="Efron",seed=seedGPC)
+                      type="TTE",censoring="Event",threshold=0,n.bootstrap=1,method="Efron",seed=seedGPC)
 summary(BuyseresE)
 }
