@@ -1,0 +1,11 @@
+#### packages
+library(testthat)
+library(BuyseTest)
+
+library(lava)
+library(data.table)
+library(survival)
+
+
+#### launch tests
+test_check("BuyseTest")

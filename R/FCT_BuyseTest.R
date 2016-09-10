@@ -57,8 +57,10 @@
 #'     
 #' @keywords function BuyseTest
 #' @export
-BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata = NULL, censoring = NULL, method = "Peron",
-                      n.bootstrap = 0, prob.alloc = NULL, stratified = FALSE, alternative = "two.sided", seed = 10, cpus = 1, trace = 3){
+BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata = NULL, censoring = NULL, 
+                      method = BuyseTest.options()$method,
+                      n.bootstrap = BuyseTest.options()$n.bootstrap, prob.alloc = NULL, stratified = FALSE, alternative = "two.sided", 
+                      seed = BuyseTest.options()$seed, cpus = BuyseTest.options()$cpus, trace = BuyseTest.options()$trace){
   
   
   #### 1- data management + tests ####

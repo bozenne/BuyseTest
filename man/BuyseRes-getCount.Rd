@@ -5,7 +5,6 @@
 \alias{BuyseRes-getCount}
 \alias{getCount}
 \alias{getCount,BuyseRes-method}
-\alias{show,getCount}
 \title{get Method for Class "BuyseRes"}
 \usage{
 getCount(object, type)

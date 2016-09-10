@@ -7,20 +7,23 @@
 # check whether when using identical values across strata, the result is the same across strata
 # check consistency with results from previous version (on common slots)
 
-#### spec
-library(BuyseTest) # butils:::package.source("BuyseTest", Rcode = TRUE, Ccode = TRUE)
+#context("BuyseTest with strata")
+
 library(testthat)
+library(BuyseTest)
+
 library(lava)
 library(data.table)
+library(survival)
 
-precision <- 10^{-7}
+#### additional spec
 n.patients <- c(90,100)
 n.bootstrap <- 10
-
-save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
+precision <- 10^{-7}
+save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE
 
-#### 0- function - file FCT/FCT_check.R ####
+#### function - file FCT/FCT_check.R ####
 validPairs <- function(BuyseRes, type = c("strata","sum")){
   
   BuyseSummary <- summary(BuyseRes, show = NULL)
@@ -262,7 +265,7 @@ BT_veteran
 version <- packageVersion("BuyseTest")
 dir <- paste0("tests/Results-version",version)
 
-if(!is.null(save) && save == TRUE){
+if(identical(save, TRUE)){
   results_strata <- list(OutcomeBin = list(data = data_BinS, BT = BT_Bin1),
                          OutcomeCont = list(data = data_ContS, BT = BT_Cont1),
                          OutcomeTTE = list(data = data_TTES, BT1 = BT_TTE1, BT2 = BT_TTE2), 
@@ -270,7 +273,7 @@ if(!is.null(save) && save == TRUE){
                          veteran = list(data = veteran, BT = BT_veteran))
   if(dir.exists(dir) == FALSE){dir.create(dir)}
   save(results_strata, file = file.path(dir,"test_strata.RData"))
-}else if(!is.null(save) && save == FALSE){
+}else if(identical(save, FALSE)){
   load(file = file.path(dir,"test_strata.RData"))
   
   test_that("comparison with the previous version", {

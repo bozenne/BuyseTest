@@ -7,20 +7,24 @@
 # check consistency with existing tests
 # check consistency with results from previous version (on common slots)
 
-#### spec
-library(BuyseTest) # butils:::package.source("BuyseTest", Rcode = TRUE, Ccode = TRUE)
+#context("BT no strata")
+
 library(testthat)
+library(BuyseTest)
+
 library(lava)
 library(data.table)
 library(survival)
-precision <- 10^{-7}
+
+
+#### additional spec
 n.patients <- c(90,100)
 n.bootstrap <- 1000
-
-save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
+precision <- 10^{-7}
+save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE
 
-#### 0- function - file FCT/FCT_check.R ####
+#### function - file FCT/FCT_check.R ####
 validPairs <- function(BuyseRes, type = c("strata","sum")){
   
   BuyseSummary <- summary(BuyseRes, show = NULL)
@@ -120,7 +124,6 @@ Vexpect_NA <- function(x,...){
   sapply(x, function(X){expect_true(is.na(X),...)})
   return(invisible(TRUE))
 }
-
 
 #### 1- Check number of pairs ####
 set.seed(10)
@@ -241,7 +244,7 @@ BT_veteran
 version <- packageVersion("BuyseTest")
 dir <- paste0("tests/Results-version",version)
 
-if(!is.null(save) && save == TRUE){
+if(identical(save, TRUE)){
   results_noStrata <- list(OutcomeBin = list(data = data_BinS, BT = BT_Bin1),
                            OutcomeCont = list(data = data_ContS, BT = BT_Cont1),
                            OutcomeTTE = list(data = data_TTES, BT1 = BT_TTE1, BT2 = BT_TTE2), 
@@ -249,7 +252,7 @@ if(!is.null(save) && save == TRUE){
                            veteran = list(data = veteran, BT = BT_veteran))
   if(dir.exists(dir) == FALSE){dir.create(dir)}
   save(results_noStrata, file = file.path(dir,"test_noStrata.RData"))
-}else if(!is.null(save) && save == FALSE){
+}else if(identical(save, FALSE)){
   load(file = file.path(dir,"test_noStrata.RData"))
   
   test_that("comparison with the previous version", {

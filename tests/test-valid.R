@@ -1,3 +1,5 @@
+#context("valid functions")
+
 library(testthat)
 library(BuyseTest)
 

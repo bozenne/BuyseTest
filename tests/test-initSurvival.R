@@ -10,15 +10,20 @@
 
 ## no test : saut au moment du dernier evenement.
 
-#### spec
-library(BuyseTest)
-library(testthat)
-library(data.table)
-library(lava)
+#context("KM")
 
-precision <- 10^{-7}
+library(testthat)
+library(BuyseTest)
+
+library(lava)
+library(data.table)
+library(survival)
+
+#### additional spec
 n.patients <- 200
-save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
+precision <- 10^{-7}
+save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
+conv2df <- FALSE
 
 #### data ####
 version <- packageVersion("BuyseTest")
@@ -263,7 +268,7 @@ for(iter_dataset in 1:3){
       })
     
     #### match previous implementation
-      if(!is.null(save)){
+      if(identical(save, FALSE)){
         test_that("comparison with the previous version", {
           expect_equal(results_initSurvival$NoStrata[[iter_dataset]][[method]]$list_survivalT, Survival_noStrata$list_survivalT, tolerance = precision)
           expect_equal(results_initSurvival$NoStrata[[iter_dataset]][[method]]$list_survivalC, Survival_noStrata$list_survivalC, tolerance = precision)
@@ -337,7 +342,7 @@ for(method in c("Peto","Efron","Peron")){
     })
     
     #### match previous implementation
-    if(!is.null(save)){
+    if(identical(save, FALSE)){
       test_that(paste0("comparison with the previous version ",method), {
         expect_equal(results_initSurvival$Strata[[method]]$list_survivalT, 
                      Survival_Strata$list_survivalT, tolerance = precision)
