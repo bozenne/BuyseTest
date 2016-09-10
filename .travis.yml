@@ -1,0 +1,20 @@
+language: r
+sudo: required
+
+r_check_args: --as-cran 
+
+r_binary_packages:
+ - survival
+ - Rcpp
+ - data.table
+ - snowfall
+ - methods
+ - lava
+ - stats
+ - stats4
+ - tcltk
+ - utils 
+ - testthat
+
+after_success:
+  - Rscript -e 'library("covr");codecov(type="test")'
