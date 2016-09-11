@@ -543,7 +543,7 @@ initThreshold <- function(threshold,type,D,method,endpoint){
     threshold[stats::na.omit(which(threshold==0))] <- 10^{-12}
   }
  
-  validNumeric(threshold, validLength = D, refuse.NA = FALSE , method = "BuyseTest")
+  validNumeric(threshold, validLength = D, min = 0, refuse.NA = FALSE , method = "BuyseTest")
   
   if(any(!is.na(threshold[type==1])) ){
     stop("BuyseTest : wrong specification of \'threshold\' \n",
@@ -581,6 +581,9 @@ initThreshold <- function(threshold,type,D,method,endpoint){
                                                      sep="",collapse=" "),"\n")      
     }
   }
+  
+  ## convert binary to continuous
+  threshold[type==1] <- 1/2
   
   #### export ####
   return(threshold)

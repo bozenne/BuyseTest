@@ -75,16 +75,12 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
     }
     
     //// first endpoint
-    if(type[0]==1){ // binary endpoint
-      resK = calcAllPairs_BinaryOutcome_cpp(TreatmentK.col(0),ControlK.col(0));
-    }
-    if(type[0]==2){ // continuous endpoint
-      resK = calcAllPairs_ContinuousOutcome_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
-    }
     if(type[0]==3){ // time to event endpoint
       resK = calcAllPairs_TTEOutcome_Gehan_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0],
                                                delta_TreatmentK.col(0),delta_ControlK.col(0));
       iter_dTTE++; // increment the number of time to event endpoints that have been used
+    }else { // binary or continuous endpoint
+      resK = calcAllPairs_ContinuousOutcome_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
     }
     
     // store the number of pairs found in each catergory after conversion from SEXP to int. 
@@ -102,23 +98,16 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
       
-      if(type[iter_d]==1){ // binary endpoint
-        resK = calcSubsetPairs_BinaryOutcome_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), 
-                                                 resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
-                                                 resK.index_uninfT, resK.index_uninfC, resK.count_uninf);    
-      }
-      
-      if(type[iter_d]==2){ // continuous endpoint
-        resK = calcSubsetPairs_ContinuousOutcome_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
-                                                     resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
-                                                     resK.index_uninfT, resK.index_uninfC, resK.count_uninf);   
-      }
       if(type[iter_d]==3){ // time to event endpoint
         resK = calcSubsetPairs_TTEOutcome_Gehan_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
                                                     delta_TreatmentK.col(iter_dTTE), delta_ControlK.col(iter_dTTE),
                                                     resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
                                                     resK.index_uninfT, resK.index_uninfC, resK.count_uninf);   
         iter_dTTE++; // increment the number of time to event endpoints that have been used
+      }else{ // binary or continuous endpoint
+        resK = calcSubsetPairs_ContinuousOutcome_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
+                                                     resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
+                                                     resK.index_uninfT, resK.index_uninfC, resK.count_uninf);   
       }
       
       
@@ -221,12 +210,6 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
     delta_ControlK = delta_Control.rows(index_strataC); // select the rows in the control status matrix corresponding to the indexes contained in strata          
     
     //// first endpoint
-    if(type[0]==1){ // binary endpoint
-      resK = calcAllPairs_BinaryOutcome_cpp(TreatmentK.col(0),ControlK.col(0));      
-    }
-    if(type[0]==2){ // continuous endpoint
-      resK = calcAllPairs_ContinuousOutcome_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
-    }
     if(type[0]==3){ // time to event endpoint   
       resK = calcAllPairs_TTEOutcome_PetoEfronPeron_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0],
                                                         delta_TreatmentK.col(0),delta_ControlK.col(0),
@@ -234,6 +217,8 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
                                                         list_survivalC[0].rows(index_strataC), 
                                                         PEP); 
       iter_dTTE++; // increment the number of time to event endpoints that have been used   
+    }else { // binary or continuous endpoint
+      resK = calcAllPairs_ContinuousOutcome_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
     }
     
     // store the total weight corresponding to each catergory after conversion from SEXP to double. 
@@ -267,18 +252,6 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
       iter_d++; // increment the index of the endpoints
       Wpairs_sauve=Wpairs; // save the current Wpairs
       
-      if(type[iter_d]==1){ // binary endpoint        
-        resK = calcSubsetPairs_WeightedBinaryOutcome_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),
-                                                         resK.index_neutralT,resK.index_neutralC, size_neutral,
-                                                         resK.index_uninfT,resK.index_uninfC, size_uninf,
-                                                         w);    
-      }
-      if(type[iter_d]==2){ // continuous endpoint
-        resK = calcSubsetPairs_WeightedContinuousOutcome_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-                                                             resK.index_neutralT,resK.index_neutralC, size_neutral,
-                                                             resK.index_uninfT,resK.index_uninfC, size_uninf,
-                                                             w);   
-      }
       if(type[iter_d]==3){ // time to event endpoint 
         
         if(threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used
@@ -303,6 +276,11 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
                                                                                  PEP); 
         }
         iter_dTTE++; // increment the number of time to event endpoints that have been used
+      }else { // binary or continuous endpoint
+        resK = calcSubsetPairs_WeightedContinuousOutcome_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
+                                                             resK.index_neutralT,resK.index_neutralC, size_neutral,
+                                                             resK.index_uninfT,resK.index_uninfC, size_uninf,
+                                                             w);   
       }
       
       // store the number of pairs found in each catergory after conversion from SEXP to double. 

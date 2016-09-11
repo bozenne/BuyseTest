@@ -9,11 +9,6 @@ using namespace arma ;
 
 
 //// SUMMARY : calcOne functions ////
-inline void calcOnePair_BinaryOutcome_cpp(const double endpoint_T, const double endpoint_C, const int index_T, const int index_C, const double Wpair, const int iter_pair,
-double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
-vector<int>& index_wUninf, vector<int>&  index_wNeutral);
- 
 inline void calcOnePair_ContinuousOutcome_cpp(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
@@ -35,58 +30,7 @@ const arma::mat& survival_T, const arma::mat& survival_C);
 
 inline double calcIntegralProba_cpp(const double time_begin, const arma::mat& survival, const int index_col);
 
-//// fct1 - binary endpoint ///////////////////////////////////////////////////
-inline void calcOnePair_BinaryOutcome_cpp(const double endpoint_T, const double endpoint_C, const int index_T, const int index_C, const double Wpair, const int iter_pair,
-double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
-vector<int>& index_wUninf, vector<int>&  index_wNeutral){
-  
-  // endpoint_T and endpoint_C are in double to keep NA values in NA format
-  
-  if(R_IsNA(endpoint_T) || R_IsNA(endpoint_C)){
-    index_uninfT.push_back(index_T);
-    index_uninfC.push_back(index_C);
-    count_uninf+=Wpair;
-    
-    if(iter_pair>=0){
-      index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs 
-    }
-    
-  }else if(endpoint_T==1){    
-    if(endpoint_C==1){ 
-      index_neutralT.push_back(index_T); 
-      index_neutralC.push_back(index_C);
-      count_neutral+=Wpair;
-      
-      if(iter_pair>=0){
-        index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs      
-      }
-    }else{ // endpoint_C==0
-    count_favorable+=Wpair;       
-    }
-    
-  }else{ // endpoint_T==0
-  
-  if(endpoint_C==1){
-    count_unfavorable+=Wpair;
-  }else{ // endpoint_C==0
-  index_neutralT.push_back(index_T);
-  index_neutralC.push_back(index_C);
-  count_neutral+=Wpair;
-  
-  if(iter_pair>=0){
-    index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs      
-  }
-  
-  }
-  
-  }
-  
-  return ;
-  
-}
 
-//// fct2 - continous endpoint ///////////////////////////////////////////////////
 inline void calcOnePair_ContinuousOutcome_cpp(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
@@ -123,7 +67,6 @@ vector<int>& index_wUninf, vector<int>& index_wNeutral){
   
 }
 
-//// fct3 -Time to event (censoring Gehan) ///////////////////////////////////////////////
 inline void calcOnePair_TTEOutcome_Gehan_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
@@ -194,7 +137,6 @@ vector<int>& index_wUninf, vector<int>&  index_wNeutral){
 }
 
 
-//// fct3bis -Time to event (censoring Peto) ///////////////////////////////////////////////
 inline vector<double> calcOneProba_TTEOutcome_Peto_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
@@ -333,7 +275,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   return(proba);  
 }
 
-//// fct3bis -Time to event (censoring Efron) ///////////////////////////////////////////////
 inline vector<double> calcOneProba_TTEOutcome_Efron_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
@@ -457,7 +398,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   return(proba);  
 }
 
-//// fct3ter -Time to event (censoring Peron) ///////////////////////////////////////////////
 inline vector<double> calcOneProba_TTEOutcome_Peron_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
