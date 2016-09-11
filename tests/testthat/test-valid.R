@@ -1,7 +1,4 @@
-#context("valid functions")
-
-library(testthat)
-library(BuyseTest)
+verboseContext("Check valid functions")
 
 #### ValidCharacter ####
 

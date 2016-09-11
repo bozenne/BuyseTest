@@ -1,150 +1,17 @@
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#%%%%%
-#%%%%% Test the computation of the survival
-#%%%%%
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# no strata: Check jump at t- and no jump at t+ in the estimated survival by KM
-# no strata: Check survival=NA after last event if censored else death (rational being that we do not know what it would be for censored but we do know that the survival if 0 if everybody is dead)
-# no strata and strata: check identical with previous version
-#
-
-## no test : saut au moment du dernier evenement.
-
-#context("KM")
-
-library(testthat)
-library(BuyseTest)
-
-library(lava)
-library(data.table)
-library(survival)
+verboseContext("Check KM computation")
 
 #### additional spec
 n.patients <- 200
 precision <- 10^{-7}
-save <- NULL # TRUE to save results, FALSE to test, NULL to ignore
-conv2df <- FALSE
-
-#### data ####
-version <- packageVersion("BuyseTest")
-dir <- paste0("tests/Results-version",version)
-
-if(identical(save, TRUE)){
-  results_initSurvival <- list()
-  results_initSurvival$NoStrata <- list()
-  results_initSurvival$Strata <- list()
-}else if(identical(save, FALSE)){
-  load(file = file.path(dir,"test_initSurvival-results_initSurvival.RData"))
-}
-
-#### 0- function - file FCT/FCT_check.R ####
-validPairs <- function(BuyseRes, type = c("strata","sum")){
-  
-  BuyseSummary <- summary(BuyseRes, show = NULL)
-  enpoint_threshold <- paste(BuyseSummary$nb$endpoint,BuyseSummary$nb$threshold, sep = "_")
-  endpoints <- unique(enpoint_threshold)
-  D <- length(endpoints)
-  index_strata <- which(BuyseSummary$nb$strata!="global")
-  levels.strata <- unique(BuyseSummary$nb$strata[index_strata])
-  n.strata <- length(levels.strata) 
-  
-  diff <- NULL
-  
-  if("strata" %in% type){
-    diff.strata <- matrix(NA,nrow=(1+n.strata)*D,ncol=5)
-    colnames(diff.strata) <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
-    rownames(diff.strata) <- paste(BuyseSummary$nb$endpoint, " th=",BuyseSummary$nbthreshold ," strata=", BuyseSummary$nb$strata)
-    for(iter_endpoint in 1:D){
-      index_endpoint <- which(enpoint_threshold==endpoints[iter_endpoint])  
-      res_strata <- as.matrix(BuyseSummary$nb[intersect(index_strata,index_endpoint),c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")])
-      diff.strata[intersect(index_strata,index_endpoint),] <- t(apply(res_strata,1,function(x){x-res_strata[1,,drop=TRUE]}))
-    }
-    diff <- cbind(diff, diff.strata)
-  }
-  if("sum" %in% type){
-    diff.sum <- cbind(sum = BuyseSummary$nb$n.total - (BuyseSummary$nb$n.favorable+BuyseSummary$nb$n.unfavorable+BuyseSummary$nb$n.neutral+BuyseSummary$nb$n.uninf))
-    rownames(diff.sum) <- paste(BuyseSummary$nb$endpoint, " th=",BuyseSummary$nbthreshold ," strata=", BuyseSummary$nb$strata)
-    diff <- cbind(diff, diff.sum)
-  }
-  return(diff)
-}
-
-expect_equalPairsBT <- function(BuyseRes1, BuyseRes2){
-  count1 <- getCount(BuyseRes1) 
-  count2 <- getCount(BuyseRes2)
-  expect_equal(count1, count2)
-}
-
-expect_equalBT <- function(BuyseRes1, BuyseRes2, slots = NULL, trace = 1){
-  if(is.null(slots)){slots <- setdiff(intersect(names(attributes(BuyseRes1)), names(attributes(BuyseRes2))), "class")}
-  
-  test.strata1 <- !("try-error" %in% class(try(BuyseRes1@strata, silent = TRUE)))
-  test.strata2 <- !("try-error" %in% class(try(BuyseRes2@strata, silent = TRUE)))
-  
-  if (test.strata1 && length(BuyseRes1@strata) > 1) {
-    if(test.strata2 == FALSE){
-      
-      if(!identical(BuyseRes1@delta, BuyseRes2@delta)){
-        if(trace>0){cat("* reorder according to strata in BuyseRes 1 and 2 \n")}
-        index.match <- match(BuyseRes1@delta[,1], BuyseRes2@delta[,1]) # could be wrong to consider only the first outcome
-        BuyseRes2@delta <- BuyseRes2@delta[index.match,,drop=FALSE]
-        BuyseRes2@count_favorable <- BuyseRes2@count_favorable[index.match,,drop=FALSE]
-        BuyseRes2@count_unfavorable <- BuyseRes2@count_unfavorable[index.match,,drop=FALSE]
-        BuyseRes2@count_neutral <- BuyseRes2@count_neutral[index.match,,drop=FALSE]
-        BuyseRes2@count_uninf <- BuyseRes2@count_uninf[index.match,,drop=FALSE]
-        BuyseRes2@delta_boot <- BuyseRes2@delta_boot[index.match,,,drop = FALSE]
-        
-        BuyseRes2@index_neutralT <- sort(BuyseRes2@index_neutralT)
-        BuyseRes2@index_neutralC <- sort(BuyseRes2@index_neutralC)
-        BuyseRes2@index_uninfT <- sort(BuyseRes2@index_uninfT)
-        BuyseRes2@index_uninfC <- sort(BuyseRes2@index_uninfC)
-        
-        BuyseRes1@index_neutralT <- sort(BuyseRes1@index_neutralT)
-        BuyseRes1@index_neutralC <- sort(BuyseRes1@index_neutralC)
-        BuyseRes1@index_uninfT <- sort(BuyseRes1@index_uninfT)
-        BuyseRes1@index_uninfC <- sort(BuyseRes1@index_uninfC)
-      }
-    }
-    
-  }
-  
-  test.error <- FALSE
-  for(iterSlot in slots){
-    res <- try(expect_equal(slot(BuyseRes1,  iterSlot), slot(BuyseRes2,  iterSlot)), silent = TRUE)
-    if("try-error" %in% class(res) ){
-      test.error <- TRUE
-      cat("Differences in slot: ",iterSlot,"\n")
-      if(trace == 2){cat(res[1])}
-    }
-  }
-  if(test.error){stop("difference between the slots of the two BuyseRes objects \n")}
-}
-
-
-Vexpect_less_than <- function(x,y,...){
-  sapply(x, function(X){expect_less_than(X,y,...)})
-  return(invisible(TRUE))
-}
-Vexpect_more_than <- function(x,y,...){
-  sapply(x, function(X){expect_more_than(X,y,...)})
-  return(invisible(TRUE))
-}
-Vexpect_equal <- function(x,y,...){
-  sapply(x, function(X){expect_equal(X,y,...)})
-  return(invisible(TRUE))
-}
-Vexpect_NA <- function(x,...){
-  sapply(x, function(X){expect_true(is.na(X),...)})
-  return(invisible(TRUE))
-}
-
+results_initSurvival <- list()
 #### 1- No strata ####
 M.Treatment <- cbind(time=1:5)
 M.Control <-  cbind(time=c(1:5-0.1,5,5))
 threshold <- 0.001 # threshold smaller than the interval between two events
+results_initSurvival$NoStrata <- list()
 
 for(iter_dataset in 1:3){
-  if(identical(save,TRUE)){results_initSurvival$NoStrata[[iter_dataset]] <- list()}
+  results_initSurvival$NoStrata[[iter_dataset]] <- list()
   
   if(iter_dataset==1){ # death and censoring at the last event
     M.delta_Treatment <- cbind(time=c(1,0,1,1,1))
@@ -180,7 +47,7 @@ for(iter_dataset in 1:3){
     
     
     
-    if(identical(save, TRUE)){results_initSurvival$NoStrata[[iter_dataset]][[method]] <- Survival_noStrata ; break}
+    results_initSurvival$NoStrata[[iter_dataset]][[method]] <- Survival_noStrata
     
     # mark last events
     last.time <- which.max(c(M.Treatment,M.Control))
@@ -266,14 +133,7 @@ for(iter_dataset in 1:3){
         if(test.censoringLastT == FALSE || method=="Efron"){Vexpect_equal(test.Tafter,0)}
         if(test.censoringLastC == FALSE || method=="Efron"){Vexpect_equal(test.Cafter,0)}
       })
-    
-    #### match previous implementation
-      if(identical(save, FALSE)){
-        test_that("comparison with the previous version", {
-          expect_equal(results_initSurvival$NoStrata[[iter_dataset]][[method]]$list_survivalT, Survival_noStrata$list_survivalT, tolerance = precision)
-          expect_equal(results_initSurvival$NoStrata[[iter_dataset]][[method]]$list_survivalC, Survival_noStrata$list_survivalC, tolerance = precision)
-        })
-      }
+      
   }
 }
   
@@ -311,6 +171,8 @@ threshold <- 0.001
 index.StrataT <- list(0:4,5:9)
 index.StrataC <- list(0:6,7:13)
 
+results_initSurvival$Strata <- list()
+
 for(method in c("Peto","Efron","Peron")){
 
   if(method == "Efron"){ # necessary because efron forces the last observation to be an event
@@ -331,7 +193,7 @@ for(method in c("Peto","Efron","Peron")){
                                       D.TTE=1, type=3, threshold=threshold, method=method)  
   }
 
-    if(identical(save, TRUE)){results_initSurvival$Strata[[method]] <- Survival_Strata ; break;}
+    results_initSurvival$Strata[[method]] <- Survival_Strata
     
     #### identical between strata
     test_that(paste0("identical between strata, ",method),{
@@ -340,19 +202,16 @@ for(method in c("Peto","Efron","Peron")){
       expect_equal(Survival_Strata$list_survivalC[[1]][index.StrataC[[1]]+1,],
                    Survival_Strata$list_survivalC[[1]][index.StrataC[[2]]+1,])
     })
-    
-    #### match previous implementation
-    if(identical(save, FALSE)){
-      test_that(paste0("comparison with the previous version ",method), {
-        expect_equal(results_initSurvival$Strata[[method]]$list_survivalT, 
-                     Survival_Strata$list_survivalT, tolerance = precision)
-        expect_equal(results_initSurvival$Strata[[method]]$list_survivalC, 
-                     Survival_Strata$list_survivalC, tolerance = precision)
-      })
-    }
+   
 }
-#### Z- export ####
 
+#### Z- export ####
 if(identical(save, TRUE)){
-  save(results_initSurvival,file="test_initSurvival-results_initSurvival.RData")
+  saveRDS(results_initSurvival,file=file.path(dirSave,"test-initSurvival.rds"))
+}else {
+  GS <- readRDS(file=file.path(dirSave,"test-initSurvival.rds"))
+  # expect_equal(results_initSurvival, GS)
 }
+
+# expect_equal(results_initSurvival$NoStrata[[2]]$Efron$M.Treatment, 
+#              GS$NoStrata[[2]]$Efron$M.Treatment)

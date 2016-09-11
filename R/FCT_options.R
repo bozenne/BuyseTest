@@ -1,6 +1,7 @@
 BuyseTest.env <- new.env() # create a specific environment for the package
 
 #' @title Global options for BuyseTest package
+#' @include onload.R
 #'
 #' @description Update or select global options for the BuyseTest package.
 #'

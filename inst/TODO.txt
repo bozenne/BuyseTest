@@ -1,7 +1,7 @@
 http://gallery.rcpp.org/articles/using-rcppprogress/
 
 
-> finir les tests julien 
+> finir les tests julien + initSurvival Compare with previous version
 > supprimer le cas binaire et le remplacer par le cas continu
 > optimiser le code C++
 

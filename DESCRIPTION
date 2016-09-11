@@ -31,15 +31,16 @@ Imports:
     lava,
     stats,
     stats4,
-    tcltk,
     utils
 Suggests:
-    testthat
+    testthat,
+    tcltk
 LinkingTo: Rcpp, RcppArmadillo
 Collate:
     'BuyseTest-package.R'
     'FCT_BuyseTest.R'
     'FCT_Valid.R'
+    'onload.R'
     'FCT_options.R'
     'FCT_simul.R'
     'FCT_support.R'
@@ -53,5 +54,4 @@ Collate:
     'METHOD_print.R'
     'OBJECT_BuyseTest-options.R'
     'RcppExports.R'
-    'onload.R'
 RoxygenNote: 5.0.1

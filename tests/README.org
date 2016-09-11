@@ -1,0 +1,30 @@
+* Tests
+
+** test-BT_noStrata
+Test BuyseTest without strata
+- check whether the number of pairs displayed in the summary is ok (e.g. total = favorable + unfavorable + neutral + uninf)
+- check consistency with existing tests
+- check consistency with results from previous version (on common slots)
+
+** test-BT_strata
+Test BuyseTest with strata
+- check whether the number of pairs displayed in the summary is ok (e.g. total = favorable + unfavorable + neutral + uninf)
+- check whether when using identical values across strata, the result is the same across strata
+- check consistency with results from previous version (on common slots)
+
+** test-Julien
+
+** test-initSurvival
+Test the computation of the survival
+- no strata: Check jump at t- and no jump at t+ in the estimated survival by KM
+- no strata: Check survival=NA after last event if censored else death (rational being that we do not know what it would be for censored but we do know that the survival if 0 if everybody is dead)
+- no strata and strata: check identical with previous version
+
+** test-parallel
+Test BuyseTest with parallel bootstra
+- check consistency with results from previous version (on common slots)
+
+** test-valid
+
+* Not tested
+saut au moment du dernier evenement.
