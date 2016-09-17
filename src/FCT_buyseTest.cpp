@@ -4,6 +4,7 @@
 #include <Rmath.h>
 #include "FCT_calcOnePair.h"
 #include "FCT_calcAllPairs.h"
+#include "FCT_calcStatistic.h"
 
 using namespace Rcpp ;
 using namespace std ;
@@ -18,7 +19,7 @@ using namespace arma ;
 //' @param Treatment A matrix containing the values of each endpoint (in columns) for the treatment observations (in rows). \emph{const arma::mat&}. Must have D columns.
 //' @param Control A matrix containing the values of each endpoint (in columns) for the control observations (in rows). \emph{const arma::mat&}.
 //' @param threshold Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.
-//' @param type The type of each endpoint (1 binary, 2 continuous, 3 TTE). \emph{const IntegerVector&}. Must have length D.
+//' @param survEndpoint Does each endpoint is a time to event. \emph{const LogicalVector&}. Must have length D.
 //' @param delta_Treatment A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
 //' @param delta_Control A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
 //' @param D The number of endpoints. Strictly positive \emph{const int}.
@@ -32,14 +33,14 @@ using namespace arma ;
 //' @param threshold_TTEM1 The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.
 //' @param list_survivalT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Efron or Peron, two survival functions are computed) columns. Ignored if method is Gehan.
 //' @param list_survivalC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.
-//' @param PEP The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.
+//' @param methodTTE The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.
 //' 
 //' @keywords function Cpp BuyseTest
 
 //' @rdname BuyseTest_cpp
 //' @export
 // [[Rcpp::export]]
-List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const IntegerVector& type, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
+List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
                          const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE){
   
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
@@ -75,7 +76,7 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
     }
     
     //// first endpoint
-    if(type[0]==3){ // time to event endpoint
+    if(survEndpoint[0]){ // time to event endpoint
       resK = calcAllPairs_TTEOutcome_Gehan_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0],
                                                delta_TreatmentK.col(0),delta_ControlK.col(0));
       iter_dTTE++; // increment the number of time to event endpoints that have been used
@@ -98,7 +99,7 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
       
-      if(type[iter_d]==3){ // time to event endpoint
+      if(survEndpoint[iter_d]){ // time to event endpoint
         resK = calcSubsetPairs_TTEOutcome_Gehan_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
                                                     delta_TreatmentK.col(iter_dTTE), delta_ControlK.col(iter_dTTE),
                                                     resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
@@ -127,21 +128,24 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
   }
   
   //// proportion in favor of treatment ////
-  arma::mat delta(n_strata,D); // matrix containing for each strata and each endpoint the proportion in favor of treatment
-  for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
-    for(int iter_d=0; iter_d<D ; iter_d++){ // loop over endpoints
-      delta(iter_strata,iter_d) = (Mcount_favorable(iter_strata,iter_d)-Mcount_unfavorable(iter_strata,iter_d))/(double)(n_pairs); // proportion in favor of treatment equals number of favorable pairs minus unfavorable pairs divided by the total number of pairs
-    }  
-  } 
+  arma::mat delta_netChance(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
+  vector<double> Delta_netChance(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
+  
+  calcStatistic_cpp(delta_netChance, delta_winRatio, Delta_netChance, Delta_winRatio,
+                    Mcount_favorable, Mcount_unfavorable, 
+                    D, n_strata, n_pairs);
   
   //// export ////
   if(returnIndex==true){
     return(List::create(
-        Named("delta")  = delta,
         Named("count_favorable")  = Mcount_favorable,
         Named("count_unfavorable")  = Mcount_unfavorable,
         Named("count_neutral")  = Mcount_neutral,           
         Named("count_uninf")  = Mcount_uninf,           
+        Named("delta_netChance")  = delta_netChance,
+        Named("delta_winRatio")  = delta_winRatio,
+        Named("Delta_netChance")  = Delta_netChance,
+        Named("Delta_winRatio")  = Delta_winRatio,
         Named("index_neutralT")  = index_neutralT,
         Named("index_neutralC")  = index_neutralC,
         Named("index_uninfT")  = index_uninfT,
@@ -150,7 +154,10 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
     ));
   }else{
     return(List::create(
-        Named("delta")  = delta
+        Named("delta_netChance")  = delta_netChance,
+        Named("delta_winRatio")  = delta_winRatio,
+        Named("Delta_netChance")  = Delta_netChance,
+        Named("Delta_winRatio")  = Delta_winRatio
     ));
   }                   
   
@@ -159,10 +166,10 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
 //' @rdname BuyseTest_cpp
 //' @export
 // [[Rcpp::export]]
-List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const IntegerVector& type, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
+List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
                                   const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, 
                                   const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, 
-                                  const std::vector< arma::mat >& list_survivalT, const std::vector< arma::mat >& list_survivalC, const int PEP){
+                                  const std::vector< arma::mat >& list_survivalT, const std::vector< arma::mat >& list_survivalC, const int methodTTE){
   
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -210,12 +217,12 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
     delta_ControlK = delta_Control.rows(index_strataC); // select the rows in the control status matrix corresponding to the indexes contained in strata          
     
     //// first endpoint
-    if(type[0]==3){ // time to event endpoint   
+    if(survEndpoint[0]){ // time to event endpoint   
       resK = calcAllPairs_TTEOutcome_PetoEfronPeron_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0],
                                                         delta_TreatmentK.col(0),delta_ControlK.col(0),
                                                         list_survivalT[0].rows(index_strataT),
                                                         list_survivalC[0].rows(index_strataC), 
-                                                        PEP); 
+                                                        methodTTE); 
       iter_dTTE++; // increment the number of time to event endpoints that have been used   
     }else { // binary or continuous endpoint
       resK = calcAllPairs_ContinuousOutcome_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
@@ -235,7 +242,7 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
     arma::mat Wpairs(size_neutral+size_uninf,1,fill::ones); // temporary matrix containing the weigth of each remaining pair for each outcome
     arma::vec w(size_neutral+size_uninf); // temporary vector containing the weight of each remaining pair to be used for the next outcome
     w.fill(1);
-    if(type[0]==3 && D>1){ // update the weights for the uninformative pairs in Wpairs and w
+    if(survEndpoint[0] && D>1){ // update the weights for the uninformative pairs in Wpairs and w
       for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){ // neutral pairs have a weight of 1 by construction
         Wpairs(size_neutral+iter_uninf,0) = resK.w[iter_uninf];
         if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = resK.w[iter_uninf];}
@@ -252,7 +259,7 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
       iter_d++; // increment the index of the endpoints
       Wpairs_sauve=Wpairs; // save the current Wpairs
       
-      if(type[iter_d]==3){ // time to event endpoint 
+      if(survEndpoint[iter_d]){ // time to event endpoint 
         
         if(threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used
           resK = calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
@@ -261,7 +268,7 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
                                                                list_survivalC[iter_dTTE].rows(index_strataC),
                                                                resK.index_neutralT,resK.index_neutralC, size_neutral,
                                                                resK.index_uninfT,resK.index_uninfC, size_uninf,
-                                                               w, -1, arma::mat(1,1), arma::mat(1,1), PEP); 
+                                                               w, -1, arma::mat(1,1), arma::mat(1,1), methodTTE); 
         }else{ // following times    
           
           resK = calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
@@ -273,7 +280,7 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
                                                                w, threshold_TTEM1[iter_dTTE], 
                                                                                  list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT),
                                                                                  list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
-                                                                                 PEP); 
+                                                                                 methodTTE); 
         }
         iter_dTTE++; // increment the number of time to event endpoints that have been used
       }else { // binary or continuous endpoint
@@ -307,7 +314,7 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
           
           for(int iter_endpointTTE=0 ; iter_endpointTTE<iter_dTTE ; iter_endpointTTE++){          
             
-            if(iter_endpointTTE==(iter_dTTE-1) && type[iter_d]==3){ // for the last endpoint (first test) add the new weights in case of survival endpoint (second test)
+            if(iter_endpointTTE==(iter_dTTE-1) && survEndpoint[iter_d]){ // for the last endpoint (first test) add the new weights in case of survival endpoint (second test)
               Wpairs(iter_pair,iter_endpointTTE) = resK.w[iter_pair];
               if(Wscheme(iter_endpointTTE,iter_d)==1){w(iter_pair) *= resK.w[iter_pair];} // iter_d - 1 + 1 because the first column is missing but we are interested in the next endpoint
             }else{ // transfert the existing weights to the new matrix
@@ -334,23 +341,26 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
   }
   
   //// proportion in favor of treatment ////
-  arma::mat delta(n_strata,D); // matrix containing for each strata and each endpoint the proportion in favor of treatment
-  for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
-    for(int iter_d=0; iter_d<D ; iter_d++){ // loop over endpoints
-      delta(iter_strata,iter_d) = (Mcount_favorable(iter_strata,iter_d)-Mcount_unfavorable(iter_strata,iter_d))/(double)(n_pairs); // proportion in favor of treatment equals number of favorable pairs minus unfavorable pairs divided by the total number of pairs
-    }  
-  } 
+  arma::mat delta_netChance(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
+  vector<double> Delta_netChance(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
+  
+  calcStatistic_cpp(delta_netChance, delta_winRatio, Delta_netChance, Delta_winRatio,
+                    Mcount_favorable, Mcount_unfavorable, 
+                    D, n_strata, n_pairs);
   
   
   //// export ////
   if(returnIndex==true){
     
     return(List::create(
-        Named("delta")  = delta,
         Named("count_favorable")  = Mcount_favorable,
         Named("count_unfavorable")  = Mcount_unfavorable,
         Named("count_neutral")  = Mcount_neutral,           
         Named("count_uninf")  = Mcount_uninf,           
+        Named("delta_netChance")  = delta_netChance,
+        Named("delta_winRatio")  = delta_winRatio,
+        Named("Delta_netChance")  = Delta_netChance,
+        Named("Delta_winRatio")  = Delta_winRatio,
         Named("index_neutralT")  = index_neutralT,
         Named("index_neutralC")  = index_neutralC,
         Named("index_uninfT")  = index_uninfT,
@@ -359,7 +369,10 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
     ));
   }else{
     return(List::create(
-        Named("delta")  = delta
+        Named("delta_netChance")  = delta_netChance,
+        Named("delta_winRatio")  = delta_winRatio,
+        Named("Delta_netChance")  = Delta_netChance,
+        Named("Delta_winRatio")  = Delta_winRatio
     ));
   }                   
   

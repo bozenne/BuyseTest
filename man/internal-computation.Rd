@@ -9,7 +9,7 @@
 \usage{
 calcBootstrap(envir)
 
-calcCI(delta, delta_boot, endpoint, D, alternative, alpha, n.bootstrap, cpus,
+calcCI(Delta, Delta_boot, endpoint, D, alternative, alpha, n.bootstrap, cpus,
   trace)
 
 warper_BTboot(x, envir)

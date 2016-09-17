@@ -4,13 +4,14 @@ verboseContext("Check BuyseTest without strata")
 n.patients <- c(90,100)
 n.bootstrap <- 1000
 
-#### 1- Check number of pairs ####
+#### 1- Simulated data ####
 set.seed(10)
 argsBin <- list(p.T = c(0.5,0.75))
 argsCont <- list(mu.T = 1:3, sigma.T = rep(1,3))
 argsTTE <- list(rates.T = 1:3, rates.Censor = rep(1,3))
 
 #### binary #### 
+cat("* binary endpoint \n")
 data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
 if(conv2df){data_Bin <- as.data.frame(data_Bin)}
 
@@ -20,7 +21,7 @@ BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("Y_bin1","Y_bin2"),
 
 test_that("bootstrap approximately matches fisher test - Binary",{
   fisherP <- fisher.test(table(data_Bin$Y_bin1,data_Bin$Treatment))$p.value
-  expect_equal(fisherP,BT_Bin1@p.value[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
+  expect_equal(fisherP,BT_Bin1@p.value$netChance[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
 })
 
 test_that("count pairs summary - Binary",{
@@ -29,6 +30,7 @@ test_that("count pairs summary - Binary",{
 })
 
 #### continuous ####
+cat("* continuous endpoint \n")
 set.seed(10)
 data_Cont <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = argsCont, argsTTE = NULL)
 if(conv2df){data_Cont <- as.data.frame(data_Cont)}
@@ -41,7 +43,7 @@ test_that("bootstrap approximately matches wilcoxon test - Continuous",{
   wilcoxRes <- wilcox.test(data_Cont[Treatment==0,Y_cont1],
                            data_Cont[Treatment==1,Y_cont1], 
                            conf.int = TRUE)
-  expect_equal(wilcoxRes$p.value,BT_Cont1@p.value[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
+  expect_equal(wilcoxRes$p.value,BT_Cont1@p.value$netChance[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
   # wilcoxRes$estimate - BT_Cont1@delta
 })
 test_that("count pairs summary - Continuous",{
@@ -50,6 +52,7 @@ test_that("count pairs summary - Continuous",{
 })
 
 #### TTE ####
+cat("* TTE endpoint \n")
 set.seed(10)
 data_TTE <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = NULL, argsTTE = argsTTE)
 if(conv2df){data_TTE <- as.data.frame(data_TTE)}
@@ -90,7 +93,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   
 }
 
-#### mixed outcomes ####
+#### mixed endpoints ####
+cat("* mixed endpoints \n")
 set.seed(10)
 data_Mix <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = argsCont, argsTTE = argsTTE)
 if(conv2df){data_Mix <- as.data.frame(data_Mix)}
@@ -111,7 +115,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
-#### Real data ####
+#### 2- Real data ####
+cat("* Veteran \n")
 data(veteran, package = "survival")
 
 BT_veteran <- BuyseTest(data = veteran, endpoint = "time", treatment = "trt", 
@@ -128,6 +133,7 @@ if(identical(save, TRUE)){
                            veteran = list(data = veteran, BT = BT_veteran))
   saveRDS(results_noStrata, file = file.path(dirSave,"test-noStrata.rds"))
 }else if(identical(save, FALSE)){
+  cat("* Previous version \n")
   GS <- readRDS(file = file.path(dirSave,"test-noStrata.rds"))
   
   test_that("comparison with the previous version", {

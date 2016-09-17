@@ -1,6 +1,6 @@
 library(BuyseTest)
 library(testthat)
-BuyseTest.options(trace = 0)
+BuyseTest.options(trace = 0, keep.bootstrap = TRUE)
 
 n.patients <- 100
 n.bootstrap <- 100
@@ -14,17 +14,19 @@ if(identical(save, TRUE)){
 source(file.path("FCT","FCT_check.R"))
 
 #### data ####
+verboseContext("Check parallel boostrap")
 set.seed(10)
 dt.BT <- simulBT(n.patients)
 
 #### parallel computation ####
 ls.sum <- list()
 for(method in c("Gehan","Peto","Efron","Peron")){ # method <- "Gehan"
-  print(method)
+  cat(method, " ")
   ls.sum[[method]] <- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
                                 type="TTE",censoring="event1",threshold=0, cpus = "all",
                                 n.bootstrap=n.bootstrap,method=method)
 }
+cat("\n")
 
 ##### export
 if(identical(save, TRUE)){
@@ -35,18 +37,19 @@ if(identical(save, TRUE)){
                   Peron = ls.sum$Peron)
   saveRDS(results, file = file.path(dirSave,"test-parallel.rds"))
 }else if(identical(save, FALSE)){
- GS <- readRDS(file = file.path(dirSave,"test-parallel.rds"))
-
-test_that("comparison with the previous version", {
- expect_equalBT(ls.sum$Gehan, GS$Gehan)
- expect_equalBT(ls.sum$Peto, GS$Peto)
- expect_equalBT(ls.sum$Efron, GS$Efron)
- expect_equalBT(ls.sum$Peron, GS$Peron)
-})
+  cat("* Previous version \n")
+  GS <- readRDS(file = file.path(dirSave,"test-parallel.rds"))
+  
+  test_that("comparison with the previous version", {
+    expect_equalBT(ls.sum$Gehan, GS$Gehan)
+    expect_equalBT(ls.sum$Peto, GS$Peto)
+    expect_equalBT(ls.sum$Efron, GS$Efron)
+    expect_equalBT(ls.sum$Peron, GS$Peron)
+  })
 }
 
-verboseContext("Check parallel boostrap - done")
-
+ls.sum$Peron@delta_boot
+GS$Peron@delta_boot
 
 
 

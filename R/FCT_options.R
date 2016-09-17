@@ -30,12 +30,15 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
   if (reinitialise == TRUE) {
     
     assign(".BuyseTest-options", 
-           new("BuyseTest.options", 
+           new("BuyseTest.options",
+               conf.level = 0.95,
                cpus = 1,
+               keep.bootstrap = TRUE,
                method = "Peron",
                n.bootstrap = 1000,
                trace = 3,
-               seed = 10), 
+               seed = 10,
+               statistic = "netChance"), 
            envir = BuyseTest.env)
     
     return(invisible(get(".BuyseTest-options", envir = BuyseTest.env)))

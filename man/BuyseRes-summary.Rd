@@ -10,34 +10,44 @@
 \usage{
 summary(object, ...)
 
-\S4method{summary}{BuyseRes}(object, show = "pc", strata = NULL,
-  digit = c(2, 3))
+\S4method{summary}{BuyseRes}(object, show = TRUE, percentage = TRUE,
+  statistic = BuyseTest.options()$statistic, strata = NULL, digit = c(2,
+  3))
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
 
 \item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 
-\item{show}{the type of result to print. Can be \code{"nb"} or \code{"pc"} or \code{NULL} (nothing is printed). Default is \code{"pc"}.}
+\item{show}{Should the table be displayed? \emph{logical}.}
 
-\item{strata}{the name of the strata to be displayed \emph{character vector}. Default is \code{"global"} which displays the overall results.}
+\item{percentage}{Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.}
 
-\item{digit}{the number of digit to use for printing the results. \emph{integer}. Default is \code{3}.}
+\item{statistic}{the statistic summarizing the pairwise comparison: \code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)), whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).}
+
+\item{strata}{the name of the strata to be displayed \emph{character vector}. Can also be \code{"global"} which displays the overall results.}
+
+\item{digit}{the number of digit to use for printing the results. \emph{integer}.}
 }
 \value{
-A \code{"List"} composed of two matrices containing the endpoint (and the strata) in rows and the results of the pairwise comparison in columns:
+A matrix containing the endpoint (and the strata) in rows and the results of the pairwise comparison in columns:
     \itemize{
-      \item\code{[[nb]]} : The favorable, unfavorable, neutral and uninformative pairs are reported in number of pairs classified in each category \cr (\code{"n.favorable","n.unfavorable","n.neutral","n.uninformative"}). 
-      \item\code{[[pc]]} : The favorable, unfavorable, neutral and uninformative pairs are reported in percentage of pair classified in each category \cr (\code{"pc.favorable","pc.unfavorable","pc.neutral","pc.uninformative"}). 
+      \item\code{"n.favorable","n.unfavorable","n.neutral","n.uninformative"} : The favorable, unfavorable, neutral and uninformative pairs are reported in number of pairs classified in each category. \cr 
+      \item\code{"delta"} indicates for each endpoint and each strata the summary statistic of the pairwise comparison. \cr
+      \item\code{"Delta"} indicates for each endpoint the summary statistic of the pairwise comparison over all strata. \cr
+      \item\code{"CIinf.Delta","CIsup.Delta"} the confidence interval of the summary statistic. \cr
+      \item\code{"p.value"} the p.value relative to the null hypothesis. 
     }
-  \code{"delta"} indicates for each endpoint (and each strata) thechance of a better outcome and \code{"Delta"} the cumulative chance of a better outcome. \cr
-  The confidence interval and the p.value are given for the cumulative chance of a better outcome (\code{"CIinf.Delta","CIsup.Delta","p.value"})
 }
 \description{
 Summarize the results from the \code{\link{BuyseTest}} function.
 }
 \details{
-WARNING : the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment under the null hypothesis. It thus may not be valid if this hypothesis is rejected. In particular, if the cumulative proportion in favor of the treatment is close to 1, the upper limit of the confidence interval may exceed 1.
+WARNING : the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment under the null hypothesis. 
+It thus may not be valid if this hypothesis is rejected. In particular, if the cumulative proportion in favor of the treatment is close to 1, the upper limit of the confidence interval may exceed 1. 
+
+WARNING: For the win ratio, the proposed implementation enables the use of thresholds, endpoints that are not time to events, and the correction proposed in Peron et al. (2016) to account for censoring. 
+These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge). They are only provided here by implementation convenience.
 }
 \examples{
   n.Treatment_testBin <- 500

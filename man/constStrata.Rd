@@ -12,13 +12,13 @@ constStrata(data, strata, sep = ".", lex.order = FALSE, trace = TRUE,
 
 \item{strata}{A vector of the variables capturing the stratification factors. \emph{character vector}.}
 
-\item{sep}{string to construct the new level labels by joining the constituent ones. \emph{character}. Default is \code{"."}}
+\item{sep}{string to construct the new level labels by joining the constituent ones. \emph{character}.}
 
-\item{lex.order}{Should the order of factor concatenation be lexically ordered ? \emph{logical}. Default is FALSE.}
+\item{lex.order}{Should the order of factor concatenation be lexically ordered ? \emph{logical}.}
 
-\item{trace}{Should the execution of the function be traced ? \emph{logical}. Default is \code{TRUE}.}
+\item{trace}{Should the execution of the function be traced ? \emph{logical}.}
 
-\item{as.numeric}{Should the strata be converted from factors to numeric? \emph{logical}. Default is \code{FALSE}.}
+\item{as.numeric}{Should the strata be converted from factors to numeric? \emph{logical}.}
 }
 \value{
 A \emph{factor vector} or a \emph{numeric vector}.

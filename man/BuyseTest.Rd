@@ -20,27 +20,27 @@ BuyseTest(data, treatment, endpoint, type, threshold = NULL, strata = NULL,
 
 \item{type}{the type of each endpoint. \emph{character vector}. Can be \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.}
 
-\item{threshold}{the thresholds, one for each endpoint variable. \emph{numeric vector}. Default is \code{NULL} indicating no threshold.}
+\item{threshold}{the thresholds, one for each endpoint variable. \emph{numeric vector}.}
 
-\item{strata}{the name of the strata variable(s). \emph{numeric vector}. Default is \code{NULL} indicating only one strata.}
+\item{strata}{the name of the strata variable(s). \emph{numeric vector}.}
 
-\item{censoring}{the name of the censoring variable(s), one for each endpoint. \emph{character vector}. Default is \code{NULL}.}
+\item{censoring}{the name of the censoring variable(s), one for each endpoint. \emph{character vector}.}
 
 \item{method}{Is defined when at least one time-to-event outcome is analyzed. Defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations.  Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}. See details.}
 
-\item{n.bootstrap}{the number of bootstrap samples used for computing the confidence interval and the p.values. \emph{integer}. Default is \code{0} meaning no bootstrap (and thus only ponctual estimation).}
+\item{n.bootstrap}{the number of bootstrap samples used for computing the confidence interval and the p.values. \emph{integer}.}
 
-\item{prob.alloc}{the resampling probability for assignement to the experimental group in the bootstrap samples. \emph{double}. Default is \code{NULL} indicating to use the proportion of patients in the experimental group.}
+\item{prob.alloc}{the resampling probability for assignement to the experimental group in the bootstrap samples. \emph{double}. Can also be \code{NULL} to use the proportion of patients in the experimental group.}
 
-\item{stratified}{Should the boostrap be a stratified bootstrap? \emph{logical}. Default is \code{FALSE}.}
+\item{stratified}{Should the boostrap be a stratified bootstrap? \emph{logical}.}
 
-\item{alternative}{a \emph{character} specifying the alternative hypothesis. Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. Default is \code{"two.sided"}.}
+\item{alternative}{a \emph{character} specifying the alternative hypothesis. Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
 
-\item{seed}{the seed to consider for the bootstrap. \emph{integer}. Default is \code{10}.}
+\item{seed}{the seed to consider for the bootstrap. \emph{integer}.}
 
-\item{cpus}{the number of CPU to use. \emph{integer}. Default is \code{1}.}
+\item{cpus}{the number of CPU to use. \emph{integer}.}
 
-\item{trace}{Should the execution of the function be traced ? \emph{integer}. Default is \code{3}.}
+\item{trace}{Should the execution of the function be traced ? \emph{integer}.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.
@@ -49,8 +49,8 @@ An \R object of class \code{\linkS4class{BuyseRes}}.
 Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event outcomes.
 }
 \details{
-\bold{Treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
-\bold{Endpoint, threshold, censoring, and type:} Arguments \code{endpoint}, \code{threshold}, \code{censoring}  and \code{type} must have the same length. \cr
+\bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
+\bold{endpoint, threshold, censoring, and type:} Arguments \code{endpoint}, \code{threshold}, \code{censoring}  and \code{type} must have the same length. \cr
 \code{threshold} must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. \cr
 \code{censoring} must be \code{NA} for binary or continuous endpoints and indicate a variable in data for time to event endpoints. 
 Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \code{"TTE"} (time-to-event endpoint). 
@@ -58,14 +58,21 @@ Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"
 \bold{Bootstrap:} The number of bootstrap replications (argument \code{n.bootstrap}) must be specified to enable the computation of the confidence intervals and the p.value. 
 A large number of bootstrap samples (e.g. \code{n.bootstrap=10000})  are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
 
-\bold{Trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the bootstrap,  and \code{0} remains silent.
+\bold{trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the bootstrap,  and \code{0} remains silent.
 
 \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus. The parallelization relies on the \emph{snowfall} package (function \emph{sfClusterApplyLB}). The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
 
 \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal outcome.\cr
 Uninformative pairs correspond to pairs for which the censoring prevend from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
 
-\bold{Method:} Pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method="Gehan"}). Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions. \code{method="Peto"} estimate these probabilities using the common Kaplan-Meier estimator of the survival function for treated and control patients. \code{method="Efron"}, and \code{method="Peron"} estimate these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. When the largest observation is censored, it is not possible to estimate the survival probability by the Kaplan-Meier estimator beyond this time point.  \code{method="Efron"} treats the largest observations in each patient group as if it were uncensored. \code{method="Peron"} treats the probability of survival beyond the last observation as NA, resulting in a non null probability that the pair is uninformative
+\bold{method:} Pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method="Gehan"}, Gehan 1965). 
+Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions. 
+\code{method="Peto"} estimate these probabilities using the common Kaplan-Meier estimator of the survival function for treated and control patients (Peto et al. 1972). 
+\code{method="Efron"}, and \code{method="Peron"} estimate these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
+When the largest observation is censored, it is not possible to estimate the survival probability by the Kaplan-Meier estimator beyond this time point.  
+\code{method="Efron"} treats the largest observations in each patient group as if it were uncensored (Efron 1967). 
+\code{method="Peron"} treats the probability of survival beyond the last observation as NA, resulting in a non null probability that the pair is uninformative    
+See Peron et al. (2016) for more details.
 }
 \examples{
 #### real example : Veteran dataset of the survival package ####
@@ -170,6 +177,7 @@ summary(BT_Peron)
 }
 \references{
 Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clincal trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. Statistical Methods in Medical Research. \cr
 Efron B (1967). \bold{The two sample problem with censored data}. \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} 4:831-583 \cr
 Peto R, Peto J (1972). \bold{Asymptotically efficient rank invariant test procedures}. \emph{Journal of the Royal Statistical Society - series A} 135(2):185-198 \cr

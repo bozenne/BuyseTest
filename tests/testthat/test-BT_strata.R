@@ -4,13 +4,14 @@ verboseContext("Check BuyseTest with strata")
 n.patients <- c(90,100)
 n.bootstrap <- 10
 
-#### 1- Check number of pairs ####
+#### 1- Simulated data ####
 set.seed(10)
 argsBin <- list(p.T = c(0.5,0.75))
 argsCont <- list(mu.T = 1:3, sigma.T = rep(1,3))
 argsTTE <- list(rates.T = 1:3, rates.Censor = rep(1,3))
 
 #### binary #### 
+cat("* binary endpoint \n")
 data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
 data_BinS <- rbind(cbind(data_Bin, strata = 1),
                    cbind(data_Bin, strata = 2),
@@ -32,6 +33,7 @@ test_that("identical strata - Binary",{
 })
 
 #### continuous ####
+cat("* continuous endpoint \n")
 set.seed(10)
 data_Cont <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = argsCont, argsTTE = NULL)
 data_ContS <- rbind(cbind(data_Cont, strata = 1),
@@ -53,6 +55,7 @@ test_that("identical strata - Continuous",{
 })
 
 #### TTE ####
+cat("* TTE endpoint \n")
 set.seed(10)
 data_TTE <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = NULL, argsTTE = argsTTE)
 data_TTES <- rbind(cbind(data_TTE, strata = 1),
@@ -98,7 +101,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
-#### mixed outcomes ####
+#### mixed endpoints ####
+cat("* mixed endpoints \n")
 set.seed(10)
 data_Mix <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = argsCont, argsTTE = argsTTE)
 data_MixS <- rbind(cbind(data_Mix, strata = 1),
@@ -126,7 +130,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
-#### Real data ####
+#### 2- Real data ####
+cat("* Veteran \n")
 data(veteran, package = "survival")
 
 BT_veteran <- BuyseTest(data = veteran, endpoint = "time", treatment = "trt", strata = "celltype",
@@ -143,6 +148,7 @@ if(identical(save, TRUE)){
                          veteran = list(data = veteran, BT = BT_veteran))
   saveRDS(results_strata, file = file.path(dirSave,"test-strata.rds"))
 }else if(identical(save, FALSE)){
+  cat("* Previous version \n")
   GS <- readRDS(file = file.path(dirSave,"test-strata.rds"))
   
   test_that("comparison with the previous version", {

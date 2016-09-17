@@ -8,19 +8,12 @@
 \description{
 A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
 }
+\details{
+slots
+}
 \section{Slots}{
 
 \describe{
-\item{\code{levels.treatment}}{the name of each group. \emph{character vector}.}
-
-\item{\code{endpoint}}{the name of the endpoint. \emph{character vector}.}
-
-\item{\code{strata}}{the name of the strata \emph{character vector}.}
-
-\item{\code{threshold}}{the threshold associated to each endpoint \emph{numeric vector}.}
-
-\item{\code{n_pairs}}{the total number of pairs. \emph{integer}.}
-
 \item{\code{count_favorable}}{the probability for a random pair to be favorable for each strata (in rows) and each endpoint (in columns). \emph{matrix}.}
 
 \item{\code{count_unfavorable}}{the probability for a random pair to be unfavorable for each strata (in rows) and each endpoint (in columns). \emph{matrix}.}
@@ -28,6 +21,16 @@ A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
 \item{\code{count_neutral}}{the probability for a random pair to be neutral for each strata (in rows) and each endpoint (in columns). \emph{matrix}.}
 
 \item{\code{count_uninf}}{the probability for a random pair to be uninformative for each strata (in rows) and each endpoint (in columns). \emph{matrix}.}
+
+\item{\code{delta}}{the chance of a better outcome (net difference between the probability for a random pair to be favorable minus the probability to be unfavorable divided by the total number of pairs) for each strata (in rows) and each endpoint (in columns). \emph{list of matrix}.}
+
+\item{\code{Delta}}{the chance of a better outcome over all strata for each endpoint. \emph{list of numeric vector}.}
+
+\item{\code{delta_boot}}{the chance of a better outcome within each strata (first dimension), over the endpoint (second dimension) and for each bootstrap dataset (third dimension). \emph{list of array}.}
+
+\item{\code{Delta_quantile}}{the randomization test-based 2.5\% and the 97.5\% quantiles of the cumulative chance of a better outcome (in rows) for each endpoint (in columns). \emph{list of matrix}.}
+
+\item{\code{endpoint}}{the name of the endpoint. \emph{character vector}.}
 
 \item{\code{index_neutralT}}{the index in the dataset of the treatment observations from remaining neutral pairs. \emph{integer vector}.}
 
@@ -37,13 +40,17 @@ A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
 
 \item{\code{index_uninfC}}{the index in the dataset of the control observations from remaining uninformative pairs. \emph{integer vector}.}
 
-\item{\code{delta}}{the chance of a better outcome (net difference between the probability for a random pair to be favorable minus the probability to be unfavorable divided by the total number of pairs) for each strata (in rows) and each endpoint (in columns). \emph{matrix}.}
+\item{\code{levels.treatment}}{the name of each group. \emph{character vector}.}
 
-\item{\code{delta_boot}}{the chance of a better outcome within each strata (first dimension), over the endpoint (second dimension) and for each bootstrap dataset (third dimension). \emph{array}.}
+\item{\code{n_pairs}}{the total number of pairs. \emph{integer}.}
 
-\item{\code{Delta_quantile}}{the randomization test-based 2.5\% and the 97.5\% quantiles of the cumulative chance of a better outcome (in rows) for each endpoint (in columns). \emph{matrix}.}
+\item{\code{n_bootstrap}}{the number of sucessful bootstrap samples of the resampling procedure. \emph{integer}.}
 
-\item{\code{p.value}}{the p.value associated to the chance of a better outcome at each prioritized endpoint. \emph{numeric vector}.}
+\item{\code{p.value}}{the p.value associated to the chance of a better outcome at each prioritized endpoint. \emph{list of numeric vector}.}
+
+\item{\code{strata}}{the name of the strata \emph{character vector}.}
+
+\item{\code{threshold}}{the threshold associated to each endpoint \emph{numeric vector}.}
 }}
 \examples{
   n.Treatment_testBin <- 500

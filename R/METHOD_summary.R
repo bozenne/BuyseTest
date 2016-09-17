@@ -7,21 +7,29 @@
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
 #' 
 #' @param object an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}
-#' @param show the type of result to print. Can be \code{"nb"} or \code{"pc"} or \code{NULL} (nothing is printed). Default is \code{"pc"}.
-#' @param strata the name of the strata to be displayed \emph{character vector}. Default is \code{"global"} which displays the overall results.
-#' @param digit the number of digit to use for printing the results. \emph{integer}. Default is \code{3}. 
+#' @param show Should the table be displayed? \emph{logical}.
+#' @param percentage Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.
+#' @param statistic the statistic summarizing the pairwise comparison: \code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)), whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016). 
+#' @param strata the name of the strata to be displayed \emph{character vector}. Can also be \code{"global"} which displays the overall results.
+#' @param digit the number of digit to use for printing the results. \emph{integer}. 
 #' @param ... arguments to be passed from the generic method to the class specific method [not relevant to the user]
 #' 
-#' @details WARNING : the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment under the null hypothesis. It thus may not be valid if this hypothesis is rejected. In particular, if the cumulative proportion in favor of the treatment is close to 1, the upper limit of the confidence interval may exceed 1. 
+#' @details 
+#' WARNING : the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment under the null hypothesis. 
+#' It thus may not be valid if this hypothesis is rejected. In particular, if the cumulative proportion in favor of the treatment is close to 1, the upper limit of the confidence interval may exceed 1. 
+#' 
+#' WARNING: For the win ratio, the proposed implementation enables the use of thresholds, endpoints that are not time to events, and the correction proposed in Peron et al. (2016) to account for censoring. 
+#' These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge). They are only provided here by implementation convenience.
 #' 
 #' @return 
-#'   A \code{"List"} composed of two matrices containing the endpoint (and the strata) in rows and the results of the pairwise comparison in columns:
+#'   A matrix containing the endpoint (and the strata) in rows and the results of the pairwise comparison in columns:
 #'     \itemize{
-#'       \item\code{[[nb]]} : The favorable, unfavorable, neutral and uninformative pairs are reported in number of pairs classified in each category \cr (\code{"n.favorable","n.unfavorable","n.neutral","n.uninformative"}). 
-#'       \item\code{[[pc]]} : The favorable, unfavorable, neutral and uninformative pairs are reported in percentage of pair classified in each category \cr (\code{"pc.favorable","pc.unfavorable","pc.neutral","pc.uninformative"}). 
+#'       \item\code{"n.favorable","n.unfavorable","n.neutral","n.uninformative"} : The favorable, unfavorable, neutral and uninformative pairs are reported in number of pairs classified in each category. \cr 
+#'       \item\code{"delta"} indicates for each endpoint and each strata the summary statistic of the pairwise comparison. \cr
+#'       \item\code{"Delta"} indicates for each endpoint the summary statistic of the pairwise comparison over all strata. \cr
+#'       \item\code{"CIinf.Delta","CIsup.Delta"} the confidence interval of the summary statistic. \cr
+#'       \item\code{"p.value"} the p.value relative to the null hypothesis. 
 #'     }
-#'   \code{"delta"} indicates for each endpoint (and each strata) thechance of a better outcome and \code{"Delta"} the cumulative chance of a better outcome. \cr
-#'   The confidence interval and the p.value are given for the cumulative chance of a better outcome (\code{"CIinf.Delta","CIsup.Delta","p.value"})
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -65,135 +73,123 @@ setGeneric(name = "summary",
 #' @exportMethod summary
 setMethod(f = "summary",
           signature = "BuyseRes",
-          definition = function(object, show = "pc", strata = NULL, digit = c(2,3)){
-            
-            # preparation
-            if(!is.null(show) && show %in% c("nb","pc") == FALSE){
-              stop("summary[BuyseRes] : wrong specification of \'show\' \n",
-                   "valid values : \"nb\" \"pc\" \n",
-                   "proposed \'show\' : ",show,"\n")
-            }
+          definition = function(object, show = TRUE, percentage = TRUE, statistic = BuyseTest.options()$statistic, strata = NULL, digit = c(2,3)){
+         
+             # preparation
+            validLogical(show, name1 = "show", validLength = 1, method = "summary[BuyseRes]")
+            validLogical(percentage, name1 = "percentage", validLength = 1, method = "summary[BuyseRes]")
+            validCharacter(statistic, name1 = "statistic", validValues = c("netChance","winRatio"), validLength = 1, method = "summary[BuyseRes]")
             
             # mise en forme
             n.endpoint <- length(object@endpoint)
             n.strata <- length(object@strata)
             
-            table <- list(nb=data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15)),
-                          pc=data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15)))
-            names(table$nb) <- c("endpoint","threshold","strata","n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value","")
-            names(table$pc) <- c("endpoint","threshold","strata","pc.total","pc.favorable","pc.unfavorable","pc.neutral","pc.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value","")
-            Delta_boot <- apply(apply(object@delta_boot,c(2,3),sum),2,cumsum)
-            if(n.endpoint==1){Delta_boot <- rbind(Delta_boot)}
+            delta <- object@delta[[statistic]]
+            Delta <- object@Delta[[statistic]]
+            Delta_quantile <- object@Delta_quantile[[statistic]]
+            n_bootstrap <- object@n_bootstrap[[statistic]]
+            p.value <- object@p.value[[statistic]]
             
-            # global
+            table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15))
+            names(table) <- c("endpoint","threshold","strata","n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value","")
+            
+            #### fill
             index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
-            table$nb[index.global,"endpoint"] <- object@endpoint
-            table$nb[index.global,"threshold"] <- object@threshold
-            table$nb[index.global,"strata"] <- "global"
-            table$nb[index.global,"n.favorable"] <- colSums(object@count_favorable)
-            table$nb[index.global,"n.unfavorable"] <- colSums(object@count_unfavorable)
-            table$nb[index.global,"n.neutral"] <- colSums(object@count_neutral)
-            table$nb[index.global,"n.uninf"] <- colSums(object@count_uninf)
-            table$nb[index.global,"delta"] <- colSums(object@delta)
-            table$nb[index.global,"Delta"] <- cumsum(colSums(object@delta))
-            table$nb[index.global,"CIinf.Delta"] <- cumsum(colSums(object@delta))+object@Delta_quantile["2.5%",]
-            table$nb[index.global,"CIsup.Delta"] <- cumsum(colSums(object@delta))+object@Delta_quantile["97.5%",]
-            table$nb[index.global,"n.bootstrap"] <- apply(Delta_boot,1,function(x){sum(!is.na(x))})
-            table$nb[index.global,"p.value"] <- object@p.value
-            table$nb[index.global,ncol(table$nb)] <- sapply(object@p.value,function(x){
-              if(is.na(x)){NA}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
-            })
-            table$nb[index.global,"n.total"] <- rowSums(table$nb[index.global,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])
             
-            table$pc[index.global,"endpoint"] <- object@endpoint
-            table$pc[index.global,"threshold"] <- object@threshold
-            table$pc[index.global,"strata"] <- "global"
-            table$pc[index.global,"pc.favorable"] <- 100*colSums(object@count_favorable)/table$nb[1,"n.total"]#table$nb[index.global,"n.total"]
-            table$pc[index.global,"pc.unfavorable"] <- 100*colSums(object@count_unfavorable)/table$nb[1,"n.total"]#table$nb[index.global,"n.total"]
-            table$pc[index.global,"pc.neutral"] <- 100*colSums(object@count_neutral)/table$nb[1,"n.total"]#table$nb[index.global,"n.total"]
-            table$pc[index.global,"pc.uninf"] <- 100*colSums(object@count_uninf)/table$nb[1,"n.total"]#table$nb[index.global,"n.total"]
-            table$pc[index.global,"delta"] <- colSums(object@delta)
-            table$pc[index.global,"Delta"] <- cumsum(colSums(object@delta))
-            table$pc[index.global,"CIinf.Delta"] <- cumsum(colSums(object@delta))+object@Delta_quantile["2.5%",]
-            table$pc[index.global,"CIsup.Delta"] <- cumsum(colSums(object@delta))+object@Delta_quantile["97.5%",]  
-            table$pc[index.global,"p.value"] <- object@p.value
-            table$pc[index.global,"n.bootstrap"] <- apply(Delta_boot,1,function(x){sum(!is.na(x))})
-            table$pc[index.global,ncol(table$pc)] <- sapply(object@p.value,function(x){
+            table[index.global,"n.favorable"] <- colSums(object@count_favorable)
+            table[index.global,"n.unfavorable"] <- colSums(object@count_unfavorable)
+            table[index.global,"n.neutral"] <- colSums(object@count_neutral)
+            table[index.global,"n.uninf"] <- colSums(object@count_uninf)
+            table[index.global,"n.total"] <- rowSums(table[index.global,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])
+            
+            table[index.global,"endpoint"] <- object@endpoint
+            table[index.global,"threshold"] <- object@threshold
+            table[index.global,"strata"] <- "global"
+            table[index.global,"delta"] <- colSums(delta)
+            table[index.global,"Delta"] <- Delta
+            table[index.global,"CIinf.Delta"] <- Delta + Delta_quantile[1,]
+            table[index.global,"CIsup.Delta"] <- Delta + Delta_quantile[2,]
+            table[index.global,"n.bootstrap"] <- n_bootstrap
+            table[index.global,"p.value"] <- p.value
+            table[index.global,ncol(table)] <- sapply(p.value,function(x){
               if(is.na(x)){NA}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
             })
-            table$pc[index.global,"pc.total"] <- rowSums(table$pc[index.global,c("pc.favorable","pc.unfavorable","pc.neutral","pc.uninf")]) 
             
             for(iter_strata in 1:n.strata){
               index.strata <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1+iter_strata
-              table$nb[index.strata,"endpoint"] <- object@endpoint
-              table$nb[index.strata,"threshold"] <- object@threshold
-              table$nb[index.strata,"strata"] <- object@strata[iter_strata]
-              table$nb[index.strata,"n.favorable"] <- object@count_favorable[iter_strata,]
-              table$nb[index.strata,"n.unfavorable"] <- object@count_unfavorable[iter_strata,]
-              table$nb[index.strata,"n.neutral"] <- object@count_neutral[iter_strata,]
-              table$nb[index.strata,"n.uninf"] <- object@count_uninf[iter_strata,]
-              table$nb[index.strata,"delta"] <- object@delta[iter_strata,]
-              table$nb[index.strata,"n.total"] <- rowSums(table$nb[index.strata,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])
+              
+              table[index.strata,"n.favorable"] <- object@count_favorable[iter_strata,]
+              table[index.strata,"n.unfavorable"] <- object@count_unfavorable[iter_strata,]
+              table[index.strata,"n.neutral"] <- object@count_neutral[iter_strata,]
+              table[index.strata,"n.uninf"] <- object@count_uninf[iter_strata,]
+              table[index.strata,"n.total"] <- rowSums(table[index.strata,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])
+              
+              table[index.strata,"strata"] <- object@strata[iter_strata]
+              table[index.strata,"endpoint"] <- object@endpoint
+              table[index.strata,"threshold"] <- object@threshold
+              table[index.strata,"delta"] <- delta[iter_strata,]
+            }
              
-              table$pc[index.strata,"endpoint"] <- object@endpoint
-              table$pc[index.strata,"threshold"] <- object@threshold
-              table$pc[index.strata,"strata"] <- object@strata[iter_strata]
-              table$pc[index.strata,"pc.favorable"] <- 100*object@count_favorable[iter_strata,]/table$nb[1,"n.total"]#table$nb[index.strata,"n.total"]
-              table$pc[index.strata,"pc.unfavorable"] <- 100*object@count_unfavorable[iter_strata,]/table$nb[1,"n.total"]#table$nb[index.strata,"n.total"]
-              table$pc[index.strata,"pc.neutral"] <- 100*object@count_neutral[iter_strata,]/table$nb[1,"n.total"]#table$nb[index.strata,"n.total"]
-              table$pc[index.strata,"pc.uninf"] <- 100*object@count_uninf[iter_strata,]/table$nb[1,"n.total"]#table$nb[index.strata,"n.total"]
-              table$pc[index.strata,"delta"] <- object@delta[iter_strata,]      
-              table$pc[index.strata,"pc.total"] <- rowSums(table$pc[index.strata,c("pc.favorable","pc.unfavorable","pc.neutral","pc.uninf")])
-            }
-            
             #### posttreatment
-            ## bootstrap
-            if(all(table$pc[index.global,"n.bootstrap"]==0)){
-              keep.cols <- setdiff(names(table$nb), c("CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
-              table$nb <- table$nb[,keep.cols, drop = FALSE]
-              keep.cols <- setdiff(names(table$pc), c("CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
-              table$pc <- table$pc[,keep.cols, drop = FALSE]
+            
+            ## normalization of the counts
+            if(percentage){
+              table[index.global,"n.favorable"] <- 100*table[index.global,"n.favorable"]/table[1,"n.total"]
+              table[index.global,"n.unfavorable"] <- 100*table[index.global,"n.unfavorable"]/table[1,"n.total"]
+              table[index.global,"n.neutral"] <- 100*table[index.global,"n.neutral"]/table[1,"n.total"]
+              table[index.global,"n.uninf"] <- 100*table[index.global,"n.uninf"]/table[1,"n.total"]
+              table[index.global,"n.total"] <- 100*table[index.global,"n.total"]/table[1,"n.total"]
             }
             
+            ## bootstrap
+            if(all(is.na(table[index.global,"n.bootstrap"]))){
+              keep.cols <- setdiff(names(table), c("CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
+              table <- table[,keep.cols, drop = FALSE]
+            }
+             
             ## strata
             if(!is.null(strata)){
-            table$nb <- table$nb[table$nb$strata %in% strata,,drop = FALSE]
-            table$pc <- table$pc[table$pc$strata %in% strata,,drop = FALSE]
+              table <- table[table$strata %in% strata,,drop = FALSE]
             }
             
             if(n.strata == 1){
-              keep.cols <- which(names(table$nb) %in% setdiff(names(table$nb), "strata"))
-              table$nb <- table$nb[,keep.cols,drop = FALSE]
-              keep.cols <- which(names(table$pc) %in% setdiff(names(table$pc), "strata"))
-              table$pc <- table$pc[,keep.cols,drop = FALSE]
+              keep.cols <- which(names(table) %in% setdiff(names(table), "strata"))
+              table <- table[,keep.cols,drop = FALSE]
             }
             
             ## rounding
             if(length(digit) == 1){digit <- rep(digit,2)}
             
             if(!is.na(digit[1]) && digit[1]>=0){
-              param.signif <- c("pc.total","pc.favorable","pc.unfavorable","pc.neutral","pc.uninf")
-              table$pc[,param.signif] <- sapply(table$pc[,param.signif],round,digit=digit[1])
+                param.signif <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
+                table[,param.signif] <- sapply(table[,param.signif],round,digit=digit[1])
             }
-            if("n.bootstrap" %in% names(table$pc) && !is.na(digit[2]) && digit[2]>=0){
-              param.signif <- c("delta","Delta","CIinf.Delta","CIsup.Delta")
-              table$nb[,param.signif] <- sapply(table$nb[,param.signif],signif,digit=digit[2])
-              table$pc[,param.signif] <- sapply(table$pc[,param.signif],signif,digit=digit[2])
+              
+            if("n.bootstrap" %in% names(table) && !is.na(digit[2]) && digit[2]>=0){
+                param.signif <- c("delta","Delta","CIinf.Delta","CIsup.Delta")
+                table[,param.signif] <- sapply(table[,param.signif],signif,digit=digit[2])
+            }
+            
+            if(percentage){
+              names(table)[match(c("n.favorable","n.unfavorable","n.neutral","n.uninf","n.total"),names(table))] <- c("pc.favorable","pc.unfavorable","pc.neutral","pc.uninf","pc.total")
             }
             
             # affichage
-            if(!is.null(show)){
-              table.print <- switch(show,
-                                    "nb" = table$nb,
-                                    "pc" = table$pc
-              )
+            if(show){
+              table.print <- table
               emptyCol <- which(names(table.print) %in% c("Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
               for(iterCol in emptyCol){
                 table.print[is.na(table.print[,iterCol]), iterCol] <- ""
               }
               table.print$threshold[is.na(table.print$threshold)] <- ""
-              cat("        BuyseTest \n")
-              cat("> Groups: ",object@levels.treatment[1],"(control) vs. ",object@levels.treatment[2],"(Treatment) \n")
+              if(statistic == "winRatio"){
+                cat("        Win ratio test \n",
+                    "Null hypothesis: Delta == 1 \n \n")
+              }else {
+                cat("        Buyse test \n",
+                    "Null hypothesis: Delta == 0 \n \n")
+              }
+              cat("> Groups: ",object@levels.treatment[1],"(control) vs. ",object@levels.treatment[2],"(treatment) \n")
               if(n.strata>1){cat("> ",n.strata," strata \n", sep = "")}
               cat("> ",n.endpoint," endpoint",if(n.endpoint>1){"s"}, "\n", sep = "")
               print(table.print, row.names = FALSE)         
@@ -204,3 +200,6 @@ setMethod(f = "summary",
             
           }
 )
+
+
+

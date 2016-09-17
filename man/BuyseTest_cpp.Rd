@@ -6,13 +6,14 @@
 \alias{BuyseTest_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-BuyseTest_Gehan_cpp(Treatment, Control, threshold, type, delta_Treatment,
-  delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE)
+BuyseTest_Gehan_cpp(Treatment, Control, threshold, survEndpoint,
+  delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata,
+  n_TTE)
 
-BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, type,
+BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, survEndpoint,
   delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata,
   n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT,
-  list_survivalC, PEP)
+  list_survivalC, methodTTE)
 }
 \arguments{
 \item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment observations (in rows). \emph{const arma::mat&}. Must have D columns.}
@@ -21,7 +22,7 @@ BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, type,
 
 \item{threshold}{Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.}
 
-\item{type}{The type of each endpoint (1 binary, 2 continuous, 3 TTE). \emph{const IntegerVector&}. Must have length D.}
+\item{survEndpoint}{Does each endpoint is a time to event. \emph{const LogicalVector&}. Must have length D.}
 
 \item{delta_Treatment}{A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
 
@@ -49,7 +50,7 @@ BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, type,
 
 \item{list_survivalC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.}
 
-\item{PEP}{The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.}
+\item{methodTTE}{The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.}
 }
 \description{
 \code{BuyseTest_Gehan_cpp} and \code{BuyseTest_PetoEfron_cpp} functions calls for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts.

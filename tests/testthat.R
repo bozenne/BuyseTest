@@ -1,4 +1,5 @@
 # setwd("tests")
+# setwd("tests/testthat")
 library(testthat)
 library(BuyseTest)
 

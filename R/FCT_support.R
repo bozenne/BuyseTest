@@ -6,10 +6,10 @@
 #' 
 #' @param data A \code{data.frame} containing the variables.
 #' @param strata A vector of the variables capturing the stratification factors. \emph{character vector}.
-#' @param sep string to construct the new level labels by joining the constituent ones. \emph{character}. Default is \code{"."}
-#' @param lex.order Should the order of factor concatenation be lexically ordered ? \emph{logical}. Default is FALSE.
-#' @param trace Should the execution of the function be traced ? \emph{logical}. Default is \code{TRUE}.
-#' @param as.numeric Should the strata be converted from factors to numeric? \emph{logical}. Default is \code{FALSE}.
+#' @param sep string to construct the new level labels by joining the constituent ones. \emph{character}.
+#' @param lex.order Should the order of factor concatenation be lexically ordered ? \emph{logical}.
+#' @param trace Should the execution of the function be traced ? \emph{logical}.
+#' @param as.numeric Should the strata be converted from factors to numeric? \emph{logical}. 
 #' 
 #' @details 
 #' This function uses the \code{interaction} function from the \emph{base} package to form the strata.

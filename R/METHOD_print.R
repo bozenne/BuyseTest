@@ -46,7 +46,7 @@ setMethod(f = "show",
           signature = "BuyseRes",
           definition = function(object){
             
-           table <- summary(object, strata="global", show = NULL)$pc
+           table <- summary(object, show = FALSE, percentage = TRUE, strata="global")
            table$threshold[is.na(table$threshold)] <- ""
            print(table, row.names = FALSE)
            

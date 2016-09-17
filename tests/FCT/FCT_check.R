@@ -41,7 +41,22 @@ expect_equalBT <- function(BuyseRes1, BuyseRes2, slots = NULL, trace = 1){
   
   test.error <- FALSE
   for(iterSlot in slots){
-    res <- try(expect_equal(slot(BuyseRes1,  iterSlot), slot(BuyseRes2,  iterSlot)), silent = TRUE)
+    slot1 <- slot(BuyseRes1,  iterSlot)
+    slot2 <- slot(BuyseRes2,  iterSlot)
+    
+    ## convert from old version to new one
+    if(is.list(slot1) && !is.list(slot2)){
+      slot1 <- slot1$netChance 
+    }else if(is.list(slot1) && !is.list(slot2)){
+      slot2 <- slot2$netChance 
+    }
+    if(iterSlot == "threshold"){
+      slot1[is.na(slot1)] <- 0.5
+      slot2[is.na(slot2)] <- 0.5
+    }
+    
+    ## test
+    res <- try(expect_equal(slot1, slot2), silent = TRUE)
     if("try-error" %in% class(res) ){
       test.error <- TRUE
       cat("Differences in slot: ",iterSlot,"\n")
@@ -64,35 +79,46 @@ expect_equalPairsBT <- function(BuyseRes1, BuyseRes2){
 #'      the same number of pairs if founded for all strata (expected if the input data is the same for all strata)
 validPairs <- function(BuyseRes, type = c("strata","sum")){
   
-  BuyseSummary <- summary(BuyseRes, show = NULL)
-  enpoint_threshold <- paste(BuyseSummary$nb$endpoint,BuyseSummary$nb$threshold, sep = "_")
+  BuyseSummary <- summary(BuyseRes, show = FALSE, percentage = FALSE, digit = rep(NA,2))
+  enpoint_threshold <- paste(BuyseSummary$endpoint,BuyseSummary$threshold, sep = "_")
   endpoints <- unique(enpoint_threshold)
   D <- length(endpoints)
-  index_strata <- which(BuyseSummary$nb$strata!="global")
-  levels.strata <- unique(BuyseSummary$nb$strata[index_strata])
+  index_strata <- which(BuyseSummary$strata!="global")
+  levels.strata <- unique(BuyseSummary$strata[index_strata])
   n.strata <- length(levels.strata) 
   
   diff <- NULL
-  
   if("strata" %in% type){
     diff.strata <- matrix(NA,nrow=(1+n.strata)*D,ncol=5)
     colnames(diff.strata) <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
-    rownames(diff.strata) <- paste(BuyseSummary$nb$endpoint, " th=",BuyseSummary$nbthreshold ," strata=", BuyseSummary$nb$strata)
+    rownames(diff.strata) <- paste(BuyseSummary$endpoint, " th=",BuyseSummary$threshold ," strata=", BuyseSummary$strata)
     for(iter_endpoint in 1:D){
       index_endpoint <- which(enpoint_threshold==endpoints[iter_endpoint])  
-      res_strata <- as.matrix(BuyseSummary$nb[intersect(index_strata,index_endpoint),c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")])
+      res_strata <- as.matrix(BuyseSummary[intersect(index_strata,index_endpoint),c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")])
       diff.strata[intersect(index_strata,index_endpoint),] <- t(apply(res_strata,1,function(x){x-res_strata[1,,drop=TRUE]}))
     }
     diff <- cbind(diff, diff.strata)
   }
   if("sum" %in% type){
-    diff.sum <- cbind(sum = BuyseSummary$nb$n.total - (BuyseSummary$nb$n.favorable+BuyseSummary$nb$n.unfavorable+BuyseSummary$nb$n.neutral+BuyseSummary$nb$n.uninf))
-    rownames(diff.sum) <- paste(BuyseSummary$nb$endpoint, " th=",BuyseSummary$nbthreshold ," strata=", BuyseSummary$nb$strata)
+    diff.sum <- cbind(sum = BuyseSummary$n.total - (BuyseSummary$n.favorable+BuyseSummary$n.unfavorable+BuyseSummary$n.neutral+BuyseSummary$n.uninf))
+    rownames(diff.sum) <- paste(BuyseSummary$endpoint, " th=",BuyseSummary$threshold ," strata=", BuyseSummary$strata)
     diff <- cbind(diff, diff.sum)
   }
   return(diff)
 }
 
+#' @description Test whether the number of pairs found by the summary function is consistent with the displayed delta.
+validDelta <- function(BuyseRes){
+  
+  BuyseRes@delta$netChance - (BuyseRes@count_favorable-BuyseRes@count_unfavorable)/BuyseRes@n_pairs
+  BuyseRes@Delta$netChance - cumsum(colSums(BuyseRes@delta$netChance))
+  
+  BuyseRes@delta$winRatio - BuyseRes@count_favorable / (BuyseRes@count_favorable + BuyseRes@count_unfavorable)
+  BuyseRes@Delta$winRatio - cumsum(colSums(BuyseRes@count_favorable)) / cumsum(colSums(BuyseRes@count_favorable + BuyseRes@count_unfavorable))
+  
+  }
+  
+  
 #' @description Vectorial version of testthat functions
 Vexpect_less_than <- function(x,y,...){
   sapply(x, function(X){expect_less_than(X,y,...)})

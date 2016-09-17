@@ -15,6 +15,8 @@
 #' @rdname internal-computation
 calcBootstrap <- function(envir){
   
+  resBoot <- array(NA, dim = c(envir$n.strata + 1, 2*envir$D,  envir$n.bootstrap))
+  
   if (envir$cpus == 1) { ## sequential boostrap
     if (envir$trace > 1) {cat("Sequential boostrap \n")}
     if (envir$trace > 0) {
@@ -28,30 +30,32 @@ calcBootstrap <- function(envir){
       envir$index.trace <- -1
     }
     if (!is.null(envir$seed)) {set.seed(envir$seed)} # set the seed 
-    envir$delta_boot[] <- vapply(1:envir$n.bootstrap, 
-                                 function(x){warper_BTboot(x, envir = envir)},
-                                 matrix(1.5, envir$n.strata, envir$D)) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
+    resBoot[] <- vapply(1:envir$n.bootstrap, 
+                        function(x){warper_BTboot(x, envir = envir)},
+                        matrix(1.5, envir$n.strata + 1, 2*envir$D)) # perform the bootstrap and return for each bootstrap sample a (n.strata + 1)*(2*D) matrix
     
   }else {## parallel boostrap
-     #envir$cpus <- 1 #browser()
+    #envir$cpus <- 1 #browser()
     if (envir$trace > 1) {cat("Parallel boostrap \n")}
     
-    ## init
+    ## initsfLibrary
     if (envir$trace == 3) { # affect the cpus
       snowfall::sfInit(parallel = TRUE, cpus = envir$cpus)  
     }else if (envir$trace %in% c(1,2)) { 
-      suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = envir$cpus))
+      capture.output(suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = envir$cpus)))
     } else {
-      suppressWarnings(suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = envir$cpus))) # warning si proxy dans commandArgs() (provient de la fonction searchCommandline)
+      capture.output(suppressWarnings(suppressMessages(snowfall::sfInit(parallel = TRUE, cpus = envir$cpus)))) # warning si proxy dans commandArgs() (provient de la fonction searchCommandline)
     }
+    
     pid <- unlist(snowfall::sfClusterEval(Sys.getpid())) # identifier of each R session
     snowfall::sfExport("pid")
+    capture.output(suppressMessages(snowfall::sfLibrary("BuyseTest", character.only = TRUE)))
     
     ## wrapper function to be called by each cpu
     wrapper <- function(x){
       return(vapply(1:envir$nParallel.bootstrap,
                     function(x){envir$warper_BTboot(x, envir = envir)},
-                    matrix(1.5, envir$n.strata, envir$D))) # perform the bootstrap and return for each bootstrap sample a n.strata*D matrix
+                    matrix(1.5, envir$n.strata + 1, 2 * envir$D))) # perform the bootstrap and return for each bootstrap sample a (n.strata+1)*(2*D) matrix
     }
     
     ## export the needed variables
@@ -72,13 +76,13 @@ calcBootstrap <- function(envir){
     
     ## trace
     if (envir$trace > 0) {
-      snowfall::sfLibrary("tcltk", character.only = TRUE) # export tcltk library (required for the progress bar) to each cpu
+      capture.output(suppressMessages(snowfall::sfLibrary("tcltk", character.only = TRUE))) # export tcltk library (required for the progress bar) to each cpu
       invisible(snowfall::sfClusterEval(title_pb <- paste0("cpu ", which(pid %in% Sys.getpid()), ": bootstrap iterations"))) # affect the title the progress bar to each cpu 
       invisible(snowfall::sfClusterEval(label_pb <- paste0("cpu ", which(pid %in% Sys.getpid()), ": 0% done"))) # affect the initial legend of the progress bar to each cpu 
       envir$pb <- snowfall::sfClusterEval(tcltk::tkProgressBar(title_pb, label_pb, 0, 1, 0)) # affect and display the progress bar to each cpu 
       snowfall::sfExport("envir")
     }
-  
+    
     ## bootstrap    
     resIter <- snowfall::sfClusterApply(rep(NA, envir$cpus), wrapper) # call the cpu to perform bootstrap computations
     
@@ -89,33 +93,39 @@ calcBootstrap <- function(envir){
     }
     
     # merge results
-    sapply(1:envir$cpus,function(iter_CPU){
-      envir$delta_boot[,,seq((iter_CPU - 1) * envir$nParallel.bootstrap + 1, iter_CPU * envir$nParallel.bootstrap)] <- resIter[[iter_CPU]]
-      return(1)
-    })
-    
-    
+    for(iterCPU in 1:envir$cpus){
+      resBoot[,,seq((iterCPU - 1) * envir$nParallel.bootstrap + 1, iterCPU * envir$nParallel.bootstrap)] <- resIter[[iterCPU]]
+    }
   }
+  
+  #### export
+  envir$delta_boot$netChance[] <- resBoot[1:envir$n.strata,1:envir$D,]
+  envir$Delta_boot$netChance[] <- resBoot[envir$n.strata + 1,1:envir$D,]
+  
+  envir$delta_boot$winRatio[] <- resBoot[1:envir$n.strata,(envir$D + 1):(2 * envir$D),]
+  envir$Delta_boot$winRatio[] <- resBoot[envir$n.strata + 1,(envir$D + 1):(2 * envir$D),]
   
 }
 
 #' @rdname internal-computation
-calcCI <- function(delta,delta_boot,endpoint,D,alternative,alpha,
+calcCI <- function(Delta,Delta_boot,
+                   endpoint,D,alternative,alpha,
                    n.bootstrap,cpus,trace){
   
   ## Confidence interval
-  Delta_boot <- apply(delta_boot,c(2,3),sum) # sum of the proportion in favor of treatment over the strata for the bootstrap samples
-  if (D > 1) {Delta_boot <- apply(Delta_boot,2,cumsum)} # cumulative sum over the endpoints to obtaine the cumulative proportion in favor of treatment for the bootstrap samples
+  # Delta_boot <- apply(delta_boot,c(2,3),sum) # sum of the proportion in favor of treatment over the strata for the bootstrap samples
+  # if (D > 1) {Delta_boot <- apply(Delta_boot,2,cumsum)} # cumulative sum over the endpoints to obtaine the cumulative proportion in favor of treatment for the bootstrap samples
+  n.bootstrap_real <- lapply(Delta_boot, function(x){n.bootstrap - apply(is.na(x), 1, sum)})
   
-  n.bootstrap_real <- n.bootstrap - sum(is.na(Delta_boot[nrow(Delta_boot),]))
-  
-  if (trace && sum(is.na(Delta_boot)) > 0) {
-    
+  if (trace && any(unlist(n.bootstrap_real) < n.bootstrap)) {
     message <- "BuyseTest : bootsrap failed for some iterations \n"
-    for (iter_endpoint in 1:D) {
+    indexD <- lapply(n.bootstrap_real, function(x){which(x<n.bootstrap)})
+    
+    for (iter_endpoint in sort(unique(unlist(indexD)))) {
       message <- paste(message,
                        paste("endpoint ",iter_endpoint," (\"",endpoint[iter_endpoint],"\") : ",
-                             sum(is.na(Delta_boot[iter_endpoint,]))," (",100*sum(is.na(Delta_boot[iter_endpoint,]))/n.bootstrap,"%) failures  \n",sep = ""),
+                             sum(is.na(Delta_boot[[BuyseTest.options()$statistic]][iter_endpoint,])),
+                             " (",100*sum(is.na(Delta_boot[[BuyseTest.options()$statistic]][iter_endpoint,]))/n.bootstrap,"%) failures  \n",sep = ""),
                        sep = " ")
     }
     
@@ -131,30 +141,38 @@ calcCI <- function(delta,delta_boot,endpoint,D,alternative,alpha,
   }
   
   # compute the quantiles for each endpoint of the cumulative proportions in favor of treatment (in the bootstrap sample)
-  Delta_quantile <- apply(Delta_boot,1,function(x){stats::quantile(x,probs = c(alpha/2,1 - alpha/2),na.rm = TRUE)})
+  Delta_quantile <- lapply(1:2, function(type){
+    apply(Delta_boot[[type]],1,function(x){stats::quantile(x,probs = c(alpha/2,1 - alpha/2),na.rm = TRUE)})
+  })
+  names(Delta_quantile) <- names(Delta)
   
-  ## p. value
-  cum_Delta <- apply(delta,2,sum) # sum of the proportion in favor of treatment over the strata for the punctual estimation
-  if (D > 1) {cum_Delta <- cumsum(cum_Delta)} # cumulative proportions in favor of treatment for the punctual estimation (sum over the strata followed by cumulative sum over the endpoints)
-  
+  ## p. value (we don't really need to differientiate netChance and winRatio)
   testp.value <- switch(alternative, # test whether each bootstrap samples is has a cumulative proportions in favor of treatment more extreme than the punctual estimate
-                        "two.sided" = apply(Delta_boot, 2,function(x){abs(cum_Delta) > abs(x)}),
-                        "less" = apply(Delta_boot, 2,function(x){cum_Delta < x}),
-                        "more" = apply(Delta_boot, 2,function(x){cum_Delta > x})
+                        "two.sided" = lapply(1:2, function(type){
+                          apply(Delta_boot[[type]], 2,function(x){abs(Delta[[type]] - c(0,0.5)[type]) > abs(x - c(0,0.5)[type])})
+                        }),
+                        "less" = lapply(1:2, function(type){
+                          apply(Delta_boot[[type]], 2,function(x){(Delta[[type]] - c(0,0.5)[type]) < (x - c(0,0.5)[type])})
+                        }),
+                        "more" =  lapply(1:2, function(type){
+                          apply(Delta_boot[[type]], 2,function(x){(Delta[[type]] - c(0,0.5)[type]) > (x - c(0,0.5)[type])})
+                        })
   )
   
   # mean over the bootstrap samples by endpoint (i.e. proportion of bootstrap sample that is more extreme)
   if (D == 1) {
-    p.value <- 1 - mean(testp.value, na.rm = TRUE)
+    p.value <- lapply(testp.value, function(x){1 - mean(x, na.rm = TRUE)})
   }else{
-    p.value <- 1 - rowMeans(testp.value, na.rm = TRUE)
+    p.value <- lapply(testp.value, function(x){1 - rowMeans(x, na.rm = TRUE)})
   }
+  names(p.value) <- names(Delta)
   
   #### export ####
+  
   res <- list()
   res$p.value <- p.value
   res$Delta_quantile <- Delta_quantile
-  res$n.bootstrap_real <- n.bootstrap_real
+  res$n_bootstrap <- n.bootstrap_real
   return(res)
 }
 
@@ -267,34 +285,39 @@ warper_BTboot <- function(x,envir){
   
   if (boot.failure == FALSE) {
     if (envir$method %in% c("Efron","Peron")) { # update survival
-      res_init <- BuyseTest::initSurvival(M.Treatment = Mnew.Treatment,M.Control = Mnew.Control,
-                                          M.delta_Treatment = Mnew.delta_Treatment,M.delta_Control = Mnew.delta_Control,
-                                          endpoint = envir$endpoint,D.TTE = envir$D.TTE,type = envir$type,threshold = envir$threshold,
-                                          index.strataT = new.strataT,index.strataC = new.strataC,n.strata = envir$n.strata,
-                                          method = envir$method)
+      res_init <- initSurvival(M.Treatment = Mnew.Treatment,M.Control = Mnew.Control,
+                               M.delta_Treatment = Mnew.delta_Treatment,M.delta_Control = Mnew.delta_Control,
+                               endpoint = envir$endpoint,D.TTE = envir$D.TTE,type = envir$type,threshold = envir$threshold,
+                               index.strataT = new.strataT,index.strataC = new.strataC,n.strata = envir$n.strata,
+                               method = envir$method)
     }
     
     #### Computation
     if (envir$method %in% c("Peto","Efron","Peron")) {
-      delta_boot <-   BuyseTest::BuyseTest_PetoEfronPeron_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold,type = envir$type,
-                                                              delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
-                                                              D = envir$D,returnIndex = FALSE,
-                                                              strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE,
-                                                              Wscheme = envir$Wscheme,index_survivalM1 = envir$index_survivalM1,threshold_TTEM1 = envir$threshold_TTEM1,
-                                                              list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
-                                                              list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
-                                                              PEP = which(c("Peto","Efron","Peron") == envir$method))$delta
+      resBT <-   BuyseTest_PetoEfronPeron_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold, survEndpoint = (envir$type == 3),
+                                              delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
+                                              D = envir$D, returnIndex = FALSE,
+                                              strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE,
+                                              Wscheme = envir$Wscheme,index_survivalM1 = envir$index_survivalM1,threshold_TTEM1 = envir$threshold_TTEM1,
+                                              list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
+                                              list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
+                                              methodTTE = which(c("Peto","Efron","Peron") == envir$method)
+      )
+      
+      resWarper <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),
+                         rbind(resBT$delta_winRatio, resBT$Delta_winRatio))
       
     }else if (envir$method == "Gehan") {
+      resBT <- BuyseTest_Gehan_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold, survEndpoint = (envir$type == 3),
+                                   delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
+                                   D = envir$D,returnIndex = FALSE,
+                                   strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE)
       
-      delta_boot <- BuyseTest::BuyseTest_Gehan_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold,type = envir$type,
-                                                   delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
-                                                   D = envir$D,returnIndex = FALSE,
-                                                   strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE)$delta
-     
+      resWarper <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),
+                         rbind(resBT$delta_winRatio, resBT$Delta_winRatio))
     }
   }else{
-    delta_boot <- matrix(NA, nrow = envir$n.strata, ncol = envir$D)
+    resWarper <- matrix(NA, nrow = envir$n.strata + 1, ncol = 2*envir$D)
   }
   
   
@@ -321,7 +344,7 @@ warper_BTboot <- function(x,envir){
   }
   
   ## export
-  return(delta_boot)
+  return(resWarper)
 }
 
 
