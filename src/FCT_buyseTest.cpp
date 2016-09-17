@@ -34,6 +34,7 @@ using namespace arma ;
 //' @param list_survivalT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Efron or Peron, two survival functions are computed) columns. Ignored if method is Gehan.
 //' @param list_survivalC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.
 //' @param methodTTE The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.
+//' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.
 //' 
 //' @keywords function Cpp BuyseTest
 
@@ -41,7 +42,7 @@ using namespace arma ;
 //' @export
 // [[Rcpp::export]]
 List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
-                         const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE){
+                         const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, const double neutralAsUninf){
   
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   
@@ -51,7 +52,7 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
   arma::mat Mcount_unfavorable(n_strata,D,fill::zeros); // store the number of unfavorable pairs by outcome for each strata
   arma::mat Mcount_neutral(n_strata,D,fill::zeros); // store the number of neutral pairs by outcome for each strata
   arma::mat Mcount_uninf(n_strata,D,fill::zeros); // store the number of uninf pairs by outcome for each strata
-  double n_pairs=0; // number of pairs sumed over the strats
+  double n_pairs=0,size_neutral; // number of pairs sumed over the strats
   
   vector<int> index_neutralT(0) ; // index of the neutral pairs of the treatment arm
   vector<int> index_neutralC(0) ; // index of the neutral pairs of the control arm
@@ -99,15 +100,21 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
       
+      if(neutralAsUninf){
+        size_neutral = resK.count_neutral;
+      }else{
+        size_neutral = 0;
+      }
+      
       if(survEndpoint[iter_d]){ // time to event endpoint
         resK = calcSubsetPairs_TTEOutcome_Gehan_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
                                                     delta_TreatmentK.col(iter_dTTE), delta_ControlK.col(iter_dTTE),
-                                                    resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
+                                                    resK.index_neutralT, resK.index_neutralC, size_neutral,
                                                     resK.index_uninfT, resK.index_uninfC, resK.count_uninf);   
         iter_dTTE++; // increment the number of time to event endpoints that have been used
       }else{ // binary or continuous endpoint
         resK = calcSubsetPairs_ContinuousOutcome_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
-                                                     resK.index_neutralT, resK.index_neutralC, resK.count_neutral,
+                                                     resK.index_neutralT, resK.index_neutralC, size_neutral,
                                                      resK.index_uninfT, resK.index_uninfC, resK.count_uninf);   
       }
       
@@ -169,7 +176,7 @@ List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, c
 List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
                                   const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, 
                                   const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, 
-                                  const std::vector< arma::mat >& list_survivalT, const std::vector< arma::mat >& list_survivalC, const int methodTTE){
+                                  const std::vector< arma::mat >& list_survivalT, const std::vector< arma::mat >& list_survivalC, const int methodTTE, const double neutralAsUninf){
   
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -258,6 +265,7 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
       Wpairs_sauve=Wpairs; // save the current Wpairs
+      if(neutralAsUninf==false){size_neutral = 0;}
       
       if(survEndpoint[iter_d]){ // time to event endpoint 
         

@@ -11,6 +11,7 @@
 #' @param censoring the name of the censoring variable(s), one for each endpoint. \emph{character vector}.
 #' @param type the type of each endpoint. \emph{character vector}. Can be \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
 #' @param method Is defined when at least one time-to-event outcome is analyzed. Defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations.  Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}. See details. 
+#' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.
 #' @param n.bootstrap the number of bootstrap samples used for computing the confidence interval and the p.values. \emph{integer}. 
 #' @param prob.alloc the resampling probability for assignement to the experimental group in the bootstrap samples. \emph{double}. Can also be \code{NULL} to use the proportion of patients in the experimental group.
 #' @param stratified Should the boostrap be a stratified bootstrap? \emph{logical}. 
@@ -66,7 +67,7 @@
 #' @keywords function BuyseTest
 #' @export
 BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata = NULL, censoring = NULL, 
-                      method = BuyseTest.options()$method, 
+                      method = BuyseTest.options()$method, neutralAsUninf = BuyseTest.options()$neutralAsUninf,
                       n.bootstrap = BuyseTest.options()$n.bootstrap, prob.alloc = NULL, stratified = FALSE, alternative = "two.sided", 
                       seed = BuyseTest.options()$seed, cpus = BuyseTest.options()$cpus, trace = BuyseTest.options()$trace){
   
@@ -189,7 +190,7 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
     printGeneral(levels.treatment = levels.treatment,
                  levels.strata = levels.strata, n.strata = n.strata,
                  endpoint = endpoint, threshold = threshold, censoring = censoring, type = type, D = D, D.TTE = D.TTE,
-                 method = method, 
+                 method = method, neutralAsUninf = neutralAsUninf,
                  Wscheme = if (method %in% c("Peto","Efron","Peron")) {Wscheme} else {NULL}, 
                  threshold_TTEM1 = if (method %in% c("Peto","Efron","Peron")) {Wscheme} else {NULL})
   }
@@ -205,7 +206,7 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
                                                   strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE,
                                                   Wscheme = Wscheme,index_survivalM1 = index_survivalM1, threshold_TTEM1 = threshold_TTEM1, 
                                                   list_survivalT = list_survivalT, list_survivalC = list_survivalC,
-                                                  methodTTE = which(c("Peto", "Efron", "Peron") == method)
+                                                  methodTTE = which(c("Peto", "Efron", "Peron") == method), neutralAsUninf = neutralAsUninf
       )
     })
   }else if (method == "Gehan") {
@@ -213,8 +214,8 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
       resPonctual <-   BuyseTest_Gehan_cpp(Treatment = M.Treatment, Control = M.Control, threshold = threshold, survEndpoint = (type == 3),
                                            delta_Treatment = M.delta_Treatment, delta_Control = M.delta_Control,
                                            D = D, returnIndex = TRUE,
-                                           strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE
-                                           )    
+                                           strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE, 
+                                           neutralAsUninf = neutralAsUninf)    
     })
   }
   

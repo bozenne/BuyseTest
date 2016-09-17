@@ -301,7 +301,7 @@ warper_BTboot <- function(x,envir){
                                               Wscheme = envir$Wscheme,index_survivalM1 = envir$index_survivalM1,threshold_TTEM1 = envir$threshold_TTEM1,
                                               list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
                                               list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
-                                              methodTTE = which(c("Peto","Efron","Peron") == envir$method)
+                                              methodTTE = which(c("Peto","Efron","Peron") == envir$method), neutralAsUninf = envir$neutralAsUninf
       )
       
       resWarper <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),
@@ -311,7 +311,7 @@ warper_BTboot <- function(x,envir){
       resBT <- BuyseTest_Gehan_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold, survEndpoint = (envir$type == 3),
                                    delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
                                    D = envir$D,returnIndex = FALSE,
-                                   strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE)
+                                   strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE, neutralAsUninf = envir$neutralAsUninf)
       
       resWarper <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),
                          rbind(resBT$delta_winRatio, resBT$Delta_winRatio))

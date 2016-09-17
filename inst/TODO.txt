@@ -1,7 +1,5 @@
 http://gallery.rcpp.org/articles/using-rcppprogress/
 
-> win ratio
-> possibilite d'arreter l'analyse de la pair si ex aequo
 > faire la fonction de calcul de puissance
 > fonction sensibilite 2D
 > Article JSS

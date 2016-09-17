@@ -8,12 +8,12 @@
 \usage{
 BuyseTest_Gehan_cpp(Treatment, Control, threshold, survEndpoint,
   delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata,
-  n_TTE)
+  n_TTE, neutralAsUninf)
 
 BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, survEndpoint,
   delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata,
   n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT,
-  list_survivalC, methodTTE)
+  list_survivalC, methodTTE, neutralAsUninf)
 }
 \arguments{
 \item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment observations (in rows). \emph{const arma::mat&}. Must have D columns.}
@@ -39,6 +39,8 @@ BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, survEndpoint,
 \item{n_strata}{The number of strata . Strictly positive \emph{const int}.}
 
 \item{n_TTE}{The number of time-to-event endpoints. Positive \emph{const int}.}
+
+\item{neutralAsUninf}{Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.}
 
 \item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplyied by the weight of the endpoints in raws where there is a 1. \emph{const arma::mat&}. Must have n_TTE lines and D-1 columns.}
 

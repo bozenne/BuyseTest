@@ -48,9 +48,3 @@ if(identical(save, TRUE)){
   })
 }
 
-ls.sum$Peron@delta_boot
-GS$Peron@delta_boot
-
-
-
-

@@ -25,19 +25,20 @@
 #' @param list_survivalT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Efron or Peron, two survival functions are computed) columns. Ignored if method is Gehan.
 #' @param list_survivalC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.
 #' @param methodTTE The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.
+#' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.
 #' 
 #' @keywords function Cpp BuyseTest
 NULL
 
 #' @rdname BuyseTest_cpp
 #' @export
-BuyseTest_Gehan_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE) {
-    .Call('BuyseTest_BuyseTest_Gehan_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE)
+BuyseTest_Gehan_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, neutralAsUninf) {
+    .Call('BuyseTest_BuyseTest_Gehan_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, neutralAsUninf)
 }
 
 #' @rdname BuyseTest_cpp
 #' @export
-BuyseTest_PetoEfronPeron_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE) {
-    .Call('BuyseTest_BuyseTest_PetoEfronPeron_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE)
+BuyseTest_PetoEfronPeron_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE, neutralAsUninf) {
+    .Call('BuyseTest_BuyseTest_PetoEfronPeron_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE, neutralAsUninf)
 }
 

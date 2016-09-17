@@ -4,18 +4,19 @@
 
 \dontrun{
   data(veteran,package="survival")
-  library(BuyseTest)
+  n.bootstrap <- 100
+  
   BT_Gehan <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
                         type="timeToEvent",censoring="status",threshold=0,
-                        n.bootstrap=10000,method="Gehan",cpus="all")
+                        n.bootstrap=n.bootstrap,method="Gehan")
   
   summary_Gehan <- summary(BT_Gehan)
+  summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
   #### method = "Peron"
-  
   BT_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
                         type="timeToEvent",censoring="status",threshold=0,
-                        n.bootstrap=1000,method="Peron",cpus="all")
+                        n.bootstrap=n.bootstrap,method="Peron")
   
   summary_Peron <- summary(BT_Peron)
 }

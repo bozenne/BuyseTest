@@ -105,7 +105,11 @@ setMethod(f = "summary",
             table[index.global,"endpoint"] <- object@endpoint
             table[index.global,"threshold"] <- object@threshold
             table[index.global,"strata"] <- "global"
-            table[index.global,"delta"] <- colSums(delta)
+            if(statistic=="netChance"){
+              table[index.global,"delta"] <- colSums(delta)
+            }else{
+              table[index.global,"delta"] <- colSums(object@count_favorable)/(colSums(object@count_favorable)+colSums(object@count_unfavorable))
+            }
             table[index.global,"Delta"] <- Delta
             table[index.global,"CIinf.Delta"] <- Delta + Delta_quantile[1,]
             table[index.global,"CIsup.Delta"] <- Delta + Delta_quantile[2,]

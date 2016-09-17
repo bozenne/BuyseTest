@@ -6,6 +6,7 @@
 \usage{
 BuyseTest(data, treatment, endpoint, type, threshold = NULL, strata = NULL,
   censoring = NULL, method = BuyseTest.options()$method,
+  neutralAsUninf = BuyseTest.options()$neutralAsUninf,
   n.bootstrap = BuyseTest.options()$n.bootstrap, prob.alloc = NULL,
   stratified = FALSE, alternative = "two.sided",
   seed = BuyseTest.options()$seed, cpus = BuyseTest.options()$cpus,
@@ -27,6 +28,8 @@ BuyseTest(data, treatment, endpoint, type, threshold = NULL, strata = NULL,
 \item{censoring}{the name of the censoring variable(s), one for each endpoint. \emph{character vector}.}
 
 \item{method}{Is defined when at least one time-to-event outcome is analyzed. Defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations.  Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}. See details.}
+
+\item{neutralAsUninf}{Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.}
 
 \item{n.bootstrap}{the number of bootstrap samples used for computing the confidence interval and the p.values. \emph{integer}.}
 
@@ -81,18 +84,19 @@ See Peron et al. (2016) for more details.
 
 \dontrun{
   data(veteran,package="survival")
-  library(BuyseTest)
+  n.bootstrap <- 100
+  
   BT_Gehan <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
                         type="timeToEvent",censoring="status",threshold=0,
-                        n.bootstrap=10000,method="Gehan",cpus="all")
+                        n.bootstrap=n.bootstrap,method="Gehan")
   
   summary_Gehan <- summary(BT_Gehan)
+  summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
   #### method = "Peron"
-  
   BT_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
                         type="timeToEvent",censoring="status",threshold=0,
-                        n.bootstrap=1000,method="Peron",cpus="all")
+                        n.bootstrap=n.bootstrap,method="Peron")
   
   summary_Peron <- summary(BT_Peron)
 }

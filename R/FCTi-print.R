@@ -16,7 +16,7 @@
 printGeneral <- function(levels.treatment,
                          levels.strata, n.strata,
                          endpoint, threshold, censoring, type, D, D.TTE,
-                         method, Wscheme, threshold_TTEM1){
+                         method, neutralAsUninf, Wscheme, threshold_TTEM1){
   cat("Settings (general) \n")
   cat("   # chosen reference : Control = ",levels.treatment[1]," and Treatment = ",levels.treatment[2],"\n")
   cat("   # number of endpoints : ",D," \n")
@@ -28,6 +28,12 @@ printGeneral <- function(levels.treatment,
     cat("\n")
   }
   cat("   # n.strata = ", n.strata, " : ", paste(levels.strata,collapse = " "), "\n")
+  cat("   # management of neutral pairs : ")
+  if(neutralAsUninf){
+    cat("re-analyzed using endpoints of lower priority (if any) \n")
+  }else{
+    cat("ignore endpoints of lower priority \n")
+  }
   cat("   # management of censored survival pairs : ")
   switch(method,
          "Gehan" = cat("uninformative pairs \n"),

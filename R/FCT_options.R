@@ -36,6 +36,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                keep.bootstrap = TRUE,
                method = "Peron",
                n.bootstrap = 1000,
+               neutralAsUninf = TRUE,
                trace = 3,
                seed = 10,
                statistic = "netChance"), 

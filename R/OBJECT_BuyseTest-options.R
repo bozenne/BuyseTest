@@ -22,6 +22,7 @@ setClass(
     keep.bootstrap = "logical",
     method = "character",
     n.bootstrap = "numeric",
+    neutralAsUninf = "logical",
     trace = "numeric",
     seed = "numeric",
     statistic = "character"
@@ -34,6 +35,7 @@ setClass(
     validLogical(object@keep.bootstrap, name1 = "@keep.bootstrap", validLength = 1, method = "Class BuyseTest.options")
     validCharacter(object@method, name1 = "@method", validValues = c("Peron","Efron","Peto","Gehan"), validLength = 1, method = "Class BuyseTest.options")
     validInteger(object@n.bootstrap, name1 = "@n.bootstrap", min = 0, validLength = 1, method = "Class BuyseTest.options")
+    validLogical(object@neutralAsUninf, name1 = "@neutralAsUninf", validLength = 1, method = "Class BuyseTest.options")
     validInteger(object@trace, name1 = "@trace", min = 0, validLength = 1, method = "Class BuyseTest.options")
     validInteger(object@seed, name1 = "@seed", min = 1, validLength = 1, method = "Class BuyseTest.options")
     validCharacter(object@statistic, name1 = "@statistic", validValues = c("netChance","winRatio"), validLength = 1, method = "Class BuyseTest.options")

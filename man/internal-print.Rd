@@ -7,7 +7,7 @@
 \title{internal functions for BuyseTest - display}
 \usage{
 printGeneral(levels.treatment, levels.strata, n.strata, endpoint, threshold,
-  censoring, type, D, D.TTE, method, Wscheme, threshold_TTEM1)
+  censoring, type, D, D.TTE, method, neutralAsUninf, Wscheme, threshold_TTEM1)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to display what is going on.
