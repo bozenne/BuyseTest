@@ -1,7 +1,7 @@
 verboseContext("Check specific examples")
 
 #### 1- test 2 pairs ####
-cat("* check results with 2 pairs in each group")
+cat("* check results with 2 pairs in each group \n")
 
 ## a)
 gehan4 <- data.table(ID = 1:4,
@@ -68,7 +68,7 @@ test_that("2 pairs - Peron",{
 summary(survival::survfit(survival::Surv(time=time, event=cens) ~ 1, data=gehan4))
 
 #### 2- more patients? ####
-cat("* check results with more patients")
+cat("* check results with more patients \n")
 
 ## a) lambda.C = 0.5
 set.seed(10)

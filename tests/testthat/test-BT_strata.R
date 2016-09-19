@@ -19,7 +19,7 @@ data_BinS <- rbind(cbind(data_Bin, strata = 1),
 if(conv2df){data_BinS <- as.data.frame(data_BinS)}
 
 
-BT_Bin1 <- BuyseTest(data=data_BinS,endpoint=c("Y_bin1","Y_bin2"),
+BT_Bin1 <- BuyseTest(data=data_BinS,endpoint=c("toxicity1","toxicity2"),
                      treatment="Treatment", type=c("bin","bin"),strata="strata",
                      n.bootstrap=n.bootstrap)
 
@@ -41,7 +41,7 @@ data_ContS <- rbind(cbind(data_Cont, strata = 1),
                         cbind(data_Cont, strata = 3))
 if(conv2df){data_ContS <- as.data.frame(data_ContS)}
 
-BT_Cont1 <- BuyseTest(data=data_ContS,endpoint=c("Y_cont1","Y_cont2"),
+BT_Cont1 <- BuyseTest(data=data_ContS,endpoint=c("score1","score2"),
                                  treatment="Treatment", type=c("cont","cont"),threshold=c(1,1),strata="strata",
                                  n.bootstrap=n.bootstrap)
 
@@ -67,8 +67,8 @@ if(conv2df){data_TTES <- as.data.frame(data_TTES)}
 BT_TTE1 <- vector(length = 4, mode = "list")
 names(BT_TTE1) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
-  BT_TTE1[[method]] <- BuyseTest(data=data_TTES,endpoint=c("Y_TTE1","Y_TTE2","Y_TTE3"),method=method,
-                                 treatment="Treatment",censoring=c("event1","event2","event1"),strata="strata",
+  BT_TTE1[[method]] <- BuyseTest(data=data_TTES,endpoint=c("eventtime1","eventtime2","eventtime3"),method=method,
+                                 treatment="Treatment",censoring=c("status1","status2","status3"),strata="strata",
                                  type=c("TTE","TTE","TTE"),threshold=c(0.75,0.5,0.25),
                                  n.bootstrap = n.bootstrap)
   
@@ -86,8 +86,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){
 BT_TTE2 <- vector(length = 4, mode = "list")
 names(BT_TTE2) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
-  BT_TTE2[[method]] <- BuyseTest(data=data_TTES,endpoint=c("Y_TTE1","Y_TTE1","Y_TTE1"),method=method,
-                                 treatment="Treatment",censoring=c("event1","event1","event1"),strata="strata",
+  BT_TTE2[[method]] <- BuyseTest(data=data_TTES,endpoint=c("eventtime1","eventtime1","eventtime1"),method=method,
+                                 treatment="Treatment",censoring=c("status1","status1","status1"),strata="strata",
                                  type=c("TTE","TTE","TTE"),threshold=c(1,0.5,0.25),
                                  n.bootstrap = n.bootstrap)
   
@@ -114,8 +114,8 @@ BT_Mix <- vector(length = 4, mode = "list")
 names(BT_Mix) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
   BT_Mix[[method]] <- BuyseTest(data=data_MixS,
-                                endpoint=c("Y_TTE1","Y_cont1","Y_bin1","Y_TTE1","Y_cont1"),method=method,
-                                treatment="Treatment",censoring=c("event1",NA,NA,"event1",NA),strata="strata",
+                                endpoint=c("eventtime1","score1","toxicity1","eventtime1","score1"),method=method,
+                                treatment="Treatment",censoring=c("status1",NA,NA,"status1",NA),strata="strata",
                                 type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                                 threshold=c(0.5,1,NA,0.25,0.5),
                                 n.bootstrap = n.bootstrap)

@@ -4,7 +4,7 @@ BuyseTest.options(trace = 0, keep.bootstrap = TRUE)
 
 n.patients <- 100
 n.bootstrap <- 100
-save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
+save <- TRUE # TRUE to save results, FALSE to test, NULL to ignore
 if(identical(save, TRUE)){
   dirSave <- paste0("Results-version",packageVersion("BuyseTest"))
   if(dir.exists(dirSave) == FALSE){dir.create(dirSave)}
@@ -22,8 +22,8 @@ dt.BT <- simulBT(n.patients)
 ls.sum <- list()
 for(method in c("Gehan","Peto","Efron","Peron")){ # method <- "Gehan"
   cat(method, " ")
-  ls.sum[[method]] <- BuyseTest(data=dt.BT,endpoint="Y_TTE1",treatment="Treatment",
-                                type="TTE",censoring="event1",threshold=0, cpus = "all",
+  ls.sum[[method]] <- BuyseTest(data=dt.BT,endpoint="eventtime",treatment="Treatment",
+                                type="TTE",censoring="status",threshold=0, cpus = "all",
                                 n.bootstrap=n.bootstrap,method=method)
 }
 cat("\n")

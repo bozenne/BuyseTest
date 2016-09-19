@@ -36,30 +36,17 @@
 #'   \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object.
 #' 
 #' @examples
-#'   n.Treatment_testBin <- 500
-#'   n.Control_testBin <- 500
-#'   prob.Treatment_testBin <- c(0.5,0.75)
-#'   prob.Control_testBin <- c(0.5,0.25)
-#'   
-#'   set.seed(10)
-#'   data_testBin <- data.frame(treatment=c(rep(1,n.Treatment_testBin),rep(0,n.Treatment_testBin)))
-#'   data_testBin$endpoint1 <- c(rbinom(n.Treatment_testBin,size=1,prob=prob.Treatment_testBin[1]),
-#'                               rbinom(n.Control_testBin,size=1,prob=prob.Control_testBin[1]))
-#'   data_testBin$endpoint2 <- c(rbinom(n.Control_testBin,size=1,prob=prob.Treatment_testBin[2]),
-#'                               rbinom(n.Control_testBin,size=1,prob=prob.Control_testBin[2]))
-#'   data_testBin$strata <- rbinom(n.Treatment_testBin+n.Control_testBin,size=4,prob=0.5)
-#'   
-#'   \dontrun{
-#'     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-#'                                   treatment="treatment",type,=c("bin","bin"),n.bootstrap=10000)
-#'   }
-#'   \dontshow{
-#'     BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-#'                                   treatment="treatment",type=c("bin","bin"), 
-#'                                   n.bootstrap=10,trace=0)
-#'   }
-#'   
-#'   summary_BuyseTest_object <- summary(BuyseTest_object)
+#' dt <- simulBT(1e2, n.strata = 3)
+#' 
+#'  \dontrun{
+#'  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
+#'  }
+#'  \dontshow{
+#'  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.bootstrap = 10, trace = 0)
+#'  }
+#'  summary(BT)
+#'  summary(BT, percentage = FALSE)
+#'  summary(BT, statistic = "winRatio")
 #' 
 #' @keywords summary BuyseRes-method
 
@@ -73,9 +60,10 @@ setGeneric(name = "summary",
 #' @exportMethod summary
 setMethod(f = "summary",
           signature = "BuyseRes",
-          definition = function(object, show = TRUE, percentage = TRUE, statistic = BuyseTest.options()$statistic, strata = NULL, digit = c(2,3)){
+          definition = function(object, show = TRUE, percentage = TRUE, statistic = BuyseTest.options()$statistic, 
+                                strata = if(length(object@strata)==1){"global"}else{NULL}, digit = c(2,3)){
          
-             # preparation
+            # preparation
             validLogical(show, name1 = "show", validLength = 1, method = "summary[BuyseRes]")
             validLogical(percentage, name1 = "percentage", validLength = 1, method = "summary[BuyseRes]")
             validCharacter(statistic, name1 = "statistic", validValues = c("netChance","winRatio"), validLength = 1, method = "summary[BuyseRes]")
@@ -138,11 +126,11 @@ setMethod(f = "summary",
             
             ## normalization of the counts
             if(percentage){
-              table[index.global,"n.favorable"] <- 100*table[index.global,"n.favorable"]/table[1,"n.total"]
-              table[index.global,"n.unfavorable"] <- 100*table[index.global,"n.unfavorable"]/table[1,"n.total"]
-              table[index.global,"n.neutral"] <- 100*table[index.global,"n.neutral"]/table[1,"n.total"]
-              table[index.global,"n.uninf"] <- 100*table[index.global,"n.uninf"]/table[1,"n.total"]
-              table[index.global,"n.total"] <- 100*table[index.global,"n.total"]/table[1,"n.total"]
+              table[,"n.favorable"] <- 100*table[,"n.favorable"]/table[1,"n.total"]
+              table[,"n.unfavorable"] <- 100*table[,"n.unfavorable"]/table[1,"n.total"]
+              table[,"n.neutral"] <- 100*table[,"n.neutral"]/table[1,"n.total"]
+              table[,"n.uninf"] <- 100*table[,"n.uninf"]/table[1,"n.total"]
+              table[,"n.total"] <- 100*table[,"n.total"]/table[1,"n.total"]
             }
             
             ## bootstrap
@@ -154,11 +142,10 @@ setMethod(f = "summary",
             ## strata
             if(!is.null(strata)){
               table <- table[table$strata %in% strata,,drop = FALSE]
-            }
-            
-            if(n.strata == 1){
-              keep.cols <- which(names(table) %in% setdiff(names(table), "strata"))
-              table <- table[,keep.cols,drop = FALSE]
+              if(identical(strata, "global")){
+                keep.cols <- which(names(table) %in% setdiff(names(table), "strata"))
+                table <- table[,keep.cols,drop = FALSE]
+              }
             }
             
             ## rounding
@@ -169,8 +156,11 @@ setMethod(f = "summary",
                 table[,param.signif] <- sapply(table[,param.signif],round,digit=digit[1])
             }
               
-            if("n.bootstrap" %in% names(table) && !is.na(digit[2]) && digit[2]>=0){
-                param.signif <- c("delta","Delta","CIinf.Delta","CIsup.Delta")
+            if(!is.na(digit[2]) && digit[2]>=0){
+                param.signif <- c("delta","Delta")
+                if("n.bootstrap" %in% names(table)){
+                  param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
+                }
                 table[,param.signif] <- sapply(table[,param.signif],signif,digit=digit[2])
             }
             

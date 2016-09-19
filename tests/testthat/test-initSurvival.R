@@ -209,9 +209,17 @@ for(method in c("Peto","Efron","Peron")){
 if(identical(save, TRUE)){
   saveRDS(results_initSurvival,file=file.path(dirSave,"test-initSurvival.rds"))
 }else {
+  cat("* Previous version \n")
+  
   GS <- readRDS(file=file.path(dirSave,"test-initSurvival.rds"))
-  # expect_equal(results_initSurvival, GS)
+  test_that("comparison with the previous version", {
+    for(iterData in 1:3){
+    expect_equal(results_initSurvival$NoStrata[[iterData]]$Peto, GS$NoStrata[[iterData]]$Peto)
+    expect_equal(results_initSurvival$NoStrata[[iterData]]$Efron, GS$NoStrata[[iterData]]$Efron)
+    expect_equal(results_initSurvival$NoStrata[[iterData]]$Peron, GS$NoStrata[[iterData]]$Peron)
+  }
+  expect_equal(results_initSurvival$Strata$Peto, GS$Strata$Peto)
+  expect_equal(results_initSurvival$Strata$Efron, GS$Strata$Efron)
+  expect_equal(results_initSurvival$Strata$Peron, GS$Strata$Peron)
+  })
 }
-
-# expect_equal(results_initSurvival$NoStrata[[2]]$Efron$M.Treatment, 
-#              GS$NoStrata[[2]]$Efron$M.Treatment)

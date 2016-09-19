@@ -11,8 +11,9 @@
 summary(object, ...)
 
 \S4method{summary}{BuyseRes}(object, show = TRUE, percentage = TRUE,
-  statistic = BuyseTest.options()$statistic, strata = NULL, digit = c(2,
-  3))
+  statistic = BuyseTest.options()$statistic, strata = if
+  (length(object@strata) == 1) {     "global" } else {     NULL },
+  digit = c(2, 3))
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
@@ -50,30 +51,17 @@ WARNING: For the win ratio, the proposed implementation enables the use of thres
 These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge). They are only provided here by implementation convenience.
 }
 \examples{
-  n.Treatment_testBin <- 500
-  n.Control_testBin <- 500
-  prob.Treatment_testBin <- c(0.5,0.75)
-  prob.Control_testBin <- c(0.5,0.25)
-  
-  set.seed(10)
-  data_testBin <- data.frame(treatment=c(rep(1,n.Treatment_testBin),rep(0,n.Treatment_testBin)))
-  data_testBin$endpoint1 <- c(rbinom(n.Treatment_testBin,size=1,prob=prob.Treatment_testBin[1]),
-                              rbinom(n.Control_testBin,size=1,prob=prob.Control_testBin[1]))
-  data_testBin$endpoint2 <- c(rbinom(n.Control_testBin,size=1,prob=prob.Treatment_testBin[2]),
-                              rbinom(n.Control_testBin,size=1,prob=prob.Control_testBin[2]))
-  data_testBin$strata <- rbinom(n.Treatment_testBin+n.Control_testBin,size=4,prob=0.5)
-  
-  \dontrun{
-    BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-                                  treatment="treatment",type,=c("bin","bin"),n.bootstrap=10000)
-  }
-  \dontshow{
-    BuyseTest_object <- BuyseTest(data=data_testBin,endpoint=c("endpoint1","endpoint2"),
-                                  treatment="treatment",type=c("bin","bin"), 
-                                  n.bootstrap=10,trace=0)
-  }
-  
-  summary_BuyseTest_object <- summary(BuyseTest_object)
+dt <- simulBT(1e2, n.strata = 3)
+
+ \dontrun{
+ BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
+ }
+ \dontshow{
+ BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.bootstrap = 10, trace = 0)
+ }
+ summary(BT)
+ summary(BT, percentage = FALSE)
+ summary(BT, statistic = "winRatio")
 
 }
 \seealso{

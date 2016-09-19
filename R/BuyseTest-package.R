@@ -7,12 +7,12 @@
 #' 
 #' @useDynLib BuyseTest
 #' @import data.table
-#' @importFrom lava categorical coxExponential.lvm distribution eventTime lvm sim
+#' @importFrom lava categorical coxExponential.lvm distribution eventTime lvm sim vars
 #' @import methods
 #' @importFrom parallel detectCores
 #' @import Rcpp
 #' @import snowfall
-#' @importFrom stats as.formula na.omit rbinom setNames
+#' @importFrom stats as.formula delete.response formula na.omit rbinom setNames terms
 #' @importFrom stats4 summary
 #' @importFrom survival survfit Surv
 #' @importFrom tcltk tkProgressBar setTkProgressBar

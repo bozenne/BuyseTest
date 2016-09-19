@@ -15,14 +15,15 @@ cat("* binary endpoint \n")
 data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
 if(conv2df){data_Bin <- as.data.frame(data_Bin)}
 
-BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("Y_bin1","Y_bin2"),
-                     treatment="Treatment", type=c("bin","bin"),
+BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
+                     treatment="Treatment", type=c("bin"),
                      n.bootstrap=n.bootstrap)
 
-test_that("bootstrap approximately matches fisher test - Binary",{
-  fisherP <- fisher.test(table(data_Bin$Y_bin1,data_Bin$Treatment))$p.value
-  expect_equal(fisherP,BT_Bin1@p.value$netChance[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
-})
+
+# test_that("bootstrap approximately matches fisher test - Binary",{
+#   fisherP <- fisher.test(table(data_Bin$toxicity1,data_Bin$Treatment))$p.value
+#   expect_equal(fisherP,BT_Bin1@p.value$netChance[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
+# })
 
 test_that("count pairs summary - Binary",{
   valTest <- as.double(validPairs(BT_Bin1, type = "sum"))
@@ -35,13 +36,13 @@ set.seed(10)
 data_Cont <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = argsCont, argsTTE = NULL)
 if(conv2df){data_Cont <- as.data.frame(data_Cont)}
 
-BT_Cont1 <- BuyseTest(data=data_Cont,endpoint=c("Y_cont1","Y_cont2"),
+BT_Cont1 <- BuyseTest(data=data_Cont,endpoint=c("score1","score2"),
                       treatment="Treatment", type=c("cont","cont"),threshold=c(0,1),
                       n.bootstrap=n.bootstrap)
 
 test_that("bootstrap approximately matches wilcoxon test - Continuous",{
-  wilcoxRes <- wilcox.test(data_Cont[Treatment==0,Y_cont1],
-                           data_Cont[Treatment==1,Y_cont1], 
+  wilcoxRes <- wilcox.test(data_Cont[Treatment==0,score1],
+                           data_Cont[Treatment==1,score1], 
                            conf.int = TRUE)
   expect_equal(wilcoxRes$p.value,BT_Cont1@p.value$netChance[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
   # wilcoxRes$estimate - BT_Cont1@delta
@@ -64,8 +65,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   
   n.bootstrapTempo <- if(method=="Gehan"){n.bootstrap}else{10}
   
-  BT_TTE1[[method]] <- BuyseTest(data=data_TTE,endpoint=c("Y_TTE1","Y_TTE2","Y_TTE3"),method=method,
-                                 treatment="Treatment",censoring=c("event1","event2","event1"),
+  BT_TTE1[[method]] <- BuyseTest(data=data_TTE,endpoint=c("eventtime1","eventtime2","eventtime3"),method=method,
+                                 treatment="Treatment",censoring=c("status1","status2","status3"),
                                  type=c("TTE","TTE","TTE"),threshold=c(0,0.5,0.25),
                                  n.bootstrap = n.bootstrapTempo)
   
@@ -81,8 +82,8 @@ BT_TTE2 <- vector(length = 4, mode = "list")
 names(BT_TTE2) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
   
-  BT_TTE2[[method]] <- BuyseTest(data=data_TTE,endpoint=c("Y_TTE1","Y_TTE1","Y_TTE1"),method=method,
-                                 treatment="Treatment",censoring=c("event1","event1","event1"),
+  BT_TTE2[[method]] <- BuyseTest(data=data_TTE,endpoint=c("eventtime1","eventtime1","eventtime1"),method=method,
+                                 treatment="Treatment",censoring=c("status1","status1","status1"),
                                  type=c("TTE","TTE","TTE"),threshold=c(1,0.5,0.25),
                                  n.bootstrap = 10)
   
@@ -103,8 +104,8 @@ BT_Mix <- vector(length = 4, mode = "list")
 names(BT_Mix) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
   BT_Mix[[method]] <- BuyseTest(data=data_Mix,
-                                endpoint=c("Y_TTE1","Y_cont1","Y_bin1","Y_TTE1","Y_cont1"),method=method,
-                                treatment="Treatment",censoring=c("event1",NA,NA,"event1",NA),
+                                endpoint=c("eventtime1","score1","toxicity1","eventtime1","score1"),method=method,
+                                treatment="Treatment",censoring=c("status1",NA,NA,"status1",NA),
                                 type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                                 threshold=c(0.5,1,NA,0.25,0.5),
                                 n.bootstrap = 10)

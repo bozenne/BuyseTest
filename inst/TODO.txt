@@ -6,6 +6,11 @@ http://gallery.rcpp.org/articles/using-rcppprogress/
 
 > jeu de données marc à ajouter pour illustrer
 
-> finir les tests julien + initSurvival Compare with previous version
+> add test winPower and no neutral
+> fix mismatch BuyseTest / chisq2
 
 
+## EMAIL JULIEN
+> adresse github
+> demander si l'on change de nom BuyseTest en GPCtest comme l'on inclue le WinRatio
+> preciser que j'ai ajouter formula

@@ -8,7 +8,9 @@
 #' @details
 #' All functions performs test to check the validity of the argument. In addition: \cr
 #' 
+#' 
 #' \code{initCensoring}: If no TTE and censoring is full of NA, set it to NULL. Else when censoring contains NA for the non-TTE endpoints, remove them. \cr
+#' \code{initFormula}: If a formula is given in argument, extract the type of endpoints, the name of the endpoints, the thresholds and the name of the status variables. \cr
 #' \code{initStrata}: merge the strata into one with the interaction function and compute the index of the observations relative to each strata. \cr
 #' \code{initThreshold}: set default threshold to 1e-12 expect for binary variable where it is set to 1. 
 #' Also set null threshold to a small positive value (0->1e-12) 
@@ -41,7 +43,7 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
         stop("BuyseTest : wrong specification of \'censoring\' \n",
              "\'censoring\' must be NA for binary or continuous endpoints \n",
              "binary or continuous endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
-             "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n",
+             "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n"
         )
       }
       
@@ -197,6 +199,161 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
   
   return(res)
 }
+
+#' @rdname internal-intilisation
+#' @examples 
+#' BuyseTest:::initFormula(Treatment~B(var1)+C(var2,10)+T(var3,15,exa))
+#' BuyseTest:::initFormula(Treatment~ grade + Bin(var1)+C(var2,10)+T(var3,15,exa))
+#' BuyseTest:::initFormula(Treatment~ grade + Bin(var1)+C(var2,10)+T(var3,15,exa) + treatment)
+initFormula <- function(x){
+  
+  ## extract treatment
+  treatment <- setdiff(all.vars(x),all.vars(stats::delete.response(stats::terms(x))))
+  if(length(treatment)!=1){
+    stop("initFormula: there must be exactly one response variable in formula\n",
+         "number of response variables founded: ",length(treatment),"\n")
+  }
+  
+  if(length(as.character(x))!=3){
+    stop("initFormula: weird formula, as.character(x) should have length 3\n",
+         "length founded: ",length(as.character(x)),"\n")
+  }
+  
+  ## restrict to the right side of the formula
+  x <- as.character(x)[3]
+  
+  if("character" %in% class(x) == FALSE){
+    stop("initFormula: x must be of class formula or character \n",
+         "proposed class: ",paste(class(x),collapse = " "),"\n")
+  }
+  if(length(grep("+",x))>0){
+    x <- unlist(strsplit(x,split = "+", fixed = TRUE))
+  }
+  x <- gsub("[[:blank:]]", "", x)
+  
+  shortBin <- c("B","Bin","Binary")
+  specialBin <- paste("^", shortBin, "\\(", sep = "", collapse = "|")
+  
+  shortCont <- c("C","Cont","Continous")
+  specialCont <- paste("^", shortCont, "\\(", sep = "", collapse = "|")
+  
+  shortTTE <- c("T","TTE","TimeToEvent")
+  specialTTE <- paste("^", shortTTE, "\\(", sep = "", collapse = "|")
+  
+  ## remove strata variables
+  indexSpecial <- grep(pattern = paste(specialBin, specialCont, specialTTE, sep = "|"), x = x, value = FALSE, ignore.case = TRUE, fixed = FALSE)
+  if(length(indexSpecial)==length(x)){
+    strata <- NULL
+  }else{
+    strata <- setdiff(x, x[indexSpecial])
+  }
+
+  x <- x[indexSpecial]
+  
+  if(length(indexSpecial)==0){
+    stop("initFormula: x must contains endpoints \n",
+         "nothing of the form type(endpoint,threshold,censoring) found in the formula \n")
+  }
+  
+  ## get the type of each endpoint
+  indexBin <- grep(pattern = specialBin, x = x, value = FALSE, ignore.case = TRUE, fixed = FALSE)
+  indexCont <- grep(pattern = specialCont, x = x, value = FALSE, ignore.case = TRUE, fixed = FALSE)
+  indexTTE <- grep(pattern = specialTTE, x = x, value = FALSE, ignore.case = TRUE, fixed = FALSE)
+  
+  D <- length(x)
+  type <- rep(NA, D)
+  if(length(indexBin)>0){
+    type[indexBin] <- 1
+    x[indexBin] <- gsub("Bin\\(|Binary\\(","B\\(",x = x[indexBin], ignore.case = TRUE, fixed = FALSE)
+  }
+  if(length(indexCont)>0){
+    type[indexCont] <- 2
+    x[indexCont] <- gsub("Cont\\(|Continous\\(","C\\(",x = x[indexCont], ignore.case = TRUE, fixed = FALSE)
+  }
+  if(length(indexTTE)>0){
+    type[indexTTE] <- 3
+    x[indexTTE] <- gsub("TTE\\(|TimeToEvent\\(","T\\(",x = x[indexTTE], ignore.case = TRUE, fixed = FALSE)
+  }
+  
+  ## extract all information per endpoint
+  threshold <- rep(NA,D)
+  censoring <- rep(NA,D)
+  endpoint <- rep(NA,D)
+  validNames <- c("endpoint","threshold","censoring")
+  
+  for(iterD in 1:D){
+    special <- switch(type[iterD], "1"="B", "2"="C", "3"="T")
+    charWraper <- paste("^", special , "\\(|)$", sep = "")
+    unwrap <- strsplit(x[iterD], charWraper)[[1]]
+    
+    if(length(unwrap)==1){
+      stop("initFormula: invalid formula \n",
+           x[iterD]," must be of the form type(endpoint,threshold,censoring) \n")
+    }
+    vec.arg <- strsplit(unwrap[2], "[ ]*,[ ]*")[[1]]
+    vec.valueVar <- unlist(lapply(strsplit(vec.arg,split = "="),function(x){x[length(x)]}))
+    vec.nameVar <- unlist(lapply(strsplit(vec.arg,split = "="),function(x){if(length(x)==2){x[1]}else{NA}}))
+   
+     if(length(vec.nameVar)>type[iterD]){
+      stop("initFormula: invalid formula \n",
+           x[iterD]," has too many arguments \n",
+           "maximum number of argument for type ",c("binary","continous","time to event")[type[iterD]]," is ",type[iterD]," \n")
+    }
+    
+    if(any(na.omit(vec.nameVar) %in% validNames[1:type[iterD]] == FALSE)){
+      stop("initFormula: invalid formula \n",
+           "argument named ",paste(na.omit(vec.nameVar)[na.omit(vec.nameVar) %in% validNames[1:type[iterD]] == FALSE], collapse = " ")," in ",x[iterD]," is invalid \n",
+           "valid names are: \"",paste(validNames[1:type[iterD]], collapse = "\" \""),"\" \n")
+    }
+    
+    if( any(duplicated(na.omit(vec.nameVar)))){
+      stop("initFormula: invalid formula \n",
+           x[iterD]," has arguments with duplicated names \n")
+    }
+    
+    if("endpoint" %in% vec.nameVar == FALSE){
+      if(any(is.na(vec.nameVar))){
+        vec.nameVar[which(is.na(vec.nameVar))[1]] <- "endpoint"
+      }else{
+        stop("initFormula: invalid formula \n",
+             x[iterD]," has no endpoint arguments \n")  
+      }
+    }
+    
+    endpoint[iterD] <- gsub("\"","",vec.valueVar[which(vec.nameVar == "endpoint")])
+    if(type[iterD]==1){next}
+    
+    if("threshold" %in% vec.nameVar == FALSE){
+      if(any(is.na(vec.nameVar))){
+        vec.nameVar[which(is.na(vec.nameVar))[1]] <- "threshold"
+      } else {
+        vec.nameVar <- c(vec.nameVar, "threshold")
+        vec.valueVar <- c(vec.valueVar, 0)
+      }
+    }
+    threshold[iterD] <- as.numeric(vec.valueVar[which(vec.nameVar == "threshold")])
+    if(type[iterD]==2){next}
+    
+    if("censoring" %in% vec.nameVar == FALSE){
+      if(any(is.na(vec.nameVar))){
+      vec.nameVar[which(is.na(vec.nameVar))[1]] <- "censoring"
+      }else{
+        stop("initFormula: invalid formula \n",
+             x[iterD]," has no censoring arguments \n")  
+      }
+    }
+    censoring[iterD] <- gsub("\"","",vec.valueVar[which(vec.nameVar == "censoring")])
+    
+  }
+  
+  return(list(treatment = treatment,
+              type = type,
+              endpoint = endpoint,
+              threshold = threshold,
+              censoring = censoring,
+              strata = strata))
+}
+
 
 #' @rdname internal-intilisation
 initN <- function(n){
@@ -535,6 +692,17 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
 #' @rdname internal-intilisation
 initThreshold <- function(threshold,type,D,method,endpoint){
   
+  ## 
+  n.typePerEndpoint <- tapply(type,endpoint, function(x){length(unique(x))})
+  if(any(n.typePerEndpoint>1)){
+    if(sum(n.typePerEndpoint>1)==1){        
+      message <- paste0("endpoint ",unique(endpoint)[n.typePerEndpoint>1]," has several types \n")
+    }else{
+      message <- paste0("endpoints ",paste0(unique(endpoint)[n.typePerEndpoint>1],collapse = "")," have several types \n")
+    }
+    stop("BuyseTest: wrong specification of \'endpoint\' or \'types\' \n",message)
+  }
+  
   ## threshold
   if(is.null(threshold)){
     threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
@@ -562,11 +730,11 @@ initThreshold <- function(threshold,type,D,method,endpoint){
   }
   
   ## test that the thresholds corresponding to TTE endpoints are decreasing 
-  if(method %in% c("Peto","Efron","Peron")){
+  if(any(type==3)){
     endpoint.TTE <- endpoint[type==3]
     
     test.decreasing <- sapply(unique(endpoint.TTE),function(x){
-      thresholdTTE <- threshold[endpoint == x]
+      thresholdTTE <- threshold[which(endpoint == x)]
       sum(abs(thresholdTTE-sort(thresholdTTE,decreasing=TRUE)<0))+sum(diff(thresholdTTE)==0) # compare the thresolds to the thresholds in decreasing order
     })
     

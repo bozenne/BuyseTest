@@ -3,6 +3,7 @@
 \name{internal-intilisation}
 \alias{initCensoring}
 \alias{initData}
+\alias{initFormula}
 \alias{initHypothesis}
 \alias{initN}
 \alias{initSpace}
@@ -18,6 +19,8 @@ initCensoring(censoring, endpoint, type, D, D.TTE, treatment, strata)
 initData(dataT, dataC, type, endpoint, D, censoring, index.strataT,
   index.strataC, n.strata, method, D.TTE, threshold, Wscheme = NULL, trace,
   test = TRUE)
+
+initFormula(x)
 
 initN(n)
 
@@ -41,11 +44,18 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \details{
 All functions performs test to check the validity of the argument. In addition: \cr
 
+
 \code{initCensoring}: If no TTE and censoring is full of NA, set it to NULL. Else when censoring contains NA for the non-TTE endpoints, remove them. \cr
+\code{initFormula}: If a formula is given in argument, extract the type of endpoints, the name of the endpoints, the thresholds and the name of the status variables. \cr
 \code{initStrata}: merge the strata into one with the interaction function and compute the index of the observations relative to each strata. \cr
 \code{initThreshold}: set default threshold to 1e-12 expect for binary variable where it is set to 1. 
 Also set null threshold to a small positive value (0->1e-12) 
 - the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12. When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
+}
+\examples{
+BuyseTest:::initFormula(Treatment~B(var1)+C(var2,10)+T(var3,15,exa))
+BuyseTest:::initFormula(Treatment~ grade + Bin(var1)+C(var2,10)+T(var3,15,exa))
+BuyseTest:::initFormula(Treatment~ grade + Bin(var1)+C(var2,10)+T(var3,15,exa) + treatment)
 }
 \keyword{BuyseTest}
 \keyword{function}

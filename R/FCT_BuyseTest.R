@@ -3,6 +3,8 @@
 #' @aliases BuyseTest
 #' 
 #' @description Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event outcomes.
+#' @param formula a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
+#' The rest of the formula should indicate the strata variables (if any) and the endpoints by order of priority. \emph{formula}.
 #' @param data A \code{data.frame} containing the variables.
 #' @param treatment the name of the treatment variable identifying the control and the experimental group. \emph{character}.
 #' @param endpoint the name of the endpoint variable(s). \emph{character vector}.
@@ -66,7 +68,8 @@
 #'     
 #' @keywords function BuyseTest
 #' @export
-BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata = NULL, censoring = NULL, 
+BuyseTest <- function(formula, data, 
+                      treatment = NULL, endpoint = NULL, type = NULL, threshold = NULL, censoring = NULL, strata = NULL, 
                       method = BuyseTest.options()$method, neutralAsUninf = BuyseTest.options()$neutralAsUninf,
                       n.bootstrap = BuyseTest.options()$n.bootstrap, prob.alloc = NULL, stratified = FALSE, alternative = "two.sided", 
                       seed = BuyseTest.options()$seed, cpus = BuyseTest.options()$cpus, trace = BuyseTest.options()$trace){
@@ -74,6 +77,23 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
   
   #### 1- data management + tests ####
   Buysecall <- match.call()
+  
+  ## 
+  if(!missing(formula)){
+    argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
+    if(any(names(Buysecall) %in% argnames)){
+      warning("BuyseTest : arguments \'",paste(names(Buysecall)[names(Buysecall) %in% argnames], collapse = " ")," have been ignored \n",
+              "when specified, only argument \'formula\' is used \n")
+    }
+    
+    resFormula <- initFormula(formula)
+    treatment <- resFormula$treatment
+    type <- resFormula$type
+    endpoint <- resFormula$endpoint
+    threshold <- resFormula$threshold
+    censoring <- resFormula$censoring
+    strata <- resFormula$strata
+  }
   
   ## Treatment: extract the 2 levels
   validCharacter(treatment, validLength = 1, method = "BuyseTest")
@@ -90,7 +110,7 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
   D <- length(endpoint) # number of endpoints
   
   ## type: convert type to numeric and count the number of endpoints
-  validCharacter(type, validValues = c("bin","binary","cont","continuous","TTE","timeToEvent"), validLength = D, method = "BuyseTest")
+  validCharacter(type, validValues = c(1:3,"bin","binary","cont","continuous","TTE","timeToEvent"), validLength = D, method = "BuyseTest")
   type[type %in% c("binary","bin")] <- "1" 
   type[type %in% c("continuous","cont")] <- "2"
   type[type %in% c("timeToEvent","TTE")] <- "3"
@@ -101,11 +121,12 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
   ## censoring: (see .Rd internal-intilisation, section details for details)
   censoring <- initCensoring(censoring = censoring, endpoint = endpoint, type = type, D = D, D.TTE = D.TTE,
                              treatment = treatment, strata = strata)
-  validNames(data, requiredValues = censoring, validLength = NULL, refuse.NULL = FALSE, method = "BuyseTest")
+  
+  validNames(data, name1 = "data", requiredValues = censoring, validLength = NULL, refuse.NULL = FALSE, method = "BuyseTest")
   
   ## data: split the data according to the two levels
   if (!is.null(strata)) {
-    validNames(data, requiredValues = strata, validLength = NULL, method = "BuyseTest")
+    validNames(data, name1 = "strata", requiredValues = strata, validLength = NULL, method = "BuyseTest")
   }
   
   if (data.table::is.data.table(data)) {
@@ -192,7 +213,7 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
                  endpoint = endpoint, threshold = threshold, censoring = censoring, type = type, D = D, D.TTE = D.TTE,
                  method = method, neutralAsUninf = neutralAsUninf,
                  Wscheme = if (method %in% c("Peto","Efron","Peron")) {Wscheme} else {NULL}, 
-                 threshold_TTEM1 = if (method %in% c("Peto","Efron","Peron")) {Wscheme} else {NULL})
+                 threshold_TTEM1 = if (method %in% c("Peto","Efron","Peron")) {threshold_TTEM1} else {NULL})
   }
   
   #### 2- Punctual estimation ####
@@ -241,14 +262,7 @@ BuyseTest <- function(data, treatment, endpoint, type, threshold = NULL, strata 
   )
   
   #### 4- Bootstrap ####
-  if (n.bootstrap == 0) {
-    if (trace > 1) {
-      message("*** only ponctual estimation requested ***\n",
-              "set \'n.bootstrap\' argument to a strictly postive value for confidence interval and p.value \n"
-      )}
-    
-  }else{
-    
+  if (n.bootstrap > 0) {
     if (trace > 1) {
       printBoostrap(prob.alloc, n.bootstrap, stratified, cpus, time, seed)
     }
