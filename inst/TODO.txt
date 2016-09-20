@@ -2,6 +2,7 @@ http://gallery.rcpp.org/articles/using-rcppprogress/
 
 > faire la fonction de calcul de puissance
 > fonction sensibilite 2D
+> allow both survival et prodlim
 > Article JSS
 
 > jeu de données marc à ajouter pour illustrer
@@ -14,3 +15,5 @@ http://gallery.rcpp.org/articles/using-rcppprogress/
 > adresse github
 > demander si l'on change de nom BuyseTest en GPCtest comme l'on inclue le WinRatio
 > preciser que j'ai ajouter formula
+> pb chisq2
+> add test winPower and neutral

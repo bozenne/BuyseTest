@@ -90,7 +90,14 @@ BuyseTest <- function(formula, data,
     treatment <- resFormula$treatment
     type <- resFormula$type
     endpoint <- resFormula$endpoint
-    threshold <- resFormula$threshold
+    
+    if(any(unlist(lapply(resFormula$threshold, length))>1)){
+      indexF <- which(unlist(lapply(resFormula$threshold, length))>1)
+      stop("BuyseTest: several thresholds found for endpoint",if(length(indexF)>1){"s"}," number ",paste(indexF, collapse = " "),"\n",
+           "only one threshold can be used per priority, consider adding an additional endpoint using + \n")
+    }
+    
+    threshold <- unlist(resFormula$threshold)
     censoring <- resFormula$censoring
     strata <- resFormula$strata
   }

@@ -16,8 +16,8 @@
 Display the main results stored in a \code{\link{BuyseRes}} object.
 }
 \examples{
-  n.Treatment_testBin <- 500
-  n.Control_testBin <- 500
+  n.Treatment_testBin <- 100
+  n.Control_testBin <- 100
   prob.Treatment_testBin <- c(0.5,0.75)
   prob.Control_testBin <- c(0.5,0.25)
   

@@ -5,8 +5,10 @@ BuyseTest.options(n.bootstrap = 0) # no bootstrap
 df.data <- simulBT(1e2, n.strata = 2)
 
 # display 
+if(require(survival)){
 resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
 plot(resKM_tempo)
+}
 
 #### one time to event endpoint ####
 BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data)
@@ -22,7 +24,7 @@ BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
 }
 \dontshow{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e1)
+                  n.bootstrap = 1e1, trace = 0)
 }
 summary(BT)
 summary(BT, statistic = "winRatio") # win Ratio
@@ -34,7 +36,7 @@ summary(BT, statistic = "winRatio") # win Ratio
 }
 \dontshow{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e1, cpus = 2)
+                  n.bootstrap = 1e1, cpus = 2, trace = 0)
 }
 summary(BT)
 
@@ -45,7 +47,7 @@ summary(BT)
 }
 \dontshow{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e1, method = "Gehan")
+                  n.bootstrap = 1e1, method = "Gehan", trace = 0)
 }
 summary(BT)
 
@@ -66,6 +68,7 @@ summary(BT)
 #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
 #### method = "Gehan"
 
+if(require(survival)){
 \dontrun{
   data(veteran,package="survival")
   n.bootstrap <- 100
@@ -83,4 +86,5 @@ summary(BT)
                         n.bootstrap=n.bootstrap,method="Peron")
   
   summary_Peron <- summary(BT_Peron)
+}
 }

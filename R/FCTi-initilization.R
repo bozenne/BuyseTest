@@ -276,7 +276,7 @@ initFormula <- function(x){
   }
   
   ## extract all information per endpoint
-  threshold <- rep(NA,D)
+  threshold <- vector(length = D, mode = "list")
   censoring <- rep(NA,D)
   endpoint <- rep(NA,D)
   validNames <- c("endpoint","threshold","censoring")
@@ -321,17 +321,20 @@ initFormula <- function(x){
     }
     
     endpoint[iterD] <- gsub("\"","",vec.valueVar[which(vec.nameVar == "endpoint")])
-    if(type[iterD]==1){next}
+    if(type[iterD]==1){
+      threshold[[iterD]] <- NA
+      next
+    }
     
     if("threshold" %in% vec.nameVar == FALSE){
       if(any(is.na(vec.nameVar))){
         vec.nameVar[which(is.na(vec.nameVar))[1]] <- "threshold"
-      } else {
+      } else {  # threshold set to NA if missing
         vec.nameVar <- c(vec.nameVar, "threshold")
         vec.valueVar <- c(vec.valueVar, 0)
       }
     }
-    threshold[iterD] <- as.numeric(vec.valueVar[which(vec.nameVar == "threshold")])
+    threshold[[iterD]] <- eval(parse(text = (vec.valueVar[which(vec.nameVar == "threshold")])))
     if(type[iterD]==2){next}
     
     if("censoring" %in% vec.nameVar == FALSE){
@@ -542,7 +545,7 @@ initStrata <- function(strata,
 #' @export
 initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control,
                          endpoint,D.TTE,type,threshold,
-                         index.strataT,index.strataC,n.strata,
+                         index.strataT,index.strataC,n.strata, 
                          method){
   
   #### conversion to R index
@@ -584,81 +587,86 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
       if(method %in% c("Efron","Peron")){
    
         ## treatment
-        time_treatment <- Mstrata.Treatment[,endpoint[type==3][iter_endpointTTE]] # store the event times of the treatment arm for a given TTE endpoint
-        resKMT_tempo <- survival::survfit(survival::Surv(time_treatment,Mstrata.delta_Treatment[,iter_endpointTTE])~1) # compute the survival over the controls with common Kaplan Meier estimator.  
+        df.treatment <- data.frame(time = Mstrata.Treatment[,endpoint[type==3][iter_endpointTTE]], # store the event times of the treatment arm for a given TTE endpoint
+                                   status = Mstrata.delta_Treatment[,iter_endpointTTE])
+        
+        resKMT_tempo <- prodlim::prodlim(prodlim::Hist(time,status)~1, data = df.treatment)
         # prefer sort(time_treatment) to resKMT_tempo$time to avoid rounding error
         
-        if(all(Mstrata.delta_Treatment[which(time_treatment==max(time_treatment)),iter_endpointTTE]==1)){ # step interpolation of the survival function (last = event)
+        if(all(Mstrata.delta_Treatment[which(df.treatment$time==max(df.treatment$time)),iter_endpointTTE]==1)){ # step interpolation of the survival function (last = event)
           
-          survestKMT_tempo <- stats::approxfun(x=unique(sort(time_treatment)),y=resKMT_tempo$surv,
+          survestKMT_tempo <- stats::approxfun(x=unique(sort(df.treatment$time)),y=resKMT_tempo$surv,
                                                yleft=1,yright=0,f=0, method = "constant") # 0 at infinity if last event is a death      
           
         }else{ # step interpolation of the survival function (last = censoring)
           
-          survestKMT_tempo <- stats::approxfun(x=unique(sort(time_treatment)),y=resKMT_tempo$surv,
+          survestKMT_tempo <- stats::approxfun(x=unique(sort(df.treatment$time)),y=resKMT_tempo$surv,
                                                yleft=1,yright=NA,f=0, method = "constant") # NA at infinity if last event is censored
           
         }
         
         ## control
-        time_control <- Mstrata.Control[,endpoint[type==3][iter_endpointTTE]] # store the event times of the control arm for a given TTE endpoint
-        resKMC_tempo <- survival::survfit(survival::Surv(time_control,Mstrata.delta_Control[,iter_endpointTTE])~1) # compute the survival over the treatments with common Kaplan Meier estimator.  
+        df.control <- data.frame(time = Mstrata.Control[,endpoint[type==3][iter_endpointTTE]], # store the event times of the treatment arm for a given TTE endpoint
+                                 status = Mstrata.delta_Control[,iter_endpointTTE])
         
-        if(all(Mstrata.delta_Control[which(time_control==max(time_control)),iter_endpointTTE]==1)){  # step interpolation of the survival function (last = event)
+        resKMC_tempo <- prodlim::prodlim(prodlim::Hist(time,status)~1, data = df.control) 
+        
+        if(all(Mstrata.delta_Control[which(df.control$time==max(df.control$time)),iter_endpointTTE]==1)){  # step interpolation of the survival function (last = event)
           
-          survestKMC_tempo <- stats::approxfun(x=unique(sort(time_control)), y=resKMC_tempo$surv,
+          survestKMC_tempo <- stats::approxfun(x=unique(sort(df.control$time)), y=resKMC_tempo$surv,
                                                yleft=1,yright=0,f=0, method= "constant") # 0 at infinity if last event is a death
           
         }else{ # step interpolation of the survival function (last = censoring)
           
-          survestKMC_tempo <- stats::approxfun(x=unique(sort(time_control)),y=resKMC_tempo$surv,
+          survestKMC_tempo <- stats::approxfun(x=unique(sort(df.control$time)),y=resKMC_tempo$surv,
                                                yleft=1,yright=NA,f=0, method= "constant") # NA at infinity if last event is censored      
           
         }
         
         #### survival
         ## treatment
-        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],1] <- survestKMT_tempo(time_treatment-threshold[type==3][iter_endpointTTE]) # survival at t - tau, tau being the threshold
-        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],2] <- survestKMT_tempo(time_treatment) # survival at t
-        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],3] <- survestKMT_tempo(time_treatment+threshold[type==3][iter_endpointTTE]) # survival at t + tau
-        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],4] <- survestKMC_tempo(time_treatment-threshold[type==3][iter_endpointTTE]) # survival at t - tau
-        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],5] <- survestKMC_tempo(time_treatment) # survival at t
-        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],6] <- survestKMC_tempo(time_treatment+threshold[type==3][iter_endpointTTE]) # survival at t + tau
+        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],1] <- survestKMT_tempo(df.treatment$time-threshold[type==3][iter_endpointTTE]) # survival at t - tau, tau being the threshold
+        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],2] <- survestKMT_tempo(df.treatment$time) # survival at t
+        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],3] <- survestKMT_tempo(df.treatment$time+threshold[type==3][iter_endpointTTE]) # survival at t + tau
+        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],4] <- survestKMC_tempo(df.treatment$time-threshold[type==3][iter_endpointTTE]) # survival at t - tau
+        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],5] <- survestKMC_tempo(df.treatment$time) # survival at t
+        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],6] <- survestKMC_tempo(df.treatment$time+threshold[type==3][iter_endpointTTE]) # survival at t + tau
         
-        order_time_treatment <- order(time_treatment)
+        order_time_treatment <- order(df.treatment$time)
         
         list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],7:9] <- list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],c(2,4,6),drop=FALSE][order_time_treatment,,drop=FALSE] # St[t_treatment], Sc[t_treatment-threshold,t_treatment+threshold]
-        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],10] <-  time_treatment[order_time_treatment]
+        list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],10] <-  df.treatment$time[order_time_treatment]
         list_survivalT[[iter_endpointTTE]][index.strataT[[iter_strata]],11] <-   Mstrata.delta_Treatment[order_time_treatment,iter_endpointTTE] # to compute the integral (Efron)
         
-        rownames(list_survivalT[[iter_endpointTTE]])[index.strataT[[iter_strata]]] <- time_treatment
+        rownames(list_survivalT[[iter_endpointTTE]])[index.strataT[[iter_strata]]] <- df.treatment$time
         
         ## control
-        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],1] <- survestKMC_tempo(time_control-threshold[type==3][iter_endpointTTE]) # survival at t - tau
-        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],2] <- survestKMC_tempo(time_control) # survival at t
-        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],3] <- survestKMC_tempo(time_control+threshold[type==3][iter_endpointTTE]) # survival at t + tau
-        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],4] <- survestKMT_tempo(time_control-threshold[type==3][iter_endpointTTE]) # survival at t - tau, tau being the threshold
-        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],5] <- survestKMT_tempo(time_control) # survival at t
-        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],6] <- survestKMT_tempo(time_control+threshold[type==3][iter_endpointTTE]) # survival at t + tau                                              
+        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],1] <- survestKMC_tempo(df.control$time-threshold[type==3][iter_endpointTTE]) # survival at t - tau
+        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],2] <- survestKMC_tempo(df.control$time) # survival at t
+        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],3] <- survestKMC_tempo(df.control$time+threshold[type==3][iter_endpointTTE]) # survival at t + tau
+        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],4] <- survestKMT_tempo(df.control$time-threshold[type==3][iter_endpointTTE]) # survival at t - tau, tau being the threshold
+        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],5] <- survestKMT_tempo(df.control$time) # survival at t
+        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],6] <- survestKMT_tempo(df.control$time+threshold[type==3][iter_endpointTTE]) # survival at t + tau                                              
         
-        order_time_control <- order(time_control)
+        order_time_control <- order(df.control$time)
         
         list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],7:9] <- list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],c(2,4,6),drop=FALSE][order_time_control,,drop=FALSE] # Sc[t_control], St[t_control-threshold,t_control+threshold]
-        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],10] <- time_control[order_time_control]
+        list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],10] <- df.control$time[order_time_control]
         list_survivalC[[iter_endpointTTE]][index.strataC[[iter_strata]],11] <- Mstrata.delta_Control[order_time_control,iter_endpointTTE] # to compute the integral (Efron)
         
-        rownames(list_survivalC[[iter_endpointTTE]])[index.strataC[[iter_strata]]] <- time_control    
+        rownames(list_survivalC[[iter_endpointTTE]])[index.strataC[[iter_strata]]] <- df.control$time    
     
       }else if(method=="Peto"){ # Peto
         time_treatment <- Mstrata.Treatment[,endpoint[type==3][iter_endpointTTE]] # store the event times of the treatment arm for a given TTE endpoint
         time_control <- Mstrata.Control[,endpoint[type==3][iter_endpointTTE]] # store the event times of the control arm for a given TTE endpoint
         
         # prefer c(time_treatment,time_control) to time_all to avoid rounding error
-        censoring_all <- rbind(Mstrata.delta_Treatment,Mstrata.delta_Control)[,iter_endpointTTE]
-        resKM_tempo <- survival::survfit(survival::Surv(c(time_treatment,time_control),censoring_all)~1) # compute the survival over the entire cohort (Control and Treatment) with common Kaplan Meier estimator.  
-        max_time <- max(resKM_tempo$time)+10^{-12}
+        df.all <- data.frame(time = c(time_treatment,time_control),
+                             status = c(Mstrata.delta_Treatment[,iter_endpointTTE],Mstrata.delta_Control[,iter_endpointTTE]))
         
-        if(all(censoring_all[which(c(time_treatment,time_control)==max(c(time_treatment,time_control)))]==1)){ # step interpolation of the survival function
+        resKM_tempo <- prodlim::prodlim(prodlim::Hist(time,status)~1, data = df.all)
+        
+        if(all(df.all$status[which(df.all$time==max(df.all$time))]==1)){ # step interpolation of the survival function
           survestKM_tempo <- stats::approxfun(x=unique(sort(c(time_treatment,time_control))),y=resKM_tempo$surv,
                                               yleft=1,yright=0,f=0, method= "constant") # 0 at infinity if last event is a death
           
@@ -751,7 +759,7 @@ initThreshold <- function(threshold,type,D,method,endpoint){
   }
   
   ## convert binary to continuous
-  threshold[type==1] <- 1/2
+  threshold[type == 1] <- 1/2
   
   #### export ####
   return(threshold)
