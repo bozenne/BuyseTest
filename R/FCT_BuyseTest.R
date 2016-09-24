@@ -164,8 +164,15 @@ BuyseTest <- function(formula, data,
   
   ## method
   validCharacter(method, validLength = 1, validValues = c("Gehan","Peto","Efron","Peron"), method = "BuyseTest")
+  
+  method <- switch(method,
+                   "Gehan" = 0,
+                   "Peto" = 1,
+                   "Efron" = 2,
+                   "Peron" = 3)
+  
   if (D.TTE == 0) {
-    method <- "Gehan"
+    method <- 0
     if ("method" %in% names(Buysecall) && trace > 0) {
       message("NOTE : there is no survival endpoint, \'method\' argument is ignored \n")
     }
@@ -219,8 +226,8 @@ BuyseTest <- function(formula, data,
                  levels.strata = levels.strata, n.strata = n.strata,
                  endpoint = endpoint, threshold = threshold, censoring = censoring, type = type, D = D, D.TTE = D.TTE,
                  method = method, neutralAsUninf = neutralAsUninf,
-                 Wscheme = if (method %in% c("Peto","Efron","Peron")) {Wscheme} else {NULL}, 
-                 threshold_TTEM1 = if (method %in% c("Peto","Efron","Peron")) {threshold_TTEM1} else {NULL})
+                 Wscheme = if (D>1 && method %in% 1:3) {Wscheme} else {NULL}, 
+                 threshold_TTEM1 = if (D>1 && method %in% 1:3) {threshold_TTEM1} else {NULL})
   }
   
   #### 2- Punctual estimation ####
@@ -233,7 +240,7 @@ BuyseTest <- function(formula, data,
                            strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE,
                            Wscheme = Wscheme,index_survivalM1 = index_survivalM1, threshold_TTEM1 = threshold_TTEM1, 
                            list_survivalT = list_survivalT, list_survivalC = list_survivalC,
-                           methodTTE = which(c("Gehan","Peto", "Efron", "Peron") == method) - 1, neutralAsUninf = neutralAsUninf
+                           methodTTE = method, neutralAsUninf = neutralAsUninf
     )
   })
   if (trace > 1) {cat("   # done \n")}

@@ -184,8 +184,8 @@ warper_BTboot <- function(x,envir){
   Mnew.Control <- NULL
   Mnew.delta_Treatment <- NULL
   Mnew.delta_Control <- NULL
-  new.survivalT <- if(envir$method == "Gehan"){lapply(1:envir$D.TTE, matrix)}else{vector(length = envir$D.TTE, mode = "list")}
-  new.survivalC <- if(envir$method == "Gehan"){lapply(1:envir$D.TTE, matrix)}else{vector(length = envir$D.TTE, mode = "list")}
+  new.survivalT <- if(envir$method == 0){lapply(1:envir$D.TTE, matrix)}else{vector(length = envir$D.TTE, mode = "list")}
+  new.survivalC <- if(envir$method == 0){lapply(1:envir$D.TTE, matrix)}else{vector(length = envir$D.TTE, mode = "list")}
   new.strataT <- list()
   new.strataC <- list()
   
@@ -249,7 +249,7 @@ warper_BTboot <- function(x,envir){
                                   envir$M.delta_Treatment[indexC.T,, drop = FALSE],
                                   envir$M.delta_Control[indexC.C,, drop = FALSE])
       
-      if (envir$method == "Peto") {
+      if (envir$method == 1) { # "Peto"
         for (iter_endpointTTE in 1:envir$D.TTE) {
           new.survivalT[[iter_endpointTTE]] <- rbind(new.survivalT[[iter_endpointTTE]], 
                                                      envir$list_survivalT[[iter_endpointTTE]][indexT.T,], 
@@ -258,7 +258,7 @@ warper_BTboot <- function(x,envir){
                                                      envir$list_survivalT[[iter_endpointTTE]][indexC.T,], 
                                                      envir$list_survivalC[[iter_endpointTTE]][indexC.C,])
         }
-      }else if (envir$method == "Efron") { # set last event to non-censored
+      }else if (envir$method == 2) { # "Efron" # set last event to non-censored
         Mnewstrata.Treatment <- Mnew.Treatment[new.strataT[[iterS]] + 1,which(envir$type == 3), drop = FALSE]
         Mnewstrata.Control <- Mnew.Control[new.strataC[[iterS]] + 1,which(envir$type == 3), drop = FALSE]
         
@@ -279,7 +279,7 @@ warper_BTboot <- function(x,envir){
   }
   
   if (boot.failure == FALSE) {
-    if (envir$method %in% c("Efron","Peron")) { # update survival
+    if (envir$method %in% 2:3) { # c("Efron","Peron") # update survival
       res_init <- initSurvival(M.Treatment = Mnew.Treatment,M.Control = Mnew.Control,
                                M.delta_Treatment = Mnew.delta_Treatment,M.delta_Control = Mnew.delta_Control,
                                endpoint = envir$endpoint,D.TTE = envir$D.TTE,type = envir$type,threshold = envir$threshold,
@@ -293,9 +293,9 @@ warper_BTboot <- function(x,envir){
                        D = envir$D, returnIndex = FALSE,
                        strataT = new.strataT,strataC = new.strataC, n_strata = envir$n.strata, n_TTE = envir$D.TTE,
                        Wscheme = envir$Wscheme, index_survivalM1 = envir$index_survivalM1, threshold_TTEM1 = envir$threshold_TTEM1,
-                       list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
-                       list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
-                       methodTTE = which(c("Gehan","Peto","Efron","Peron") == envir$method)-1, neutralAsUninf = envir$neutralAsUninf
+                       list_survivalT = if (envir$method %in% 2:3) {res_init$list_survivalT} else {new.survivalT},
+                       list_survivalC = if (envir$method %in% 2:3) {res_init$list_survivalC} else {new.survivalC},
+                       methodTTE = envir$method, neutralAsUninf = envir$neutralAsUninf
     )
     
     

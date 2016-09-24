@@ -134,7 +134,7 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
     M.delta_Treatment <- as.matrix(dataT[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
     M.delta_Control <- as.matrix(dataC[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
     
-    if(method=="Efron"){ 
+    if(method==2){ # "Efron"
       for(iter_strata in 1:n.strata){
         
         Mstrata.Treatment <- M.Treatment[index.strataT[[iter_strata]]+1,,drop=FALSE]
@@ -156,7 +156,7 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
   }
   
   ####  KM imputation  #### 
-  if(method %in% c("Peto","Efron","Peron")){
+  if(method %in% 1:3){# c("Peto","Efron","Peron")
     
     endpoint.TTE <- endpoint[type==3] # vector of variable names of the TTE endpoints
     
@@ -167,7 +167,6 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
       index_survivalM1 <- res_init$index_survivalM1
       threshold_TTEM1 <- res_init$threshold_TTEM1       
     }
-    
     ## Survival estimate using Kaplan Meier    
     res_init <- initSurvival(M.Treatment=M.Treatment,M.Control=M.Control,M.delta_Treatment=M.delta_Treatment,M.delta_Control=M.delta_Control,
                              endpoint=endpoint,D.TTE=D.TTE,type=type,threshold=threshold,
@@ -553,7 +552,7 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
   index.strataC <- lapply(index.strataC,function(x){x+1})
   
   #### preparing 
-  if(method %in% c("Efron","Peron")){
+  if(method %in% 2:3){ # c("Efron","Peron")
     colnamesT <- c(paste("SurvivalT_TimeT",c("-threshold","_0","+threshold"),sep=""),
                    paste("SurvivalC_TimeT",c("-threshold","_0","+threshold"),sep=""),
                    "SurvivalT_TimeT_0(ordered)","SurvivalC_TimeT-threshold(ordered)","SurvivalC_TimeT+threshold(ordered)",
@@ -566,7 +565,7 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
     
     list_survivalT <- rep(list(matrix(NA,nrow=nrow(M.Treatment),ncol=11,dimnames=list(1:nrow(M.Treatment),colnamesT))),times=D.TTE) # list of matrix of survival data for each endpoint in the treatment arm
     list_survivalC <- rep(list(matrix(NA,nrow=nrow(M.Control),ncol=11,dimnames=list(1:nrow(M.Control),colnamesC))),times=D.TTE) # list of matrix of survival data for each endpoint in the control arm
-  }else{ # method == "Peto"
+  }else if(method == 1){ # method == "Peto"
     colnamesT <- paste("Survival_TimeT",c("-threshold","_0","+threshold"),sep="")
     colnamesC <- paste("Survival_TimeC",c("-threshold","_0","+threshold"),sep="")
     
@@ -584,7 +583,7 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
     
     for(iter_endpointTTE in 1:D.TTE){
      
-      if(method %in% c("Efron","Peron")){
+      if(method %in% 2:3){
    
         ## treatment
         df.treatment <- data.frame(time = Mstrata.Treatment[,endpoint[type==3][iter_endpointTTE]], # store the event times of the treatment arm for a given TTE endpoint
@@ -656,7 +655,7 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
         
         rownames(list_survivalC[[iter_endpointTTE]])[index.strataC[[iter_strata]]] <- df.control$time    
     
-      }else if(method=="Peto"){ # Peto
+      }else if(method == 1){ # Peto
         time_treatment <- Mstrata.Treatment[,endpoint[type==3][iter_endpointTTE]] # store the event times of the treatment arm for a given TTE endpoint
         time_control <- Mstrata.Control[,endpoint[type==3][iter_endpointTTE]] # store the event times of the control arm for a given TTE endpoint
         

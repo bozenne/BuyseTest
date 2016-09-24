@@ -35,16 +35,3 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// selectCPP
-List selectCPP(const IntegerVector index_survivalM1, const std::vector< arma::mat >& list_survivalT, const std::vector< arma::uvec >& strataT);
-RcppExport SEXP BuyseTest_selectCPP(SEXP index_survivalM1SEXP, SEXP list_survivalTSEXP, SEXP strataTSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const IntegerVector >::type index_survivalM1(index_survivalM1SEXP);
-    Rcpp::traits::input_parameter< const std::vector< arma::mat >& >::type list_survivalT(list_survivalTSEXP);
-    Rcpp::traits::input_parameter< const std::vector< arma::uvec >& >::type strataT(strataTSEXP);
-    rcpp_result_gen = Rcpp::wrap(selectCPP(index_survivalM1, list_survivalT, strataT));
-    return rcpp_result_gen;
-END_RCPP
-}

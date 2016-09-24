@@ -33,7 +33,3 @@ GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment
     .Call('BuyseTest_GPC_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE, neutralAsUninf)
 }
 
-selectCPP <- function(index_survivalM1, list_survivalT, strataT) {
-    .Call('BuyseTest_selectCPP', PACKAGE = 'BuyseTest', index_survivalM1, list_survivalT, strataT)
-}
-

@@ -25,13 +25,14 @@ for(iter_dataset in 1:3){
   }
   
   for(method in c("Peto","Efron","Peron")){
+    method.num <- which(c("Gehan","Peto","Efron","Peron") == method) - 1
     
     #### Compute survival
     if(method == "Efron"){ # necessary because efron forces the last observation to be an event
       Survival_noStrata <- BuyseTest:::initData(dataT=setNames(data.table(M.Treatment, M.delta_Treatment), c("time","censoring")),
                                   dataC=setNames(data.table(M.Control, M.delta_Control), c("time","censoring")), 
                                   D=1,
-                                  type=3, endpoint="time", censoring="censoring", method="Efron", 
+                                  type=3, endpoint="time", censoring="censoring", method=method.num, 
                                   index.strataT=list(seq(0,nrow(M.Treatment)-1)), 
                                   index.strataC=list(seq(0,nrow(M.Control)-1)),n.strata=1,
                                   D.TTE=1, threshold=threshold, Wscheme = NULL, trace=TRUE, test = TRUE)
@@ -42,7 +43,7 @@ for(iter_dataset in 1:3){
                                         M.delta_Control=M.delta_Control, 
                                         endpoint="time",
                                         index.strataT=list(seq(0,nrow(M.Treatment)-1)),index.strataC=list(seq(0,nrow(M.Control)-1)),n.strata=1,
-                                        D.TTE=1, type=3, threshold=threshold, method=method)  
+                                        D.TTE=1, type=3, threshold=threshold, method=method.num)  
     }
     
     
@@ -174,12 +175,13 @@ index.StrataC <- list(0:6,7:13)
 results_initSurvival$Strata <- list()
 
 for(method in c("Peto","Efron","Peron")){
-
+  method.num <- which(c("Gehan","Peto","Efron","Peron") == method) - 1
+  
   if(method == "Efron"){ # necessary because efron forces the last observation to be an event
     Survival_Strata <- BuyseTest:::initData(dataT=setNames(data.table(M.Treatment, M.delta_Treatment), c("time","censoring")),
                                   dataC=setNames(data.table(M.Control, M.delta_Control), c("time","censoring")), 
                                   D=1,
-                                  type=3, endpoint="time", censoring="censoring", method="Efron", 
+                                  type=3, endpoint="time", censoring="censoring", method=method.num, 
                                   index.strataT=index.StrataT, 
                                   index.strataC=index.StrataC,n.strata=2,
                                   D.TTE=1, threshold=threshold, Wscheme = NULL, trace=TRUE, test = TRUE)
@@ -190,7 +192,7 @@ for(method in c("Peto","Efron","Peron")){
                                       M.delta_Control=M.delta_Control, 
                                       endpoint="time",
                                       index.strataT=index.StrataT,index.strataC=index.StrataC,n.strata=2,
-                                      D.TTE=1, type=3, threshold=threshold, method=method)  
+                                      D.TTE=1, type=3, threshold=threshold, method=method.num)  
   }
 
     results_initSurvival$Strata[[method]] <- Survival_Strata

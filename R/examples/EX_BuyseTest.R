@@ -61,7 +61,7 @@ summary(BT)
 
 #### several endpoints with a strata variable
 f <- Treatment ~ strata + T(eventtime, 1, status) + B(toxicity) 
-f <- update(formulaBT, 
+f <- update(f, 
             ~. + T(eventtime, 0.5, status) + C(score, 1) + T(eventtime, 0.25, status))
 
 BT <- BuyseTest(f, data=df.data)
