@@ -144,8 +144,11 @@ BT <- BuyseTest(Treatment ~ strata + TTE(eventtime, censoring = status), data=df
 summary(BT)
 
 #### several endpoints with a strata variable
-BT <- BuyseTest(Treatment ~ strata + TTE(eventtime, 1, status) + Bin(toxicity) + TTE(eventtime, 0.5, status) + Cont(score, 1) + TTE(eventtime, 0.25, status), 
-                data=df.data)
+f <- Treatment ~ strata + T(eventtime, 1, status) + B(toxicity) 
+f <- update(formulaBT, 
+            ~. + T(eventtime, 0.5, status) + C(score, 1) + T(eventtime, 0.25, status))
+
+BT <- BuyseTest(f, data=df.data)
 summary(BT)
 
 #### real example : Veteran dataset of the survival package ####

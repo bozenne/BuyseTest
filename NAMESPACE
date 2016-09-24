@@ -2,8 +2,7 @@
 
 export(BuyseTest)
 export(BuyseTest.options)
-export(BuyseTest_Gehan_cpp)
-export(BuyseTest_PetoEfronPeron_cpp)
+export(GPC_cpp)
 export(constStrata)
 export(initSurvival)
 export(simulBT)

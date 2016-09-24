@@ -4,16 +4,13 @@
 \alias{BuyseTest_Gehan_cpp}
 \alias{BuyseTest_PetoEfronPeron_cpp}
 \alias{BuyseTest_cpp}
+\alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-BuyseTest_Gehan_cpp(Treatment, Control, threshold, survEndpoint,
-  delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata,
-  n_TTE, neutralAsUninf)
-
-BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, survEndpoint,
-  delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata,
-  n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT,
-  list_survivalC, methodTTE, neutralAsUninf)
+GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
+  delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme,
+  index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE,
+  neutralAsUninf)
 }
 \arguments{
 \item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment observations (in rows). \emph{const arma::mat&}. Must have D columns.}
@@ -40,8 +37,6 @@ BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, survEndpoint,
 
 \item{n_TTE}{The number of time-to-event endpoints. Positive \emph{const int}.}
 
-\item{neutralAsUninf}{Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.}
-
 \item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplyied by the weight of the endpoints in raws where there is a 1. \emph{const arma::mat&}. Must have n_TTE lines and D-1 columns.}
 
 \item{index_survivalM1}{The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.}
@@ -53,6 +48,8 @@ BuyseTest_PetoEfronPeron_cpp(Treatment, Control, threshold, survEndpoint,
 \item{list_survivalC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.}
 
 \item{methodTTE}{The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.}
+
+\item{neutralAsUninf}{Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.}
 }
 \description{
 \code{BuyseTest_Gehan_cpp} and \code{BuyseTest_PetoEfron_cpp} functions calls for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts.

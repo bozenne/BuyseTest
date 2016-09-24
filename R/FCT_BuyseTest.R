@@ -226,27 +226,16 @@ BuyseTest <- function(formula, data,
   #### 2- Punctual estimation ####
   if (trace > 1) {cat("Punctual estimation \n")}
   
-  if (method %in% c("Peto","Efron","Peron")) {  
-    time <- system.time({
-      resPonctual <- BuyseTest_PetoEfronPeron_cpp(Treatment = M.Treatment, Control = M.Control, threshold = threshold, survEndpoint = (type == 3),
-                                                  delta_Treatment = M.delta_Treatment, delta_Control = M.delta_Control,
-                                                  D = D, returnIndex = TRUE,
-                                                  strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE,
-                                                  Wscheme = Wscheme,index_survivalM1 = index_survivalM1, threshold_TTEM1 = threshold_TTEM1, 
-                                                  list_survivalT = list_survivalT, list_survivalC = list_survivalC,
-                                                  methodTTE = which(c("Peto", "Efron", "Peron") == method), neutralAsUninf = neutralAsUninf
-      )
-    })
-  }else if (method == "Gehan") {
-    time <- system.time({
-      resPonctual <-   BuyseTest_Gehan_cpp(Treatment = M.Treatment, Control = M.Control, threshold = threshold, survEndpoint = (type == 3),
-                                           delta_Treatment = M.delta_Treatment, delta_Control = M.delta_Control,
-                                           D = D, returnIndex = TRUE,
-                                           strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE, 
-                                           neutralAsUninf = neutralAsUninf)    
-    })
-  }
-  
+  time <- system.time({
+    resPonctual <- GPC_cpp(Treatment = M.Treatment, Control = M.Control, threshold = threshold, survEndpoint = (type == 3),
+                           delta_Treatment = M.delta_Treatment, delta_Control = M.delta_Control,
+                           D = D, returnIndex = TRUE,
+                           strataT = index.strataT, strataC = index.strataC, n_strata = n.strata, n_TTE = D.TTE,
+                           Wscheme = Wscheme,index_survivalM1 = index_survivalM1, threshold_TTEM1 = threshold_TTEM1, 
+                           list_survivalT = list_survivalT, list_survivalC = list_survivalC,
+                           methodTTE = which(c("Gehan","Peto", "Efron", "Peron") == method) - 1, neutralAsUninf = neutralAsUninf
+    )
+  })
   if (trace > 1) {cat("   # done \n")}
   
   #### 3- transfomration into BuyseRes object ####

@@ -13,7 +13,7 @@ source(file.path("FCT","FCT_check.R")) # file containing additional function for
 #### specifications
 BuyseTest.options(trace = 0)
 precision <- 10^{-7} # for expect_equal
-save <- TRUE # TRUE to save results, FALSE to test, NULL to ignore
+save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE # should the data be in data.frame format or data.table format
 
 if(identical(save, TRUE)){

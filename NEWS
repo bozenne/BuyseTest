@@ -1,0 +1,6 @@
+* Version 1.1
+  - add a formula argument to the BuyseTest function. This can be used instead of the treatment, endpoint, threshold, type, censoring, and strata argument
+   to specify the prioritized endpoints.
+  - unify the C++ code, add a threshold for considering a pair non-informative (w>1e-12). May induce differences with previous versions in the index of uniformative pairs.
+  - uses prodlim instead of survival to compute the KM estimates.
+  - Add a neutralAsUnif argument to the BuyseTest function to decide whether the analysis should continue on lower priority when a pair is classified as neutral

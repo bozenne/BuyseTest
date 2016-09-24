@@ -35,7 +35,6 @@ calcBootstrap <- function(envir){
                         matrix(1.5, envir$n.strata + 1, 2*envir$D)) # perform the bootstrap and return for each bootstrap sample a (n.strata + 1)*(2*D) matrix
     
   }else {## parallel boostrap
-    #envir$cpus <- 1 #browser()
     if (envir$trace > 1) {cat("Parallel boostrap \n")}
     
     ## initsfLibrary
@@ -183,14 +182,10 @@ warper_BTboot <- function(x,envir){
   #### prepare ####
   Mnew.Treatment <- NULL
   Mnew.Control <- NULL
-  if (envir$D.TTE > 0) { 
-    Mnew.delta_Treatment <- NULL
-    Mnew.delta_Control <- NULL
-    if (envir$method == "Peto") {
-      new.survivalT <- vector(length = envir$D.TTE, mode = "list")
-      new.survivalC <- vector(length = envir$D.TTE, mode = "list")
-    }
-  }
+  Mnew.delta_Treatment <- NULL
+  Mnew.delta_Control <- NULL
+  new.survivalT <- if(envir$method == "Gehan"){lapply(1:envir$D.TTE, matrix)}else{vector(length = envir$D.TTE, mode = "list")}
+  new.survivalC <- if(envir$method == "Gehan"){lapply(1:envir$D.TTE, matrix)}else{vector(length = envir$D.TTE, mode = "list")}
   new.strataT <- list()
   new.strataC <- list()
   
@@ -293,29 +288,21 @@ warper_BTboot <- function(x,envir){
     }
     
     #### Computation
-    if (envir$method %in% c("Peto","Efron","Peron")) {
-      resBT <-   BuyseTest_PetoEfronPeron_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold, survEndpoint = (envir$type == 3),
-                                              delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
-                                              D = envir$D, returnIndex = FALSE,
-                                              strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE,
-                                              Wscheme = envir$Wscheme,index_survivalM1 = envir$index_survivalM1,threshold_TTEM1 = envir$threshold_TTEM1,
-                                              list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
-                                              list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
-                                              methodTTE = which(c("Peto","Efron","Peron") == envir$method), neutralAsUninf = envir$neutralAsUninf
-      )
+    resBT <-   GPC_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold, survEndpoint = (envir$type == 3),
+                       delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
+                       D = envir$D, returnIndex = FALSE,
+                       strataT = new.strataT,strataC = new.strataC, n_strata = envir$n.strata, n_TTE = envir$D.TTE,
+                       Wscheme = envir$Wscheme, index_survivalM1 = envir$index_survivalM1, threshold_TTEM1 = envir$threshold_TTEM1,
+                       list_survivalT = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalT} else {new.survivalT},
+                       list_survivalC = if (envir$method %in% c("Efron","Peron")) {res_init$list_survivalC} else {new.survivalC},
+                       methodTTE = which(c("Gehan","Peto","Efron","Peron") == envir$method)-1, neutralAsUninf = envir$neutralAsUninf
+    )
+    
+    
       
       resWarper <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),
                          rbind(resBT$delta_winRatio, resBT$Delta_winRatio))
-      
-    }else if (envir$method == "Gehan") {
-      resBT <- BuyseTest_Gehan_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold, survEndpoint = (envir$type == 3),
-                                   delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
-                                   D = envir$D,returnIndex = FALSE,
-                                   strataT = new.strataT,strataC = new.strataC,n_strata = envir$n.strata,n_TTE = envir$D.TTE, neutralAsUninf = envir$neutralAsUninf)
-      
-      resWarper <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),
-                         rbind(resBT$delta_winRatio, resBT$Delta_winRatio))
-    }
+    
   }else{
     resWarper <- matrix(NA, nrow = envir$n.strata + 1, ncol = 2*envir$D)
   }

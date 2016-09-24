@@ -37,146 +37,12 @@ using namespace arma ;
 //' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.
 //' 
 //' @keywords function Cpp BuyseTest
-
-//' @rdname BuyseTest_cpp
 //' @export
 // [[Rcpp::export]]
-List BuyseTest_Gehan_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
-                         const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, const double neutralAsUninf){
-  
-  // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
-  
-  //// initialization ////
-  structAllPairs resK; // store the result of the pairwize comparison of each endpoint and each strata in a SEXP list
-  arma::mat Mcount_favorable(n_strata,D,fill::zeros); // store the number of favorable pairs by outcome for each strata
-  arma::mat Mcount_unfavorable(n_strata,D,fill::zeros); // store the number of unfavorable pairs by outcome for each strata
-  arma::mat Mcount_neutral(n_strata,D,fill::zeros); // store the number of neutral pairs by outcome for each strata
-  arma::mat Mcount_uninf(n_strata,D,fill::zeros); // store the number of uninf pairs by outcome for each strata
-  double n_pairs=0,size_neutral; // number of pairs sumed over the strats
-  
-  vector<int> index_neutralT(0) ; // index of the neutral pairs of the treatment arm
-  vector<int> index_neutralC(0) ; // index of the neutral pairs of the control arm
-  vector<int> index_uninfT(0) ; // index of the uninformative pairs of the treatment arm
-  vector<int> index_uninfC(0) ; // index of the uninformative pairs of the control arm
-  
-  arma::mat TreatmentK; // Endpoint(s) for treated restrected to strata k
-  arma::mat ControlK; // Endpoint(s) for controls restrescted to stata k
-  arma::mat delta_TreatmentK ; // statut for TTE endpoints for treated restrected to strata k
-  arma::mat delta_ControlK ; // statut for TTE endpoints for controls restrescted to stata k
-  
-  //// loop over strata ////
-  for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
-    // affect the endpoints corresponding to each strata (conversion from SEXP to uvec object is necessary for .rows)
-    TreatmentK = Treatment.rows(strataT[iter_strata]); // select the rows in the treatment matrix corresponding to the indexes contained in strata
-    ControlK = Control.rows(strataC[iter_strata]);  // select the rows in the control matrix corresponding to the indexes contained in strata
-    int iter_dTTE=0; // number of time to event endpoints that have been used
-    
-    if(n_TTE>0){ // if there is TTE endpoints form the status matrix (conversion from SEXP to uvec object is necessary for .rows)
-      delta_TreatmentK = delta_Treatment.rows(strataT[iter_strata]); // select the rows in the treatment status matrix corresponding to the indexes contained in strata
-      delta_ControlK = delta_Control.rows(strataC[iter_strata]); // select the rows in the control status matrix corresponding to the indexes contained in strata     
-    }
-    
-    //// first endpoint
-    if(survEndpoint[0]){ // time to event endpoint
-      resK = calcAllPairs_TTEOutcome_Gehan_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0],
-                                               delta_TreatmentK.col(0),delta_ControlK.col(0));
-      iter_dTTE++; // increment the number of time to event endpoints that have been used
-    }else { // binary or continuous endpoint
-      resK = calcAllPairs_ContinuousOutcome_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
-    }
-    
-    // store the number of pairs found in each catergory after conversion from SEXP to int. 
-    Mcount_favorable(iter_strata,0) = resK.count_favorable;
-    Mcount_unfavorable(iter_strata,0) = resK.count_unfavorable;
-    Mcount_neutral(iter_strata,0) = resK.count_neutral;
-    Mcount_uninf(iter_strata,0) = resK.count_uninf;
-    // add to the total number of pairs the number of pairs founded for this endpoint
-    n_pairs += Mcount_favorable(iter_strata,0)+Mcount_unfavorable(iter_strata,0)+Mcount_neutral(iter_strata,0)+Mcount_uninf(iter_strata,0); 
-    
-    //// following endpoints
-    int iter_d = 0; // the index of the endpoints
-    
-    while(D>iter_d+1 && (Mcount_neutral(iter_strata,iter_d)>0 || Mcount_uninf(iter_strata,iter_d)>0)){ // loop over the following endpoints
-      // while there are remaining endpoints and remaining neutral or uniformative pairs
-      iter_d++; // increment the index of the endpoints
-      
-      if(neutralAsUninf){
-        size_neutral = resK.count_neutral;
-      }else{
-        size_neutral = 0;
-      }
-      
-      if(survEndpoint[iter_d]){ // time to event endpoint
-        resK = calcSubsetPairs_TTEOutcome_Gehan_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
-                                                    delta_TreatmentK.col(iter_dTTE), delta_ControlK.col(iter_dTTE),
-                                                    resK.index_neutralT, resK.index_neutralC, size_neutral,
-                                                    resK.index_uninfT, resK.index_uninfC, resK.count_uninf);   
-        iter_dTTE++; // increment the number of time to event endpoints that have been used
-      }else{ // binary or continuous endpoint
-        resK = calcSubsetPairs_ContinuousOutcome_cpp(TreatmentK.col(iter_d), ControlK.col(iter_d), threshold[iter_d],
-                                                     resK.index_neutralT, resK.index_neutralC, size_neutral,
-                                                     resK.index_uninfT, resK.index_uninfC, resK.count_uninf);   
-      }
-      
-      
-      // store the number of pairs found in each catergory after conversion from SEXP to int. 
-      Mcount_favorable(iter_strata,iter_d) = resK.count_favorable;
-      Mcount_unfavorable(iter_strata,iter_d) = resK.count_unfavorable;
-      Mcount_neutral(iter_strata,iter_d) = resK.count_neutral;
-      Mcount_uninf(iter_strata,iter_d) = resK.count_uninf;    
-    } // end endpoints
-    
-    if(returnIndex==true){ // store the neutral and the uninformative pairs for each strata
-      index_neutralT.insert(index_neutralT.end(), resK.index_neutralT.begin(), resK.index_neutralT.end()); // insert the neutral pairs of the treatment arm after those already founded
-      index_neutralC.insert(index_neutralC.end(), resK.index_neutralC.begin(), resK.index_neutralC.end()); // insert the neutral pairs of the control arm after those already founded
-      index_uninfT.insert(index_uninfT.end(), resK.index_uninfT.begin(), resK.index_uninfT.end()); // insert the uninformative pairs of the treatment arm after those already founded
-      index_uninfC.insert(index_uninfC.end(), resK.index_uninfC.begin(), resK.index_uninfC.end()); // insert the uninformative pairs of the control arm after those already founded   
-    }
-  }
-  
-  //// proportion in favor of treatment ////
-  arma::mat delta_netChance(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
-  vector<double> Delta_netChance(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
-  
-  calcStatistic_cpp(delta_netChance, delta_winRatio, Delta_netChance, Delta_winRatio,
-                    Mcount_favorable, Mcount_unfavorable, 
-                    D, n_strata, n_pairs);
-  
-  //// export ////
-  if(returnIndex==true){
-    return(List::create(
-        Named("count_favorable")  = Mcount_favorable,
-        Named("count_unfavorable")  = Mcount_unfavorable,
-        Named("count_neutral")  = Mcount_neutral,           
-        Named("count_uninf")  = Mcount_uninf,           
-        Named("delta_netChance")  = delta_netChance,
-        Named("delta_winRatio")  = delta_winRatio,
-        Named("Delta_netChance")  = Delta_netChance,
-        Named("Delta_winRatio")  = Delta_winRatio,
-        Named("index_neutralT")  = index_neutralT,
-        Named("index_neutralC")  = index_neutralC,
-        Named("index_uninfT")  = index_uninfT,
-        Named("index_uninfC")  = index_uninfC,
-        Named("n_pairs")  = n_pairs
-    ));
-  }else{
-    return(List::create(
-        Named("delta_netChance")  = delta_netChance,
-        Named("delta_winRatio")  = delta_winRatio,
-        Named("Delta_netChance")  = Delta_netChance,
-        Named("Delta_winRatio")  = Delta_winRatio
-    ));
-  }                   
-  
-}
-
-//' @rdname BuyseTest_cpp
-//' @export
-// [[Rcpp::export]]
-List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
-                                  const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, 
-                                  const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, 
-                                  const std::vector< arma::mat >& list_survivalT, const std::vector< arma::mat >& list_survivalC, const int methodTTE, const double neutralAsUninf){
+List GPC_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control,
+             const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, 
+             const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, 
+             const std::vector< arma::mat >& list_survivalT, const std::vector< arma::mat >& list_survivalC, const int methodTTE, const double neutralAsUninf){
   
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -204,13 +70,26 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
   
   arma::uvec index_strataT; // position of a patients belonging to a given strata in the treatment arm
   arma::uvec index_strataC; // position of a patients belonging to a given strata in the control arm
-  arma::mat TreatmentK; // Endpoint(s) for treated restrected to strata k
-  arma::mat ControlK; // Endpoint(s) for controls restrescted to stata k
-  arma::mat delta_TreatmentK ; // statut for TTE endpoints for treated restrected to strata k
-  arma::mat delta_ControlK ; // statut for TTE endpoints for controls restrescted to stata k
+  arma::mat TreatmentK; // Endpoint(s) for treated restricted to strata k
+  arma::mat ControlK; // Endpoint(s) for controls restricted to stata k
+  arma::mat delta_TreatmentK ; // statut for TTE endpoints for treated restricted to strata k
+  arma::mat delta_ControlK ; // statut for TTE endpoints for controls restricted to stata k
+  arma::mat matKMT_K ; // KM estimates for treated restricted to stata k
+  arma::mat matKMC_K ; // KM estimates for controls restricted to stata k
+  
+  arma::mat Wpairs; // history of the weights
+  arma::mat Wpairs_sauve; // the previous update of Wpairs
+  arma::vec w; // current weigths
+  
+  int iter_d; // the index of the endpoints
+  int iter_dTTE; // number of time to event endpoints that have been used
+  int iter_oldpair; // index of the remaining pair [local use when updating Wpairs]
   
   // loop over strata
   for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
+    
+    iter_d = 0;
+    iter_dTTE = 0;
     
     index_strataT = strataT[iter_strata];
     index_strataC = strataC[iter_strata];
@@ -218,21 +97,27 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
     // affect the endpoints corresponding to each strata (conversion from SEXP to uvec object is necessary for .rows)
     TreatmentK = Treatment.rows(index_strataT); // select the rows in the treatment matrix corresponding to the indexes contained in strata
     ControlK = Control.rows(index_strataC); // select the rows in the control matrix corresponding to the indexes contained in strata
-    int iter_dTTE=0; // number of time to event endpoints that have been used
     
-    delta_TreatmentK = delta_Treatment.rows(index_strataT); // select the rows in the treatment status matrix corresponding to the indexes contained in strata
-    delta_ControlK = delta_Control.rows(index_strataC); // select the rows in the control status matrix corresponding to the indexes contained in strata          
+    if(n_TTE>0){
+      delta_TreatmentK = delta_Treatment.rows(index_strataT); // select the rows in the treatment status matrix corresponding to the indexes contained in strata
+      delta_ControlK = delta_Control.rows(index_strataC); // select the rows in the control status matrix corresponding to the indexes contained in strata          
+    }
     
     //// first endpoint
-    if(survEndpoint[0]){ // time to event endpoint   
-      resK = calcAllPairs_TTEOutcome_PetoEfronPeron_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0],
-                                                        delta_TreatmentK.col(0),delta_ControlK.col(0),
-                                                        list_survivalT[0].rows(index_strataT),
-                                                        list_survivalC[0].rows(index_strataC), 
-                                                        methodTTE); 
+    if(survEndpoint[0]){ // time to event endpoint  
+      if(methodTTE>0){
+        matKMT_K = list_survivalT[0].rows(index_strataT);
+        matKMC_K = list_survivalC[0].rows(index_strataC);
+      }
+      
+      resK = calcAllPairs_TTE_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0],
+                                  delta_TreatmentK.col(0),delta_ControlK.col(0),
+                                  matKMT_K, matKMC_K, 
+                                  methodTTE); 
+      
       iter_dTTE++; // increment the number of time to event endpoints that have been used   
     }else { // binary or continuous endpoint
-      resK = calcAllPairs_ContinuousOutcome_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
+      resK = calcAllPairs_Continuous_cpp(TreatmentK.col(0),ControlK.col(0),threshold[0]);
     }
     
     // store the total weight corresponding to each catergory after conversion from SEXP to double. 
@@ -242,60 +127,66 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
     Mcount_uninf(iter_strata,0) = resK.count_uninf;
     // add to the total number of pairs the number of pairs founded for this endpoint
     n_pairs += Mcount_favorable(iter_strata,0)+Mcount_unfavorable(iter_strata,0)+Mcount_neutral(iter_strata,0)+Mcount_uninf(iter_strata,0);
-    
-    //// update Wpairs 
     size_neutral = resK.index_neutralT.size(); // update the number of neutral pairs
     size_uninf = resK.index_uninfT.size(); // update the number of uninformative pairs
-    arma::mat Wpairs(size_neutral+size_uninf,1,fill::ones); // temporary matrix containing the weigth of each remaining pair for each outcome
-    arma::vec w(size_neutral+size_uninf); // temporary vector containing the weight of each remaining pair to be used for the next outcome
-    w.fill(1);
-    if(survEndpoint[0] && D>1){ // update the weights for the uninformative pairs in Wpairs and w
-      for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){ // neutral pairs have a weight of 1 by construction
-        Wpairs(size_neutral+iter_uninf,0) = resK.w[iter_uninf];
-        if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = resK.w[iter_uninf];}
-      }
-    }        
+    
+    //// update Wpairs 
+    if(D>1){ // if there is more than one endpoint
+      Wpairs.resize(size_neutral+size_uninf,1); // temporary matrix containing the weigth of each remaining pair for each outcome
+      Wpairs.fill(1.0);
+      w.resize(size_neutral+size_uninf); // temporary vector containing the weight of each remaining pair to be used for the next outcome
+      w.fill(1);
+      
+      if(methodTTE>0 && iter_dTTE>0){ // update the weights for the uninformative pairs in Wpairs and w
+        for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){ // neutral pairs have a weight of 1 by construction
+          Wpairs(size_neutral+iter_uninf,0) = resK.w[iter_uninf];
+          if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = resK.w[iter_uninf];}
+        }
+      }        
+    }
+      
     
     //// following endpoints
-    int iter_d = 0; // the index of the endpoints
-    arma::mat Wpairs_sauve; // the previous update of Wpairs
-    
     while(D>iter_d+1 && (Mcount_neutral(iter_strata,iter_d)>0 || Mcount_uninf(iter_strata,iter_d)>0)){ // loop over the following endpoints
-      
+       
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
       Wpairs_sauve=Wpairs; // save the current Wpairs
       if(neutralAsUninf==false){size_neutral = 0;}
       
       if(survEndpoint[iter_d]){ // time to event endpoint 
+        if(methodTTE>0){
+          matKMT_K = list_survivalT[iter_dTTE].rows(index_strataT);
+          matKMC_K = list_survivalC[iter_dTTE].rows(index_strataC);
+        }
         
-        if(threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used
-          resK = calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-                                                               delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
-                                                               list_survivalT[iter_dTTE].rows(index_strataT),
-                                                               list_survivalC[iter_dTTE].rows(index_strataC),
-                                                               resK.index_neutralT,resK.index_neutralC, size_neutral,
-                                                               resK.index_uninfT,resK.index_uninfC, size_uninf,
-                                                               w, -1, arma::mat(1,1), arma::mat(1,1), methodTTE); 
+        if(methodTTE==0 || threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used
+          resK = calcSubsetPairs_TTE_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
+                                         delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
+                                         matKMT_K, matKMC_K,
+                                         resK.index_neutralT,resK.index_neutralC, size_neutral,
+                                         resK.index_uninfT,resK.index_uninfC, size_uninf,
+                                         w, -1, arma::mat(1,1), arma::mat(1,1), methodTTE); 
         }else{ // following times    
           
           resK = calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-                                                               delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
-                                                               list_survivalT[iter_dTTE].rows(index_strataT),
-                                                               list_survivalC[iter_dTTE].rows(index_strataC), 
-                                                               resK.index_neutralT,resK.index_neutralC, size_neutral,
-                                                               resK.index_uninfT,resK.index_uninfC, size_uninf,
-                                                               w, threshold_TTEM1[iter_dTTE], 
-                                                                                 list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT),
-                                                                                 list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
-                                                                                 methodTTE); 
+                                         delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
+                                         matKMT_K, matKMC_K,
+                                         resK.index_neutralT,resK.index_neutralC, size_neutral,
+                                         resK.index_uninfT,resK.index_uninfC, size_uninf,
+                                         w, threshold_TTEM1[iter_dTTE], 
+                                                           list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT),
+                                                           list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
+                                                           methodTTE); 
         }
         iter_dTTE++; // increment the number of time to event endpoints that have been used
-      }else { // binary or continuous endpoint
-        resK = calcSubsetPairs_WeightedContinuousOutcome_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-                                                             resK.index_neutralT,resK.index_neutralC, size_neutral,
-                                                             resK.index_uninfT,resK.index_uninfC, size_uninf,
-                                                             w);   
+      }else{ // binary or continuous endpoint
+        resK = calcSubsetPairs_Continuous_cpp(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
+                                              resK.index_neutralT,resK.index_neutralC, size_neutral,
+                                              resK.index_uninfT,resK.index_uninfC, size_uninf,
+                                              w);   
+        
+        
       }
       
       // store the number of pairs found in each catergory after conversion from SEXP to double. 
@@ -304,41 +195,39 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
       Mcount_neutral(iter_strata,iter_d) = resK.count_neutral;
       Mcount_uninf(iter_strata,iter_d) = resK.count_uninf;    
       
-      // update Wpairs
       size_neutral = resK.index_neutralT.size(); // update the number of neutral pairs
       size_uninf = resK.index_uninfT.size(); // update the number of uninformative pairs
-      Wpairs.resize(size_neutral+size_uninf,max(1,iter_dTTE)); // update the size of Wpairs
-      w.resize(size_neutral+size_uninf); // update the size of w
-      w.fill(1);
-      
-      tempo_index=resK.index_w; // store the position of the remaining pairs in the previous Wpairs (i.e. Wpairs_sauve)
-      int iter_oldpair; // index of the remaining pair
-      
-      if(iter_dTTE>0 && D>iter_d+1){
+     
+      // update Wpairs
+      if(D>iter_d+1){
+        Wpairs.resize(size_neutral+size_uninf,iter_dTTE); // update the size of Wpairs
+        w.resize(size_neutral+size_uninf); // update the size of w
+        w.fill(1);
         
-        for(size_t iter_pair=0; iter_pair<tempo_index.size(); iter_pair++){
-          
-          iter_oldpair = tempo_index[iter_pair]; // position of the pair in Wpairs_sauve
-          
-          for(int iter_endpointTTE=0 ; iter_endpointTTE<iter_dTTE ; iter_endpointTTE++){          
+        if(methodTTE>0 && iter_dTTE>0){
+          tempo_index=resK.index_w; // store the position of the remaining pairs in the previous Wpairs (i.e. Wpairs_sauve)
+          for(size_t iter_pair=0; iter_pair<tempo_index.size(); iter_pair++){
             
-            if(iter_endpointTTE==(iter_dTTE-1) && survEndpoint[iter_d]){ // for the last endpoint (first test) add the new weights in case of survival endpoint (second test)
-              Wpairs(iter_pair,iter_endpointTTE) = resK.w[iter_pair];
-              if(Wscheme(iter_endpointTTE,iter_d)==1){w(iter_pair) *= resK.w[iter_pair];} // iter_d - 1 + 1 because the first column is missing but we are interested in the next endpoint
-            }else{ // transfert the existing weights to the new matrix
-              Wpairs(iter_pair,iter_endpointTTE) = Wpairs_sauve(iter_oldpair,iter_endpointTTE); // store Wpairs_sauve in the Wpairs restrected to the remaining pairs
-              if(Wscheme(iter_endpointTTE,iter_d)==1){w(iter_pair) *= Wpairs_sauve(iter_oldpair,iter_endpointTTE);} // make the product over the endpoints of the weights associated to each remaining pair 
-              // only if Wscheme is one in the column of the new endpoint and the line of the previous endpoint.            
+            iter_oldpair = tempo_index[iter_pair]; // position of the pair in Wpairs_sauve
+            
+            for(int iter_endpointTTE=0 ; iter_endpointTTE<iter_dTTE ; iter_endpointTTE++){          
+              
+              if(iter_endpointTTE==(iter_dTTE-1) && survEndpoint[iter_d]){ // for the last endpoint (first test) add the new weights in case of survival endpoint (second test)
+                Wpairs(iter_pair,iter_endpointTTE) = resK.w[iter_pair];
+                if(Wscheme(iter_endpointTTE,iter_d)==1){w(iter_pair) *= resK.w[iter_pair];} // iter_d - 1 + 1 because the first column is missing but we are interested in the next endpoint
+              }else{ // transfert the existing weights to the new matrix
+                Wpairs(iter_pair,iter_endpointTTE) = Wpairs_sauve(iter_oldpair,iter_endpointTTE); // store Wpairs_sauve in the Wpairs restrected to the remaining pairs
+                if(Wscheme(iter_endpointTTE,iter_d)==1){w(iter_pair) *= Wpairs_sauve(iter_oldpair,iter_endpointTTE);} // make the product over the endpoints of the weights associated to each remaining pair 
+                // only if Wscheme is one in the column of the new endpoint and the line of the previous endpoint.            
+              }
             }
-          }
-          
-          
+          } 
         }
       }
       
     } // end endpoint
     
-    
+    // 
     if(returnIndex==true){ // store the neutral and the uninformative pairs 
       index_neutralT.insert(index_neutralT.end(), resK.index_neutralT.begin(), resK.index_neutralT.end()); // insert the neutral pairs of the treatment arm after those already founded
       index_neutralC.insert(index_neutralC.end(), resK.index_neutralC.begin(), resK.index_neutralC.end()); // insert the neutral pairs of the control arm after those already founded
@@ -355,7 +244,6 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
   calcStatistic_cpp(delta_netChance, delta_winRatio, Delta_netChance, Delta_winRatio,
                     Mcount_favorable, Mcount_unfavorable, 
                     D, n_strata, n_pairs);
-  
   
   //// export ////
   if(returnIndex==true){
@@ -385,6 +273,7 @@ List BuyseTest_PetoEfronPeron_cpp(const arma::mat& Treatment, const arma::mat& C
   }                   
   
 }
+
 
 //////////////////////////////////// PROGRAMME 2 : BuysePower //////////////////////////////////////////////////////////////
 

@@ -64,10 +64,10 @@ names(BT_TTE1) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
   
   n.bootstrapTempo <- if(method=="Gehan"){n.bootstrap}else{10}
-  
+
   BT_TTE1[[method]] <- BuyseTest(data=data_TTE,endpoint=c("eventtime1","eventtime2","eventtime3"),method=method,
                                  treatment="Treatment",censoring=c("status1","status2","status3"),
-                                 type=c("TTE","TTE","TTE"),threshold=c(0,0.5,0.25),
+                                 type=c("TTE","TTE","TTE"),threshold=c(1,0.5,0.25),
                                  n.bootstrap = n.bootstrapTempo)
   
   test_that("count pairs summary - TTE different endpoint",{
@@ -127,10 +127,10 @@ BT_veteran
 
 ##### export
 if(identical(save, TRUE)){
-  results_noStrata <- list(OutcomeBin = list(data = data_BinS, BT = BT_Bin1),
-                           OutcomeCont = list(data = data_ContS, BT = BT_Cont1),
-                           OutcomeTTE = list(data = data_TTES, BT1 = BT_TTE1, BT2 = BT_TTE2), 
-                           OutcomeMix = list(data = data_MixS, BT = BT_Mix),
+  results_noStrata <- list(OutcomeBin = list(data = data_Bin, BT = BT_Bin1),
+                           OutcomeCont = list(data = data_Cont, BT = BT_Cont1),
+                           OutcomeTTE = list(data = data_TTE, BT1 = BT_TTE1, BT2 = BT_TTE2), 
+                           OutcomeMix = list(data = data_Mix, BT = BT_Mix),
                            veteran = list(data = veteran, BT = BT_veteran))
   saveRDS(results_noStrata, file = file.path(dirSave,"test-noStrata.rds"))
 }else if(identical(save, FALSE)){

@@ -56,7 +56,7 @@ expect_equalBT <- function(BuyseRes1, BuyseRes2, slots = NULL, trace = 1){
     }
     
     ## test
-    res <- try(expect_equal(slot1, slot2), silent = TRUE)
+    res <- try(expect_equal(slot1, slot2, label = iterSlot), silent = TRUE)
     if("try-error" %in% class(res) ){
       test.error <- TRUE
       cat("Differences in slot: ",iterSlot,"\n")
