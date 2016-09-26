@@ -9,29 +9,29 @@ using namespace arma ;
 
 
 //// SUMMARY : calcOne functions ////
-inline void calcOnePair_ContinuousOutcome_cpp(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
+inline void calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
 vector<int>& index_wUninf, vector<int>&  index_wNeutral);
  
-inline void calcOnePair_TTEOutcome_Gehan_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
+inline void calcOnePair_TTEgehan(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
 vector<int>& index_wUninf, vector<int>&  index_wNeutral);
  
-inline vector<double> calcOneProba_TTEOutcome_Peto_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
+inline vector<double> calcOneProba_TTEpeto(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C);
  
-inline vector<double> calcOneProba_TTEOutcome_Efron_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
+inline vector<double> calcOneProba_TTEefron(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C);
  
- inline vector<double> calcOneProba_TTEOutcome_Peron_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
+ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C);
 
-inline double calcIntegralProba_cpp(const double time_begin, const arma::mat& survival, const int index_col);
+inline double calcIntegralProba(const double time_begin, const arma::mat& survival, const int index_col);
 
 
-inline void calcOnePair_ContinuousOutcome_cpp(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
+inline void calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
 vector<int>& index_wUninf, vector<int>& index_wNeutral){
@@ -67,7 +67,7 @@ vector<int>& index_wUninf, vector<int>& index_wNeutral){
   
 }
 
-inline void calcOnePair_TTEOutcome_Gehan_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
+inline void calcOnePair_TTEgehan(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
 vector<int>& index_wUninf, vector<int>&  index_wNeutral){
@@ -137,7 +137,7 @@ vector<int>& index_wUninf, vector<int>&  index_wNeutral){
 }
 
 
-inline vector<double> calcOneProba_TTEOutcome_Peto_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
+inline vector<double> calcOneProba_TTEpeto(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
   // survival_T [S(x_i-tau,x_i,x_i+tau)  (survival at treatment event times)
@@ -275,32 +275,27 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   return(proba);  
 }
 
-inline vector<double> calcOneProba_TTEOutcome_Efron_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
+inline vector<double> calcOneProba_TTEefron(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
-  bool trace=false;
    // survival_T [S_T(x_i-tau,x_i,x_i+tau) S_C(x_i-tau,x_i,x_i+tau)] (survival at treatment event times)
   // survival_C [S_C(y_i-tau,y_i,y_i+tau) S_T(y_i-tau,y_i,y_i+tau)] (survival at control event times)
   
   double diff = endpoint_T-endpoint_C;
   vector<double> proba(4,0); // [0] favorable, [1] unfavorable, [2] test neutral [3] test uniformative
-  if(trace){Rcout  << "pair (T=" << index_T << " ; C=" << index_C << ") endpoint (" << endpoint_T << " ; " << endpoint_C << ") survival (" << survival_T(index_T,1) << " ; " << survival_C(index_C,1) << ") | " ;}
- 
+
   if(delta_T==1){
     if(delta_C==1){
       
       if(diff>=threshold && diff>pow(10.0,-12.0)){ // (1,1) >= tau
-      if(trace){Rcout << "(1,1,>=) : " ;}
       proba[0] = 1.0; // favorable
 //      proba[1] = 0.0; // unfavorable
       
       }else if(diff<= -threshold && diff<pow(10.0,-12.0)){ // (1,1) <= -tau
-      if(trace){Rcout << "(1,1,<=) : " ;}
 //      proba[0] = 0.0; // favorable   
       proba[1] = 1.0; // unfavorable 
       
       }else{  // (1,1) [-tau,tau]
-      if(trace){Rcout << "(1,1,=) : " ;}
       proba[2] = 1.0; // neutral
       
       }      
@@ -309,7 +304,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
     
     
     if(diff<= -threshold && diff<pow(10.0,-12.0)){ // (1,0) <= -tau
-    if(trace){Rcout << "(1,0,<=) : " ;}
 //    proba[0] = 0.0; // favorable   
     proba[1] = 1.0; // unfavorable  
     
@@ -318,14 +312,12 @@ const arma::mat& survival_T, const arma::mat& survival_C){
       proba[3] = 1.0; // uninformative
             
       if(diff>threshold){ // (1,0) > tau
-      if(trace){Rcout << "(1,0,>) : " ;}
- 
+
       proba[0]=1.0-survival_T(index_T,3)/survival_C(index_C,1); // favorable 1-[Sc(x_i-taux)/Sc(y_j)]
       proba[1]=survival_T(index_T,5)/survival_C(index_C,1); // unfavorable  [Sc(x_i+taux)/Sc(y_j)]          
         
       }else{ // (1,0) [-tau ; tau]
-      if(trace){Rcout << "(1,0,=) : " ;}
-
+ 
 //      proba[0]=0.0; // favorable
       proba[1]=survival_T(index_T,5)/survival_C(index_C,1); // unfavorable   [Sc(x_i+taux)/Sc(y_j)] 
       
@@ -337,7 +329,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   if(delta_C==1){ 
     
     if(diff>=threshold && diff>pow(10.0,-12.0)){ // (0,1) >= taux
-    if(trace){Rcout << "(0,1,>=) : " ;}
     proba[0] = 1.0; // favorable     
 //    proba[1] = 0.0; // unfavorable    
     
@@ -345,14 +336,12 @@ const arma::mat& survival_T, const arma::mat& survival_C){
       proba[3] = 1.0; // uninformative
       
       if(diff< -threshold){  // (0,1) < tau
-      if(trace){Rcout << "(0,1,<) : " ;}
  
       proba[0]=survival_C(index_C,5)/survival_T(index_T,1); // favorable [St(y_j+taux)/Sc(x_i)] 
       proba[1]=1-survival_C(index_C,3)/survival_T(index_T,1); // unfavorable [St(y_j-taux)/St(x_i)] 
           
       }else{  // (1,0) [-tau,tau]
-      if(trace){Rcout << "(0,1,=) : " ;}
- 
+
       proba[0]=survival_C(index_C,5)/survival_T(index_T,1); // favorable [St(y_j+taux)/Sc(x_i)] 
 //      proba[1]=0.0; // unfavorable
       
@@ -363,45 +352,31 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   proba[3] = 1.0; // uninformative
 
   if(diff>threshold){ // (0,0) > tau
-  if(trace){Rcout << "(0,0,>) : "  ;}
 
-  proba[0]=1.0-survival_T(index_T,3)/survival_C(index_C,1)-calcIntegralProba_cpp(endpoint_T-threshold, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable 1-[St(x_i-taux)/Sc(y_j)]-I/(St(x_i)*Sc(y_j)) 
-  proba[1]=survival_T(index_T,5)/survival_C(index_C,1)+calcIntegralProba_cpp(endpoint_T+threshold, survival_C, 7)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
+  proba[0]=1.0-survival_T(index_T,3)/survival_C(index_C,1)-calcIntegralProba(endpoint_T-threshold, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable 1-[St(x_i-taux)/Sc(y_j)]-I/(St(x_i)*Sc(y_j)) 
+  proba[1]=survival_T(index_T,5)/survival_C(index_C,1)+calcIntegralProba(endpoint_T+threshold, survival_C, 7)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
   
-  if(trace){Rcout << " I " << calcIntegralProba_cpp(endpoint_T-threshold, survival_C, 8) << " " << calcIntegralProba_cpp(endpoint_T+threshold, survival_C, 7) ;}
-    
+
   }else if(diff< -threshold){  // (0,0) < -tau
-  if(trace){Rcout << "(0,0,<) : " ;}
-  proba[0]=-calcIntegralProba_cpp(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
-  proba[1]=1.0+calcIntegralProba_cpp(endpoint_C, survival_C, 7)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable        
+  proba[0]=-calcIntegralProba(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
+  proba[1]=1.0+calcIntegralProba(endpoint_C, survival_C, 7)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable        
   
-  if(trace){Rcout << " I " << calcIntegralProba_cpp(endpoint_C, survival_C, 8) << " " << calcIntegralProba_cpp(endpoint_C, survival_C, 7) ;}
 
   }else{  // (0,0) [-tau;tau]
-  if(trace){Rcout << "(0,0,=) : " ;}
- 
-  proba[0]=-calcIntegralProba_cpp(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
-  proba[1]=survival_T(index_T,5)/survival_C(index_C,1)+calcIntegralProba_cpp(endpoint_T+threshold, survival_C, 7)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
+
+  proba[0]=-calcIntegralProba(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
+  proba[1]=survival_T(index_T,5)/survival_C(index_C,1)+calcIntegralProba(endpoint_T+threshold, survival_C, 7)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
   
-  if(trace){Rcout <<  " I " << calcIntegralProba_cpp(endpoint_C, survival_C, 8) << " " << calcIntegralProba_cpp(endpoint_T+threshold, survival_C, 7) ;}
 
   }
   
   }}
   
- if(trace){
-   Rcout << " | results " ;
-   std::copy(proba.begin(),proba.end(),std::ostream_iterator<double>(Rcout," "));
-   Rcout << endl;
- }
-
   return(proba);  
 }
 
-inline vector<double> calcOneProba_TTEOutcome_Peron_cpp(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
+inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
-  
-  bool trace=false;
   
   // survival_T : survival at treatment event times
   //          [0-2] unordered St (treatment time - tau, treatment time, treatment time + tau)
@@ -422,23 +397,19 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   
   double diff = endpoint_T-endpoint_C;
   vector<double> proba(4,0); // [0] favorable, [1] unfavorable, [2] test neutral [3] test uniformative
-  if(trace){Rcout  << "pair (T=" << index_T << " ; C=" << index_C << ") endpoint (" << endpoint_T << " ; " << endpoint_C << ") survival (" << survival_T(index_T,1) << " ; " << survival_C(index_C,1) << ") | " ;}
- 
+
   if(delta_T==1){
     if(delta_C==1){
       
       if(diff>=threshold && diff>pow(10.0,-12.0)){ // (1,1) >= tau
-      if(trace){Rcout << "(1,1,>=) : " ;}
       proba[0] = 1.0; // favorable
 //      proba[1] = 0.0; // unfavorable
       
       }else if(diff<= -threshold && diff<pow(10.0,-12.0)){ // (1,1) <= -tau
-      if(trace){Rcout << "(1,1,<=) : " ;}
 //      proba[0] = 0.0; // favorable   
       proba[1] = 1.0; // unfavorable 
       
       }else{  // (1,1) [-tau,tau]
-      if(trace){Rcout << "(1,1,=) : " ;}
       proba[2] = 1.0; // neutral
       
       }      
@@ -446,7 +417,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
     }else{ // deltaC[iter_C]==0
         
     if(diff<= -threshold && diff<pow(10.0,-12.0)){ // (1,0) <= -tau
-    if(trace){Rcout << "(1,0,<=) : " ;}
 //    proba[0] = 0.0; // favorable   
     proba[1] = 1.0; // unfavorable  
     
@@ -455,8 +425,7 @@ const arma::mat& survival_T, const arma::mat& survival_C){
       proba[3] = 1.0; // uninformative
             
       if(diff>threshold){ // (1,0) > tau
-      if(trace){Rcout << "(1,0,>) : " ;}
-      
+
       if(R_IsNA(survival_T(index_T,3))==false){
       proba[0]=1.0-survival_T(index_T,3)/survival_C(index_C,1); // favorable 1-[Sc(x_i-taux)/Sc(y_j)]
       }// else {
@@ -470,7 +439,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
       // }
       
       }else{ // (1,0) [-tau ; tau]
-      if(trace){Rcout << "(1,0,=) : " ;}
 
 //      proba[0]=0.0; // favorable
 
@@ -488,7 +456,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   if(delta_C==1){ 
     
     if(diff>=threshold && diff>pow(10.0,-12.0)){ // (0,1) >= taux
-    if(trace){Rcout << "(0,1,>=) : " ;}
     proba[0] = 1.0; // favorable     
 //    proba[1] = 0.0; // unfavorable    
     
@@ -496,8 +463,7 @@ const arma::mat& survival_T, const arma::mat& survival_C){
       proba[3] = 1.0; // uninformative
       
       if(diff< -threshold){  // (0,1) < tau
-      if(trace){Rcout << "(0,1,<) : " ;}
-      
+
       if(R_IsNA(survival_C(index_C,5))==false){
       proba[0]=survival_C(index_C,5)/survival_T(index_T,1); // favorable [St(y_j+taux)/Sc(x_i)]   
       } // else {
@@ -511,7 +477,6 @@ const arma::mat& survival_T, const arma::mat& survival_C){
       // }  
       
       }else{  // (1,0) [-tau,tau]
-      if(trace){ Rcout << "(0,1,=) : " ;}
        if(R_IsNA(survival_C(index_C,5))==false){       
         proba[0]=survival_C(index_C,5)/survival_T(index_T,1); // favorable [St(y_j+taux)/Sc(x_i)] 
       }// else {
@@ -527,52 +492,40 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   proba[3] = 1.0; // uninformative
 
   if(diff>threshold){ // (0,0) > tau
-  if(trace){Rcout << "(0,0,>) : "  ;}
-  
+
   if(R_IsNA(survival_T(index_T,3))==false){
-  proba[0]=1.0-survival_T(index_T,3)/survival_C(index_C,1) - calcIntegralProba_cpp(endpoint_T-threshold, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable 1-[St(x_i-taux)/Sc(y_j)]-I/(St(x_i)*Sc(y_j)) 
+  proba[0]=1.0-survival_T(index_T,3)/survival_C(index_C,1) - calcIntegralProba(endpoint_T-threshold, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable 1-[St(x_i-taux)/Sc(y_j)]-I/(St(x_i)*Sc(y_j)) 
   
- if(trace){Rcout << " I " << calcIntegralProba_cpp(endpoint_T-threshold, survival_C, 8) << " " << calcIntegralProba_cpp(endpoint_T, survival_T, 8) ;}
   }// else {
       //      proba[0]=0.0; // favorable
   // }
   
-   proba[1]=-calcIntegralProba_cpp(endpoint_T, survival_T, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
+   proba[1]=-calcIntegralProba(endpoint_T, survival_T, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
    
   }else if(diff< -threshold){  // (0,0) < -tau
-  if(trace){ Rcout << "(0,0,<) : " ;}
-  proba[0]=-calcIntegralProba_cpp(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
+  proba[0]=-calcIntegralProba(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
 
  if(R_IsNA(survival_C(index_C,3))==false){
-  proba[1]=1.0-survival_C(index_C,3)/survival_T(index_T,1) - calcIntegralProba_cpp(endpoint_C-threshold, survival_T, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable        
+  proba[1]=1.0-survival_C(index_C,3)/survival_T(index_T,1) - calcIntegralProba(endpoint_C-threshold, survival_T, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable        
   
-  if(trace){Rcout <<  " I " << calcIntegralProba_cpp(endpoint_C, survival_C, 8) << " " << calcIntegralProba_cpp(endpoint_C-threshold, survival_T, 8) ;}
  }// else {
   //      proba[1]=0.0; // unfavorable 
   // }
   
   }else{  // (0,0) [-tau;tau]
-  if(trace){Rcout << "(0,0,=) : " ;}
+
+  proba[0]=-calcIntegralProba(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
+  proba[1]=-calcIntegralProba(endpoint_T, survival_T, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
   
-  proba[0]=-calcIntegralProba_cpp(endpoint_C, survival_C, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // favorable
-  proba[1]=-calcIntegralProba_cpp(endpoint_T, survival_T, 8)/(survival_T(index_T,1)*survival_C(index_C,1)); // unfavorable  
-  
-  if(trace){Rcout <<  " I " << calcIntegralProba_cpp(endpoint_C, survival_C, 8) << " " << calcIntegralProba_cpp(endpoint_T, survival_T, 8)/(survival_T(index_T,1)*survival_C(index_C,1)) ;}
-  
+
   }
   
   }}
   
-if(trace){
-  Rcout << " | results " ;
-  std::copy(proba.begin(),proba.end(),std::ostream_iterator<double>(Rcout," ")); 
-  Rcout << endl;
-}
-
   return(proba);  
 }
 
-inline double calcIntegralProba_cpp(const double time_begin, const arma::mat& survival, const int index_col){
+inline double calcIntegralProba(const double time_begin, const arma::mat& survival, const int index_col){
   
   // index col must be 7 or 8
   

@@ -7,57 +7,38 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
-struct structAllPairs {
-  double count_favorable;
-  double count_unfavorable;
-  double count_neutral;
-  double count_uninf;
-  vector<int> index_neutralT;
-  vector<int> index_neutralC;
-  vector<int> index_uninfT;
-  vector<int> index_uninfC;
-  vector<double> w;
-  vector<int> index_w;
-};
-
 //// SUMMARY : calcAll functions ////
-structAllPairs calcAllPairs_Continuous_cpp( const arma::colvec& Treatment, const arma::colvec& Control, double threshold);
-structAllPairs calcSubsetPairs_Continuous_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                                                                          const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                                                                          const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
-                                                                                          const arma::vec& Wpairs);
+void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, double threshold,
+                              double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                              vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int> index_uninfT, vector<int> index_uninfC);
 
-structAllPairs calcAllPairs_TTE_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-                      const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                      const int methodTTE);
+void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+                                 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                                 vector<int>& index_neutralT,  vector<int>& index_neutralC, const int nNeutral_pairs, 
+                                 vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+                                 const arma::vec& Wpairs, vector<int>& index_wNeutral);
 
-structAllPairs calcSubsetPairs_TTE_cpp(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                                                                  const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                                                                  const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                                                                  const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
-                                                                                  const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE);
-  
-  
-  structAllPairs calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                                                                                          const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                                                                                          const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                                                                                          const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
-                                                                                                          const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE);
-  
+void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+                       const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+                       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                       vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int> index_uninfT, vector<int> index_uninfC,
+                       vector<double>& wUninf);
+
+void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+                         const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
+                         double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                         vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
+                         vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+                         const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE,
+                         vector<double>& wNeutral, vector<int>& index_wNeutral);
+
 //  fct1a : perform pairwise comparisons over all possible pairs for a continuous endpoint  //////////////////
-inline structAllPairs calcAllPairs_Continuous_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold){
+void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+                              double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                              vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int> index_uninfT, vector<int> index_uninfC){
   
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
-  double count_favorable=0; // number of favorable pairs
-  double count_unfavorable=0; // number of unfavorable pairs
-  double count_neutral=0; // number of neutral pairs
-  double count_uninf=0; // number of uninformative pairs
-  vector<int> index_neutralT(0); // index of the neutral pairs of the treatment arm
-  vector<int> index_neutralC(0); // index of the neutral pairs of the control arm
-  vector<int> index_uninfT(0); // index of the uninformative pairs of the treatment arm
-  vector<int> index_uninfC(0); // index of the uninformative pairs of the control arm
-  
   vector<int> NULL1_vector(0); // only to match function arguments
   vector<int> NULL2_vector(0); // only to match function arguments
   
@@ -65,46 +46,33 @@ inline structAllPairs calcAllPairs_Continuous_cpp( const arma::colvec& Treatment
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
       
-      calcOnePair_ContinuousOutcome_cpp(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  1, -1, 
-                                        count_favorable, count_unfavorable, count_neutral,count_uninf,
-                                        index_uninfT, index_uninfC, index_neutralT, index_neutralC,
-                                        NULL1_vector, NULL2_vector);
+      calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  1, -1, 
+                             count_favorable, count_unfavorable, count_neutral,count_uninf,
+                             index_uninfT, index_uninfC, index_neutralT, index_neutralC,
+                             NULL1_vector, NULL2_vector);
       
     }
   }
   
   //// export ////
-  structAllPairs res;
-  res.count_favorable = count_favorable;
-  res.count_unfavorable = count_unfavorable;
-  res.count_neutral = count_neutral;
-  res.count_uninf = count_uninf;
-  res.index_neutralT = index_neutralT;
-  res.index_neutralC = index_neutralC;
-  res.index_uninfT = index_uninfT;
-  res.index_uninfC = index_uninfC;
-  
-  return(res);
+  return;
   
 }
 
 //  fct1b : perform pairwise comparisons over the neutral and uniformative pairs for a continuous endpoint  //////////////////
-inline structAllPairs calcSubsetPairs_Continuous_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                                      const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                                      const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
-                                                      const arma::vec& Wpairs){
+void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+                                 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                                 vector<int>& index_neutralT,  vector<int>& index_neutralC, const int nNeutral_pairs, 
+                                 vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+                                 const arma::vec& Wpairs, vector<int>& index_wNeutral){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   
-  double count_favorable=0; // number of favorable pairs
-  double count_unfavorable=0; // number of unfavorable pairs
-  double count_neutral=0; // number of neutral pairs
-  double count_uninf=0; // number of uninf pairs
   vector<int> indexNew_neutralT(0); // index of the neutral pairs of the treatment arm
   vector<int> indexNew_neutralC(0); // index of the neutral pairs of the control arm
   vector<int> indexNew_uninfT(0); // index of the uninformative pairs of the treatment arm
   vector<int> indexNew_uninfC(0); // index of the uninformative pairs of the control arm
-  vector<int> index_wNeutral(0); // index of the neutral and uninformative pairs relative to Wpairs
+  // vector<int> index_wNeutral(0); // index of the neutral and uninformative pairs relative to Wpairs
   vector<int> index_wUninf(0); // index of the neutral and uninformative pairs relative to Wpairs
   
   //// loop over the neutral pairs ////
@@ -114,10 +82,10 @@ inline structAllPairs calcSubsetPairs_Continuous_cpp( const arma::colvec& Treatm
       iter_T = index_neutralT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
       iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control matrix
       
-      calcOnePair_ContinuousOutcome_cpp(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(iter_pairs), iter_pairs, 
-                                        count_favorable, count_unfavorable, count_neutral,count_uninf,
-                                        indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                                        index_wNeutral, index_wUninf);
+      calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(iter_pairs), iter_pairs, 
+                             count_favorable, count_unfavorable, count_neutral, count_uninf,
+                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+                             index_wNeutral, index_wUninf);
       
     }
     
@@ -130,50 +98,36 @@ inline structAllPairs calcSubsetPairs_Continuous_cpp( const arma::colvec& Treatm
       iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
       iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control matrix
       
-      calcOnePair_ContinuousOutcome_cpp(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(nNeutral_pairs+iter_pairs), nNeutral_pairs+iter_pairs, 
-                                        count_favorable, count_unfavorable, count_neutral,count_uninf,
-                                        indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                                        index_wNeutral, index_wUninf);
+      calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(nNeutral_pairs+iter_pairs), nNeutral_pairs+iter_pairs, 
+                             count_favorable, count_unfavorable, count_neutral,count_uninf,
+                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+                             index_wNeutral, index_wUninf);
       
     }
     
   }
   
   //// export ////
-  index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
+  index_neutralT = indexNew_neutralT;
+  index_neutralC = indexNew_neutralC;
+  index_uninfT = indexNew_uninfT;
+  index_uninfC = indexNew_uninfC;
   
-  structAllPairs res;
-  res.count_favorable = count_favorable;
-  res.count_unfavorable = count_unfavorable;
-  res.count_neutral = count_neutral;
-  res.count_uninf = count_uninf;
-  res.index_neutralT = indexNew_neutralT;
-  res.index_neutralC = indexNew_neutralC;
-  res.index_uninfT = indexNew_uninfT;
-  res.index_uninfC = indexNew_uninfC;
-  //res.w = -1.0;
-  res.index_w = index_wNeutral;
+  index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end()); // index_wNeutral is returned by reference
   
-  return(res);
+  return;
   
 }
 
 //  fct2a : perform pairwise comparisons over all possible pairs for a TTE endpoint //////////////////////
-inline structAllPairs calcAllPairs_TTE_cpp( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-                                            const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                            const int methodTTE){
+void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+                       const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+                       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                       vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int> index_uninfT, vector<int> index_uninfC,
+                       vector<double>& wUninf){
   
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
-  double count_favorable=0; // number of favorable pairs
-  double count_unfavorable=0; // number of unfavorable pairs
-  double count_neutral=0; // number of neutral pairs
-  double count_uninf=0; // number of uninf pairs
-  vector<int> index_neutralT(0); // index of the neutral pairs of the treatment arm
-  vector<int> index_neutralC(0); // index of the neutral pairs of the control arm
-  vector<int> index_uninfT(0); // index of the uninformative pairs of the treatment arm
-  vector<int> index_uninfC(0); // index of the uninformative pairs of the control arm
-  vector<double> wUninf(0); // weights of the uninformative pairs
   
   //// loop over the pairs ////
   if(methodTTE == 0){ // Gehan
@@ -183,10 +137,10 @@ inline structAllPairs calcAllPairs_TTE_cpp( const arma::colvec& Treatment, const
     for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
       for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
         
-        calcOnePair_TTEOutcome_Gehan_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
-                                         count_favorable, count_unfavorable, count_neutral, count_uninf,
-                                         index_uninfT, index_uninfC, index_neutralT, index_neutralC,
-                                         NULL1_vector, NULL2_vector);
+        calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
+                             count_favorable, count_unfavorable, count_neutral, count_uninf,
+                             index_uninfT, index_uninfC, index_neutralT, index_neutralC,
+                             NULL1_vector, NULL2_vector);
         
       }
     }
@@ -198,20 +152,20 @@ inline structAllPairs calcAllPairs_TTE_cpp( const arma::colvec& Treatment, const
       for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
         
         if(methodTTE == 1){
-          proba_threshold = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                             matKMT, matKMC);  
+          proba_threshold = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                 matKMT, matKMC);  
         } else if(methodTTE == 2){
-          proba_threshold = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                              matKMT, matKMC);
+          proba_threshold = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                  matKMT, matKMC);
         } else{ // methodTTE == 3
-          proba_threshold = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                              matKMT, matKMC);
+          proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                  matKMT, matKMC);
         }
         
         if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
           index_neutralT.push_back(iter_T);
           index_neutralC.push_back(iter_C);
-          count_neutral=count_neutral+1; 
+          count_neutral++; 
         }else{
           
           weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
@@ -221,11 +175,11 @@ inline structAllPairs calcAllPairs_TTE_cpp( const arma::colvec& Treatment, const
             index_uninfC.push_back(iter_C);
             
             wUninf.push_back(weight_residual); 
-            count_uninf=count_uninf+weight_residual;
+            count_uninf += weight_residual;
           }
           
-          count_favorable = count_favorable + proba_threshold[0];    
-          count_unfavorable = count_unfavorable + proba_threshold[1];  
+          count_favorable += proba_threshold[0];    
+          count_unfavorable += proba_threshold[1];  
         }
         
       }
@@ -234,40 +188,26 @@ inline structAllPairs calcAllPairs_TTE_cpp( const arma::colvec& Treatment, const
   }
   
   //// export ////
-  structAllPairs res;
-  res.count_favorable = count_favorable;
-  res.count_unfavorable = count_unfavorable;
-  res.count_neutral = count_neutral;
-  res.count_uninf = count_uninf;
-  res.index_neutralT = index_neutralT;
-  res.index_neutralC = index_neutralC;
-  res.index_uninfT = index_uninfT;
-  res.index_uninfC = index_uninfC;
-  res.w = wUninf;
-  
-  return(res);
+  return;
 }
 
-inline structAllPairs calcSubsetPairs_TTE_cpp(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                              const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                              const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                              const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
-                                              const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE){
- 
-  int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
+void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+                         const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+                         double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                         vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
+                         vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+                         const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, 
+                         vector<double>& wNeutral, vector<int>& index_wNeutral){
   
-  double count_favorable=0; // number of favorable pairs
-  double count_unfavorable=0; // number of unfavorable pairs
-  double count_neutral=0; // number of neutral pairs
-  double count_uninf=0; // number of uninf pairs
+  int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   vector<int> indexNew_neutralT(0); // index of the neutral pairs of the treatment arm
   vector<int> indexNew_neutralC(0); // index of the neutral pairs of the control arm
   vector<int> indexNew_uninfT(0); // index of the uninformative pairs of the treatment arm
   vector<int> indexNew_uninfC(0); // index of the uninformative pairs of the control arm
   
-  vector<double> wNeutral(0);  // weigth of the neutral pairs 
+  //vector<double> wNeutral(0);  // weigth of the neutral pairs 
   vector<double> wUninf(0);  // weigth of the uninformative pairs 
-  vector<int> index_wNeutral(0); // index of the neutral pairs relative to Wpairs
+  // vector<int> index_wNeutral(0); // index of the neutral pairs relative to Wpairs
   vector<int> index_wUninf(0); // index of the uninformative pairs relative to Wpairs
   
   //// loop over the neutral pairs ////
@@ -281,10 +221,10 @@ inline structAllPairs calcSubsetPairs_TTE_cpp(const arma::colvec& Treatment, con
         iter_T = index_neutralT[iter_pairs]; // index of the treatment patient of the pair in the Treatment and deltaT matrix
         iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control and deltaC matrix
         
-        calcOnePair_TTEOutcome_Gehan_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
-                                         count_favorable, count_unfavorable, count_neutral, count_uninf,
-                                         indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                                         NULL1_vector, NULL2_vector);
+        calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
+                             count_favorable, count_unfavorable, count_neutral, count_uninf,
+                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+                             NULL1_vector, NULL2_vector);
       }
     }else{
       
@@ -298,26 +238,26 @@ inline structAllPairs calcSubsetPairs_TTE_cpp(const arma::colvec& Treatment, con
         iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control matrix
         
         if(methodTTE == 1){
-          proba_threshold = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                             matKMT, matKMC);        
+          proba_threshold = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                 matKMT, matKMC);        
         }else if(methodTTE == 2){
-          proba_threshold = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                              matKMT, matKMC);
+          proba_threshold = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                  matKMT, matKMC);
         }else { // methodTTE == 3
-          proba_threshold = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                              matKMT, matKMC);
+          proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                  matKMT, matKMC);
         }
         
         if(test_tauM1){ // no useless if pairs from a different outcome
           if(methodTTE == 1){
-            proba_thresholdM1 = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                 matKMT_M1, matKMC_M1);
+            proba_thresholdM1 = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
+                                                     matKMT_M1, matKMC_M1);
           }else if(methodTTE == 2){
-            proba_thresholdM1 = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                  matKMT_M1, matKMC_M1);
+            proba_thresholdM1 = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
+                                                      matKMT_M1, matKMC_M1);
           }else { // methodTTE == 3
-            proba_thresholdM1 = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                  matKMT_M1, matKMC_M1);
+            proba_thresholdM1 = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
+                                                      matKMT_M1, matKMC_M1);
           }
         }else{
           proba_thresholdM1[0] = 0;
@@ -330,7 +270,7 @@ inline structAllPairs calcSubsetPairs_TTE_cpp(const arma::colvec& Treatment, con
           index_wNeutral.push_back(iter_pairs);
           
           wNeutral.push_back(1); 
-          count_neutral=count_neutral+Wpairs(iter_pairs);    
+          count_neutral+=Wpairs(iter_pairs);    
         }else{
           
           weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
@@ -341,15 +281,11 @@ inline structAllPairs calcSubsetPairs_TTE_cpp(const arma::colvec& Treatment, con
             index_wUninf.push_back(iter_pairs);        
             
             wUninf.push_back(weight_residual); 
-            count_uninf=count_uninf+Wpairs(iter_pairs)*weight_residual;
+            count_uninf += Wpairs(iter_pairs)*weight_residual;
           }
           
-          count_favorable = count_favorable + (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs);    
-          count_unfavorable = count_unfavorable + (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);  
-          
-          //        if(proba_threshold[0]+proba_threshold[1]>1.00001 || proba_threshold[0]<-0.00001 || proba_threshold[1]<-0.00001){Rcout <<iter_pairs << "(Neutral) : Pf=" << proba_threshold[0] - proba_thresholdM1[0] << " Puf" << proba_threshold[1] - proba_thresholdM1[1] << endl;}
-          //       if(weight_residual>1 || weight_residual < -0.00001){Rcout <<iter_pairs << "(Neutral) : w=" << weight_residual << endl;}
-          
+          count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs);    
+          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);  
         }
         
       }
@@ -367,294 +303,84 @@ inline structAllPairs calcSubsetPairs_TTE_cpp(const arma::colvec& Treatment, con
         iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment and deltaT matrix
         iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control and deltaC matrix
         
-        calcOnePair_TTEOutcome_Gehan_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
-                                         count_favorable, count_unfavorable, count_neutral, count_uninf,
-                                         indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                                         NULL1_vector, NULL2_vector);
+        calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
+                             count_favorable, count_unfavorable, count_neutral, count_uninf,
+                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+                             NULL1_vector, NULL2_vector);
       }
     }else{
-    
-    vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
-    vector<double> proba_thresholdM1(4); // probaF, probaUF, test.neutral and test.uninformative for the previous threhold
-    double weight_residual;  
-    bool test_tauM1 = matKMT_M1.n_cols>1; // test whether it is the first time that the endpoint is used
-    
-    
-    for(int iter_pairs=0; iter_pairs<nUninf_pairs ; iter_pairs++){
-      iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
-      iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control matrix
       
-      if(methodTTE == 1){
-        proba_threshold = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                           matKMT, matKMC);  
-      }else if(methodTTE == 2){
-        proba_threshold = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                            matKMT, matKMC);  
-      }else { // methodTTE == 3
-        proba_threshold = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                            matKMT, matKMC);            
-      }
+      vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
+      vector<double> proba_thresholdM1(4); // probaF, probaUF, test.neutral and test.uninformative for the previous threhold
+      double weight_residual;  
+      bool test_tauM1 = matKMT_M1.n_cols>1; // test whether it is the first time that the endpoint is used
       
-      if(test_tauM1){
+      
+      for(int iter_pairs=0; iter_pairs<nUninf_pairs ; iter_pairs++){
+        iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
+        iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control matrix
+        
         if(methodTTE == 1){
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                               matKMT_M1, matKMC_M1);        
+          proba_threshold = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                 matKMT, matKMC);  
         }else if(methodTTE == 2){
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                matKMT_M1, matKMC_M1);
+          proba_threshold = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                  matKMT, matKMC);  
         }else { // methodTTE == 3
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                matKMT_M1, matKMC_M1);  
+          proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                  matKMT, matKMC);            
         }
-      }else{
-        proba_thresholdM1[0] = 0;
-        proba_thresholdM1[1] = 0;      
-      }
-      
-      if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
-        indexNew_neutralT.push_back(iter_T);
-        indexNew_neutralC.push_back(iter_C);
-        index_wNeutral.push_back(nNeutral_pairs+iter_pairs);
         
-        wNeutral.push_back(1); 
-        count_neutral=count_neutral+Wpairs(nNeutral_pairs+iter_pairs);    
-      }else{
+        if(test_tauM1){
+          if(methodTTE == 1){
+            proba_thresholdM1 = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
+                                                     matKMT_M1, matKMC_M1);        
+          }else if(methodTTE == 2){
+            proba_thresholdM1 = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
+                                                      matKMT_M1, matKMC_M1);
+          }else { // methodTTE == 3
+            proba_thresholdM1 = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
+                                                      matKMT_M1, matKMC_M1);  
+          }
+        }else{
+          proba_thresholdM1[0] = 0;
+          proba_thresholdM1[1] = 0;      
+        }
         
-        weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
-        if(proba_threshold[3]>0.5 && weight_residual>pow(10.0,-12.0)){ // i.e. test uninformative == 1
-          indexNew_uninfT.push_back(iter_T);
-          indexNew_uninfC.push_back(iter_C);
-          index_wUninf.push_back(nNeutral_pairs+iter_pairs);
+        if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
+          indexNew_neutralT.push_back(iter_T);
+          indexNew_neutralC.push_back(iter_C);
+          index_wNeutral.push_back(nNeutral_pairs+iter_pairs);
           
-          wUninf.push_back(weight_residual); 
-          count_uninf=count_uninf+Wpairs(nNeutral_pairs+iter_pairs)*weight_residual;
+          wNeutral.push_back(1); 
+          count_neutral += Wpairs(nNeutral_pairs+iter_pairs);    
+        }else{
+          
+          weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
+          if(proba_threshold[3]>0.5 && weight_residual>pow(10.0,-12.0)){ // i.e. test uninformative == 1
+            indexNew_uninfT.push_back(iter_T);
+            indexNew_uninfC.push_back(iter_C);
+            index_wUninf.push_back(nNeutral_pairs+iter_pairs);
+            
+            wUninf.push_back(weight_residual); 
+            count_uninf=count_uninf+Wpairs(nNeutral_pairs+iter_pairs)*weight_residual;
+          }
+          
+          count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
+          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);  
         }
-        
-        count_favorable = count_favorable + (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
-        count_unfavorable = count_unfavorable + (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);  
-        
-        //    if(proba_threshold[0]+proba_threshold[1]>1.00001 || proba_threshold[0]<-0.00001 || proba_threshold[1]<-0.00001){Rcout <<iter_pairs << "(Uninf) : Pf=" << proba_threshold[0] - proba_thresholdM1[0] << " Puf" << proba_threshold[1] - proba_thresholdM1[1] << endl;}
-        //      if(weight_residual>1 || weight_residual < -0.00001){Rcout <<iter_pairs << "(Uninf) : w=" << weight_residual <<" " << proba_threshold[0] << " " << proba_threshold[1] << endl;}
-        
       }
-    }
     }
   }
   
   //// export ////
-  wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
+  
+  index_neutralT = indexNew_neutralT;
+  index_neutralC = indexNew_neutralC;
+  index_uninfT = indexNew_uninfT;
+  index_uninfC = indexNew_uninfC;
+  
   index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
-  
-  structAllPairs res;
-  res.count_favorable = count_favorable;
-  res.count_unfavorable = count_unfavorable;
-  res.count_neutral = count_neutral;
-  res.count_uninf = count_uninf;
-  res.index_neutralT = indexNew_neutralT;
-  res.index_neutralC = indexNew_neutralC;
-  res.index_uninfT = indexNew_uninfT;
-  res.index_uninfC = indexNew_uninfC;
-  res.w = wNeutral;
-  res.index_w = index_wNeutral;
-  
-  return(res);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-inline structAllPairs calcSubsetPairs_TTEOutcome_PetoEfronPeron_cpp(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                                                    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                                                    const vector<int>& index_neutralT, const vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                                                    const vector<int>& index_uninfT, const vector<int>& index_uninfC, const int nUninf_pairs,
-                                                                    const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE){
-  
-  int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
-  
-  double count_favorable=0; // number of favorable pairs
-  double count_unfavorable=0; // number of unfavorable pairs
-  double count_neutral=0; // number of neutral pairs
-  double count_uninf=0; // number of uninf pairs
-  vector<int> indexNew_neutralT(0); // index of the neutral pairs of the treatment arm
-  vector<int> indexNew_neutralC(0); // index of the neutral pairs of the control arm
-  vector<int> indexNew_uninfT(0); // index of the uninformative pairs of the treatment arm
-  vector<int> indexNew_uninfC(0); // index of the uninformative pairs of the control arm
-  
-  vector<double> wNeutral(0);  // weigth of the neutral pairs 
-  vector<double> wUninf(0);  // weigth of the uninformative pairs 
-  vector<int> index_wNeutral(0); // index of the neutral pairs relative to Wpairs
-  vector<int> index_wUninf(0); // index of the uninformative pairs relative to Wpairs
-  
-  vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
-  vector<double> proba_thresholdM1(4); // probaF, probaUF, test.neutral and test.uninformative for the previous threhold
-  double weight_residual;  
-  
-  bool test_tauM1 = matKMT_M1.n_cols>1; // test whether it is the first time that the endpoint is used
-  
-  //// loop over the neutral pairs ////
-  if(nNeutral_pairs>0){
-    
-    for(int iter_pairs=0; iter_pairs<nNeutral_pairs ; iter_pairs++){
-      iter_T = index_neutralT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
-      iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control matrix
-      
-      if(methodTTE == 1){
-        proba_threshold = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                           matKMT, matKMC);        
-      }else if(methodTTE == 2){
-        proba_threshold = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                            matKMT, matKMC);
-      }else { // methodTTE == 3
-        proba_threshold = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                            matKMT, matKMC);
-      }
-      
-      if(test_tauM1){ // no useless if pairs from a different outcome
-        if(methodTTE == 1){
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                               matKMT_M1, matKMC_M1);
-        }else if(methodTTE == 2){
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                matKMT_M1, matKMC_M1);
-        }else { // methodTTE == 3
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                matKMT_M1, matKMC_M1);
-        }
-      }else{
-        proba_thresholdM1[0] = 0;
-        proba_thresholdM1[1] = 0;      
-      }
-      
-      if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
-        indexNew_neutralT.push_back(iter_T);
-        indexNew_neutralC.push_back(iter_C);
-        index_wNeutral.push_back(iter_pairs);
-        
-        wNeutral.push_back(1); 
-        count_neutral=count_neutral+Wpairs(iter_pairs);    
-      }else{
-        
-        weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
-        
-        if(proba_threshold[3]>0.5 && weight_residual>pow(10.0,-12.0)){ // i.e. test uninformative == 1
-          indexNew_uninfT.push_back(iter_T);
-          indexNew_uninfC.push_back(iter_C);
-          index_wUninf.push_back(iter_pairs);        
-          
-          wUninf.push_back(weight_residual); 
-          count_uninf=count_uninf+Wpairs(iter_pairs)*weight_residual;
-        }
-        
-        count_favorable = count_favorable + (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs);    
-        count_unfavorable = count_unfavorable + (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);  
-        
-        //        if(proba_threshold[0]+proba_threshold[1]>1.00001 || proba_threshold[0]<-0.00001 || proba_threshold[1]<-0.00001){Rcout <<iter_pairs << "(Neutral) : Pf=" << proba_threshold[0] - proba_thresholdM1[0] << " Puf" << proba_threshold[1] - proba_thresholdM1[1] << endl;}
-        //       if(weight_residual>1 || weight_residual < -0.00001){Rcout <<iter_pairs << "(Neutral) : w=" << weight_residual << endl;}
-        
-      }
-      
-    }
-  }
-  
-  
-  //// loop over the uninformative pairs ////
-  if(nUninf_pairs>0){
-    
-    for(int iter_pairs=0; iter_pairs<nUninf_pairs ; iter_pairs++){
-      iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
-      iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control matrix
-      
-      if(methodTTE == 1){
-        proba_threshold = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                           matKMT, matKMC);  
-      }else if(methodTTE == 2){
-        proba_threshold = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                            matKMT, matKMC);  
-      }else { // methodTTE == 3
-        proba_threshold = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                            matKMT, matKMC);            
-      }
-      
-      if(test_tauM1){
-        if(methodTTE == 1){
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Peto_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                               matKMT_M1, matKMC_M1);        
-        }else if(methodTTE == 2){
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Efron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                matKMT_M1, matKMC_M1);
-        }else { // methodTTE == 3
-          proba_thresholdM1 = calcOneProba_TTEOutcome_Peron_cpp(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                                matKMT_M1, matKMC_M1);  
-        }
-      }else{
-        proba_thresholdM1[0] = 0;
-        proba_thresholdM1[1] = 0;      
-      }
-      
-      if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
-        indexNew_neutralT.push_back(iter_T);
-        indexNew_neutralC.push_back(iter_C);
-        index_wNeutral.push_back(nNeutral_pairs+iter_pairs);
-        
-        wNeutral.push_back(1); 
-        count_neutral=count_neutral+Wpairs(nNeutral_pairs+iter_pairs);    
-      }else{
-        
-        weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
-        if(proba_threshold[3]>0.5 && weight_residual>0){ // i.e. test uninformative == 1
-          indexNew_uninfT.push_back(iter_T);
-          indexNew_uninfC.push_back(iter_C);
-          index_wUninf.push_back(nNeutral_pairs+iter_pairs);
-          
-          wUninf.push_back(weight_residual); 
-          count_uninf=count_uninf+Wpairs(nNeutral_pairs+iter_pairs)*weight_residual;
-        }
-        
-        count_favorable = count_favorable + (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
-        count_unfavorable = count_unfavorable + (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);  
-        
-        //    if(proba_threshold[0]+proba_threshold[1]>1.00001 || proba_threshold[0]<-0.00001 || proba_threshold[1]<-0.00001){Rcout <<iter_pairs << "(Uninf) : Pf=" << proba_threshold[0] - proba_thresholdM1[0] << " Puf" << proba_threshold[1] - proba_thresholdM1[1] << endl;}
-        //      if(weight_residual>1 || weight_residual < -0.00001){Rcout <<iter_pairs << "(Uninf) : w=" << weight_residual <<" " << proba_threshold[0] << " " << proba_threshold[1] << endl;}
-        
-      }
-      
-    }
-  }
-  
-  //// export ////
   wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
-  index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
-  
-  structAllPairs res;
-  res.count_favorable = count_favorable;
-  res.count_unfavorable = count_unfavorable;
-  res.count_neutral = count_neutral;
-  res.count_uninf = count_uninf;
-  res.index_neutralT = indexNew_neutralT;
-  res.index_neutralC = indexNew_neutralC;
-  res.index_uninfT = indexNew_uninfT;
-  res.index_uninfC = indexNew_uninfC;
-  res.w = wNeutral;
-  res.index_w = index_wNeutral;
-  
-  return(res);
+  return;
 }
-
