@@ -90,19 +90,20 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
     test.naT <- colSums(is.na(dataT[,endpoint[type!=3],with=FALSE]))
     test.naC <- colSums(is.na(dataC[,endpoint[type!=3],with=FALSE]))
     test.na <- test.naT+test.naC
-    if(any(test.na>0)){ 
-      warning("BuyseTest : some binary or continuous endpoints contains NA \n",
-              "number of NA in \'data\' : ",sum(test.na>0),"\n",
-              "columns with \'data\' : ",paste(c(endpoint,censoring[type==3])[test.na>0],collapse=" "),"\n")
+    if(any(test.na>0)){
+      vec.print <- apply(data.frame(names(test.na),as.double(test.na)),1,paste,collapse=" : ")
+      warning("BuyseTest : some binary or continuous endpoints contains NA (variable : number of NA) \n",
+              paste(vec.print, collapse = " \n "))
     }
+    
   }
   
     ## endpoint checking : binary type
   indexY <- which(type==1)
   if(test && length(indexY)>0){
     for(iterY in indexY){
-      validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY], validValues = c(NA,0,1), validLength = NULL, method = "BuyseTest")
-      validNumeric(dataC[[endpoint[iterY]]], name1 = endpoint[iterY], validValues = c(NA,0,1), validLength = NULL, method = "BuyseTest")
+      validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY], validValues = 0:1, refuse.NA =  FALSE, validLength = NULL, method = "BuyseTest")
+      validNumeric(dataC[[endpoint[iterY]]], name1 = endpoint[iterY], validValues = 0:1, refuse.NA =  FALSE, validLength = NULL, method = "BuyseTest")
     }
   }
   
@@ -110,8 +111,8 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
   indexY <- which(type==2)
   if(test && length(indexY)>0){
     for(iterY in indexY){
-      validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, method = "BuyseTest")
-      validNumeric(dataC[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, method = "BuyseTest")
+      validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, refuse.NA =  FALSE, method = "BuyseTest")
+      validNumeric(dataC[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, refuse.NA =  FALSE, method = "BuyseTest")
     }
   }
   
