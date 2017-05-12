@@ -1,6 +1,9 @@
 language: r
 sudo: required
 
+before_install:
+    - export DISPLAY=:99.0
+
 r_check_args: --as-cran 
 
 after_success:

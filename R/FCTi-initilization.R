@@ -97,7 +97,7 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
     }
   }
   
-  ## endpoint checking : binary type
+    ## endpoint checking : binary type
   indexY <- which(type==1)
   if(test && length(indexY)>0){
     for(iterY in indexY){

@@ -84,28 +84,28 @@ setMethod(f = "summary",
             #### fill
             index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
             
-            table[index.global,"n.favorable"] <- colSums(object@count_favorable)
-            table[index.global,"n.unfavorable"] <- colSums(object@count_unfavorable)
-            table[index.global,"n.neutral"] <- colSums(object@count_neutral)
-            table[index.global,"n.uninf"] <- colSums(object@count_uninf)
-            table[index.global,"n.total"] <- rowSums(table[index.global,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])
+              table[index.global,"n.favorable"] <- colSums(object@count_favorable)
+              table[index.global,"n.unfavorable"] <- colSums(object@count_unfavorable)
+              table[index.global,"n.neutral"] <- colSums(object@count_neutral)
+              table[index.global,"n.uninf"] <- colSums(object@count_uninf)
+              table[index.global,"n.total"] <- rowSums(table[index.global,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])
             
-            table[index.global,"endpoint"] <- object@endpoint
-            table[index.global,"threshold"] <- object@threshold
-            table[index.global,"strata"] <- "global"
-            if(statistic=="netChance"){
-              table[index.global,"delta"] <- colSums(delta)
-            }else{
-              table[index.global,"delta"] <- colSums(object@count_favorable)/(colSums(object@count_favorable)+colSums(object@count_unfavorable))
-            }
-            table[index.global,"Delta"] <- Delta
-            table[index.global,"CIinf.Delta"] <- Delta + Delta_quantile[1,]
-            table[index.global,"CIsup.Delta"] <- Delta + Delta_quantile[2,]
-            table[index.global,"n.bootstrap"] <- n_bootstrap
-            table[index.global,"p.value"] <- p.value
-            table[index.global,ncol(table)] <- sapply(p.value,function(x){
-              if(is.na(x)){NA}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
-            })
+              table[index.global,"endpoint"] <- object@endpoint
+              table[index.global,"threshold"] <- object@threshold
+              table[index.global,"strata"] <- "global"
+              if(statistic=="netChance"){
+                  table[index.global,"delta"] <- colSums(delta)
+              }else{
+                  table[index.global,"delta"] <- colSums(object@count_favorable)/colSums(object@count_unfavorable)
+              }
+              table[index.global,"Delta"] <- Delta
+              table[index.global,"CIinf.Delta"] <- Delta + Delta_quantile[1,]
+              table[index.global,"CIsup.Delta"] <- Delta + Delta_quantile[2,]
+              table[index.global,"n.bootstrap"] <- n_bootstrap
+              table[index.global,"p.value"] <- p.value
+              table[index.global,ncol(table)] <- sapply(p.value,function(x){
+                  if(is.na(x)){NA}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
+              })
             
             for(iter_strata in 1:n.strata){
               index.strata <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1+iter_strata

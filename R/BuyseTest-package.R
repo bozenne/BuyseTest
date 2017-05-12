@@ -5,7 +5,7 @@
 #' @description Implementation of the Generalized Pairwise Comparisons.
 #' \code{\link{BuyseTest}} is the main function of the package. See its documentation for more details or the reference below for a complete description of the method and some examples of application.
 #' 
-#' @useDynLib BuyseTest
+#' @useDynLib BuyseTest, .registration=TRUE
 #' @import data.table
 #' @importFrom lava categorical coxExponential.lvm distribution eventTime lvm sim vars
 #' @import methods

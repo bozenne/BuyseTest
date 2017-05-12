@@ -35,7 +35,7 @@ test_that("2 pairs - Peto",{
   expect_equal(as.double(BT@count_uninf),2/3)
 
   expect_equal(as.double(BT@delta$netChance),-2/3)
-  expect_equal(as.double(BT@delta$winRatio),0.1)
+  expect_equal(as.double(BT@delta$winRatio),1/9)
 })
 
 test_that("2 pairs - Efron",{
@@ -67,6 +67,40 @@ test_that("2 pairs - Peron",{
 
 summary(survival::survfit(survival::Surv(time=time, event=cens) ~ 1, data=gehan4))
 
+## all unfavorable
+dt.unfav <- data.table(Treatment = 1:2,
+                       toxicity1 = c(1,0),
+                       toxicity2 = 0,
+                       Id = 1:10)
+
+BT.unfav <- BuyseTest(data=dt.unfav,endpoint=c("toxicity1","toxicity2"),
+                      treatment="Treatment", type=c("bin","bin"), 
+                      n.bootstrap=0)
+
+
+test_that("win ratio with no pair in favor",{
+    res.unfav <- summary(BT.unfav, statistic = "winRatio", show = FALSE)
+    expect_equal(res.unfav[1,"delta"],0)
+    expect_equal(res.unfav[1,"Delta"],0)
+})
+
+## balanced
+dt.equal <- data.table(Treatment = c(1,1,2,2),
+                       toxicity1 = c(1,0,1,0),
+                       toxicity2 = 0)
+
+BT.equal <- BuyseTest(data=dt.equal,endpoint=c("toxicity1","toxicity2"),
+                      treatment="Treatment", type=c("bin","bin"), 
+                      n.bootstrap=0)
+
+
+
+
+test_that("win ratio with no pair in favor",{
+    res.equal <- summary(BT.equal, statistic = "winRatio", show = FALSE)
+    expect_equal(res.equal[1,"delta"],1)
+    expect_equal(res.equal[1,"Delta"],1)
+})
 #### 2- more patients? ####
 cat("* check results with more patients \n")
 
@@ -99,7 +133,7 @@ test_that("lambdaC = 0.5 - Gehan",{
   expect_equal(as.double(BT@count_uninf),86)
   
   expect_equal(as.double(BT@delta$netChance),-0.02)
-  expect_equal(as.double(BT@delta$winRatio),6/14)
+  expect_equal(as.double(BT@delta$winRatio),15/20)
 })
 
 test_that("lambdaC = 0.5 - Peto",{
@@ -112,7 +146,7 @@ test_that("lambdaC = 0.5 - Peto",{
   expect_equal(as.double(BT@count_uninf),17.38, tolerance = 1e-3)
   
   expect_equal(as.double(BT@delta$netChance),-0.00712, tolerance = 1e-3)
-  expect_equal(as.double(BT@delta$winRatio),0.4956924, tolerance = 1e-3)
+  expect_equal(as.double(BT@delta$winRatio),0.9829167, tolerance = 1e-3)
 })
 
 test_that("lambdaC = 0.5 - Efron",{
@@ -125,7 +159,7 @@ test_that("lambdaC = 0.5 - Efron",{
   expect_equal(as.double(BT@count_uninf),76.78, tolerance = 1e-3)
   
   expect_equal(as.double(BT@delta$netChance),0, tolerance = 1e-3)
-  expect_equal(as.double(BT@delta$winRatio),0.5, tolerance = 1e-3)
+  expect_equal(as.double(BT@delta$winRatio),1, tolerance = 1e-3)
   
 })
 
@@ -139,7 +173,7 @@ test_that("lambdaC = 0.5 - Peron",{
   expect_equal(as.double(BT@count_uninf), 77.78, tolerance = 1e-3)
   
   expect_equal(as.double(BT@delta$netChance),0, tolerance = 1e-3)
-  expect_equal(as.double(BT@delta$winRatio),0.5, tolerance = 1e-3)
+  expect_equal(as.double(BT@delta$winRatio),1, tolerance = 1e-3)
 })
 
 ## b) lambda.C = 1
@@ -175,7 +209,7 @@ test_that("lambdaC = 1 - Peto",{
   expect_equal(as.double(BT@count_uninf),22, tolerance = 1e-3)
   
   expect_equal(as.double(BT@delta$netChance),-0.06, tolerance = 1e-3)
-  expect_equal(as.double(BT@delta$winRatio),0.4615385, tolerance = 1e-3)
+  expect_equal(as.double(BT@delta$winRatio),0.8571429, tolerance = 1e-3)
 })
 
 test_that("lambdaC = 1 - Efron",{
@@ -203,6 +237,7 @@ test_that("lambdaC = 1 - Peron",{
   expect_equal(as.double(BT@delta$netChance),-0.1, tolerance = 1e-3)
   expect_equal(as.double(BT@delta$winRatio),0, tolerance = 1e-3)
 })
+
 
 #### 3- Threshold ####
 test_that("details - threshold",{
