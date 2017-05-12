@@ -17,4 +17,3 @@ J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{The Net Chance 
 Examples of application: \cr 
 J. Peron, P Roy, K Ding, W R Parulekar, L Roche, M Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalised pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 }
-

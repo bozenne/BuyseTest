@@ -5,6 +5,7 @@
 \alias{BuyseTest.options-methods}
 \alias{alloc,BuyseTest.options-method}
 \alias{select,BuyseTest.options-method}
+\alias{select,BuyseTest.options-method}
 \title{Methods for the class "BuyseTest.options"}
 \usage{
 \S4method{alloc}{BuyseTest.options}(object, field)
@@ -21,4 +22,3 @@
 \description{
 Methods to update or select global settings
 }
-

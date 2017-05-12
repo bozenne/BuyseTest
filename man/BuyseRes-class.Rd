@@ -2,8 +2,8 @@
 % Please edit documentation in R/OBJECT_BuyseTest.R
 \docType{class}
 \name{BuyseRes-class}
-\alias{BuyseRes}
 \alias{BuyseRes-class}
+\alias{BuyseRes}
 \title{Class "BuyseRes" (output of BuyseTest)}
 \description{
 A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
@@ -52,6 +52,7 @@ slots
 
 \item{\code{threshold}}{the threshold associated to each endpoint \emph{numeric vector}.}
 }}
+
 \examples{
   n.Treatment_testBin <- 500
   n.Control_testBin <- 500
@@ -80,4 +81,3 @@ slots
 }
 \keyword{BuyseRes-class}
 \keyword{classes}
-

@@ -70,4 +70,3 @@ dt <- simulBT(1e2, n.strata = 3)
 }
 \keyword{BuyseRes-method}
 \keyword{summary}
-

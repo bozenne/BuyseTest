@@ -48,4 +48,3 @@ This function uses the \code{interaction} function from the \emph{base} package 
 
 }
 \keyword{function}
-

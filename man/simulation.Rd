@@ -80,4 +80,3 @@ simulBT(1e3, n.strata = c(2,4), names.strata = c("Gender","AgeCategory"))
 }
 \keyword{function}
 \keyword{simulations}
-

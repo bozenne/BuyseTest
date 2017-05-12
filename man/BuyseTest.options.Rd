@@ -33,4 +33,3 @@ BuyseTest.options("n.bootstrap", "trace")
 BuyseTest.options(reinitialise = TRUE)
 
 }
-

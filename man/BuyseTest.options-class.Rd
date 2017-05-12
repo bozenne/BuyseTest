@@ -18,4 +18,3 @@ Class defining the global settings for the BuyseTest package.
 \keyword{BuyseTest.options-class}
 \keyword{classes}
 \keyword{options}
-

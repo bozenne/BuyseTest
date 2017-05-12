@@ -191,4 +191,3 @@ Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censore
 }
 \keyword{BuyseTest}
 \keyword{function}
-

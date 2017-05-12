@@ -2,8 +2,8 @@
 % Please edit documentation in R/FCTi-print.R
 \name{internal-print}
 \alias{internal-print}
-\alias{printBoostrap}
 \alias{printGeneral}
+\alias{printBoostrap}
 \title{internal functions for BuyseTest - display}
 \usage{
 printGeneral(levels.treatment, levels.strata, n.strata, endpoint, threshold,
@@ -19,4 +19,3 @@ Functions called by \code{\link{BuyseTest}} to display what is going on.
 \keyword{BuyseTest}
 \keyword{function}
 \keyword{internal}
-

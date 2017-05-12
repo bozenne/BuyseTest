@@ -49,4 +49,3 @@ Display the main results stored in a \code{\link{BuyseRes}} object.
 }
 \keyword{BuyseRes-method}
 \keyword{summary}
-
