@@ -12,6 +12,64 @@ argsTTE <- list(rates.T = 1:3, rates.Censor = rep(1,3))
 
 #### binary #### 
 cat("* binary endpoint \n")
+
+test_that("check favorable - Binary",{
+  data_Bin <- data.frame(toxicity1 = c(1,0), Treatment = c(1,0))
+  BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
+                       treatment="Treatment", type=c("bin"),
+                       n.bootstrap=0)
+  expect_equal(as.double(BT_Bin1@count_favorable),1)
+  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
+  expect_equal(as.double(BT_Bin1@count_neutral),0)
+  expect_equal(as.double(BT_Bin1@count_uninf),0)
+  
+  BT_Bin1 <- BuyseTest(data=rbind(data_Bin,data_Bin),endpoint=c("toxicity1"),
+                       treatment="Treatment", type=c("bin"),
+                       n.bootstrap=0)
+  expect_equal(as.double(BT_Bin1@count_favorable),4)
+  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
+  expect_equal(as.double(BT_Bin1@count_neutral),0)
+  expect_equal(as.double(BT_Bin1@count_uninf),0)
+})
+
+test_that("check unfavorable - Binary",{
+  data_Bin <- data.frame(toxicity1 = c(0,1), Treatment = c(1,0))
+  BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
+                       treatment="Treatment", type=c("bin"),
+                       n.bootstrap=0)
+  expect_equal(as.double(BT_Bin1@count_favorable),0)
+  expect_equal(as.double(BT_Bin1@count_unfavorable),1)
+  expect_equal(as.double(BT_Bin1@count_neutral),0)
+  expect_equal(as.double(BT_Bin1@count_uninf),0)
+  
+  BT_Bin1 <- BuyseTest(data=rbind(data_Bin,data_Bin),endpoint=c("toxicity1"),
+                       treatment="Treatment", type=c("bin"),
+                       n.bootstrap=0)
+  expect_equal(as.double(BT_Bin1@count_favorable),0)
+  expect_equal(as.double(BT_Bin1@count_unfavorable),4)
+  expect_equal(as.double(BT_Bin1@count_neutral),0)
+  expect_equal(as.double(BT_Bin1@count_uninf),0)
+})
+
+test_that("check neutral - Binary",{
+  data_Bin <- data.frame(toxicity1 = c(1,1), Treatment = c(1,0))
+  BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
+                       treatment="Treatment", type=c("bin"),
+                       n.bootstrap=0)
+  expect_equal(as.double(BT_Bin1@count_favorable),0)
+  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
+  expect_equal(as.double(BT_Bin1@count_neutral),1)
+  expect_equal(as.double(BT_Bin1@count_uninf),0)
+  
+  BT_Bin1 <- BuyseTest(data=rbind(data_Bin,data_Bin),endpoint=c("toxicity1"),
+                       treatment="Treatment", type=c("bin"),
+                       n.bootstrap=0)
+  expect_equal(as.double(BT_Bin1@count_favorable),0)
+  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
+  expect_equal(as.double(BT_Bin1@count_neutral),4)
+  expect_equal(as.double(BT_Bin1@count_uninf),0)
+})
+
 data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
 if(conv2df){data_Bin <- as.data.frame(data_Bin)}
 
@@ -61,7 +119,7 @@ if(conv2df){data_TTE <- as.data.frame(data_TTE)}
 ## different endpoints
 BT_TTE1 <- vector(length = 4, mode = "list")
 names(BT_TTE1) <- c("Gehan","Peto","Efron","Peron")
-for(method in c("Gehan","Peto","Efron","Peron")){
+for(method in c("Gehan","Peto","Efron","Peron")){ # method <- "Gehan"
   
   n.bootstrapTempo <- if(method=="Gehan"){n.bootstrap}else{10}
 
@@ -139,6 +197,7 @@ if(identical(save, TRUE)){
   
   test_that("comparison with the previous version", {
     expect_equalBT(BT_Bin1, GS$OutcomeBin$BT)
+    #  identical(BT_Bin1@delta_boot,GS$OutcomeBin$BT@delta_boot)
     expect_equalBT(BT_Cont1, GS$OutcomeCont$BT)
     expect_equalBT(BT_TTE1$Gehan, GS$OutcomeTTE$BT1$Gehan)
     expect_equalBT(BT_TTE1$Peto, GS$OutcomeTTE$BT1$Peto)

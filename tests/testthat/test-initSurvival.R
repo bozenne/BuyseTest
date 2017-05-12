@@ -210,7 +210,7 @@ for(method in c("Peto","Efron","Peron")){
 #### Z- export ####
 if(identical(save, TRUE)){
   saveRDS(results_initSurvival,file=file.path(dirSave,"test-initSurvival.rds"))
-}else {
+}else if(identical(save, FALSE)){
   cat("* Previous version \n")
   
   GS <- readRDS(file=file.path(dirSave,"test-initSurvival.rds"))
