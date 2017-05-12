@@ -37,23 +37,4 @@ Suggests:
     tcltk,
     survival
 LinkingTo: Rcpp, RcppArmadillo
-Collate:
-    'BuyseTest-package.R'
-    'FCT_BuyseSens.R'
-    'FCT_BuyseTest.R'
-    'FCT_Valid.R'
-    'onload.R'
-    'FCT_options.R'
-    'FCT_simul.R'
-    'FCT_support.R'
-    'FCTi-computation.R'
-    'FCTi-initilization.R'
-    'FCTi-print.R'
-    'METHOD_generic.R'
-    'OBJECT_BuyseTest.R'
-    'METHOD_get.R'
-    'METHOD_summary.R'
-    'METHOD_print.R'
-    'OBJECT_BuyseTest-options.R'
-    'RcppExports.R'
 RoxygenNote: 6.0.1
