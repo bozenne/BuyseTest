@@ -4,7 +4,7 @@
 <a href="http://cranlogs.r-pkg.org/downloads/total/last-month/BuyseTest"><img src="http://cranlogs.r-pkg.org/badges/BuyseTest"></a>
 #+END_HTML
 
-Implementation of the Generalized Pairwise Comparisons
+Implementation of the Generalized Pairwise Comparisons (GPC)
 
 ** Installation
 
@@ -22,23 +22,41 @@ install_github("bozenne/BuyseTest")
 ** Citation
 To cite this package in a publications please use:
 #+BEGIN_QUOTE
-Julien Péron, Marc Buyse, Brice Ozenne, Laurent Roche, Pascal Roy (2016).
-An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring.
-Statistical Methods in Medical Research.
-http://dx.doi.org/10.1038/bjc.2015.55.
+Marc Buyse, Generalized pairwise comparisons of prioritized outcomes in the two-sample problem,
+29-30:3245-3257, Statistics in Medicine. http://dx.doi.org/10.1002/sim.3923
 #+END_QUOTE
+and:
+#+BEGIN_QUOTE
+Julien Péron, Marc Buyse, Brice Ozenne, Laurent Roche, Pascal Roy. An
+extension of generalized pairwise comparisons for prioritized outcomes
+in the presence of censoring.  2016. Statistical Methods in Medical
+Research. http://dx.doi.org/10.1177/0962280216658320
+#+END_QUOTE
+when applying GPC to time to event outcomes (argument =method= equal
+to ="Peron"=, or ="Peto"=, or ="Efron"=). In bibtex format:
 
 #+BEGIN_SRC bibtex
-  @Article{BuyseTest,
-    title = {An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring},
-    author = {Julien Péron, Marc Buyse, Brice Ozenne, Laurent Roche, Pascal Roy},
-    year = {?},
-    volume = {?},
-    number = {?},
-    pages = {??},
-    journal = {Statistical Methods in Medical Research},
-    note = {http://dx.doi.org/10.1038/bjc.2015.55},
-  }
+@article {Buyse2010gpc,
+author = {Buyse, Marc},
+title = {Generalized pairwise comparisons of prioritized outcomes in the two-sample problem},
+journal = {Statistics in Medicine},
+volume = {29},
+number = {30},
+issn = {1097-0258},
+url = {http://dx.doi.org/10.1002/sim.3923},
+doi = {10.1002/sim.3923},
+pages = {3245--3257},
+year = {2010}
+}
+
+@article{peron2016extension,
+author = {Julien Péron and Marc Buyse and Brice Ozenne and Laurent Roche and Pascal Roy},
+title = {An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring},
+journal = {Statistical Methods in Medical Research},
+year = {2016},
+doi = {10.1177/0962280216658320},
+URL = {http://dx.doi.org/10.1177/0962280216658320},
+eprint = {http://dx.doi.org/10.1177/0962280216658320}
 #+END_SRC bibtex
 
 ** Examples
