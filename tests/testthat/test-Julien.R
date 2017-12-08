@@ -1,3 +1,5 @@
+riskRegression
+
 verboseContext("Check specific examples")
 
 #### 1- test 2 pairs ####
@@ -26,7 +28,7 @@ test_that("2 pairs - Gehan",{
 })
 
 test_that("2 pairs - Peto",{
-  BT <- BuyseTest(data=gehan4,endpoint="time",treatment="treat",
+  BT <- BuyseTest(data=gehan4,endpoint="tisme",treatment="treat",
                   type="TTE",censoring="cens",threshold=0,n.bootstrap=0,method="Peto")
   
   expect_equal(as.double(BT@count_favorable),1/3)

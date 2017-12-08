@@ -1,3 +1,4 @@
+## * BuyseRes-class Documentation
 #' @name BuyseRes-class
 #' @title Class "BuyseRes" (output of BuyseTest)
 #' @aliases  BuyseRes BuyseRes-class
@@ -54,6 +55,7 @@
 #' @keywords classes BuyseRes-class
 #' 
 
+## * BuyseRes-class
 #' @rdname BuyseRes-class
 #' @exportClass BuyseRes
 setClass(
@@ -81,7 +83,8 @@ setClass(
     strata = "vector",
     threshold = "vector"
     ),
-  
+
+  ### ** Check validity of the object
   validity = function(object){
     
     n.strata <- length(object@strata)
@@ -121,6 +124,7 @@ setClass(
     return(TRUE)} 
 )
 
+## * initialiwe BuyseRes objects
 methods::setMethod(
   f = "initialize", 
   signature = "BuyseRes", 

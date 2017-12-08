@@ -33,7 +33,7 @@ in the presence of censoring.  2016. Statistical Methods in Medical
 Research. http://dx.doi.org/10.1177/0962280216658320
 #+END_QUOTE
 when applying GPC to time to event outcomes (argument =method= equal
-to ="Peron"=, or ="Peto"=, or ="Efron"=). In bibtex format:
+to =Peron=, or =Peto=, or =Efron=). In bibtex format:
 
 #+BEGIN_SRC bibtex
 @article {Buyse2010gpc,
@@ -60,6 +60,11 @@ eprint = {http://dx.doi.org/10.1177/0962280216658320}
 #+END_SRC bibtex
 
 ** Examples
+
+#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache no
+1+1
+#+END_SRC
+
 
 #+BEGIN_SRC R :exports :results
   data(veteran,package="survival")
