@@ -1,3 +1,4 @@
+## * Documentation - BuyseTest
 #' @name BuyseTest
 #' @title Generalized Pairwise Comparisons
 #' @aliases BuyseTest
@@ -67,6 +68,10 @@
 #' R/examples/EX_BuyseTest.R
 #'     
 #' @keywords function BuyseTest
+#'
+
+## * Function - BuyseTest
+#' @rdname BuyseTest
 #' @export
 BuyseTest <- function(formula, data, 
                       treatment = NULL, endpoint = NULL, type = NULL, threshold = NULL, censoring = NULL, strata = NULL, 
@@ -75,7 +80,7 @@ BuyseTest <- function(formula, data,
                       seed = BuyseTest.options()$seed, cpus = BuyseTest.options()$cpus, trace = BuyseTest.options()$trace){
   
   
-  #### 1- data management + tests ####
+  ## ** 1- data management + tests
   Buysecall <- match.call()
   
   ## 
@@ -102,7 +107,7 @@ BuyseTest <- function(formula, data,
     strata <- resFormula$strata
   }
   
-  ## Treatment: extract the 2 levels
+  ## *** Treatment: extract the 2 levels
   validCharacter(treatment, validLength = 1, method = "BuyseTest")
   validNames(data, requiredValues = treatment, validLength = NULL, method = "BuyseTest")
   levels.treatment <- levels(as.factor(data[[treatment]])) # extraction of the levels of the treatment variable
@@ -112,11 +117,11 @@ BuyseTest <- function(formula, data,
          "proposed levels : ",paste(levels.treatment,collapse = " "),"\n")
   }
   
-  ## endpoint
+  ## *** endpoint
   validNames(data, requiredValues = endpoint, validLength = NULL, method = "BuyseTest")
   D <- length(endpoint) # number of endpoints
   
-  ## type: convert type to numeric and count the number of endpoints
+  ## *** type: convert type to numeric and count the number of endpoints
   validCharacter(type, validValues = c(1:3,"bin","binary","cont","continuous","TTE","timeToEvent"), validLength = D, method = "BuyseTest")
   type[type %in% c("binary","bin")] <- "1" 
   type[type %in% c("continuous","cont")] <- "2"
@@ -125,13 +130,13 @@ BuyseTest <- function(formula, data,
   
   D.TTE <- sum(type == 3) # number of time to event endpoints
   
-  ## censoring: (see .Rd internal-intilisation, section details for details)
+  ## *** censoring: (see .Rd internal-intilisation, section details for details)
   censoring <- initCensoring(censoring = censoring, endpoint = endpoint, type = type, D = D, D.TTE = D.TTE,
                              treatment = treatment, strata = strata)
   
   validNames(data, name1 = "data", requiredValues = censoring, validLength = NULL, refuse.NULL = FALSE, method = "BuyseTest")
   
-  ## data: split the data according to the two levels
+  ## *** data: split the data according to the two levels
   if (!is.null(strata)) {
     validNames(data, name1 = "strata", requiredValues = strata, validLength = NULL, method = "BuyseTest")
   }
@@ -148,11 +153,11 @@ BuyseTest <- function(formula, data,
   n.Treatment <- NROW(dataT) # number of patient in the treatment arm
   n.Control <- NROW(dataC) # number of patient in the control arm
   
-  ## threshold: (see .Rd internal-intilisation, section details for details)
+  ## *** threshold: (see .Rd internal-intilisation, section details for details)
   threshold <- initThreshold(threshold = threshold, type = type, D = D,
                              method = method, endpoint = endpoint)
   
-  ## strata: (see .Rd internal-intilisation, section details for details)
+  ## *** strata: (see .Rd internal-intilisation, section details for details)
   res <- initStrata(strata = strata,
                     dataT = dataT, dataC = dataC, n.Treatment = n.Treatment, n.Control = n.Control,
                     endpoint = endpoint, censoring = censoring)
@@ -162,7 +167,7 @@ BuyseTest <- function(formula, data,
   n.strata <- res$n.strata 
   levels.strata <- res$levels.strata 
   
-  ## method
+  ## *** method
   validCharacter(method, validLength = 1, validValues = c("Gehan","Peto","Efron","Peron"), method = "BuyseTest")
   
   method <- switch(method,
@@ -178,13 +183,13 @@ BuyseTest <- function(formula, data,
     }
   }
   
-  ## alternative
+  ## *** alternative
   validCharacter(alternative, validLength = 1, validValues = c("two.sided", "less", "greater"), method = "BuyseTest")
   
-  ## n.bootstrap
+  ## *** n.bootstrap
   validInteger(n.bootstrap, validLength = 1, min = 0, method = "BuyseTest")
   
-  ## proba
+  ## *** proba
   if (is.null(prob.alloc)) { # if prob.alloc is not set by the user
     prob.alloc <- n.Treatment/(n.Treatment + n.Control)  # it is set to the proportion of patients in the treatment arm.
   }else{
@@ -194,17 +199,17 @@ BuyseTest <- function(formula, data,
   # stratified
   validLogical(stratified, validLength = 1, method = "BuyseTest")
   
-  ## seed
+  ## *** seed
   validInteger(seed, validLength = 1, refuse.NULL = FALSE, min = 1, method = "BuyseTest")
   
-  ## cpu
+  ## *** cpu
   if (cpus == "all") { 
     cpus <- parallel::detectCores() # this function detect the number of CPU cores 
   }else{# if several cpus are intended to be used, check this correspond to a valid number of CPU cores
     validInteger(cpus, validLength = 1, validValues = 1:parallel::detectCores(), method = "BuyseTest")
   }
   
-  ## data (again)
+  ## *** data (again)
   res <- initData(dataT = dataT, dataC = dataC,type = type,endpoint = endpoint, D = D, censoring = censoring,
                   index.strataT = index.strataT, index.strataC = index.strataC, n.strata = n.strata,                  
                   method = method,D.TTE = D.TTE, threshold = threshold, Wscheme = NULL,
@@ -220,7 +225,7 @@ BuyseTest <- function(formula, data,
   list_survivalT <- res$list_survivalT
   list_survivalC <- res$list_survivalC
   
-  #### 2- General display #### 
+  ## ** 2- General display
   if (trace > 1) {
     printGeneral(levels.treatment = levels.treatment,
                  levels.strata = levels.strata, n.strata = n.strata,
@@ -230,7 +235,7 @@ BuyseTest <- function(formula, data,
                  threshold_TTEM1 = if (D>1 && method %in% 1:3) {threshold_TTEM1} else {NULL})
   }
   
-  #### 2- Punctual estimation ####
+  ## ** 3- Punctual estimation
   if (trace > 1) {cat("Punctual estimation \n")}
   
   time <- system.time({
@@ -245,7 +250,7 @@ BuyseTest <- function(formula, data,
   })
   if (trace > 1) {cat("   # done \n")}
   
-  #### 3- transfomration into BuyseRes object ####
+  ## ** 4- Transfomration into BuyseRes object
   BuyseRes.object <- BuyseRes(
     count_favorable = resPonctual$count_favorable,      
     count_unfavorable = resPonctual$count_unfavorable,
@@ -264,7 +269,7 @@ BuyseTest <- function(formula, data,
     threshold = threshold
   )
   
-  #### 4- Bootstrap ####
+  ## ** 5- Bootstrap 
   if (n.bootstrap > 0) {
     if (trace > 1) {
       printBoostrap(prob.alloc, n.bootstrap, stratified, cpus, time, seed)
@@ -282,16 +287,16 @@ BuyseTest <- function(formula, data,
                        winRatio = matrix(NA, nrow = D, ncol = n.bootstrap)
     )
     
-    #### computation
+    ## *** computation
     calcBootstrap(environment())
     
-    #### post treatment
+    ## *** post treatment
     if (trace > 1) {cat("Post-Treatment \n")}
     resCI <- calcCI(Delta = BuyseRes.object@Delta, Delta_boot = Delta_boot, 
                     endpoint = endpoint, D = D, alternative = alternative, alpha = 1 - BuyseTest.options()$conf.level,
                     n.bootstrap = n.bootstrap, cpus = cpus, trace = trace)
     
-    #### update BuyseRes object 
+    ## *** update BuyseRes object 
     if(BuyseTest.options()$keep.bootstrap){
       BuyseRes.object@delta_boot <- delta_boot
     }
@@ -302,6 +307,6 @@ BuyseTest <- function(formula, data,
     validObject(BuyseRes.object)
   }
   
-  #### export ####
+  ## ** 6- export
   return(BuyseRes.object)
 }

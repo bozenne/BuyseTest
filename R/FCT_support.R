@@ -1,5 +1,6 @@
-#' @name constStrata
+## * Documentation - constStrata
 #' @title Strata creation
+#' @name constStrata
 #' @aliases constStrata
 #' 
 #' @description Create strata from several variables.
@@ -32,8 +33,10 @@
 #'   veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"),as.numeric=TRUE)
 #'   table(veteran$strata2) # numeric strata variable
 #' 
-#' 
 #' @keywords function
+
+## * Function constStrata
+#' @rdname constStrata
 #' @export
 constStrata <- function(data,strata,sep=".",lex.order = FALSE,trace=TRUE,as.numeric=FALSE){
   
@@ -53,7 +56,7 @@ constStrata <- function(data,strata,sep=".",lex.order = FALSE,trace=TRUE,as.nume
   n.levels <- length(levels)
   
   
-  # display
+  ## ** display
   if(trace==TRUE){
     table_tempo <- as.numeric(table(resInteractions))
     max.num <- 5 #nchar(max(n.levels))
@@ -73,11 +76,11 @@ constStrata <- function(data,strata,sep=".",lex.order = FALSE,trace=TRUE,as.nume
     cat("(total) ",rep(" ",max(ncharLevels,6))," : ",length(resInteractions),"\n",sep="")
   }
   
-  # conversion
+  ## ** conversion
   if(as.numeric==TRUE){
     resInteractions <- as.numeric(resInteractions)
   }
   
-  # export 
+  ## ** export 
   return(resInteractions)
 }

@@ -1,3 +1,4 @@
+## * Documentation - simulBT
 #' @name Simulation function
 #' @rdname simulation
 #' @title Simulation of data for the BuyseTest
@@ -63,6 +64,10 @@
 #' simulBT(1e3, n.strata = c(2,4), names.strata = c("Gender","AgeCategory"))
 #' 
 #' @keywords function simulations
+#'
+
+## * Function simulBT
+#' @rdname simulation
 #' @export
 simulBT <- function(n.T, n.C = NULL, 
                     argsBin = list(), argsCont = list(), argsTTE = list(),
@@ -72,14 +77,14 @@ simulBT <- function(n.T, n.C = NULL,
     if(length(n.strata)==1){names.strata <- "strata"}else{names.strata <- paste0("strataVar",1:n.strata)}
   }
   
-  ## test
+  ## ** test
   if(is.null(n.C)){n.C <- n.T}
   validNumeric(n.C, min = 0, validLength = 1, method = "simulBT")
   validNumeric(n.T, min = 0, validLength = 1, method = "simulBT")
   validInteger(n.strata, validLength = NULL, refuse.NULL = FALSE, min = 1, method = "simulBT")
   validCharacter(format, validLength = 1, validValues = c("data.table","data.frame","matrix"), method = "simulBT")
   
-  ## lvm 
+  ## ** lvm 
   mT.lvm <- lvm()
   mC.lvm <- lvm()
   if(!is.null(argsBin)){
@@ -98,7 +103,7 @@ simulBT <- function(n.T, n.C = NULL,
     mC.lvm <- newLVM$modelC
   }
   
-  ## strata
+  ## ** strata
   if(!is.null(n.strata)){
     validCharacter(names.strata, validLength = length(n.strata), refuse.NULL = TRUE, method = "simulBT")
     
@@ -113,7 +118,7 @@ simulBT <- function(n.T, n.C = NULL,
     }
   }
   
-  ## simulation
+  ## ** simulation
   df.T <- cbind(Treatment = 1, lava::sim(mT.lvm, n.T))
   df.C <- cbind(Treatment = 0, lava::sim(mC.lvm, n.C))
   if(!is.null(argsTTE)){
@@ -121,26 +126,27 @@ simulBT <- function(n.T, n.C = NULL,
     df.C <- df.C[,setdiff(names(df.C),newLVM$latent)]
   }
   
-  ## export
+  ## ** export
   res <- do.call(format, args =  rbind(df.T, df.C))
   return(res)
 }
 
+## * Function simulBT_bin
 simulBT_bin <- function(modelT, modelC, p.T = 0.5, p.C = NULL, name = NULL){
 
-  ## intialisation
+  ## ** intialisation
   n.endpoints <- length(p.T)
   if(is.null(name)){ 
     if(n.endpoints == 1){name <- "toxicity"}else{name <- paste0("toxicity",1:n.endpoints)}
   }
   if(is.null(p.C)){p.C <- p.T}
   
-  ## tests
+  ## ** tests
   validNumeric(p.T, min = 0, max = 1, validLength = NULL, method = "simulBT")
   validNumeric(p.C, min = 0, max = 1, validLength = n.endpoints, method = "simulBT")
   validCharacter(name, validLength = n.endpoints, method = "simulBT")
   
-  ## model
+  ## ** model
   for(iterE in 1:n.endpoints){
     if(any(name[iterE] %in% lava::vars(modelT))){
       stop("simulBT_bin: variable already in the LVM \n",
@@ -151,14 +157,15 @@ simulBT_bin <- function(modelT, modelC, p.T = 0.5, p.C = NULL, name = NULL){
     lava::distribution(modelC, name[iterE]) <- lava::binomial.lvm(link = "identity", p = p.C[iterE])
   }
   
-  ## export
+  ## ** export
   return(list(modelT = modelC, modelC = modelC))
   
 }
 
+## * Function simulBT_cont
 simulBT_cont <- function(modelT, modelC, mu.T = 0, sigma.T = 1, mu.C = NULL, sigma.C = NULL, name = NULL){
   
-  ## intialisation
+  ## ** intialisation
   n.endpoints <- length(mu.T)
   if(is.null(name)){ 
     if(n.endpoints == 1){name <- "score"}else{name <- paste0("score",1:n.endpoints)}
@@ -166,14 +173,14 @@ simulBT_cont <- function(modelT, modelC, mu.T = 0, sigma.T = 1, mu.C = NULL, sig
   if(is.null(mu.C)){mu.C <- mu.T}
   if(is.null(sigma.C)){sigma.C <- sigma.T}
   
-  ## tests
+  ## ** tests
   validNumeric(mu.T, validLength = NULL, method = "simulBT")
   validNumeric(sigma.T, validLength = n.endpoints, min = 0, method = "simulBT")
   validNumeric(mu.C, validLength = n.endpoints, method = "simulBT")
   validNumeric(sigma.C, validLength = n.endpoints, min = 0, method = "simulBT")
   validCharacter(name, validLength = n.endpoints, method = "simulBT")
   
-  #### model
+  ## ** model
   for(iterE in 1:n.endpoints){
     if(any(name[iterE] %in% lava::vars(modelT))){
       stop("simulBT_cont: variable already in the LVM \n",
@@ -184,15 +191,16 @@ simulBT_cont <- function(modelT, modelC, mu.T = 0, sigma.T = 1, mu.C = NULL, sig
     lava::distribution(modelC, name[iterE]) <- lava::gaussian.lvm(link = "identity", mean = mu.C[iterE], sd = sigma.C[iterE])
   }
   
-  ## export
+  ## ** export
   return(list(modelT = modelT, modelC = modelC))
 }
 
+## * Function simulBT_TTE
 simulBT_TTE <- function(modelT, modelC, 
                         rates.T = 2, rates.C = NULL, rates.Censoring = 1, sigma.C = NULL, 
                         name = NULL, nameCensoring = NULL){
   
-  ## intialisation
+  ## ** intialisation
   n.endpoints <- length(rates.T)
   if(is.null(name)){ 
     if(n.endpoints == 1){name <- "eventtime"}else{name <- paste0("eventtime",1:n.endpoints)}
@@ -205,7 +213,7 @@ simulBT_TTE <- function(modelT, modelC,
   name0 <- paste0(name,"Uncensored")
   nameC <- paste0(name,"Censoring")
   
-  ## tests
+  ## ** tests
   validNumeric(rates.T, validLength = NULL, method = "simulBT")
   validNumeric(rates.C, validLength = n.endpoints, min = 0, method = "simulBT")
   validNumeric(rates.Censoring, validLength = n.endpoints, min = 0, method = "simulBT")
@@ -213,7 +221,7 @@ simulBT_TTE <- function(modelT, modelC,
   validCharacter(nameCensoring, validLength = n.endpoints, method = "simulBT")
   
   
-  #### model
+  ## ** model
   for(iterE in 1:n.endpoints){
     allvarE <- c(name[iterE], name0[iterE], nameC[iterE], nameCensoring[iterE])
     if(any(allvarE %in% lava::vars(modelT))){
@@ -232,7 +240,7 @@ simulBT_TTE <- function(modelT, modelC,
     modelC <- lava::eventTime(modelC, stats::as.formula(txtSurv), nameCensoring[iterE])
   }
   
-  ## export
+  ## ** export
   return(list(modelT = modelT, modelC = modelC, latent = c(name0,nameC)))
   
 }

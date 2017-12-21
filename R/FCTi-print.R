@@ -1,3 +1,4 @@
+## * Documentation - print function called by BuyseTest 
 #' @name internal-print
 #' @rdname internal-print
 #' @title internal functions for BuyseTest - display
@@ -12,7 +13,7 @@
 #' 
 #' @keywords function internal BuyseTest
 
-
+## * Function printGeneral
 printGeneral <- function(levels.treatment,
                          levels.strata, n.strata,
                          endpoint, threshold, censoring, type, D, D.TTE,

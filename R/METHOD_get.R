@@ -1,3 +1,4 @@
+## * Documentation - getCount
 #' @name BuyseRes-getCount
 #' @title get Method for Class "BuyseRes"
 #' @include OBJECT_BuyseTest.R
@@ -24,6 +25,7 @@ setGeneric(name = "getCount",
            def = function(object, type){standardGeneric("getCount")}
 )
 
+## * Method - getCount
 #' @rdname BuyseRes-getCount
 setMethod(f = "getCount",
           signature = "BuyseRes",

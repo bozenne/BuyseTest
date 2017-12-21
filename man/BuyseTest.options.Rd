@@ -31,5 +31,4 @@ BuyseTest.options("n.bootstrap", "trace")
 
 ## reinitialise all global parameters
 BuyseTest.options(reinitialise = TRUE)
-
 }

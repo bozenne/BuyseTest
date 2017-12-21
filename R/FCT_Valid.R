@@ -1,3 +1,4 @@
+## * Documentation - functions checkin the consistency of the arguments
 #' @name validFCTs
 #' @aliases validClass
 #' @aliases validDimension
@@ -36,6 +37,7 @@
 #' 
 #' @keywords function check
 
+## * ValidCharacter
 #' @rdname validFCTs
 validCharacter <- function(value1, name1 = as.character(substitute(value1)), validLength, 
                            validValues = "character", refuse.NULL = TRUE, refuse.duplicates = FALSE, 
@@ -53,7 +55,7 @@ validCharacter <- function(value1, name1 = as.character(substitute(value1)), val
     
   }else{
     
-    #### check size
+    ## ** check size
     n.value1 <- length(value1)
     
     if(!is.null(validLength) && n.value1 %in% validLength == FALSE){
@@ -61,12 +63,12 @@ validCharacter <- function(value1, name1 = as.character(substitute(value1)), val
            "length(", name1, ") : ", n.value1, "\n")
     }
     
-    #### check duplicates
+    ## ** check duplicates
     if(refuse.duplicates == TRUE && any(duplicated(value1))){
       stop(method, "\'", name1, "\' contains duplicated values: ", "\"",paste(unique(value1[duplicated(value1)]), collapse = "\" \""), "\" \n")
     }
     
-    #### check values
+    ## ** check values
     if(identical(validValues,"character")){
       
       if(any(is.character(value1) == FALSE)){
@@ -95,6 +97,7 @@ validCharacter <- function(value1, name1 = as.character(substitute(value1)), val
   
 }
 
+## * validClass
 #' @rdname validFCTs
 validClass <- function(value1, name1 = as.character(substitute(value1)), validClass, 
                        superClasses = TRUE, method = NULL, addPP = TRUE){
@@ -123,6 +126,7 @@ validClass <- function(value1, name1 = as.character(substitute(value1)), validCl
   
 }
 
+## * validDimension
 #' @rdname validFCTs
 validDimension <- function(value1, value2 = NULL, name1 = as.character(substitute(value1)), name2 = as.character(substitute(value2)),
                            validDimension = NULL,
@@ -134,14 +138,12 @@ validDimension <- function(value1, value2 = NULL, name1 = as.character(substitut
   
   n.type <- length(type)
   
-  #### dimension 1
+  ## ** dimension 1
   testDimension <- sapply(1:n.type, function(x){
     do.call(type[x], list(value1))
   })
   
-  #### dimension 2
-  
-  
+  ## ** dimension 2  
   if(is.null(validDimension)){
     
     validDimension <- sapply(1:n.type, function(x){
@@ -159,7 +161,7 @@ validDimension <- function(value1, value2 = NULL, name1 = as.character(substitut
     
   }
   
-  #### main
+  ## ** main
   for(iter_type in 1:n.type){
     
     if(testDimension[iter_type] != validDimension[iter_type]){
@@ -182,6 +184,7 @@ validDimension <- function(value1, value2 = NULL, name1 = as.character(substitut
   return(invisible(TRUE))
 }
 
+## * validInteger
 #' @rdname validFCTs
 validInteger <- function(value1, name1 = as.character(substitute(value1)), validLength, 
                          validValues = NULL, min = NULL, max = NULL, 
@@ -196,7 +199,7 @@ validInteger <- function(value1, name1 = as.character(substitute(value1)), valid
                validValues = validValues, refuse.NA = refuse.NA, refuse.NULL = refuse.NULL, refuse.duplicates = refuse.duplicates, 
                method = method)
   
-  #### check integer
+  ## ** check integer
   if(!is.null(value1) && any(value1 %% 1 > 0)){
     stop(method, "\'", name1, "\' must contain integers not doubles \n",        
          "invalid value(s) in ", name1, " : ", paste(value1[value1 %% 1 > 0], collapse = " "), "\n")
@@ -205,6 +208,7 @@ validInteger <- function(value1, name1 = as.character(substitute(value1)), valid
   return(invisible(TRUE))
 }
 
+## * validLogical
 #' @rdname validFCTs
 validLogical <- function(value1, name1 = as.character(substitute(value1)), validLength, 
                          refuse.NULL = TRUE, refuse.NA = TRUE, 
@@ -216,20 +220,20 @@ validLogical <- function(value1, name1 = as.character(substitute(value1)), valid
   
   if(is.null(value1)){
     
-    #### NULL
+    ## ** NULL
     if(refuse.NULL == TRUE){
       stop(method, "\'", name1, "\' must be logical ",if(refuse.NA == FALSE){"or NA"}," and not NULL \n")
     }
     
   }else{ 
     
-    #### Size
+    ## ** Size
     if(!is.null(validLength) && length(value1) %in% validLength == FALSE){
       stop(method, "\'", name1, "\' must have length ", paste(validLength, collapse = " or "), "  \n", 
            "length(", name1, ") : ", length(value1), "\n")
     } 
     
-    #### Type
+    ## ** Type
     if(any(is.logical(value1) == FALSE)){
       stop(method, "\'", name1, "\' must be ", if(refuse.NULL == FALSE){"NULL or "}, if(refuse.NA == FALSE){"NA or "},"TRUE or FALSE \n",        
            "is(", name1, ") : ", paste(is(value1), collapse = " "), "\n")
@@ -244,6 +248,7 @@ validLogical <- function(value1, name1 = as.character(substitute(value1)), valid
   return(invisible(TRUE))
 }
 
+## * validNames
 #' @rdname validFCTs
 validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.NULL = TRUE,
                        validLength = NULL, validValues = NULL, requiredValues = NULL, refuse.values = NULL,
@@ -253,7 +258,7 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
     method <- paste0(method, ": ")
   }
   
-  ## type
+  ## ** type
   if(is.matrix(value1)){
     value1 <- colnames(value1)
   }
@@ -262,7 +267,7 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
     value1 <- names(value1)
   }
   
-  ## tests
+  ## ** tests
   if(is.null(value1)){
     
     if(refuse.NULL == TRUE){
@@ -270,7 +275,7 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
     }
     
   }else{
-    #### check size
+    ## ** check size
     n.value1 <- length(value1)
     
     if(!is.null(validLength) && n.value1 %in% validLength == FALSE){
@@ -278,7 +283,7 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
            "length(names(", name1, ")) : ", n.value1, "\n")
     }
     
-    #### check content
+    ## ** check content
     
     if(!is.null(requiredValues) && any(requiredValues %in% value1 == FALSE)){
       
@@ -311,6 +316,8 @@ validNames <- function(value1, name1 = as.character(substitute(value1)), refuse.
   return(invisible(TRUE))
   
 }
+
+## * validNumeric
 #' @rdname validFCTs
 validNumeric <- function(value1, name1 = as.character(substitute(value1)), validLength,
                          validValues = NULL , min = NULL, max = NULL,
@@ -329,42 +336,42 @@ validNumeric <- function(value1, name1 = as.character(substitute(value1)), valid
     
   }else{
     
-    #### check length
+    ## ** check length
     if(!is.null(validLength) && length(value1) %in% validLength == FALSE){
       stop(method, "\'", name1, "\' must have length ", paste(validLength, collapse = " or "), "  \n", 
            "length(", name1, ") : ", length(value1), "\n")
     }
     
-    #### check NA
+    ## ** check NA
     if(refuse.NA == TRUE && any(is.na(value1))){
       stop(method, "\'", name1, "\' must not contain any NA \n", 
            "index of NA values : ", paste(which(is.na(value1)), collapse = " "), "\n")
     }
     
-    #### check numeric
+    ## ** check numeric
     if(any( (is.numeric(value1) == FALSE) * (is.na(value1) == FALSE) )){
       stop(method, "\'", name1, "\' must be numeric \n",        
            "is(", name1, ") : ", paste(is(value1), collapse = " "), "\n")
     }
     
-    #### check duplicates
+    ## ** check duplicates
     if(refuse.duplicates == TRUE && any(duplicated(value1))){
       stop(method, "\'", name1, "\' contains duplicated values: ", paste(unique(value1[duplicated(value1)]), collapse = " "), "\n")
     }
     
-    #### check min value1
+    ## ** check min value1
     if(!is.null(min) && any(stats::na.omit(value1) < min)){
       stop(method, "\'", name1, "\' must be bigger than ", min, " \n",        
            "invalid value(s): ", paste(value1[stats::na.omit(value1) < min], collapse = " "), "\n")
     }
     
-    #### check max value1
+    ## ** check max value1
     if(!is.null(max) && any(stats::na.omit(value1) > max)){
       stop(method, "\'", name1, "\' must be smaller than ", max, " \n",        
            "invalid value(s): ", paste(value1[stats::na.omit(value1) > max], collapse = " "), "\n")
     }
     
-    #### check valid values
+    ## ** check valid values
     if(!is.null(validValues) && any(value1 %in% validValues == FALSE)){
       
       stop(method, "\'", name1, "\' contain invalid values \n", 
@@ -377,6 +384,7 @@ validNumeric <- function(value1, name1 = as.character(substitute(value1)), valid
   return(invisible(TRUE))
 }
 
+## * validPath
 #' @rdname validFCTs
 validPath <- function(value1, name1 = as.character(substitute(value1)), type,
                       method = NULL, addPP = TRUE, extension = NULL, checkFsep = FALSE){

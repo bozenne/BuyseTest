@@ -1,5 +1,6 @@
-#' @name BuyseTest.options-class
+## * Documentation BuyseTest.options
 #' @title Class "BuyseTest.options" (global setting for the BuyseTest package)
+#' @name BuyseTest.options-class
 #' @aliases BuyseTest.options-class
 #' @include METHOD_generic.R
 #' 
@@ -13,6 +14,9 @@
 #' \code{\link{BuyseTest.options}} to select or update global settings.#' 
 #' 
 #' @keywords classes options BuyseTest.options-class
+
+## * Class BuyseTest.options
+#' @rdname BuyseTest.options-class
 setClass(
   Class = "BuyseTest.options",
   
@@ -27,7 +31,8 @@ setClass(
     seed = "numeric",
     statistic = "character"
   ),
-  
+
+  ### ** Check validity of the object
   validity = function(object){
     
     validNumeric(object@conf.level, name1 = "@conf.level", min = 0, max = 1, validLength = 1, method = "Class BuyseTest.options")
@@ -42,9 +47,8 @@ setClass(
     return(TRUE)} 
 )
 
-
-#' @name BuyseTest.options-methods
 #' @title Methods for the class "BuyseTest.options" 
+#' @name BuyseTest.options-methods
 #' @aliases BuyseTest.options-methods alloc,BuyseTest.options-method select,BuyseTest.options-method
 #'
 #' @description Methods to update or select global settings
@@ -53,6 +57,7 @@ setClass(
 #' @param field a \code{list} named with the name of the fields to update and containing the values to assign to these fields
 #' @param name.field a \code{character vector} containing the names of the field to be selected.
 
+## * Alloc BuyseTest.options
 #' @rdname BuyseTest.options-methods
 setMethod(f = "alloc",
           signature = "BuyseTest.options",
@@ -69,6 +74,7 @@ setMethod(f = "alloc",
           }
 )
 
+## * Select BuyseTest.options
 #' @rdname BuyseTest.options-methods
 setMethod(f = "select",
           signature = "BuyseTest.options",

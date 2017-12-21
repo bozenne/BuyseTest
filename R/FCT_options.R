@@ -1,4 +1,6 @@
+## * Documentation - BuyseTest.options
 #' @title Global options for BuyseTest package
+#' @name BuyseTest.options
 #' @include onload.R
 #'
 #' @description Update or select global options for the BuyseTest package.
@@ -21,7 +23,9 @@
 #' 
 #' ## reinitialise all global parameters
 #' BuyseTest.options(reinitialise = TRUE)
-#' 
+
+## * Function BuyseTest.options
+#' @rdname BuyseTest.options
 #' @export
 BuyseTest.options <- function(..., reinitialise = FALSE){
   

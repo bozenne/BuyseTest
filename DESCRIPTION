@@ -2,7 +2,7 @@ Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
 Version: 1.2
-Date: 2017-05-12
+Date: 2017-12-21
 Author: Brice Ozenne[aut, cre], Julien Peron[aut]
 Maintainer: brice ozenne <brice.ozenne@orange.fr>
 Description: Implementation of the Generalized Pairwise Comparisons. This test
@@ -54,6 +54,6 @@ Collate:
     'OBJECT_BuyseTest.R'
     'METHOD_get.R'
     'METHOD_summary.R'
-    'METHOD_print.R'
+    'METHOD_show.R'
     'OBJECT_BuyseTest-options.R'
     'RcppExports.R'

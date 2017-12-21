@@ -45,6 +45,5 @@ This function uses the \code{interaction} function from the \emph{base} package 
   veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"),as.numeric=TRUE)
   table(veteran$strata2) # numeric strata variable
 
-
 }
 \keyword{function}

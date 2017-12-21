@@ -30,6 +30,6 @@
 #' @keywords function Cpp BuyseTest
 #' @export
 GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE, neutralAsUninf) {
-    .Call('BuyseTest_GPC_cpp', PACKAGE = 'BuyseTest', Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE, neutralAsUninf)
+    .Call(`_BuyseTest_GPC_cpp`, Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE, neutralAsUninf)
 }
 

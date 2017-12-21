@@ -1,3 +1,4 @@
+## * Documentation - summary
 #' @docType methods
 #' @name BuyseRes-summary
 #' @title Summary Method for Class "BuyseRes"
@@ -49,40 +50,41 @@
 #'  summary(BT, statistic = "winRatio")
 #' 
 #' @keywords summary BuyseRes-method
-
-#' @rdname BuyseRes-summary
 setGeneric(name = "summary", 
            def = function(object, ...){standardGeneric("summary")}
 )
 
 
+## * method - summary
 #' @rdname BuyseRes-summary
 #' @exportMethod summary
 setMethod(f = "summary",
           signature = "BuyseRes",
-          definition = function(object, show = TRUE, percentage = TRUE, statistic = BuyseTest.options()$statistic, 
-                                strata = if(length(object@strata)==1){"global"}else{NULL}, digit = c(2,3)){
-         
-            # preparation
-            validLogical(show, name1 = "show", validLength = 1, method = "summary[BuyseRes]")
-            validLogical(percentage, name1 = "percentage", validLength = 1, method = "summary[BuyseRes]")
-            validCharacter(statistic, name1 = "statistic", validValues = c("netChance","winRatio"), validLength = 1, method = "summary[BuyseRes]")
+          definition = function(object, show = TRUE, percentage = TRUE,
+                                statistic = BuyseTest.options()$statistic, 
+                                strata = if(length(object@strata)==1){"global"}else{NULL},
+                                digit = c(2,3)){
+              
+              ### ** preparation
+              validLogical(show, name1 = "show", validLength = 1, method = "summary[BuyseRes]")
+              validLogical(percentage, name1 = "percentage", validLength = 1, method = "summary[BuyseRes]")
+              validCharacter(statistic, name1 = "statistic", validValues = c("netChance","winRatio"), validLength = 1, method = "summary[BuyseRes]")
             
-            # mise en forme
-            n.endpoint <- length(object@endpoint)
-            n.strata <- length(object@strata)
+              ### ** mise en forme
+              n.endpoint <- length(object@endpoint)
+              n.strata <- length(object@strata)
             
-            delta <- object@delta[[statistic]]
-            Delta <- object@Delta[[statistic]]
-            Delta_quantile <- object@Delta_quantile[[statistic]]
-            n_bootstrap <- object@n_bootstrap[[statistic]]
-            p.value <- object@p.value[[statistic]]
+              delta <- object@delta[[statistic]]
+              Delta <- object@Delta[[statistic]]
+              Delta_quantile <- object@Delta_quantile[[statistic]]
+              n_bootstrap <- object@n_bootstrap[[statistic]]
+              p.value <- object@p.value[[statistic]]
             
-            table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15))
-            names(table) <- c("endpoint","threshold","strata","n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value","")
+              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15))
+              names(table) <- c("endpoint","threshold","strata","n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value","")
             
-            #### fill
-            index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
+              ### ** fill
+              index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
             
               table[index.global,"n.favorable"] <- colSums(object@count_favorable)
               table[index.global,"n.unfavorable"] <- colSums(object@count_unfavorable)
@@ -122,9 +124,9 @@ setMethod(f = "summary",
               table[index.strata,"delta"] <- delta[iter_strata,]
             }
              
-            #### posttreatment
+            ### ** posttreatment
             
-            ## normalization of the counts
+            ## *** normalization of the counts
             if(percentage){
               table[,"n.favorable"] <- 100*table[,"n.favorable"]/table[1,"n.total"]
               table[,"n.unfavorable"] <- 100*table[,"n.unfavorable"]/table[1,"n.total"]
@@ -133,22 +135,22 @@ setMethod(f = "summary",
               table[,"n.total"] <- 100*table[,"n.total"]/table[1,"n.total"]
             }
             
-            ## bootstrap
+            ## *** bootstrap
             if(all(is.na(table[index.global,"n.bootstrap"]))){
               keep.cols <- setdiff(names(table), c("CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
               table <- table[,keep.cols, drop = FALSE]
             }
              
-            ## strata
-            if(!is.null(strata)){
-              table <- table[table$strata %in% strata,,drop = FALSE]
-              if(identical(strata, "global")){
-                keep.cols <- which(names(table) %in% setdiff(names(table), "strata"))
-                table <- table[,keep.cols,drop = FALSE]
+              ## *** strata
+              if(!is.null(strata)){
+                  table <- table[table$strata %in% strata,,drop = FALSE]
+                  if(identical(strata, "global")){
+                      keep.cols <- which(names(table) %in% setdiff(names(table), "strata"))
+                      table <- table[,keep.cols,drop = FALSE]
+                  }
               }
-            }
             
-            ## rounding
+            ## *** rounding
             if(length(digit) == 1){digit <- rep(digit,2)}
             
             if(!is.na(digit[1]) && digit[1]>=0){
@@ -168,7 +170,7 @@ setMethod(f = "summary",
               names(table)[match(c("n.favorable","n.unfavorable","n.neutral","n.uninf","n.total"),names(table))] <- c("pc.favorable","pc.unfavorable","pc.neutral","pc.uninf","pc.total")
             }
             
-            # affichage
+            ### ** affichage
             if(show){
               table.print <- table
               emptyCol <- which(names(table.print) %in% c("Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
@@ -189,8 +191,8 @@ setMethod(f = "summary",
               print(table.print, row.names = FALSE)         
             }
             
-            # export
-            return(invisible(table))
+              ### ** export
+              return(invisible(table))
             
           }
 )

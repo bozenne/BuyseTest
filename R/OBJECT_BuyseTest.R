@@ -1,4 +1,4 @@
-## * BuyseRes-class Documentation
+## * Documentation BuyseRes
 #' @name BuyseRes-class
 #' @title Class "BuyseRes" (output of BuyseTest)
 #' @aliases  BuyseRes BuyseRes-class
@@ -55,7 +55,7 @@
 #' @keywords classes BuyseRes-class
 #' 
 
-## * BuyseRes-class
+## * Class BuyseRes
 #' @rdname BuyseRes-class
 #' @exportClass BuyseRes
 setClass(
@@ -124,7 +124,7 @@ setClass(
     return(TRUE)} 
 )
 
-## * initialiwe BuyseRes objects
+## * Initialiwe BuyseRes objects
 methods::setMethod(
   f = "initialize", 
   signature = "BuyseRes", 
@@ -184,4 +184,6 @@ methods::setMethod(
     
 })
 
+
+## * Constructor BuyseRes objects
 BuyseRes <- function(...) new("BuyseRes", ...) 
