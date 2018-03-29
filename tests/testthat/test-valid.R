@@ -1,6 +1,6 @@
 verboseContext("Check valid functions")
 
-#### ValidCharacter ####
+## ** ValidCharacter
 
 test_that("validCharacter", {
   test.value <- as.character(1)

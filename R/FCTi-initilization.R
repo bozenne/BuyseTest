@@ -1,4 +1,4 @@
-## * Documentation initialization functions
+## * Documentation initialization functions called by BuyseTest
 
 #' @name internal-intilisation
 #' @rdname internal-intilisation
@@ -12,6 +12,10 @@
 #' 
 #' 
 #' \code{initCensoring}: If no TTE and censoring is full of NA, set it to NULL. Else when censoring contains NA for the non-TTE endpoints, remove them. \cr
+#' \code{initData}: Check that TTE outcome and censoring variable do not contain NAs,
+#' display a warning if the other outcomes contain NAs,
+#' check that binary/continuous/TTE are indeed what binary/numeric/positive,
+#' define design matrix for each group and additional information (e.g. survival). \cr
 #' \code{initFormula}: If a formula is given in argument, extract the type of endpoints, the name of the endpoints, the thresholds and the name of the status variables. \cr
 #' \code{initStrata}: merge the strata into one with the interaction function and compute the index of the observations relative to each strata. \cr
 #' \code{initThreshold}: set default threshold to 1e-12 expect for binary variable where it is set to 1. 
@@ -24,7 +28,8 @@
 
 ## Functions called by BuyseTest for the initialization
 
-## * Function initCensoring
+## * Directly called by BuyseTest
+## ** Function initCensoring
 #' @rdname internal-intilisation
 initCensoring <- function(censoring,endpoint,type,D,D.TTE,
                           treatment,strata){
@@ -49,7 +54,7 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
              "\'censoring\' must be NA for binary or continuous endpoints \n",
              "binary or continuous endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
              "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n"
-        )
+             )
       }
       
       if( any(is.na(censoring[type==3])) ){
@@ -73,12 +78,12 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
   return(censoring)
 }
 
-## * Function initData
+## ** Function initData
 #' @rdname internal-intilisation
-initData <- function(dataT,dataC,type,endpoint,D,censoring,
-                     index.strataT,index.strataC,n.strata,          
-                     method,D.TTE,threshold,Wscheme=NULL,
-                     trace,test=TRUE){
+initData <- function(dataT, dataC, type, endpoint, D, censoring,
+                     index.strataT, index.strataC, n.strata,          
+                     method, D.TTE, threshold, Wscheme = NULL,
+                     trace, test = TRUE){
   
   ## ** check NA
   if(test && any(type==3)){
@@ -108,8 +113,18 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
   indexY <- which(type==1)
   if(test && length(indexY)>0){
     for(iterY in indexY){
-      validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY], validValues = 0:1, refuse.NA =  FALSE, validLength = NULL, method = "BuyseTest")
-      validNumeric(dataC[[endpoint[iterY]]], name1 = endpoint[iterY], validValues = 0:1, refuse.NA =  FALSE, validLength = NULL, method = "BuyseTest")
+      validNumeric(dataT[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.values = 0:1,
+                   refuse.NA =  FALSE,
+                   valid.length = NULL,
+                   method = "BuyseTest")
+      validNumeric(dataC[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.values = 0:1,
+                   refuse.NA =  FALSE,
+                   valid.length = NULL,
+                   method = "BuyseTest")
     }
   }
   
@@ -117,8 +132,16 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
   indexY <- which(type==2)
   if(test && length(indexY)>0){
     for(iterY in indexY){
-      validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, refuse.NA =  FALSE, method = "BuyseTest")
-      validNumeric(dataC[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, refuse.NA =  FALSE, method = "BuyseTest")
+      validNumeric(dataT[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   refuse.NA =  FALSE,
+                   method = "BuyseTest")
+      validNumeric(dataC[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   refuse.NA =  FALSE,
+                   method = "BuyseTest")
     }
   }
   
@@ -126,10 +149,24 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
   indexY <- which(type==3)
   if(test && length(indexY)>0){
     for(iterY in indexY){
-      validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, method = "BuyseTest")
-      validNumeric(dataC[[endpoint[iterY]]], name1 = endpoint[iterY], validLength = NULL, method = "BuyseTest")
-      validNumeric(dataT[[censoring[which(indexY == iterY)]]], name1 = censoring[which(indexY == iterY)], validValues = c(0,1), validLength = NULL, method = "BuyseTest")
-      validNumeric(dataC[[censoring[which(indexY == iterY)]]], name1 = censoring[which(indexY == iterY)], validValues = c(0,1), validLength = NULL, method = "BuyseTest")
+      validNumeric(dataT[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   method = "BuyseTest")
+      validNumeric(dataC[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   method = "BuyseTest")
+      validNumeric(dataT[[censoring[which(indexY == iterY)]]],
+                   name1 = censoring[which(indexY == iterY)],
+                   valid.values = c(0,1),
+                   valid.length = NULL,
+                   method = "BuyseTest")
+      validNumeric(dataC[[censoring[which(indexY == iterY)]]],
+                   name1 = censoring[which(indexY == iterY)],
+                   valid.values = c(0,1),
+                   valid.length = NULL,
+                   method = "BuyseTest")
     }
   }
   
@@ -169,15 +206,28 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
     
     ## *** design matrix for the weights
     if(is.null(Wscheme)){
-      res_init <- initWscheme(D=D,endpoint=endpoint,endpoint.TTE=endpoint.TTE,D.TTE=D.TTE,threshold=threshold,type=type)
+        res_init <- initWscheme(D=D,
+                                endpoint=endpoint,
+                                endpoint.TTE=endpoint.TTE,
+                                D.TTE=D.TTE,
+                                threshold=threshold,
+                                type=type)
       Wscheme <- res_init$Wscheme  
       index_survivalM1 <- res_init$index_survivalM1
       threshold_TTEM1 <- res_init$threshold_TTEM1       
     }
-    ## **** Survival estimate using Kaplan Meier    
-    res_init <- initSurvival(M.Treatment=M.Treatment,M.Control=M.Control,M.delta_Treatment=M.delta_Treatment,M.delta_Control=M.delta_Control,
-                             endpoint=endpoint,D.TTE=D.TTE,type=type,threshold=threshold,
-                             index.strataT=index.strataT,index.strataC=index.strataC,n.strata=n.strata,   
+    ## *** Survival estimate using Kaplan Meier    
+    res_init <- initSurvival(M.Treatment=M.Treatment,
+                             M.Control=M.Control,
+                             M.delta_Treatment=M.delta_Treatment,
+                             M.delta_Control=M.delta_Control,
+                             endpoint=endpoint,
+                             D.TTE=D.TTE,
+                             type=type,
+                             threshold=threshold,
+                             index.strataT=index.strataT,
+                             index.strataC=index.strataC,
+                             n.strata=n.strata,   
                              method=method)
     
     list_survivalT <- res_init$list_survivalT
@@ -206,7 +256,67 @@ initData <- function(dataT,dataC,type,endpoint,D,censoring,
   return(res)
 }
 
-## * Function initFormula
+## ** Function initWscheme (called by initData)
+#' @rdname internal-intilisation
+initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
+
+  if(D>1){
+        
+    Wscheme <- matrix(NA,nrow=D.TTE,ncol=D-1) # design matrix indicating to combine the weights obtained at differents TTE endpoints
+    rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold[type==3],")",sep="")
+    colnames(Wscheme) <- paste("for ",endpoint[-1],"(",threshold[-1],")",sep="")
+    
+    index_survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
+    threshold_TTEM1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used)
+    
+    iter_endpoint.TTE <- if(type[1]==3){1}else{0} #  index_survivalM1 and  threshold_TTEM1 are -1 even if the first endoint is a survival endpoint
+    
+    for(iter_endpoint in 2:D){   
+      
+      if(type[iter_endpoint]==3){ 
+        iter_endpoint.TTE <- iter_endpoint.TTE + 1
+      }
+      
+      # select valid rows
+      index_rowTTE <- which(paste(endpoint.TTE,threshold[type==3],sep="_") %in% paste(endpoint,threshold,sep="_")[1:(iter_endpoint-1)])
+      if(length(index_rowTTE)==0){next} # not yet TTE endpoints (no valid rows)
+      Wscheme[index_rowTTE,iter_endpoint-1] <- 0 # potential weights
+      
+      # keep only the last repeated endpoints
+      index_rowTTE <- sapply(unique(endpoint.TTE[index_rowTTE]),
+                                   function(x){utils::tail(index_rowTTE[endpoint.TTE[index_rowTTE]==x],1)})
+      
+      # if survival endpoint remove similar endpoints
+      if(endpoint[iter_endpoint] %in% endpoint.TTE[index_rowTTE]){
+        index_survivalM1[iter_endpoint.TTE] <- index_rowTTE[endpoint.TTE[index_rowTTE]==endpoint[iter_endpoint]]-1
+        threshold_TTEM1[iter_endpoint.TTE] <- threshold[type==3][index_survivalM1[iter_endpoint.TTE]+1]
+        index_rowTTE <- setdiff(index_rowTTE,index_survivalM1[iter_endpoint.TTE]+1)
+      }
+      
+      # update Wscheme
+      if(length(index_rowTTE)>0){
+        Wscheme[index_rowTTE,iter_endpoint-1] <- 1
+      }
+      
+    }
+
+  }else{
+    Wscheme <- matrix(nrow=0,ncol=0)
+    index_survivalM1 <- numeric(0)
+    threshold_TTEM1 <- numeric(0)
+  }
+  
+  ## ** export
+  res <- list()
+  res$Wscheme <- Wscheme
+  res$index_survivalM1 <- index_survivalM1
+  res$threshold_TTEM1 <- threshold_TTEM1
+  
+  return(res)
+  
+}
+
+## ** Function initFormula
 #' @rdname internal-intilisation
 #' @examples 
 #' BuyseTest:::initFormula(Treatment~B(var1)+C(var2,10)+T(var3,15,exa))
@@ -222,7 +332,7 @@ initFormula <- function(x){
   }
   
   if(length(as.character(x))!=3){
-    stop("initFormula: weird formula, as.character(x) should have length 3\n",
+    stop("initFormula: formula with unexpected length, as.character(x) should have length 3\n",
          "length founded: ",length(as.character(x)),"\n")
   }
   
@@ -241,7 +351,7 @@ initFormula <- function(x){
   shortBin <- c("B","Bin","Binary")
   specialBin <- paste("^", shortBin, "\\(", sep = "", collapse = "|")
   
-  shortCont <- c("C","Cont","Continous")
+  shortCont <- c("C","Cont","Continuous")
   specialCont <- paste("^", shortCont, "\\(", sep = "", collapse = "|")
   
   shortTTE <- c("T","TTE","TimeToEvent")
@@ -261,7 +371,7 @@ initFormula <- function(x){
     stop("initFormula: x must contains endpoints \n",
          "nothing of the form type(endpoint,threshold,censoring) found in the formula \n")
   }
-  
+
   ## ** get the type of each endpoint
   indexBin <- grep(pattern = specialBin, x = x, value = FALSE, ignore.case = TRUE, fixed = FALSE)
   indexCont <- grep(pattern = specialCont, x = x, value = FALSE, ignore.case = TRUE, fixed = FALSE)
@@ -281,79 +391,101 @@ initFormula <- function(x){
     type[indexTTE] <- 3
     x[indexTTE] <- gsub("TTE\\(|TimeToEvent\\(","T\\(",x = x[indexTTE], ignore.case = TRUE, fixed = FALSE)
   }
-  
+
   ## ** extract all information per endpoint
-  threshold <- vector(length = D, mode = "list")
-  censoring <- rep(NA,D)
-  endpoint <- rep(NA,D)
+  threshold <- rep(NA, D)
+  censoring <- rep(NA, D)
+  endpoint <- rep(NA, D)
   validNames <- c("endpoint","threshold","censoring")
   
-  for(iterD in 1:D){
-    special <- switch(type[iterD], "1"="B", "2"="C", "3"="T")
-    charWraper <- paste("^", special , "\\(|)$", sep = "")
-    unwrap <- strsplit(x[iterD], charWraper)[[1]]
+    for(iterD in 1:D){
+
+        ## *** unwrap arguments
+        special <- switch(type[iterD], "1"="B", "2"="C", "3"="T")
+        charWraper <- paste("^", special , "\\(|)$", sep = "")
+        unwrap <- strsplit(x[iterD], charWraper)[[1]]
+
+        if(length(unwrap)==1){
+            stop("initFormula: invalid formula \n",
+                 x[iterD]," must be of the form type(endpoint,threshold,censoring) \n")
+        }
+        vec.arg <- strsplit(unwrap[2], "[ ]*,[ ]*")[[1]]
+        ls.valueVar <- lapply(strsplit(vec.arg,split = "="),function(x){x[length(x)]})
+        vec.nameVar <- unlist(lapply(strsplit(vec.arg,split = "="),function(x){if(length(x)==2){x[1]}else{NA}}))
+        
+        if(length(vec.nameVar)>type[iterD]){
+            stop("initFormula: invalid formula \n",
+                 x[iterD]," has too many arguments \n",
+                 "maximum number of argument for type ",c("binary","continous","time to event")[type[iterD]]," is ",type[iterD]," \n")
+        }
     
-    if(length(unwrap)==1){
-      stop("initFormula: invalid formula \n",
-           x[iterD]," must be of the form type(endpoint,threshold,censoring) \n")
-    }
-    vec.arg <- strsplit(unwrap[2], "[ ]*,[ ]*")[[1]]
-    vec.valueVar <- unlist(lapply(strsplit(vec.arg,split = "="),function(x){x[length(x)]}))
-    vec.nameVar <- unlist(lapply(strsplit(vec.arg,split = "="),function(x){if(length(x)==2){x[1]}else{NA}}))
-   
-     if(length(vec.nameVar)>type[iterD]){
-      stop("initFormula: invalid formula \n",
-           x[iterD]," has too many arguments \n",
-           "maximum number of argument for type ",c("binary","continous","time to event")[type[iterD]]," is ",type[iterD]," \n")
-    }
+        if(any(na.omit(vec.nameVar) %in% validNames[1:type[iterD]] == FALSE)){
+            stop("initFormula: invalid formula \n",
+                 "argument named ",paste(na.omit(vec.nameVar)[na.omit(vec.nameVar) %in% validNames[1:type[iterD]] == FALSE], collapse = " ")," in ",x[iterD]," is invalid \n",
+                 "valid names are: \"",paste(validNames[1:type[iterD]], collapse = "\" \""),"\" \n")
+        }
     
-    if(any(na.omit(vec.nameVar) %in% validNames[1:type[iterD]] == FALSE)){
-      stop("initFormula: invalid formula \n",
-           "argument named ",paste(na.omit(vec.nameVar)[na.omit(vec.nameVar) %in% validNames[1:type[iterD]] == FALSE], collapse = " ")," in ",x[iterD]," is invalid \n",
-           "valid names are: \"",paste(validNames[1:type[iterD]], collapse = "\" \""),"\" \n")
-    }
-    
-    if( any(duplicated(na.omit(vec.nameVar)))){
-      stop("initFormula: invalid formula \n",
-           x[iterD]," has arguments with duplicated names \n")
-    }
-    
-    if("endpoint" %in% vec.nameVar == FALSE){
-      if(any(is.na(vec.nameVar))){
-        vec.nameVar[which(is.na(vec.nameVar))[1]] <- "endpoint"
-      }else{
-        stop("initFormula: invalid formula \n",
-             x[iterD]," has no endpoint arguments \n")  
-      }
-    }
-    
-    endpoint[iterD] <- gsub("\"","",vec.valueVar[which(vec.nameVar == "endpoint")])
-    if(type[iterD]==1){
-      threshold[[iterD]] <- NA
-      next
-    }
-    
-    if("threshold" %in% vec.nameVar == FALSE){
-      if(any(is.na(vec.nameVar))){
-        vec.nameVar[which(is.na(vec.nameVar))[1]] <- "threshold"
-      } else {  # threshold set to NA if missing
-        vec.nameVar <- c(vec.nameVar, "threshold")
-        vec.valueVar <- c(vec.valueVar, 0)
-      }
-    }
-    threshold[[iterD]] <- eval(parse(text = (vec.valueVar[which(vec.nameVar == "threshold")])))
-    if(type[iterD]==2){next}
-    
-    if("censoring" %in% vec.nameVar == FALSE){
-      if(any(is.na(vec.nameVar))){
-      vec.nameVar[which(is.na(vec.nameVar))[1]] <- "censoring"
-      }else{
-        stop("initFormula: invalid formula \n",
-             x[iterD]," has no censoring arguments \n")  
-      }
-    }
-    censoring[iterD] <- gsub("\"","",vec.valueVar[which(vec.nameVar == "censoring")])
-    
+        if( any(duplicated(na.omit(vec.nameVar)))){
+            stop("initFormula: invalid formula \n",
+                 x[iterD]," has arguments with duplicated names \n")
+        }
+
+        ## *** identify endpoint
+        if("endpoint" %in% vec.nameVar == FALSE){
+            if(any(is.na(vec.nameVar))){
+                vec.nameVar[which(is.na(vec.nameVar))[1]] <- "endpoint"
+            }else{
+                stop("initFormula: invalid formula \n",
+                     x[iterD]," has no endpoint arguments \n")  
+            }
+        }
+
+        iEndpoint <- ls.valueVar[[which(vec.nameVar == "endpoint")]]
+        if(!is.character(iEndpoint)){
+            stop("Wrong specification of endpoint \n",
+                 "Should be a character string \n")
+        }
+        endpoint[iterD] <- iEndpoint
+
+        ## *** identify threshold
+        if(type[iterD]==1){
+            threshold[iterD] <- NA
+            next
+        }
+
+        if("threshold" %in% vec.nameVar == FALSE){
+            if(any(is.na(vec.nameVar))){
+                vec.nameVar[which(is.na(vec.nameVar))[1]] <- "threshold"
+            } else {  # threshold set to NA if missing
+                vec.nameVar <- c(vec.nameVar, "threshold")
+                ls.valueVar <- c(ls.valueVar, 0)
+            }
+        }
+        iThreshold <- eval(parse(text = (ls.valueVar[[which(vec.nameVar == "threshold")]])))
+        if(!is.numeric(iThreshold)){
+            stop("Wrong specification of the threshold value for endpoint ",iEndpoint," \n",
+                 "Should be a numeric value \n", sep = "")
+        }
+        threshold[iterD] <- iThreshold
+
+        ## *** censoring
+        if(type[iterD]==2){next}
+        if("censoring" %in% vec.nameVar == FALSE){
+            if(any(is.na(vec.nameVar))){
+                vec.nameVar[which(is.na(vec.nameVar))[1]] <- "censoring"
+            }else{
+                stop("initFormula: invalid formula \n",
+                     "endpoint ",iEndpoint," has no censoring arguments \n", sep = "")  
+            }
+        }
+
+        iCensoring <- gsub("\"","",ls.valueVar[which(vec.nameVar == "censoring")])
+        if(!is.character(iCensoring)){
+            stop("Wrong specification of the censoring variable for endpoint ",iEndpoint," \n",
+                 "Should be a character string \n", sep = "")
+        }
+       censoring[iterD] <- iCensoring    
+        
   }
   
   return(list(treatment = treatment,
@@ -364,142 +496,7 @@ initFormula <- function(x){
               strata = strata))
 }
 
-
-## * Function initN
-#' @rdname internal-intilisation
-initN <- function(n){
-  
-  ## ** test
-  
-  if(length(n)!=3){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "\'n\' must have length 3 \n",
-         "length(n) : ",length(n),"\n")
-  }
-  
-  if(any(n %% 1>0) || any(n<=0)){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "\'n\' must contains strictly positive integers \n",
-         "proposed n : ",paste(n,collpase=" "),"\n")
-  }
-  
-  if(is.null(names(n))){names(n) <- c("from","to","by")}
-  
-  if(any(names(n) %in% c("from","to","by","length.out")==FALSE)){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "elements of \'n\' must be named with \"from\", \"to\", \"by\" or \"length.out\" \n",
-         "invalid names : ",paste(names(n)[names(n) %in% c("from","to","by","length.out")==FALSE] ,collpase=" "),"\n")    
-  }
-  
-  if(length(names(n)) != length(unique(names(n)))){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "elements in \'n\' have the same names \n")    
-  }
-  
-  if("from" %in% names(n) ==FALSE){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "\'n\' must contain an element named \"from\" \n",
-         "names(n) : ",paste(names(n) ,collpase=" "),"\n")    
-  }
-  
-  ## ** computationn
-  
-  test_to <- "to" %in% names(n)
-  test_by <- "by" %in% names(n)
-  test_length.out <- "length.out" %in% names(n)
-  if( test_to && test_by){
-    n <- seq(from=n["from"],to=n["to"],by=n["by"])
-  }
-  if( test_to && test_length.out){
-    n <- seq(from=n["from"],to=n["to"],length.out=n["length.out"])
-  }
-  if( test_by && test_length.out){
-    n <- seq(from=n["from"],by=n["by"],length.out=n["length.out"])
-  }
-  
-  ## ** export
-  return(n)
-}
-
-## * Function initHypothesis
-#' @rdname internal-intilisation
-initHypothesis <- function(hypothesis,type,D){
-  
-  if(!is.list(hypothesis) && D==1){
-    hypothesis <- list(hypothesis)
-  }
-  
-  if(!is.list(hypothesis) || length(hypothesis)!=D){
-    stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
-         "\'hypothesis\' must be a list with ",D," elements \n",
-         "is(hypothesis) : ",paste(is(hypothesis),collapse=" "),"\n",
-         "length(hypothesis) : ",length(hypothesis),"\n"
-    )    
-  }
-  
-  valid_parameters <- list(binary=c("proba_t","proba_c"),
-                           continuous=c("mu_t","mu_c","sigma"),
-                           TTE=c("lambda_t","lambda_c","T_inclusion","T_followUp")
-  )
-  
-  valid_range <- list(proba_t=c(0,1),
-                      proba_c=c(0,1),
-                      sigma=c(0,Inf),
-                      lambda_t=c(0,Inf),
-                      lambda_c=c(0,Inf),
-                      T_inclusion=c(0,Inf),
-                      T_followUp=c(0,Inf))
-  
-  for(iter_outcome in 1:D){
-    
-    parameters_tempo <- valid_parameters[[type[iter_outcome]]]
-    
-    if(length(hypothesis[[iter_outcome]]) != length(parameters_tempo)){
-      stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
-           "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
-           "number of parameters requested for this type of outcome : ",length(parameters_tempo)," \n",
-           "length(hypothesis[[",iter_outcome,"]]) : ",length(hypothesis[[iter_outcome]])," \n")   
-    }
-    
-    if(is.null(names(hypothesis[[iter_outcome]]))){
-      names(hypothesis[[iter_outcome]]) <- parameters_tempo
-    }
-    
-    if(any(parameters_tempo %in% names(hypothesis[[iter_outcome]]) == FALSE)){
-      stop("BuyseTest : wrong specification of \'hypothesis\' \n",
-           "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
-           "parameters requested for this type of outcome : \"",paste(parameters_tempo,collapse="\" \""),"\" \n",
-           "names(hypothesis[[",iter_outcome,"]]) : \"",paste(names(hypothesis[[iter_outcome]])[names(hypothesis[[iter_outcome]]) %in% parameters_tempo == FALSE],collapse="\" \""),"\" \n")   
-    }
-    
-    for(iter_param in 1:length(parameters_tempo)){
-      if(parameters_tempo[iter_param] %in% names(valid_range)){
-        test.inf <- valid_range[[parameters_tempo[iter_param]]][1]>=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
-        test.sup <- valid_range[[parameters_tempo[iter_param]]][2]<=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
-        if(test.inf || test.sup){
-          stop("BuyseTest : unvalid parameter value in \'hypothesis\' \n",
-               "possible range of values : ",paste(valid_range[[parameters_tempo[iter_param]]],collapse=" ")," \n",
-               "proposed value of hypothesis[[",iter_outcome,"]][",parameters_tempo[iter_param],"] :  ",hypothesis[[iter_outcome]][parameters_tempo[iter_param]]," \n"
-          )  
-        }
-      }
-    }
-    
-    
-  }
-  
-  ### * export
-  return(hypothesis)
-  
-}
-
-## * Function initSpace
-#' @rdname internal-intilisation
-initSpace  <- function(nchar){  
-  return(sapply(nchar,function(x){if(x>0){do.call(paste,c(as.list(rep(" ",x)),sep=""))}else{""}}))  
-}
-
-## * Function initStrata
+## ** Function initStrata
 #' @rdname internal-intilisation
 initStrata <- function(strata,
                        dataT,dataC,n.Treatment,n.Control,
@@ -552,7 +549,63 @@ initStrata <- function(strata,
   return(res)
 }
 
-## * Function initSurvival
+## ** Function initThreshold
+#' @rdname internal-intilisation
+initThreshold <- function(threshold,type,D,endpoint){
+  
+    ## ** initialize threshold
+    if(is.null(threshold)){
+        threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
+        if(any(type==1)){threshold[type==1] <- 1/2} # except for threshold corresponding to binary endpoints that are set to NA.
+    }else{
+        if(any(is.na(threshold[type==1]))){
+            index.tempo <- intersect(which(is.na(threshold)),which(type==1))
+            threshold[index.tempo] <- 1/2
+        }
+        if(any(is.na(threshold))){
+            stop("threshold relatives to continuous/TTE endpoints should not contain any NA \n")
+        }
+        if(any(threshold==0)){
+            threshold[threshold==0] <- 10^{-12}
+        }
+        validNumeric(threshold,
+                     valid.length = D,
+                     min = 0,
+                     refuse.NA = FALSE ,
+                     method = "BuyseTest")
+    }
+    
+    ## ** Only accept hreshold 1/2 for binary outcomes
+    if(any(threshold[type==1]!=1/2)){
+        stop("BuyseTest : wrong specification of \'threshold\' \n",
+             "\'threshold\' must be NA for binary endpoints (or equivalently 1/2) \n",
+             "proposed \'threshold\' : ",paste(threshold[type==1],collapse=" "),"\n",
+             "binary endpoint(s) : ",paste(endpoint[type==1],collapse=" "),"\n")
+    }
+  
+    ## ** Check that the thresholds related to the same endoints are strictly decreasing
+    ## is.unsorted(rev(2:1))
+    ## is.unsorted(rev(1:2))
+
+    vec.test <- tapply(threshold,endpoint, function(x){
+        test.unsorted <- is.unsorted(rev(x))
+        test.duplicated <- any(duplicated(x))
+        return(test.unsorted+test.duplicated)
+    })
+            
+    if(any(vec.test>0)){   
+        stop("BuyseTest : wrong specification of \'endpoint\' or \'threshold\' \n",
+             "endpoints must be used with strictly decreasing threshold when re-used with lower priority \n",
+             "problematic endpoints: \"",paste0(names(vec.test)[vec.test>0], collapse = "\" \""),"\"\n")        
+    }
+
+    
+  ## ** export
+  return(threshold)
+}
+
+## * Called by BuyseTest through warper_BTpermutation
+## ** Function initSurvival
 #' @rdname internal-intilisation
 #' @export
 initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control,
@@ -709,131 +762,142 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
   
 }
 
-## * Function initThreshold
+
+
+
+## * NOT USED
+## ** Function initN
 #' @rdname internal-intilisation
-initThreshold <- function(threshold,type,D,method,endpoint){
+initN <- function(n){
   
-  ## 
-  n.typePerEndpoint <- tapply(type,endpoint, function(x){length(unique(x))})
-  if(any(n.typePerEndpoint>1)){
-    if(sum(n.typePerEndpoint>1)==1){        
-      message <- paste0("endpoint ",unique(endpoint)[n.typePerEndpoint>1]," has several types \n")
-    }else{
-      message <- paste0("endpoints ",paste0(unique(endpoint)[n.typePerEndpoint>1],collapse = "")," have several types \n")
-    }
-    stop("BuyseTest: wrong specification of \'endpoint\' or \'types\' \n",message)
+  ## ** test
+  
+  if(length(n)!=3){
+    stop("BuyseTest : wrong specification of \'n\' \n",
+         "\'n\' must have length 3 \n",
+         "length(n) : ",length(n),"\n")
   }
   
-  ## ** threshold
-  if(is.null(threshold)){
-    threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
-    if(any(type==1)){threshold[type==1] <- NA} # except for threshold corresponding to binary endpoints that are set to NA.
-  }else  if(any(stats::na.omit(threshold)==0)){
-    threshold[stats::na.omit(which(threshold==0))] <- 10^{-12}
-  }
- 
-  validNumeric(threshold, validLength = D, min = 0, refuse.NA = FALSE , method = "BuyseTest")
-  
-  if(any(!is.na(threshold[type==1])) ){
-    stop("BuyseTest : wrong specification of \'threshold\' \n",
-         "\'threshold\' must be NA for binary endpoints \n",
-         "proposed \'threshold\' : ",paste(threshold[type==1],collapse=" "),"\n",
-         "binary endpoints : ",paste(endpoint[type==1],collapse=" "),"\n")
+  if(any(n %% 1>0) || any(n<=0)){
+    stop("BuyseTest : wrong specification of \'n\' \n",
+         "\'n\' must contains strictly positive integers \n",
+         "proposed n : ",paste(n,collpase=" "),"\n")
   }
   
-  ## ** duplicates 
-  test.duplicated <- duplicated(paste(endpoint,threshold,sep=""))
-  if(any(test.duplicated)){
-    display_duplicated <- sapply(unique(endpoint[test.duplicated]),function(x){paste("\"",x,"\" (thresholds = ",paste(threshold[x==endpoint],collapse=" "),")",sep="")})
-    stop("BuyseTest : wrong specification of \'endpoint\' or \'threshold\' \n",
-         "there are duplicated endpoints : ",paste(display_duplicated,
-                                                   collapse="\n                                 "),"\n")    
+  if(is.null(names(n))){names(n) <- c("from","to","by")}
+  
+  if(any(names(n) %in% c("from","to","by","length.out")==FALSE)){
+    stop("BuyseTest : wrong specification of \'n\' \n",
+         "elements of \'n\' must be named with \"from\", \"to\", \"by\" or \"length.out\" \n",
+         "invalid names : ",paste(names(n)[names(n) %in% c("from","to","by","length.out")==FALSE] ,collpase=" "),"\n")    
   }
   
-  ## ** test that the thresholds corresponding to TTE endpoints are decreasing 
-  if(any(type==3)){
-    endpoint.TTE <- endpoint[type==3]
-    
-    test.decreasing <- sapply(unique(endpoint.TTE),function(x){
-      thresholdTTE <- threshold[which(endpoint == x)]
-      sum(abs(thresholdTTE-sort(thresholdTTE,decreasing=TRUE)<0))+sum(diff(thresholdTTE)==0) # compare the thresolds to the thresholds in decreasing order
-    })
-    
-    if(any(test.decreasing>0)){
-      stop("BuyseTest : wrong specification of \'endpoint\' or \'threshold\' \n",
-           "survival endpoints must be used with decreasing threshold when re-used with lower priority \n",
-           "survival endpoints             : ",paste(endpoint[type==3][test.decreasing>0],
-                                                     initSpace(nchar(threshold[type==3][test.decreasing>0])-nchar(endpoint[type==3][test.decreasing>0])),
-                                                     sep="",collapse=" "),"\n",
-           "have non-decreasing thresholds : ",paste(threshold[type==3][test.decreasing>0],
-                                                     initSpace(nchar(endpoint[type==3][test.decreasing>0])-nchar(threshold[type==3][test.decreasing>0])),
-                                                     sep="",collapse=" "),"\n")      
-    }
+  if(length(names(n)) != length(unique(names(n)))){
+    stop("BuyseTest : wrong specification of \'n\' \n",
+         "elements in \'n\' have the same names \n")    
   }
   
-  ## ** convert binary to continuous
-  threshold[type == 1] <- 1/2
+  if("from" %in% names(n) ==FALSE){
+    stop("BuyseTest : wrong specification of \'n\' \n",
+         "\'n\' must contain an element named \"from\" \n",
+         "names(n) : ",paste(names(n) ,collpase=" "),"\n")    
+  }
   
-  ## ** export
-  return(threshold)
-}
-
-## * Function initWscheme
-#' @rdname internal-intilisation
-initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
-
-  if(D>1){
-        
-    Wscheme <- matrix(NA,nrow=D.TTE,ncol=D-1) # design matrix indicating to combine the weights obtained at differents TTE endpoints
-    rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold[type==3],")",sep="")
-    colnames(Wscheme) <- paste("for ",endpoint[-1],"(",threshold[-1],")",sep="")
-    
-    index_survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
-    threshold_TTEM1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used)
-    
-    iter_endpoint.TTE <- if(type[1]==3){1}else{0} #  index_survivalM1 and  threshold_TTEM1 are -1 even if the first endoint is a survival endpoint
-    
-    for(iter_endpoint in 2:D){   
-      
-      if(type[iter_endpoint]==3){ 
-        iter_endpoint.TTE <- iter_endpoint.TTE + 1
-      }
-      
-      # select valid rows
-      index_rowTTE <- which(paste(endpoint.TTE,threshold[type==3],sep="_") %in% paste(endpoint,threshold,sep="_")[1:(iter_endpoint-1)])
-      if(length(index_rowTTE)==0){next} # not yet TTE endpoints (no valid rows)
-      Wscheme[index_rowTTE,iter_endpoint-1] <- 0 # potential weights
-      
-      # keep only the last repeated endpoints
-      index_rowTTE <- sapply(unique(endpoint.TTE[index_rowTTE]),
-                                   function(x){utils::tail(index_rowTTE[endpoint.TTE[index_rowTTE]==x],1)})
-      
-      # if survival endpoint remove similar endpoints
-      if(endpoint[iter_endpoint] %in% endpoint.TTE[index_rowTTE]){
-        index_survivalM1[iter_endpoint.TTE] <- index_rowTTE[endpoint.TTE[index_rowTTE]==endpoint[iter_endpoint]]-1
-        threshold_TTEM1[iter_endpoint.TTE] <- threshold[type==3][index_survivalM1[iter_endpoint.TTE]+1]
-        index_rowTTE <- setdiff(index_rowTTE,index_survivalM1[iter_endpoint.TTE]+1)
-      }
-      
-      # update Wscheme
-      if(length(index_rowTTE)>0){
-        Wscheme[index_rowTTE,iter_endpoint-1] <- 1
-      }
-      
-    }
-
-  }else{
-    Wscheme <- matrix(nrow=0,ncol=0)
-    index_survivalM1 <- numeric(0)
-    threshold_TTEM1 <- numeric(0)
+  ## ** computation
+  
+  test_to <- "to" %in% names(n)
+  test_by <- "by" %in% names(n)
+  test_length.out <- "length.out" %in% names(n)
+  if( test_to && test_by){
+    n <- seq(from=n["from"],to=n["to"],by=n["by"])
+  }
+  if( test_to && test_length.out){
+    n <- seq(from=n["from"],to=n["to"],length.out=n["length.out"])
+  }
+  if( test_by && test_length.out){
+    n <- seq(from=n["from"],by=n["by"],length.out=n["length.out"])
   }
   
   ## ** export
-  res <- list()
-  res$Wscheme <- Wscheme
-  res$index_survivalM1 <- index_survivalM1
-  res$threshold_TTEM1 <- threshold_TTEM1
+  return(n)
+}
+
+## ** Function initHypothesis
+#' @rdname internal-intilisation
+initHypothesis <- function(hypothesis,type,D){
   
-  return(res)
+  if(!is.list(hypothesis) && D==1){
+    hypothesis <- list(hypothesis)
+  }
+  
+  if(!is.list(hypothesis) || length(hypothesis)!=D){
+    stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
+         "\'hypothesis\' must be a list with ",D," elements \n",
+         "is(hypothesis) : ",paste(is(hypothesis),collapse=" "),"\n",
+         "length(hypothesis) : ",length(hypothesis),"\n"
+    )    
+  }
+  
+  valid_parameters <- list(binary=c("proba_t","proba_c"),
+                           continuous=c("mu_t","mu_c","sigma"),
+                           TTE=c("lambda_t","lambda_c","T_inclusion","T_followUp")
+  )
+  
+  valid_range <- list(proba_t=c(0,1),
+                      proba_c=c(0,1),
+                      sigma=c(0,Inf),
+                      lambda_t=c(0,Inf),
+                      lambda_c=c(0,Inf),
+                      T_inclusion=c(0,Inf),
+                      T_followUp=c(0,Inf))
+  
+  for(iter_outcome in 1:D){
+    
+    parameters_tempo <- valid_parameters[[type[iter_outcome]]]
+    
+    if(length(hypothesis[[iter_outcome]]) != length(parameters_tempo)){
+      stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
+           "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
+           "number of parameters requested for this type of outcome : ",length(parameters_tempo)," \n",
+           "length(hypothesis[[",iter_outcome,"]]) : ",length(hypothesis[[iter_outcome]])," \n")   
+    }
+    
+    if(is.null(names(hypothesis[[iter_outcome]]))){
+      names(hypothesis[[iter_outcome]]) <- parameters_tempo
+    }
+    
+    if(any(parameters_tempo %in% names(hypothesis[[iter_outcome]]) == FALSE)){
+      stop("BuyseTest : wrong specification of \'hypothesis\' \n",
+           "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
+           "parameters requested for this type of outcome : \"",paste(parameters_tempo,collapse="\" \""),"\" \n",
+           "names(hypothesis[[",iter_outcome,"]]) : \"",paste(names(hypothesis[[iter_outcome]])[names(hypothesis[[iter_outcome]]) %in% parameters_tempo == FALSE],collapse="\" \""),"\" \n")   
+    }
+    
+    for(iter_param in 1:length(parameters_tempo)){
+      if(parameters_tempo[iter_param] %in% names(valid_range)){
+        test.inf <- valid_range[[parameters_tempo[iter_param]]][1]>=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
+        test.sup <- valid_range[[parameters_tempo[iter_param]]][2]<=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
+        if(test.inf || test.sup){
+          stop("BuyseTest : unvalid parameter value in \'hypothesis\' \n",
+               "possible range of values : ",paste(valid_range[[parameters_tempo[iter_param]]],collapse=" ")," \n",
+               "proposed value of hypothesis[[",iter_outcome,"]][",parameters_tempo[iter_param],"] :  ",hypothesis[[iter_outcome]][parameters_tempo[iter_param]]," \n"
+          )  
+        }
+      }
+    }
+    
+    
+  }
+  
+  ### * export
+  return(hypothesis)
   
 }
+
+
+## ** Function initSpace
+#' @rdname internal-intilisation
+initSpace  <- function(nchar){  
+  return(sapply(nchar,function(x){if(x>0){do.call(paste,c(as.list(rep(" ",x)),sep=""))}else{""}}))  
+}
+

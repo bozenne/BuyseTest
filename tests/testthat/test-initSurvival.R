@@ -1,10 +1,11 @@
 verboseContext("Check KM computation")
 
-#### additional spec
+## * settings
 n.patients <- 200
 precision <- 10^{-7}
 results_initSurvival <- list()
-#### 1- No strata ####
+
+## * 1- No strata
 M.Treatment <- cbind(time=1:5)
 M.Control <-  cbind(time=c(1:5-0.1,5,5))
 threshold <- 0.001 # threshold smaller than the interval between two events
@@ -162,7 +163,7 @@ if(test){
   Survival_noStrata$list_survivalC[[1]][,"Survival_TimeC+threshold"] # survival after jump points
 }
 
-#### 2- With strata ####
+## * With strata
 n.strata <- 2
 M.Treatment <- cbind(time=rep(1:5,n.strata))
 M.Control <-  cbind(time=rep(c(1:5-0.1,5,5),n.strata))
@@ -197,7 +198,7 @@ for(method in c("Peto","Efron","Peron")){
 
     results_initSurvival$Strata[[method]] <- Survival_Strata
     
-    #### identical between strata
+    ## ** identical between strata
     test_that(paste0("identical between strata, ",method),{
       expect_equal(Survival_Strata$list_survivalT[[1]][index.StrataT[[1]]+1,],
                    Survival_Strata$list_survivalT[[1]][index.StrataT[[2]]+1,])
@@ -207,7 +208,7 @@ for(method in c("Peto","Efron","Peron")){
    
 }
 
-#### Z- export ####
+## * Compare with previous version
 if(identical(save, TRUE)){
   saveRDS(results_initSurvival,file=file.path(dirSave,"test-initSurvival.rds"))
 }else if(identical(save, FALSE)){

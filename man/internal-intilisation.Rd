@@ -42,7 +42,7 @@ initSurvival(M.Treatment, M.Control, M.delta_Treatment, M.delta_Control,
   endpoint, D.TTE, type, threshold, index.strataT, index.strataC, n.strata,
   method)
 
-initThreshold(threshold, type, D, method, endpoint)
+initThreshold(threshold, type, D, endpoint)
 
 initWscheme(endpoint, D, endpoint.TTE, D.TTE, threshold, type)
 }

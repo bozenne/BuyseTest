@@ -8,10 +8,10 @@
 #' 
 #' @inheritParams BuyseTest
 #' @param conf.level the confidence level of the confidence interval
-#' @param keep.bootstrap should the result of each boostrap sample be stored in BuyseRes objects?
+#' @param keep.permutation should the result of each sample from the permutation test be stored in BuyseRes objects?
 #' 
 #' @seealso 
-#' \code{\link{BuyseTest.options}} to select or update global settings.#' 
+#' \code{\link{BuyseTest.options}} to select or update global settings.
 #' 
 #' @keywords classes options BuyseTest.options-class
 
@@ -23,9 +23,9 @@ setClass(
   representation(
     conf.level = "numeric",
     cpus = "numeric",
-    keep.bootstrap = "logical",
+    keep.permutation = "logical",
     method = "character",
-    n.bootstrap = "numeric",
+    n.permutation = "numeric",
     neutralAsUninf = "logical",
     trace = "numeric",
     seed = "numeric",
@@ -34,16 +34,55 @@ setClass(
 
   ### ** Check validity of the object
   validity = function(object){
-    
-    validNumeric(object@conf.level, name1 = "@conf.level", min = 0, max = 1, validLength = 1, method = "Class BuyseTest.options")
-    validInteger(object@cpus, name1 = "@cpus", min = 1, validLength = 1, method = "Class BuyseTest.options")
-    validLogical(object@keep.bootstrap, name1 = "@keep.bootstrap", validLength = 1, method = "Class BuyseTest.options")
-    validCharacter(object@method, name1 = "@method", validValues = c("Peron","Efron","Peto","Gehan"), validLength = 1, method = "Class BuyseTest.options")
-    validInteger(object@n.bootstrap, name1 = "@n.bootstrap", min = 0, validLength = 1, method = "Class BuyseTest.options")
-    validLogical(object@neutralAsUninf, name1 = "@neutralAsUninf", validLength = 1, method = "Class BuyseTest.options")
-    validInteger(object@trace, name1 = "@trace", min = 0, validLength = 1, method = "Class BuyseTest.options")
-    validInteger(object@seed, name1 = "@seed", min = 1, validLength = 1, method = "Class BuyseTest.options")
-    validCharacter(object@statistic, name1 = "@statistic", validValues = c("netChance","winRatio"), validLength = 1, method = "Class BuyseTest.options")
+    validNumeric(object@conf.level,
+                 name1 = "@conf.level",
+                 min = 0,
+                 max = 1,
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validInteger(object@cpus,
+                 name1 = "@cpus",
+                 min = 1,
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validLogical(object@keep.permutation,
+                 name1 = "@keep.permutation",
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validCharacter(object@method,
+                   name1 = "@method",
+                   valid.values = c("Peron","Efron","Peto","Gehan"),
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+    validCharacter(object@method,
+                   name1 = "@method",
+                   valid.values = c("Peron","Efron","Peto","Gehan"),
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+    validInteger(object@n.permutation,
+                 name1 = "@n.permutation",
+                 min = 0,
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validLogical(object@neutralAsUninf,
+                 name1 = "@neutralAsUninf",
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validInteger(object@trace,
+                 name1 = "@trace",
+                 min = 0,
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validInteger(object@seed,
+                 name1 = "@seed",
+                 min = 1,
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validCharacter(object@statistic,
+                   name1 = "@statistic",
+                   valid.values = c("netChance","winRatio"),
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
     return(TRUE)} 
 )
 

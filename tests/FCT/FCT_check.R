@@ -1,3 +1,4 @@
+## * verboseContext
 #' @description Modified context that also display its desc argument
 verboseContext <- function(desc){
   context(desc)
@@ -5,6 +6,7 @@ verboseContext <- function(desc){
   return(invisible(TRUE))
 }
 
+## * expect_equalBT
 #' @description Test the equality of certain slots between two BuyseTest objects. Usefull when the definition of the object has changed
 expect_equalBT <- function(BuyseRes1, BuyseRes2, slots = NULL, trace = 1){
   if(is.null(slots)){slots <- setdiff(intersect(names(attributes(BuyseRes1)), names(attributes(BuyseRes2))), "class")}
@@ -66,6 +68,7 @@ expect_equalBT <- function(BuyseRes1, BuyseRes2, slots = NULL, trace = 1){
   if(test.error){stop("difference between the slots of the two BuyseRes objects \n")}
 }
 
+## * expect_equalPairsBT
 #' @description Test the equality of the number of pairs found by two BuyseTest objects
 expect_equalPairsBT <- function(BuyseRes1, BuyseRes2){
   count1 <- getCount(BuyseRes1) 
@@ -74,6 +77,7 @@ expect_equalPairsBT <- function(BuyseRes1, BuyseRes2){
 }
 
 
+## * validPairs
 #' @description Test whether the number of pairs found by the summary function is consistent.
 #' i.e. the sum over in favor, in defavor, neutral and non informative matches the total number of possible pairs 
 #'      the same number of pairs if founded for all strata (expected if the input data is the same for all strata)
@@ -107,6 +111,7 @@ validPairs <- function(BuyseRes, type = c("strata","sum")){
   return(diff)
 }
 
+## * validDelta
 #' @description Test whether the number of pairs found by the summary function is consistent with the displayed delta.
 validDelta <- function(BuyseRes){
   
@@ -118,20 +123,24 @@ validDelta <- function(BuyseRes){
   
   }
   
-  
+
+## * Vexpect_less_than
 #' @description Vectorial version of testthat functions
 Vexpect_less_than <- function(x,y,...){
   sapply(x, function(X){expect_less_than(X,y,...)})
   return(invisible(TRUE))
 }
+## * Vexpect_more_than
 Vexpect_more_than <- function(x,y,...){
   sapply(x, function(X){expect_more_than(X,y,...)})
   return(invisible(TRUE))
 }
+## * Vexpect_equal
 Vexpect_equal <- function(x,y,...){
   sapply(x, function(X){expect_equal(X,y,...)})
   return(invisible(TRUE))
 }
+## * Vexpect_NA
 Vexpect_NA <- function(x,...){
   sapply(x, function(X){expect_true(is.na(X),...)})
   return(invisible(TRUE))

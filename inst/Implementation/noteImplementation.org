@@ -1,0 +1,70 @@
+#+TITLE: Structure of the package
+#+Author: Brice Ozenne
+
+* Content
+
+** BuyseTest function (file BuyseTest.R)
+
+The main function of the package is the function =BuyseTest= which
+perform the Generalized Pairwise Comparison (GPC). This function is
+the user interface to the internal function =GPC_cpp= which does
+the actual computations.
+
+\bigskip
+
+The only purpose of the =BuyseTest= function is to normalize the
+argument so that the following functions can focus on the
+computation.
+
+\bigskip
+
+It calls several other functions:
+| Function      | File where the function is defined | Purpose                                                                                            |
+|---------------+------------------------------------+----------------------------------------------------------------------------------------------------|
+| initFormula   | FCTi-initialization.R              | transform a formula into arguments.                                                                |
+| initCensoring | FCTi-initialization.R              | check and normalize the censoring argument.                                                        |
+| initThreshold | FCTi-initialization.R              | check and normalize the threshold argument.                                                        |
+| initStrata    | FCTi-initialization.R              | check and normalize the strata variable.                                                           |
+| initData      | FCTi-initialization.R              | check and normalize the data for =GPC_cpp=.                                                        |
+| printGeneral  | FCTi-print.R                       | display in the console what type of GPC will be performed.                                         |
+| printBoostrap | FCTi-print.R                       | display in the console what permutation test will be performed and the estimated time.             |
+| calcBootstrap | FCTi-computation.R                 | Perform sequention/parallel permutation test. Call =warper_BTboot= to create the permuted dataset. |
+| calcCI        | FCTi-computation.R                 |                                                                                                    |
+
+** 
+
+
+* Test battery
+
+
+
+
+
+
+* CONFIG :noexport:
+# #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}
+#+LANGUAGE:  en
+#+LaTeX_CLASS: org-article
+#+OPTIONS:   title:t author:t toc:t todo:nil
+#+OPTIONS:   H:3 num:t 
+#+OPTIONS:   TeX:t LaTeX:t
+
+** Code
+#+PROPERTY: header-args :session *R*
+#+PROPERTY: header-args :tange yes % extract source code: http://orgmode.org/manual/Extracting-source-code.html
+#+PROPERTY: header-args :eval yes :cache no
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+
+** Display 
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+#+LaTeX_HEADER:\usepackage{authblk} % enable several affiliations (clash with beamer)
+
+** Image
+#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+
+** Latex command
+#+LaTeX_HEADER: %
+#+LaTeX_HEADER: %%%% additional latex commands %%%%
+#+LaTeX_HEADER: %

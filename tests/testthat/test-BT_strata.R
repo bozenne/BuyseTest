@@ -1,16 +1,16 @@
 verboseContext("Check BuyseTest with strata")
 
-#### additional spec
+## * settings
 n.patients <- c(90,100)
 n.bootstrap <- 10
 
-#### 1- Simulated data ####
+## * Simulated data
 set.seed(10)
 argsBin <- list(p.T = c(0.5,0.75))
 argsCont <- list(mu.T = 1:3, sigma.T = rep(1,3))
 argsTTE <- list(rates.T = 1:3, rates.Censor = rep(1,3))
 
-#### binary #### 
+## ** binary endpoint
 cat("* binary endpoint \n")
 data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
 data_BinS <- rbind(cbind(data_Bin, strata = 1),
@@ -32,7 +32,7 @@ test_that("identical strata - Binary",{
   expect_equal(valTest, rep(0, times = length(valTest)))
 })
 
-#### continuous ####
+## ** continuous endpoint
 cat("* continuous endpoint \n")
 set.seed(10)
 data_Cont <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = argsCont, argsTTE = NULL)
@@ -54,7 +54,7 @@ test_that("identical strata - Continuous",{
   expect_equal(valTest, rep(0, times = length(valTest)))
 })
 
-#### TTE ####
+## ** Time to event endpoint
 cat("* TTE endpoint \n")
 set.seed(10)
 data_TTE <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = NULL, argsTTE = argsTTE)
@@ -63,7 +63,7 @@ data_TTES <- rbind(cbind(data_TTE, strata = 1),
                    cbind(data_TTE, strata = 3))
 if(conv2df){data_TTES <- as.data.frame(data_TTES)}
 
-## different endpoints
+## *** different endpoints
 BT_TTE1 <- vector(length = 4, mode = "list")
 names(BT_TTE1) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
@@ -82,7 +82,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
-## same endpoint
+## *** same endpoint
 BT_TTE2 <- vector(length = 4, mode = "list")
 names(BT_TTE2) <- c("Gehan","Peto","Efron","Peron")
 for(method in c("Gehan","Peto","Efron","Peron")){
@@ -101,7 +101,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
-#### mixed endpoints ####
+## ** mixed endpoints
 cat("* mixed endpoints \n")
 set.seed(10)
 data_Mix <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = argsCont, argsTTE = argsTTE)
@@ -130,7 +130,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){
   })
 }
 
-#### 2- Real data ####
+## * Real data
 cat("* Veteran \n")
 data(veteran, package = "survival")
 
@@ -139,7 +139,7 @@ BT_veteran <- BuyseTest(data = veteran, endpoint = "time", treatment = "trt", st
                         n.bootstrap = n.bootstrap)
 BT_veteran
 
-##### export
+## * compare with previous version
 if(identical(save, TRUE)){
   results_strata <- list(OutcomeBin = list(data = data_BinS, BT = BT_Bin1),
                          OutcomeCont = list(data = data_ContS, BT = BT_Cont1),

@@ -15,7 +15,7 @@
 #' @examples
 #' dt <- simulBT(1e2)
 #' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=dt,
-#'                 n.bootstrap = 0)
+#'                 n.permutation = 0)
 #' getCount(BT)
 #' getCount(BT, type = "favorable")
 #'
@@ -35,7 +35,10 @@ setMethod(f = "getCount",
               type <- c("favorable","unfavorable","neutral","uninf")
             }
 
-            validCharacter(type, validLength = NULL, validValues = c("favorable","unfavorable","neutral","uninf"), method = "getCount")
+            validCharacter(type,
+                           valid.length = NULL,
+                           valid.values = c("favorable","unfavorable","neutral","uninf"),
+                           method = "getCount")
 
             out <- NULL
             if ("favorable" %in% type) {out <- c(out, favorable = object@count_favorable)}

@@ -15,11 +15,11 @@
 #' BuyseTest.options()
 #' 
 #' ## see some of the global parameters
-#' BuyseTest.options("n.bootstrap", "trace")
+#' BuyseTest.options("n.permutation", "trace")
 #' 
 #' ## update some of the global parameters
-#' BuyseTest.options(n.bootstrap = 10, trace = 1)
-#' BuyseTest.options("n.bootstrap", "trace")
+#' BuyseTest.options(n.permutation = 10, trace = 1)
+#' BuyseTest.options("n.permutation", "trace")
 #' 
 #' ## reinitialise all global parameters
 #' BuyseTest.options(reinitialise = TRUE)
@@ -30,14 +30,13 @@
 BuyseTest.options <- function(..., reinitialise = FALSE){
   
   if (reinitialise == TRUE) {
-    
     assign(".BuyseTest-options", 
            new("BuyseTest.options",
                conf.level = 0.95,
                cpus = 1,
-               keep.bootstrap = TRUE,
+               keep.permutation = TRUE,
                method = "Peron",
-               n.bootstrap = 1000,
+               n.permutation = 1000,
                neutralAsUninf = TRUE,
                trace = 3,
                seed = 10,
@@ -53,7 +52,13 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
     
     if (!is.null(names(args))) { # write
       
-      validCharacter(names(args), name1 = "...", validLength = NULL, validValues = slotNames(object), refuse.duplicates = TRUE, refuse.NULL = FALSE, method = "BuyseTest.options")
+      validCharacter(names(args),
+                     name1 = "...",
+                     valid.length = NULL,
+                     valid.values = slotNames(object),
+                     refuse.duplicates = TRUE,
+                     refuse.NULL = FALSE,
+                     method = "BuyseTest.options")
       
       value <- alloc(object, field = args)
       
@@ -65,7 +70,13 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
       
     } else {# read
       
-      validCharacter(args, name1 = "...", validLength = NULL, validValues = slotNames(object), refuse.duplicates = TRUE, refuse.NULL = FALSE, method = "BuyseTest.options")
+      validCharacter(args,
+                     name1 = "...",
+                     valid.length = NULL,
+                     valid.values = slotNames(object),
+                     refuse.duplicates = TRUE,
+                     refuse.NULL = FALSE,
+                     method = "BuyseTest.options")
       value <- select(object, name.field = unlist(args))
       return(value)
     }

@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 1.2
-Date: 2017-12-21
+Version: 1.2.1
+Date: 2018-03-29
 Author: Brice Ozenne[aut, cre], Julien Peron[aut]
 Maintainer: brice ozenne <brice.ozenne@orange.fr>
 Description: Implementation of the Generalized Pairwise Comparisons. This test
@@ -40,12 +40,12 @@ LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 6.0.1
 Collate: 
     'BuyseTest-package.R'
-    'FCT_BuyseSens.R'
     'FCT_BuyseTest.R'
     'FCT_Valid.R'
     'onload.R'
     'FCT_options.R'
-    'FCT_simul.R'
+    'FCT_sensitivityBT.R'
+    'FCT_simulBT.R'
     'FCT_support.R'
     'FCTi-computation.R'
     'FCTi-initilization.R'

@@ -2,9 +2,9 @@ author <- "Julien Peron, Marc Buyse, Brice Ozenne, Laurent Roche, Pascal Roy"
 year <- 2016
 journal <- "Statistical Methods in Medical Research"
 title <- "An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring"
-volume <- "?"
-number <- "?"
-pages <- "?"
+volume <- "27"
+number <- "4"
+pages <- "1230-1239"
 note <- "http://dx.doi.org/10.1038/bjc.2015.55"
 textver <- paste(author, " (", year, "). ", title, ". ", journal, " ", volume, " (", number ,"), pp. ", pages, ". ", note, sep="")
 

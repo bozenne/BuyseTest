@@ -43,7 +43,7 @@
 #'  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
 #'  }
 #'  \dontshow{
-#'  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.bootstrap = 10, trace = 0)
+#'  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.permutation = 10, trace = 0)
 #'  }
 #'  summary(BT)
 #'  summary(BT, percentage = FALSE)
@@ -66,9 +66,19 @@ setMethod(f = "summary",
                                 digit = c(2,3)){
               
               ### ** preparation
-              validLogical(show, name1 = "show", validLength = 1, method = "summary[BuyseRes]")
-              validLogical(percentage, name1 = "percentage", validLength = 1, method = "summary[BuyseRes]")
-              validCharacter(statistic, name1 = "statistic", validValues = c("netChance","winRatio"), validLength = 1, method = "summary[BuyseRes]")
+              validLogical(show,
+                           name1 = "show",
+                           valid.length = 1,
+                           method = "summary[BuyseRes]")
+              validLogical(percentage,
+                           name1 = "percentage",
+                           valid.length = 1,
+                           method = "summary[BuyseRes]")
+              validCharacter(statistic,
+                             name1 = "statistic",
+                             valid.values = c("netChance","winRatio"),
+                             valid.length = 1,
+                             method = "summary[BuyseRes]")
             
               ### ** mise en forme
               n.endpoint <- length(object@endpoint)
@@ -77,11 +87,11 @@ setMethod(f = "summary",
               delta <- object@delta[[statistic]]
               Delta <- object@Delta[[statistic]]
               Delta_quantile <- object@Delta_quantile[[statistic]]
-              n_bootstrap <- object@n_bootstrap[[statistic]]
+              n_permutation <- object@n_permutation[[statistic]]
               p.value <- object@p.value[[statistic]]
             
               table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15))
-              names(table) <- c("endpoint","threshold","strata","n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value","")
+              names(table) <- c("endpoint","threshold","strata","n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.permutation","p.value","")
             
               ### ** fill
               index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
@@ -103,7 +113,7 @@ setMethod(f = "summary",
               table[index.global,"Delta"] <- Delta
               table[index.global,"CIinf.Delta"] <- Delta + Delta_quantile[1,]
               table[index.global,"CIsup.Delta"] <- Delta + Delta_quantile[2,]
-              table[index.global,"n.bootstrap"] <- n_bootstrap
+              table[index.global,"n.permutation"] <- n_permutation
               table[index.global,"p.value"] <- p.value
               table[index.global,ncol(table)] <- sapply(p.value,function(x){
                   if(is.na(x)){NA}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
@@ -135,9 +145,9 @@ setMethod(f = "summary",
               table[,"n.total"] <- 100*table[,"n.total"]/table[1,"n.total"]
             }
             
-            ## *** bootstrap
-            if(all(is.na(table[index.global,"n.bootstrap"]))){
-              keep.cols <- setdiff(names(table), c("CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
+            ## *** Permutation test
+            if(all(is.na(table[index.global,"n.permutation"]))){
+              keep.cols <- setdiff(names(table), c("CIinf.Delta","CIsup.Delta","n.permutation","p.value",""))
               table <- table[,keep.cols, drop = FALSE]
             }
              
@@ -160,7 +170,7 @@ setMethod(f = "summary",
               
             if(!is.na(digit[2]) && digit[2]>=0){
                 param.signif <- c("delta","Delta")
-                if("n.bootstrap" %in% names(table)){
+                if("n.permutation" %in% names(table)){
                   param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
                 }
                 table[,param.signif] <- sapply(table[,param.signif],signif,digit=digit[2])
@@ -173,7 +183,7 @@ setMethod(f = "summary",
             ### ** affichage
             if(show){
               table.print <- table
-              emptyCol <- which(names(table.print) %in% c("Delta","CIinf.Delta","CIsup.Delta","n.bootstrap","p.value",""))
+              emptyCol <- which(names(table.print) %in% c("Delta","CIinf.Delta","CIsup.Delta","n.permutation","p.value",""))
               for(iterCol in emptyCol){
                 table.print[is.na(table.print[,iterCol]), iterCol] <- ""
               }

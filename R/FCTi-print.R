@@ -2,13 +2,13 @@
 #' @name internal-print
 #' @rdname internal-print
 #' @title internal functions for BuyseTest - display
-#' @aliases printGeneral printBoostrap
+#' @aliases printGeneral printPermutation
 #' 
 #' @description Functions called by \code{\link{BuyseTest}} to display what is going on.
 #' 
 #' @details
 #' \code{printGeneral} display general settings. \cr
-#' \code{printBoostrap} display bootstrap settings. \cr
+#' \code{printPermutation} display the settings of the permutation test. \cr
 #' 
 #' 
 #' @keywords function internal BuyseTest
@@ -66,20 +66,21 @@ printGeneral <- function(levels.treatment,
   }
 }
 
-printBoostrap <- function(prob.alloc, n.bootstrap, stratified, cpus, time, seed){
+## * Function printPermutation
+printPermutation <- function(prob.alloc, n.permutation, stratified, cpus, time, seed){
   
   if (time[3] == 0) {
     time.punctual <- "<0.001 s"
-    time.bootstrap <- paste0("<",signif(0.001*n.bootstrap/cpus,4)," s")
+    time.permutation <- paste0("<",signif(0.001*n.permutation/cpus,4)," s")
   }else{
     time.punctual <- paste(time[3],"s")
-    time.bootstrap <- paste(signif(time[3]*n.bootstrap/cpus,4),"s")
+    time.permutation <- paste(signif(time[3]*n.permutation/cpus,4),"s")
   }
   
-  cat("Settings (", if (stratified) {"stratified "}, "bootstrap) \n",
-      "   # resampling probability for assignement to the treatment group: ", prob.alloc, "\n",
+  cat("Settings (", if (stratified) {"stratified "}, "permutation test) \n",
+      "   # resampling probability for assignment to the treatment group: ", prob.alloc, "\n",
       "   # requested time for one sample: ", time.punctual, "\n",
-      "   # estimated time for ", n.bootstrap, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.bootstrap, "\n", sep = "")
+      "   # estimated time for ", n.permutation, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.permutation, "\n", sep = "")
   if (!is.null(seed)) {
     cat("   # seed", if (cpus > 1) {"s"}, ": ",paste(seq(seed,seed + cpus - 1), collapse = " "), " \n", sep = "")       
   }
