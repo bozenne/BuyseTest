@@ -20,9 +20,9 @@ calcPermutation <- function(envir){
   resPermutation <- array(NA, dim = c(envir$n.strata + 1, 2*envir$D,  envir$n.permutation))
   
     if (envir$cpus == 1) { ## ** sequential permutation test
-        if (envir$trace > 1) {cat("Sequential permuation test \n")}
+        if (envir$trace > 1) {cat("Sequential permutation test \n")}
         if (envir$trace > 0) {
-            envir$index.trace <- unique(round(seq(1, envir$n.permuation, length.out = 101)[-1])) # number of iterations corresponding to each percentage of progress in the permutation test computation
+            envir$index.trace <- unique(round(seq(1, envir$n.permutation, length.out = 101)[-1])) # number of iterations corresponding to each percentage of progress in the permutation test computation
             envir$cpu_name <- "cpu 1 : " # only 1 cpu is used
             envir$title_pb <- paste(envir$cpu_name,"Permutation test",sep = "") # title of the bar displaying the progress
             label_pb <- envir$label_pb <- paste(envir$cpu_name,"0% done ",sep = "") # inital legend of the bar displaying the progress
@@ -113,7 +113,9 @@ calcPermutation <- function(envir){
 calcCI <- function(Delta,Delta_permutation,
                    endpoint,D,alternative,alpha,
                    n.permutation,cpus,trace){
-  
+
+    option <- BuyseTest.option()
+        
     ## Confidence interval
     ## Delta_permutation <- apply(delta_permutation,c(2,3),sum) # sum of the proportion in favor of treatment over the strata for the permutation test.
     ## if (D > 1) {Delta_permutation <- apply(Delta_permutation,2,cumsum)} # cumulative sum over the endpoints to obtaine the cumulative proportion in favor of treatment for the permutation test
@@ -126,8 +128,8 @@ calcCI <- function(Delta,Delta_permutation,
         for (iter_endpoint in sort(unique(unlist(indexD)))) {
             message <- paste(message,
                              paste("endpoint ",iter_endpoint," (\"",endpoint[iter_endpoint],"\") : ",
-                                   sum(is.na(Delta_permutation[[BuyseTest.options()$statistic]][iter_endpoint,])),
-                                   " (",100*sum(is.na(Delta_permutation[[BuyseTest.options()$statistic]][iter_endpoint,]))/n.permutation,"%) failures  \n",sep = ""),
+                                   sum(is.na(Delta_permutation[[option$statistic]][iter_endpoint,])),
+                                   " (",100*sum(is.na(Delta_permutation[[option$statistic]][iter_endpoint,]))/n.permutation,"%) failures  \n",sep = ""),
                              sep = " ")
         }
     
@@ -174,7 +176,7 @@ calcCI <- function(Delta,Delta_permutation,
     res <- list()
     res$p.value <- p.value
     res$Delta_quantile <- Delta_quantile
-    res$n_permutation <- n.permuation_real
+    res$n_permutation <- n.permutation_real
     return(res)
 }
 
@@ -317,7 +319,7 @@ warper_BTpermutation <- function(x,envir){
         ## then the first element of index.trace to test for the next percentage of iterations
     
         if (envir$cpus == 1) {
-            pc_done <- envir$index.trace[1]/envir$n.permuation
+            pc_done <- envir$index.trace[1]/envir$n.permutation
             label_pb <- paste(envir$cpu_name,round(100 * pc_done), "% done", sep = "")
             tcltk::setTkProgressBar(pb = envir$pb, value = pc_done, title = paste(envir$title_pb, "(", round(100 * pc_done), "%)", sep = ""), label = label_pb)
             envir$index.trace <- envir$index.trace[-1]                 

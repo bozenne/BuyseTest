@@ -89,9 +89,9 @@ setClass(
 
   ### ** Check validity of the object
   validity = function(object){
-    
-    n.strata <- length(object@strata)
-    n.outcome <- length(object@endpoint)
+
+      n.strata <- length(object@strata)
+      n.outcome <- length(object@endpoint)
     
     
     validDimension(object@count_favorable,
@@ -209,7 +209,7 @@ setClass(
     return(TRUE)} 
 )
 
-## * Initialiwe BuyseRes objects
+## * Initialize BuyseRes objects
 methods::setMethod(
   f = "initialize", 
   signature = "BuyseRes", 

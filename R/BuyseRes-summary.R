@@ -3,7 +3,7 @@
 #' @name BuyseRes-summary
 #' @title Summary Method for Class "BuyseRes"
 #' @aliases summary summary,BuyseRes
-#' @include OBJECT_BuyseTest.R
+#' @include BuyseRes-object.R
 #' 
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
 #' 
@@ -37,7 +37,7 @@
 #'   \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object.
 #' 
 #' @examples
-#' dt <- simulBT(1e2, n.strata = 3)
+#' dt <- simBuyseTest(1e2, n.strata = 3)
 #' 
 #'  \dontrun{
 #'  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
@@ -50,9 +50,9 @@
 #'  summary(BT, statistic = "winRatio")
 #' 
 #' @keywords summary BuyseRes-method
-setGeneric(name = "summary", 
-           def = function(object, ...){standardGeneric("summary")}
-)
+## setGeneric(name = "summary", 
+##            def = function(object, ...){standardGeneric("summary")}
+## )
 
 
 ## * method - summary
@@ -61,7 +61,7 @@ setGeneric(name = "summary",
 setMethod(f = "summary",
           signature = "BuyseRes",
           definition = function(object, show = TRUE, percentage = TRUE,
-                                statistic = BuyseTest.options()$statistic, 
+                                statistic = BuyseTest.option()$statistic, 
                                 strata = if(length(object@strata)==1){"global"}else{NULL},
                                 digit = c(2,3)){
               

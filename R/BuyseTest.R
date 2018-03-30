@@ -23,29 +23,36 @@
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
 #' @param method [character] defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations (see details).
 #' Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
-#' Only relevant when there is one or more time-to-event endpoints. 
-#' @param neutralAsUninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority. 
+#' Only relevant when there is one or more time-to-event endpoints.
+#' Default value read from \code{BuyseTest.option()}.
+#' @param neutralAsUninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
+#' Default value read from \code{BuyseTest.option()}.
 #' @param n.permutation [integer] the number of permutations used for computing the confidence interval and the p.values. See details.
+#' Default value read from \code{BuyseTest.option()}.
 #' @param prob.alloc [0<double<1] the resampling probability for assignement to the experimental group in the permutation test.
 #' Can also be \code{NULL} to use the proportion of patients in the experimental group.
 #' @param stratified [logical] should the assignement in the permutation test be performed within strata.
 #' This means that the \code{prob.alloc} will be satisfyied within strata not only globally.
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
-#' @param seed [integer, >0] the seed to consider for the permutation test. 
+#' @param seed [integer, >0] the seed to consider for the permutation test.
+#' Default value read from \code{BuyseTest.option()}.
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
+#' Default value read from \code{BuyseTest.option()}.
 #' @param trace [integer] should the execution of the function be traced ? See details.
+#' Default value read from \code{BuyseTest.option()}.
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
 #' \bold{endpoint, threshold, censoring, and type:} Arguments \code{endpoint}, \code{threshold}, \code{censoring}  and \code{type} must have the same length. \cr
 #' \code{threshold} must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. \cr
 #' \code{censoring} must be \code{NA} for binary or continuous endpoints and indicate a variable in data for time to event endpoints. 
-#' Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \code{"TTE"} (time-to-event endpoint). 
+#' Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \
+#' code{"TTE"} (time-to-event endpoint). 
 #' 
-#' \bold{n.permuation:} The number of permuation replications must be specified to enable the computation of the confidence intervals and the p.value. 
-#' A large number of permuations (e.g. \code{n.permutation=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
+#' \bold{n.permutation:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
+#' A large number of permutations (e.g. \code{n.permutation=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
 #' 
 #' \bold{trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
 #' 
@@ -95,25 +102,31 @@ BuyseTest <- function(formula,
                       threshold = NULL,
                       censoring = NULL,
                       strata = NULL, 
-                      method = BuyseTest.options()$method,
-                      neutralAsUninf = BuyseTest.options()$neutralAsUninf,
-                      n.permuation = BuyseTest.options()$n.permuation,
+                      method = NULL,
+                      neutralAsUninf = NULL,
+                      n.permutation = NULL,
                       prob.alloc = NULL,
                       stratified = FALSE,
                       alternative = "two.sided", 
-                      seed = BuyseTest.options()$seed,
-                      cpus = BuyseTest.options()$cpus,
-                      trace = BuyseTest.options()$trace){
+                      seed = NULL,
+                      cpus = NULL,
+                      trace = NULL){
     
-    
-    ## ** normalize arguments
-    Buysecall <- match.call()
+### ** normalize arguments
+    BuyseCall <- match.call()
+    option <- BuyseTest.option()
+    if(is.null(method)){ method <- option$method }
+    if(is.null(neutralAsUninf)){ neutralAsUninf <- option$neutralAsUninf }
+    if(is.null(n.permutation)){ n.permutation <- option$n.permutation }
+    if(is.null(seed)){ seed <- option$seed }
+    if(is.null(cpus)){ cpus <- option$cpus }
+    if(is.null(trace)){ trace <- option$trace }
     
     ## *** formula interface
     if(!missing(formula)){
         argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
-        if(any(names(Buysecall) %in% argnames)){
-            warning("BuyseTest : arguments \'",paste(names(Buysecall)[names(Buysecall) %in% argnames], collapse = " ")," have been ignored \n",
+        if(any(names(BuyseCall) %in% argnames)){
+            warning("BuyseTest : arguments \'",paste(names(BuyseCall)[names(BuyseCall) %in% argnames], collapse = " ")," have been ignored \n",
                     "when specified, only argument \'formula\' is used \n")
         }
         
@@ -238,7 +251,7 @@ BuyseTest <- function(formula,
     
     if (D.TTE == 0) {
         method <- 0
-        if ("method" %in% names(Buysecall) && trace > 0) {
+        if ("method" %in% names(BuyseCall) && trace > 0) {
             message("NOTE : there is no survival endpoint, \'method\' argument is ignored \n")
         }
     }
@@ -249,8 +262,8 @@ BuyseTest <- function(formula,
                    valid.values = c("two.sided", "less", "greater"),
                    method = "BuyseTest")
     
-    ## *** n.permuation
-    validInteger(n.permuation,
+    ## *** n.permutation
+    validInteger(n.permutation,
                  valid.length = 1,
                  min = 0,
                  method = "BuyseTest")
@@ -315,7 +328,7 @@ BuyseTest <- function(formula,
     list_survivalT <- res$list_survivalT
     list_survivalC <- res$list_survivalC
     
-    ## ** 2- General display
+### ** 2- General display
     if (trace > 1) {
         printGeneral(levels.treatment = levels.treatment,
                      levels.strata = levels.strata,
@@ -332,7 +345,7 @@ BuyseTest <- function(formula,
                      threshold_TTEM1 = if (D>1 && method %in% 1:3) {threshold_TTEM1} else {NULL})
     }
     
-    ## ** 3- Punctual estimation
+### ** 3- Punctual estimation
     if (trace > 1) {cat("Punctual estimation \n")}
     
     time <- system.time({
@@ -358,15 +371,17 @@ BuyseTest <- function(formula,
                                )
     })
     if (trace > 1) {cat("   # done \n")}
-    
-    ## ** 4- Transfomration into BuyseRes object
+
+### ** 4- Transfomration into BuyseRes object
     BuyseRes.object <- BuyseRes(
         count_favorable = resPonctual$count_favorable,      
         count_unfavorable = resPonctual$count_unfavorable,
         count_neutral = resPonctual$count_neutral,    
         count_uninf = resPonctual$count_uninf,
-        delta = list(netChance = resPonctual$delta_netChance, winRatio = resPonctual$delta_winRatio),
-        Delta = list(netChance = resPonctual$Delta_netChance, winRatio = resPonctual$Delta_winRatio),
+        delta = list(netChance = resPonctual$delta_netChance,
+                     winRatio = resPonctual$delta_winRatio),
+        Delta = list(netChance = resPonctual$Delta_netChance,
+                     winRatio = resPonctual$Delta_winRatio),
         endpoint = endpoint,
         index_neutralT = resPonctual$index_neutralT,
         index_neutralC = resPonctual$index_neutralC,
@@ -378,13 +393,13 @@ BuyseTest <- function(formula,
         threshold = threshold
     )
     
-    ## ** 5- Permutation test 
-    if (n.permuation > 0) {
+### ** 5- Permutation test 
+    if (n.permutation > 0) {
         if (trace > 1) {
-            printPermutation(prob.alloc, n.permuation, stratified, cpus, time, seed)
+            printPermutation(prob.alloc, n.permutation, stratified, cpus, time, seed)
         }
         
-        n.eachStrataT <- unlist(lapply(index.strataT, length)) # those variables are used during the permuation test and passed to the wrapper through the environment
+        n.eachStrataT <- unlist(lapply(index.strataT, length)) # those variables are used during the permutation test and passed to the wrapper through the environment
         n.eachStrataC <- unlist(lapply(index.strataC, length))
         nCumSum.strataControl <- cumsum(c(1,n.eachStrataC))
         nCumSum.strataTreatment <- cumsum(c(1,n.eachStrataT))
@@ -406,13 +421,13 @@ BuyseTest <- function(formula,
                         endpoint = endpoint,
                         D = D,
                         alternative = alternative,
-                        alpha = 1 - BuyseTest.options()$conf.level,
+                        alpha = 1 - option$conf.level,
                         n.permutation = n.permutation,
                         cpus = cpus,
                         trace = trace)
         
         ## *** update BuyseRes object 
-        if(BuyseTest.options()$keep.permutation){
+        if(option$keep.permutation){
             BuyseRes.object@delta_permutation <- delta_permutation
         }
         
@@ -422,6 +437,6 @@ BuyseTest <- function(formula,
         validObject(BuyseRes.object)
     }
     
-    ## ** 6- export
+### ** 6- export
     return(BuyseRes.object)
 }

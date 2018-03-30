@@ -1,7 +1,7 @@
 ## * Documentation - getCount
 #' @name BuyseRes-getCount
 #' @title get Method for Class "BuyseRes"
-#' @include OBJECT_BuyseTest.R
+#' @include BuyseRes-object.R
 #' @aliases BuyseRes-getCount getCount getCount,BuyseRes-method
 #'
 #' @description Extract the number of pairs.
@@ -13,17 +13,13 @@
 #'   A \code{"vector"} containing the number of pairs
 #'
 #' @examples
-#' dt <- simulBT(1e2)
+#' dt <- simBuyseTest(1e2)
 #' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=dt,
 #'                 n.permutation = 0)
 #' getCount(BT)
 #' getCount(BT, type = "favorable")
 #'
 #' @keywords getCount BuyseRes-method
-#' @exportMethod getCount
-setGeneric(name = "getCount",
-           def = function(object, type){standardGeneric("getCount")}
-)
 
 ## * Method - getCount
 #' @rdname BuyseRes-getCount

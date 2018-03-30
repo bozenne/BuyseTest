@@ -11,7 +11,7 @@ library(survival)
 source(file.path("FCT","FCT_check.R")) # file containing additional function for performing the tests
 
 #### specifications
-BuyseTest.options(trace = 0)
+BuyseTest.option(trace = 0)
 precision <- 10^{-7} # for expect_equal
 save <- FALSE # TRUE to save results, FALSE to test, NULL to ignore
 conv2df <- FALSE # should the data be in data.frame format or data.table format

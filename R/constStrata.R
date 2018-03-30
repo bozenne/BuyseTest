@@ -5,12 +5,12 @@
 #' 
 #' @description Create strata from several variables.
 #' 
-#' @param data A \code{data.frame} containing the variables.
-#' @param strata A vector of the variables capturing the stratification factors. \emph{character vector}.
-#' @param sep string to construct the new level labels by joining the constituent ones. \emph{character}.
-#' @param lex.order Should the order of factor concatenation be lexically ordered ? \emph{logical}.
-#' @param trace Should the execution of the function be traced ? \emph{logical}.
-#' @param as.numeric Should the strata be converted from factors to numeric? \emph{logical}. 
+#' @param data [data.frame] dataset.
+#' @param strata [character vector] A vector of the variables capturing the stratification factors.
+#' @param sep [character] string to construct the new level labels by joining the constituent ones.
+#' @param lex.order [logical] Should the order of factor concatenation be lexically ordered ?
+#' @param trace [logical] Should the execution of the function be traced ?
+#' @param as.numeric [logical] Should the strata be converted from factors to numeric?
 #' 
 #' @details 
 #' This function uses the \code{interaction} function from the \emph{base} package to form the strata.
@@ -18,20 +18,20 @@
 #' @return A \emph{factor vector} or a \emph{numeric vector}.
 #' 
 #' @examples
-#'   data(veteran,package="survival")
+#' data(veteran,package="survival")
 #'   
-#'   # strata with two variables : celltype and karno
-#'   veteran$strata1 <- constStrata(veteran,c("celltype","karno"))
-#'   table(veteran$strata1)
+#' # strata with two variables : celltype and karno
+#' veteran$strata1 <- constStrata(veteran,c("celltype","karno"))
+#' table(veteran$strata1)
 #'   
-#'   # strata with three variables : celltype, karno and age dichotomized at 60 years
-#'   veteran$age60 <- veteran$age>60
-#'   veteran$age60 <- factor(veteran$age60,labels=c("<=60",">60")) # convert to factor with labels
-#'   veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"))
-#'   table(veteran$strata2) # factor strata variable 
+#' # strata with three variables : celltype, karno and age dichotomized at 60 years
+#' veteran$age60 <- veteran$age>60
+#' veteran$age60 <- factor(veteran$age60,labels=c("<=60",">60")) # convert to factor with labels
+#' veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"))
+#' table(veteran$strata2) # factor strata variable 
 #'   
-#'   veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"),as.numeric=TRUE)
-#'   table(veteran$strata2) # numeric strata variable
+#' veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"), as.numeric=TRUE)
+#' table(veteran$strata2) # numeric strata variable
 #' 
 #' @keywords function
 
