@@ -108,25 +108,30 @@ validCharacter <- function(value1,
 validClass <- function(value1,
                        name1 = as.character(substitute(value1)),
                        valid.class, 
-                       super.classes = TRUE,
+                       type = "inherits",
                        method = NULL,
                        addPP = TRUE){
     
     if(!is.null(method) && addPP){
         method <- paste0(method, ": ")
     }
-    
-    if(super.classes == TRUE){
+
+    if(type == "inherits"){
+        if(inherits(value1, valid.class) == FALSE){
+            stop(method, "class of \'", name1, "\' must inherit of \"", paste(valid.class,collapse="\" \""), "\"  \n")
+        }
+        
+    }else if(type == "is"){
         
         if( all(is(value1) %in% validClass == FALSE) ){
-            stop(method, "class of \'", name1, "\' must be one of the following \"", paste(validClass,collapse="\" \""), "\"  \n", 
+            stop(method, "class of \'", name1, "\' must be one of the following \"", paste(valid.class,collapse="\" \""), "\"  \n", 
                  "proposed superclass : \"", paste(is(value1),collapse="\" \""), "\" \n")
         }  
         
-    }else{
+    }else if(type == "class"){
         
         if( class(value1) %in% validClass == FALSE){
-            stop(method, "class of \'", name1, "\' must be \"", paste(validClass,collapse="\" \""),"\"  \n", 
+            stop(method, "class of \'", name1, "\' must be \"", paste(valid.class,collapse="\" \""),"\"  \n", 
                  "proposed class : ", class(value1)[[1]], "\n")
         }  
         
@@ -413,11 +418,11 @@ validNumeric <- function(value1,
         }
         
 #### check valid values
-        if(!is.null(valid.values) && any(value1 %in% valid.values == FALSE)){
+        if(!is.null(valid.values) && any(stats::na.omit(value1) %in% valid.values == FALSE)){
             
-            stop(method, "\'", name1, "\' contain invalid values \n", 
+            stop(method, "\'", name1, "\' contains invalid values \n", 
                  "valid values for \'", name1, "\' : ", if(refuse.NULL == FALSE){"NULL"}, " \"", paste(valid.values, collapse = "\" \""), "\" \n", 
-                 "refused value",if(sum(value1 %in% valid.values == FALSE)>1){"s"}," for \'", name1, "\' : \"", paste(value1[value1 %in% valid.values == FALSE], collapse = " "), "\"\n")
+                 "refused value",if(sum(value1 %in% valid.values == FALSE)>1){"s"}," for \'", name1, "\' : \"", paste(value1[value1 %in% valid.values == FALSE], collapse = " "), "\"\n", sep = "")
             
         }
     }

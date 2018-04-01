@@ -1,3 +1,4 @@
+// * Preambule
 // [[Rcpp::depends("RcppArmadillo")]]
 #include <iostream>
 #include <RcppArmadillo.h>
@@ -7,7 +8,6 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
-//// SUMMARY : calcAll functions ////
 void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
                               double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
                               vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC);
@@ -32,7 +32,8 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
                          const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE,
                          vector<double>& wNeutral, vector<int>& index_wNeutral);
 
-//  fct1a : perform pairwise comparisons over all possible pairs for a continuous endpoint  //////////////////
+// * calcAllPairs_Continuous
+// perform pairwise comparisons over all possible pairs for a continuous endpoints
 void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
                               double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
                               vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC){
@@ -42,7 +43,7 @@ void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec&
   vector<int> NULL1_vector(0); // only to match function arguments
   vector<int> NULL2_vector(0); // only to match function arguments
   
-  //// loop over the pairs ////
+  // ** loop over the pairs
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
       
@@ -54,12 +55,13 @@ void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec&
     }
   }
   
-  //// export ////
+  // ** export
   return;
   
 }
 
-//  fct1b : perform pairwise comparisons over the neutral and uniformative pairs for a continuous endpoint  //////////////////
+// * calcSubsetPairs_Continuous
+// perform pairwise comparisons over the neutral and uniformative pairs for a continuous endpoint 
 void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
                                  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
                                  vector<int>& index_neutralT,  vector<int>& index_neutralC, const int nNeutral_pairs, 
@@ -75,7 +77,7 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
   // vector<int> index_wNeutral(0); // index of the neutral and uninformative pairs relative to Wpairs
   vector<int> index_wUninf(0); // index of the neutral and uninformative pairs relative to Wpairs
   
-  //// loop over the neutral pairs ////
+  // ** loop over the neutral pairs
   if(nNeutral_pairs>0){
     
     for(int iter_pairs=0; iter_pairs<nNeutral_pairs ; iter_pairs++){
@@ -91,7 +93,7 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
     
   }
   
-  //// loop over the uninformative pairs ////
+  // ** loop over the uninformative pairs
   if(nUninf_pairs>0){
     
     for(int iter_pairs=0; iter_pairs<nUninf_pairs ; iter_pairs++){
@@ -107,7 +109,7 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
     
   }
   
-  //// export ////
+  // ** export 
   index_neutralT = indexNew_neutralT;
   index_neutralC = indexNew_neutralC;
   index_uninfT = indexNew_uninfT;
@@ -119,7 +121,8 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
   
 }
 
-//  fct2a : perform pairwise comparisons over all possible pairs for a TTE endpoint //////////////////////
+// * calcAllPairs_TTE
+// perform pairwise comparisons over all possible pairs for a TTE endpoint
 void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
                        const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
                        double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
@@ -129,7 +132,7 @@ void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Contro
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
   
-  //// loop over the pairs ////
+  // ** loop over the pairs
   if(methodTTE == 0){ // Gehan
     vector<int> NULL1_vector(0); // only to match function arguments
     vector<int> NULL2_vector(0); // only to match function arguments  
@@ -185,11 +188,13 @@ void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Contro
     }
     
   }
-  
-  //// export ////
+
+  // ** export
   return;
 }
 
+// * calcSubsetPairs_TTE
+// perform pairwise comparisons over the neutral and uniformative pairs for a TTE endpoint
 void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
                          const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
                          double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
@@ -209,7 +214,7 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
   // vector<int> index_wNeutral(0); // index of the neutral pairs relative to Wpairs
   vector<int> index_wUninf(0); // index of the uninformative pairs relative to Wpairs
   
-  //// loop over the neutral pairs ////
+  // ** loop over the neutral pairs
   if(nNeutral_pairs>0){
     
     if(methodTTE == 0){ // Gehan
@@ -291,7 +296,7 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
     }
   }
   
-  //// loop over the uninformative pairs ////
+  // ** loop over the uninformative pairs
   if(nUninf_pairs>0){
     
     if(methodTTE == 0){ // Gehan
@@ -372,8 +377,7 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
     }
   }
   
-  //// export ////
-  
+  // ** export
   index_neutralT = indexNew_neutralT;
   index_neutralC = indexNew_neutralC;
   index_uninfT = indexNew_uninfT;

@@ -1,3 +1,4 @@
+// * Preambule
 // [[Rcpp::depends("RcppArmadillo")]]
 #include <iostream>
 #include <RcppArmadillo.h>
@@ -7,8 +8,6 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
-
-//// SUMMARY : calcOne functions ////
 inline void calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
@@ -30,7 +29,7 @@ const arma::mat& survival_T, const arma::mat& survival_C);
 
 inline double calcIntegralProba(const double time_begin, const arma::mat& survival, const int index_col);
 
-
+// * calcOnePair_Continuous
 inline void calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
@@ -67,6 +66,7 @@ vector<int>& index_wUninf, vector<int>& index_wNeutral){
   
 }
 
+// * calcOnePair_TTEgehan
 inline void calcOnePair_TTEgehan(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
@@ -136,7 +136,7 @@ vector<int>& index_wUninf, vector<int>&  index_wNeutral){
   
 }
 
-
+// * calcOneProba_TTEpeto
 inline vector<double> calcOneProba_TTEpeto(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
@@ -275,6 +275,7 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   return(proba);  
 }
 
+// * calcOneProba_TTEefron
 inline vector<double> calcOneProba_TTEefron(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
@@ -375,6 +376,7 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   return(proba);  
 }
 
+// * calcOneProba_TTEperon
 inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold, const int index_T, const int index_C,
 const arma::mat& survival_T, const arma::mat& survival_C){
   
@@ -525,6 +527,7 @@ const arma::mat& survival_T, const arma::mat& survival_C){
   return(proba);  
 }
 
+// * calcIntegralProba
 inline double calcIntegralProba(const double time_begin, const arma::mat& survival, const int index_col){
   
   // index col must be 7 or 8

@@ -134,14 +134,7 @@ BuyseTest <- function(formula,
         treatment <- resFormula$treatment
         type <- resFormula$type
         endpoint <- resFormula$endpoint
-        
-        if(any(unlist(lapply(resFormula$threshold, length))>1)){
-            indexF <- which(unlist(lapply(resFormula$threshold, length))>1)
-            stop("BuyseTest: several thresholds found for endpoint",if(length(indexF)>1){"s"}," number ",paste(indexF, collapse = " "),"\n",
-                 "only one threshold can be used per priority, consider adding an additional endpoint using + \n")
-        }
-        
-        threshold <- unlist(resFormula$threshold)
+        threshold <- resFormula$threshold
         censoring <- resFormula$censoring
         strata <- resFormula$strata
     }
@@ -170,12 +163,14 @@ BuyseTest <- function(formula,
     
     ## *** type: convert type to numeric and count the number of endpoints
     validCharacter(type,
-                   valid.values = c(1:3,"bin","binary","cont","continuous","TTE","timeToEvent"),
+                   valid.values = c("b","bin","binary","c","cont","continuous","t","time","timetoevent"),
                    valid.length = D,
                    method = "BuyseTest")
-    type[type %in% c("binary","bin")] <- "1" 
-    type[type %in% c("continuous","cont")] <- "2"
-    type[type %in% c("timeToEvent","TTE")] <- "3"
+
+    type <- tolower(type)
+    type[grep("b|bin|binary",type)] <- "1" 
+    type[grep("c|cont|continuous",type)] <- "2" 
+    type[grep("t|time|timetoevent",type)] <- "3" 
     type <- as.numeric(type) # type is an integer equal to 1 (binary endpoint), 2 (continuous endpoint) or 3 (time to event endpoint)
     
     D.TTE <- sum(type == 3) # number of time to event endpoints

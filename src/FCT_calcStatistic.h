@@ -1,3 +1,4 @@
+// * Preambule
 // [[Rcpp::depends("RcppArmadillo")]]
 #include <iostream>
 #include <RcppArmadillo.h>
@@ -7,6 +8,7 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
+// * calcStatistic
 void calcStatistic(arma::mat& delta_netChance, arma::mat& delta_winRatio, vector<double>& Delta_netChance, vector<double>& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
                    const int& D, const int& n_strata, const double& n_pairs){

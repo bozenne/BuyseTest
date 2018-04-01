@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: mar 30 2018 (13:44) 
+## Last-Updated: apr  1 2018 (13:09) 
 ##           By: Brice Ozenne
-##     Update #: 7
+##     Update #: 28
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,65 +23,113 @@ if(FALSE){
 verboseContext("Check BuyseTest on tractable examples")
 
 ## * settings
-BuyseTest.option(n.permutation = 0)
+BuyseTest.option(n.permutation = 0, trace = 0)
 
-## * binary endpoint 
+## * binary endpoint
+## ** favorable
 test_that("check favorable - Binary",{
-  data_Bin <- data.frame(toxicity1 = c(1,0), Treatment = c(1,0))
-  BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
-                       treatment="Treatment", type=c("bin"))
-  expect_equal(as.double(BT_Bin1@count_favorable),1)
-  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
-  expect_equal(as.double(BT_Bin1@count_neutral),0)
-  expect_equal(as.double(BT_Bin1@count_uninf),0)
+    data <- data.frame(toxicity1 = c(1,0), Treatment = c(1,0))
+    BT <- BuyseTest(Treatment ~ bin(toxicity1), data=data)
+    expect_equal(as.double(BT@count_favorable),1)
+    expect_equal(as.double(BT@count_unfavorable),0)
+    expect_equal(as.double(BT@count_neutral),0)
+    expect_equal(as.double(BT@count_uninf),0)
   
-  BT_Bin1 <- BuyseTest(data=rbind(data_Bin,data_Bin),endpoint=c("toxicity1"),
-                       treatment="Treatment", type=c("bin"),
-                       n.bootstrap=0)
-  expect_equal(as.double(BT_Bin1@count_favorable),4)
-  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
-  expect_equal(as.double(BT_Bin1@count_neutral),0)
-  expect_equal(as.double(BT_Bin1@count_uninf),0)
+    BT <- BuyseTest(Treatment ~ bin(toxicity1), data = rbind(data, data))
+    expect_equal(as.double(BT@count_favorable),4)
+    expect_equal(as.double(BT@count_unfavorable),0)
+    expect_equal(as.double(BT@count_neutral),0)
+    expect_equal(as.double(BT@count_uninf),0)
 })
 
+## ** unfavorable
 test_that("check unfavorable - Binary",{
-  data_Bin <- data.frame(toxicity1 = c(0,1), Treatment = c(1,0))
-  BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
-                       treatment="Treatment", type=c("bin"),
-                       n.bootstrap=0)
-  expect_equal(as.double(BT_Bin1@count_favorable),0)
-  expect_equal(as.double(BT_Bin1@count_unfavorable),1)
-  expect_equal(as.double(BT_Bin1@count_neutral),0)
-  expect_equal(as.double(BT_Bin1@count_uninf),0)
+    data <- data.frame(toxicity1 = c(0,1), Treatment = c(1,0))
+    BT <- BuyseTest(Treatment ~ bin(toxicity1), data=data)
+    expect_equal(as.double(BT@count_favorable),0)
+    expect_equal(as.double(BT@count_unfavorable),1)
+    expect_equal(as.double(BT@count_neutral),0)
+    expect_equal(as.double(BT@count_uninf),0)
   
-  BT_Bin1 <- BuyseTest(data=rbind(data_Bin,data_Bin),endpoint=c("toxicity1"),
-                       treatment="Treatment", type=c("bin"),
-                       n.bootstrap=0)
-  expect_equal(as.double(BT_Bin1@count_favorable),0)
-  expect_equal(as.double(BT_Bin1@count_unfavorable),4)
-  expect_equal(as.double(BT_Bin1@count_neutral),0)
-  expect_equal(as.double(BT_Bin1@count_uninf),0)
+    BT <- BuyseTest(Treatment ~ bin(toxicity1), data=rbind(data,data))
+    expect_equal(as.double(BT@count_favorable),0)
+    expect_equal(as.double(BT@count_unfavorable),4)
+    expect_equal(as.double(BT@count_neutral),0)
+    expect_equal(as.double(BT@count_uninf),0)
 })
 
+## ** neutral
 test_that("check neutral - Binary",{
-  data_Bin <- data.frame(toxicity1 = c(1,1), Treatment = c(1,0))
-  BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
-                       treatment="Treatment", type=c("bin"),
-                       n.bootstrap=0)
-  expect_equal(as.double(BT_Bin1@count_favorable),0)
-  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
-  expect_equal(as.double(BT_Bin1@count_neutral),1)
-  expect_equal(as.double(BT_Bin1@count_uninf),0)
+  data <- data.frame(toxicity1 = c(1,1), Treatment = c(1,0))
+  BT <- BuyseTest(Treatment ~ bin(toxicity1), data=data)
+  expect_equal(as.double(BT@count_favorable),0)
+  expect_equal(as.double(BT@count_unfavorable),0)
+  expect_equal(as.double(BT@count_neutral),1)
+  expect_equal(as.double(BT@count_uninf),0)
   
-  BT_Bin1 <- BuyseTest(data=rbind(data_Bin,data_Bin),endpoint=c("toxicity1"),
-                       treatment="Treatment", type=c("bin"),
-                       n.bootstrap=0)
-  expect_equal(as.double(BT_Bin1@count_favorable),0)
-  expect_equal(as.double(BT_Bin1@count_unfavorable),0)
-  expect_equal(as.double(BT_Bin1@count_neutral),4)
-  expect_equal(as.double(BT_Bin1@count_uninf),0)
+  BT <- BuyseTest(Treatment ~ bin(toxicity1), data=rbind(data,data))
+  expect_equal(as.double(BT@count_favorable),0)
+  expect_equal(as.double(BT@count_unfavorable),0)
+  expect_equal(as.double(BT@count_neutral),4)
+  expect_equal(as.double(BT@count_uninf),0)
 })
 
+## ** NA as uninformative
+test_that("check NA - Binary",{
+  data <- data.frame(toxicity1 = c(NA, 1, 1), Treatment = c(1, 1,0))
+  BT <- BuyseTest(Treatment ~ bin(toxicity1), data = data)
+  expect_equal(as.double(BT@count_favorable),0)
+  expect_equal(as.double(BT@count_unfavorable),0)
+  expect_equal(as.double(BT@count_neutral),1)
+  expect_equal(as.double(BT@count_uninf),1)
+})
+
+## * continous endpoint
+## ** favorable
+test_that("check favorable - continous",{
+    data <- data.frame(size = c(1,0), Treatment = c(1,0))
+    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1), data=data)
+    expect_equal(as.double(BT@count_favorable),1)
+    expect_equal(as.double(BT@count_unfavorable),0)
+    expect_equal(as.double(BT@count_neutral),0)
+    expect_equal(as.double(BT@count_uninf),0)
+})
+## ** unfavorable
+test_that("check favorable - continous",{
+    data <- data.frame(size = c(-1,0), Treatment = c(1,0))
+    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1), data=data)
+    expect_equal(as.double(BT@count_favorable),0)
+    expect_equal(as.double(BT@count_unfavorable),1)
+    expect_equal(as.double(BT@count_neutral),0)
+    expect_equal(as.double(BT@count_uninf),0)
+})
+## ** neutral
+test_that("check neutral - continous",{
+    data <- data.frame(size = c(1,1), Treatment = c(1,0))
+    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 0), data=data)
+    BT.bis <- BuyseTest(Treatment ~ continuous(size), data=data)
+    expect_equal(BT.bis,BT)
+    expect_equal(as.double(BT@count_favorable),0)
+    expect_equal(as.double(BT@count_unfavorable),0)
+    expect_equal(as.double(BT@count_neutral),1)
+    expect_equal(as.double(BT@count_uninf),0)
+
+    data <- data.frame(size = c(1,0), Treatment = c(1,0))
+    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 2), data=data)
+    expect_equal(as.double(BT@count_favorable),0)
+    expect_equal(as.double(BT@count_unfavorable),0)
+    expect_equal(as.double(BT@count_neutral),1)
+    expect_equal(as.double(BT@count_uninf),0)
+})
+## ** NA as uninformative
+test_that("check NA - continuous",{
+  data <- data.frame(size = c(NA, 1, 1), Treatment = c(1, 1, 0))
+  BT <- BuyseTest(Treatment ~ continuous(size, threshold = 0), data = data)
+  expect_equal(as.double(BT@count_favorable),0)
+  expect_equal(as.double(BT@count_unfavorable),0)
+  expect_equal(as.double(BT@count_neutral),1)
+  expect_equal(as.double(BT@count_uninf),1)
+})
 
 ##----------------------------------------------------------------------
 ### test-BuyseTest-Pairs.R ends here
