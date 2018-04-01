@@ -84,7 +84,8 @@ setClass(
     n_pairs = "numeric",
     p.value = "list",
     strata = "vector",
-    threshold = "vector"
+    threshold = "vector",
+    tableComparison = "list"
     ),
 
   ### ** Check validity of the object
@@ -218,51 +219,76 @@ methods::setMethod(
                         delta, Delta, delta_permutation, Delta_quantile,
                         endpoint,
                         index_neutralT, index_neutralC, index_uninfT, index_uninfC, 
-                        levels.treatment, n_permutation, n_pairs, p.value, strata, threshold){
+                        levels.treatment, n_permutation, n_pairs, p.value, strata, threshold,
+                        tableComparison, args){
     
     n.strata <- length(strata)
     D <- length(endpoint)
     
-    if(missing(delta_permutation)){
-      delta_permutation <- list(netChance = array(NA,dim = c(n.strata,D,1)),
-                         winRatio = array(NA,dim = c(n.strata,D,1))
-      )
-    }
-    if(missing(Delta_quantile)){
-      Delta_quantile <- list(netChance = matrix(NA,nrow = 2, ncol = D, dimnames = list(c("lower%","upper%"))),
-                             winRatio = matrix(NA,nrow = 2, ncol = D, dimnames = list(c("lower%","upper%")))
-      )
-    }
-    if(missing(p.value)){
-      p.value <- list(netChance = rep(NA,D),
-                      winRatio = rep(NA,D)
-      )
-    }
-    if(missing(n_permutation)){
-      n_permutation <- list(netChance = rep(NA,D),
+      if(missing(delta_permutation)){
+          delta_permutation <- list(netChance = array(NA,dim = c(n.strata,D,1)),
+                                    winRatio = array(NA,dim = c(n.strata,D,1))
+                                    )
+      }
+      if(missing(Delta_quantile)){
+          Delta_quantile <- list(netChance = matrix(NA,nrow = 2, ncol = D, dimnames = list(c("lower%","upper%"))),
+                                 winRatio = matrix(NA,nrow = 2, ncol = D, dimnames = list(c("lower%","upper%")))
+                                 )
+      }
+      if(missing(p.value)){
+          p.value <- list(netChance = rep(NA,D),
                           winRatio = rep(NA,D)
-      )
-    }
-    
-    .Object@count_favorable <- count_favorable      
-    .Object@count_unfavorable <- count_unfavorable
-    .Object@count_neutral <- count_neutral   
-    .Object@count_uninf <- count_uninf
-    .Object@delta <- delta
-    .Object@Delta <- Delta
-    .Object@delta_permutation <- delta_permutation
-    .Object@Delta_quantile <- Delta_quantile
-    .Object@endpoint <- endpoint
-    .Object@index_neutralT <- index_neutralT
-    .Object@index_neutralC <- index_neutralC
-    .Object@index_uninfT <- index_uninfT
-    .Object@index_uninfC <- index_uninfC
-    .Object@levels.treatment <- levels.treatment
-    .Object@n_permutation <- n_permutation
-    .Object@n_pairs <- n_pairs
-    .Object@p.value <- p.value    
-    .Object@strata <- strata
-    .Object@threshold <- threshold
+                          )
+      }
+      if(missing(n_permutation)){
+          n_permutation <- list(netChance = rep(NA,D),
+                                winRatio = rep(NA,D)
+                                )
+      }
+      if(missing(tableComparison) || is.null(tableComparison)){
+          tableComparison <- list()
+      }else{
+          ## Rcpp outputs vector: convert to matrix and rename
+          name.tempo <- c("strata",
+                          paste0("index.",levels.treatment[2]), ## treated
+                          paste0("index.",levels.treatment[1]), ## control
+                          paste0("indexWithinStrata.",levels.treatment[2]), ## treated
+                          paste0("indexWithinStrata.",levels.treatment[1]), ## control
+                          "favorable","unfavorable","neutral","uninformative")
+
+          tableComparison <- lapply(tableComparison, function(iC){
+              iM <- as.data.frame(matrix(iC, ncol = 9, byrow = FALSE,
+                                         dimnames = list(NULL,name.tempo)))              
+              iM[,"strata"] <- factor(iM[,"strata"], levels = 0:(n.strata-1), labels = strata) ## indexes start at 1 in R and not at 0 as in C++
+
+              ## recall that indexes start at 1 in R and not at 0 as in C++
+              iM[,2] <- args$indexT[iM[,2]+1] ## restaure position in the original dataset, not the datasets relative to T and C
+              iM[,3] <- args$indexC[iM[,3]+1]
+              iM[,4:5] <- iM[,4:5] + 1 
+              return(iM)
+          })
+          names(tableComparison) <- paste0(endpoint,"_",threshold)
+      }
+      .Object@count_favorable <- count_favorable      
+      .Object@count_unfavorable <- count_unfavorable
+      .Object@count_neutral <- count_neutral   
+      .Object@count_uninf <- count_uninf
+      .Object@delta <- delta
+      .Object@Delta <- Delta
+      .Object@delta_permutation <- delta_permutation
+      .Object@Delta_quantile <- Delta_quantile
+      .Object@endpoint <- endpoint
+      .Object@index_neutralT <- index_neutralT
+      .Object@index_neutralC <- index_neutralC
+      .Object@index_uninfT <- index_uninfT
+      .Object@index_uninfC <- index_uninfC
+      .Object@levels.treatment <- levels.treatment
+      .Object@n_permutation <- n_permutation
+      .Object@n_pairs <- n_pairs
+      .Object@p.value <- p.value    
+      .Object@strata <- strata
+      .Object@threshold <- threshold
+      .Object@tableComparison <- tableComparison
     
     validObject(.Object)
     return(.Object)

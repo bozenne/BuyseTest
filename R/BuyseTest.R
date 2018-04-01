@@ -33,6 +33,7 @@
 #' Can also be \code{NULL} to use the proportion of patients in the experimental group.
 #' @param stratified [logical] should the assignement in the permutation test be performed within strata.
 #' This means that the \code{prob.alloc} will be satisfyied within strata not only globally.
+#' @param keepComparison [logical] should the result of each pairwise comparison be kept?
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 #' @param seed [integer, >0] the seed to consider for the permutation test.
@@ -107,6 +108,7 @@ BuyseTest <- function(formula,
                       n.permutation = NULL,
                       prob.alloc = NULL,
                       stratified = FALSE,
+                      keepComparison = NULL,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
@@ -117,6 +119,7 @@ BuyseTest <- function(formula,
     option <- BuyseTest.option()
     if(is.null(method)){ method <- option$method }
     if(is.null(neutralAsUninf)){ neutralAsUninf <- option$neutralAsUninf }
+    if(is.null(keepComparison)){ keepComparison <- option$keepComparison }
     if(is.null(n.permutation)){ n.permutation <- option$n.permutation }
     if(is.null(seed)){ seed <- option$seed }
     if(is.null(cpus)){ cpus <- option$cpus }
@@ -211,9 +214,11 @@ BuyseTest <- function(formula,
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
     }
-    
-    dataT <- data[data[[treatment]] == levels.treatment[2], c(endpoint, strata, censoring), with = FALSE]
-    dataC <- data[data[[treatment]] == levels.treatment[1], c(endpoint, strata, censoring), with = FALSE]
+
+    indexT <- which(data[[treatment]] == levels.treatment[2])
+    indexC <- which(data[[treatment]] == levels.treatment[1])
+    dataT <- data[indexT, c(endpoint, strata, censoring), with = FALSE]
+    dataC <- data[indexC, c(endpoint, strata, censoring), with = FALSE]
 
     n.Treatment <- NROW(dataT) # number of patient in the treatment arm
     n.Control <- NROW(dataC) # number of patient in the control arm
@@ -362,11 +367,12 @@ BuyseTest <- function(formula,
                                list_survivalT = list_survivalT,
                                list_survivalC = list_survivalC,
                                methodTTE = method,
-                               neutralAsUninf = neutralAsUninf
+                               neutralAsUninf = neutralAsUninf,
+                               keepComparison = keepComparison
                                )
     })
     if (trace > 1) {cat("   # done \n")}
-
+    
 ### ** 4- Transfomration into BuyseRes object
     BuyseRes.object <- BuyseRes(
         count_favorable = resPonctual$count_favorable,      
@@ -385,7 +391,9 @@ BuyseTest <- function(formula,
         levels.treatment = levels.treatment,
         n_pairs = resPonctual$n_pairs,
         strata = levels.strata,
-        threshold = threshold
+        threshold = threshold,
+        tableComparison = resPonctual$tableComparison,
+        args = list(indexT = indexT, indexC = indexC)
     )
     
 ### ** 5- Permutation test 

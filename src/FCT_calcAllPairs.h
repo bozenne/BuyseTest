@@ -8,65 +8,79 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
-void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-                              double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                              vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC);
+arma::mat calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+				   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+				   vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
+				   bool keepComparison);
 
-void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                                 vector<int>& index_neutralT,  vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                 vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
-                                 const arma::vec& Wpairs, vector<int>& index_wNeutral);
+arma::mat calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+				      double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+				      vector<int>& index_neutralT,  vector<int>& index_neutralC, const int nNeutral_pairs, 
+				      vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+				      const arma::vec& Wpairs, vector<int>& index_wNeutral,
+				      bool keepComparison);
 
-void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-                       const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
-                       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                       vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
-                       vector<double>& wUninf);
+arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+			    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+			    double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+			    vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
+			    vector<double>& wUninf,
+			    bool keepComparison);
 
-void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                         const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                         double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                         vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
-                         vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
-                         const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE,
-                         vector<double>& wNeutral, vector<int>& index_wNeutral);
+arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+			      const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
+			      double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+			      vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
+			      vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+			      const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE,
+			      vector<double>& wNeutral, vector<int>& index_wNeutral,
+			      bool keepComparison);
 
 // * calcAllPairs_Continuous
 // perform pairwise comparisons over all possible pairs for a continuous endpoints
-void calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-                              double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                              vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC){
-  
+arma::mat calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+                                   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+                                   vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
+			           bool keepComparison){
+
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
   vector<int> NULL1_vector(0); // only to match function arguments
   vector<int> NULL2_vector(0); // only to match function arguments
+
+  arma::rowvec iRow; // temporary store results
+  arma::mat comparison(n_Treatment * n_Control, 6); // store results from all comparisons
   
   // ** loop over the pairs
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
       
-      calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  1, -1, 
-                             count_favorable, count_unfavorable, count_neutral,count_uninf,
-                             index_uninfT, index_uninfC, index_neutralT, index_neutralC,
-                             NULL1_vector, NULL2_vector);
+      iRow = calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  1, -1, 
+                                    count_favorable, count_unfavorable, count_neutral,count_uninf,
+                                    index_uninfT, index_uninfC, index_neutralT, index_neutralC,
+                                    NULL1_vector, NULL2_vector,
+			            keepComparison);
+
+      if(keepComparison){
+	comparison.row(iter_T*n_Treatment+iter_C) = iRow;
+      }
       
     }
   }
   
   // ** export
-  return;
+  return comparison;
   
 }
 
 // * calcSubsetPairs_Continuous
 // perform pairwise comparisons over the neutral and uniformative pairs for a continuous endpoint 
-void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                                 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                                 vector<int>& index_neutralT,  vector<int>& index_neutralC, const int nNeutral_pairs, 
-                                 vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
-                                 const arma::vec& Wpairs, vector<int>& index_wNeutral){
+arma::mat calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+				      double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+				      vector<int>& index_neutralT,  vector<int>& index_neutralC, const int nNeutral_pairs, 
+				      vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+				      const arma::vec& Wpairs, vector<int>& index_wNeutral,
+				      bool keepComparison){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   
@@ -76,6 +90,9 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
   vector<int> indexNew_uninfC(0); // index of the uninformative pairs of the control arm
   // vector<int> index_wNeutral(0); // index of the neutral and uninformative pairs relative to Wpairs
   vector<int> index_wUninf(0); // index of the neutral and uninformative pairs relative to Wpairs
+
+  arma::rowvec iRow; // temporary store results
+  arma::mat comparison(nNeutral_pairs+nUninf_pairs, 6); // store results from all comparisons
   
   // ** loop over the neutral pairs
   if(nNeutral_pairs>0){
@@ -84,11 +101,16 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
       iter_T = index_neutralT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
       iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control matrix
       
-      calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(iter_pairs), iter_pairs, 
-                             count_favorable, count_unfavorable, count_neutral, count_uninf,
-                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                             index_wNeutral, index_wUninf);
-      
+      iRow = calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(iter_pairs), iter_pairs, 
+				    count_favorable, count_unfavorable, count_neutral, count_uninf,
+				    indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+				    index_wNeutral, index_wUninf,
+				    keepComparison);
+
+      if(keepComparison){
+	comparison.row(iter_pairs) = iRow;
+      }
+
     }
     
   }
@@ -100,11 +122,14 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
       iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
       iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control matrix
       
-      calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(nNeutral_pairs+iter_pairs), nNeutral_pairs+iter_pairs, 
-                             count_favorable, count_unfavorable, count_neutral,count_uninf,
-                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                             index_wNeutral, index_wUninf);
-      
+      iRow = calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  Wpairs(nNeutral_pairs+iter_pairs), nNeutral_pairs+iter_pairs, 
+                                    count_favorable, count_unfavorable, count_neutral,count_uninf,
+                                    indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+                                    index_wNeutral, index_wUninf,
+				    keepComparison);      
+      if(keepComparison){
+	comparison.row(nNeutral_pairs + iter_pairs) = iRow;
+      }
     }
     
   }
@@ -117,21 +142,25 @@ void calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma::colv
   
   index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end()); // index_wNeutral is returned by reference
   
-  return;
+  return comparison;
   
 }
 
 // * calcAllPairs_TTE
 // perform pairwise comparisons over all possible pairs for a TTE endpoint
-void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-                       const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
-                       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                       vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
-                       vector<double>& wUninf){
+arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
+			    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+			    double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+			    vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
+			    vector<double>& wUninf,
+			    bool keepComparison){
   
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
   
+  arma::mat comparison(n_Treatment * n_Control, 6); // store results from all comparisons
+  arma::rowvec iRow; // temporary store results
+   
   // ** loop over the pairs
   if(methodTTE == 0){ // Gehan
     vector<int> NULL1_vector(0); // only to match function arguments
@@ -140,10 +169,15 @@ void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Contro
     for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
       for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
         
-        calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
-                             count_favorable, count_unfavorable, count_neutral, count_uninf,
-                             index_uninfT, index_uninfC, index_neutralT, index_neutralC,
-                             NULL1_vector, NULL2_vector);
+        iRow = calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
+                                    count_favorable, count_unfavorable, count_neutral, count_uninf,
+                                    index_uninfT, index_uninfC, index_neutralT, index_neutralC,
+                                    NULL1_vector, NULL2_vector,
+				    keepComparison);
+
+        if(keepComparison){
+	  comparison.row(iter_T*n_Treatment+iter_C) = iRow;
+        }
       }
     }
   }else{
@@ -167,7 +201,12 @@ void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Contro
         if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
           index_neutralT.push_back(iter_T);
           index_neutralC.push_back(iter_C);
-          count_neutral++; 
+          count_neutral++;
+
+  	  if(keepComparison){
+	    comparison.row(iter_T*n_Treatment+iter_C) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C], 0, 0, 1, 0});
+          }
+
         }else{
           
           weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
@@ -181,7 +220,12 @@ void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Contro
           }
           
           count_favorable += proba_threshold[0];    
-          count_unfavorable += proba_threshold[1];  
+          count_unfavorable += proba_threshold[1];
+
+	  if(keepComparison){
+	    comparison.row(iter_T*n_Treatment+iter_C) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C],
+								proba_threshold[0], proba_threshold[1], 0, weight_residual});
+          }
         }
         
       }
@@ -190,18 +234,19 @@ void calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Contro
   }
 
   // ** export
-  return;
+  return comparison;
 }
 
 // * calcSubsetPairs_TTE
 // perform pairwise comparisons over the neutral and uniformative pairs for a TTE endpoint
-void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-                         const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
-                         double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-                         vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
-                         vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
-                         const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, 
-                         vector<double>& wNeutral, vector<int>& index_wNeutral){
+arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
+			      const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+			      double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+			      vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
+			      vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
+			      const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, 
+			      vector<double>& wNeutral, vector<int>& index_wNeutral,
+bool keepComparison){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   vector<int> indexNew_neutralT(0); // index of the neutral pairs of the treatment arm
@@ -213,7 +258,10 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
   vector<double> wUninf(0);  // weigth of the uninformative pairs 
   // vector<int> index_wNeutral(0); // index of the neutral pairs relative to Wpairs
   vector<int> index_wUninf(0); // index of the uninformative pairs relative to Wpairs
-  
+
+  arma::rowvec iRow; // temporary store results
+  arma::mat comparison(nNeutral_pairs+nUninf_pairs, 6); // store results from all comparisons
+ 
   // ** loop over the neutral pairs
   if(nNeutral_pairs>0){
     
@@ -225,10 +273,15 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
         iter_T = index_neutralT[iter_pairs]; // index of the treatment patient of the pair in the Treatment and deltaT matrix
         iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control and deltaC matrix
         
-        calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
+        iRow = calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
                              count_favorable, count_unfavorable, count_neutral, count_uninf,
                              indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                             NULL1_vector, NULL2_vector);
+				    NULL1_vector, NULL2_vector,
+				    keepComparison);
+
+	if(keepComparison){
+           comparison.row(iter_pairs) = iRow;
+        }
       }
     }else{
       
@@ -274,7 +327,10 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
           index_wNeutral.push_back(iter_pairs);
           
           wNeutral.push_back(1); 
-          count_neutral+=Wpairs(iter_pairs);    
+          count_neutral+=Wpairs(iter_pairs);
+	  if(keepComparison){
+	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C], 0, 0, 1, 0});
+          }
         }else{
           
           weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
@@ -289,7 +345,14 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
           }
           
           count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs);    
-          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);  
+          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);
+	  if(keepComparison){
+	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C],
+								(proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs),
+								(proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs),
+								0,
+								Wpairs(iter_pairs)*weight_residual});
+          }
         }
         
       }
@@ -307,10 +370,15 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
         iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment and deltaT matrix
         iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control and deltaC matrix
         
-        calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
+        iRow = calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
                              count_favorable, count_unfavorable, count_neutral, count_uninf,
                              indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
-                             NULL1_vector, NULL2_vector);
+				    NULL1_vector, NULL2_vector,
+				    keepComparison);
+
+	if(keepComparison){
+	comparison.row(iter_pairs) = iRow;
+        }
       }
     }else{
       
@@ -357,7 +425,10 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
           index_wNeutral.push_back(nNeutral_pairs+iter_pairs);
           
           wNeutral.push_back(1); 
-          count_neutral += Wpairs(nNeutral_pairs+iter_pairs);    
+          count_neutral += Wpairs(nNeutral_pairs+iter_pairs);
+	  if(keepComparison){
+	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C], 0, 0, 1, 0});
+          }
         }else{
           
           weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
@@ -367,11 +438,18 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
             index_wUninf.push_back(nNeutral_pairs+iter_pairs);
             
             wUninf.push_back(weight_residual); 
-            count_uninf=count_uninf+Wpairs(nNeutral_pairs+iter_pairs)*weight_residual;
+            count_uninf += Wpairs(nNeutral_pairs+iter_pairs)*weight_residual;
           }
           
           count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
-          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);  
+          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);
+	  if(keepComparison){
+	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C],
+								(proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs),
+								(proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs),
+								0,
+								Wpairs(nNeutral_pairs+iter_pairs)*weight_residual});
+          }
         }
       }
     }
@@ -385,5 +463,5 @@ void calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Cont
   
   index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
   wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
-  return;
+  return comparison;
 }

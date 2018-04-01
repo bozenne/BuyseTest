@@ -293,14 +293,26 @@ warper_BTpermutation <- function(x,envir){
         }
     
         ## ** Computation
-        resBT <-   GPC_cpp(Treatment = Mnew.Treatment,Control = Mnew.Control,threshold = envir$threshold, survEndpoint = (envir$type == 3),
-                           delta_Treatment = Mnew.delta_Treatment,delta_Control = Mnew.delta_Control,
-                           D = envir$D, returnIndex = FALSE,
-                           strataT = new.strataT,strataC = new.strataC, n_strata = envir$n.strata, n_TTE = envir$D.TTE,
-                           Wscheme = envir$Wscheme, index_survivalM1 = envir$index_survivalM1, threshold_TTEM1 = envir$threshold_TTEM1,
+        resBT <-   GPC_cpp(Treatment = Mnew.Treatment,
+                           Control = Mnew.Control,
+                           threshold = envir$threshold,
+                           survEndpoint = (envir$type == 3),
+                           delta_Treatment = Mnew.delta_Treatment,
+                           delta_Control = Mnew.delta_Control,
+                           D = envir$D,
+                           returnIndex = FALSE,
+                           strataT = new.strataT,
+                           strataC = new.strataC,
+                           n_strata = envir$n.strata,
+                           n_TTE = envir$D.TTE,
+                           Wscheme = envir$Wscheme,
+                           index_survivalM1 = envir$index_survivalM1,
+                           threshold_TTEM1 = envir$threshold_TTEM1,
                            list_survivalT = if (envir$method %in% 2:3) {res_init$list_survivalT} else {new.survivalT},
                            list_survivalC = if (envir$method %in% 2:3) {res_init$list_survivalC} else {new.survivalC},
-                           methodTTE = envir$method, neutralAsUninf = envir$neutralAsUninf
+                           methodTTE = envir$method,
+                           neutralAsUninf = envir$neutralAsUninf,
+                           keepComparison = FALSE
                            )
     
     

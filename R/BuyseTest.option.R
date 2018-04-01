@@ -38,6 +38,7 @@ BuyseTest.option <- function(..., reinitialise = FALSE){
                method = "Peron",
                n.permutation = 1000,
                neutralAsUninf = TRUE,
+               keepComparison = FALSE,
                trace = 3,
                seed = 10,
                statistic = "netChance"), 

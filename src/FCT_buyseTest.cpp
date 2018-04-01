@@ -35,8 +35,9 @@ using namespace arma ;
 //' @param threshold_TTEM1 The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.
 //' @param list_survivalT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Efron or Peron, two survival functions are computed) columns. Ignored if method is Gehan.
 //' @param list_survivalC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.
-//' @param methodTTE The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.
-//' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.
+//' @param methodTTE The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).
+//' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority?  \emph{logical}.
+//' @param keepComparison Should the result of each pairwise comparison be kept? \emph{logical}.
 //' @keywords function Cpp BuyseTest
 
 // * Function BuyseTest_cpp
@@ -61,7 +62,8 @@ List GPC_cpp(const arma::mat& Treatment,
              const std::vector< arma::mat >& list_survivalT,
 	     const std::vector< arma::mat >& list_survivalC,
 	     const int methodTTE,
-	     const double neutralAsUninf){
+	     const bool neutralAsUninf,
+	     const bool keepComparison){
   
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -114,7 +116,13 @@ List GPC_cpp(const arma::mat& Treatment,
   arma::vec w; // current weigths
   
   vector<int> tempo_index;  // temporary index vector used to convert the index SEXP into vector<int>
-  
+
+  // *** keep track of each comparison
+  vector<arma::mat> lsComp(D);
+  arma::mat iComparison;
+  arma::mat iMat;
+  int iNpairs;
+      
   // ** loop over strata
   for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
     
@@ -143,19 +151,20 @@ List GPC_cpp(const arma::mat& Treatment,
         matKMC_K = list_survivalC[0].rows(index_strataC);
       }
       
-      calcAllPairs_TTE(TreatmentK.col(0), ControlK.col(0), threshold[0],
+      iComparison = calcAllPairs_TTE(TreatmentK.col(0), ControlK.col(0), threshold[0],
                        delta_TreatmentK.col(0), delta_ControlK.col(0), matKMT_K, matKMC_K, methodTTE,
                        Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
                        iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
-                       iw); 
+                       iw, keepComparison); 
       
       iter_dTTE++; // increment the number of time to event endpoints that have been used
       
     }else { // binary or continuous endpoint
       
-      calcAllPairs_Continuous(TreatmentK.col(0),ControlK.col(0),threshold[0],
+      iComparison = calcAllPairs_Continuous(TreatmentK.col(0),ControlK.col(0),threshold[0],
                               Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-                              iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC);
+                              iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC,
+			      keepComparison);
       
     }
     
@@ -176,10 +185,29 @@ List GPC_cpp(const arma::mat& Treatment,
           Wpairs(size_neutral+iter_uninf,0) = iw[iter_uninf];
           if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = iw[iter_uninf];}
         }
-      }        
+      }
     }
     
-    
+    // **** update all Comparisons
+    if(keepComparison){
+      iNpairs = iComparison.n_rows;
+      iMat.resize(iNpairs,3);
+      
+      // add original index
+      for(int iPair=0 ; iPair < iNpairs ; iPair ++){
+	iMat.row(iPair) = rowvec({(double)iter_strata,
+			          (double)index_strataT(iComparison(iPair,0)),
+				  (double)index_strataC(iComparison(iPair,1))});
+      }
+
+      // merge with current table and store
+      if(iter_strata==0){
+	lsComp[0] = arma::join_rows(iMat,iComparison);
+      }else{
+        lsComp[0] = arma::join_cols(lsComp[0],arma::join_rows(iMat,iComparison));
+      }
+    }
+
     // *** following endpoints
     while(D>iter_d+1 && (Mcount_neutral(iter_strata,iter_d)>0 || Mcount_uninf(iter_strata,iter_d)>0)){ // loop over the following endpoints
       
@@ -197,34 +225,37 @@ List GPC_cpp(const arma::mat& Treatment,
         
         if(methodTTE==0 || threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used [no threshold-1]
 	  
-          calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
+          iComparison = calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
                               delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
                               Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
                               iIndex_neutralT, iIndex_neutralC, size_neutral,
                               iIndex_uninfT, iIndex_uninfC, size_uninf,
                               w, -1, arma::mat(1,1), arma::mat(1,1),
-                              iw, iIndex_w);
+                              iw, iIndex_w,
+					    keepComparison);
 	  
         }else{ // following times
 	  
-          calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
+          iComparison = calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
                               delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
                               Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
                               iIndex_neutralT, iIndex_neutralC, size_neutral,
                               iIndex_uninfT, iIndex_uninfC, size_uninf,
                               w, threshold_TTEM1[iter_dTTE], list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT), list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
-                              iw, iIndex_w);
+                              iw, iIndex_w,
+			      keepComparison);
 	  
         }
         iter_dTTE++; // increment the number of time to event endpoints that have been used
 	
       }else{ // binary or continuous endpoint
 	
-        calcSubsetPairs_Continuous(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
+        iComparison = calcSubsetPairs_Continuous(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
                                    Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
                                    iIndex_neutralT, iIndex_neutralC, size_neutral,
                                    iIndex_uninfT, iIndex_uninfC, size_uninf,
-                                   w, iIndex_w);
+                                   w, iIndex_w,
+				   keepComparison);
 	
       }
       
@@ -259,8 +290,28 @@ List GPC_cpp(const arma::mat& Treatment,
       }
       
     } // end endpoint
-    
-    // 
+
+    // **** update all Comparisons
+    if(keepComparison){
+      iNpairs = size_neutral+size_uninf;
+      iMat.resize(iNpairs,3);
+      
+      // add original index
+      for(int iPair=0 ; iPair < iNpairs ; iPair ++){
+	iMat.row(iPair) = rowvec({(double)iter_strata,
+			          (double)index_strataT(iComparison(iPair,0)),
+				  (double)index_strataC(iComparison(iPair,1))});
+      }
+
+      // merge with current table and store
+      if(iter_strata==0){
+	lsComp[iter_d] = arma::join_rows(iMat,iComparison);
+      }else{
+        lsComp[iter_d] = arma::join_cols(lsComp[iter_d], arma::join_rows(iMat,iComparison));
+      }
+    }
+
+    // **** store index of the uniformative and neutral pairs
     if(returnIndex==true){ // store the neutral and the uninformative pairs 
       index_neutralT.insert(index_neutralT.end(), iIndex_neutralT.begin(), iIndex_neutralT.end()); // insert the neutral pairs of the treatment arm after those already founded
       index_neutralC.insert(index_neutralC.end(), iIndex_neutralC.begin(), iIndex_neutralC.end()); // insert the neutral pairs of the control arm after those already founded
@@ -277,7 +328,7 @@ List GPC_cpp(const arma::mat& Treatment,
   calcStatistic(delta_netChance, delta_winRatio, Delta_netChance, Delta_winRatio,
                 Mcount_favorable, Mcount_unfavorable, 
                 D, n_strata, n_pairs);
-  
+
   // ** export
   if(returnIndex==true){
     
@@ -294,7 +345,8 @@ List GPC_cpp(const arma::mat& Treatment,
         Named("index_neutralC")  = index_neutralC,
         Named("index_uninfT")  = index_uninfT,
         Named("index_uninfC")  = index_uninfC,
-        Named("n_pairs")  = n_pairs   
+        Named("n_pairs")  = n_pairs,
+	Named("tableComparison")  = lsComp
     ));
   }else{
     return(List::create(
