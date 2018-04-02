@@ -16,54 +16,80 @@
 ## * Function printGeneral
 printGeneral <- function(levels.treatment,
                          levels.strata, n.strata,
-                         endpoint, threshold, censoring, type, D, D.TTE,
+                         endpoint, threshold, censoring, operator, type, D, D.TTE,
                          method, neutralAsUninf, Wscheme, threshold_TTEM1){
-  cat("Settings (general) \n")
-  cat("   # chosen reference : Control = ",levels.treatment[1]," and Treatment = ",levels.treatment[2],"\n")
-  cat("   # number of endpoints : ",D," \n")
-  iter_mTTE <- 0
-  for (iter_m in 1:D) {
-    cat("      >  endpoint ", iter_m, " = \"", endpoint[iter_m], "\" - type = \"", c("binary", "continuous", "timeToEvent")[type[iter_m]], "\"", sep = "")
-    if (type[iter_m] %in% c(2,3)) {cat(" | threshold =",threshold[iter_m])}
-    if (type[iter_m] == 3) {iter_mTTE <- iter_mTTE + 1 ; cat(" | censoring = \"", censoring[iter_mTTE], "\"", sep = "");}
-    cat("\n")
-  }
-  cat("   # n.strata = ", n.strata, " : ", paste(levels.strata,collapse = " "), "\n")
-  cat("   # management of neutral pairs : ")
-  if(neutralAsUninf){
-    cat("re-analyzed using endpoints of lower priority (if any) \n")
-  }else{
-    cat("ignore endpoints of lower priority \n")
-  }
-  cat("   # management of censored survival pairs : ")
-  switch(method,
-         "Gehan" = cat("uninformative pairs \n"),
-         "Peto" = cat("imputation using one survival curve estimated on all patients \n"),
-         "Efron" = cat("imputation using different survival curve for control and treatment patients \n"),
-         "Peron" = cat("imputation using different survival curve for control and treatment patients \n")
-  ) 
-  if (method %in% c("Peto","Efron","Peron")) {
+
+    ## ** Prepare
+    ## endpoint
+    name.col <- c("priority", "endpoint","type","operator","threshold","censoring")
+    df.endpoint <- data.frame(matrix(NA, nrow = D, ncol = 6,
+                                     dimnames = list(NULL, name.col)
+                                     ))
+    df.endpoint[,1] <- paste0("     |",1:D)
+    names(df.endpoint)[1] <- "     |priority"
+    df.endpoint$endpoint <- endpoint
+    df.endpoint$type <- c("binary","continuous","time to event")[type]
+    df.endpoint$operator <- c("lower is favorable","higher is favorable")[1 + (operator == ">0")]
+    df.endpoint$threshold[type!=1] <- threshold[type!=1]
+    df.endpoint$censoring[type==3] <- censoring
+
+    df.endpoint[is.na(df.endpoint)] <- ""
+    if(all(type!=3)){
+        df.endpoint$censoring <- NULL
+        if(all(type!=2)){
+            df.endpoint$threshold <- NULL
+        }
+    }
+    df.endpoint <- cbind(df.endpoint, `|` = "|")
+
+    ## threshold
+    if(any(type==3)){
+        if (length(threshold_TTEM1) > 0) {
+            threshold_TTEM1.display <- threshold_TTEM1
+            threshold_TTEM1.display[threshold_TTEM1.display < 0] <- +Inf
+        }else{
+            threshold_TTEM1.display <- +Inf
+        }
     
-    cat("   # weights of the pairs relatively to the enpoints : \n")
-    print(Wscheme)
-    
-    cat("   # intervals thresholds for survival endpoints : \n")
-    
-    if (length(threshold_TTEM1) > 0) {
-      threshold_TTEM1.display <- threshold_TTEM1
-      threshold_TTEM1.display[threshold_TTEM1.display < 0] <- +Inf
-    }else{
-      threshold_TTEM1.display <- +Inf
+        threshold.display <- rbind(sapply(1:D.TTE,
+                                          function(x){paste(c("[",round(threshold_TTEM1.display[x],4),
+                                                              " ; ",round(threshold[type == 3][x],4),
+                                                              "] "), collapse = "")}))
+        colnames(threshold.display) <- endpoint[type == 3]      
+        rownames(threshold.display) <- "threshold interval"
     }
     
-    threshold.display <- rbind(sapply(1:D.TTE,
-                                      function(x){paste(c("[",round(threshold_TTEM1.display[x],4),
-                                                          " ; ",round(threshold[type == 3][x],4),
-                                                          "] "), collapse = "")}))
-    colnames(threshold.display) <- endpoint[type == 3]      
-    rownames(threshold.display) <- "threshold interval"
-    print(threshold.display)
-  }
+    ## ** Display
+    cat("Settings (punctual estimation) \n")
+    cat("   > reference: Control = ",levels.treatment[1]," and Treatment = ",levels.treatment[2],"\n", sep = "")
+    cat("   > ",D," endpoint",if(D>1){"s"},": \n", sep = "")
+    print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
+    if(n.strata>1){
+        cat("   > ", n.strata, " strata with levels ", paste(levels.strata,collapse = " "), "\n", sep = "")
+    }
+    cat("   > management of neutral pairs : ")
+    if(neutralAsUninf){
+        cat("re-analyzed using endpoints of lower priority (if any) \n")
+    }else{
+        cat("ignore endpoints of lower priority \n")
+    }
+    if(any(type==3)){
+        cat("   > management of censored survival pairs : ")
+        switch(method,
+               "Gehan" = cat("uninformative pairs \n"),
+               "Peto" = cat("imputation using one survival curve estimated on all patients \n"),
+               "Efron" = cat("imputation using different survival curve for control and treatment patients \n"),
+               "Peron" = cat("imputation using different survival curve for control and treatment patients \n")
+               ) 
+        if (method %in% c("Peto","Efron","Peron")) {
+    
+        cat("   > weights of the pairs relatively to the enpoints : \n")
+        print(Wscheme)
+    
+        cat("   > intervals thresholds for survival endpoints : \n")    
+        print(threshold.display)
+    }
+    }
 }
 
 ## * Function printPermutation
@@ -78,10 +104,10 @@ printPermutation <- function(prob.alloc, n.permutation, stratified, cpus, time, 
   }
   
   cat("Settings (", if (stratified) {"stratified "}, "permutation test) \n",
-      "   # resampling probability for assignment to the treatment group: ", prob.alloc, "\n",
-      "   # requested time for one sample: ", time.punctual, "\n",
-      "   # estimated time for ", n.permutation, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.permutation, "\n", sep = "")
+      "   > resampling probability for assignment to the treatment group: ", prob.alloc, "\n",
+      "   > requested time for one sample: ", time.punctual, "\n",
+      "   > estimated time for ", n.permutation, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.permutation, "\n", sep = "")
   if (!is.null(seed)) {
-    cat("   # seed", if (cpus > 1) {"s"}, ": ",paste(seq(seed,seed + cpus - 1), collapse = " "), " \n", sep = "")       
+    cat("   > seed", if (cpus > 1) {"s"}, ": ",paste(seq(seed,seed + cpus - 1), collapse = " "), " \n", sep = "")       
   }
 }

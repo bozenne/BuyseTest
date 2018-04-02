@@ -28,6 +28,37 @@
 
 ## Functions called by BuyseTest for the initialization
 
+## * applyOperator
+#' @rdname internal-intilisation
+applyOperator <- function(data, operator, type, endpoint, D){
+
+    validCharacter(operator,
+                   valid.values = c("<0",">0"),
+                   valid.length = D,
+                   method = "BuyseTest")
+
+    n.operatorPerEndpoint <- tapply(operator, endpoint, function(x){length(unique(x))})
+    if(any(n.operatorPerEndpoint>1)){
+        stop("Cannot have different operator for the same endpoint used at different priorities \n")
+    }
+    
+    operator.endpoint <- setNames(operator, endpoint)[!duplicated(endpoint)]
+    name.negative <- names(operator.endpoint)[operator.endpoint=="<0"]
+    if(length(name.negative)>0){
+        name.negative.binary <- intersect(name.negative, endpoint[type==1])
+        if(length(name.negative.binary)>0){
+            data[,name.negative.binary] <- -data[,name.negative.binary]+1
+        }
+
+        name.negative.other <- setdiff(name.negative, name.negative.binary)
+        if(length(name.negative.other)){
+            data[,name.negative.other] <- -data[,name.negative.other]
+        }
+    }
+        
+    return(data)
+}
+
 ## * initCensoring
 #' @rdname internal-intilisation
 initCensoring <- function(censoring,endpoint,type,D,D.TTE,
@@ -79,7 +110,7 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
 
 ## * initData
 #' @rdname internal-intilisation
-initData <- function(dataT, dataC, type, endpoint, D, censoring,
+initData <- function(dataT, dataC, type, endpoint, D, censoring, operator,
                      index.strataT, index.strataC, n.strata,          
                      method, D.TTE, threshold, Wscheme = NULL,
                      trace, test = TRUE){
@@ -369,7 +400,8 @@ initFormula <- function(x){
     threshold <- rep(NA, n.endpoint)
     censoring <- rep(NA, n.endpoint)
     endpoint <- rep(NA, n.endpoint)
-    validArgs <- c("endpoint","threshold","censoring")
+    operator <- rep(">0", n.endpoint)
+    validArgs <- c("endpoint","threshold","censoring","operator")
 
     ## split around parentheses
     ls.x.endpoint <- strsplit(vec.x.endpoint, split = "(", fixed = TRUE)
@@ -430,6 +462,17 @@ initFormula <- function(x){
         if("censoring" %in% iName){
             censoring[iE] <- iArg[iName=="censoring"]
         }
+        if("operator" %in% iName){
+            if(iArg[iName=="operator"] %in% c("\"<0\"","\">0\"") == FALSE){
+                stop("wrong specification of the argument \'operator\' relative to the endpoint \"",endpoint[iE]," in the formula \n",
+                     "valid values: \"<0\" \">0\" \n",
+                     "refused value: ",iArg[iName=="operator"],"\n")
+            }
+            operator[iE] <- switch(iArg[iName=="operator"],
+                                   "\"<0\"" = "<0",
+                                   "\">0\"" = ">0")
+        
+        }
     }
 
     ## ** export
@@ -438,6 +481,7 @@ initFormula <- function(x){
                 endpoint = endpoint,
                 threshold = threshold,
                 censoring = censoring,
+                operator = operator,
                 strata = strata))
 }
 

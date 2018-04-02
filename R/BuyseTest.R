@@ -11,6 +11,9 @@
 #' Disregarded if the argument \code{formula} is defined.
 #' @param endpoint [character vector] the name of the endpoint variable(s).
 #' Disregarded if the argument \code{formula} is defined.
+#' @param operator [character vector] the sign defining a favorable endpoint:
+#' ">0" indicates that higher values are favorable while "<0" indicates the opposite.
+#' Disregarded if the argument \code{formula} is defined.
 #' @param threshold [numeric vector] critical values used to compare the pairs.
 #' There must be one threshold for each endpoint variable.
 #' Disregarded if the argument \code{formula} is defined.
@@ -46,11 +49,12 @@
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
-#' \bold{endpoint, threshold, censoring, and type:} Arguments \code{endpoint}, \code{threshold}, \code{censoring}  and \code{type} must have the same length. \cr
+#' \bold{endpoint, threshold, censoring, operator, and type:}  they must have the same length. \cr
 #' \code{threshold} must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. \cr
 #' \code{censoring} must be \code{NA} for binary or continuous endpoints and indicate a variable in data for time to event endpoints. 
 #' Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \
 #' code{"TTE"} (time-to-event endpoint). 
+#' \bold{operator:} when the operator is set to \code{"<0"} the corresponding column in the dataset is multiplied by \code{-1}.
 #' 
 #' \bold{n.permutation:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
 #' A large number of permutations (e.g. \code{n.permutation=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
@@ -102,6 +106,7 @@ BuyseTest <- function(formula,
                       type = NULL,
                       threshold = NULL,
                       censoring = NULL,
+                      operator = NULL,
                       strata = NULL, 
                       method = NULL,
                       neutralAsUninf = NULL,
@@ -139,7 +144,12 @@ BuyseTest <- function(formula,
         endpoint <- resFormula$endpoint
         threshold <- resFormula$threshold
         censoring <- resFormula$censoring
+        operator <- resFormula$operator
         strata <- resFormula$strata
+    }else{
+        if(is.null(operator)){
+            operator <- rep(">0",length(endpoint))
+        }
     }
     
     ## *** Treatment: extract the 2 levels
@@ -186,7 +196,7 @@ BuyseTest <- function(formula,
         stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
     }
     
-    ## *** censoring (see FCTi-initialization.R)
+    ## *** censoring 
     censoring <- initCensoring(censoring = censoring,
                                endpoint = endpoint,
                                type = type,
@@ -201,6 +211,10 @@ BuyseTest <- function(formula,
                valid.length = NULL,
                refuse.NULL = FALSE,
                method = "BuyseTest")
+
+    ## *** operator
+    data <- applyOperator(data, operator = operator,
+                          type = type, endpoint = endpoint, D = D)
     
     ## *** data: split the data according to the two levels
     if (!is.null(strata)) {
@@ -223,11 +237,11 @@ BuyseTest <- function(formula,
     n.Treatment <- NROW(dataT) # number of patient in the treatment arm
     n.Control <- NROW(dataC) # number of patient in the control arm
     
-    ## *** threshold (see FCTi-initialization.R)
+    ## *** threshold
     threshold <- initThreshold(threshold = threshold, type = type, D = D,
                                endpoint = endpoint)
     
-    ## *** strata (see FCTi-initialization.R)
+    ## *** strata
     res <- initStrata(strata = strata,
                       dataT = dataT, dataC = dataC, n.Treatment = n.Treatment, n.Control = n.Control,
                       endpoint = endpoint, censoring = censoring)
@@ -307,6 +321,7 @@ BuyseTest <- function(formula,
                     type = type,
                     endpoint = endpoint,
                     D = D,
+                    operator = operator,
                     censoring = censoring,
                     index.strataT = index.strataT,
                     index.strataC = index.strataC,
@@ -336,6 +351,7 @@ BuyseTest <- function(formula,
                      endpoint = endpoint,
                      threshold = threshold,
                      censoring = censoring,
+                     operator = operator,
                      type = type,
                      D = D,
                      D.TTE = D.TTE,
@@ -371,9 +387,10 @@ BuyseTest <- function(formula,
                                keepComparison = keepComparison
                                )
     })
-    if (trace > 1) {cat("   # done \n")}
+    if (trace > 1) {cat("   > done \n")}
     
 ### ** 4- Transfomration into BuyseRes object
+    if (trace > 1) {cat("Conversion to BuyseRes object \n")}
     BuyseRes.object <- BuyseRes(
         count_favorable = resPonctual$count_favorable,      
         count_unfavorable = resPonctual$count_unfavorable,
@@ -395,10 +412,12 @@ BuyseTest <- function(formula,
         tableComparison = resPonctual$tableComparison,
         args = list(indexT = indexT, indexC = indexC)
     )
+    if (trace > 1) {cat("   > done \n")}
     
 ### ** 5- Permutation test 
     if (n.permutation > 0) {
         if (trace > 1) {
+            cat("\n")
             printPermutation(prob.alloc, n.permutation, stratified, cpus, time, seed)
         }
         
@@ -418,7 +437,7 @@ BuyseTest <- function(formula,
         calcPermutation(environment())
         
         ## *** post treatment
-        if (trace > 1) {cat("Post-Treatment \n")}
+        if (trace > 1) {cat("Post-Treatment and update of the BuyseRes object \n")}
         resCI <- calcCI(Delta = BuyseRes.object@Delta,
                         Delta_permutation = Delta_permutation, 
                         endpoint = endpoint,
@@ -438,6 +457,7 @@ BuyseTest <- function(formula,
         BuyseRes.object@n_permutation <- resCI$n_permutation
         BuyseRes.object@p.value <- resCI$p.value
         validObject(BuyseRes.object)
+        if (trace > 1) {cat("   > done \n")}
     }
     
 ### ** 6- export

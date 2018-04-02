@@ -152,19 +152,19 @@ List GPC_cpp(const arma::mat& Treatment,
       }
       
       iComparison = calcAllPairs_TTE(TreatmentK.col(0), ControlK.col(0), threshold[0],
-                       delta_TreatmentK.col(0), delta_ControlK.col(0), matKMT_K, matKMC_K, methodTTE,
-                       Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-                       iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
-                       iw, keepComparison); 
+				     delta_TreatmentK.col(0), delta_ControlK.col(0), matKMT_K, matKMC_K, methodTTE,
+				     Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+				     iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
+				     iw, keepComparison); 
       
       iter_dTTE++; // increment the number of time to event endpoints that have been used
       
     }else { // binary or continuous endpoint
       
       iComparison = calcAllPairs_Continuous(TreatmentK.col(0),ControlK.col(0),threshold[0],
-                              Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-                              iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC,
-			      keepComparison);
+					    Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+					    iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC,
+					    keepComparison);
       
     }
     
@@ -199,7 +199,6 @@ List GPC_cpp(const arma::mat& Treatment,
 			          (double)index_strataT(iComparison(iPair,0)),
 				  (double)index_strataC(iComparison(iPair,1))});
       }
-
       // merge with current table and store
       if(iter_strata==0){
 	lsComp[0] = arma::join_rows(iMat,iComparison);
@@ -226,24 +225,24 @@ List GPC_cpp(const arma::mat& Treatment,
         if(methodTTE==0 || threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used [no threshold-1]
 	  
           iComparison = calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-                              delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
-                              Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-                              iIndex_neutralT, iIndex_neutralC, size_neutral,
-                              iIndex_uninfT, iIndex_uninfC, size_uninf,
-                              w, -1, arma::mat(1,1), arma::mat(1,1),
-                              iw, iIndex_w,
+					    delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
+					    Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+					    iIndex_neutralT, iIndex_neutralC, size_neutral,
+					    iIndex_uninfT, iIndex_uninfC, size_uninf,
+					    w, -1, arma::mat(1,1), arma::mat(1,1),
+					    iw, iIndex_w,
 					    keepComparison);
 	  
         }else{ // following times
 	  
           iComparison = calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-                              delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
-                              Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-                              iIndex_neutralT, iIndex_neutralC, size_neutral,
-                              iIndex_uninfT, iIndex_uninfC, size_uninf,
-                              w, threshold_TTEM1[iter_dTTE], list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT), list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
-                              iw, iIndex_w,
-			      keepComparison);
+					    delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
+					    Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+					    iIndex_neutralT, iIndex_neutralC, size_neutral,
+					    iIndex_uninfT, iIndex_uninfC, size_uninf,
+					    w, threshold_TTEM1[iter_dTTE], list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT), list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC), 
+					    iw, iIndex_w,
+					    keepComparison);
 	  
         }
         iter_dTTE++; // increment the number of time to event endpoints that have been used
@@ -251,11 +250,14 @@ List GPC_cpp(const arma::mat& Treatment,
       }else{ // binary or continuous endpoint
 	
         iComparison = calcSubsetPairs_Continuous(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-                                   Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-                                   iIndex_neutralT, iIndex_neutralC, size_neutral,
-                                   iIndex_uninfT, iIndex_uninfC, size_uninf,
-                                   w, iIndex_w,
-				   keepComparison);
+						 Mcount_favorable(iter_strata,iter_d),
+						 Mcount_unfavorable(iter_strata,iter_d),
+						 Mcount_neutral(iter_strata,iter_d),
+						 Mcount_uninf(iter_strata,iter_d), 
+						 iIndex_neutralT, iIndex_neutralC, size_neutral,
+						 iIndex_uninfT, iIndex_uninfC, size_uninf,
+						 w, iIndex_w,
+						 keepComparison);
 	
       }
       
@@ -288,10 +290,8 @@ List GPC_cpp(const arma::mat& Treatment,
           } 
         }
       }
-      
-    } // end endpoint
 
-    // **** update all Comparisons
+      // **** update all Comparisons
     if(keepComparison){
       iNpairs = size_neutral+size_uninf;
       iMat.resize(iNpairs,3);
@@ -309,7 +309,8 @@ List GPC_cpp(const arma::mat& Treatment,
       }else{
         lsComp[iter_d] = arma::join_cols(lsComp[iter_d], arma::join_rows(iMat,iComparison));
       }
-    }
+     }
+    } // end endpoint
 
     // **** store index of the uniformative and neutral pairs
     if(returnIndex==true){ // store the neutral and the uninformative pairs 
@@ -333,28 +334,28 @@ List GPC_cpp(const arma::mat& Treatment,
   if(returnIndex==true){
     
     return(List::create(
-        Named("count_favorable")  = Mcount_favorable,
-        Named("count_unfavorable")  = Mcount_unfavorable,
-        Named("count_neutral")  = Mcount_neutral,           
-        Named("count_uninf")  = Mcount_uninf,           
-        Named("delta_netChance")  = delta_netChance,
-        Named("delta_winRatio")  = delta_winRatio,
-        Named("Delta_netChance")  = Delta_netChance,
-        Named("Delta_winRatio")  = Delta_winRatio,
-        Named("index_neutralT")  = index_neutralT,
-        Named("index_neutralC")  = index_neutralC,
-        Named("index_uninfT")  = index_uninfT,
-        Named("index_uninfC")  = index_uninfC,
-        Named("n_pairs")  = n_pairs,
-	Named("tableComparison")  = lsComp
-    ));
+			Named("count_favorable")  = Mcount_favorable,
+			Named("count_unfavorable")  = Mcount_unfavorable,
+			Named("count_neutral")  = Mcount_neutral,           
+			Named("count_uninf")  = Mcount_uninf,           
+			Named("delta_netChance")  = delta_netChance,
+			Named("delta_winRatio")  = delta_winRatio,
+			Named("Delta_netChance")  = Delta_netChance,
+			Named("Delta_winRatio")  = Delta_winRatio,
+			Named("index_neutralT")  = index_neutralT,
+			Named("index_neutralC")  = index_neutralC,
+			Named("index_uninfT")  = index_uninfT,
+			Named("index_uninfC")  = index_uninfC,
+			Named("n_pairs")  = n_pairs,
+			Named("tableComparison")  = lsComp
+			));
   }else{
     return(List::create(
-        Named("delta_netChance")  = delta_netChance,
-        Named("delta_winRatio")  = delta_winRatio,
-        Named("Delta_netChance")  = Delta_netChance,
-        Named("Delta_winRatio")  = Delta_winRatio
-    ));
+			Named("delta_netChance")  = delta_netChance,
+			Named("delta_winRatio")  = delta_winRatio,
+			Named("Delta_netChance")  = Delta_netChance,
+			Named("Delta_winRatio")  = Delta_winRatio
+			));
   }                   
   
 }

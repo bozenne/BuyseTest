@@ -33,9 +33,9 @@ calcPermutation <- function(envir){
         }
         if (!is.null(envir$seed)) {set.seed(envir$seed)} # set the seed 
         resPermutation[] <- vapply(1:envir$n.permutation, 
-                            function(x){warper_BTpermutation(x, envir = envir)},
-                            matrix(1.5, envir$n.strata + 1, 2*envir$D)) # perform the permutation test and return for each sample a (n.strata + 1)*(2*D) matrix
-    
+                                   function(x){warper_BTpermutation(x, envir = envir)},
+                                   matrix(1.5, envir$n.strata + 1, 2*envir$D)) # perform the permutation test and return for each sample a (n.strata + 1)*(2*D) matrix
+        if (envir$trace > 1) {cat("   > done \n")}
     }else { ## ** parallel permutation test
         if (envir$trace > 1) {cat("Parallel permutation test \n")}
     
@@ -97,6 +97,7 @@ calcPermutation <- function(envir){
         for(iterCPU in 1:envir$cpus){
             resPermutation[,,seq((iterCPU - 1) * envir$nParallel.permutation + 1, iterCPU * envir$nParallel.permutation)] <- resIter[[iterCPU]]
         }
+        if (envir$trace > 1) {cat("   > done \n")}
     }
   
   #### export
