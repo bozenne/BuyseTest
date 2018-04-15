@@ -17,12 +17,12 @@ validCharacter(value1, name1 = as.character(substitute(value1)), valid.length,
   valid.values = "character", refuse.NULL = TRUE,
   refuse.duplicates = FALSE, method = NULL, addPP = TRUE)
 
-validClass(value1, name1 = as.character(substitute(value1)), validClass,
-  super.classes = TRUE, method = NULL, addPP = TRUE)
+validClass(value1, name1 = as.character(substitute(value1)), valid.class,
+  type = "inherits", method = NULL, addPP = TRUE)
 
 validDimension(value1, value2 = NULL,
   name1 = as.character(substitute(value1)),
-  name2 = as.character(substitute(value2)), validDimension = NULL,
+  name2 = as.character(substitute(value2)), valid.dimension = NULL,
   type = c("NROW", "NCOL"), method = NULL, addPP = TRUE)
 
 validInteger(value1, name1 = as.character(substitute(value1)), valid.length,
@@ -63,17 +63,11 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 
 \item{addPP}{add ": " after the name of the function in the error message.}
 
-\item{validClass}{the acceptable classes(s) for the argument.}
-
-\item{super.classes}{uses the \code{is} function instead of \code{class} to test the class of the object.}
+\item{type}{For \code{validDimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.}
 
 \item{value2}{the second value of a second argument whose dimensions should be consistent with the first one}
 
 \item{name2}{the name of the second argument.}
-
-\item{validDimension}{the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.}
-
-\item{type}{For \code{validDimension}: the type of operator used to check the dimensions. For \code{validPath} either "dir" or "file" to check whether to path points to an existing directory or file.}
 
 \item{min}{the minimum acceptable value}
 
@@ -88,6 +82,12 @@ validPath(value1, name1 = as.character(substitute(value1)), type,
 \item{extension}{filter the files by the type of extension.}
 
 \item{check.fsep}{display a warning when the separator is not correctly specified in}
+
+\item{validClass}{the acceptable classes(s) for the argument.}
+
+\item{validDimension}{the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.}
+
+\item{super.classes}{uses the \code{is} function instead of \code{class} to test the class of the object.}
 }
 \value{
 An invisible \code{TRUE} or an error message.

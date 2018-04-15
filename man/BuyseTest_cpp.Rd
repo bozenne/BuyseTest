@@ -2,15 +2,16 @@
 % Please edit documentation in R/RcppExports.R
 \name{BuyseTest_cpp}
 \alias{BuyseTest_cpp}
-\alias{GPC_cpp}
 \alias{BuyseTest_Gehan_cpp}
 \alias{BuyseTest_PetoEfronPeron_cpp}
+\alias{BuyseTest_cpp}
+\alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
 GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
   delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme,
   index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE,
-  neutralAsUninf)
+  neutralAsUninf, keepComparison)
 }
 \arguments{
 \item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment observations (in rows). \emph{const arma::mat&}. Must have D columns.}
@@ -47,9 +48,11 @@ GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
 
 \item{list_survivalC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.}
 
-\item{methodTTE}{The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).\emph{const int}.}
+\item{methodTTE}{The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).}
 
-\item{neutralAsUninf}{Should paired classified as neutral be re-analysed using endpoints of lower priority. \emph{logical}.}
+\item{neutralAsUninf}{Should paired classified as neutral be re-analysed using endpoints of lower priority?  \emph{logical}.}
+
+\item{keepComparison}{Should the result of each pairwise comparison be kept? \emph{logical}.}
 }
 \description{
 \code{BuyseTest_Gehan_cpp} and \code{BuyseTest_PetoEfron_cpp} functions calls for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts.

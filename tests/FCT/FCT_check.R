@@ -1,11 +1,3 @@
-## * verboseContext
-#' @description Modified context that also display its desc argument
-verboseContext <- function(desc){
-  context(desc)
-  cat(desc,"\n")
-  return(invisible(TRUE))
-}
-
 ## * expect_equalBT
 #' @description Test the equality of certain slots between two BuyseTest objects. Usefull when the definition of the object has changed
 expect_equalBT <- function(BuyseRes1, BuyseRes2, slots = NULL, trace = 1){

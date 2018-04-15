@@ -2,7 +2,7 @@ Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
 Version: 1.2.1
-Date: 2018-03-30
+Date: 2018-04-15
 Author: Brice Ozenne[aut, cre], Julien Peron[aut]
 Maintainer: brice ozenne <brice.ozenne@orange.fr>
 Description: Implementation of the Generalized Pairwise Comparisons. This test
@@ -37,10 +37,11 @@ Suggests:
     tcltk,
     survival
 LinkingTo: Rcpp, RcppArmadillo
+SystemRequirements: C++11
 RoxygenNote: 6.0.1
 Collate: 
-    '0-onload.R'
-    '1-generic-methods.R'
+    '0-onLoad.R'
+    '1-setGeneric.R'
     'BuyseRes-object.R'
     'BuyseRes-summary.R'
     'BuyseRes_get.R'

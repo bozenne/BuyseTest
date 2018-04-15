@@ -1,4 +1,4 @@
-verboseContext("Check BuyseTest with strata")
+verbose("Check BuyseTest with strata")
 
 ## * settings
 n.patients <- c(90,100)

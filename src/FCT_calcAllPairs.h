@@ -1,4 +1,8 @@
 // * Preambule
+
+// Enable C++11 via this plugin (Rcpp 0.10.3 or later)
+// [[Rcpp::plugins(cpp11)]]
+
 // [[Rcpp::depends("RcppArmadillo")]]
 #include <iostream>
 #include <RcppArmadillo.h>
@@ -52,9 +56,10 @@ arma::mat calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::co
   arma::mat comparison(n_Treatment * n_Control, 6); // store results from all comparisons
   
   // ** loop over the pairs
+  int iter_pairs=0;
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
-      
+
       iRow = calcOnePair_Continuous(Treatment[iter_T], Control[iter_C], threshold, iter_T, iter_C,  1, -1, 
                                     count_favorable, count_unfavorable, count_neutral,count_uninf,
                                     index_uninfT, index_uninfC, index_neutralT, index_neutralC,
@@ -62,7 +67,8 @@ arma::mat calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::co
 			            keepComparison);
 
       if(keepComparison){
-	comparison.row(iter_T*n_Treatment+iter_C) = iRow;
+	comparison.row(iter_pairs) = iRow;
+	iter_pairs++;
       }
       
     }
@@ -160,12 +166,13 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
   
   arma::mat comparison(n_Treatment * n_Control, 6); // store results from all comparisons
   arma::rowvec iRow; // temporary store results
-   
+  int iter_pairs = 0;
+  
   // ** loop over the pairs
   if(methodTTE == 0){ // Gehan
     vector<int> NULL1_vector(0); // only to match function arguments
     vector<int> NULL2_vector(0); // only to match function arguments  
-    
+
     for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
       for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
         
@@ -176,7 +183,8 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
 				    keepComparison);
 
         if(keepComparison){
-	  comparison.row(iter_T*n_Treatment+iter_C) = iRow;
+	  comparison.row(iter_pairs) = iRow;
+	  iter_pairs++;
         }
       }
     }
@@ -204,7 +212,8 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
           count_neutral++;
 
   	  if(keepComparison){
-	    comparison.row(iter_T*n_Treatment+iter_C) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C], 0, 0, 1, 0});
+	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
+	    iter_pairs++;
           }
 
         }else{
@@ -223,8 +232,9 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
           count_unfavorable += proba_threshold[1];
 
 	  if(keepComparison){
-	    comparison.row(iter_T*n_Treatment+iter_C) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C],
-								proba_threshold[0], proba_threshold[1], 0, weight_residual});
+	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
+						 proba_threshold[0], proba_threshold[1], 0, weight_residual});
+	    iter_pairs++;
           }
         }
         
@@ -246,7 +256,7 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
 			      vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
 			      const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, 
 			      vector<double>& wNeutral, vector<int>& index_wNeutral,
-bool keepComparison){
+			      bool keepComparison){
   
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
   vector<int> indexNew_neutralT(0); // index of the neutral pairs of the treatment arm
@@ -274,13 +284,13 @@ bool keepComparison){
         iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control and deltaC matrix
         
         iRow = calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
-                             count_favorable, count_unfavorable, count_neutral, count_uninf,
-                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+				    count_favorable, count_unfavorable, count_neutral, count_uninf,
+				    indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
 				    NULL1_vector, NULL2_vector,
 				    keepComparison);
 
 	if(keepComparison){
-           comparison.row(iter_pairs) = iRow;
+	  comparison.row(iter_pairs) = iRow;
         }
       }
     }else{
@@ -329,7 +339,7 @@ bool keepComparison){
           wNeutral.push_back(1); 
           count_neutral+=Wpairs(iter_pairs);
 	  if(keepComparison){
-	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C], 0, 0, 1, 0});
+	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
           }
         }else{
           
@@ -347,11 +357,11 @@ bool keepComparison){
           count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs);    
           count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);
 	  if(keepComparison){
-	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C],
-								(proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs),
-								(proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs),
-								0,
-								Wpairs(iter_pairs)*weight_residual});
+	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
+						 (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs),
+						 (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs),
+						 0,
+						 Wpairs(iter_pairs)*weight_residual});
           }
         }
         
@@ -371,13 +381,13 @@ bool keepComparison){
         iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control and deltaC matrix
         
         iRow = calcOnePair_TTEgehan(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C, 1, -1,  
-                             count_favorable, count_unfavorable, count_neutral, count_uninf,
-                             indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
+				    count_favorable, count_unfavorable, count_neutral, count_uninf,
+				    indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
 				    NULL1_vector, NULL2_vector,
 				    keepComparison);
 
 	if(keepComparison){
-	comparison.row(iter_pairs) = iRow;
+	  comparison.row(iter_pairs) = iRow;
         }
       }
     }else{
@@ -427,7 +437,7 @@ bool keepComparison){
           wNeutral.push_back(1); 
           count_neutral += Wpairs(nNeutral_pairs+iter_pairs);
 	  if(keepComparison){
-	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C], 0, 0, 1, 0});
+	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
           }
         }else{
           
@@ -444,11 +454,11 @@ bool keepComparison){
           count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
           count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);
 	  if(keepComparison){
-	    comparison.row(iter_pairs) = rowvec({(double)Treatment[iter_T], (double)Control[iter_C],
-								(proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs),
-								(proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs),
-								0,
-								Wpairs(nNeutral_pairs+iter_pairs)*weight_residual});
+	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
+						 (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs),
+						 (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs),
+						 0,
+						 Wpairs(nNeutral_pairs+iter_pairs)*weight_residual});
           }
         }
       }

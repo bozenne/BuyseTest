@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: apr  2 2018 (15:35) 
+## Last-Updated: apr 15 2018 (14:00) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 7
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,10 +20,8 @@ if(FALSE){
     library(BuyseTest)
 }
 
-verboseContext("Check that the option operator in BuyseTest is working correctly \n")
+verbose("Check that the option operator in BuyseTest is working correctly \n")
 
-## * settings
-BuyseTest.option(n.permutation = 0, trace = 0)
 
 ## * settings
 BuyseTest.option(n.permutation = 0, trace = 0, keepComparison = TRUE)

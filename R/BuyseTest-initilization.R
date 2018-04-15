@@ -63,7 +63,7 @@ applyOperator <- function(data, operator, type, endpoint, D){
 #' @rdname internal-intilisation
 initCensoring <- function(censoring,endpoint,type,D,D.TTE,
                           treatment,strata){
-  
+
   if(D.TTE==0){
     
     if(!is.null(censoring) && all(is.na(censoring))){
@@ -79,28 +79,37 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
     
     if(length(censoring) == D){
       
-      if(any(!is.na(censoring[type!=3])) ){
-        stop("BuyseTest : wrong specification of \'censoring\' \n",
-             "\'censoring\' must be NA for binary or continuous endpoints \n",
-             "binary or continuous endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
-             "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n"
-             )
-      }
+        if(any(!is.na(censoring[type!=3]))){
+            stop("BuyseTest : wrong specification of \'censoring\' \n",
+                 "\'censoring\' must be NA for binary or continuous endpoints \n",
+                 "binary or continuous endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
+                 "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n")
+        }
       
-      if( any(is.na(censoring[type==3])) ){
-        stop("BuyseTest : wrong specification of \'censoring\' \n",
-             "\'censoring\' must indicate a variable in data for TTE endpoints \n",
-             "TTE endoints : ",paste(endpoint[type==3],collapse=" "),"\n",
-             "proposed \'censoring\' for these endoints : ",paste(censoring[type==3],collapse=" "),"\n",
-        )
-      }
+        if(any(is.na(censoring[type==3])) ){
+            stop("BuyseTest : wrong specification of \'censoring\' \n",
+                 "\'censoring\' must indicate a variable in data for TTE endpoints \n",
+                 "TTE endoints : ",paste(endpoint[type==3],collapse=" "),"\n",
+                 "proposed \'censoring\' for these endoints : ",paste(censoring[type==3],collapse=" "),"\n")
+        }
       
-      censoring <- censoring[type==3] # from now, censoring contains for each time to event endpoint the name of variable indicating censoring (0) or event (1)
-    }else if(length(censoring) != D.TTE){
-      stop("BuyseTest : \'censoring\' does not match \'endpoint\' size \n",
-           "length(censoring) : ",length(censoring),"\n",
-           "length(endpoint) : ",D,"\n")
+        censoring <- censoring[type==3] # from now, censoring contains for each time to event endpoint the name of variable indicating censoring (0) or event (1)
+    }else{
+        
+        if(length(censoring) != D.TTE){
+            stop("BuyseTest : \'censoring\' does not match \'endpoint\' size \n",
+                 "length(censoring) : ",length(censoring),"\n",
+                 "length(endpoint) : ",D,"\n")
       
+        }
+
+        if(any(is.na(censoring)) ){
+            stop("BuyseTest : wrong specification of \'censoring\' \n",
+                 "\'censoring\' must indicate a variable in data for TTE endpoints \n",
+                 "TTE endoints : ",paste(endpoint[type==3],collapse=" "),"\n",
+                 "proposed \'censoring\' for these endoints : ",paste(censoring,collapse=" "),"\n")
+        }
+        
     }
   }
   
@@ -424,7 +433,7 @@ initFormula <- function(x){
         }
         if(n.args>3){
             stop("initFormula: invalid formula \n",
-                 x[iterD]," has too many arguments (maximum 3: endpoint, threshold, censoring variable) \n")
+                 x[iterD]," has too many arguments (maximum 4: endpoint, threshold, censoring variable, operator) \n")
         }
 
         ## extract name of each argument
@@ -455,23 +464,15 @@ initFormula <- function(x){
         }
 
         ## extract arguments
-        endpoint[iE] <- iArg[iName=="endpoint"]
+        endpoint[iE] <- gsub("\"","",iArg[iName=="endpoint"])
         if("threshold" %in% iName){
             threshold[iE] <- as.numeric(iArg[iName=="threshold"])
         }
         if("censoring" %in% iName){
-            censoring[iE] <- iArg[iName=="censoring"]
+            censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])
         }
         if("operator" %in% iName){
-            if(iArg[iName=="operator"] %in% c("\"<0\"","\">0\"") == FALSE){
-                stop("wrong specification of the argument \'operator\' relative to the endpoint \"",endpoint[iE]," in the formula \n",
-                     "valid values: \"<0\" \">0\" \n",
-                     "refused value: ",iArg[iName=="operator"],"\n")
-            }
-            operator[iE] <- switch(iArg[iName=="operator"],
-                                   "\"<0\"" = "<0",
-                                   "\">0\"" = ">0")
-        
+            operator[iE] <- gsub("\"","",iArg[iName=="operator"])
         }
     }
 

@@ -1,25 +1,41 @@
-verboseContext("Check BuyseTest without strata")
+context("Check BuyseTest without strata")
 
 ## * settings
 n.patients <- c(90,100)
-n.bootstrap <- 1000
+format <- "data.table"
+BuyseTest.option(n.permutation = 0, trace = 0, keepComparison = TRUE)
 
 ## * Simulated data
 set.seed(10)
-argsBin <- list(p.T = c(0.5,0.75))
-argsCont <- list(mu.T = 1:3, sigma.T = rep(1,3))
-argsTTE <- list(rates.T = 1:3, rates.Censor = rep(1,3))
+dt.sim <- simBuyseTest(n.T = n.patients[1],
+                       n.C = n.patients[2],
+                       argsBin = list(p.T = c(0.5,0.75)),
+                       argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
+                       argsTTE = list(rates.T = 1:3, rates.Censor = rep(1,3)))
 
-## ** binary endpoint 
-cat("* binary endpoint \n")
+## * binary endpoint 
+dt.Bin <- simBuyseTest(n.T = n.patients[1],
+                       n.C = n.patients[2],
+                       argsBin = argsBin,
+                       argsCont = NULL,
+                       argsTTE = NULL,
+                       format =  format)
 
+## ** run BuyseTest
+test_that("BuyseTest - binary ", {
+    BT <- BuyseTest(Treatment ~ bin(toxicity1),
+                    data = dt.sim)
 
-data_Bin <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = argsBin, argsCont = NULL, argsTTE = NULL)
-if(conv2df){data_Bin <- as.data.frame(data_Bin)}
+    fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$Treatment))
 
-BT_Bin1 <- BuyseTest(data=data_Bin,endpoint=c("toxicity1"),
-                     treatment="Treatment", type=c("bin"),
-                     n.bootstrap=n.bootstrap)
+    expect_equal(as.double(BT@count_favorable),1739)
+    expect_equal(as.double(BT@count_unfavorable),2809)
+    expect_equal(as.double(BT@count_neutral),4452)
+    expect_equal(as.double(BT@count_uninf),0)
+    expect_equal(as.double(BT@Delta$netChance),-0.1188889,tol=1e-6)
+    expect_equal(as.double(BT@Delta$winRatio),0.619081,tol=1e-6)
+
+})
 
 
 # test_that("bootstrap approximately matches fisher test - Binary",{
@@ -127,36 +143,146 @@ BT_veteran <- BuyseTest(data = veteran, endpoint = "time", treatment = "trt",
                         n.bootstrap = 10)
 BT_veteran
 
-## * Comparison with previous versions
-if(identical(save, TRUE)){
-  results_noStrata <- list(OutcomeBin = list(data = data_Bin, BT = BT_Bin1),
-                           OutcomeCont = list(data = data_Cont, BT = BT_Cont1),
-                           OutcomeTTE = list(data = data_TTE, BT1 = BT_TTE1, BT2 = BT_TTE2), 
-                           OutcomeMix = list(data = data_Mix, BT = BT_Mix),
-                           veteran = list(data = veteran, BT = BT_veteran))
-  saveRDS(results_noStrata, file = file.path(dirSave,"test-noStrata.rds"))
-}else if(identical(save, FALSE)){
-  cat("* Previous version \n")
-  GS <- readRDS(file = file.path(dirSave,"test-noStrata.rds"))
+
+
+
+## ## ** with many pairs (lambda.C = 0.5)
+## set.seed(10)
+## TpsFin <- 1 # 0.75
+## lambda.T <- 0.5
+## n.Treatment <- 10
+## n.Control <- 10
+## n <- n.Treatment + n.Control
+## group <- c(rep(1, n.Treatment),rep(0, n.Control))
+
+## lambda.C <- 0.5
+## TimeEvent <- c(rexp(n.Treatment,rate=lambda.T),
+##              rexp(n.Control,rate=lambda.C))
+## Time.Cens <- runif(n,0,TpsFin)
+## Time <-pmin(Time.Cens,TimeEvent)
+## Event <- Time == TimeEvent
+## Event <- as.numeric(Event)
+## tab <- data.frame(group,Time,Event)
+
+## ## *** Gehan
+## test_that("lambdaC = 0.5 - Gehan",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Gehan",seed=11)
   
-  test_that("comparison with the previous version", {
-    expect_equalBT(BT_Bin1, GS$OutcomeBin$BT)
-    #  identical(BT_Bin1@delta_boot,GS$OutcomeBin$BT@delta_boot)
-    expect_equalBT(BT_Cont1, GS$OutcomeCont$BT)
-    expect_equalBT(BT_TTE1$Gehan, GS$OutcomeTTE$BT1$Gehan)
-    expect_equalBT(BT_TTE1$Peto, GS$OutcomeTTE$BT1$Peto)
-    expect_equalBT(BT_TTE1$Efron, GS$OutcomeTTE$BT1$Efron)
-    expect_equalBT(BT_TTE1$Peron, GS$OutcomeTTE$BT1$Peron)
-    expect_equalBT(BT_TTE2$Gehan, GS$OutcomeTTE$BT2$Gehan)
-    expect_equalBT(BT_TTE2$Peto, GS$OutcomeTTE$BT2$Peto)
-    expect_equalBT(BT_TTE2$Efron, GS$OutcomeTTE$BT2$Efron)
-    expect_equalBT(BT_TTE2$Peron, GS$OutcomeTTE$BT2$Peron)
-    
-    expect_equalBT(BT_Mix$Gehan, GS$OutcomeMix$BT$Gehan)
-    expect_equalBT(BT_Mix$Peto, GS$OutcomeMix$BT$Peto)
-    expect_equalBT(BT_Mix$Efron, GS$OutcomeMix$BT$Efron)
-    expect_equalBT(BT_Mix$Peron, GS$OutcomeMix$BT$Peron)
-    
-    expect_equalBT(BT_veteran, GS$veteran$BT)
-  })
-}
+##   expect_equal(as.double(BT@count_favorable),6)
+##   expect_equal(as.double(BT@count_unfavorable),8)
+##   expect_equal(as.double(BT@count_neutral),0)
+##   expect_equal(as.double(BT@count_uninf),86)
+  
+##   expect_equal(as.double(BT@delta$netChance),-0.02)
+##   expect_equal(as.double(BT@delta$winRatio),15/20)
+## })
+
+## ## *** Peto
+## test_that("lambdaC = 0.5 - Peto",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peto",seed=11)
+  
+##   expect_equal(as.double(BT@count_favorable),40.95, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_unfavorable),41.67, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_neutral),0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_uninf),17.38, tolerance = 1e-3)
+  
+##   expect_equal(as.double(BT@delta$netChance),-0.00712, tolerance = 1e-3)
+##   expect_equal(as.double(BT@delta$winRatio),0.9829167, tolerance = 1e-3)
+## })
+
+## ## *** Efron
+## test_that("lambdaC = 0.5 - Efron",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Efron",seed=11)
+  
+##   expect_equal(as.double(BT@count_favorable),11.11, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_unfavorable),11.11, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_neutral),1, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_uninf),76.78, tolerance = 1e-3)
+  
+##   expect_equal(as.double(BT@delta$netChance),0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@delta$winRatio),1, tolerance = 1e-3)
+  
+## })
+
+## ## *** Peron
+## test_that("lambdaC = 0.5 - Peron",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peron",seed=11)
+ 
+##   expect_equal(as.double(BT@count_favorable), 11.11, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_unfavorable), 11.11, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_neutral), 0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_uninf), 77.78, tolerance = 1e-3)
+  
+##   expect_equal(as.double(BT@delta$netChance),0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@delta$winRatio),1, tolerance = 1e-3)
+## })
+
+## ## ** with many pairs (lambda.C = 1)
+## lambda.C <- 1
+## TimeEvent<-c(rexp(n.Treatment,rate=lambda.T),
+##              rexp(n.Control,rate=lambda.C))
+## Time.Cens<-runif(n,0,TpsFin)
+## Time<-pmin(Time.Cens,TimeEvent)
+## Event<-Time==TimeEvent
+## Event<-as.numeric(Event)
+## tab<-data.frame(group,Time,Event)
+
+## ## *** Gehan
+## test_that("lambdaC = 1 - Gehan",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Gehan",seed=11)
+  
+##   expect_equal(as.double(BT@count_favorable),0)
+##   expect_equal(as.double(BT@count_unfavorable),9)
+##   expect_equal(as.double(BT@count_neutral),0)
+##   expect_equal(as.double(BT@count_uninf),91)
+  
+##   expect_equal(as.double(BT@delta$netChance),-0.09)
+##   expect_equal(as.double(BT@delta$winRatio),0)
+## })
+
+## ## *** Peto
+## test_that("lambdaC = 1 - Peto",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peto",seed=11)
+  
+##   expect_equal(as.double(BT@count_favorable),36, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_unfavorable),42, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_neutral),0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_uninf),22, tolerance = 1e-3)
+  
+##   expect_equal(as.double(BT@delta$netChance),-0.06, tolerance = 1e-3)
+##   expect_equal(as.double(BT@delta$winRatio),0.8571429, tolerance = 1e-3)
+## })
+
+## ## *** Efron
+## test_that("lambdaC = 1 - Efron",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Efron",seed=11)
+##   expect_equal(as.double(BT@count_favorable),0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_unfavorable),55, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_neutral),1, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_uninf),44, tolerance = 1e-3)
+  
+##   expect_equal(as.double(BT@delta$netChance),-0.55, tolerance = 1e-3)
+##   expect_equal(as.double(BT@delta$winRatio),0, tolerance = 1e-3)
+  
+## })
+
+## ## *** Peron
+## test_that("lambdaC = 1 - Peron",{
+##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
+##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peron",seed=11)
+  
+##   expect_equal(as.double(BT@count_favorable), 0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_unfavorable), 10, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_neutral), 0, tolerance = 1e-3)
+##   expect_equal(as.double(BT@count_uninf), 90, tolerance = 1e-3)
+  
+##   expect_equal(as.double(BT@delta$netChance),-0.1, tolerance = 1e-3)
+##   expect_equal(as.double(BT@delta$winRatio),0, tolerance = 1e-3)
+## })

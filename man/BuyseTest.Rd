@@ -5,10 +5,10 @@
 \title{Generalized Pairwise Comparisons (GPC)}
 \usage{
 BuyseTest(formula, data, treatment = NULL, endpoint = NULL, type = NULL,
-  threshold = NULL, censoring = NULL, strata = NULL, method = NULL,
-  neutralAsUninf = NULL, n.permuation = NULL, prob.alloc = NULL,
-  stratified = FALSE, alternative = "two.sided", seed = NULL,
-  cpus = NULL, trace = NULL)
+  threshold = NULL, censoring = NULL, operator = NULL, strata = NULL,
+  method = NULL, neutralAsUninf = NULL, n.permutation = NULL,
+  prob.alloc = NULL, stratified = FALSE, keepComparison = NULL,
+  alternative = "two.sided", seed = NULL, cpus = NULL, trace = NULL)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
@@ -33,6 +33,10 @@ There must be one threshold for each endpoint variable.
 Must value \code{NA} when the endpoint is not a time to event.
 Disregarded if the argument \code{formula} is defined.}
 
+\item{operator}{[character vector] the sign defining a favorable endpoint:
+">0" indicates that higher values are favorable while "<0" indicates the opposite.
+Disregarded if the argument \code{formula} is defined.}
+
 \item{strata}{[numeric vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 Disregarded if the argument \code{formula} is defined.}
 
@@ -44,11 +48,16 @@ Default value read from \code{BuyseTest.option()}.}
 \item{neutralAsUninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 Default value read from \code{BuyseTest.option()}.}
 
+\item{n.permutation}{[integer] the number of permutations used for computing the confidence interval and the p.values. See details.
+Default value read from \code{BuyseTest.option()}.}
+
 \item{prob.alloc}{[0<double<1] the resampling probability for assignement to the experimental group in the permutation test.
 Can also be \code{NULL} to use the proportion of patients in the experimental group.}
 
 \item{stratified}{[logical] should the assignement in the permutation test be performed within strata.
 This means that the \code{prob.alloc} will be satisfyied within strata not only globally.}
+
+\item{keepComparison}{[logical] should the result of each pairwise comparison be kept?}
 
 \item{alternative}{[character] the alternative hypothesis.
 Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
@@ -62,9 +71,6 @@ Default value read from \code{BuyseTest.option()}.}
 
 \item{trace}{[integer] should the execution of the function be traced ? See details.
 Default value read from \code{BuyseTest.option()}.}
-
-\item{n.permutation}{[integer] the number of permutations used for computing the confidence interval and the p.values. See details.
-Default value read from \code{BuyseTest.option()}.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.
@@ -74,13 +80,15 @@ Performs Generalized Pairwise Comparisons for binary, continuous and time-to-eve
 }
 \details{
 \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
-\bold{endpoint, threshold, censoring, and type:} Arguments \code{endpoint}, \code{threshold}, \code{censoring}  and \code{type} must have the same length. \cr
+\bold{endpoint, threshold, censoring, operator, and type:}  they must have the same length. \cr
 \code{threshold} must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. \cr
 \code{censoring} must be \code{NA} for binary or continuous endpoints and indicate a variable in data for time to event endpoints. 
-Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \code{"TTE"} (time-to-event endpoint). 
+Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \
+code{"TTE"} (time-to-event endpoint). 
+\bold{operator:} when the operator is set to \code{"<0"} the corresponding column in the dataset is multiplied by \code{-1}.
 
-\bold{n.permuation:} The number of permuation replications must be specified to enable the computation of the confidence intervals and the p.value. 
-A large number of permuations (e.g. \code{n.permutation=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
+\bold{n.permutation:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
+A large number of permutations (e.g. \code{n.permutation=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
 
 \bold{trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
 

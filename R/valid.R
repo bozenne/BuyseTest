@@ -125,14 +125,14 @@ validClass <- function(value1,
         
         if( all(is(value1) %in% validClass == FALSE) ){
             stop(method, "class of \'", name1, "\' must be one of the following \"", paste(valid.class,collapse="\" \""), "\"  \n", 
-                 "proposed superclass : \"", paste(is(value1),collapse="\" \""), "\" \n")
+                 "current superclass : \"", paste(is(value1),collapse="\" \""), "\" \n")
         }  
         
     }else if(type == "class"){
         
         if( class(value1) %in% validClass == FALSE){
             stop(method, "class of \'", name1, "\' must be \"", paste(valid.class,collapse="\" \""),"\"  \n", 
-                 "proposed class : ", class(value1)[[1]], "\n")
+                 "current class : ", class(value1)[[1]], "\n")
         }  
         
     }
@@ -327,7 +327,7 @@ validNames <- function(value1,
             
             stop(method, "\'", name1, "\' must contains specific names \n",
                  "missing names : \"",paste(required.values[required.values %in% value1 == FALSE], collapse = "\" \""),"\" \n", 
-                 "proposed names : \"", paste(value1, collapse = "\" \""), "\"\n")  
+                 "possible names : \"", paste(value1, collapse = "\" \""), "\"\n")  
             
         }
         
@@ -453,7 +453,7 @@ validPath <- function(value1,
     
     if(try_path == FALSE){
         stop(method, "\'", name1, "\' does not lead to an existing ",switch(type,"file"="file","dir"="directory")," \n", 
-             "proposed value: \"", value1, "\"\n", 
+             "current value: \"", value1, "\"\n", 
              "current path: ", getwd(), "\n")
     }
     
@@ -467,7 +467,7 @@ validPath <- function(value1,
         fileExtension <- tools::file_ext(value1) 
         if(fileExtension %in% extension == FALSE){
             stop(method, "\'", name1, "\' has not the expected extension \n", 
-                 "proposed extension: \"", fileExtension, "\" \n", 
+                 "current extension: \"", fileExtension, "\" \n", 
                  "expected extension: \"", paste(extension, collapse = "\" \""), "\"\n")
         }
     }

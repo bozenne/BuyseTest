@@ -1,4 +1,8 @@
 // * Preambule
+
+// Enable C++11 via this plugin (Rcpp 0.10.3 or later)
+// [[Rcpp::plugins(cpp11)]]
+
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <iostream>
 #include <RcppArmadillo.h>
@@ -192,7 +196,6 @@ List GPC_cpp(const arma::mat& Treatment,
     if(keepComparison){
       iNpairs = iComparison.n_rows;
       iMat.resize(iNpairs,3);
-      
       // add original index
       for(int iPair=0 ; iPair < iNpairs ; iPair ++){
 	iMat.row(iPair) = rowvec({(double)iter_strata,
@@ -293,7 +296,7 @@ List GPC_cpp(const arma::mat& Treatment,
 
       // **** update all Comparisons
     if(keepComparison){
-      iNpairs = size_neutral+size_uninf;
+      iNpairs = iComparison.n_rows;
       iMat.resize(iNpairs,3);
       
       // add original index
@@ -302,13 +305,14 @@ List GPC_cpp(const arma::mat& Treatment,
 			          (double)index_strataT(iComparison(iPair,0)),
 				  (double)index_strataC(iComparison(iPair,1))});
       }
-
+     
       // merge with current table and store
       if(iter_strata==0){
 	lsComp[iter_d] = arma::join_rows(iMat,iComparison);
       }else{
         lsComp[iter_d] = arma::join_cols(lsComp[iter_d], arma::join_rows(iMat,iComparison));
       }
+
      }
     } // end endpoint
 

@@ -1,4 +1,8 @@
 // * Preambule
+
+// Enable C++11 via this plugin (Rcpp 0.10.3 or later)
+// [[Rcpp::plugins(cpp11)]]
+
 // [[Rcpp::depends("RcppArmadillo")]]
 #include <iostream>
 #include <RcppArmadillo.h>
@@ -98,7 +102,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
   
   double diff = endpoint_T-endpoint_C; // difference between the endpoints from the treatment and control patients of the pair
   arma::rowvec iRow;
-  
+
   if(delta_T==1){
     if(delta_C==1){
       

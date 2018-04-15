@@ -1,3 +1,6 @@
+* Version 1.2
+  - xxx
+
 * Version 1.1
   - add a formula argument to the BuyseTest function. This can be used instead of the treatment, endpoint, threshold, type, censoring, and strata argument
    to specify the prioritized endpoints.

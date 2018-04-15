@@ -2,6 +2,7 @@
 % Please edit documentation in R/BuyseTest-initilization.R
 \name{internal-intilisation}
 \alias{internal-intilisation}
+\alias{applyOperator}
 \alias{initCensoring}
 \alias{initData}
 \alias{initN}
@@ -11,6 +12,7 @@
 \alias{initSurvival}
 \alias{initThreshold}
 \alias{initWscheme}
+\alias{initCensoring}
 \alias{initData}
 \alias{initWscheme}
 \alias{initFormula}
@@ -22,9 +24,11 @@
 \alias{initSpace}
 \title{internal functions for BuyseTest - intilisation}
 \usage{
+applyOperator(data, operator, type, endpoint, D)
+
 initCensoring(censoring, endpoint, type, D, D.TTE, treatment, strata)
 
-initData(dataT, dataC, type, endpoint, D, censoring, index.strataT,
+initData(dataT, dataC, type, endpoint, D, censoring, operator, index.strataT,
   index.strataC, n.strata, method, D.TTE, threshold, Wscheme = NULL, trace,
   test = TRUE)
 

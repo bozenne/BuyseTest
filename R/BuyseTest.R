@@ -175,15 +175,19 @@ BuyseTest <- function(formula,
     D <- length(endpoint) # number of endpoints
     
     ## *** type: convert type to numeric and count the number of endpoints
+    validType1 <- c("b","bin","binary")
+    validType2 <- c("c","cont","continuous")
+    validType3 <- c("t","tte","time","timetoevent")
+    type <- tolower(type)
+
     validCharacter(type,
-                   valid.values = c("b","bin","binary","c","cont","continuous","t","time","timetoevent"),
+                   valid.values = c(validType1,validType2,validType3),
                    valid.length = D,
                    method = "BuyseTest")
 
-    type <- tolower(type)
-    type[grep("b|bin|binary",type)] <- "1" 
-    type[grep("c|cont|continuous",type)] <- "2" 
-    type[grep("t|time|timetoevent",type)] <- "3" 
+    type[grep(paste(validType1,collapse="|"), type)] <- "1" 
+    type[grep(paste(validType2,collapse="|"), type)] <- "2" 
+    type[grep(paste(validType3,collapse="|"), type)] <- "3" 
     type <- as.numeric(type) # type is an integer equal to 1 (binary endpoint), 2 (continuous endpoint) or 3 (time to event endpoint)
     
     D.TTE <- sum(type == 3) # number of time to event endpoints
@@ -196,7 +200,7 @@ BuyseTest <- function(formula,
         stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
     }
     
-    ## *** censoring 
+    ## *** censoring
     censoring <- initCensoring(censoring = censoring,
                                endpoint = endpoint,
                                type = type,
