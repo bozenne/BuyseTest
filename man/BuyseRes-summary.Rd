@@ -4,7 +4,7 @@
 \name{BuyseRes-summary}
 \alias{BuyseRes-summary}
 \alias{summary}
-\alias{summary,BuyseRes}
+\alias{summary,BuyseRes-method}
 \title{Summary Method for Class "BuyseRes"}
 \usage{
 \S4method{summary}{BuyseRes}(object, show = TRUE, percentage = TRUE,

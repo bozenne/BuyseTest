@@ -433,7 +433,7 @@ initFormula <- function(x){
         }
         if(n.args>3){
             stop("initFormula: invalid formula \n",
-                 x[iterD]," has too many arguments (maximum 4: endpoint, threshold, censoring variable, operator) \n")
+                 x[iE]," has too many arguments (maximum 4: endpoint, threshold, censoring variable, operator) \n")
         }
 
         ## extract name of each argument

@@ -26,6 +26,7 @@
 #' @slot n_permutation [integer] the number of sucessful samples of the permutation test.
 #' @slot p.value [list of numeric vector] the p.value associated to the chance of a better outcome at each prioritized endpoint.
 #' @slot strata [character vector] the name of the strata.
+#' @slot tableComparison [list] detail of the result of each pairwise comparison relative to each endpoint.
 #' @slot threshold [numeric vector] the threshold associated to each endpoint.
 #'   
 #' @details slots 

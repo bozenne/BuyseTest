@@ -2,7 +2,7 @@
 #' @docType methods
 #' @name BuyseRes-summary
 #' @title Summary Method for Class "BuyseRes"
-#' @aliases summary summary,BuyseRes
+#' @aliases summary summary,BuyseRes-method
 #' @include BuyseRes-object.R
 #' 
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
@@ -57,7 +57,7 @@
 
 ## * method - summary
 #' @rdname BuyseRes-summary
-#' @exportMethod summary
+#' @method summary BuyseRes
 setMethod(f = "summary",
           signature = "BuyseRes",
           definition = function(object, show = TRUE, percentage = TRUE,

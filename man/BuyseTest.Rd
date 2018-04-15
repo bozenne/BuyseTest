@@ -107,16 +107,16 @@ When the largest observation is censored, it is not possible to estimate the sur
 See Peron et al. (2016) for more details.
 }
 \examples{
-# reset the default value of the number of bootstrap samples
-BuyseTest.options(n.bootstrap = 0) # no bootstrap
+# reset the default value of the number of permuation sample
+BuyseTest.options(n.permutation = 0) # no permutation test
 
 #### simulate some data ####
-df.data <- simulBT(1e2, n.strata = 2)
+df.data <- simBuyseTest(1e2, n.strata = 2)
 
-# display 
+                                        # display 
 if(require(survival)){
-resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
-plot(resKM_tempo)
+    resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
+    plot(resKM_tempo)
 }
 
 #### one time to event endpoint ####
@@ -129,11 +129,11 @@ summary(BT, statistic = "winRatio") # win Ratio
 ## bootstrap to compute the CI
 \dontrun{
 BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                n.bootstrap = 1e3)
+                n.permutation = 1e3)
 }
 \dontshow{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e1, trace = 0)
+                  n.permutation = 1e1, trace = 0)
 }
 summary(BT)
 summary(BT, statistic = "winRatio") # win Ratio
@@ -141,22 +141,22 @@ summary(BT, statistic = "winRatio") # win Ratio
 ## parallel boostrap
 \dontrun{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e3, cpus = 2)
+                  n.permutation = 1e3, cpus = 2)
 }
 \dontshow{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e1, cpus = 2, trace = 0)
+                  n.permutation = 1e1, cpus = 2, trace = 0)
 }
 summary(BT)
 
 ## method Gehan is much faster but does not optimally handle censored observations
 \dontrun{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e3, method = "Gehan")
+                  n.permutation = 1e3, method = "Gehan")
 }
 \dontshow{
   BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.bootstrap = 1e1, method = "Gehan", trace = 0)
+                  n.permutation = 1e1, method = "Gehan", trace = 0)
 }
 summary(BT)
 
@@ -183,11 +183,10 @@ summary(BT)
 if(require(survival)){
 \dontrun{
   data(veteran,package="survival")
-  n.bootstrap <- 100
  
   ## method = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, n.bootstrap=n.bootstrap,method="Gehan")
+                        data=veteran, n.permutation = 100, method="Gehan")
   
   summary_Gehan <- summary(BT_Gehan)
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
@@ -195,7 +194,7 @@ if(require(survival)){
   ## method = "Peron"
   BT_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
                         type="timeToEvent",censoring="status",threshold=0,
-                        n.bootstrap=n.bootstrap,method="Peron")
+                        n.permutation=100,method="Peron")
   
   summary_Peron <- summary(BT_Peron)
 }
