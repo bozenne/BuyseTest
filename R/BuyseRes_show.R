@@ -43,6 +43,7 @@
 #' @keywords summary BuyseRes-method
 
 ## * Method - show
+#' @rdname BuyseRes-show
 #' @exportMethod show
 setMethod(f = "show",
           signature = "BuyseRes",

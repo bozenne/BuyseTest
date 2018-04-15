@@ -4,9 +4,12 @@
 \name{BuyseRes-summary}
 \alias{BuyseRes-summary}
 \alias{summary}
+\alias{summary,BuyseRes}
 \alias{summary,BuyseRes-method}
 \title{Summary Method for Class "BuyseRes"}
 \usage{
+summary(object, ...)
+
 \S4method{summary}{BuyseRes}(object, show = TRUE, percentage = TRUE,
   statistic = BuyseTest.options()$statistic, strata = if
   (length(object@strata) == 1) {     "global" } else {     NULL },
@@ -14,6 +17,8 @@
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
+
+\item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 
 \item{show}{Should the table be displayed? \emph{logical}.}
 
@@ -24,8 +29,6 @@
 \item{strata}{the name of the strata to be displayed \emph{character vector}. Can also be \code{"global"} which displays the overall results.}
 
 \item{digit}{the number of digit to use for printing the results. \emph{integer}.}
-
-\item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 }
 \value{
 A matrix containing the endpoint (and the strata) in rows and the results of the pairwise comparison in columns:

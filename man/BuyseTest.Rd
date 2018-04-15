@@ -195,8 +195,9 @@ if(require(survival)){
   BT_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
                         type="timeToEvent",censoring="status",threshold=0,
                         n.permutation=100,method="Peron")
-  
-  summary_Peron <- summary(BT_Peron)
+
+  class(BT_Peron)
+  summary(BT_Peron)
 }
 }
 }

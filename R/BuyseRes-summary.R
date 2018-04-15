@@ -2,7 +2,7 @@
 #' @docType methods
 #' @name BuyseRes-summary
 #' @title Summary Method for Class "BuyseRes"
-#' @aliases summary summary,BuyseRes-method
+#' @aliases summary summary,BuyseRes
 #' @include BuyseRes-object.R
 #' 
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
@@ -50,14 +50,15 @@
 #'  summary(BT, statistic = "winRatio")
 #' 
 #' @keywords summary BuyseRes-method
-## setGeneric(name = "summary", 
-##            def = function(object, ...){standardGeneric("summary")}
-## )
 
+#' @rdname BuyseRes-summary
+setGeneric(name = "summary", 
+           def = function(object, ...){standardGeneric("summary")}
+)
 
 ## * method - summary
 #' @rdname BuyseRes-summary
-#' @method summary BuyseRes
+#' @exportMethod summary
 setMethod(f = "summary",
           signature = "BuyseRes",
           definition = function(object, show = TRUE, percentage = TRUE,
