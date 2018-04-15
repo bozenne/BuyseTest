@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: apr 15 2018 (18:12) 
+## Last-Updated: apr 15 2018 (21:12) 
 ##           By: Brice Ozenne
-##     Update #: 112
+##     Update #: 117
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -133,7 +133,6 @@ test_that("check NA - 1 Binary",{
 })
 
 ## * two binary endpoints
-
 ## ** unfavorable
 test_that("check unfavorable - 2 Binary",{
     dt <- data.table(Treatment = 1:2,
@@ -535,3 +534,47 @@ test_that("2 pairs - Peron",{
 
 
 
+
+## * two time to events
+## ** unbalanced number of pairs
+## check previous bug with export of the pairs
+dt <- data.table("Treatment" = c(1, 0, 0, 0), 
+                 "eventtime1" = c(0.68, 0.84, 0.43, 0.48), 
+                 "status1" = c(1, 0, 0, 1), 
+                 "eventtime2" = c(0.37, 0.85, 1.04, 1.33), 
+                 "status2" = c(0, 0, 1, 0))
+
+test_that("check previous bug with option keepComparison",{
+    ## the bug was some of the results of BT@tableComparison were set to random intialization values (when C++ create the vector)
+    ## because they were not updated during the execution of the function
+    BT <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2),
+                    data = dt, method = "Gehan")
+
+    ## butils::object2script(BT@tableComparison)
+    GS <- list(eventtime1_1 = data.frame("strata" = c("1", "1", "1"), 
+                                         "index.1" = c(1, 1, 1), 
+                                         "index.0" = c(2, 3, 4), 
+                                         "indexWithinStrata.1" = c(1, 1, 1), 
+                                         "indexWithinStrata.0" = c(1, 2, 3), 
+                                         "favorable" = c(0, 0, 0), 
+                                         "unfavorable" = c(0, 0, 0), 
+                                         "neutral" = c(0, 0, 1), 
+                                         "uninformative" = c(1, 1, 0)) ,
+               eventtime2_0.5 = data.frame("strata" = c("1", "1", "1"), 
+                                           "index.1" = c(1, 1, 1), 
+                                           "index.0" = c(4, 2, 3), 
+                                           "indexWithinStrata.1" = c(1, 1, 1), 
+                                           "indexWithinStrata.0" = c(3, 1, 2), 
+                                           "favorable" = c(0, 0, 0), 
+                                           "unfavorable" = c(0, 0, 0), 
+                                           "neutral" = c(0, 0, 0), 
+                                           "uninformative" = c(1, 1, 1))
+               )
+    
+    expect_equal(BT@tableComparison,GS)
+             
+    expect_equal(as.double(BT@count_favorable),c(0,0))
+    expect_equal(as.double(BT@count_unfavorable),c(0,0))
+    expect_equal(as.double(BT@count_neutral),c(1,0))
+    expect_equal(as.double(BT@count_uninf),c(2,3))
+})

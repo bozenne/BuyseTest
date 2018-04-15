@@ -7,7 +7,7 @@
 #' 
 #' @useDynLib BuyseTest, .registration=TRUE
 #' @import data.table
-#' @importFrom lava categorical coxExponential.lvm distribution eventTime lvm sim vars
+#' @importFrom lava categorical coxExponential.lvm distribution eventTime lvm sim vars latent<-
 #' @import methods
 #' @importFrom parallel detectCores
 #' @import Rcpp

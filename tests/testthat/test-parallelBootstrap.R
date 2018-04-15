@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 12 2017 (18:07) 
-##           By: Brice
-##     Update #: 8
+## last-updated: apr 16 2018 (00:08) 
+##           By: Brice Ozenne
+##     Update #: 10
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the parallel bootstrap can be run
@@ -17,70 +17,37 @@
 #----------------------------------------------------------------------
 ## 
 ### Code:
-source(file.path("FCT","FCT_check.R")) # file containing additional function for performing the tests
-verboseContext("Check parallel boostrap")
+context("Check parallel boostrap")
 
-# {{{ load package
-library(BuyseTest)
-library(testthat)
-source(file.path("FCT","FCT_check.R"))
-# }}}
-
-# {{{ parametrisation
-BuyseTest.options(trace = 0, keep.bootstrap = TRUE)
-n.patients <- 100
-n.bootstrap <- 100
-
-save <- TRUE # TRUE to save results, FALSE to test, NULL to ignore
-if(identical(save, TRUE)){
-  dirSave <- paste0("Results-version",utils::packageVersion("BuyseTest"))
-  if(dir.exists(dirSave) == FALSE){dir.create(dirSave)}
-}else{
-  dirSave <- paste0("Results-version","1.1")
+if(FALSE){
+    library(BuyseTest)
+    library(testthat)
 }
-# }}}
 
-# {{{ generate data
+
+## * settings
+BuyseTest.options(trace = 0, n.permutation = 10)
+n.patients <- 10
+
+## * Simulate data
 set.seed(10)
-dt.BT <- simulBT(n.patients)
-# }}}
+dt.sim <- simBuyseTest(n.T = n.patients,
+                       n.C = n.patients,
+                       argsBin = list(p.T = c(0.5,0.75)),
+                       argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
+                       argsTTE = list(rates.T = 1:3, rates.Censor = rep(1,3)))
 
-# {{{ run and test parallel computation
-ls.sum <- list()
-for(method in c("Gehan","Peto","Efron","Peron")){ # method <- "Gehan"
-  cat(method, " ")
-  ls.sum[[method]] <- BuyseTest(data=dt.BT,endpoint="eventtime",treatment="Treatment",
-                                type="TTE",censoring="status",threshold=0, cpus = "all",
-                                n.bootstrap=n.bootstrap,method=method)
-}
-cat("\n")
-# }}}
+## * Bootstrap
+method <- "Peron"
+test_that("boostrap", {
+    BT <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1),
+                    data = dt.sim, method = method)
+    ## endpoint threshold pc.total pc.favorable pc.unfavorable pc.neutral pc.uninf
+    ## eventtime1     1e-12      100         48.6          23.86          0    27.54
+    ## delta Delta CIinf.Delta CIsup.Delta n.permutation p.value 
+    ## 0.247 0.247      -0.537       0.495            10     0.4 
+})
 
-# {{{ compare results with previous version
-if(identical(save, FALSE)){
-    cat("* Previous version \n")
-    GS <- readRDS(file = file.path(dirSave,"test-parallel.rds"))
-  
-    test_that("comparison with the previous version", {
-        expect_equalBT(ls.sum$dt.BT, GS$dt.BT)
-        expect_equalBT(ls.sum$Gehan, GS$Gehan)
-        expect_equalBT(ls.sum$Peto, GS$Peto)
-        expect_equalBT(ls.sum$Efron, GS$Efron)
-        expect_equalBT(ls.sum$Peron, GS$Peron)
-    })
-}
-# }}}
-
-# {{{ export
-if(identical(save, TRUE)){
-    results <- list(data = dt.BT,
-                    Gehan = ls.sum$Gehan,
-                    Peto = ls.sum$Peto,
-                    Efron = ls.sum$Efron,
-                    Peron = ls.sum$Peron)
-    saveRDS(results, file = file.path(dirSave,"test-parallel.rds"))
-}
-# }}}
 
 
 #----------------------------------------------------------------------

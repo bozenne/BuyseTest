@@ -288,8 +288,8 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
 				    indexNew_uninfT, indexNew_uninfC, indexNew_neutralT, indexNew_neutralC,
 				    NULL1_vector, NULL2_vector,
 				    keepComparison);
-
-	if(keepComparison){
+	
+ 	if(keepComparison){
 	  comparison.row(iter_pairs) = iRow;
         }
       }
@@ -387,7 +387,7 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
 				    keepComparison);
 
 	if(keepComparison){
-	  comparison.row(iter_pairs) = iRow;
+	  comparison.row(nNeutral_pairs + iter_pairs) = iRow;
         }
       }
     }else{
@@ -437,7 +437,7 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
           wNeutral.push_back(1); 
           count_neutral += Wpairs(nNeutral_pairs+iter_pairs);
 	  if(keepComparison){
-	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
+	    comparison.row(nNeutral_pairs+iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
           }
         }else{
           
@@ -454,7 +454,7 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
           count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
           count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);
 	  if(keepComparison){
-	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
+	    comparison.row(nNeutral_pairs+iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
 						 (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs),
 						 (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs),
 						 0,

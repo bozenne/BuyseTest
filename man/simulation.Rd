@@ -7,7 +7,7 @@
 \usage{
 simBuyseTest(n.T, n.C = NULL, argsBin = list(), argsCont = list(),
   argsTTE = list(), n.strata = NULL, names.strata = NULL,
-  format = "data.table")
+  format = "data.table", latent = FALSE)
 }
 \arguments{
 \item{n.T}{[interger, >0] number of patients in the treatment arm}
@@ -25,6 +25,8 @@ simBuyseTest(n.T, n.C = NULL, argsBin = list(), argsCont = list(),
 \item{names.strata}{[character vector] name of the strata varaibles. Must have same length as \code{n.strata}.}
 
 \item{format}{[character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.}
+
+\item{latent}{[logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).}
 }
 \description{
 Simulate binary, continuous or time to event data, possibly with strata.

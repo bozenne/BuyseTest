@@ -212,7 +212,7 @@ List GPC_cpp(const arma::mat& Treatment,
 
     // *** following endpoints
     while(D>iter_d+1 && (Mcount_neutral(iter_strata,iter_d)>0 || Mcount_uninf(iter_strata,iter_d)>0)){ // loop over the following endpoints
-      
+
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
       Wpairs_sauve = Wpairs; // save the current Wpairs
@@ -298,7 +298,7 @@ List GPC_cpp(const arma::mat& Treatment,
     if(keepComparison){
       iNpairs = iComparison.n_rows;
       iMat.resize(iNpairs,3);
-      
+
       // add original index
       for(int iPair=0 ; iPair < iNpairs ; iPair ++){
 	iMat.row(iPair) = rowvec({(double)iter_strata,
@@ -312,7 +312,6 @@ List GPC_cpp(const arma::mat& Treatment,
       }else{
         lsComp[iter_d] = arma::join_cols(lsComp[iter_d], arma::join_rows(iMat,iComparison));
       }
-
      }
     } // end endpoint
 

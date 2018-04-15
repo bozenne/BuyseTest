@@ -134,7 +134,8 @@ BuyseTest <- function(formula,
     if(!missing(formula)){
         argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
         if(any(names(BuyseCall) %in% argnames)){
-            warning("BuyseTest : arguments \'",paste(names(BuyseCall)[names(BuyseCall) %in% argnames], collapse = " ")," have been ignored \n",
+            txt <- paste(names(BuyseCall)[names(BuyseCall) %in% argnames], collapse = "\' \'")
+            warning("BuyseTest : argument",if(length(txt)>1){"s"}," \'",txt,"\' ha",if(length(txt)>1){"ve"}else{"s"}," been ignored \n",
                     "when specified, only argument \'formula\' is used \n")
         }
         

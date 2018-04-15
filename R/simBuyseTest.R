@@ -15,6 +15,7 @@
 #' @param argsTTE [list]  arguments to be passed to \code{simBuyseTest_TTE}. They specify the distribution parameters of the time to event endpoints.
 #' @param n.strata [integer, >0] number of strata. \code{NULL} indicates no strata.
 #' @param names.strata [character vector] name of the strata varaibles. Must have same length as \code{n.strata}.
+#' @param latent [logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).
 #' 
 #' @details 
 #' This function is built upon the \code{lvm} and \code{sim} functions from the lava package.
@@ -78,7 +79,8 @@
 #' @export
 simBuyseTest <- function(n.T, n.C = NULL, 
                          argsBin = list(), argsCont = list(), argsTTE = list(),
-                         n.strata = NULL, names.strata = NULL, format = "data.table"){
+                         n.strata = NULL, names.strata = NULL, format = "data.table",
+                         latent = FALSE){
   
     if(is.null(names.strata) && !is.null(n.strata)){
         if(length(n.strata)==1){
@@ -146,8 +148,8 @@ simBuyseTest <- function(n.T, n.C = NULL,
     }
   
     ## ** simulate data from the generative model
-    df.T <- cbind(Treatment = 1, lava::sim(mT.lvm, n.T, latent = FALSE))
-    df.C <- cbind(Treatment = 0, lava::sim(mC.lvm, n.C, latent = FALSE))
+    df.T <- cbind(Treatment = 1, lava::sim(mT.lvm, n.T, latent = latent))
+    df.C <- cbind(Treatment = 0, lava::sim(mC.lvm, n.C, latent = latent))
   
   
     ## ** export
@@ -305,13 +307,15 @@ simBuyseTest_TTE <- function(modelT,
         lava::distribution(modelT, nameC[iterE]) <- lava::coxExponential.lvm(rate=rates.Censoring[iterE])
         txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
         modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), nameCensoring[iterE])
-        lava:::`latent<-`(modelT, value = as.formula(paste0("~",name0[iterE],"+",nameC[iterE])))
         
         lava::distribution(modelC, name0[iterE]) <- lava::coxExponential.lvm(rate=rates.C[iterE])
         lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(rate=rates.Censoring[iterE])
         txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
         modelC <- lava::eventTime(modelC, stats::as.formula(txtSurv), nameCensoring[iterE])
-        lava:::`latent<-`(modelC, value = as.formula(paste0("~",name0[iterE],"+",nameC[iterE])))
+
+        formula.latent <- as.formula(paste0("~",name0[iterE],"+",nameC[iterE]))
+        latent(modelT) <- formula.latent
+        latent(modelC) <- formula.latent
     }
 
     ## ** export
