@@ -27,11 +27,11 @@
 #' @param method [character] defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations (see details).
 #' Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
-#' Default value read from \code{BuyseTest.option()}.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param neutralAsUninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
-#' Default value read from \code{BuyseTest.option()}.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param n.permutation [integer] the number of permutations used for computing the confidence interval and the p.values. See details.
-#' Default value read from \code{BuyseTest.option()}.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param prob.alloc [0<double<1] the resampling probability for assignement to the experimental group in the permutation test.
 #' Can also be \code{NULL} to use the proportion of patients in the experimental group.
 #' @param stratified [logical] should the assignement in the permutation test be performed within strata.
@@ -40,12 +40,12 @@
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 #' @param seed [integer, >0] the seed to consider for the permutation test.
-#' Default value read from \code{BuyseTest.option()}.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
-#' Default value read from \code{BuyseTest.option()}.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param trace [integer] should the execution of the function be traced ? See details.
-#' Default value read from \code{BuyseTest.option()}.
+#' Default value read from \code{BuyseTest.options()}.
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
@@ -121,7 +121,7 @@ BuyseTest <- function(formula,
     
 ### ** normalize arguments
     BuyseCall <- match.call()
-    option <- BuyseTest.option()
+    option <- BuyseTest.options()
     if(is.null(method)){ method <- option$method }
     if(is.null(neutralAsUninf)){ neutralAsUninf <- option$neutralAsUninf }
     if(is.null(keepComparison)){ keepComparison <- option$keepComparison }

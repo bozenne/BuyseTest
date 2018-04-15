@@ -1,9 +1,14 @@
+if(FALSE){
+    library(testthat)
+    library(BuyseTest)
+}
+
 context("Check BuyseTest without strata")
 
 ## * settings
 n.patients <- c(90,100)
 format <- "data.table"
-BuyseTest.option(n.permutation = 0, trace = 0, keepComparison = TRUE)
+BuyseTest.options(n.permutation = 0, trace = 0, keepComparison = TRUE)
 
 ## * Simulated data
 set.seed(10)
@@ -12,47 +17,67 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
                        argsBin = list(p.T = c(0.5,0.75)),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
                        argsTTE = list(rates.T = 1:3, rates.Censor = rep(1,3)))
+## butils::object2script(dt.sim)
 
 ## * binary endpoint 
-dt.Bin <- simBuyseTest(n.T = n.patients[1],
-                       n.C = n.patients[2],
-                       argsBin = argsBin,
-                       argsCont = NULL,
-                       argsTTE = NULL,
-                       format =  format)
 
 ## ** run BuyseTest
+
 test_that("BuyseTest - binary ", {
-    BT <- BuyseTest(Treatment ~ bin(toxicity1),
-                    data = dt.sim)
+    BT.bin <- BuyseTest(Treatment ~ bin(toxicity1),
+                        data = dt.sim)
+    
+    BT2 <- BuyseTest(data = dt.sim,
+                     endpoint = "toxicity1",
+                     treatment = "Treatment",
+                     type = "bin")
+    
+    ## test against fixed value    
+    expect_equal(as.double(BT.bin@count_favorable),1739)
+    expect_equal(as.double(BT.bin@count_unfavorable),2809)
+    expect_equal(as.double(BT.bin@count_neutral),4452)
+    expect_equal(as.double(BT.bin@count_uninf),0)
+    expect_equal(as.double(BT.bin@Delta$netChance),-0.1188889,tol=1e-6)
+    expect_equal(as.double(BT.bin@Delta$winRatio),0.619081,tol=1e-6)
 
-    fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$Treatment))
+    expect_equal(BT.bin,BT2)
 
-    expect_equal(as.double(BT@count_favorable),1739)
-    expect_equal(as.double(BT@count_unfavorable),2809)
-    expect_equal(as.double(BT@count_neutral),4452)
-    expect_equal(as.double(BT@count_uninf),0)
-    expect_equal(as.double(BT@Delta$netChance),-0.1188889,tol=1e-6)
-    expect_equal(as.double(BT@Delta$winRatio),0.619081,tol=1e-6)
+    ## fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$Treatment))
 
-})
-
-
-# test_that("bootstrap approximately matches fisher test - Binary",{
-#   fisherP <- fisher.test(table(data_Bin$toxicity1,data_Bin$Treatment))$p.value
-#   expect_equal(fisherP,BT_Bin1@p.value$netChance[1],1/sqrt(n.bootstrap)) # 1/sqrt(n.bootstrap) is an approximation of the convergence rate of the bootstrap - no theorical justification just a guess
-# })
-
-test_that("count pairs summary - Binary",{
-  valTest <- as.double(validPairs(BT_Bin1, type = "sum"))
-  expect_equal(valTest, rep(0, times = length(valTest)))
+    ## count pairs
+    tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)
+    expect_equal(tableS[,c("n.total")],
+                 unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])))
 })
 
 ## ** continuous endpoint
-cat("* continuous endpoint \n")
-set.seed(10)
-data_Cont <- simulBT(n.T = n.patients[1], n.C = n.patients[2], argsBin = NULL, argsCont = argsCont, argsTTE = NULL)
-if(conv2df){data_Cont <- as.data.frame(data_Cont)}
+## test_that("BuyseTest - binary ", {
+##     BT.cont <- BuyseTest(Treatment ~ bin(score1),
+##                          data = dt.sim)
+    
+##     BT2 <- BuyseTest(data = dt.sim,
+##                      endpoint = "toxicity1",
+##                      treatment = "Treatment",
+##                      type = "bin")
+    
+##     ## test against fixed value    
+##     expect_equal(as.double(BT.bin@count_favorable),1739)
+##     expect_equal(as.double(BT.bin@count_unfavorable),2809)
+##     expect_equal(as.double(BT.bin@count_neutral),4452)
+##     expect_equal(as.double(BT.bin@count_uninf),0)
+##     expect_equal(as.double(BT.bin@Delta$netChance),-0.1188889,tol=1e-6)
+##     expect_equal(as.double(BT.bin@Delta$winRatio),0.619081,tol=1e-6)
+
+##     expect_equal(BT.bin,BT2)
+
+##     ## fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$Treatment))
+
+##     ## count pairs
+##     tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)
+##     expect_equal(tableS[,c("n.total")],
+##                  unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])))
+## })
+
 
 BT_Cont1 <- BuyseTest(data=data_Cont,endpoint=c("score1","score2"),
                       treatment="Treatment", type=c("cont","cont"),threshold=c(0,1),

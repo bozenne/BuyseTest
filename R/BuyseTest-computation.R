@@ -115,7 +115,7 @@ calcCI <- function(Delta,Delta_permutation,
                    endpoint,D,alternative,alpha,
                    n.permutation,cpus,trace){
 
-    option <- BuyseTest.option()
+    option <- BuyseTest.options()
         
     ## Confidence interval
     ## Delta_permutation <- apply(delta_permutation,c(2,3),sum) # sum of the proportion in favor of treatment over the strata for the permutation test.

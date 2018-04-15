@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: apr 15 2018 (14:22) 
+## last-updated: apr 15 2018 (18:21) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 33
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutralAsUninf is working
@@ -25,7 +25,7 @@ if(FALSE){
 context("Check that the option neutralAsUninf in BuyseTest is working correctly \n")
 
 ## * settings
-BuyseTest.option(n.permutation = 0, trace = 0)
+BuyseTest.options(n.permutation = 0, trace = 0, keepComparison = TRUE)
 
 ## * generate data
 ## two survival endpoints and no censoring
@@ -76,10 +76,10 @@ test_that("stop after NA (no NA)", {
                           data = dt.data,
                           neutralAsUninf = FALSE)
     
-    expect_equal(as.double(BT.TRUE@count_favorable),c(0,0))
-    expect_equal(as.double(BT.TRUE@count_unfavorable),c(0,4))
-    expect_equal(as.double(BT.TRUE@count_neutral),c(4,0))
-    expect_equal(as.double(BT.TRUE@count_uninf),c(0,0))
+    expect_equal(as.double(BT.FALSE@count_favorable),c(0,0))
+    expect_equal(as.double(BT.FALSE@count_unfavorable),c(0,0))
+    expect_equal(as.double(BT.FALSE@count_neutral),c(4,0))
+    expect_equal(as.double(BT.FALSE@count_uninf),c(0,0))
     
 })
 

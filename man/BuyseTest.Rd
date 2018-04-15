@@ -43,13 +43,13 @@ Disregarded if the argument \code{formula} is defined.}
 \item{method}{[character] defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations (see details).
 Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 Only relevant when there is one or more time-to-event endpoints.
-Default value read from \code{BuyseTest.option()}.}
+Default value read from \code{BuyseTest.options()}.}
 
 \item{neutralAsUninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
-Default value read from \code{BuyseTest.option()}.}
+Default value read from \code{BuyseTest.options()}.}
 
 \item{n.permutation}{[integer] the number of permutations used for computing the confidence interval and the p.values. See details.
-Default value read from \code{BuyseTest.option()}.}
+Default value read from \code{BuyseTest.options()}.}
 
 \item{prob.alloc}{[0<double<1] the resampling probability for assignement to the experimental group in the permutation test.
 Can also be \code{NULL} to use the proportion of patients in the experimental group.}
@@ -63,14 +63,14 @@ This means that the \code{prob.alloc} will be satisfyied within strata not only 
 Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
 
 \item{seed}{[integer, >0] the seed to consider for the permutation test.
-Default value read from \code{BuyseTest.option()}.}
+Default value read from \code{BuyseTest.options()}.}
 
 \item{cpus}{[integer, >0] the number of CPU to use.
 Only the permutation test can use parallel computation.
-Default value read from \code{BuyseTest.option()}.}
+Default value read from \code{BuyseTest.options()}.}
 
 \item{trace}{[integer] should the execution of the function be traced ? See details.
-Default value read from \code{BuyseTest.option()}.}
+Default value read from \code{BuyseTest.options()}.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.

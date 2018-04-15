@@ -8,7 +8,7 @@
 \title{Summary Method for Class "BuyseRes"}
 \usage{
 \S4method{summary}{BuyseRes}(object, show = TRUE, percentage = TRUE,
-  statistic = BuyseTest.option()$statistic, strata = if
+  statistic = BuyseTest.options()$statistic, strata = if
   (length(object@strata) == 1) {     "global" } else {     NULL },
   digit = c(2, 3))
 }

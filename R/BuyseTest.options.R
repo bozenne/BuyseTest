@@ -1,6 +1,6 @@
-## * Documentation - BuyseTest.option
+## * Documentation - BuyseTest.options
 #' @title Global options for BuyseTest package
-#' @name BuyseTest.option
+#' @name BuyseTest.options
 #' @include 0-onLoad.R
 #'
 #' @description Update or select global options for the BuyseTest package.
@@ -12,26 +12,26 @@
 #' 
 #' @examples  
 #' ## see all global parameters
-#' BuyseTest.option()
+#' BuyseTest.options()
 #' 
 #' ## see some of the global parameters
-#' BuyseTest.option("n.permutation", "trace")
+#' BuyseTest.options("n.permutation", "trace")
 #' 
 #' ## update some of the global parameters
-#' BuyseTest.option(n.permutation = 10, trace = 1)
-#' BuyseTest.option("n.permutation", "trace")
+#' BuyseTest.options(n.permutation = 10, trace = 1)
+#' BuyseTest.options("n.permutation", "trace")
 #' 
 #' ## reinitialise all global parameters
-#' BuyseTest.option(reinitialise = TRUE)
+#' BuyseTest.options(reinitialise = TRUE)
 
-## * Function BuyseTest.option
-#' @rdname BuyseTest.option
+## * Function BuyseTest.options
+#' @rdname BuyseTest.options
 #' @export
-BuyseTest.option <- function(..., reinitialise = FALSE){
+BuyseTest.options <- function(..., reinitialise = FALSE){
   
   if (reinitialise == TRUE) {
-    assign(".BuyseTest-option", 
-           new("BuyseTest.option",
+    assign(".BuyseTest-options", 
+           new("BuyseTest.options",
                conf.level = 0.95,
                cpus = 1,
                keep.permutation = TRUE,
@@ -44,12 +44,12 @@ BuyseTest.option <- function(..., reinitialise = FALSE){
                statistic = "netChance"), 
            envir = BuyseTest.env)
     
-    return(invisible(get(".BuyseTest-option", envir = BuyseTest.env)))
+    return(invisible(get(".BuyseTest-options", envir = BuyseTest.env)))
     
   }else{
     
     args <- list(...)
-    object <- get(".BuyseTest-option", envir = BuyseTest.env)
+    object <- get(".BuyseTest-options", envir = BuyseTest.env)
     
     if (!is.null(names(args))) { # write
       
@@ -59,11 +59,11 @@ BuyseTest.option <- function(..., reinitialise = FALSE){
                      valid.values = slotNames(object),
                      refuse.duplicates = TRUE,
                      refuse.NULL = FALSE,
-                     method = "BuyseTest.option")
+                     method = "BuyseTest.options")
       
       value <- alloc(object, field = args)
       
-      assign(".BuyseTest-option", 
+      assign(".BuyseTest-options", 
              value, 
              envir = BuyseTest.env)
       
@@ -77,7 +77,7 @@ BuyseTest.option <- function(..., reinitialise = FALSE){
                      valid.values = slotNames(object),
                      refuse.duplicates = TRUE,
                      refuse.NULL = FALSE,
-                     method = "BuyseTest.option")
+                     method = "BuyseTest.options")
       value <- select(object, name.field = unlist(args))
       return(value)
     }

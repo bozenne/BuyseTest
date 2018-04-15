@@ -61,7 +61,7 @@
 setMethod(f = "summary",
           signature = "BuyseRes",
           definition = function(object, show = TRUE, percentage = TRUE,
-                                statistic = BuyseTest.option()$statistic, 
+                                statistic = BuyseTest.options()$statistic, 
                                 strata = if(length(object@strata)==1){"global"}else{NULL},
                                 digit = c(2,3)){
               

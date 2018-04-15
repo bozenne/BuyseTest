@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: apr 15 2018 (14:08) 
+## Last-Updated: apr 15 2018 (18:12) 
 ##           By: Brice Ozenne
-##     Update #: 111
+##     Update #: 112
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ if(FALSE){
 context("Check BuyseTest on simple examples")
 
 ## * settings
-BuyseTest.option(n.permutation = 0, trace = 0, keepComparison = TRUE)
+BuyseTest.options(n.permutation = 0, trace = 0, keepComparison = TRUE)
 
 ## * one binary endpoint
 ## ** favorable
