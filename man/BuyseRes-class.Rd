@@ -47,7 +47,7 @@ over the endpoint (second dimension) and for each sample from the permutation te
 
 \item{\code{n_pairs}}{[integer] the total number of pairs.}
 
-\item{\code{n_permutation}}{[integer] the number of sucessful samples of the permutation test.}
+\item{\code{n_permutation}}{[integer] the number of successful samples of the permutation test.}
 
 \item{\code{p.value}}{[list of numeric vector] the p.value associated to the chance of a better outcome at each prioritized endpoint.}
 

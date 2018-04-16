@@ -238,7 +238,7 @@ setMethod(f = "summary",
                   ## additional text
                   txt.strata <- if(n.strata>1){paste0(" and ",n.strata," strata")}else{""}
                   txt.endpoint <- paste0("with ",n.endpoint," prioritized endpoint")
-                  txt.endpoint <- if(n.endpoint>1){paste0(txt.endpoint,"s")}
+                  if(n.endpoint>1){txt.endpoint <- paste0(txt.endpoint,"s")}
                   
                   ## display                  
                   cat("        Generalized pairwise comparison ",txt.endpoint,txt.strata,"\n\n", sep = "")

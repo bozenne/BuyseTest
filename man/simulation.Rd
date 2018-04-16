@@ -10,9 +10,9 @@ simBuyseTest(n.T, n.C = NULL, argsBin = list(), argsCont = list(),
   format = "data.table", latent = FALSE)
 }
 \arguments{
-\item{n.T}{[interger, >0] number of patients in the treatment arm}
+\item{n.T}{[integer, >0] number of patients in the treatment arm}
 
-\item{n.C}{[interger, >0] number of patients in the control arm}
+\item{n.C}{[integer, >0] number of patients in the control arm}
 
 \item{argsBin}{[list] arguments to be passed to \code{simBuyseTest_bin}. They specify the distribution parameters of the binary endpoints.}
 
@@ -22,7 +22,7 @@ simBuyseTest(n.T, n.C = NULL, argsBin = list(), argsCont = list(),
 
 \item{n.strata}{[integer, >0] number of strata. \code{NULL} indicates no strata.}
 
-\item{names.strata}{[character vector] name of the strata varaibles. Must have same length as \code{n.strata}.}
+\item{names.strata}{[character vector] name of the strata variables. Must have same length as \code{n.strata}.}
 
 \item{format}{[character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.}
 
