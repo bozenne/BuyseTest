@@ -78,7 +78,7 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
   }else{
     
     if(length(censoring) == D){
-      
+
         if(any(!is.na(censoring[type!=3]))){
             stop("BuyseTest : wrong specification of \'censoring\' \n",
                  "\'censoring\' must be NA for binary or continuous endpoints \n",
@@ -430,8 +430,8 @@ initFormula <- function(x){
             stop("initFormula: invalid formula \n",
                  vec.x.rhs[iE]," must contain the name of the endpoint between the parentheses \n"
                  )
-        }
-        if(n.args>3){
+        }        
+        if(n.args>4){
             stop("initFormula: invalid formula \n",
                  x[iE]," has too many arguments (maximum 4: endpoint, threshold, censoring variable, operator) \n")
         }

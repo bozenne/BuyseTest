@@ -28,7 +28,7 @@
 #' Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param neutralAsUninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
+#' @param neutral.as.uninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param n.permutation [integer] the number of permutations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
@@ -36,7 +36,7 @@
 #' Can also be \code{NULL} to use the proportion of patients in the experimental group.
 #' @param stratified [logical] should the assignement in the permutation test be performed within strata.
 #' This means that the \code{prob.alloc} will be satisfyied within strata not only globally.
-#' @param keepComparison [logical] should the result of each pairwise comparison be kept?
+#' @param keep.comparison [logical] should the result of each pairwise comparison be kept?
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 #' @param seed [integer, >0] the seed to consider for the permutation test.
@@ -109,11 +109,11 @@ BuyseTest <- function(formula,
                       operator = NULL,
                       strata = NULL, 
                       method = NULL,
-                      neutralAsUninf = NULL,
+                      neutral.as.uninf = NULL,
                       n.permutation = NULL,
                       prob.alloc = NULL,
                       stratified = FALSE,
-                      keepComparison = NULL,
+                      keep.comparison = NULL,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
@@ -123,8 +123,8 @@ BuyseTest <- function(formula,
     BuyseCall <- match.call()
     option <- BuyseTest.options()
     if(is.null(method)){ method <- option$method }
-    if(is.null(neutralAsUninf)){ neutralAsUninf <- option$neutralAsUninf }
-    if(is.null(keepComparison)){ keepComparison <- option$keepComparison }
+    if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
+    if(is.null(keep.comparison)){ keep.comparison <- option$keep.comparison }
     if(is.null(n.permutation)){ n.permutation <- option$n.permutation }
     if(is.null(seed)){ seed <- option$seed }
     if(is.null(cpus)){ cpus <- option$cpus }
@@ -361,7 +361,7 @@ BuyseTest <- function(formula,
                      D = D,
                      D.TTE = D.TTE,
                      method = method,
-                     neutralAsUninf = neutralAsUninf,
+                     neutral.as.uninf = neutral.as.uninf,
                      Wscheme = if (D>1 && method %in% 1:3) {Wscheme} else {NULL}, 
                      threshold_TTEM1 = if (D>1 && method %in% 1:3) {threshold_TTEM1} else {NULL})
     }
@@ -388,8 +388,8 @@ BuyseTest <- function(formula,
                                list_survivalT = list_survivalT,
                                list_survivalC = list_survivalC,
                                methodTTE = method,
-                               neutralAsUninf = neutralAsUninf,
-                               keepComparison = keepComparison
+                               neutralAsUninf = neutral.as.uninf,
+                               keepComparison = keep.comparison
                                )
     })
     if (trace > 1) {cat("   > done \n")}
@@ -414,6 +414,7 @@ BuyseTest <- function(formula,
         n_pairs = resPonctual$n_pairs,
         strata = levels.strata,
         threshold = threshold,
+        conf.level = as.numeric(NA),
         tableComparison = resPonctual$tableComparison,
         args = list(indexT = indexT, indexC = indexC)
     )
@@ -461,6 +462,7 @@ BuyseTest <- function(formula,
         BuyseRes.object@Delta_quantile <- resCI$Delta_quantile
         BuyseRes.object@n_permutation <- resCI$n_permutation
         BuyseRes.object@p.value <- resCI$p.value
+        BuyseRes.object@conf.level <- option$conf.level
         validObject(BuyseRes.object)
         if (trace > 1) {cat("   > done \n")}
     }

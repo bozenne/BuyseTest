@@ -26,8 +26,9 @@
 #' @slot n_permutation [integer] the number of sucessful samples of the permutation test.
 #' @slot p.value [list of numeric vector] the p.value associated to the chance of a better outcome at each prioritized endpoint.
 #' @slot strata [character vector] the name of the strata.
-#' @slot tableComparison [list] detail of the result of each pairwise comparison relative to each endpoint.
 #' @slot threshold [numeric vector] the threshold associated to each endpoint.
+#' @slot conf.level [numeric] the confidence level.
+#' @slot tableComparison [list] detail of the result of each pairwise comparison relative to each endpoint.
 #'   
 #' @details slots 
 #'   
@@ -86,6 +87,7 @@ setClass(
     p.value = "list",
     strata = "vector",
     threshold = "vector",
+    conf.level = "numeric",
     tableComparison = "list"
     ),
 
@@ -202,10 +204,15 @@ setClass(
                    type = c("length"),
                    method = "validity[BuyseTest]")
     
-    validDimension(object@threshold,
-                   name1 = "@threshold",
-                   valid.dimension = n.outcome,
-                   type = c("length"),
+      validDimension(object@threshold,
+                     name1 = "@threshold",
+                     valid.dimension = n.outcome,
+                     type = c("length"),
+                     method = "validity[BuyseTest]")
+      validNumeric(object@conf.level,
+                   name1 = "@conf.level",
+                   valid.length = 1,
+                   min = 0, max = 1, refuse.NA = FALSE,
                    method = "validity[BuyseTest]")
   
     return(TRUE)} 
@@ -220,7 +227,7 @@ methods::setMethod(
                         delta, Delta, delta_permutation, Delta_quantile,
                         endpoint,
                         index_neutralT, index_neutralC, index_uninfT, index_uninfC, 
-                        levels.treatment, n_permutation, n_pairs, p.value, strata, threshold,
+                        levels.treatment, n_permutation, n_pairs, p.value, strata, threshold, conf.level,
                         tableComparison, args){
     
     n.strata <- length(strata)
@@ -289,6 +296,7 @@ methods::setMethod(
       .Object@p.value <- p.value    
       .Object@strata <- strata
       .Object@threshold <- threshold
+      .Object@conf.level <- conf.level
       .Object@tableComparison <- tableComparison
     
     validObject(.Object)

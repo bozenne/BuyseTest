@@ -312,7 +312,7 @@ warper_BTpermutation <- function(x,envir){
                            list_survivalT = if (envir$method %in% 2:3) {res_init$list_survivalT} else {new.survivalT},
                            list_survivalC = if (envir$method %in% 2:3) {res_init$list_survivalC} else {new.survivalC},
                            methodTTE = envir$method,
-                           neutralAsUninf = envir$neutralAsUninf,
+                           neutralAsUninf = envir$neutral.as.uninf,
                            keepComparison = FALSE
                            )
     

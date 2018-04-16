@@ -26,8 +26,8 @@ setClass(
     keep.permutation = "logical",
     method = "character",
     n.permutation = "numeric",
-    neutralAsUninf = "logical",
-    keepComparison = "logical",
+    neutral.as.uninf = "logical",
+    keep.comparison = "logical",
     trace = "numeric",
     seed = "numeric",
     statistic = "character"
@@ -65,12 +65,12 @@ setClass(
                  min = 0,
                  valid.length = 1,
                  method = "Class BuyseTest.options")
-    validLogical(object@neutralAsUninf,
-                 name1 = "@neutralAsUninf",
+    validLogical(object@neutral.as.uninf,
+                 name1 = "@neutral.as.uninf",
                  valid.length = 1,
                  method = "Class BuyseTest.options")
-    validLogical(object@keepComparison,
-                 name1 = "@keepComparison",
+    validLogical(object@keep.comparison,
+                 name1 = "@keep.comparison",
                  valid.length = 1,
                  method = "Class BuyseTest.options")
     validInteger(object@trace,

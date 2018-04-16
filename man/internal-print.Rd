@@ -7,7 +7,7 @@
 \title{internal functions for BuyseTest - display}
 \usage{
 printGeneral(levels.treatment, levels.strata, n.strata, endpoint, threshold,
-  censoring, operator, type, D, D.TTE, method, neutralAsUninf, Wscheme,
+  censoring, operator, type, D, D.TTE, method, neutral.as.uninf, Wscheme,
   threshold_TTEM1)
 }
 \description{

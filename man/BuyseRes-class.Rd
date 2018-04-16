@@ -53,9 +53,11 @@ over the endpoint (second dimension) and for each sample from the permutation te
 
 \item{\code{strata}}{[character vector] the name of the strata.}
 
-\item{\code{tableComparison}}{[list] detail of the result of each pairwise comparison relative to each endpoint.}
-
 \item{\code{threshold}}{[numeric vector] the threshold associated to each endpoint.}
+
+\item{\code{conf.level}}{[numeric] the confidence level.}
+
+\item{\code{tableComparison}}{[list] detail of the result of each pairwise comparison relative to each endpoint.}
 }}
 
 \examples{

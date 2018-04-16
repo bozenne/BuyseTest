@@ -6,8 +6,8 @@
 \usage{
 BuyseTest(formula, data, treatment = NULL, endpoint = NULL, type = NULL,
   threshold = NULL, censoring = NULL, operator = NULL, strata = NULL,
-  method = NULL, neutralAsUninf = NULL, n.permutation = NULL,
-  prob.alloc = NULL, stratified = FALSE, keepComparison = NULL,
+  method = NULL, neutral.as.uninf = NULL, n.permutation = NULL,
+  prob.alloc = NULL, stratified = FALSE, keep.comparison = NULL,
   alternative = "two.sided", seed = NULL, cpus = NULL, trace = NULL)
 }
 \arguments{
@@ -45,7 +45,7 @@ Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{neutralAsUninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
+\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{n.permutation}{[integer] the number of permutations used for computing the confidence interval and the p.values. See details.
@@ -57,7 +57,7 @@ Can also be \code{NULL} to use the proportion of patients in the experimental gr
 \item{stratified}{[logical] should the assignement in the permutation test be performed within strata.
 This means that the \code{prob.alloc} will be satisfyied within strata not only globally.}
 
-\item{keepComparison}{[logical] should the result of each pairwise comparison be kept?}
+\item{keep.comparison}{[logical] should the result of each pairwise comparison be kept?}
 
 \item{alternative}{[character] the alternative hypothesis.
 Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
