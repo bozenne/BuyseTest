@@ -1,10 +1,10 @@
 ## * Documentation initialization functions called by BuyseTest
 
-#' @title internal functions for BuyseTest - initilization
+#' @title internal functions for BuyseTest - initialization
 #' @description Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 #' 
 #' @aliases initCensoring initData initN initHypothesis initSpace initStrata initSurvival initThreshold initWscheme
-#' @name internal-initilization
+#' @name internal-initialization
 #' 
 #' @details
 #' All functions performs test to check the validity of the argument. In addition: \cr
@@ -28,7 +28,7 @@
 ## Functions called by BuyseTest for the initialization
 
 ## * applyOperator
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 applyOperator <- function(data, operator, type, endpoint, D){
 
     validCharacter(operator,
@@ -58,7 +58,7 @@ applyOperator <- function(data, operator, type, endpoint, D){
 }
 
 ## * initCensoring
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initCensoring <- function(censoring,endpoint,type,D,D.TTE,
                           treatment,strata){
 
@@ -116,7 +116,7 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
 }
 
 ## * initData
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initData <- function(dataT, dataC, type, endpoint, D, censoring, operator,
                      index.strataT, index.strataC, n.strata,          
                      method, D.TTE, threshold, Wscheme = NULL,
@@ -294,7 +294,7 @@ initData <- function(dataT, dataC, type, endpoint, D, censoring, operator,
 }
 
 ## * initWscheme
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
 
   if(D>1){
@@ -354,7 +354,7 @@ initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
 }
 
 ## * initFormula
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 #' @examples 
 #' BuyseTest:::initFormula(Treatment~B(var1)+C(var2,10)+T(var3,15,exa))
 #' BuyseTest:::initFormula(Treatment~ grade + Bin(var1)+C(var2,10)+T(var3,15,exa))
@@ -485,7 +485,7 @@ initFormula <- function(x){
 }
 
 ## * initStrata
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initStrata <- function(strata,
                        dataT,dataC,n.Treatment,n.Control,
                        endpoint,censoring){
@@ -538,7 +538,7 @@ initStrata <- function(strata,
 }
 
 ## * initThreshold
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initThreshold <- function(threshold,type,D,endpoint){
   
     ## ** initialize threshold
@@ -593,7 +593,7 @@ initThreshold <- function(threshold,type,D,endpoint){
 }
 
 ## * initSurvival
-#' @rdname internal-initilization
+#' @rdname internal-initSurvival
 #' @export
 initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control,
                          endpoint,D.TTE,type,threshold,
@@ -754,7 +754,7 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
 
 ## * NOT USED
 ## ** Function initN
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initN <- function(n){
   
   ## ** test
@@ -810,7 +810,7 @@ initN <- function(n){
 }
 
 ## ** Function initHypothesis
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initHypothesis <- function(hypothesis,type,D){
   
   if(!is.list(hypothesis) && D==1){
@@ -883,7 +883,7 @@ initHypothesis <- function(hypothesis,type,D){
 
 
 ## ** Function initSpace
-#' @rdname internal-initilization
+#' @rdname internal-initialization
 initSpace  <- function(nchar){  
   return(sapply(nchar,function(x){if(x>0){do.call(paste,c(as.list(rep(" ",x)),sep=""))}else{""}}))  
 }
