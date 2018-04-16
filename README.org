@@ -52,7 +52,7 @@ suppressPackageStartupMessages(library(BuyseTest))
 
 ** Simulate data
 You can simulate data with the =simBuyseTest= function. For instance
-the follwoing code simulates data for 5 individuals in the treatment
+the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
@@ -103,8 +103,8 @@ dt
  9:         0        0 11.525498  9.257539 1.8477048      1
 10:         0        1  9.932625 10.609684 0.3639572      1
 #+end_example
-This functionnality is based on the =sim= function of the *lava*
-package (https://github.com/kkholst/lava).
+This functionality is based on the =sim= function of the *lava*
+package (https://github.com/kkholst/lava)
 
 ** Perform generalized pairwise comparisons
 *** Specifying GPC using the =BuyseTest= function
@@ -124,14 +124,14 @@ head(veteran)
 : 6   1 squamous   10      1    20        5  49     0
 
 The BuyseTest function performs the generalized pairwise
-comparisons (GPC). One need to specify:
+comparisons (GPC). One needs to specify:
 - the object where the data are stored
 - the name of the endpoints
-- the type of each endpoint: time to event (tte), continous (cont), or binary (bin)
+- the type of each endpoint: time to event (tte), continuous (cont), or binary (bin)
 - the threshold associated to each endpoint (optional, by default 1e-12)
 - the censoring associated to each endpoint (only required for time to event variables)
 - the operator: is higher better or is lower better (optional, by default higher is better)
-There are two equivalent way to define the GPC: 
+There are two equivalent ways to define the GPC: 
 - via a formula interface
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
@@ -188,7 +188,7 @@ BT2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(ka
 Here we have asked for an analysis stratified on celltype, with two prioritized outcomes:
 - first priority: time
 - second priority: karno
-By setting the argument =n.permutation= to 0, we have also diseable
+By setting the argument =n.permutation= to 0, we have also disabled
 the permutation test. This make the execution of =BuyseTest= much
 faster.
 
@@ -258,7 +258,7 @@ summary(BT2)
 *** Stopping comparison for neutral pairs
 In presence of neutral pairs, =BuyseTest= will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
-consider a dataset with one observation in each treatement arm:
+consider a dataset with one observation in each treatment arm:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.sim <- data.table(Id = 1:2,
                      treatment = c("Yes","No"),
@@ -311,7 +311,7 @@ summary(BT.pair2)
 :  endpoint threshold total favorable unfavorable neutral uninf delta Delta
 :     tumor       0.5   100         0           0     100     0     0     0
 :      size     1e-12     0         0           0       0     0     0     0
-So in this case no pair is anaylized at second priority.
+So in this case no pair is analyzed at second priority.
 
 *** What if smaller is better?
 By default =BuyseTest= will always assume that higher values of an
@@ -424,11 +424,11 @@ on being event free up to 97 is:
 
 #+RESULTS:
 : [1] 0.3049173
-This corresponds to the rating of the pair as uniformative. The rest
-of the weight, 1-0.3049173, will be transfered to the unfavorable
+This corresponds to the rating of the pair as uninformative. The rest
+of the weight, 1-0.3049173, will be transferred to the unfavorable
 category.
 
-We can then follow what has happenned to the pair (71,22) with the
+We can then follow what has happened to the pair (71,22) with the
 next endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.tempo <- as.data.table(BT.keep@tableComparison[[2]])
@@ -439,7 +439,8 @@ dt.tempo[index.2==71 & index.1==22]
 :    strata index.2 index.1 indexWithinStrata.2 indexWithinStrata.1 favorable unfavorable neutral uninformative
 : 1:      1      71      22                   2                  22 0.3049173           0       0             0
 
-Since 80 > 60, the rest of the weigth relative to the pair is transfered to the favorable category.
+Since 80 > 60, the rest of the weight relative to the pair is
+transferred to the favorable category.
 
 ** Modifying default options
 The =BuyseTest.options= method enable to set the default options of
@@ -481,14 +482,14 @@ $statistic
 [1] "netChance"
 #+end_example
 
-The following code enable to change =trace= to 0:
+The following code enables to change =trace= to 0:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(trace = 0)
 #+END_SRC
 
 #+RESULTS:
 
-To restaure the original default options, do:
+To restore the original default options do:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(reinitialise = TRUE)
 #+END_SRC

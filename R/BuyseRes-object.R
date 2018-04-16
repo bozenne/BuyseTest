@@ -23,7 +23,7 @@
 #' @slot index_uninfC [integer vector] the index in the dataset of the control observations from remaining uninformative pairs.
 #' @slot levels.treatment [character vector] the name of each group.
 #' @slot n_pairs [integer] the total number of pairs.
-#' @slot n_permutation [integer] the number of sucessful samples of the permutation test.
+#' @slot n_permutation [integer] the number of successful samples of the permutation test.
 #' @slot p.value [list of numeric vector] the p.value associated to the chance of a better outcome at each prioritized endpoint.
 #' @slot strata [character vector] the name of the strata.
 #' @slot threshold [numeric vector] the threshold associated to each endpoint.

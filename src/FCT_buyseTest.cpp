@@ -34,13 +34,13 @@ using namespace arma ;
 //' @param strataC A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers. 
 //' @param n_strata The number of strata . Strictly positive \emph{const int}.
 //' @param n_TTE The number of time-to-event endpoints. Positive \emph{const int}.
-//' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplyied by the weight of the endpoints in raws where there is a 1. \emph{const arma::mat&}. Must have n_TTE lines and D-1 columns.
+//' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have n_TTE lines and D-1 columns.
 //' @param index_survivalM1 The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.
 //' @param threshold_TTEM1 The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.
 //' @param list_survivalT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Efron or Peron, two survival functions are computed) columns. Ignored if method is Gehan.
 //' @param list_survivalC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.
 //' @param methodTTE The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).
-//' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority?  \emph{logical}.
+//' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
 //' @param keepComparison Should the result of each pairwise comparison be kept? \emph{logical}.
 //' @keywords function Cpp BuyseTest
 

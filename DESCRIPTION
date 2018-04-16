@@ -11,7 +11,7 @@ Description: Implementation of the Generalized Pairwise Comparisons. This test
     require consideration of all possible pairs of individuals, one taken from the
     treatment group and the other taken from the control group. The outcomes of the
     two individuals forming a pair are compared. Thresholds of minimal clinically
-    significant differences can be defined. It is possible to analyse simultaneously
+    significant differences can be defined. It is possible to analyze simultaneously
     several outcomes by prioritizing the variables that capture them. The highest
     priority is assigned to the variable considered the most clinically relevant.
     A natural way of handling uninformative or neutral pairs is to consider the
