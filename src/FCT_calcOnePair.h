@@ -37,6 +37,7 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 
 inline double calcIntegralProba(const double time_begin, const arma::mat& survival, const int index_col);
 
+
 // * calcOnePair_Continuous
 inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold,
 					   const int index_T, const int index_C, const double Wpair, const int iter_pair, 
@@ -56,7 +57,7 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
       index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs 
     }
     if(keepComparison){
-      iRow = {(double)index_T, (double)index_C, 0, 0, 0, 1};
+      iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair};
     }
   }else{    
     double diff = endpoint_T-endpoint_C; // difference between the endpoints from the treatment and control patients of the pair
@@ -64,12 +65,12 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
     if(diff>=threshold && diff>pow(10.0,-12.0)){ // diff>0 for threshold == 0
       count_favorable+=Wpair;
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, 1, 0, 0, 0};
+	iRow = {(double)index_T, (double)index_C, Wpair, 0, 0, 0};
       }
     }else if(diff<= -threshold && diff<pow(10.0,-12.0)){ // diff<0 for threshold == 0
       count_unfavorable+=Wpair;
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, 0, 1, 0, 0};
+	iRow = {(double)index_T, (double)index_C, 0, Wpair, 0, 0};
       }
 
     }else{
@@ -81,7 +82,7 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
         index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs      
       }
       if(keepComparison){
-	 iRow = {(double)index_T, (double)index_C, 0, 0, 1, 0};
+	 iRow = {(double)index_T, (double)index_C, 0, 0, Wpair, 0};
       }
 
     }

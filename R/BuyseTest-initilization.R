@@ -47,15 +47,14 @@ applyOperator <- function(data, operator, type, endpoint, D){
     if(length(name.negative)>0){
         name.negative.binary <- intersect(name.negative, endpoint[type==1])
         if(length(name.negative.binary)>0){
-            data[,name.negative.binary] <- -data[,name.negative.binary]+1
+            data[, (name.negative.binary) := -.SD+1, .SDcols = name.negative.binary]
         }
-
+        
         name.negative.other <- setdiff(name.negative, name.negative.binary)
         if(length(name.negative.other)){
-            data[,name.negative.other] <- -data[,name.negative.other]
+            data[, (name.negative.other) := -.SD , .SDcols = name.negative.other]
         }
     }
-        
     return(data)
 }
 

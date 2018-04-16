@@ -129,6 +129,12 @@ BuyseTest <- function(formula,
     if(is.null(seed)){ seed <- option$seed }
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(trace)){ trace <- option$trace }
+
+    if (!data.table::is.data.table(data)) {
+        data <- data.table::as.data.table(data)
+    }else{
+        data <- data.table::copy(data)
+    }
     
     ## *** formula interface
     if(!missing(formula)){
@@ -200,7 +206,19 @@ BuyseTest <- function(formula,
                           "\n")        
         stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
     }
-    
+
+    ##  convert character/factor to numeric for binary endpoints
+    name.bin <- endpoint[which(type %in% 1)]
+    if(length(name.bin)>0){
+        data.class <- sapply(data,class)
+        
+        for(iBin in name.bin){
+            if(data.class[iBin] %in% c("numeric","integer") == FALSE){
+                data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
+            }
+        }
+    }
+
     ## *** censoring
     censoring <- initCensoring(censoring = censoring,
                                endpoint = endpoint,
@@ -229,11 +247,7 @@ BuyseTest <- function(formula,
                    valid.length = NULL,
                    method = "BuyseTest")
     }
-
-    if (!data.table::is.data.table(data)) {
-        data <- data.table::as.data.table(data)
-    }
-
+    
     indexT <- which(data[[treatment]] == levels.treatment[2])
     indexC <- which(data[[treatment]] == levels.treatment[1])
     dataT <- data[indexT, c(endpoint, strata, censoring), with = FALSE]
@@ -248,7 +262,8 @@ BuyseTest <- function(formula,
     
     ## *** strata
     res <- initStrata(strata = strata,
-                      dataT = dataT, dataC = dataC, n.Treatment = n.Treatment, n.Control = n.Control,
+                      dataT = dataT, dataC = dataC,
+                      n.Treatment = n.Treatment, n.Control = n.Control,
                       endpoint = endpoint, censoring = censoring)
     
     index.strataT <- res$index.strataT 
@@ -368,7 +383,7 @@ BuyseTest <- function(formula,
     
 ### ** 3- Punctual estimation
     if (trace > 1) {cat("Punctual estimation \n")}
-    
+
     time <- system.time({
         resPonctual <- GPC_cpp(Treatment = M.Treatment,
                                Control = M.Control,

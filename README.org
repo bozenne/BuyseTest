@@ -275,26 +275,43 @@ dt.sim
 If we perform we GPC with tumor as the first endpoint and size as the
 second endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.pair <- BuyseTest(treatment ~ bin(tumor) + cont(size), data = dt.sim,
+BT.pair <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
                      trace = 0, n.permutation = 0)
 summary(BT.pair)
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Error in validNumeric(dataT[[endpoint[iterY]]], name1 = endpoint[iterY],  : 
-  BuyseTest: 'tumor' must be numeric 
-is(tumor) : character vector data.frameRowLabels SuperClassMethod index atomicVector
-        Generalized pairwise comparison with 2 prioritized endpoints
+:         Generalized pairwise comparison with 2 prioritized endpoints
+: 
+:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > groups          : No(control) vs. Yes(treatment) 
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
+:     tumor       0.5   100         0           0     100     0     0     0
+:      size     1e-12   100       100           0       0     0     1     1
 
- > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 0 
- > groups          : No(control) vs. Yes(treatment) 
- > results
- endpoint threshold total favorable unfavorable neutral uninf delta Delta
-    tumor       0.5   100         0         100       0     0    -1    -1
-     size     1e-12     0         0           0       0     0     0    -1
-#+end_example
+the outcome of the comparison is neutral for the first priority, but
+favorable for the second priority. If we set the argument
+=neutral.as.uninf= to =FALSE=, =BuyseTest= will stop the comparison
+when a pair is classified as neutral:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.pair2 <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
+                     trace = 0, n.permutation = 0, neutral.as.uninf = FALSE)
+summary(BT.pair2)
+#+END_SRC
+
+#+RESULTS:
+:         Generalized pairwise comparison with 2 prioritized endpoints
+: 
+:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > groups          : No(control) vs. Yes(treatment) 
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
+:     tumor       0.5   100         0           0     100     0     0     0
+:      size     1e-12     0         0           0       0     0     0     0
+So in this case no pair is anaylized at second priority.
 
 *** What if smaller is better?
 By default =BuyseTest= will always assume that higher values of an
@@ -324,13 +341,105 @@ try(BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "
 :   Cannot have different operator for the same endpoint used at different priorities
 
 *** Keeping track of all the comparisons
-
-
+To keep track of all the comparisons that have been performed, for
+each endpoint, between the all the pairs of observations from the two
+groups set the argument =keep.comparison= to =TRUE=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
-                     data = veteran, keepComparison = TRUE, 
-                     trace = 0, n.resampl)
+BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
+                     data = veteran, keep.comparison = TRUE, 
+                     trace = 0, n.permutation = 0)
 #+END_SRC
+
+#+RESULTS:
+
+This will store an list of matrices, one for each endpoint, in the
+object at the slot =tableComparison=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+lapply(BT.keep@tableComparison, dim)
+#+END_SRC
+
+#+RESULTS:
+: $time_20
+: [1] 4692    9
+: 
+: $`karno_1e-12`
+: [1] 940   9
+
+The names of the list correspond to the endpoint underscore the
+threshold. We can now inspect the first element:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.keep@tableComparison[[1]][c(1:2,90:91),]
+#+END_SRC
+
+#+RESULTS:
+:    strata index.2 index.1 indexWithinStrata.2 indexWithinStrata.1 favorable unfavorable neutral uninformative
+: 1       1      70       1                   1                   1         1   0.0000000       0    0.00000000
+: 2       1      70       2                   1                   2         1   0.0000000       0    0.00000000
+: 90      1      71      21                   2                  21         0   0.9166667       0    0.08333333
+: 91      1      71      22                   2                  22         0   0.6950827       0    0.30491728
+
+Each line corresponds to different comparison between a pair from the
+control arm and the treatment arm. The column =strata= store to which
+strata the pair belongs (first, second, ...). The last 4 columns
+contains the result of the comparison, e.g. the first pair was
+classified as favorable while the last was classified as unfavorable
+with a weight of 0.695 and as informative with a weight of 0.305.  The
+second and third columns indicates the rows in the original dataset
+corresponding to the pair:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+veteran[c(70,71,1:2,21:22),]
+#+END_SRC
+
+#+RESULTS:
+:    trt  celltype time status karno diagtime age prior
+: 70   2  squamous  999      1    90       12  54    10
+: 71   2  squamous  112      1    80        6  60     0
+: 1    1  squamous   72      1    60        7  69     0
+: 2    1  squamous  411      1    70        5  64    10
+: 21   1 smallcell  123      0    40        3  55     0
+: 22   1 smallcell   97      0    60        5  67     0
+
+
+For the first pair, the event was observed for both observations and
+since 999 > 72 + 20 the pair is rated favorable. For the last pair,
+the event time of the observation from the control group was censored
+at 97. The event time was observed for the observation from treatment
+group at 112. Since an event can occur before the censoring time and
+112 - 20 < 97 the pair is not favorable. We now need to compute the
+survival in the control arm to go further:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache n
+e.KM <- prodlim(Hist(time,status)~trt, data = veteran)
+iSurv <- predict(e.KM, times = c(97,112+20), newdata = data.frame(trt = 1))[[1]]
+iSurv
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.5171924 0.3594915
+
+So the probability of experiencing the event before 112+20 conditional
+on being event free up to 97 is:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+(iSurv[1]-iSurv[2])/iSurv[1]
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.3049173
+This corresponds to the rating of the pair as uniformative. The rest
+of the weight, 1-0.3049173, will be transfered to the unfavorable
+category.
+
+We can then follow what has happenned to the pair (71,22) with the
+next endpoint:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt.tempo <- as.data.table(BT.keep@tableComparison[[2]])
+dt.tempo[index.2==71 & index.1==22]
+#+END_SRC
+
+#+RESULTS:
+:    strata index.2 index.1 indexWithinStrata.2 indexWithinStrata.1 favorable unfavorable neutral uninformative
+: 1:      1      71      22                   2                  22 0.3049173           0       0             0
+
+Since 80 > 60, the rest of the weigth relative to the pair is transfered to the favorable category.
 
 ** Modifying default options
 The =BuyseTest.options= method enable to set the default options of
