@@ -1,11 +1,10 @@
 ## * Documentation initialization functions called by BuyseTest
 
-#' @name internal-intilisation
-#' @rdname internal-intilisation
-#' @title internal functions for BuyseTest - intilisation
-#' @aliases initCensoring initData initN initHypothesis initSpace initStrata initSurvival initThreshold initWscheme
-#' 
+#' @title internal functions for BuyseTest - initialization
 #' @description Functions called by \code{\link{BuyseTest}} to initialize the arguments.
+#' 
+#' @aliases initCensoring initData initN initHypothesis initSpace initStrata initSurvival initThreshold initWscheme
+#' @name internal-initialization
 #' 
 #' @details
 #' All functions performs test to check the validity of the argument. In addition: \cr
@@ -29,7 +28,7 @@
 ## Functions called by BuyseTest for the initialization
 
 ## * applyOperator
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 applyOperator <- function(data, operator, type, endpoint, D){
 
     validCharacter(operator,
@@ -47,20 +46,19 @@ applyOperator <- function(data, operator, type, endpoint, D){
     if(length(name.negative)>0){
         name.negative.binary <- intersect(name.negative, endpoint[type==1])
         if(length(name.negative.binary)>0){
-            data[,name.negative.binary] <- -data[,name.negative.binary]+1
+            data[, (name.negative.binary) := -.SD+1, .SDcols = name.negative.binary]
         }
-
+        
         name.negative.other <- setdiff(name.negative, name.negative.binary)
         if(length(name.negative.other)){
-            data[,name.negative.other] <- -data[,name.negative.other]
+            data[, (name.negative.other) := -.SD , .SDcols = name.negative.other]
         }
     }
-        
     return(data)
 }
 
 ## * initCensoring
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initCensoring <- function(censoring,endpoint,type,D,D.TTE,
                           treatment,strata){
 
@@ -78,7 +76,7 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
   }else{
     
     if(length(censoring) == D){
-      
+
         if(any(!is.na(censoring[type!=3]))){
             stop("BuyseTest : wrong specification of \'censoring\' \n",
                  "\'censoring\' must be NA for binary or continuous endpoints \n",
@@ -118,7 +116,7 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
 }
 
 ## * initData
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initData <- function(dataT, dataC, type, endpoint, D, censoring, operator,
                      index.strataT, index.strataC, n.strata,          
                      method, D.TTE, threshold, Wscheme = NULL,
@@ -296,7 +294,7 @@ initData <- function(dataT, dataC, type, endpoint, D, censoring, operator,
 }
 
 ## * initWscheme
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
 
   if(D>1){
@@ -356,7 +354,7 @@ initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
 }
 
 ## * initFormula
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 #' @examples 
 #' BuyseTest:::initFormula(Treatment~B(var1)+C(var2,10)+T(var3,15,exa))
 #' BuyseTest:::initFormula(Treatment~ grade + Bin(var1)+C(var2,10)+T(var3,15,exa))
@@ -430,8 +428,8 @@ initFormula <- function(x){
             stop("initFormula: invalid formula \n",
                  vec.x.rhs[iE]," must contain the name of the endpoint between the parentheses \n"
                  )
-        }
-        if(n.args>3){
+        }        
+        if(n.args>4){
             stop("initFormula: invalid formula \n",
                  x[iE]," has too many arguments (maximum 4: endpoint, threshold, censoring variable, operator) \n")
         }
@@ -487,7 +485,7 @@ initFormula <- function(x){
 }
 
 ## * initStrata
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initStrata <- function(strata,
                        dataT,dataC,n.Treatment,n.Control,
                        endpoint,censoring){
@@ -540,7 +538,7 @@ initStrata <- function(strata,
 }
 
 ## * initThreshold
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initThreshold <- function(threshold,type,D,endpoint){
   
     ## ** initialize threshold
@@ -595,7 +593,7 @@ initThreshold <- function(threshold,type,D,endpoint){
 }
 
 ## * initSurvival
-#' @rdname internal-intilisation
+#' @rdname internal-initSurvival
 #' @export
 initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control,
                          endpoint,D.TTE,type,threshold,
@@ -756,7 +754,7 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
 
 ## * NOT USED
 ## ** Function initN
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initN <- function(n){
   
   ## ** test
@@ -812,7 +810,7 @@ initN <- function(n){
 }
 
 ## ** Function initHypothesis
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initHypothesis <- function(hypothesis,type,D){
   
   if(!is.list(hypothesis) && D==1){
@@ -885,7 +883,7 @@ initHypothesis <- function(hypothesis,type,D){
 
 
 ## ** Function initSpace
-#' @rdname internal-intilisation
+#' @rdname internal-initialization
 initSpace  <- function(nchar){  
   return(sapply(nchar,function(x){if(x>0){do.call(paste,c(as.list(rep(" ",x)),sep=""))}else{""}}))  
 }

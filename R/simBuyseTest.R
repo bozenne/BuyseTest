@@ -7,14 +7,14 @@
 #' @description Simulate binary, continuous or time to event data, possibly with strata.
 #' Outcomes are simulated independently of each other and independently of the strata variable.
 #' 
-#' @param n.T [interger, >0] number of patients in the treatment arm
-#' @param n.C [interger, >0] number of patients in the control arm
+#' @param n.T [integer, >0] number of patients in the treatment arm
+#' @param n.C [integer, >0] number of patients in the control arm
 #' @param format [character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.
 #' @param argsBin [list] arguments to be passed to \code{simBuyseTest_bin}. They specify the distribution parameters of the binary endpoints.
 #' @param argsCont [list] arguments to be passed to \code{simBuyseTest_continous}. They specify the distribution parameters of the continuous endpoints.
 #' @param argsTTE [list]  arguments to be passed to \code{simBuyseTest_TTE}. They specify the distribution parameters of the time to event endpoints.
 #' @param n.strata [integer, >0] number of strata. \code{NULL} indicates no strata.
-#' @param names.strata [character vector] name of the strata varaibles. Must have same length as \code{n.strata}.
+#' @param names.strata [character vector] name of the strata variables. Must have same length as \code{n.strata}.
 #' @param latent [logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).
 #' 
 #' @details 

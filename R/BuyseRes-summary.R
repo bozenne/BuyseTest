@@ -62,11 +62,17 @@ setGeneric(name = "summary",
 setMethod(f = "summary",
           signature = "BuyseRes",
           definition = function(object, show = TRUE, percentage = TRUE,
-                                statistic = BuyseTest.options()$statistic, 
-                                strata = if(length(object@strata)==1){"global"}else{NULL},
+                                statistic = BuyseTest.options()$statistic,                                
+                                strata = if(length(object@strata)==1){"global"}else{NULL},                                
                                 digit = c(2,3)){
-              
-              ### ** preparation
+
+              ## make case insensitive and remove space
+              statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
+                                  "netchance" = "netChance",
+                                  "winratio" = "winRatio",
+                                  statistic)
+
+### ** preparation
               validLogical(show,
                            name1 = "show",
                            valid.length = 1,
@@ -74,6 +80,7 @@ setMethod(f = "summary",
               validLogical(percentage,
                            name1 = "percentage",
                            valid.length = 1,
+                           refuse.NA = FALSE, 
                            method = "summary[BuyseRes]")
               validCharacter(statistic,
                              name1 = "statistic",
@@ -81,7 +88,7 @@ setMethod(f = "summary",
                              valid.length = 1,
                              method = "summary[BuyseRes]")
             
-              ### ** mise en forme
+### ** mise en forme
               n.endpoint <- length(object@endpoint)
               n.strata <- length(object@strata)
             
@@ -90,9 +97,11 @@ setMethod(f = "summary",
               Delta_quantile <- object@Delta_quantile[[statistic]]
               n_permutation <- object@n_permutation[[statistic]]
               p.value <- object@p.value[[statistic]]
-            
+              alpha <- 1-object@conf.level
+                  
               table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15))
               names(table) <- c("endpoint","threshold","strata","n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta","CIinf.Delta","CIsup.Delta","n.permutation","p.value","")
+              test.permutation <- !all(is.na(n_permutation))
             
               ### ** fill
               index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
@@ -137,20 +146,26 @@ setMethod(f = "summary",
              
             ### ** posttreatment
             
-            ## *** normalization of the counts
-            if(percentage){
-              table[,"n.favorable"] <- 100*table[,"n.favorable"]/table[1,"n.total"]
-              table[,"n.unfavorable"] <- 100*table[,"n.unfavorable"]/table[1,"n.total"]
-              table[,"n.neutral"] <- 100*table[,"n.neutral"]/table[1,"n.total"]
-              table[,"n.uninf"] <- 100*table[,"n.uninf"]/table[1,"n.total"]
-              table[,"n.total"] <- 100*table[,"n.total"]/table[1,"n.total"]
-            }
+              ## *** normalization of the counts
+              if(is.na(percentage)){
+                  table$n.favorable <- NULL
+                  table$n.unfavorable <- NULL
+                  table$n.neutral <- NULL
+                  table$n.uninf <- NULL
+                  table$n.total <- NULL
+              }else if(percentage == TRUE){
+                  table[,"n.favorable"] <- 100*table[,"n.favorable"]/table[1,"n.total"]
+                  table[,"n.unfavorable"] <- 100*table[,"n.unfavorable"]/table[1,"n.total"]
+                  table[,"n.neutral"] <- 100*table[,"n.neutral"]/table[1,"n.total"]
+                  table[,"n.uninf"] <- 100*table[,"n.uninf"]/table[1,"n.total"]
+                  table[,"n.total"] <- 100*table[,"n.total"]/table[1,"n.total"]
+              }
             
-            ## *** Permutation test
-            if(all(is.na(table[index.global,"n.permutation"]))){
-              keep.cols <- setdiff(names(table), c("CIinf.Delta","CIsup.Delta","n.permutation","p.value",""))
-              table <- table[,keep.cols, drop = FALSE]
-            }
+              ## *** Permutation test
+              if(test.permutation == FALSE){
+                  keep.cols <- setdiff(names(table), c("CIinf.Delta","CIsup.Delta","n.permutation","p.value",""))
+                  table <- table[,keep.cols, drop = FALSE]
+              }
              
               ## *** strata
               if(!is.null(strata)){
@@ -161,46 +176,93 @@ setMethod(f = "summary",
                   }
               }
             
-            ## *** rounding
-            if(length(digit) == 1){digit <- rep(digit,2)}
+              ## *** rounding
+              if(length(digit) == 1){digit <- rep(digit,2)}
             
-            if(!is.na(digit[1]) && digit[1]>=0){
-                param.signif <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
-                table[,param.signif] <- sapply(table[,param.signif],round,digit=digit[1])
-            }
+              if(!is.na(percentage) && !is.na(digit[1]) && digit[1]>=0){
+                  param.signif <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
+                  table[,param.signif] <- sapply(table[,param.signif],round,digit=digit[1])
+              }
               
-            if(!is.na(digit[2]) && digit[2]>=0){
-                param.signif <- c("delta","Delta")
-                if("n.permutation" %in% names(table)){
-                  param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
-                }
-                table[,param.signif] <- sapply(table[,param.signif],signif,digit=digit[2])
-            }
-            
-            if(percentage){
-              names(table)[match(c("n.favorable","n.unfavorable","n.neutral","n.uninf","n.total"),names(table))] <- c("pc.favorable","pc.unfavorable","pc.neutral","pc.uninf","pc.total")
-            }
-            
-            ### ** affichage
-            if(show){
-              table.print <- table
-              emptyCol <- which(names(table.print) %in% c("Delta","CIinf.Delta","CIsup.Delta","n.permutation","p.value",""))
-              for(iterCol in emptyCol){
-                table.print[is.na(table.print[,iterCol]), iterCol] <- ""
+              if(!is.na(digit[2]) && digit[2]>=0){
+                  param.signif <- c("delta","Delta")
+                  if(test.permutation){
+                      param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
+                  }
+                  table[,param.signif] <- sapply(table[,param.signif],signif,digit=digit[2])
               }
-              table.print$threshold[is.na(table.print$threshold)] <- ""
-              if(statistic == "winRatio"){
-                cat("        Win ratio test \n",
-                    "Null hypothesis: Delta == 1 \n \n")
-              }else {
-                cat("        Buyse test \n",
-                    "Null hypothesis: Delta == 0 \n \n")
+            
+              if(identical(percentage,TRUE)){
+                  oldnames <- c("n.favorable","n.unfavorable","n.neutral","n.uninf","n.total")
+                  newnames <- c("pc.favorable","pc.unfavorable","pc.neutral","pc.uninf","pc.total")
+                  names(table)[match(oldnames,names(table))] <- newnames
               }
-              cat("> Groups: ",object@levels.treatment[1],"(control) vs. ",object@levels.treatment[2],"(treatment) \n")
-              if(n.strata>1){cat("> ",n.strata," strata \n", sep = "")}
-              cat("> ",n.endpoint," endpoint",if(n.endpoint>1){"s"}, "\n", sep = "")
-              print(table.print, row.names = FALSE)         
-            }
+            
+### ** display
+              if(show){
+                  table.print <- table
+                  ## clean NA
+                  emptyCol <- which(names(table.print) %in% c("Delta","CIinf.Delta","CIsup.Delta","n.permutation","p.value",""))
+                  for(iterCol in emptyCol){
+                      table.print[is.na(table.print[,iterCol]), iterCol] <- ""
+                  }
+                  table.print$threshold[is.na(table.print$threshold)] <- ""
+
+                  ## merge CI inf and CI sup column
+                  if(test.permutation){
+                      if("strata" %in% names(table.print)){
+                          index.tempo <- which(table.print$strata == "global")
+                      }else{
+                          index.tempo <- 1:NROW(table.print)
+                      }
+                      table.print$CIinf.Delta[index.tempo] <- paste0("[",table.print[index.tempo,"CIinf.Delta"],
+                                                                     ";",table.print[index.tempo,"CIsup.Delta"],"]")
+                      qInf <- round(100*alpha/2,digit[2])
+                      qSup <- round(100*(1-alpha/2),digit[2])
+
+                      names(table.print)[names(table.print) == "CIinf.Delta"] <- paste0("CI [",qInf," ; ",qSup,"]")
+                      table.print$CIsup.Delta <- NULL
+                  }
+
+                  ## simplify names
+                  if(identical(percentage,TRUE)){
+                      names(table.print) <- gsub("^pc.","",names(table.print))
+                  }else if(identical(percentage,FALSE)){
+                      names(table.print) <- gsub("^n.","",names(table.print))
+                  }
+                  
+                  ## remove duplicated values in endpoint/threshold
+                  test.duplicated <- duplicated(interaction(table.print$endpoint,table.print$threshold))
+                  table.print[which(test.duplicated),c("endpoint","threshold")] <- ""
+
+                  ## additional text
+                  txt.strata <- if(n.strata>1){paste0(" and ",n.strata," strata")}else{""}
+                  txt.endpoint <- paste0("with ",n.endpoint," prioritized endpoint")
+                  if(n.endpoint>1){txt.endpoint <- paste0(txt.endpoint,"s")}
+                  
+                  ## display                  
+                  cat("        Generalized pairwise comparison ",txt.endpoint,txt.strata,"\n\n", sep = "")
+                  if(statistic == "winRatio"){
+                      cat(" > statistic       : win ratio (delta: endpoint specific, Delta: global) \n",
+                          " > null hypothesis : Delta == 1 \n", sep = "")
+                  }else {
+                      cat(" > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) \n",
+                          " > null hypothesis : Delta == 0 \n", sep = "")
+                  }
+                  if(test.permutation){
+                      ok.permutation <- all(n_permutation[1]==n_permutation)
+                      if(ok.permutation){
+                          txt.permutation <- n_permutation[1]
+                          table.print$n.permutation <- NULL
+                      }else{
+                          txt.permutation <- paste0("[",min(n_permutation)," ; ",max(n_permutation),"]")
+                      }
+                      cat(" > permutation test: ",txt.permutation," samples, confidence level ",1-alpha," \n", sep = "")
+                  }
+                  cat(" > groups          : ",object@levels.treatment[1],"(control) vs. ",object@levels.treatment[2],"(treatment) \n", sep = "")
+                  cat(" > results\n")
+                  print(table.print, row.names = FALSE)         
+              }
             
               ### ** export
               return(invisible(table))

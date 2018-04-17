@@ -49,10 +49,18 @@ setMethod(f = "show",
           signature = "BuyseRes",
           definition = function(object){
             
-           table <- summary(object, show = FALSE, percentage = TRUE, strata="global")
-           table$threshold[is.na(table$threshold)] <- ""
-           print(table, row.names = FALSE)
+              table <- summary(object, show = FALSE, percentage = NA, strata="global")              
+              table$threshold[is.na(table$threshold)] <- ""
+              if("p.value" %in% names(table)){
+                  table$CIinf.Delta <- paste0("[",table$CIinf.Delta,
+                                              ";",table$CIsup.Delta,"]")
+                  names(table)[names(table) == "CIinf.Delta"] <- "CI"
+                  table$CIsup.Delta <- NULL
+                  table$n.permutation <- NULL
+              }
+              
+              print(table, row.names = FALSE)
            
-           return(invisible(NULL))
+              return(invisible(NULL))
           }
-)
+          )

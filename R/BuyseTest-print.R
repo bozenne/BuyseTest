@@ -17,7 +17,7 @@
 printGeneral <- function(levels.treatment,
                          levels.strata, n.strata,
                          endpoint, threshold, censoring, operator, type, D, D.TTE,
-                         method, neutralAsUninf, Wscheme, threshold_TTEM1){
+                         method, neutral.as.uninf, Wscheme, threshold_TTEM1){
 
     ## ** Prepare
     ## endpoint
@@ -41,7 +41,7 @@ printGeneral <- function(levels.treatment,
         }
     }
     df.endpoint <- cbind(df.endpoint, `|` = "|")
-
+    
     ## threshold
     if(any(type==3)){
         if (length(threshold_TTEM1) > 0) {
@@ -68,7 +68,7 @@ printGeneral <- function(levels.treatment,
         cat("   > ", n.strata, " strata with levels ", paste(levels.strata,collapse = " "), "\n", sep = "")
     }
     cat("   > management of neutral pairs : ")
-    if(neutralAsUninf){
+    if(neutral.as.uninf){
         cat("re-analyzed using endpoints of lower priority (if any) \n")
     }else{
         cat("ignore endpoints of lower priority \n")

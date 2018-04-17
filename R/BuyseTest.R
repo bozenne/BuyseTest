@@ -24,19 +24,19 @@
 #' Must value \code{NA} when the endpoint is not a time to event.
 #' Disregarded if the argument \code{formula} is defined.
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
-#' @param method [character] defines the method used to handle pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations (see details).
+#' @param method [character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
 #' Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param neutralAsUninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
+#' @param neutral.as.uninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param n.permutation [integer] the number of permutations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param prob.alloc [0<double<1] the resampling probability for assignement to the experimental group in the permutation test.
+#' @param prob.alloc [0<double<1] the resampling probability for being allocated to the experimental group in the permutation test.
 #' Can also be \code{NULL} to use the proportion of patients in the experimental group.
-#' @param stratified [logical] should the assignement in the permutation test be performed within strata.
-#' This means that the \code{prob.alloc} will be satisfyied within strata not only globally.
-#' @param keepComparison [logical] should the result of each pairwise comparison be kept?
+#' @param stratified [logical] should the allocation in the permutation test be performed within strata.
+#' This means that the \code{prob.alloc} will be satisfied within strata not only globally.
+#' @param keep.comparison [logical] should the result of each pairwise comparison be kept?
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 #' @param seed [integer, >0] the seed to consider for the permutation test.
@@ -64,9 +64,9 @@
 #' \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus. The parallelization relies on the \emph{snowfall} package (function \emph{sfClusterApplyLB}). The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
 #' 
 #' \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal outcome.\cr
-#' Uninformative pairs correspond to pairs for which the censoring prevend from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
+#' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
 #' 
-#' \bold{method:} Pairs which can not be decidely classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method="Gehan"}, Gehan 1965). 
+#' \bold{method:} Pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method="Gehan"}, Gehan 1965). 
 #' Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions. 
 #' \code{method="Peto"} estimate these probabilities using the common Kaplan-Meier estimator of the survival function for treated and control patients (Peto et al. 1972). 
 #' \code{method="Efron"}, and \code{method="Peron"} estimate these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
@@ -79,7 +79,7 @@
 #' 
 #' @references 
 #' Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
-#' D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clincal trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
+#' D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 #' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. Statistical Methods in Medical Research. \cr
 #' Efron B (1967). \bold{The two sample problem with censored data}. \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} 4:831-583 \cr
 #' Peto R, Peto J (1972). \bold{Asymptotically efficient rank invariant test procedures}. \emph{Journal of the Royal Statistical Society - series A} 135(2):185-198 \cr
@@ -109,11 +109,11 @@ BuyseTest <- function(formula,
                       operator = NULL,
                       strata = NULL, 
                       method = NULL,
-                      neutralAsUninf = NULL,
+                      neutral.as.uninf = NULL,
                       n.permutation = NULL,
                       prob.alloc = NULL,
                       stratified = FALSE,
-                      keepComparison = NULL,
+                      keep.comparison = NULL,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
@@ -123,12 +123,18 @@ BuyseTest <- function(formula,
     BuyseCall <- match.call()
     option <- BuyseTest.options()
     if(is.null(method)){ method <- option$method }
-    if(is.null(neutralAsUninf)){ neutralAsUninf <- option$neutralAsUninf }
-    if(is.null(keepComparison)){ keepComparison <- option$keepComparison }
+    if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
+    if(is.null(keep.comparison)){ keep.comparison <- option$keep.comparison }
     if(is.null(n.permutation)){ n.permutation <- option$n.permutation }
     if(is.null(seed)){ seed <- option$seed }
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(trace)){ trace <- option$trace }
+
+    if (!data.table::is.data.table(data)) {
+        data <- data.table::as.data.table(data)
+    }else{
+        data <- data.table::copy(data)
+    }
     
     ## *** formula interface
     if(!missing(formula)){
@@ -200,7 +206,19 @@ BuyseTest <- function(formula,
                           "\n")        
         stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
     }
-    
+
+    ##  convert character/factor to numeric for binary endpoints
+    name.bin <- endpoint[which(type %in% 1)]
+    if(length(name.bin)>0){
+        data.class <- sapply(data,class)
+        
+        for(iBin in name.bin){
+            if(data.class[iBin] %in% c("numeric","integer") == FALSE){
+                data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
+            }
+        }
+    }
+
     ## *** censoring
     censoring <- initCensoring(censoring = censoring,
                                endpoint = endpoint,
@@ -229,11 +247,7 @@ BuyseTest <- function(formula,
                    valid.length = NULL,
                    method = "BuyseTest")
     }
-
-    if (!data.table::is.data.table(data)) {
-        data <- data.table::as.data.table(data)
-    }
-
+    
     indexT <- which(data[[treatment]] == levels.treatment[2])
     indexC <- which(data[[treatment]] == levels.treatment[1])
     dataT <- data[indexT, c(endpoint, strata, censoring), with = FALSE]
@@ -248,7 +262,8 @@ BuyseTest <- function(formula,
     
     ## *** strata
     res <- initStrata(strata = strata,
-                      dataT = dataT, dataC = dataC, n.Treatment = n.Treatment, n.Control = n.Control,
+                      dataT = dataT, dataC = dataC,
+                      n.Treatment = n.Treatment, n.Control = n.Control,
                       endpoint = endpoint, censoring = censoring)
     
     index.strataT <- res$index.strataT 
@@ -371,14 +386,14 @@ BuyseTest <- function(formula,
                      D = D,
                      D.TTE = D.TTE,
                      method = method,
-                     neutralAsUninf = neutralAsUninf,
+                     neutral.as.uninf = neutral.as.uninf,
                      Wscheme = if (D>1 && method %in% 1:3) {Wscheme} else {NULL}, 
                      threshold_TTEM1 = if (D>1 && method %in% 1:3) {threshold_TTEM1} else {NULL})
     }
     
 ### ** 3- Punctual estimation
     if (trace > 1) {cat("Punctual estimation \n")}
-    
+
     time <- system.time({
         resPonctual <- GPC_cpp(Treatment = M.Treatment,
                                Control = M.Control,
@@ -399,8 +414,8 @@ BuyseTest <- function(formula,
                                list_survivalC = list_survivalC,
                                methodTTE = method,
                                correctionTTE = correctionTTE,
-                               neutralAsUninf = neutralAsUninf,
-                               keepComparison = keepComparison
+                               neutralAsUninf = neutral.as.uninf,
+                               keepComparison = keep.comparison
                                )
     })
     if (trace > 1) {cat("   > done \n")}
@@ -425,6 +440,7 @@ BuyseTest <- function(formula,
         n_pairs = resPonctual$n_pairs,
         strata = levels.strata,
         threshold = threshold,
+        conf.level = as.numeric(NA),
         tableComparison = resPonctual$tableComparison,
         args = list(indexT = indexT, indexC = indexC)
     )
@@ -472,6 +488,7 @@ BuyseTest <- function(formula,
         BuyseRes.object@Delta_quantile <- resCI$Delta_quantile
         BuyseRes.object@n_permutation <- resCI$n_permutation
         BuyseRes.object@p.value <- resCI$p.value
+        BuyseRes.object@conf.level <- option$conf.level
         validObject(BuyseRes.object)
         if (trace > 1) {cat("   > done \n")}
     }

@@ -8,7 +8,7 @@ context("Check BuyseTest without strata")
 ## * Settings
 n.patients <- c(90,100)
 format <- "data.table"
-BuyseTest.options(n.permutation = 0, trace = 0, keepComparison = TRUE)
+BuyseTest.options(n.permutation = 0, trace = 0, keep.comparison = TRUE)
 
 ## * Simulated data
 set.seed(10)

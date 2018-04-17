@@ -47,15 +47,17 @@ over the endpoint (second dimension) and for each sample from the permutation te
 
 \item{\code{n_pairs}}{[integer] the total number of pairs.}
 
-\item{\code{n_permutation}}{[integer] the number of sucessful samples of the permutation test.}
+\item{\code{n_permutation}}{[integer] the number of successful samples of the permutation test.}
 
 \item{\code{p.value}}{[list of numeric vector] the p.value associated to the chance of a better outcome at each prioritized endpoint.}
 
 \item{\code{strata}}{[character vector] the name of the strata.}
 
-\item{\code{tableComparison}}{[list] detail of the result of each pairwise comparison relative to each endpoint.}
-
 \item{\code{threshold}}{[numeric vector] the threshold associated to each endpoint.}
+
+\item{\code{conf.level}}{[numeric] the confidence level.}
+
+\item{\code{tableComparison}}{[list] detail of the result of each pairwise comparison relative to each endpoint.}
 }}
 
 \examples{

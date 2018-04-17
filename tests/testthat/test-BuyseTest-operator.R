@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: apr 15 2018 (18:19) 
+## Last-Updated: apr 16 2018 (13:46) 
 ##           By: Brice Ozenne
-##     Update #: 9
+##     Update #: 10
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ context("Check that the option operator in BuyseTest is working correctly \n")
 
 
 ## * settings
-BuyseTest.options(n.permutation = 0, trace = 0, keepComparison = TRUE)
+BuyseTest.options(n.permutation = 0, trace = 0, keep.comparison = TRUE)
 
 ## * one pair
 test_that("check - 1 pair",{

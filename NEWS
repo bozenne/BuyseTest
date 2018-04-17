@@ -1,5 +1,15 @@
+# -*- mode: org -*-
+
 * Version 1.2
-  - xxx
+** User visble changes - BuyseTest function
+  - add argument keepComparison, operator.
+  - argument n.bootstrap becomes n.permuation
+  - argument neutralAsUninf becomes neutral.as.uninf
+  - nicer display with summary
+  - lighter display when printing the object
+
+** Internal change
+  - reorganize the tests
 
 * Version 1.1
   - add a formula argument to the BuyseTest function. This can be used instead of the treatment, endpoint, threshold, type, censoring, and strata argument

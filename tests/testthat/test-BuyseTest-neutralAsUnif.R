@@ -3,12 +3,12 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: apr 15 2018 (18:21) 
+## last-updated: apr 16 2018 (13:47) 
 ##           By: Brice Ozenne
-##     Update #: 33
+##     Update #: 37
 #----------------------------------------------------------------------
 ## 
-### Commentary: Check whether the option neutralAsUninf is working
+### Commentary: Check whether the option neutral.as.uninf is working
 ## this option allows to stop the analysis of the neutral pairs
 ## instead of looking at endpoints with lower priority.
 ##
@@ -22,10 +22,10 @@ if(FALSE){
     library(BuyseTest)
 }
 
-context("Check that the option neutralAsUninf in BuyseTest is working correctly \n")
+context("Check that the option neutral.as.uninf in BuyseTest is working correctly \n")
 
 ## * settings
-BuyseTest.options(n.permutation = 0, trace = 0, keepComparison = TRUE)
+BuyseTest.options(n.permutation = 0, trace = 0, keep.comparison = TRUE)
 
 ## * generate data
 ## two survival endpoints and no censoring
@@ -43,12 +43,12 @@ dt.dataNA  <- copy(dt.data)
 dt.dataNA[1,memory := NA]
 
 
-## * neutralAsUninf = TRUE (default)
+## * neutral.as.uninf = TRUE (default)
 ## the neutral observations are analysed using the following endpoints
 test_that("continue after NA (no NA)", {
     BT.TRUE <- BuyseTest(treat ~ cont(memory) + TTE(time, 0, status),
                          data = dt.data,
-                         neutralAsUninf = TRUE)
+                         neutral.as.uninf = TRUE)
     
     expect_equal(as.double(BT.TRUE@count_favorable),c(0,0))
     expect_equal(as.double(BT.TRUE@count_unfavorable),c(0,4))
@@ -60,7 +60,7 @@ test_that("continue after NA (no NA)", {
 test_that("continue after NA (NA)", {
     BT.TRUE_NA <- BuyseTest(treat ~ Cont(memory) + TTE(time, 0, status),
                             data = dt.dataNA,
-                            neutralAsUninf = TRUE)
+                            neutral.as.uninf = TRUE)
 
     expect_equal(as.double(BT.TRUE_NA@count_favorable),c(0,0))
     expect_equal(as.double(BT.TRUE_NA@count_unfavorable),c(0,4))
@@ -69,12 +69,12 @@ test_that("continue after NA (NA)", {
     
 })
 
-## * neutralAsUninf = FALSE
+## * neutral.as.uninf = FALSE
 ## the neutral observations are not analysed using the following endpoints
 test_that("stop after NA (no NA)", {
     BT.FALSE <- BuyseTest(treat ~ Cont(memory) + TTE(time, 0, status),
                           data = dt.data,
-                          neutralAsUninf = FALSE)
+                          neutral.as.uninf = FALSE)
     
     expect_equal(as.double(BT.FALSE@count_favorable),c(0,0))
     expect_equal(as.double(BT.FALSE@count_unfavorable),c(0,0))
@@ -86,7 +86,7 @@ test_that("stop after NA (no NA)", {
 test_that("stop after NA (NA)", {
     BT.FALSE <- BuyseTest(treat ~ Cont(memory) + TTE(time, 0, status),
                           data = dt.dataNA,
-                          neutralAsUninf = FALSE)
+                          neutral.as.uninf = FALSE)
     
     expect_equal(as.double(BT.FALSE@count_favorable),c(0,0))
     expect_equal(as.double(BT.FALSE@count_unfavorable),c(0,2))

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: apr 15 2018 (21:12) 
+## Last-Updated: apr 16 2018 (13:46) 
 ##           By: Brice Ozenne
-##     Update #: 117
+##     Update #: 118
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ if(FALSE){
 context("Check BuyseTest on simple examples")
 
 ## * settings
-BuyseTest.options(n.permutation = 0, trace = 0, keepComparison = TRUE)
+BuyseTest.options(n.permutation = 0, trace = 0, keep.comparison = TRUE)
 
 ## * one binary endpoint
 ## ** favorable
@@ -140,7 +140,7 @@ test_that("check unfavorable - 2 Binary",{
                      toxicity2 = c(1,0),
                      Id = 1:10)
     BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt,
-                    keepComparison = TRUE)
+                    keep.comparison = TRUE)
     ## BT@tableComparison
 
     ## total pairs: 25
@@ -159,7 +159,7 @@ test_that("check mixed - 2 Binary",{
                      toxicity1 = 0,
                      toxicity2 = c(1,0,1,0))
     BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt,
-                    keepComparison = TRUE)
+                    keep.comparison = TRUE)
     ## BT@tableComparison
 
     expect_equal(as.double(BT@count_favorable),c(0,1))
@@ -544,7 +544,7 @@ dt <- data.table("Treatment" = c(1, 0, 0, 0),
                  "eventtime2" = c(0.37, 0.85, 1.04, 1.33), 
                  "status2" = c(0, 0, 1, 0))
 
-test_that("check previous bug with option keepComparison",{
+test_that("check previous bug with option keep.comparison",{
     ## the bug was some of the results of BT@tableComparison were set to random intialization values (when C++ create the vector)
     ## because they were not updated during the execution of the function
     BT <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2),
