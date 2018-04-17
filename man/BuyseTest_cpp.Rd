@@ -52,6 +52,8 @@ GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
 
 \item{correctionTTE}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 
+\item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.}
+
 \item{keepComparison}{Should the result of each pairwise comparison be kept? \emph{logical}.}
 }
 \description{
