@@ -39,6 +39,7 @@ using namespace arma ;
 //' @param threshold_TTEM1 The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.
 //' @param list_survivalT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Efron or Peron, two survival functions are computed) columns. Ignored if method is Gehan.
 //' @param list_survivalC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.
+//' @param correctionTTE Should the uninformative weight be re-distributed to favorable and unfavorable?
 //' @param methodTTE The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).
 //' @param neutralAsUninf Should paired classified as neutral be re-analysed using endpoints of lower priority?  \emph{logical}.
 //' @param keepComparison Should the result of each pairwise comparison be kept? \emph{logical}.
@@ -66,6 +67,7 @@ List GPC_cpp(const arma::mat& Treatment,
              const std::vector< arma::mat >& list_survivalT,
 	     const std::vector< arma::mat >& list_survivalC,
 	     const int methodTTE,
+	     const bool correctionTTE,
 	     const bool neutralAsUninf,
 	     const bool keepComparison){
   
@@ -156,7 +158,7 @@ List GPC_cpp(const arma::mat& Treatment,
       }
       
       iComparison = calcAllPairs_TTE(TreatmentK.col(0), ControlK.col(0), threshold[0],
-				     delta_TreatmentK.col(0), delta_ControlK.col(0), matKMT_K, matKMC_K, methodTTE,
+				     delta_TreatmentK.col(0), delta_ControlK.col(0), matKMT_K, matKMC_K, methodTTE, correctionTTE,
 				     Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 				     iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
 				     iw, keepComparison); 
@@ -228,7 +230,7 @@ List GPC_cpp(const arma::mat& Treatment,
         if(methodTTE==0 || threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used [no threshold-1]
 	  
           iComparison = calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-					    delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
+					    delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE, correctionTTE,
 					    Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 					    iIndex_neutralT, iIndex_neutralC, size_neutral,
 					    iIndex_uninfT, iIndex_uninfC, size_uninf,
@@ -239,7 +241,7 @@ List GPC_cpp(const arma::mat& Treatment,
         }else{ // following times
 	  
           iComparison = calcSubsetPairs_TTE(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-					    delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE,
+					    delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, methodTTE, correctionTTE,
 					    Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 					    iIndex_neutralT, iIndex_neutralC, size_neutral,
 					    iIndex_uninfT, iIndex_uninfC, size_uninf,

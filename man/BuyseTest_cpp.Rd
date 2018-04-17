@@ -11,7 +11,7 @@
 GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
   delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme,
   index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE,
-  neutralAsUninf, keepComparison)
+  correctionTTE, neutralAsUninf, keepComparison)
 }
 \arguments{
 \item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment observations (in rows). \emph{const arma::mat&}. Must have D columns.}
@@ -49,6 +49,8 @@ GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
 \item{list_survivalC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Efron or Peron) columns. Ignored if method is Gehan.}
 
 \item{methodTTE}{The type of method used to compare censored pairs (1 Peto, 2 Efron, 3 Peron).}
+
+\item{correctionTTE}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 
 \item{neutralAsUninf}{Should paired classified as neutral be re-analysed using endpoints of lower priority?  \emph{logical}.}
 

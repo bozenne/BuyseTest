@@ -25,7 +25,8 @@ arma::mat calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma:
 				      bool keepComparison);
 
 arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-			    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+			    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
+			    const int methodTTE, const bool correctionTTE,
 			    double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 			    vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
 			    vector<double>& wUninf,
@@ -33,10 +34,11 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
 
 arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
 			      const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
+      			      const int methodTTE, const bool correctionTTE,
 			      double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 			      vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
 			      vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
-			      const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1, const int methodTTE,
+			      const arma::vec& Wpairs, const double threshold_M1, const arma::mat& matKMT_M1, const arma::mat& matKMC_M1,
 			      vector<double>& wNeutral, vector<int>& index_wNeutral,
 			      bool keepComparison);
 
@@ -155,7 +157,8 @@ arma::mat calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma:
 // * calcAllPairs_TTE
 // perform pairwise comparisons over all possible pairs for a TTE endpoint
 arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
-			    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+			    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
+			    const int methodTTE, const bool correctionTTE,
 			    double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 			    vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
 			    vector<double>& wUninf,
@@ -190,7 +193,7 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
     }
   }else{
     vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
-    double weight_residual;    
+    double weight_residual, weight_favorable, weight_unfavorable;   
     
     for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
       for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
@@ -218,14 +221,20 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
 
         }else{
           
-          weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
+          weight_residual = 1 - (proba_threshold[0] + proba_threshold[1]);
           
           if(proba_threshold[3]>0.5 && weight_residual>pow(10.0,-12.0)){ // i.e. test uninformative == 1
-            index_uninfT.push_back(iter_T);
-            index_uninfC.push_back(iter_C);
+	    if(correctionTTE){
+	      proba_threshold[0] = proba_threshold[0]/(1-weight_residual);
+	      proba_threshold[1] = proba_threshold[1]/(1-weight_residual);
+	      weight_residual = 0;
+	    }else{
+              index_uninfT.push_back(iter_T);
+              index_uninfC.push_back(iter_C);
             
-            wUninf.push_back(weight_residual); 
-            count_uninf += weight_residual;
+              wUninf.push_back(weight_residual); 
+              count_uninf += weight_residual;
+	    }
           }
           
           count_favorable += proba_threshold[0];    
@@ -250,7 +259,8 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
 // * calcSubsetPairs_TTE
 // perform pairwise comparisons over the neutral and uniformative pairs for a TTE endpoint
 arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
-			      const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC, const int methodTTE,
+			      const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
+			      const int methodTTE, const bool correctionTTE,
 			      double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 			      vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
 			      vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
@@ -297,7 +307,7 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
       
       vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
       vector<double> proba_thresholdM1(4); // probaF, probaUF, test.neutral and test.uninformative for the previous threhold
-      double weight_residual;  
+      double weight_residual, weight_favorable, weight_unfavorable;  
       bool test_tauM1 = matKMT_M1.n_cols>1; // test whether it is the first time that the endpoint is used
       
       for(int iter_pairs=0; iter_pairs<nNeutral_pairs ; iter_pairs++){
@@ -315,7 +325,7 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
                                                   matKMT, matKMC);
         }
         
-        if(test_tauM1){ // no useless if pairs from a different outcome
+        if(test_tauM1){ // useless if pairs from a different outcome
           if(methodTTE == 1){
             proba_thresholdM1 = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
                                                      matKMT_M1, matKMC_M1);
@@ -343,23 +353,31 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
           }
         }else{
           
-          weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
-          
+          weight_residual = 1-(proba_threshold[0] + proba_threshold[1]); // note: it is not a mistake that proba_thresholdM1 does not appear here; 
+          weight_favorable = (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs);
+	  weight_unfavorable = (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);
+	  
           if(proba_threshold[3]>0.5 && weight_residual>pow(10.0,-12.0)){ // i.e. test uninformative == 1
-            indexNew_uninfT.push_back(iter_T);
-            indexNew_uninfC.push_back(iter_C);
-            index_wUninf.push_back(iter_pairs);        
+	    if(correctionTTE){
+	      weight_favorable = weight_favorable/(1-weight_residual);
+	      weight_unfavorable = weight_unfavorable/(1-weight_residual);
+	      weight_residual = 0;
+	    }else{
+              indexNew_uninfT.push_back(iter_T);
+              indexNew_uninfC.push_back(iter_C);
+              index_wUninf.push_back(iter_pairs);        
             
-            wUninf.push_back(weight_residual); 
-            count_uninf += Wpairs(iter_pairs)*weight_residual;
+              wUninf.push_back(weight_residual); 
+              count_uninf += Wpairs(iter_pairs)*weight_residual;
+	    }
           }
           
-          count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs);    
-          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs);
+          count_favorable += weight_favorable;
+          count_unfavorable += weight_unfavorable;
 	  if(keepComparison){
 	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
-						 (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(iter_pairs),
-						 (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(iter_pairs),
+						 weight_favorable,
+						 weight_unfavorable,
 						 0,
 						 Wpairs(iter_pairs)*weight_residual});
           }
@@ -394,7 +412,7 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
       
       vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
       vector<double> proba_thresholdM1(4); // probaF, probaUF, test.neutral and test.uninformative for the previous threhold
-      double weight_residual;  
+      double weight_residual, weight_favorable, weight_unfavorable;  
       bool test_tauM1 = matKMT_M1.n_cols>1; // test whether it is the first time that the endpoint is used
       
       
@@ -441,22 +459,31 @@ arma::mat calcSubsetPairs_TTE(const arma::colvec& Treatment, const arma::colvec&
           }
         }else{
           
-          weight_residual=1-(proba_threshold[0]+proba_threshold[1]);
+	  weight_residual = 1-(proba_threshold[0] + proba_threshold[1]); // note: it is not a mistake that proba_thresholdM1 does not appear here; 
+          weight_favorable = (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
+	  weight_unfavorable = (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);
+	  
           if(proba_threshold[3]>0.5 && weight_residual>pow(10.0,-12.0)){ // i.e. test uninformative == 1
-            indexNew_uninfT.push_back(iter_T);
-            indexNew_uninfC.push_back(iter_C);
-            index_wUninf.push_back(nNeutral_pairs+iter_pairs);
+	    if(correctionTTE){
+	      weight_favorable = weight_favorable/(1-weight_residual);
+	      weight_unfavorable = weight_unfavorable/(1-weight_residual);
+	      weight_residual = 0;
+	    }else{
+              indexNew_uninfT.push_back(iter_T);
+              indexNew_uninfC.push_back(iter_C);
+              index_wUninf.push_back(nNeutral_pairs+iter_pairs);
             
-            wUninf.push_back(weight_residual); 
-            count_uninf += Wpairs(nNeutral_pairs+iter_pairs)*weight_residual;
+              wUninf.push_back(weight_residual); 
+              count_uninf += Wpairs(nNeutral_pairs+iter_pairs)*weight_residual;
+	    }
           }
           
-          count_favorable += (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs);    
-          count_unfavorable += (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs);
+          count_favorable += weight_favorable;    
+          count_unfavorable += weight_unfavorable;
 	  if(keepComparison){
 	    comparison.row(nNeutral_pairs+iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
-						 (proba_threshold[0] - proba_thresholdM1[0])*Wpairs(nNeutral_pairs+iter_pairs),
-						 (proba_threshold[1] - proba_thresholdM1[1])*Wpairs(nNeutral_pairs+iter_pairs),
+						 weight_favorable,
+						 weight_unfavorable,
 						 0,
 						 Wpairs(nNeutral_pairs+iter_pairs)*weight_residual});
           }

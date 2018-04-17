@@ -259,14 +259,24 @@ BuyseTest <- function(formula,
     ## *** method
     validCharacter(method,
                    valid.length = 1,
-                   valid.values = c("Gehan","Peto","Efron","Peron"),
+                   valid.values = c("Gehan","Peto","Peto2","Efron","Efron2","Peron","Peron2"),
                    method = "BuyseTest")
+
+    if(method %in% c("Peto2","Efron2","Peron2")){
+        correctionTTE <- TRUE
+    }else{
+        correctionTTE <- FALSE
+    }
     
     method <- switch(method,
                      "Gehan" = 0,
                      "Peto" = 1,
+                     "Peto2" = 1,
                      "Efron" = 2,
-                     "Peron" = 3)
+                     "Efron2" = 2,
+                     "Peron" = 3,
+                     "Peron2" = 3,
+                     )
     
     if (D.TTE == 0) {
         method <- 0
@@ -388,6 +398,7 @@ BuyseTest <- function(formula,
                                list_survivalT = list_survivalT,
                                list_survivalC = list_survivalC,
                                methodTTE = method,
+                               correctionTTE = correctionTTE,
                                neutralAsUninf = neutralAsUninf,
                                keepComparison = keepComparison
                                )
