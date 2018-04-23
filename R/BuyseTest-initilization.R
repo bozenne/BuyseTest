@@ -27,78 +27,224 @@
 
 ## Functions called by BuyseTest for the initialization
 
-## * applyOperator
-#' @rdname internal-initialization
-applyOperator <- function(data, operator, type, endpoint, D){
 
-    validCharacter(operator,
-                   valid.values = c("<0",">0"),
-                   valid.length = D,
-                   method = "BuyseTest")
 
-    n.operatorPerEndpoint <- tapply(operator, endpoint, function(x){length(unique(x))})
-    if(any(n.operatorPerEndpoint>1)){
-        stop("Cannot have different operator for the same endpoint used at different priorities \n")
+## * initializeArgs
+initializeArgs <- function(alternative,
+                           BuyseCall,
+                           censoring,
+                           cpus,
+                           endpoint,
+                           formula,
+                           keep.comparison,
+                           method,
+                           n.permutation,
+                           neutral.as.uninf,
+                           operator,
+                           option,
+                           seed,
+                           strata, 
+                           threshold,
+                           trace,
+                           treatment,
+                           type){
+
+    ## ** apply default options
+    if(is.null(method)){ method <- option$method }
+    if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
+    if(is.null(keep.comparison)){ keep.comparison <- option$keep.comparison }
+    if(is.null(n.permutation)){ n.permutation <- option$n.permutation }
+    if(is.null(seed)){ seed <- option$seed }
+    if(is.null(cpus)){ cpus <- option$cpus }
+    if(is.null(trace)){ trace <- option$trace }
+
+    ## ** convert formula into separate arguments
+    if(!missing(formula)){
+        resFormula <- initFormula(formula)
+        treatment <- resFormula$treatment
+        type <- resFormula$type
+        endpoint <- resFormula$endpoint
+        threshold <- resFormula$threshold
+        censoring <- resFormula$censoring
+        operator <- resFormula$operator
+        strata <- resFormula$strata
+    }else{
+        if(is.null(operator)){
+            operator <- rep(">0",length(endpoint))
+        }
+    }
+
+    ## ** endpoint
+    D <- length(endpoint) 
+    
+    ## ** type
+    if(!is.numeric(type)){
+        validType1 <- c("b","bin","binary")
+        validType2 <- c("c","cont","continuous")
+        validType3 <- c("t","tte","time","timetoevent")
+        type <- tolower(type)
+
+        type[grep(paste(validType1,collapse="|"), type)] <- "1" 
+        type[grep(paste(validType2,collapse="|"), type)] <- "2" 
+        type[grep(paste(validType3,collapse="|"), type)] <- "3" 
+        type <- as.numeric(type) # type is an integer equal to 1 (binary endpoint), 2 (continuous endpoint) or 3 (time to event endpoint)
     }
     
-    operator.endpoint <- setNames(operator, endpoint)[!duplicated(endpoint)]
-    name.negative <- names(operator.endpoint)[operator.endpoint=="<0"]
-    if(length(name.negative)>0){
-        name.negative.binary <- intersect(name.negative, endpoint[type==1])
-        if(length(name.negative.binary)>0){
-            data[, (name.negative.binary) := -.SD+1, .SDcols = name.negative.binary]
+    D.TTE <- sum(type == 3) # number of time to event endpoints
+
+    ## ** censoring
+    if(D.TTE==0){
+        if(!is.null(censoring) && all(is.na(censoring))){
+            censoring <- NULL
         }
-        
-        name.negative.other <- setdiff(name.negative, name.negative.binary)
-        if(length(name.negative.other)){
-            data[, (name.negative.other) := -.SD , .SDcols = name.negative.other]
+    }else if(length(censoring) == D){
+        censoring <- censoring[type==3] # from now, censoring contains for each time to event endpoint the name of variable indicating censoring (0) or event (1)
+    }
+
+    ## ** threshold
+    if(is.null(threshold)){
+        threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
+        if(any(type==1)){threshold[type==1] <- 1/2} # except for threshold corresponding to binary endpoints that are set to NA.
+    }else{
+        if(any(is.na(threshold[type==1]))){
+            index.tempo <- intersect(which(is.na(threshold)),which(type==1))
+            threshold[index.tempo] <- 1/2
+        }
+        if(any(abs(stats::na.omit(threshold))<10^{-12})){
+            threshold[which(abs(threshold)<10^{-12})] <- 10^{-12}
         }
     }
-    return(data)
+
+    ## ** method
+    if(!is.numeric(method)){
+        method <- switch(method,
+                               "Gehan" = 0,
+                               "Peto" = 1,
+                               "Efron" = 2,
+                               "Peron" = 3
+                               )
+    }
+    
+    if (D.TTE == 0) {
+        method <- 0
+        if ("method" %in% names(BuyseCall) && trace > 0) {
+            message("NOTE : there is no survival endpoint, \'method\' argument is ignored \n")
+        }
+    }
+
+    ## ** alternative
+    alternative <- tolower(alternative)
+    
+    ## ** cpu
+    if (cpus == "all") { 
+        cpus <- parallel::detectCores() # this function detect the number of CPU cores 
+    }
+    
+    ## ** export
+    return(list(
+        alternative = alternative, 
+        censoring = censoring,
+        cpus = cpus,
+        endpoint = endpoint,
+        keep.comparison = keep.comparison,
+        method = method,
+        n.permutation = n.permutation,
+        neutral.as.uninf = neutral.as.uninf,
+        operator = operator,
+        seed = seed,
+        strata = strata,
+        threshold = threshold,
+        trace = trace,
+        treatment = treatment,
+        type = type
+    ))
 }
 
-## * initCensoring
-#' @rdname internal-initialization
-initCensoring <- function(censoring,endpoint,type,D,D.TTE,
-                          treatment,strata){
+## * testArgs
+testArgs <- function(alternative,
+                     BuyseCall,
+                     censoring,
+                     correctionTTE,
+                     cpus,
+                     data,
+                     endpoint,
+                     formula,
+                     method,
+                     n.permutation,
+                     operator,
+                     proba,
+                     seed,
+                     strata,
+                     stratified,
+                     threshold,
+                     treatment,
+                     type){
+    argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
 
-  if(D.TTE==0){
-    
-    if(!is.null(censoring) && all(is.na(censoring))){
-      censoring <- NULL
+    D <- length(endpoint) 
+    D.TTE <- sum(type == 3) # number of time to event endpoints
+
+    ## ** formula
+    if(!missing(formula) && any(names(BuyseCall) %in% argnames)){
+        txt <- paste(names(BuyseCall)[names(BuyseCall) %in% argnames], collapse = "\' \'")
+        warning("BuyseTest : argument",if(length(txt)>1){"s"}," \'",txt,"\' ha",if(length(txt)>1){"ve"}else{"s"}," been ignored \n",
+                "when specified, only argument \'formula\' is used \n")
+    }
+
+    ## ** endpoint
+    validNames(data,
+               required.values = endpoint,
+               valid.length = NULL,
+               method = "BuyseTest")
+
+    ## ** treatment
+    validCharacter(treatment,
+                   valid.length = 1,
+                   method = "BuyseTest")
+
+    validNames(data,
+               required.values = treatment,
+               valid.length = NULL,
+               method = "BuyseTest")
+
+    levels.treatment <- levels(as.factor(data[[treatment]])) 
+    if (length(levels.treatment) != 2) {
+        stop("BuyseTest : wrong specification of \'treatment\' \n",
+             "the corresponding column in \'data\' must have exactly 2 levels \n",
+             "proposed levels : ",paste(levels.treatment,collapse = " "),"\n")
+    }
+
+    ## ** type
+    if(any(type %in% 1:3 == FALSE)){
+        txt <- type[type %in% 1:3 == FALSE]
+        stop("BuyseTest: wrong specification of \'type\' \n",
+             "valid values: \"binary\" \"continuous\" \"timetoevent\" \n",
+             "incorrect values: \"",paste(txt, collapse = "\" \""),"\" \n")
     }
     
-    if(!is.null(censoring)){
-      stop("BuyseTest : \'censoring\' must be NULL when there are no TTE endpoints \n",
-           "propose value : ",paste(censoring,collapse=" "),"\n")
+    n.typePerEndpoint <- tapply(type, endpoint, function(x){length(unique(x))})
+    if(any(n.typePerEndpoint>1)){
+        message <- paste0("several types have been specified for endpoint(s) ",
+                          paste0(unique(endpoint)[n.typePerEndpoint>1],collapse = ""),
+                          "\n")        
+        stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
     }
-    
-  }else{
-    
-    if(length(censoring) == D){
 
-        if(any(!is.na(censoring[type!=3]))){
-            stop("BuyseTest : wrong specification of \'censoring\' \n",
-                 "\'censoring\' must be NA for binary or continuous endpoints \n",
-                 "binary or continuous endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
-                 "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n")
+    ## ** censoring
+    if(D.TTE==0){
+        if(!is.null(censoring)){
+            stop("BuyseTest : \'censoring\' must be NULL when there are no TTE endpoints \n",
+                 "propose value : ",paste(censoring,collapse=" "),"\n")
         }
-      
-        if(any(is.na(censoring[type==3])) ){
-            stop("BuyseTest : wrong specification of \'censoring\' \n",
-                 "\'censoring\' must indicate a variable in data for TTE endpoints \n",
-                 "TTE endoints : ",paste(endpoint[type==3],collapse=" "),"\n",
-                 "proposed \'censoring\' for these endoints : ",paste(censoring[type==3],collapse=" "),"\n")
-        }
-      
-        censoring <- censoring[type==3] # from now, censoring contains for each time to event endpoint the name of variable indicating censoring (0) or event (1)
+        
     }else{
+        
         
         if(length(censoring) != D.TTE){
             stop("BuyseTest : \'censoring\' does not match \'endpoint\' size \n",
                  "length(censoring) : ",length(censoring),"\n",
                  "length(endpoint) : ",D,"\n")
-      
+            
         }
 
         if(any(is.na(censoring)) ){
@@ -109,248 +255,113 @@ initCensoring <- function(censoring,endpoint,type,D,D.TTE,
         }
         
     }
-  }
-  
-  ## ** export
-  return(censoring)
-}
+    
 
-## * initData
-#' @rdname internal-initialization
-initData <- function(dataT, dataC, type, endpoint, D, censoring, operator,
-                     index.strataT, index.strataC, n.strata,          
-                     method, D.TTE, threshold, Wscheme = NULL,
-                     trace, test = TRUE){
-  
-  ## ** check NA
-  if(test && any(type==3)){
-    test.naT <- colSums(is.na(dataT[,c(censoring,endpoint[type==3]),with=FALSE]))
-    test.naC <- colSums(is.na(dataC[,c(censoring,endpoint[type==3]),with=FALSE]))
-    test.na <- test.naT+test.naC
-    if(any(test.na>0)){ 
-      stop("BuyseTest : TTE endpoint / censoring variables must not contain NA \n",
-           "number of NA in \'data\' : ",sum(test.na>0),"\n",
-           "columns with \'data\' : ",paste(c(endpoint,censoring[type==3])[test.na>0],collapse=" "),"\n")
-    }
-  }
-  
-    if(test && trace>0 && any(type!=3)){
-        test.naT <- colSums(is.na(dataT[,endpoint[type!=3],with=FALSE]))
-        test.naC <- colSums(is.na(dataC[,endpoint[type!=3],with=FALSE]))
-        test.na <- test.naT+test.naC
-        if(any(test.na>0)){
-            vec.print <- apply(data.frame(names(test.na),as.double(test.na)),1,paste,collapse=" : ")
-            warning("BuyseTest : some binary or continuous endpoints contains NA (variable : number of NA) \n",
-                    paste(vec.print, collapse = " \n "))
-        }
-    
-  }
+    ## ** threshold
+    ## check numeric and no NA
+    validNumeric(threshold,
+                 valid.length = D,
+                 min = 0,
+                 refuse.NA = TRUE,
+                 method = "BuyseTest")
 
-    ## ** endpoint checking : binary type
-    indexY <- which(type==1)
-    if(test && length(indexY)>0){
-        for(iterY in indexY){ ## iterY <- 1
-            validNumeric(dataT[[endpoint[iterY]]],
-                         name1 = endpoint[iterY],
-                         valid.values = 0:1,
-                         refuse.NA =  FALSE,
-                         valid.length = NULL,
-                         method = "BuyseTest")
-            validNumeric(dataC[[endpoint[iterY]]],
-                         name1 = endpoint[iterY],
-                         valid.values = 0:1,
-                         refuse.NA =  FALSE,
-                         valid.length = NULL,
-                         method = "BuyseTest")
-        }
-    }
-  
-  ## ** endpoint checking : continuous type
-  indexY <- which(type==2)
-  if(test && length(indexY)>0){
-    for(iterY in indexY){
-      validNumeric(dataT[[endpoint[iterY]]],
-                   name1 = endpoint[iterY],
-                   valid.length = NULL,
-                   refuse.NA =  FALSE,
-                   method = "BuyseTest")
-      validNumeric(dataC[[endpoint[iterY]]],
-                   name1 = endpoint[iterY],
-                   valid.length = NULL,
-                   refuse.NA =  FALSE,
-                   method = "BuyseTest")
-    }
-  }
-  
-  ## ** endpoint checking : time to event
-  indexY <- which(type==3)
-  if(test && length(indexY)>0){
-    for(iterY in indexY){
-      validNumeric(dataT[[endpoint[iterY]]],
-                   name1 = endpoint[iterY],
-                   valid.length = NULL,
-                   method = "BuyseTest")
-      validNumeric(dataC[[endpoint[iterY]]],
-                   name1 = endpoint[iterY],
-                   valid.length = NULL,
-                   method = "BuyseTest")
-      validNumeric(dataT[[censoring[which(indexY == iterY)]]],
-                   name1 = censoring[which(indexY == iterY)],
-                   valid.values = c(0,1),
-                   valid.length = NULL,
-                   method = "BuyseTest")
-      validNumeric(dataC[[censoring[which(indexY == iterY)]]],
-                   name1 = censoring[which(indexY == iterY)],
-                   valid.values = c(0,1),
-                   valid.length = NULL,
-                   method = "BuyseTest")
-    }
-  }
-  
-  ## ** transformation
-  M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
-  M.Control <- as.matrix(dataC[,endpoint,with=FALSE]) # matrix of endpoints for the control arm
-  
-  if(!is.null(censoring)){
-    M.delta_Treatment <- as.matrix(dataT[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-    M.delta_Control <- as.matrix(dataC[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-    
-    if(method==2){ # "Efron"
-      for(iter_strata in 1:n.strata){
-        
-        Mstrata.Treatment <- M.Treatment[index.strataT[[iter_strata]]+1,,drop=FALSE]
-        Mstrata.Control <- M.Control[index.strataC[[iter_strata]]+1,,drop=FALSE]
-        
-        # set last observation for each TTE endpoint to non-censored
-        for(iter_endpointTTE in 1:D.TTE){
-          indexT_maxCensored <- which(Mstrata.Treatment[,which(type==3)[iter_endpointTTE]]==max(Mstrata.Treatment[,which(type==3)[iter_endpointTTE]]))
-          M.delta_Treatment[index.strataT[[iter_strata]][indexT_maxCensored]+1,iter_endpointTTE] <- 1
-          indexC_maxCensored <- which(Mstrata.Control[,which(type==3)[iter_endpointTTE]]==max(Mstrata.Control[,which(type==3)[iter_endpointTTE]]))
-          M.delta_Control[index.strataC[[iter_strata]][indexC_maxCensored]+1,iter_endpointTTE] <- 1
-        }
-      }
+    ## check threshold at 1/2 for binary endpoints
+    if(any(threshold[type==1]!=1/2)){
+        stop("BuyseTest : wrong specification of \'threshold\' \n",
+             "\'threshold\' must be 1/2 for binary endpoints (or equivalently NA) \n",
+             "proposed \'threshold\' : ",paste(threshold[type==1],collapse=" "),"\n",
+             "binary endpoint(s) : ",paste(endpoint[type==1],collapse=" "),"\n")
     }
     
-  }else{ # if the is no time to event variables
-    M.delta_Treatment <- matrix(-1,1,1) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    M.delta_Control <- matrix(-1,1,1) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-  }
-  
-  ## ** KM imputation
-  if(method %in% 1:3){# c("Peto","Efron","Peron")
-    
-    endpoint.TTE <- endpoint[type==3] # vector of variable names of the TTE endpoints
-    
-    ## *** design matrix for the weights
-    if(is.null(Wscheme)){
-        res_init <- initWscheme(D=D,
-                                endpoint=endpoint,
-                                endpoint.TTE=endpoint.TTE,
-                                D.TTE=D.TTE,
-                                threshold=threshold,
-                                type=type)
-      Wscheme <- res_init$Wscheme  
-      index_survivalM1 <- res_init$index_survivalM1
-      threshold_TTEM1 <- res_init$threshold_TTEM1       
-    }
-    ## *** Survival estimate using Kaplan Meier    
-    res_init <- initSurvival(M.Treatment=M.Treatment,
-                             M.Control=M.Control,
-                             M.delta_Treatment=M.delta_Treatment,
-                             M.delta_Control=M.delta_Control,
-                             endpoint=endpoint,
-                             D.TTE=D.TTE,
-                             type=type,
-                             threshold=threshold,
-                             index.strataT=index.strataT,
-                             index.strataC=index.strataC,
-                             n.strata=n.strata,   
-                             method=method)
-    
-    list_survivalT <- res_init$list_survivalT
-    list_survivalC <- res_init$list_survivalC
-    
-  }else{
-    Wscheme <- matrix()  # factice design matrix for the weights. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    list_survivalT <- list() # factice list. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    list_survivalC <- list() # factice list. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    index_survivalM1 <- numeric(0) # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    threshold_TTEM1 <- numeric(0)  # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    }
-  
-  ## ** export 
-  res <- list()
-  res$M.Treatment <-  M.Treatment
-  res$M.Control <-  M.Control
-  res$M.delta_Treatment <-  M.delta_Treatment
-  res$M.delta_Control <-  M.delta_Control
-  res$Wscheme <- Wscheme
-  res$threshold_TTEM1 <- threshold_TTEM1
-  res$index_survivalM1 <- index_survivalM1
-  res$list_survivalT <- list_survivalT
-  res$list_survivalC <- list_survivalC
-  
-  return(res)
-}
+    ## Check that the thresholds related to the same endoints are strictly decreasing
+    ## is.unsorted(rev(2:1))
+    ## is.unsorted(rev(1:2))
 
-## * initWscheme
-#' @rdname internal-initialization
-initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
-
-  if(D>1){
-        
-    Wscheme <- matrix(NA,nrow=D.TTE,ncol=D-1) # design matrix indicating to combine the weights obtained at differents TTE endpoints
-    rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold[type==3],")",sep="")
-    colnames(Wscheme) <- paste("for ",endpoint[-1],"(",threshold[-1],")",sep="")
+    vec.test <- tapply(threshold,endpoint, function(x){
+        test.unsorted <- is.unsorted(rev(x))
+        test.duplicated <- any(duplicated(x))
+        return(test.unsorted+test.duplicated)
+    })
     
-    index_survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
-    threshold_TTEM1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used)
-    
-    iter_endpoint.TTE <- if(type[1]==3){1}else{0} #  index_survivalM1 and  threshold_TTEM1 are -1 even if the first endoint is a survival endpoint
-    
-    for(iter_endpoint in 2:D){   
-      
-      if(type[iter_endpoint]==3){ 
-        iter_endpoint.TTE <- iter_endpoint.TTE + 1
-      }
-      
-      # select valid rows
-      index_rowTTE <- which(paste(endpoint.TTE,threshold[type==3],sep="_") %in% paste(endpoint,threshold,sep="_")[1:(iter_endpoint-1)])
-      if(length(index_rowTTE)==0){next} # not yet TTE endpoints (no valid rows)
-      Wscheme[index_rowTTE,iter_endpoint-1] <- 0 # potential weights
-      
-      # keep only the last repeated endpoints
-      index_rowTTE <- sapply(unique(endpoint.TTE[index_rowTTE]),
-                                   function(x){utils::tail(index_rowTTE[endpoint.TTE[index_rowTTE]==x],1)})
-      
-      # if survival endpoint remove similar endpoints
-      if(endpoint[iter_endpoint] %in% endpoint.TTE[index_rowTTE]){
-        index_survivalM1[iter_endpoint.TTE] <- index_rowTTE[endpoint.TTE[index_rowTTE]==endpoint[iter_endpoint]]-1
-        threshold_TTEM1[iter_endpoint.TTE] <- threshold[type==3][index_survivalM1[iter_endpoint.TTE]+1]
-        index_rowTTE <- setdiff(index_rowTTE,index_survivalM1[iter_endpoint.TTE]+1)
-      }
-      
-      # update Wscheme
-      if(length(index_rowTTE)>0){
-        Wscheme[index_rowTTE,iter_endpoint-1] <- 1
-      }
-      
+    if(any(vec.test>0)){   
+        stop("BuyseTest : wrong specification of \'endpoint\' or \'threshold\' \n",
+             "endpoints must be used with strictly decreasing threshold when re-used with lower priority \n",
+             "problematic endpoints: \"",paste0(names(vec.test)[vec.test>0], collapse = "\" \""),"\"\n")        
     }
 
-  }else{
-    Wscheme <- matrix(nrow=0,ncol=0)
-    index_survivalM1 <- numeric(0)
-    threshold_TTEM1 <- numeric(0)
-  }
-  
-  ## ** export
-  res <- list()
-  res$Wscheme <- Wscheme
-  res$index_survivalM1 <- index_survivalM1
-  res$threshold_TTEM1 <- threshold_TTEM1
-  
-  return(res)
-  
+    ## ** method
+    if(any(method %in% 0:3 == FALSE)){
+        txt <- method[method %in% 0:3 == FALSE]
+        stop("BuyseTest: wrong specification of \'method\' \n",
+             "valid values: \"Gehan\" \"Peto\" \"Efron\" \"Peron\" \n",
+             "incorrect values: \"",paste(txt, collapse = "\" \""),"\" \n")
+    }
+
+    ## ** correctionTTE
+    validLogical(correctionTTE,
+                 valid.length = 1,
+                 method = "BuyseTest")
+
+    ## ** operator
+    validCharacter(operator,
+                   valid.values = c("<0",">0"),
+                   valid.length = D,
+                   method = "BuyseTest")
+
+    n.operatorPerEndpoint <- tapply(operator, endpoint, function(x){length(unique(x))})
+    if(any(n.operatorPerEndpoint>1)){
+        stop("Cannot have different operator for the same endpoint used at different priorities \n")
+    }
+    
+    ## ** alternative
+    validCharacter(alternative,
+                   valid.length = 1,
+                   valid.values = c("two.sided", "less", "greater"),
+                   method = "BuyseTest")
+
+    ## ** n.permutation
+    validInteger(n.permutation,
+                 valid.length = 1,
+                 min = 0,
+                 method = "BuyseTest")
+
+    ## ** stratified
+    validLogical(stratified,
+                 valid.length = 1,
+                 method = "BuyseTest")
+
+    ## ** seed
+    validInteger(seed,
+                 valid.length = 1,
+                 refuse.NULL = FALSE,
+                 min = 1,
+                 method = "BuyseTest")
+
+    ## ** cpus
+    if(cpus>1){
+        validInteger(cpus,
+                     valid.length = 1,
+                     valid.values = 1:parallel::detectCores(),
+                     method = "BuyseTest")
+    }
+    
+    ## ** data
+    if(!is.null(censoring)){
+        validNames(data,
+                   name1 = "data",
+                   required.values = censoring,
+                   valid.length = NULL,
+                   refuse.NULL = FALSE,
+                   method = "BuyseTest")
+    }
+
+    if (!is.null(strata)) {
+        validNames(data,
+                   name1 = "strata",
+                   required.values = strata,
+                   valid.length = NULL,
+                   method = "BuyseTest")
+    }
 }
 
 ## * initFormula
@@ -484,112 +495,276 @@ initFormula <- function(x){
                 strata = strata))
 }
 
-## * initStrata
-#' @rdname internal-initialization
-initStrata <- function(strata,
-                       dataT,dataC,n.Treatment,n.Control,
-                       endpoint,censoring){
-  
-  if(!is.null(strata)){
-    strataT <- interaction(dataT[,strata,with=FALSE],drop = TRUE,lex.order=FALSE,sep=".") # strata variable for the treatment arm transformed into factor
-    strataC <- interaction(dataC[,strata,with=FALSE],drop = TRUE,lex.order=FALSE,sep=".") # strata variable for the control arm transformed into factor
-    levels.strata <- levels(strataT) # extraction of the levels of the strata variables
-    
-    if(length(levels.strata) != length(levels(strataC)) || any(levels.strata != levels(strataC))){
-      stop("BuyseTest : wrong specification of \'strata\' \n",
-           "different levels between Control and Treatment \n",
-           "levels(strataT) : ",paste(levels(strataT),collapse=" "),"\n",
-           "levels(strataC) : ",paste(levels(strataC),collapse=" "),"\n")
+## * initData
+
+initData <- function(){
+       if (!data.table::is.data.table(data)) {
+        data <- data.table::as.data.table(data)
+    }else{
+        data <- data.table::copy(data)
+    }
+
+    ## *** Treatment: extract the 2 levels
+    levels.treatment <- levels(as.factor(data[[treatment]])) # extraction of the levels of the treatment variable
+
+    ## *** convert character/factor to numeric for binary endpoints
+    name.bin <- endpoint[which(type %in% 1)]
+    if(length(name.bin)>0){
+        data.class <- sapply(data,class)
+        
+        for(iBin in name.bin){
+            if(data.class[iBin] %in% c("numeric","integer") == FALSE){
+                data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
+            }
+        }
+    }    
+
+    ## *** operator
+    operator.endpoint <- setNames(operator, endpoint)[!duplicated(endpoint)]
+    name.negative <- names(operator.endpoint)[operator.endpoint=="<0"]
+    if(length(name.negative)>0){
+        name.negative.binary <- intersect(name.negative, endpoint[type==1])
+        if(length(name.negative.binary)>0){
+            data[, (name.negative.binary) := -.SD+1, .SDcols = name.negative.binary]
+        }
+        
+        name.negative.other <- setdiff(name.negative, name.negative.binary)
+        if(length(name.negative.other)){
+            data[, (name.negative.other) := -.SD , .SDcols = name.negative.other]
+        }
     }
     
-    strataT <- as.numeric(strataT) # strata variable for the treatment arm converted into numeric 
-    strataC <- as.numeric(strataC) # strata variable for the control arm converted into numeric
+    ## *** data: split the data according to the two levels
+    indexT <- which(data[[treatment]] == levels.treatment[2])
+    indexC <- which(data[[treatment]] == levels.treatment[1])
+    dataT <- data[indexT, c(endpoint, strata, censoring), with = FALSE]
+    dataC <- data[indexC, c(endpoint, strata, censoring), with = FALSE]
+
+    n.Treatment <- NROW(dataT) # number of patient in the treatment arm
+    n.Control <- NROW(dataC) # number of patient in the control arm
+        
+    ## *** strata  
+    if(!is.null(strata)){
+        strataT <- interaction(dataT[,strata,with=FALSE],drop = TRUE,lex.order=FALSE,sep=".") # strata variable for the treatment arm transformed into factor
+        strataC <- interaction(dataC[,strata,with=FALSE],drop = TRUE,lex.order=FALSE,sep=".") # strata variable for the control arm transformed into factor
+        levels.strata <- levels(strataT) # extraction of the levels of the strata variables
     
-  }else{ # if there is no strata variable the same strata is used for all patient
-    strataT <- rep(1,n.Treatment) # all patient of the treatment arm are in the same strata : strata 1
-    strataC <- rep(1,n.Control)  # all patient of the control arm are in the same strata : strata 1
-    levels.strata <- 1 # the only strata is strata 1
+        if(length(levels.strata) != length(levels(strataC)) || any(levels.strata != levels(strataC))){
+            stop("BuyseTest : wrong specification of \'strata\' \n",
+                 "different levels between Control and Treatment \n",
+                 "levels(strataT) : ",paste(levels(strataT),collapse=" "),"\n",
+                 "levels(strataC) : ",paste(levels(strataC),collapse=" "),"\n")
+        }
+    
+        strataT <- as.numeric(strataT) # strata variable for the treatment arm converted into numeric 
+        strataC <- as.numeric(strataC) # strata variable for the control arm converted into numeric
+    
+    }else{ # if there is no strata variable the same strata is used for all patient
+        strataT <- rep(1,n.Treatment) # all patient of the treatment arm are in the same strata : strata 1
+        strataC <- rep(1,n.Control)  # all patient of the control arm are in the same strata : strata 1
+        levels.strata <- 1 # the only strata is strata 1
+    }
+  
+    n.strata <- length(levels.strata) # number of strata
+    index.strataT <- lapply(1:n.strata,function(x){which(x==strataT)-1}) # for each strata, the index of the patients belonging to this strata in the treatment arm is stored in an element of the list. 
+    index.strataC <- lapply(1:n.strata,function(x){which(x==strataC)-1}) # for each strata, the index of the patients belonging to this strata in the control arm is stored in an element of the list. 
+                                        # Because of the minus one after the which, both indexes begin at 0. This is compulsory for C++ compatibility
+  
+                                        # check there is at least one element per arm in each strata
+    if(any(unlist(lapply(index.strataT,length))==0)){
+        stop("BuyseTest : some strata contain no patient in the treatment arm \n",
+             "strata : ",paste(levels.strata[which(unlist(lapply(index.strataT,length))==0)],collapse=" ")," \n")
+    }
+
+    if(any(unlist(lapply(index.strataC,length))==0)){
+        stop("BuyseTest : some strata contain no patient in the control arm \n",
+             "strata : ",paste(levels.strata[which(unlist(lapply(index.strataC,length))==0)],collapse=" ")," \n")
+    }
+  
+  
+    
+    
+    ## *** data
+      ## ** check NA
+  if(test && any(type==3)){
+    test.naT <- colSums(is.na(dataT[,c(censoring,endpoint[type==3]),with=FALSE]))
+    test.naC <- colSums(is.na(dataC[,c(censoring,endpoint[type==3]),with=FALSE]))
+    test.na <- test.naT+test.naC
+    if(any(test.na>0)){ 
+      stop("BuyseTest : TTE endpoint / censoring variables must not contain NA \n",
+           "number of NA in \'data\' : ",sum(test.na>0),"\n",
+           "columns with \'data\' : ",paste(c(endpoint,censoring[type==3])[test.na>0],collapse=" "),"\n")
+    }
   }
   
-  n.strata <- length(levels.strata) # number of strata
-  index.strataT <- lapply(1:n.strata,function(x){which(x==strataT)-1}) # for each strata, the index of the patients belonging to this strata in the treatment arm is stored in an element of the list. 
-  index.strataC <- lapply(1:n.strata,function(x){which(x==strataC)-1}) # for each strata, the index of the patients belonging to this strata in the control arm is stored in an element of the list. 
-  # Because of the minus one after the which, both indexes begin at 0. This is compulsory for C++ compatibility
-  
-  # check there is at least one element per arm in each strata
-  if(any(unlist(lapply(index.strataT,length))==0)){
-    stop("BuyseTest : some strata contain no patient in the treatment arm \n",
-         "strata : ",paste(levels.strata[which(unlist(lapply(index.strataT,length))==0)],collapse=" ")," \n")
+    if(test && trace>0 && any(type!=3)){
+        test.naT <- colSums(is.na(dataT[,endpoint[type!=3],with=FALSE]))
+        test.naC <- colSums(is.na(dataC[,endpoint[type!=3],with=FALSE]))
+        test.na <- test.naT+test.naC
+        if(any(test.na>0)){
+            vec.print <- apply(data.frame(names(test.na),as.double(test.na)),1,paste,collapse=" : ")
+            warning("BuyseTest : some binary or continuous endpoints contains NA (variable : number of NA) \n",
+                    paste(vec.print, collapse = " \n "))
+        }
+    
   }
 
-  if(any(unlist(lapply(index.strataC,length))==0)){
-    stop("BuyseTest : some strata contain no patient in the control arm \n",
-         "strata : ",paste(levels.strata[which(unlist(lapply(index.strataC,length))==0)],collapse=" ")," \n")
+    ## ** endpoint checking : binary type
+    indexY <- which(type==1)
+    if(test && length(indexY)>0){
+        for(iterY in indexY){ ## iterY <- 1
+            validNumeric(dataT[[endpoint[iterY]]],
+                         name1 = endpoint[iterY],
+                         valid.values = 0:1,
+                         refuse.NA =  FALSE,
+                         valid.length = NULL,
+                         method = "BuyseTest")
+            validNumeric(dataC[[endpoint[iterY]]],
+                         name1 = endpoint[iterY],
+                         valid.values = 0:1,
+                         refuse.NA =  FALSE,
+                         valid.length = NULL,
+                         method = "BuyseTest")
+        }
+    }
+  
+  ## ** endpoint checking : continuous type
+  indexY <- which(type==2)
+  if(test && length(indexY)>0){
+    for(iterY in indexY){
+      validNumeric(dataT[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   refuse.NA =  FALSE,
+                   method = "BuyseTest")
+      validNumeric(dataC[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   refuse.NA =  FALSE,
+                   method = "BuyseTest")
+    }
+  }
+  
+  ## ** endpoint checking : time to event
+  indexY <- which(type==3)
+  if(test && length(indexY)>0){
+    for(iterY in indexY){
+      validNumeric(dataT[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   method = "BuyseTest")
+      validNumeric(dataC[[endpoint[iterY]]],
+                   name1 = endpoint[iterY],
+                   valid.length = NULL,
+                   method = "BuyseTest")
+      validNumeric(dataT[[censoring[which(indexY == iterY)]]],
+                   name1 = censoring[which(indexY == iterY)],
+                   valid.values = c(0,1),
+                   valid.length = NULL,
+                   method = "BuyseTest")
+      validNumeric(dataC[[censoring[which(indexY == iterY)]]],
+                   name1 = censoring[which(indexY == iterY)],
+                   valid.values = c(0,1),
+                   valid.length = NULL,
+                   method = "BuyseTest")
+    }
+  }
+  
+  ## ** transformation
+  M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
+  M.Control <- as.matrix(dataC[,endpoint,with=FALSE]) # matrix of endpoints for the control arm
+  
+  if(!is.null(censoring)){
+    M.delta_Treatment <- as.matrix(dataT[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
+    M.delta_Control <- as.matrix(dataC[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
+    
+    if(method==2){ # "Efron"
+      for(iter_strata in 1:n.strata){
+        
+        Mstrata.Treatment <- M.Treatment[index.strataT[[iter_strata]]+1,,drop=FALSE]
+        Mstrata.Control <- M.Control[index.strataC[[iter_strata]]+1,,drop=FALSE]
+        
+        # set last observation for each TTE endpoint to non-censored
+        for(iter_endpointTTE in 1:D.TTE){
+          indexT_maxCensored <- which(Mstrata.Treatment[,which(type==3)[iter_endpointTTE]]==max(Mstrata.Treatment[,which(type==3)[iter_endpointTTE]]))
+          M.delta_Treatment[index.strataT[[iter_strata]][indexT_maxCensored]+1,iter_endpointTTE] <- 1
+          indexC_maxCensored <- which(Mstrata.Control[,which(type==3)[iter_endpointTTE]]==max(Mstrata.Control[,which(type==3)[iter_endpointTTE]]))
+          M.delta_Control[index.strataC[[iter_strata]][indexC_maxCensored]+1,iter_endpointTTE] <- 1
+        }
+      }
+    }
+    
+  }else{ # if the is no time to event variables
+      M.delta_Treatment <- matrix(-1,1,1) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
+      M.delta_Control <- matrix(-1,1,1) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
+  }
+    }
+
+
+
+
+
+
+
+
+## * initWscheme
+#' @rdname internal-initialization
+initWscheme <- function(endpoint,D,endpoint.TTE,D.TTE,threshold,type){
+
+  if(D>1){
+        
+    Wscheme <- matrix(NA,nrow=D.TTE,ncol=D-1) # design matrix indicating to combine the weights obtained at differents TTE endpoints
+    rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold[type==3],")",sep="")
+    colnames(Wscheme) <- paste("for ",endpoint[-1],"(",threshold[-1],")",sep="")
+    
+    index_survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
+    threshold_TTEM1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used)
+    
+    iter_endpoint.TTE <- if(type[1]==3){1}else{0} #  index_survivalM1 and  threshold_TTEM1 are -1 even if the first endoint is a survival endpoint
+    
+    for(iter_endpoint in 2:D){   
+      
+      if(type[iter_endpoint]==3){ 
+        iter_endpoint.TTE <- iter_endpoint.TTE + 1
+      }
+      
+      # select valid rows
+      index_rowTTE <- which(paste(endpoint.TTE,threshold[type==3],sep="_") %in% paste(endpoint,threshold,sep="_")[1:(iter_endpoint-1)])
+      if(length(index_rowTTE)==0){next} # not yet TTE endpoints (no valid rows)
+      Wscheme[index_rowTTE,iter_endpoint-1] <- 0 # potential weights
+      
+      # keep only the last repeated endpoints
+      index_rowTTE <- sapply(unique(endpoint.TTE[index_rowTTE]),
+                                   function(x){utils::tail(index_rowTTE[endpoint.TTE[index_rowTTE]==x],1)})
+      
+      # if survival endpoint remove similar endpoints
+      if(endpoint[iter_endpoint] %in% endpoint.TTE[index_rowTTE]){
+        index_survivalM1[iter_endpoint.TTE] <- index_rowTTE[endpoint.TTE[index_rowTTE]==endpoint[iter_endpoint]]-1
+        threshold_TTEM1[iter_endpoint.TTE] <- threshold[type==3][index_survivalM1[iter_endpoint.TTE]+1]
+        index_rowTTE <- setdiff(index_rowTTE,index_survivalM1[iter_endpoint.TTE]+1)
+      }
+      
+      # update Wscheme
+      if(length(index_rowTTE)>0){
+        Wscheme[index_rowTTE,iter_endpoint-1] <- 1
+      }
+      
+    }
+
+  }else{
+    Wscheme <- matrix(nrow=0,ncol=0)
+    index_survivalM1 <- numeric(0)
+    threshold_TTEM1 <- numeric(0)
   }
   
   ## ** export
   res <- list()
-  res$index.strataT <- index.strataT
-  res$index.strataC <- index.strataC
-  res$n.strata <- n.strata
-  res$levels.strata <- levels.strata
+  res$Wscheme <- Wscheme
+  res$index_survivalM1 <- index_survivalM1
+  res$threshold_TTEM1 <- threshold_TTEM1
   
   return(res)
-}
-
-## * initThreshold
-#' @rdname internal-initialization
-initThreshold <- function(threshold,type,D,endpoint){
   
-    ## ** initialize threshold
-    if(is.null(threshold)){
-        threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
-        if(any(type==1)){threshold[type==1] <- 1/2} # except for threshold corresponding to binary endpoints that are set to NA.
-    }else{
-        if(any(is.na(threshold[type==1]))){
-            index.tempo <- intersect(which(is.na(threshold)),which(type==1))
-            threshold[index.tempo] <- 1/2
-        }
-        if(any(abs(stats::na.omit(threshold))<10^{-12})){
-            threshold[which(abs(threshold)<10^{-12})] <- 10^{-12}
-        }
-        if(any(is.na(threshold))){
-            threshold[is.na(threshold)] <- 10^{-12}
-        }
-        validNumeric(threshold,
-                     valid.length = D,
-                     min = 0,
-                     refuse.NA = FALSE ,
-                     method = "BuyseTest")
-    }
-    
-    ## ** Only accept hreshold 1/2 for binary outcomes
-    if(any(threshold[type==1]!=1/2)){
-        stop("BuyseTest : wrong specification of \'threshold\' \n",
-             "\'threshold\' must be NA for binary endpoints (or equivalently 1/2) \n",
-             "proposed \'threshold\' : ",paste(threshold[type==1],collapse=" "),"\n",
-             "binary endpoint(s) : ",paste(endpoint[type==1],collapse=" "),"\n")
-    }
-  
-    ## ** Check that the thresholds related to the same endoints are strictly decreasing
-    ## is.unsorted(rev(2:1))
-    ## is.unsorted(rev(1:2))
-
-    vec.test <- tapply(threshold,endpoint, function(x){
-        test.unsorted <- is.unsorted(rev(x))
-        test.duplicated <- any(duplicated(x))
-        return(test.unsorted+test.duplicated)
-    })
-            
-    if(any(vec.test>0)){   
-        stop("BuyseTest : wrong specification of \'endpoint\' or \'threshold\' \n",
-             "endpoints must be used with strictly decreasing threshold when re-used with lower priority \n",
-             "problematic endpoints: \"",paste0(names(vec.test)[vec.test>0], collapse = "\" \""),"\"\n")        
-    }
-
-    
-  ## ** export
-  return(threshold)
 }
 
 ## * initSurvival
@@ -753,138 +928,138 @@ initSurvival <- function(M.Treatment,M.Control,M.delta_Treatment,M.delta_Control
 
 
 ## * NOT USED
-## ** Function initN
-#' @rdname internal-initialization
-initN <- function(n){
+## ## ** Function initN
+## #' @rdname internal-initialization
+## initN <- function(n){
   
-  ## ** test
+##   ## ** test
   
-  if(length(n)!=3){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "\'n\' must have length 3 \n",
-         "length(n) : ",length(n),"\n")
-  }
+##   if(length(n)!=3){
+##     stop("BuyseTest : wrong specification of \'n\' \n",
+##          "\'n\' must have length 3 \n",
+##          "length(n) : ",length(n),"\n")
+##   }
   
-  if(any(n %% 1>0) || any(n<=0)){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "\'n\' must contains strictly positive integers \n",
-         "proposed n : ",paste(n,collpase=" "),"\n")
-  }
+##   if(any(n %% 1>0) || any(n<=0)){
+##     stop("BuyseTest : wrong specification of \'n\' \n",
+##          "\'n\' must contains strictly positive integers \n",
+##          "proposed n : ",paste(n,collpase=" "),"\n")
+##   }
   
-  if(is.null(names(n))){names(n) <- c("from","to","by")}
+##   if(is.null(names(n))){names(n) <- c("from","to","by")}
   
-  if(any(names(n) %in% c("from","to","by","length.out")==FALSE)){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "elements of \'n\' must be named with \"from\", \"to\", \"by\" or \"length.out\" \n",
-         "invalid names : ",paste(names(n)[names(n) %in% c("from","to","by","length.out")==FALSE] ,collpase=" "),"\n")    
-  }
+##   if(any(names(n) %in% c("from","to","by","length.out")==FALSE)){
+##     stop("BuyseTest : wrong specification of \'n\' \n",
+##          "elements of \'n\' must be named with \"from\", \"to\", \"by\" or \"length.out\" \n",
+##          "invalid names : ",paste(names(n)[names(n) %in% c("from","to","by","length.out")==FALSE] ,collpase=" "),"\n")    
+##   }
   
-  if(length(names(n)) != length(unique(names(n)))){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "elements in \'n\' have the same names \n")    
-  }
+##   if(length(names(n)) != length(unique(names(n)))){
+##     stop("BuyseTest : wrong specification of \'n\' \n",
+##          "elements in \'n\' have the same names \n")    
+##   }
   
-  if("from" %in% names(n) ==FALSE){
-    stop("BuyseTest : wrong specification of \'n\' \n",
-         "\'n\' must contain an element named \"from\" \n",
-         "names(n) : ",paste(names(n) ,collpase=" "),"\n")    
-  }
+##   if("from" %in% names(n) ==FALSE){
+##     stop("BuyseTest : wrong specification of \'n\' \n",
+##          "\'n\' must contain an element named \"from\" \n",
+##          "names(n) : ",paste(names(n) ,collpase=" "),"\n")    
+##   }
   
-  ## ** computation
+##   ## ** computation
   
-  test_to <- "to" %in% names(n)
-  test_by <- "by" %in% names(n)
-  test_length.out <- "length.out" %in% names(n)
-  if( test_to && test_by){
-    n <- seq(from=n["from"],to=n["to"],by=n["by"])
-  }
-  if( test_to && test_length.out){
-    n <- seq(from=n["from"],to=n["to"],length.out=n["length.out"])
-  }
-  if( test_by && test_length.out){
-    n <- seq(from=n["from"],by=n["by"],length.out=n["length.out"])
-  }
+##   test_to <- "to" %in% names(n)
+##   test_by <- "by" %in% names(n)
+##   test_length.out <- "length.out" %in% names(n)
+##   if( test_to && test_by){
+##     n <- seq(from=n["from"],to=n["to"],by=n["by"])
+##   }
+##   if( test_to && test_length.out){
+##     n <- seq(from=n["from"],to=n["to"],length.out=n["length.out"])
+##   }
+##   if( test_by && test_length.out){
+##     n <- seq(from=n["from"],by=n["by"],length.out=n["length.out"])
+##   }
   
-  ## ** export
-  return(n)
-}
+##   ## ** export
+##   return(n)
+## }
 
-## ** Function initHypothesis
-#' @rdname internal-initialization
-initHypothesis <- function(hypothesis,type,D){
+## ## ** Function initHypothesis
+## #' @rdname internal-initialization
+## initHypothesis <- function(hypothesis,type,D){
   
-  if(!is.list(hypothesis) && D==1){
-    hypothesis <- list(hypothesis)
-  }
+##   if(!is.list(hypothesis) && D==1){
+##     hypothesis <- list(hypothesis)
+##   }
   
-  if(!is.list(hypothesis) || length(hypothesis)!=D){
-    stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
-         "\'hypothesis\' must be a list with ",D," elements \n",
-         "is(hypothesis) : ",paste(is(hypothesis),collapse=" "),"\n",
-         "length(hypothesis) : ",length(hypothesis),"\n"
-    )    
-  }
+##   if(!is.list(hypothesis) || length(hypothesis)!=D){
+##     stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
+##          "\'hypothesis\' must be a list with ",D," elements \n",
+##          "is(hypothesis) : ",paste(is(hypothesis),collapse=" "),"\n",
+##          "length(hypothesis) : ",length(hypothesis),"\n"
+##     )    
+##   }
   
-  valid_parameters <- list(binary=c("proba_t","proba_c"),
-                           continuous=c("mu_t","mu_c","sigma"),
-                           TTE=c("lambda_t","lambda_c","T_inclusion","T_followUp")
-  )
+##   valid_parameters <- list(binary=c("proba_t","proba_c"),
+##                            continuous=c("mu_t","mu_c","sigma"),
+##                            TTE=c("lambda_t","lambda_c","T_inclusion","T_followUp")
+##   )
   
-  valid_range <- list(proba_t=c(0,1),
-                      proba_c=c(0,1),
-                      sigma=c(0,Inf),
-                      lambda_t=c(0,Inf),
-                      lambda_c=c(0,Inf),
-                      T_inclusion=c(0,Inf),
-                      T_followUp=c(0,Inf))
+##   valid_range <- list(proba_t=c(0,1),
+##                       proba_c=c(0,1),
+##                       sigma=c(0,Inf),
+##                       lambda_t=c(0,Inf),
+##                       lambda_c=c(0,Inf),
+##                       T_inclusion=c(0,Inf),
+##                       T_followUp=c(0,Inf))
   
-  for(iter_outcome in 1:D){
+##   for(iter_outcome in 1:D){
     
-    parameters_tempo <- valid_parameters[[type[iter_outcome]]]
+##     parameters_tempo <- valid_parameters[[type[iter_outcome]]]
     
-    if(length(hypothesis[[iter_outcome]]) != length(parameters_tempo)){
-      stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
-           "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
-           "number of parameters requested for this type of outcome : ",length(parameters_tempo)," \n",
-           "length(hypothesis[[",iter_outcome,"]]) : ",length(hypothesis[[iter_outcome]])," \n")   
-    }
+##     if(length(hypothesis[[iter_outcome]]) != length(parameters_tempo)){
+##       stop("BuyseTest : proposed \'hypothesis\' does not match \'type\' \n",
+##            "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
+##            "number of parameters requested for this type of outcome : ",length(parameters_tempo)," \n",
+##            "length(hypothesis[[",iter_outcome,"]]) : ",length(hypothesis[[iter_outcome]])," \n")   
+##     }
     
-    if(is.null(names(hypothesis[[iter_outcome]]))){
-      names(hypothesis[[iter_outcome]]) <- parameters_tempo
-    }
+##     if(is.null(names(hypothesis[[iter_outcome]]))){
+##       names(hypothesis[[iter_outcome]]) <- parameters_tempo
+##     }
     
-    if(any(parameters_tempo %in% names(hypothesis[[iter_outcome]]) == FALSE)){
-      stop("BuyseTest : wrong specification of \'hypothesis\' \n",
-           "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
-           "parameters requested for this type of outcome : \"",paste(parameters_tempo,collapse="\" \""),"\" \n",
-           "names(hypothesis[[",iter_outcome,"]]) : \"",paste(names(hypothesis[[iter_outcome]])[names(hypothesis[[iter_outcome]]) %in% parameters_tempo == FALSE],collapse="\" \""),"\" \n")   
-    }
+##     if(any(parameters_tempo %in% names(hypothesis[[iter_outcome]]) == FALSE)){
+##       stop("BuyseTest : wrong specification of \'hypothesis\' \n",
+##            "type of outcome ",iter_outcome," : ",names(valid_parameters)[type[iter_outcome]]," \n",
+##            "parameters requested for this type of outcome : \"",paste(parameters_tempo,collapse="\" \""),"\" \n",
+##            "names(hypothesis[[",iter_outcome,"]]) : \"",paste(names(hypothesis[[iter_outcome]])[names(hypothesis[[iter_outcome]]) %in% parameters_tempo == FALSE],collapse="\" \""),"\" \n")   
+##     }
     
-    for(iter_param in 1:length(parameters_tempo)){
-      if(parameters_tempo[iter_param] %in% names(valid_range)){
-        test.inf <- valid_range[[parameters_tempo[iter_param]]][1]>=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
-        test.sup <- valid_range[[parameters_tempo[iter_param]]][2]<=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
-        if(test.inf || test.sup){
-          stop("BuyseTest : unvalid parameter value in \'hypothesis\' \n",
-               "possible range of values : ",paste(valid_range[[parameters_tempo[iter_param]]],collapse=" ")," \n",
-               "proposed value of hypothesis[[",iter_outcome,"]][",parameters_tempo[iter_param],"] :  ",hypothesis[[iter_outcome]][parameters_tempo[iter_param]]," \n"
-          )  
-        }
-      }
-    }
+##     for(iter_param in 1:length(parameters_tempo)){
+##       if(parameters_tempo[iter_param] %in% names(valid_range)){
+##         test.inf <- valid_range[[parameters_tempo[iter_param]]][1]>=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
+##         test.sup <- valid_range[[parameters_tempo[iter_param]]][2]<=hypothesis[[iter_outcome]][parameters_tempo[iter_param]]
+##         if(test.inf || test.sup){
+##           stop("BuyseTest : unvalid parameter value in \'hypothesis\' \n",
+##                "possible range of values : ",paste(valid_range[[parameters_tempo[iter_param]]],collapse=" ")," \n",
+##                "proposed value of hypothesis[[",iter_outcome,"]][",parameters_tempo[iter_param],"] :  ",hypothesis[[iter_outcome]][parameters_tempo[iter_param]]," \n"
+##           )  
+##         }
+##       }
+##     }
     
     
-  }
+##   }
   
-  ### * export
-  return(hypothesis)
+##   ### * export
+##   return(hypothesis)
   
-}
+## }
 
 
-## ** Function initSpace
-#' @rdname internal-initialization
-initSpace  <- function(nchar){  
-  return(sapply(nchar,function(x){if(x>0){do.call(paste,c(as.list(rep(" ",x)),sep=""))}else{""}}))  
-}
+## ## ** Function initSpace
+## #' @rdname internal-initialization
+## initSpace  <- function(nchar){  
+##   return(sapply(nchar,function(x){if(x>0){do.call(paste,c(as.list(rep(" ",x)),sep=""))}else{""}}))  
+## }
 

@@ -96,9 +96,9 @@
 #' @keywords function BuyseTest
 #'
 
-## * Function - BuyseTest
-#' @rdname BuyseTest
-#' @export
+## * BuyseTest
+##' @rdname BuyseTest
+##' @export
 BuyseTest <- function(formula,
                       data, 
                       treatment = NULL,
@@ -109,6 +109,7 @@ BuyseTest <- function(formula,
                       operator = NULL,
                       strata = NULL, 
                       method = NULL,
+                      correctionTTE = FALSE,
                       neutral.as.uninf = NULL,
                       n.permutation = NULL,
                       prob.alloc = NULL,
@@ -118,262 +119,79 @@ BuyseTest <- function(formula,
                       seed = NULL,
                       cpus = NULL,
                       trace = NULL){
-    
-### ** normalize arguments
+
     BuyseCall <- match.call()
     option <- BuyseTest.options()
-    if(is.null(method)){ method <- option$method }
-    if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
-    if(is.null(keep.comparison)){ keep.comparison <- option$keep.comparison }
-    if(is.null(n.permutation)){ n.permutation <- option$n.permutation }
-    if(is.null(seed)){ seed <- option$seed }
-    if(is.null(cpus)){ cpus <- option$cpus }
-    if(is.null(trace)){ trace <- option$trace }
 
-    if (!data.table::is.data.table(data)) {
-        data <- data.table::as.data.table(data)
-    }else{
-        data <- data.table::copy(data)
-    }
-    
-    ## *** formula interface
-    if(!missing(formula)){
-        argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
-        if(any(names(BuyseCall) %in% argnames)){
-            txt <- paste(names(BuyseCall)[names(BuyseCall) %in% argnames], collapse = "\' \'")
-            warning("BuyseTest : argument",if(length(txt)>1){"s"}," \'",txt,"\' ha",if(length(txt)>1){"ve"}else{"s"}," been ignored \n",
-                    "when specified, only argument \'formula\' is used \n")
-        }
-        
-        resFormula <- initFormula(formula)
-        treatment <- resFormula$treatment
-        type <- resFormula$type
-        endpoint <- resFormula$endpoint
-        threshold <- resFormula$threshold
-        censoring <- resFormula$censoring
-        operator <- resFormula$operator
-        strata <- resFormula$strata
-    }else{
-        if(is.null(operator)){
-            operator <- rep(">0",length(endpoint))
-        }
-    }
-    
-    ## *** Treatment: extract the 2 levels
-    validCharacter(treatment,
-                   valid.length = 1,
-                   method = "BuyseTest")
-    validNames(data,
-               required.values = treatment,
-               valid.length = NULL,
-               method = "BuyseTest")
-    levels.treatment <- levels(as.factor(data[[treatment]])) # extraction of the levels of the treatment variable
-    if (length(levels.treatment) != 2) {
-        stop("BuyseTest : wrong specification of \'treatment\' \n",
-             "the corresponding column in \'data\' must have exactly 2 levels \n",
-             "proposed levels : ",paste(levels.treatment,collapse = " "),"\n")
-    }
-    
-    ## *** endpoint
-    validNames(data,
-               required.values = endpoint,
-               valid.length = NULL,
-               method = "BuyseTest")
-    D <- length(endpoint) # number of endpoints
-    
-    ## *** type: convert type to numeric and count the number of endpoints
-    validType1 <- c("b","bin","binary")
-    validType2 <- c("c","cont","continuous")
-    validType3 <- c("t","tte","time","timetoevent")
-    type <- tolower(type)
+    ## ** initialize arguments
+    outArgs <- initializeArgs(alternative = alternative,
+                              BuyseCall = BuyseCall,
+                              censoring = censoring,
+                              cpus = cpus,
+                              endpoint = endpoint,
+                              formula = formula,
+                              keep.comparison = keep.comparison,
+                              method = method,
+                              n.permutation = n.permutation,
+                              neutral.as.uninf = neutral.as.uninf,
+                              operator = operator,
+                              option = option,
+                              seed = seed,
+                              threshold = threshold,
+                              trace = trace,
+                              treatment = treatment,
+                              type = type)
 
-    validCharacter(type,
-                   valid.values = c(validType1,validType2,validType3),
-                   valid.length = D,
-                   method = "BuyseTest")
+    browser()
+    alternative  <- outArgs$alternative
+    censoring <- outArgs$censoring
+    cpus <- outArgs$cpus
+    endpoint <- outArgs$endpoint
+    keep.comparison <- outArgs$keep.comparison
+    method <- outArgs$method
+    n.permutation <- outArgs$n.permutation
+    neutral.as.uninf <- outArgs$neutral.as.uninf
+    operator <- outArgs$operator
+    seed <- outArgs$seed
+    strata <- outArgs$strata
+    threshold <- outArgs$threshold
+    trace <- outArgs$trace
+    treatment <- outArgs$treatment
+    type <- outArgs$type
 
-    type[grep(paste(validType1,collapse="|"), type)] <- "1" 
-    type[grep(paste(validType2,collapse="|"), type)] <- "2" 
-    type[grep(paste(validType3,collapse="|"), type)] <- "3" 
-    type <- as.numeric(type) # type is an integer equal to 1 (binary endpoint), 2 (continuous endpoint) or 3 (time to event endpoint)
-    
-    D.TTE <- sum(type == 3) # number of time to event endpoints
+    ## ** test args
+    if(TRUE){
+        testArgs(alternative = alternative,
+                 BuyseCall = BuyseCall,
+                 censoring = censoring,
+                 correctionTTE = correctionTTE,
+                 cpus = cpus,
+                 data = data,
+                 endpoint = endpoint,
+                 formula = formula,
+                 method = method,
+                 n.permutation = n.permutation,
+                 operator = operator,
+                 proba = proba,
+                 seed = seed,
+                 stratified = stratified,
+                 strata = strata,
+                 threshold = threshold,
+                 treatment = treatment,
+                 type = type)
 
-    n.typePerEndpoint <- tapply(type,endpoint, function(x){length(unique(x))})
-    if(any(n.typePerEndpoint>1)){
-        message <- paste0("several types have been specified for endpoint(s) ",
-                          paste0(unique(endpoint)[n.typePerEndpoint>1],collapse = ""),
-                          "\n")        
-        stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
+        ## ## ** proba
+        ## if(!is.null(prob.alloc)){
+        ##     validNumeric(prob.alloc,
+        ##                  valid.length = 1,
+        ##                  min = 0,
+        ##                  max = 1,
+        ##                  method = "BuyseTest")
+        ## }
     }
 
-    ##  convert character/factor to numeric for binary endpoints
-    name.bin <- endpoint[which(type %in% 1)]
-    if(length(name.bin)>0){
-        data.class <- sapply(data,class)
-        
-        for(iBin in name.bin){
-            if(data.class[iBin] %in% c("numeric","integer") == FALSE){
-                data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
-            }
-        }
-    }
-
-    ## *** censoring
-    censoring <- initCensoring(censoring = censoring,
-                               endpoint = endpoint,
-                               type = type,
-                               D = D,
-                               D.TTE = D.TTE,
-                               treatment = treatment,
-                               strata = strata)
-    
-    validNames(data,
-               name1 = "data",
-               required.values = censoring,
-               valid.length = NULL,
-               refuse.NULL = FALSE,
-               method = "BuyseTest")
-
-    ## *** operator
-    data <- applyOperator(data, operator = operator,
-                          type = type, endpoint = endpoint, D = D)
-    
-    ## *** data: split the data according to the two levels
-    if (!is.null(strata)) {
-        validNames(data,
-                   name1 = "strata",
-                   required.values = strata,
-                   valid.length = NULL,
-                   method = "BuyseTest")
-    }
-    
-    indexT <- which(data[[treatment]] == levels.treatment[2])
-    indexC <- which(data[[treatment]] == levels.treatment[1])
-    dataT <- data[indexT, c(endpoint, strata, censoring), with = FALSE]
-    dataC <- data[indexC, c(endpoint, strata, censoring), with = FALSE]
-
-    n.Treatment <- NROW(dataT) # number of patient in the treatment arm
-    n.Control <- NROW(dataC) # number of patient in the control arm
-    
-    ## *** threshold
-    threshold <- initThreshold(threshold = threshold, type = type, D = D,
-                               endpoint = endpoint)
-    
-    ## *** strata
-    res <- initStrata(strata = strata,
-                      dataT = dataT, dataC = dataC,
-                      n.Treatment = n.Treatment, n.Control = n.Control,
-                      endpoint = endpoint, censoring = censoring)
-    
-    index.strataT <- res$index.strataT 
-    index.strataC <- res$index.strataC 
-    n.strata <- res$n.strata 
-    levels.strata <- res$levels.strata 
-    
-    ## *** method
-    validCharacter(method,
-                   valid.length = 1,
-                   valid.values = c("Gehan","Peto","Peto2","Efron","Efron2","Peron","Peron2"),
-                   method = "BuyseTest")
-
-    if(method %in% c("Peto2","Efron2","Peron2")){
-        correctionTTE <- TRUE
-    }else{
-        correctionTTE <- FALSE
-    }
-    
-    method <- switch(method,
-                     "Gehan" = 0,
-                     "Peto" = 1,
-                     "Peto2" = 1,
-                     "Efron" = 2,
-                     "Efron2" = 2,
-                     "Peron" = 3,
-                     "Peron2" = 3,
-                     )
-    
-    if (D.TTE == 0) {
-        method <- 0
-        if ("method" %in% names(BuyseCall) && trace > 0) {
-            message("NOTE : there is no survival endpoint, \'method\' argument is ignored \n")
-        }
-    }
-    
-    ## *** alternative
-    validCharacter(alternative,
-                   valid.length = 1,
-                   valid.values = c("two.sided", "less", "greater"),
-                   method = "BuyseTest")
-    
-    ## *** n.permutation
-    validInteger(n.permutation,
-                 valid.length = 1,
-                 min = 0,
-                 method = "BuyseTest")
-    
-    ## *** proba
-    if (is.null(prob.alloc)) { # if prob.alloc is not set by the user
-        prob.alloc <- n.Treatment/(n.Treatment + n.Control)  # it is set to the proportion of patients in the treatment arm.
-    }else{
-        validNumeric(prob.alloc,
-                     valid.length = 1,
-                     min = 0,
-                     max = 1,
-                     method = "BuyseTest")
-    }
-    
-                                        # stratified
-    validLogical(stratified,
-                 valid.length = 1,
-                 method = "BuyseTest")
-    
-    ## *** seed
-    validInteger(seed,
-                 valid.length = 1,
-                 refuse.NULL = FALSE,
-                 min = 1,
-                 method = "BuyseTest")
-    
-    ## *** cpu
-    if (cpus == "all") { 
-        cpus <- parallel::detectCores() # this function detect the number of CPU cores 
-    }else{# if several cpus are intended to be used, check this correspond to a valid number of CPU cores
-        validInteger(cpus,
-                     valid.length = 1,
-                     valid.values = 1:parallel::detectCores(),
-                     method = "BuyseTest")
-    }
-    
-    ## *** data
-    res <- initData(dataT = dataT,
-                    dataC = dataC,
-                    type = type,
-                    endpoint = endpoint,
-                    D = D,
-                    operator = operator,
-                    censoring = censoring,
-                    index.strataT = index.strataT,
-                    index.strataC = index.strataC,
-                    n.strata = n.strata,                  
-                    method = method,
-                    D.TTE = D.TTE,
-                    threshold = threshold,
-                    Wscheme = NULL,
-                    test = TRUE,
-                    trace = trace)
-    
-    M.Treatment <- res$M.Treatment
-    M.Control <- res$M.Control 
-    M.delta_Treatment <- res$M.delta_Treatment
-    M.delta_Control <- res$M.delta_Control
-    Wscheme <- res$Wscheme
-    threshold_TTEM1 <- res$threshold_TTEM1
-    index_survivalM1 <- res$index_survivalM1
-    list_survivalT <- res$list_survivalT
-    list_survivalC <- res$list_survivalC
-    
-### ** 2- General display
+    browser()
+    ## ** General display
     if (trace > 1) {
         printGeneral(levels.treatment = levels.treatment,
                      levels.strata = levels.strata,
@@ -391,7 +209,141 @@ BuyseTest <- function(formula,
                      threshold_TTEM1 = if (D>1 && method %in% 1:3) {threshold_TTEM1} else {NULL})
     }
     
-### ** 3- Punctual estimation
+    ## ** Lauch BuyseTest
+    .BuyseTest(data = data, 
+               treatment = treatment,
+               endpoint = endpoint,
+               type = type,
+               threshold = threshold,
+               censoring = censoring,
+               strata = strata, 
+               method = method,
+               correctionTTE = correctionTTE,
+               neutral.as.uninf = neutral.as.uninf,
+               n.permutation = n.permutation,
+               prob.alloc = prob.alloc,
+               stratified = stratified,
+               keep.comparison = keep.comparison,
+               alternative = alternative, 
+               seed = seed,
+               cpus = cpus,
+               trace = trace)
+
+
+     ## *** update BuyseRes object 
+        if(option$keep.permutation){
+            BuyseRes.object@delta_permutation <- delta_permutation
+        }
+        
+        BuyseRes.object@Delta_quantile <- resCI$Delta_quantile
+        BuyseRes.object@n_permutation <- resCI$n_permutation
+        BuyseRes.object@p.value <- resCI$p.value
+        BuyseRes.object@conf.level <- option$conf.level
+        validObject(BuyseRes.object)
+    if (trace > 1) {cat("   > done \n")}
+    
+    ### ** 4- Transformation into BuyseRes object
+    if (trace > 1) {cat("Conversion to BuyseRes object \n")}
+    BuyseRes.object <- BuyseRes(
+        count_favorable = resPonctual$count_favorable,      
+        count_unfavorable = resPonctual$count_unfavorable,
+        count_neutral = resPonctual$count_neutral,    
+        count_uninf = resPonctual$count_uninf,
+        delta = list(netChance = resPonctual$delta_netChance,
+                     winRatio = resPonctual$delta_winRatio),
+        Delta = list(netChance = resPonctual$Delta_netChance,
+                     winRatio = resPonctual$Delta_winRatio),
+        endpoint = endpoint,
+        index_neutralT = resPonctual$index_neutralT,
+        index_neutralC = resPonctual$index_neutralC,
+        index_uninfT = resPonctual$index_uninfT,
+        index_uninfC = resPonctual$index_uninfC,
+        levels.treatment = levels.treatment,
+        n_pairs = resPonctual$n_pairs,
+        strata = levels.strata,
+        threshold = threshold,
+        conf.level = as.numeric(NA),
+        tableComparison = resPonctual$tableComparison,
+        args = list(indexT = indexT, indexC = indexC)
+    )
+    if (trace > 1) {cat("   > done \n")}
+
+    
+}
+
+## * .BuyseTest
+.BuyseTest <- function(data, 
+                       treatment = NULL,
+                       endpoint = NULL,
+                       type = NULL,
+                       threshold = NULL,
+                       censoring = NULL,
+                       strata = NULL, 
+                       method = NULL,
+                       correctionTTE = FALSE,
+                       neutral.as.uninf = NULL,
+                       n.permutation = NULL,
+                       prob.alloc = NULL,
+                       stratified = FALSE,
+                       keep.comparison = NULL,
+                       alternative = "two.sided", 
+                       seed = NULL,
+                       cpus = NULL,
+                       trace = NULL){
+
+   
+    ## ** initialize dataset
+    initializeData(BT.envir) ## update of the arguments via environment
+
+    if (is.null(prob.alloc)) { # if prob.alloc is not set by the user
+        prob.alloc <- n.Treatment/(n.Treatment + n.Control)  # it is set to the proportion of patients in the treatment arm.
+    }
+    
+    ## ** KM imputation
+    if(method %in% 1:3){# c("Peto","Efron","Peron")
+    
+    endpoint.TTE <- endpoint[type==3] # vector of variable names of the TTE endpoints
+    
+    ## *** design matrix for the weights
+    if(is.null(Wscheme)){
+        res_init <- initWscheme(D=D,
+                                endpoint=endpoint,
+                                endpoint.TTE=endpoint.TTE,
+                                D.TTE=D.TTE,
+                                threshold=threshold,
+                                type=type)
+      Wscheme <- res_init$Wscheme  
+      index_survivalM1 <- res_init$index_survivalM1
+      threshold_TTEM1 <- res_init$threshold_TTEM1       
+    }
+    ## *** Survival estimate using Kaplan Meier    
+    res_init <- initSurvival(M.Treatment=M.Treatment,
+                             M.Control=M.Control,
+                             M.delta_Treatment=M.delta_Treatment,
+                             M.delta_Control=M.delta_Control,
+                             endpoint=endpoint,
+                             D.TTE=D.TTE,
+                             type=type,
+                             threshold=threshold,
+                             index.strataT=index.strataT,
+                             index.strataC=index.strataC,
+                             n.strata=n.strata,   
+                             method=method)
+    
+    list_survivalT <- res_init$list_survivalT
+    list_survivalC <- res_init$list_survivalC
+    
+    }else{
+        Wscheme <- matrix()  # factice design matrix for the weights. Will be sent to the C++ arguments to fill the argument but not used by the function.
+        list_survivalT <- list() # factice list. Will be sent to the C++ arguments to fill the argument but not used by the function.
+        list_survivalC <- list() # factice list. Will be sent to the C++ arguments to fill the argument but not used by the function.
+        index_survivalM1 <- numeric(0) # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
+        threshold_TTEM1 <- numeric(0)  # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
+    }
+
+
+    
+    ## ** Punctual estimation
     if (trace > 1) {cat("Punctual estimation \n")}
 
     time <- system.time({
@@ -418,35 +370,11 @@ BuyseTest <- function(formula,
                                keepComparison = keep.comparison
                                )
     })
+    
     if (trace > 1) {cat("   > done \n")}
     
-### ** 4- Transfomration into BuyseRes object
-    if (trace > 1) {cat("Conversion to BuyseRes object \n")}
-    BuyseRes.object <- BuyseRes(
-        count_favorable = resPonctual$count_favorable,      
-        count_unfavorable = resPonctual$count_unfavorable,
-        count_neutral = resPonctual$count_neutral,    
-        count_uninf = resPonctual$count_uninf,
-        delta = list(netChance = resPonctual$delta_netChance,
-                     winRatio = resPonctual$delta_winRatio),
-        Delta = list(netChance = resPonctual$Delta_netChance,
-                     winRatio = resPonctual$Delta_winRatio),
-        endpoint = endpoint,
-        index_neutralT = resPonctual$index_neutralT,
-        index_neutralC = resPonctual$index_neutralC,
-        index_uninfT = resPonctual$index_uninfT,
-        index_uninfC = resPonctual$index_uninfC,
-        levels.treatment = levels.treatment,
-        n_pairs = resPonctual$n_pairs,
-        strata = levels.strata,
-        threshold = threshold,
-        conf.level = as.numeric(NA),
-        tableComparison = resPonctual$tableComparison,
-        args = list(indexT = indexT, indexC = indexC)
-    )
-    if (trace > 1) {cat("   > done \n")}
-    
-### ** 5- Permutation test 
+
+    ## ** Permutation test 
     if (n.permutation > 0) {
         if (trace > 1) {
             cat("\n")
@@ -480,19 +408,9 @@ BuyseTest <- function(formula,
                         cpus = cpus,
                         trace = trace)
         
-        ## *** update BuyseRes object 
-        if(option$keep.permutation){
-            BuyseRes.object@delta_permutation <- delta_permutation
-        }
-        
-        BuyseRes.object@Delta_quantile <- resCI$Delta_quantile
-        BuyseRes.object@n_permutation <- resCI$n_permutation
-        BuyseRes.object@p.value <- resCI$p.value
-        BuyseRes.object@conf.level <- option$conf.level
-        validObject(BuyseRes.object)
-        if (trace > 1) {cat("   > done \n")}
+       
     }
     
-### ** 6- export
+    ## ** Export
     return(BuyseRes.object)
 }

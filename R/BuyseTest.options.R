@@ -36,6 +36,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                cpus = 1,
                keep.permutation = TRUE,
                method = "Peron",
+               correctionTTE = FALSE,
                n.permutation = 1000,
                neutral.as.uninf = TRUE,
                keep.comparison = FALSE,

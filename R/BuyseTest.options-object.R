@@ -25,6 +25,7 @@ setClass(
     cpus = "numeric",
     keep.permutation = "logical",
     method = "character",
+    correctionTTE = "logical",
     n.permutation = "numeric",
     neutral.as.uninf = "logical",
     keep.comparison = "logical",
