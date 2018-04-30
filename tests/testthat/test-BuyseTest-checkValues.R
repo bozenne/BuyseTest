@@ -162,7 +162,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Efron"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
-                            data = dt.sim, method = method)
+                            data = dt.sim[,.SD[1:5], by = Treatment], method = method)
 
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
@@ -215,7 +215,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Efron"
                        netChange = c(0.11647539, 0.1015767, 0.09116893) ,
                        winRatio = c(1.751355, 1.3643995, 1.25384768) )
         }
-        
+
+        summary(BT.tte)
         expect_equal(test, GS, tolerance = 1e-6, scale = 1)
         expect_equal(BT.tte,BT2)
 

@@ -111,8 +111,8 @@ List GPC_cpp(const arma::mat& Treatment,
   vector<int> iIndex_neutralC; // index of the neutral pairs of the control arm
   vector<int> iIndex_uninfT; // index of the uninformative pairs of the treatment arm
   vector<int> iIndex_uninfC; // index of the uninformative pairs of the control arm
-  vector<double> iw; // weights of the uninformative pairs
-  vector<int> iIndex_w; // index of the pair number of the uninformative pairs
+  vector<double> iw; // weights of the neutral / uninformative pairs
+  vector<int> iIndex_w; // index of the pair number of the neutral / uninformative pairs
   
   int size_neutral; // number of neutral pairs (temporary)
   int size_uninf; // number of uninformative pairs (temporary)
@@ -182,15 +182,20 @@ List GPC_cpp(const arma::mat& Treatment,
     // **** update Wpairs 
     if(D>1){ // if there is more than one endpoint
       Wpairs.resize(size_neutral+size_uninf,1); // temporary matrix containing the weigth of each remaining pair for each outcome
-      Wpairs.fill(1.0);
       w.resize(size_neutral+size_uninf); // temporary vector containing the weight of each remaining pair to be used for the next outcome
-      w.fill(1);
       
-      if(methodTTE>0 && iter_dTTE>0){ // update the weights for the uninformative pairs in Wpairs and w
-        for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){ // neutral pairs have a weight of 1 by construction
+      if(iter_dTTE>0){ // update the weights for the neutral pairs in Wpairs and w
+	for(int iter_neutral=0 ; iter_neutral<size_neutral ; iter_neutral++){
+          Wpairs(iter_neutral,0) = iw[iter_neutral];
+          if(Wscheme(0,0)==1){w(iter_neutral) = iw[iter_neutral];}
+        }
+        for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){ 
           Wpairs(size_neutral+iter_uninf,0) = iw[iter_uninf];
           if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = iw[iter_uninf];}
         }
+      }else{
+	Wpairs.fill(1.0);
+	w.fill(1.0);
       }
     }
     

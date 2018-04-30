@@ -161,13 +161,15 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
 			    const int methodTTE, const bool correctionTTE,
 			    double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 			    vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
-			    vector<double>& wUninf,
+			    vector<double>& wNeutral, 
 			    bool keepComparison){
   
   int n_Treatment=Treatment.size(); // number of patients from the treatment arm
   int n_Control=Control.size(); // number of patients from the control arm
   
   arma::mat comparison(n_Treatment * n_Control, 6); // store results from all comparisons
+  //vector<double> wNeutral(0);  // weigth of the neutral pairs 
+  vector<double> wUninf(0);  // weigth of the uninformative pairs
   arma::rowvec iRow; // temporary store results
   int iter_pairs = 0;
   
@@ -191,6 +193,24 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
         }
       }
     }
+    
+      wNeutral.resize(index_neutralT.size());
+      std::fill(wNeutral.begin(),wNeutral.end(),1.0);
+      wUninf.resize(index_uninfT.size());
+      std::fill(wUninf.begin(),wUninf.end(),1.0);
+    
+    if(correctionTTE){
+      double factor = (count_favorable + count_unfavorable + count_neutral + count_uninf)/(count_favorable + count_unfavorable + count_neutral);
+      count_favorable *= factor;
+      count_unfavorable *= factor;
+      count_neutral *= factor;
+      count_uninf = 0;
+      index_uninfT.resize(0);
+      index_uninfC.resize(0);
+
+      std::fill(wNeutral.begin(),wNeutral.end(),factor);
+    }
+    
   }else{
     vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
     double weight_residual;   
@@ -212,8 +232,10 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
         if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
           index_neutralT.push_back(iter_T);
           index_neutralC.push_back(iter_C);
-          count_neutral++;
 
+	  wNeutral.push_back(1);
+	  count_neutral++;
+	  
   	  if(keepComparison){
 	    comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
 	    iter_pairs++;
@@ -224,17 +246,11 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
           weight_residual = 1 - (proba_threshold[0] + proba_threshold[1]);
           
           if(proba_threshold[3]>0.5 && weight_residual>pow(10.0,-12.0)){ // i.e. test uninformative == 1
-	    if(correctionTTE){
-	      proba_threshold[0] = proba_threshold[0]/(1-weight_residual);
-	      proba_threshold[1] = proba_threshold[1]/(1-weight_residual);
-	      weight_residual = 0;
-	    }else{
               index_uninfT.push_back(iter_T);
               index_uninfC.push_back(iter_C);
             
               wUninf.push_back(weight_residual); 
               count_uninf += weight_residual;
-	    }
           }
           
           count_favorable += proba_threshold[0];    
@@ -249,10 +265,25 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
         
       }
     }
+
+    if(correctionTTE){
+      double factor = (count_favorable + count_unfavorable + count_neutral + count_uninf)/(count_favorable + count_unfavorable + count_neutral);
+      count_favorable *= factor;
+      count_unfavorable *= factor;
+      count_neutral *= factor;
+      count_uninf = 0;
+      index_uninfT.resize(0);
+      index_uninfC.resize(0);
+
+      for(int iNeutral=0; iNeutral<wNeutral.size() ; iNeutral++){
+       wNeutral[iNeutral] *= factor;
+      }
+    }
     
   }
 
   // ** export
+  wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
   return comparison;
 }
 

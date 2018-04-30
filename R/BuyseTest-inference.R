@@ -60,7 +60,11 @@ inferenceResampling <- function(envir){
 
     ## ** post treatment
     test.resampling <- which(unlist(lapply(ls.permutation,is.null)) == FALSE)
-
+    if(length(test.resampling) != n.resampling){
+        n.failure <- n.resampling - length(test.resampling) 
+        warning("The resampling procedure failed for ",n.failure," samples (",round(100*n.failure/n.resampling,2),"%)")
+    }
+    
     dim.delta <- c(n.strata, D, n.resampling)
     dimnames.delta <- list(level.strata, endpoint, as.character(1:n.resampling))
 

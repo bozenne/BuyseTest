@@ -71,7 +71,7 @@ setClass(
                  method = "Class BuyseTest.options")
     validInteger(object@trace,
                  name1 = "@trace",
-                 min = 0,
+                 min = 0, max = 2,
                  valid.length = 1,
                  method = "Class BuyseTest.options")
     validInteger(object@seed,

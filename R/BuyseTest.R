@@ -59,7 +59,7 @@
 #' \bold{n.resampling:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
 #' A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
 #' 
-#' \bold{trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
+#' \bold{trace:} \code{2} reports all messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
 #' 
 #' \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus.
 #' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .

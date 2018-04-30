@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr 30 2018 (17:53) 
+## Last-Updated: apr 30 2018 (23:42) 
 ##           By: Brice Ozenne
-##     Update #: 37
+##     Update #: 38
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -276,7 +276,7 @@ testArgs <- function(alternative,
     ## ** trace
     validInteger(trace,
                  valid.length = 1,
-                 valid.values = 0:3,
+                 valid.values = 0:2,
                  method = "BuyseTest")
 
     ## ** treatment
