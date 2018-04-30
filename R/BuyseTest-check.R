@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr 30 2018 (11:54) 
+## Last-Updated: apr 30 2018 (17:53) 
 ##           By: Brice Ozenne
-##     Update #: 31
+##     Update #: 37
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -109,13 +109,10 @@ testArgs <- function(alternative,
     index.Bin <- which(type==1)
     if(length(index.Bin)>0){
         for(iBin in index.Bin){ ## iterY <- 1
-            validNumeric(data[[endpoint[iBin]]],
-                         name1 = endpoint[iBin],
-                         valid.values = 0:1,
-                         refuse.NA =  FALSE,
-                         valid.length = NULL,
-                         method = "BuyseTest")
-
+            if(length(unique(na.omit(data[[endpoint[iBin]]])))>2){
+                stop("Binary endpoint cannot have more than 2 levels \n",
+                     "endpoint: ",endpoint[iBin],"\n")
+            }
             if(any(is.na(data[[endpoint[iBin]]]))){                
                 warning("BuyseTest : endpoint ",endpoint[iBin]," contains NA \n")
             }
@@ -167,9 +164,9 @@ testArgs <- function(alternative,
                required.values = endpoint,
                valid.length = NULL,
                method = "BuyseTest")
-    
+
     ## ** formula
-    if(!missing(formula) && any(name.call %in% argnames)){
+    if(!is.null(formula) && any(name.call %in% argnames)){
         txt <- paste(name.call[name.call %in% argnames], collapse = "\' \'")
         warning("BuyseTest : argument",if(length(txt)>1){"s"}," \'",txt,"\' ha",if(length(txt)>1){"ve"}else{"s"}," been ignored \n",
                 "when specified, only argument \'formula\' is used \n")

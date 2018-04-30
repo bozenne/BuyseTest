@@ -1,5 +1,17 @@
 # -*- mode: org -*-
 
+* Version 1.3
+** User visble changes - BuyseTest function
+  - argument n.permutation becomes n.resampling
+  - add argument method.inference to choose how to compute pvalues and
+    CI.
+
+** Internal change
+  - reorganize BuyseTest into BuyseTest and .BuyseTest. 
+Make initalization and testing of the arguments independent
+  - remove dependency on tcltk.
+  - confidence intervals and p.values are computed outside BuyseTest, when calling summary.
+
 * Version 1.2
 ** User visble changes - BuyseTest function
   - add argument keepComparison, operator.

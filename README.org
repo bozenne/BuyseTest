@@ -92,9 +92,6 @@ suppressPackageStartupMessages(library(BuyseTest))
 #+END_SRC
 
 #+RESULTS:
-: Warning messages:
-: 1: package 'Rcpp' was built under R version 3.4.4 
-: 2: package 'data.table' was built under R version 3.4.4
 
 ** Simulate data
 You can simulate data with the =simBuyseTest= function. For instance
@@ -181,33 +178,18 @@ There are two equivalent ways to define the GPC:
 - via a formula interface
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
-                  data = veteran)
+                  data = veteran, trace = 3, method.inference = "none")
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Settings (punctual estimation) 
-   > reference: Control = 1 and Treatment = 2
-   > 1 endpoint: 
-      |priority endpoint type          operator            threshold censoring |
-      |1        time     time to event higher is favorable 20        status    |
-   > management of neutral pairs : re-analyzed using endpoints of lower priority (if any) 
-   > management of censored survival pairs : imputation using different survival curve for control and treatment patients 
-Punctual estimation 
-   > done 
-Conversion to BuyseRes object 
-   > done 
-
-Settings (permutation test) 
-   > resampling probability for assignment to the treatment group: 0.4963504
-   > requested time for one sample: <0.001 s
-   > estimated time for 1000 samples with 1 core: <1 s
-   > seed: 10 
-Sequential permutation test 
-   > done 
-Post-Treatment and update of the BuyseRes object 
-   > done
-#+end_example
+: Settings (punctual estimation) 
+:    > reference: Control = 1 and Treatment = 2
+:    > 1 endpoint: 
+:       |priority endpoint type          operator            threshold censoring |
+:       |1        time     time to event higher is favorable 20        status    |
+:    > management of neutral pairs : re-analyzed using endpoints of lower priority (if any) 
+:    > management of censored survival pairs : imputation using different survival curve for control and treatment patients 
+: Punctual estimation (done)
 
 - or using a separate argument for each element:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -215,14 +197,19 @@ BT <- BuyseTest(endpoint = "time",
                 type = "timeToEvent", 
                 treatment = "trt", 
                 censoring = "status", 
-                threshold = 0,
-                data = veteran, trace = 0)
+                threshold = 20,
+                data = veteran, 
+                method.inference = "none",
+                trace = 0)
 #+END_SRC
 
 #+RESULTS:
 Here we set in addition the argument =trace= to 0 to force the
-function to be silent (i.e. no display in the terminal). We can check
-that the two approaches are equivalent:
+function to be silent (i.e. no display in the terminal). Also setting
+the argument =method.inference= to ="none"= diseable the computation
+of p-values and confidence intervals.
+
+We can check that the two approaches are equivalent:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(testthat)
 expect_equal(BT.f,BT)
@@ -233,7 +220,7 @@ expect_equal(BT.f,BT)
 The =BuyseTest= function can perform stratified GPC with several endpoints:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0) + celltype,
-                 data = veteran, n.permutation = 0, trace = 0)
+                 data = veteran, trace = 0, method.inference = "none")
 #+END_SRC
 
 #+RESULTS:
@@ -256,11 +243,10 @@ summary(BT)
 : 
 :  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
-:  > permutation test: 1000 samples, confidence level 0.95 
-:  > groups          : 1(control) vs. 2(treatment) 
+:  > groups          : 1 (control) vs. 2 (treatment) 
 :  > results
-:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta CI [2.5 ; 97.5] p.value 
-:      time     1e-12   100     45.43       54.18    0.38  0.01 -0.0875 -0.0875 [-0.278;0.0975]   0.386
+:  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
+:      time        20   100     37.78       46.54      15  0.68 -0.088 -0.088
 
 By default =summary= displays results relative to the statistic "net
 chance of a better outcome". To get results for the win ratio set the
@@ -274,11 +260,10 @@ summary(BT, statistic = "winRatio")
 : 
 :  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 1 
-:  > permutation test: 1000 samples, confidence level 0.95 
-:  > groups          : 1(control) vs. 2(treatment) 
+:  > groups          : 1 (control) vs. 2 (treatment) 
 :  > results
-:  endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value 
-:      time     1e-12   100     45.43       54.18    0.38  0.01 0.839 0.839      [1.52;2.3]   0.807
+:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
+:      time        20   100     37.78       46.54      15  0.68 0.812 0.812
 
 #+RESULTS:
 Since we have set the argument =n.permutation= to 0 (i.e. no
@@ -294,20 +279,47 @@ summary(BT2)
 
  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > groups          : 1(control) vs. 2(treatment) 
+ > groups          : 1 (control) vs. 2 (treatment) 
  > results
- endpoint threshold    strata  total favorable unfavorable neutral uninf    delta   Delta
-     time        20    global 100.00     36.06       45.77   16.92  1.25 -0.09710 -0.0971
-                     squamous  25.38     14.33        8.77    2.03  0.25  0.05570        
-                    smallcell  45.69     12.69       20.88   11.25  0.86 -0.08190        
-                        adeno  13.71      4.74        6.15    2.71  0.11 -0.01420        
-                        large  15.23      4.30        9.97    0.93  0.03 -0.05670        
-    karno     1e-12    global  18.17      6.72        8.07    3.38  0.00 -0.01350  -0.111
-                     squamous   2.28      0.76        0.94    0.59  0.00 -0.00181        
-                    smallcell  12.12      4.33        5.75    2.03  0.00 -0.01420        
-                        adeno   2.81      1.46        0.85    0.51  0.00  0.00613        
-                        large   0.96      0.17        0.54    0.25  0.00 -0.00367
+ endpoint threshold    strata  total favorable unfavorable neutral uninf  delta  Delta
+     time        20    global 100.00     36.06       45.77   16.92  1.25 -0.097 -0.097
+                     squamous  25.38     14.33        8.77    2.03  0.25  0.056       
+                    smallcell  45.69     12.69       20.88   11.25  0.86 -0.082       
+                        adeno  13.71      4.74        6.15    2.71  0.11 -0.014       
+                        large  15.23      4.30        9.97    0.93  0.03 -0.057       
+    karno     1e-12    global  18.17      6.72        8.07    3.38  0.00 -0.014 -0.111
+                     squamous   2.28      0.76        0.94    0.59  0.00 -0.002       
+                    smallcell  12.12      4.33        5.75    2.03  0.00 -0.014       
+                        adeno   2.81      1.46        0.85    0.51  0.00  0.006       
+                        large   0.96      0.17        0.54    0.25  0.00 -0.004
 #+end_example
+
+*** What about p-value and confidence intervals?
+
+For now computation of p-values and confidence intervals can only be
+obtain via a permutation test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
+                     data = veteran, trace = 0, method.inference = "permutation",
+                     n.resampling = 10) 
+summary(BT.perm)
+#+END_SRC
+
+#+RESULTS:
+:         Generalized pairwise comparison with 1 prioritized endpoint
+: 
+:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > permutation test: 10 samples, confidence level 0.95 
+:  > groups          : 1 (control) vs. 2 (treatment) 
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta CI [2.5 ; 97.5] p.value 
+:      time        20   100     37.78       46.54      15  0.68 -0.088 -0.088 [-0.207;-0.016]     0.3
+
+The argument =n.resampling= indicates the permutation that will be
+performed. We set it to 10 to save computation time but to obtain
+reliable p-value/confidence intervals, =n.resampling= should be at
+least 1000.
 
 *** What if smaller is better?
 By default =BuyseTest= will always assume that higher values of an
@@ -315,13 +327,13 @@ endpoint are favorable. This behavior can be changed by specifying =operator = "
 for an endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BTinv <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "<0"),
-                 data = veteran, n.permutation = 0, trace = 0)
+                   data = veteran, method.inference = "none", trace = 0)
 BTinv
 #+END_SRC
 
 #+RESULTS:
-:  endpoint threshold  delta  Delta
-:      time        20 0.0844 0.0844
+:  endpoint threshold delta Delta
+:      time        20 0.084 0.084
 
 Internally =BuyseTest= will multiply by -1 the values of the endpoint
 to ensure that lower values are considered as favorable. A direct
@@ -329,11 +341,11 @@ consequence is that =BuyseTest= will not accept an endpoint with
 different operators:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 try(BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "<0") + tte(time, 10, "status", ">0"),
-              data = veteran, n.permutation = 0, trace = 0))
+              data = veteran, method.inference = "none", trace = 0))
 #+END_SRC
 
 #+RESULTS:
-: Error in applyOperator(data, operator = operator, type = type, endpoint = endpoint,  : 
+: Error in (function (alternative, name.call, censoring, correctionTTE,  : 
 :   Cannot have different operator for the same endpoint used at different priorities
 
 *** Stopping comparison for neutral pairs
@@ -357,7 +369,7 @@ If we perform we GPC with tumor as the first endpoint and size as the
 second endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.pair <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
-                     trace = 0, n.permutation = 0)
+                     trace = 0, method.inference = "none")
 summary(BT.pair)
 #+END_SRC
 
@@ -366,7 +378,7 @@ summary(BT.pair)
 : 
 :  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
-:  > groups          : No(control) vs. Yes(treatment) 
+:  > groups          : No (control) vs. Yes (treatment) 
 :  > results
 :  endpoint threshold total favorable unfavorable neutral uninf delta Delta
 :     tumor       0.5   100         0           0     100     0     0     0
@@ -378,7 +390,7 @@ favorable for the second priority. If we set the argument
 when a pair is classified as neutral:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.pair2 <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
-                     trace = 0, n.permutation = 0, neutral.as.uninf = FALSE)
+                     trace = 0, method.inference = "none", neutral.as.uninf = FALSE)
 summary(BT.pair2)
 #+END_SRC
 
@@ -387,7 +399,7 @@ summary(BT.pair2)
 : 
 :  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
-:  > groups          : No(control) vs. Yes(treatment) 
+:  > groups          : No (control) vs. Yes (treatment) 
 :  > results
 :  endpoint threshold total favorable unfavorable neutral uninf delta Delta
 :     tumor       0.5   100         0           0     100     0     0     0
@@ -401,7 +413,7 @@ groups set the argument =keep.comparison= to =TRUE=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
                      data = veteran, keep.comparison = TRUE, 
-                     trace = 0, n.permutation = 0)
+                     trace = 0, method.inference = "none")
 #+END_SRC
 
 #+RESULTS:
@@ -505,25 +517,31 @@ BuyseTest.options()
 
 #+RESULTS:
 #+begin_example
+$check
+[1] TRUE
+
 $conf.level
 [1] 0.95
 
 $cpus
 [1] 1
 
-$keep.permutation
-[1] TRUE
-
 $method
 [1] "Peron"
 
-$n.permutation
+$correctionTTE
+[1] FALSE
+
+$method.inference
+[1] "permutation"
+
+$n.resampling
 [1] 1000
 
-$neutralAsUninf
+$neutral.as.uninf
 [1] TRUE
 
-$keepComparison
+$keep.comparison
 [1] FALSE
 
 $trace
@@ -554,4 +572,41 @@ BuyseTest.options(reinitialise = TRUE)
 
 ** BuysePower: TO BE DONE
 ** seBuyseTest: TO BE DONE
+
+* Information about the R session used for this document
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+sessionInfo()
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+R version 3.4.0 (2017-04-21)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252    LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] BuyseTest_1.3       sandwich_2.4-0      reshape2_1.4.3      nlme_3.1-131        multcomp_1.4-8      TH.data_1.0-8       mvtnorm_1.0-7      
+ [8] Matrix_1.2-9        MASS_7.3-47         ggplot2_2.2.1       spelling_1.1        roxygen2_6.0.1      butils.base_1.1     XML_3.98-1.7       
+[15] selectr_0.3-1       devtools_1.13.2     survival_2.41-3     pbapply_1.3-3       testthat_2.0.0      snowfall_1.84-6.1   data.table_1.10.4-3
+[22] Rcpp_0.12.16        prodlim_1.6.1       lava_1.6.1          doSNOW_1.0.14       snow_0.4-2          iterators_1.0.8     foreach_1.4.4      
+
+loaded via a namespace (and not attached):
+ [1] zoo_1.8-0                 splines_3.4.0             lattice_0.20-35           colorspace_1.3-2          rlang_0.1.1               withr_2.1.2              
+ [7] plyr_1.8.4                stringr_1.2.0             munsell_0.4.3             commonmark_1.2            gtable_0.2.0              rvest_0.3.2              
+[13] codetools_0.2-15          memoise_1.1.0             RcppArmadillo_0.8.400.0.0 doParallel_1.0.11         backports_1.1.0           scales_0.4.1             
+[19] pipeR_0.6.1.3             desc_1.1.0                digest_0.6.12             stringi_1.1.5             grid_3.4.0                rprojroot_1.2            
+[25] tools_3.4.0               magrittr_1.5              lazyeval_0.2.0            tibble_1.3.3              crayon_1.3.4              xml2_1.1.1               
+[31] assertthat_0.2.0          httr_1.2.1                R6_2.2.1                  compiler_3.4.0
+#+end_example
+
 

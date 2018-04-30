@@ -167,6 +167,7 @@ BuyseTest <- function(formula,
     outArgs$formula <- NULL
 
     outBT <- do.call(.BuyseTest, args = outArgs)
+    
     ## ** Gather results into a BuyseRes object
     method <- switch(as.character(outArgs$method),
                      "0" = "Gehan",
@@ -233,7 +234,7 @@ BuyseTest <- function(formula,
                        treatment,
                        type,
                        Wscheme){
-    
+
     ## ** Initialize dataset
     outData <- initializeData(data = data,
                               treatment = treatment,
