@@ -7,8 +7,6 @@
 #' @description Class defining the global settings for the BuyseTest package.
 #' 
 #' @inheritParams BuyseTest
-#' @param conf.level the confidence level of the confidence interval
-#' @param keep.permutation should the result of each sample from the permutation test be stored in BuyseRes objects?
 #' 
 #' @seealso 
 #' \code{\link{BuyseTest.options}} to select or update global settings.
@@ -23,10 +21,10 @@ setClass(
   representation(
     conf.level = "numeric",
     cpus = "numeric",
-    keep.permutation = "logical",
     method = "character",
     correctionTTE = "logical",
-    n.permutation = "numeric",
+    method.inference = "character",
+    n.resampling = "numeric",
     neutral.as.uninf = "logical",
     keep.comparison = "logical",
     trace = "numeric",
@@ -47,10 +45,6 @@ setClass(
                  min = 1,
                  valid.length = 1,
                  method = "Class BuyseTest.options")
-    validLogical(object@keep.permutation,
-                 name1 = "@keep.permutation",
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
     validCharacter(object@method,
                    name1 = "@method",
                    valid.values = c("Peron","Efron","Peto","Gehan"),
@@ -61,8 +55,8 @@ setClass(
                    valid.values = c("Peron","Efron","Peto","Gehan"),
                    valid.length = 1,
                    method = "Class BuyseTest.options")
-    validInteger(object@n.permutation,
-                 name1 = "@n.permutation",
+    validInteger(object@n.resampling,
+                 name1 = "@n.resampling",
                  min = 0,
                  valid.length = 1,
                  method = "Class BuyseTest.options")
@@ -89,6 +83,11 @@ setClass(
                    valid.values = c("netChance","winRatio"),
                    valid.length = 1,
                    method = "Class BuyseTest.options")
+    validCharacter(object@method.inference,
+                   name1 = "@resampling",
+                   valid.values = c("bootstrap","permutation","asymptotic"),
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
     return(TRUE)} 
 )
 
@@ -111,8 +110,8 @@ setMethod(f = "alloc",
             name.field <- names(field)
             n.field <- length(field)
             
-            for (iter_field in 1:n.field) {
-              slot(object, name.field[iter_field]) <- field[[iter_field]]
+            for (iField in 1:n.field) {
+              slot(object, name.field[iField]) <- field[[iField]]
             }
             
             return(object)
@@ -131,8 +130,8 @@ setMethod(f = "select",
             n.field <- length(name.field)
             
             ls.slots <- setNames(vector(mode = "list", length = n.field), name.field)
-            for (iter_field in 1:n.field) {
-              ls.slots[[iter_field]] <- slot(object, name.field[iter_field])
+            for (iField in 1:n.field) {
+              ls.slots[[iField]] <- slot(object, name.field[iField])
             }
             
             return(ls.slots)

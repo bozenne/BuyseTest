@@ -28,14 +28,13 @@
 #' Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param method.inference [character] should a permutation test (\code{"permutation"})
+#' or bootstrap resampling (\code{"boostrap"})
+#' be used to compute p-values and confidence intervals.
 #' @param neutral.as.uninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param n.permutation [integer] the number of permutations used for computing the confidence interval and the p.values. See details.
+#' @param n.resampling [integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param prob.alloc [0<double<1] the resampling probability for being allocated to the experimental group in the permutation test.
-#' Can also be \code{NULL} to use the proportion of patients in the experimental group.
-#' @param stratified [logical] should the allocation in the permutation test be performed within strata.
-#' This means that the \code{prob.alloc} will be satisfied within strata not only globally.
 #' @param keep.comparison [logical] should the result of each pairwise comparison be kept?
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
@@ -56,8 +55,8 @@
 #' code{"TTE"} (time-to-event endpoint). 
 #' \bold{operator:} when the operator is set to \code{"<0"} the corresponding column in the dataset is multiplied by \code{-1}.
 #' 
-#' \bold{n.permutation:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
-#' A large number of permutations (e.g. \code{n.permutation=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
+#' \bold{n.resampling:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
+#' A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
 #' 
 #' \bold{trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
 #' 
@@ -111,28 +110,29 @@ BuyseTest <- function(formula,
                       method = NULL,
                       correctionTTE = FALSE,
                       neutral.as.uninf = NULL,
-                      n.permutation = NULL,
-                      prob.alloc = NULL,
-                      stratified = FALSE,
+                      method.inference = NULL,
+                      n.resampling = NULL,
                       keep.comparison = NULL,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
                       trace = NULL){
 
-    BuyseCall <- match.call()
+    name.call <- names(match.call())
     option <- BuyseTest.options()
 
     ## ** initialize arguments
     outArgs <- initializeArgs(alternative = alternative,
-                              BuyseCall = BuyseCall,
+                              name.call = name.call,
                               censoring = censoring,
+                              correctionTTE = correctionTTE,
                               cpus = cpus,
+                              data = data,
                               endpoint = endpoint,
                               formula = formula,
                               keep.comparison = keep.comparison,
                               method = method,
-                              n.permutation = n.permutation,
+                              n.resampling = n.resampling,
                               neutral.as.uninf = neutral.as.uninf,
                               operator = operator,
                               option = option,
@@ -140,219 +140,161 @@ BuyseTest <- function(formula,
                               threshold = threshold,
                               trace = trace,
                               treatment = treatment,
-                              type = type)
-
-    browser()
-    alternative  <- outArgs$alternative
-    censoring <- outArgs$censoring
-    cpus <- outArgs$cpus
-    endpoint <- outArgs$endpoint
-    keep.comparison <- outArgs$keep.comparison
-    method <- outArgs$method
-    n.permutation <- outArgs$n.permutation
-    neutral.as.uninf <- outArgs$neutral.as.uninf
-    operator <- outArgs$operator
-    seed <- outArgs$seed
-    strata <- outArgs$strata
-    threshold <- outArgs$threshold
+                              type = type,
+                              method.inference = method.inference)
     trace <- outArgs$trace
-    treatment <- outArgs$treatment
-    type <- outArgs$type
 
-    ## ** test args
+    ## ** test arguments
     if(TRUE){
-        testArgs(alternative = alternative,
-                 BuyseCall = BuyseCall,
-                 censoring = censoring,
-                 correctionTTE = correctionTTE,
-                 cpus = cpus,
-                 data = data,
-                 endpoint = endpoint,
-                 formula = formula,
-                 method = method,
-                 n.permutation = n.permutation,
-                 operator = operator,
-                 proba = proba,
-                 seed = seed,
-                 stratified = stratified,
-                 strata = strata,
-                 threshold = threshold,
-                 treatment = treatment,
-                 type = type)
-
-        ## ## ** proba
-        ## if(!is.null(prob.alloc)){
-        ##     validNumeric(prob.alloc,
-        ##                  valid.length = 1,
-        ##                  min = 0,
-        ##                  max = 1,
-        ##                  method = "BuyseTest")
-        ## }
+        outTest <- do.call(testArgs, args = outArgs)
     }
-
-    browser()
-    ## ** General display
+    
+    ## ** Display
     if (trace > 1) {
-        printGeneral(levels.treatment = levels.treatment,
-                     levels.strata = levels.strata,
-                     n.strata = n.strata,
-                     endpoint = endpoint,
-                     threshold = threshold,
-                     censoring = censoring,
-                     operator = operator,
-                     type = type,
-                     D = D,
-                     D.TTE = D.TTE,
-                     method = method,
-                     neutral.as.uninf = neutral.as.uninf,
-                     Wscheme = if (D>1 && method %in% 1:3) {Wscheme} else {NULL}, 
-                     threshold_TTEM1 = if (D>1 && method %in% 1:3) {threshold_TTEM1} else {NULL})
+        outPrint <- do.call(printGeneral, args = outArgs)
     }
     
-    ## ** Lauch BuyseTest
-    .BuyseTest(data = data, 
-               treatment = treatment,
-               endpoint = endpoint,
-               type = type,
-               threshold = threshold,
-               censoring = censoring,
-               strata = strata, 
-               method = method,
-               correctionTTE = correctionTTE,
-               neutral.as.uninf = neutral.as.uninf,
-               n.permutation = n.permutation,
-               prob.alloc = prob.alloc,
-               stratified = stratified,
-               keep.comparison = keep.comparison,
-               alternative = alternative, 
-               seed = seed,
-               cpus = cpus,
-               trace = trace)
+    ## ** Computations
+    outArgs$name.call <- NULL
+    outArgs$formula <- NULL
+    level.strata <- outArgs$level.strata
+    outArgs$level.strata <- NULL
+    level.treatment <- outArgs$level.treatment
+    outArgs$level.treatment <- NULL
+    outArgs$formula <- NULL
+    outBT <- do.call(.BuyseTest, args = outArgs)
 
+    ## ** Gather results into a BuyseRes object
+    method <- switch(as.character(outArgs$method),
+                     "0" = "Gehan",
+                     "1" = "Peto" ,
+                     "2" = "Efron",
+                     "3" = "Peron"
+                     )
 
-     ## *** update BuyseRes object 
-        if(option$keep.permutation){
-            BuyseRes.object@delta_permutation <- delta_permutation
-        }
-        
-        BuyseRes.object@Delta_quantile <- resCI$Delta_quantile
-        BuyseRes.object@n_permutation <- resCI$n_permutation
-        BuyseRes.object@p.value <- resCI$p.value
-        BuyseRes.object@conf.level <- option$conf.level
-        validObject(BuyseRes.object)
-    if (trace > 1) {cat("   > done \n")}
-    
-    ### ** 4- Transformation into BuyseRes object
-    if (trace > 1) {cat("Conversion to BuyseRes object \n")}
     BuyseRes.object <- BuyseRes(
-        count_favorable = resPonctual$count_favorable,      
-        count_unfavorable = resPonctual$count_unfavorable,
-        count_neutral = resPonctual$count_neutral,    
-        count_uninf = resPonctual$count_uninf,
-        delta = list(netChance = resPonctual$delta_netChance,
-                     winRatio = resPonctual$delta_winRatio),
-        Delta = list(netChance = resPonctual$Delta_netChance,
-                     winRatio = resPonctual$Delta_winRatio),
-        endpoint = endpoint,
-        index_neutralT = resPonctual$index_neutralT,
-        index_neutralC = resPonctual$index_neutralC,
-        index_uninfT = resPonctual$index_uninfT,
-        index_uninfC = resPonctual$index_uninfC,
-        levels.treatment = levels.treatment,
-        n_pairs = resPonctual$n_pairs,
-        strata = levels.strata,
-        threshold = threshold,
-        conf.level = as.numeric(NA),
-        tableComparison = resPonctual$tableComparison,
+        count.favorable = outBT$count_favorable,      
+        count.unfavorable = outBT$count_unfavorable,
+        count.neutral = outBT$count_neutral,    
+        count.uninf = outBT$count_uninf,
+        n.pairs = outBT$n_pairs,
+        delta.netChance = outBT$delta_netChance,
+        delta.winRatio = outBT$delta_winRatio,
+        Delta.netChance = outBT$Delta_netChance,
+        Delta.winRatio = outBT$Delta_winRatio,
+        index.neutralT = outBT$index_neutralT,
+        index.neutralC = outBT$index_neutralC,
+        index.uninfT = outBT$index_uninfT,
+        index.uninfC = outBT$index_uninfC,
+        endpoint = outArgs$endpoint,
+        level.treatment = level.treatment,
+        method = method,
+        method.inference = outArgs$method.inference,
+        strata = outArgs$strata,
+        level.strata = level.strata,
+        threshold = outArgs$threshold,
+        n.resampling = outArgs$n.resampling,
+        deltaResampling.netChance = outBT$deltaResampling_netChance,
+        deltaResampling.winRatio = outBT$deltaResampling_winRatio,
+        DeltaResampling.netChance = outBT$DeltaResampling_netChance,
+        DeltaResampling.winRatio = outBT$DeltaResampling_winRatio,
+        tableComparison = outBT$tableComparison,
         args = list(indexT = indexT, indexC = indexC)
     )
-    if (trace > 1) {cat("   > done \n")}
 
-    
+    ## ** export
+    return(BuyseRes.object)
 }
 
 ## * .BuyseTest
-.BuyseTest <- function(data, 
-                       treatment = NULL,
-                       endpoint = NULL,
-                       type = NULL,
-                       threshold = NULL,
-                       censoring = NULL,
-                       strata = NULL, 
-                       method = NULL,
-                       correctionTTE = FALSE,
-                       neutral.as.uninf = NULL,
-                       n.permutation = NULL,
-                       prob.alloc = NULL,
-                       stratified = FALSE,
-                       keep.comparison = NULL,
-                       alternative = "two.sided", 
-                       seed = NULL,
-                       cpus = NULL,
-                       trace = NULL){
+.BuyseTest <- function(alternative, 
+                       censoring,
+                       correctionTTE,
+                       cpus,
+                       data, 
+                       endpoint,
+                       index.survivalM1,
+                       keep.comparison,                       
+                       method,
+                       method.inference,
+                       n.resampling,
+                       neutral.as.uninf,
+                       operator,
+                       seed,
+                       strata, 
+                       threshold,
+                       threshold.TTEM1,
+                       trace,
+                       treatment,
+                       type,
+                       Wscheme){
+    
+    ## ** Initialize dataset
+    outData <- initializeData(data = data,
+                              treatment = treatment,
+                              endpoint = endpoint,
+                              censoring = censoring,
+                              type = type,
+                              operator = operator,
+                              method = method,
+                              strata = strata)
 
-   
-    ## ** initialize dataset
-    initializeData(BT.envir) ## update of the arguments via environment
-
-    if (is.null(prob.alloc)) { # if prob.alloc is not set by the user
-        prob.alloc <- n.Treatment/(n.Treatment + n.Control)  # it is set to the proportion of patients in the treatment arm.
+    index.strataT <- outData$index.strataT
+    index.strataC <- outData$index.strataC
+    n.strata <- outData$n.strata
+    level.strata <- outData$level.strata
+    M.Treatment <- outData$M.Treatment
+    M.Control <- outData$M.Control
+    M.delta.Treatment <- outData$M.delta.Treatment
+    M.delta.Control <- outData$M.delta.Control
+    D <- length(endpoint)
+    D.TTE <- sum(type==3)
+        
+    ## ** Initialize survival
+    if(method==0){
+        ## factice lists. Will be sent to the C++ arguments to fill the argument but not used by the function.
+        list.survivalT <- list()
+        list.survivalC <- list()
+    }else if(method==1){
+        outSurv <- intializeSurvival_Peto(M.Treatment=M.Treatment,
+                                          M.Control=M.Control,
+                                          M.delta.Treatment=M.delta.Treatment,
+                                          M.delta.Control=M.delta.Control,
+                                          endpoint=endpoint,
+                                          D.TTE=D.TTE,
+                                          type=type,
+                                          threshold=threshold,
+                                          index.strataT=index.strataT,
+                                          index.strataC=index.strataC,
+                                          n.strata=n.strata)
+        list.survivalT <- outSurv$list.survivalT
+        list.survivalC <- outSurv$list.survivalC
+    }else if(method %in% 2:3){
+        outSurv <- intializeSurvival_Peron(M.Treatment=M.Treatment,
+                                           M.Control=M.Control,
+                                           M.delta.Treatment=M.delta.Treatment,
+                                           M.delta.Control=M.delta.Control,
+                                           endpoint=endpoint,
+                                           D.TTE=D.TTE,
+                                           type=type,
+                                           threshold=threshold,
+                                           index.strataT=index.strataT,
+                                           index.strataC=index.strataC,
+                                           n.strata=n.strata)
+        list.survivalT <- outSurv$list.survivalT
+        list.survivalC <- outSurv$list.survivalC
     }
-    
-    ## ** KM imputation
-    if(method %in% 1:3){# c("Peto","Efron","Peron")
-    
-    endpoint.TTE <- endpoint[type==3] # vector of variable names of the TTE endpoints
-    
-    ## *** design matrix for the weights
-    if(is.null(Wscheme)){
-        res_init <- initWscheme(D=D,
-                                endpoint=endpoint,
-                                endpoint.TTE=endpoint.TTE,
-                                D.TTE=D.TTE,
-                                threshold=threshold,
-                                type=type)
-      Wscheme <- res_init$Wscheme  
-      index_survivalM1 <- res_init$index_survivalM1
-      threshold_TTEM1 <- res_init$threshold_TTEM1       
-    }
-    ## *** Survival estimate using Kaplan Meier    
-    res_init <- initSurvival(M.Treatment=M.Treatment,
-                             M.Control=M.Control,
-                             M.delta_Treatment=M.delta_Treatment,
-                             M.delta_Control=M.delta_Control,
-                             endpoint=endpoint,
-                             D.TTE=D.TTE,
-                             type=type,
-                             threshold=threshold,
-                             index.strataT=index.strataT,
-                             index.strataC=index.strataC,
-                             n.strata=n.strata,   
-                             method=method)
-    
-    list_survivalT <- res_init$list_survivalT
-    list_survivalC <- res_init$list_survivalC
-    
-    }else{
-        Wscheme <- matrix()  # factice design matrix for the weights. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        list_survivalT <- list() # factice list. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        list_survivalC <- list() # factice list. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        index_survivalM1 <- numeric(0) # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        threshold_TTEM1 <- numeric(0)  # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    }
 
-
-    
     ## ** Punctual estimation
-    if (trace > 1) {cat("Punctual estimation \n")}
+    if (trace > 1) {cat("Punctual estimation ")}
 
     time <- system.time({
-        resPonctual <- GPC_cpp(Treatment = M.Treatment,
+        outPunctual <- GPC_cpp(Treatment = M.Treatment,
                                Control = M.Control,
                                threshold = threshold,
                                survEndpoint = (type == 3),
-                               delta_Treatment = M.delta_Treatment,
-                               delta_Control = M.delta_Control,
+                               delta_Treatment = M.delta.Treatment,
+                               delta_Control = M.delta.Control,
                                D = D,
                                returnIndex = TRUE,
                                strataT = index.strataT,
@@ -360,57 +302,60 @@ BuyseTest <- function(formula,
                                n_strata = n.strata,
                                n_TTE = D.TTE,
                                Wscheme = Wscheme,
-                               index_survivalM1 = index_survivalM1,
-                               threshold_TTEM1 = threshold_TTEM1, 
-                               list_survivalT = list_survivalT,
-                               list_survivalC = list_survivalC,
+                               index_survivalM1 = index.survivalM1,
+                               threshold_TTEM1 = threshold.TTEM1, 
+                               list_survivalT = list.survivalT,
+                               list_survivalC = list.survivalC,
                                methodTTE = method,
                                correctionTTE = correctionTTE,
                                neutralAsUninf = neutral.as.uninf,
                                keepComparison = keep.comparison
                                )
     })
-    
-    if (trace > 1) {cat("   > done \n")}
-    
+    if (trace > 1) {cat("(done) \n")}
 
-    ## ** Permutation test 
-    if (n.permutation > 0) {
+    ## ** Permutation test
+    
+    if (method.inference %in% c("permutation","bootstrap")) {
+    
+        ## *** display
         if (trace > 1) {
-            cat("\n")
-            printPermutation(prob.alloc, n.permutation, stratified, cpus, time, seed)
+            if (time[3] == 0) {
+                time.punctual <- "<0.001 s"
+                time.permutation <- paste0("<",signif(0.001*n.resampling/cpus,4)," s")
+            }else{
+                time.punctual <- paste(time[3],"s")
+                time.permutation <- paste(signif(time[3]*n.resampling/cpus,4),"s")
+            }
+            txt.type <- switch(method.inference,
+                               "bootstrap" = "bootstrap resampling",
+                               "permutation" = "permutation test")
+            
+            cat("Settings (",txt.type,"): \n",
+                "   > requested time for one sample: ", time.punctual, "\n",
+                "   > estimated time for ", n.resampling, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.permutation, "\n", sep = "")
+            if (!is.null(seed)) {
+                cat("   > seed", if (cpus > 1) {"s"}, ": ",paste(seq(seed,seed + cpus - 1), collapse = " "), sep = "")       
+            }
+            cat("\n")         
         }
-        
-        n.eachStrataT <- unlist(lapply(index.strataT, length)) # those variables are used during the permutation test and passed to the wrapper through the environment
+
+        ## *** computations
+        n.eachStrataT <- unlist(lapply(index.strataT, length)) 
         n.eachStrataC <- unlist(lapply(index.strataC, length))
         nCumSum.strataControl <- cumsum(c(1,n.eachStrataC))
         nCumSum.strataTreatment <- cumsum(c(1,n.eachStrataT))
-        
-        delta_permutation <- list(netChance = array(NA, dim = c(n.strata, D, n.permutation)),
-                                 winRatio = array(NA, dim = c(n.strata, D, n.permutation))
-                                 )
-        Delta_permutation <- list(netChance = matrix(NA, nrow = D, ncol = n.permutation),
-                                 winRatio = matrix(NA, nrow = D, ncol = n.permutation)
-                                 )
-        
-        ## *** computation
-        calcPermutation(environment())
-        
-        ## *** post treatment
-        if (trace > 1) {cat("Post-Treatment and update of the BuyseRes object \n")}
-        resCI <- calcCI(Delta = BuyseRes.object@Delta,
-                        Delta_permutation = Delta_permutation, 
-                        endpoint = endpoint,
-                        D = D,
-                        alternative = alternative,
-                        alpha = 1 - option$conf.level,
-                        n.permutation = n.permutation,
-                        cpus = cpus,
-                        trace = trace)
-        
-       
+        envirBT <- environment()
+ 
+        outResampling <- inferenceResampling(envirBT)
+        outPunctual <- c(outPunctual,
+                         outResampling)
+    }else if(method.inference %in% c("asymptotic")){
+        stop("Not implemented yet \n")
     }
-    
+        
     ## ** Export
-    return(BuyseRes.object)
+    return(outPunctual)
 }
+
+

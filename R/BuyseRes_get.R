@@ -15,7 +15,7 @@
 #' @examples
 #' dt <- simBuyseTest(1e2)
 #' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=dt,
-#'                 n.permutation = 0)
+#'                 n.resampling = 0)
 #' getCount(BT)
 #' getCount(BT, type = "favorable")
 #'
@@ -37,10 +37,10 @@ setMethod(f = "getCount",
                            method = "getCount")
 
             out <- NULL
-            if ("favorable" %in% type) {out <- c(out, favorable = object@count_favorable)}
-            if ("unfavorable" %in% type) {out <- c(out, unfavorable = object@count_unfavorable)}
-            if ("neutral" %in% type) {out <- c(out, neutral = object@count_neutral)}
-            if ("uninf" %in% type) {out <- c(out, uninf = object@count_uninf)}
+            if ("favorable" %in% type) {out <- c(out, favorable = object@count.favorable)}
+            if ("unfavorable" %in% type) {out <- c(out, unfavorable = object@count.unfavorable)}
+            if ("neutral" %in% type) {out <- c(out, neutral = object@count.neutral)}
+            if ("uninf" %in% type) {out <- c(out, uninf = object@count.uninf)}
 
             return(out)
           }

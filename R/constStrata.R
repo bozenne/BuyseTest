@@ -69,8 +69,8 @@ constStrata <- function(data,strata,sep=".",lex.order = FALSE,trace=TRUE,as.nume
     cat(n.levels," strata were founded on the ",length(strata)," strata variable",if(length(strata)>1){"s"}," (",paste(strata,collapse=" "),")\n",        
         "(",rep("#",max.num),") strata ",paste(rep(" ",max(0,max(ncharLevels)-6)),collapse=""),": number of observations \n",sep="")
     
-    for(iter_level in 1:n.levels){            
-      cat("(",iter_level,")",paste(rep(" ",max.num-nchar(iter_level),collapse=""))," ",textLevels[[iter_level]],"\n",sep="")            
+    for(iLevel in 1:n.levels){            
+      cat("(",iLevel,")",paste(rep(" ",max.num-nchar(iLevel),collapse=""))," ",textLevels[[iLevel]],"\n",sep="")            
     }
     
     cat("(total) ",rep(" ",max(ncharLevels,6))," : ",length(resInteractions),"\n",sep="")

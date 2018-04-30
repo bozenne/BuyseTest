@@ -1,23 +1,37 @@
 ## * Documentation - print function called by BuyseTest 
 #' @name internal-print
-#' @rdname internal-print
 #' @title internal functions for BuyseTest - display
-#' @aliases printGeneral printPermutation
+#' @description Functions called by \code{\link{BuyseTest}} to display the settings.
 #' 
-#' @description Functions called by \code{\link{BuyseTest}} to display what is going on.
-#' 
-#' @details
-#' \code{printGeneral} display general settings. \cr
-#' \code{printPermutation} display the settings of the permutation test. \cr
-#' 
-#' 
-#' @keywords function internal BuyseTest
+#' @keywords internal
 
 ## * Function printGeneral
-printGeneral <- function(levels.treatment,
-                         levels.strata, n.strata,
-                         endpoint, threshold, censoring, operator, type, D, D.TTE,
-                         method, neutral.as.uninf, Wscheme, threshold_TTEM1){
+#' @rdname internal-print
+printGeneral <- function(censoring,
+                         D,
+                         D.TTE,
+                         data,
+                         endpoint,
+                         level.strata,
+                         level.treatment,
+                         method,
+                         neutral.as.uninf,
+                         operator,
+                         strata,
+                         threshold,
+                         threshold.TTEM1,
+                         treatment,
+                         type,
+                         Wscheme,
+                         ...){
+
+    D <- length(endpoint)
+    D.TTE <- sum(type == 3)
+    if(!is.null(strata)){
+        n.strata <- length(level.strata)
+    }else{
+        n.strata <- 1
+    }
 
     ## ** Prepare
     ## endpoint
@@ -44,15 +58,15 @@ printGeneral <- function(levels.treatment,
     
     ## threshold
     if(any(type==3)){
-        if (length(threshold_TTEM1) > 0) {
-            threshold_TTEM1.display <- threshold_TTEM1
-            threshold_TTEM1.display[threshold_TTEM1.display < 0] <- +Inf
+        if (length(threshold.TTEM1) > 0) {
+            threshold.TTEM1.display <- threshold.TTEM1
+            threshold.TTEM1.display[threshold.TTEM1.display < 0] <- +Inf
         }else{
-            threshold_TTEM1.display <- +Inf
+            threshold.TTEM1.display <- +Inf
         }
-    
+        
         threshold.display <- rbind(sapply(1:D.TTE,
-                                          function(x){paste(c("[",round(threshold_TTEM1.display[x],4),
+                                          function(x){paste(c("[",round(threshold.TTEM1.display[x],4),
                                                               " ; ",round(threshold[type == 3][x],4),
                                                               "] "), collapse = "")}))
         colnames(threshold.display) <- endpoint[type == 3]      
@@ -61,11 +75,11 @@ printGeneral <- function(levels.treatment,
     
     ## ** Display
     cat("Settings (punctual estimation) \n")
-    cat("   > reference: Control = ",levels.treatment[1]," and Treatment = ",levels.treatment[2],"\n", sep = "")
+    cat("   > reference: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
     cat("   > ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
     if(n.strata>1){
-        cat("   > ", n.strata, " strata with levels ", paste(levels.strata,collapse = " "), "\n", sep = "")
+        cat("   > ", n.strata, " strata with levels ", paste(level.strata,collapse = " "), "\n", sep = "")
     }
     cat("   > management of neutral pairs : ")
     if(neutral.as.uninf){
@@ -82,32 +96,13 @@ printGeneral <- function(levels.treatment,
                "Peron" = cat("imputation using different survival curve for control and treatment patients \n")
                ) 
         if (method %in% c("Peto","Efron","Peron")) {
-    
-        cat("   > weights of the pairs relatively to the enpoints : \n")
-        print(Wscheme)
-    
-        cat("   > intervals thresholds for survival endpoints : \n")    
-        print(threshold.display)
-    }
+            
+            cat("   > weights of the pairs relatively to the enpoints : \n")
+            print(Wscheme)
+            
+            cat("   > intervals thresholds for survival endpoints : \n")    
+            print(threshold.display)
+        }
     }
 }
 
-## * Function printPermutation
-printPermutation <- function(prob.alloc, n.permutation, stratified, cpus, time, seed){
-  
-  if (time[3] == 0) {
-    time.punctual <- "<0.001 s"
-    time.permutation <- paste0("<",signif(0.001*n.permutation/cpus,4)," s")
-  }else{
-    time.punctual <- paste(time[3],"s")
-    time.permutation <- paste(signif(time[3]*n.permutation/cpus,4),"s")
-  }
-  
-  cat("Settings (", if (stratified) {"stratified "}, "permutation test) \n",
-      "   > resampling probability for assignment to the treatment group: ", prob.alloc, "\n",
-      "   > requested time for one sample: ", time.punctual, "\n",
-      "   > estimated time for ", n.permutation, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.permutation, "\n", sep = "")
-  if (!is.null(seed)) {
-    cat("   > seed", if (cpus > 1) {"s"}, ": ",paste(seq(seed,seed + cpus - 1), collapse = " "), " \n", sep = "")       
-  }
-}

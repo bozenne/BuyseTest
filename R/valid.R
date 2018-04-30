@@ -184,18 +184,18 @@ validDimension <- function(value1,
     }
     
 #### main
-    for(iter_type in 1:n.type){
+    for(iType in 1:n.type){
         
-        if(test.dimension[iter_type] != valid.dimension[iter_type]){
+        if(test.dimension[iType] != valid.dimension[iType]){
             
             if(test.valid.dimension){
                 stop(method, "dimension mismatch between argument \'", name1, "\' and argument \'", name2, "\' \n", 
-                     type[iter_type],"(", name1, ") = ", test.dimension[iter_type], " \n", 
-                     type[iter_type],"(", name2, ") = ", valid.dimension[iter_type], " \n")  
+                     type[iType],"(", name1, ") = ", test.dimension[iType], " \n", 
+                     type[iType],"(", name2, ") = ", valid.dimension[iType], " \n")  
             }else{
                 stop(method, "dimension mismatch between argument \'", name1, "\' and argument \'", name2, "\' \n", 
-                     type[iter_type],"(", name1, ") = ", test.dimension[iter_type], " \n", 
-                     type[iter_type],"(", name2, ") = ", valid.dimension[iter_type], " \n")
+                     type[iType],"(", name1, ") = ", test.dimension[iType], " \n", 
+                     type[iType],"(", name2, ") = ", valid.dimension[iType], " \n")
                 
             }
             

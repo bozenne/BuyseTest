@@ -27,6 +27,8 @@ Depends:
     data.table,
     snowfall
 Imports:
+    doParallel,
+    doSNOW,
     methods,
     lava,
     stats,
@@ -34,7 +36,7 @@ Imports:
     utils
 Suggests:
     testthat,
-    tcltk,
+    pbapply,
     survival
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11

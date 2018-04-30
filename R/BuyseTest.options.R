@@ -15,11 +15,11 @@
 #' BuyseTest.options()
 #' 
 #' ## see some of the global parameters
-#' BuyseTest.options("n.permutation", "trace")
+#' BuyseTest.options("n.resampling", "trace")
 #' 
 #' ## update some of the global parameters
-#' BuyseTest.options(n.permutation = 10, trace = 1)
-#' BuyseTest.options("n.permutation", "trace")
+#' BuyseTest.options(n.resampling = 10, trace = 1)
+#' BuyseTest.options("n.resampling", "trace")
 #' 
 #' ## reinitialise all global parameters
 #' BuyseTest.options(reinitialise = TRUE)
@@ -34,15 +34,15 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
            new("BuyseTest.options",
                conf.level = 0.95,
                cpus = 1,
-               keep.permutation = TRUE,
                method = "Peron",
                correctionTTE = FALSE,
-               n.permutation = 1000,
+               n.resampling = 1000,
                neutral.as.uninf = TRUE,
                keep.comparison = FALSE,
                trace = 3,
                seed = 10,
-               statistic = "netChance"), 
+               statistic = "netChance",
+               method.inference = "permutation"), 
            envir = BuyseTest.env)
     
     return(invisible(get(".BuyseTest-options", envir = BuyseTest.env)))
