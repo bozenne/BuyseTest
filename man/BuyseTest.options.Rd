@@ -23,11 +23,11 @@ It only affects the \code{\link{BuyseTest}} function
 BuyseTest.options()
 
 ## see some of the global parameters
-BuyseTest.options("n.permutation", "trace")
+BuyseTest.options("n.resampling", "trace")
 
 ## update some of the global parameters
-BuyseTest.options(n.permutation = 10, trace = 1)
-BuyseTest.options("n.permutation", "trace")
+BuyseTest.options(n.resampling = 10, trace = 1)
+BuyseTest.options("n.resampling", "trace")
 
 ## reinitialise all global parameters
 BuyseTest.options(reinitialise = TRUE)

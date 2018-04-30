@@ -81,6 +81,7 @@ initializeArgs <- function(alternative,
         if(is.null(operator)){
             operator <- rep(">0",length(endpoint))
         }
+        formula <- NULL
     }
 
     ## ** endpoint
@@ -122,8 +123,8 @@ initializeArgs <- function(alternative,
             index.tempo <- intersect(which(is.na(threshold)),which(type==1))
             threshold[index.tempo] <- 1/2
         }
-        if(any(is.na(threshold[type==2]))){
-            index.tempo <- intersect(which(is.na(threshold)),which(type==2))
+        if(any(is.na(threshold[type!=1]))){
+            index.tempo <- intersect(which(is.na(threshold)),which(type!=1))
             threshold[index.tempo] <- 10^{-12}
         }
         if(any(abs(stats::na.omit(threshold))<10^{-12})){
@@ -217,7 +218,7 @@ initializeArgs <- function(alternative,
     if(!is.null(strata)){
         level.strata <- levels(interaction(data[,strata,with=FALSE], drop = TRUE, lex.order = FALSE, sep = "."))
     }else{
-        level.strata <- NULL
+        level.strata <- "1"
     }
     
     ## ** export
@@ -426,7 +427,7 @@ initializeData <- function(data, treatment, endpoint, censoring, type, operator,
         strataT <- interaction(dataT[,strata,with=FALSE], drop = TRUE, lex.order = FALSE, sep=".") # strata variable for the treatment arm transformed into factor
         strataC <- interaction(dataC[,strata,with=FALSE], drop = TRUE, lex.order = FALSE, sep=".") # strata variable for the control arm transformed into factor
         level.strata <- levels(strataT) # extraction of the levels of the strata variables
-        
+
         strataT <- as.numeric(strataT) # strata variable for the treatment arm converted into numeric 
         strataC <- as.numeric(strataC) # strata variable for the control arm converted into numeric
     
@@ -435,7 +436,6 @@ initializeData <- function(data, treatment, endpoint, censoring, type, operator,
         strataC <- rep(1,n.Control)  # all patient of the control arm are in the same strata : strata 1
         level.strata <- 1 # the only strata is strata 1
     }
-  
     n.strata <- length(level.strata) # number of strata
     index.strataT <- lapply(1:n.strata,function(x){which(x==strataT)-1}) # for each strata, the index of the patients belonging to this strata in the treatment arm is stored in an element of the list. 
     index.strataC <- lapply(1:n.strata,function(x){which(x==strataC)-1}) # for each strata, the index of the patients belonging to this strata in the control arm is stored in an element of the list. 
@@ -456,16 +456,20 @@ initializeData <- function(data, treatment, endpoint, censoring, type, operator,
 
     ## ** efron correction
     if(method==2){ # "Efron"
-            for(iStrata in 1:n.strata){
-        
+            for(iStrata in 1:n.strata){ ## iStrata <- 1
+
+                index.typeTTE <- which(type==3)
+                D.TTE <- length(index.typeTTE)
                 Mstrata.Treatment <- M.Treatment[index.strataT[[iStrata]]+1,,drop=FALSE]
                 Mstrata.Control <- M.Control[index.strataC[[iStrata]]+1,,drop=FALSE]
         
                 ## set last observation for each TTE endpoint to non-censored
-                for(iEndpoint.TTE in 1:D.TTE){
-                    indexT_maxCensored <- which(Mstrata.Treatment[,which(type==3)[iEndpoint.TTE]]==max(Mstrata.Treatment[,which(type==3)[iEndpoint.TTE]]))
+                for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
+                    iEndpoint <- index.typeTTE[iEndpoint.TTE]
+                        
+                    indexT_maxCensored <- which(Mstrata.Treatment[,iEndpoint] == max(Mstrata.Treatment[,iEndpoint])) ## cannot use which.max - not handlle correctly multiple times
                     M.delta.Treatment[index.strataT[[iStrata]][indexT_maxCensored]+1,iEndpoint.TTE] <- 1
-                    indexC_maxCensored <- which(Mstrata.Control[,which(type==3)[iEndpoint.TTE]]==max(Mstrata.Control[,which(type==3)[iEndpoint.TTE]]))
+                    indexC_maxCensored <- which(Mstrata.Control[,iEndpoint] == max(Mstrata.Control[,iEndpoint]))
                     M.delta.Control[index.strataC[[iStrata]][indexC_maxCensored]+1,iEndpoint.TTE] <- 1
                 }
             }

@@ -23,13 +23,5 @@ A \code{"vector"} containing the number of pairs
 \description{
 Extract the number of pairs.
 }
-\examples{
-dt <- simBuyseTest(1e2)
-BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=dt,
-                n.permutation = 0)
-getCount(BT)
-getCount(BT, type = "favorable")
-
-}
 \keyword{BuyseRes-method}
 \keyword{getCount}

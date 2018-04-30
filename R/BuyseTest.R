@@ -28,8 +28,9 @@
 #' Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param method.inference [character] should a permutation test (\code{"permutation"})
-#' or bootstrap resampling (\code{"boostrap"})
+#' @param correctionTTE [logical] bias correction for non-informative pairs. Experimental.
+#' @param method.inference [character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
+#' or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
 #' be used to compute p-values and confidence intervals.
 #' @param neutral.as.uninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 #' Default value read from \code{BuyseTest.options()}.
@@ -60,7 +61,8 @@
 #' 
 #' \bold{trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
 #' 
-#' \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus. The parallelization relies on the \emph{snowfall} package (function \emph{sfClusterApplyLB}). The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
+#' \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus.
+#' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
 #' 
 #' \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal outcome.\cr
 #' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
@@ -137,6 +139,7 @@ BuyseTest <- function(formula,
                               operator = operator,
                               option = option,
                               seed = seed,
+                              strata = strata,
                               threshold = threshold,
                               trace = trace,
                               treatment = treatment,
@@ -145,13 +148,13 @@ BuyseTest <- function(formula,
     trace <- outArgs$trace
 
     ## ** test arguments
-    if(TRUE){
+    if(option$check){
         outTest <- do.call(testArgs, args = outArgs)
     }
     
     ## ** Display
     if (trace > 1) {
-        outPrint <- do.call(printGeneral, args = outArgs)
+            outPrint <- do.call(printGeneral, args = outArgs)
     }
     
     ## ** Computations
@@ -162,8 +165,8 @@ BuyseTest <- function(formula,
     level.treatment <- outArgs$level.treatment
     outArgs$level.treatment <- NULL
     outArgs$formula <- NULL
-    outBT <- do.call(.BuyseTest, args = outArgs)
 
+    outBT <- do.call(.BuyseTest, args = outArgs)
     ## ** Gather results into a BuyseRes object
     method <- switch(as.character(outArgs$method),
                      "0" = "Gehan",
@@ -199,7 +202,9 @@ BuyseTest <- function(formula,
         DeltaResampling.netChance = outBT$DeltaResampling_netChance,
         DeltaResampling.winRatio = outBT$DeltaResampling_winRatio,
         tableComparison = outBT$tableComparison,
-        args = list(indexT = indexT, indexC = indexC)
+        args = list(indexC = which(outArgs$data[[outArgs$treatment]]==level.treatment[1]),
+                    indexT = which(outArgs$data[[outArgs$treatment]]==level.treatment[2])
+                    )
     )
 
     ## ** export
@@ -238,7 +243,7 @@ BuyseTest <- function(formula,
                               operator = operator,
                               method = method,
                               strata = strata)
-
+    
     index.strataT <- outData$index.strataT
     index.strataC <- outData$index.strataC
     n.strata <- outData$n.strata
@@ -256,7 +261,7 @@ BuyseTest <- function(formula,
         list.survivalT <- list()
         list.survivalC <- list()
     }else if(method==1){
-        outSurv <- intializeSurvival_Peto(M.Treatment=M.Treatment,
+        outSurv <- initializeSurvival_Peto(M.Treatment=M.Treatment,
                                           M.Control=M.Control,
                                           M.delta.Treatment=M.delta.Treatment,
                                           M.delta.Control=M.delta.Control,
@@ -270,7 +275,7 @@ BuyseTest <- function(formula,
         list.survivalT <- outSurv$list.survivalT
         list.survivalC <- outSurv$list.survivalC
     }else if(method %in% 2:3){
-        outSurv <- intializeSurvival_Peron(M.Treatment=M.Treatment,
+        outSurv <- initializeSurvival_Peron(M.Treatment=M.Treatment,
                                            M.Control=M.Control,
                                            M.delta.Treatment=M.delta.Treatment,
                                            M.delta.Control=M.delta.Control,
@@ -316,7 +321,7 @@ BuyseTest <- function(formula,
 
     ## ** Permutation test
     
-    if (method.inference %in% c("permutation","bootstrap")) {
+    if (method.inference %in% c("permutation","bootstrap","stratified permutation", "stratified bootstrap")) {
     
         ## *** display
         if (trace > 1) {
@@ -329,7 +334,9 @@ BuyseTest <- function(formula,
             }
             txt.type <- switch(method.inference,
                                "bootstrap" = "bootstrap resampling",
-                               "permutation" = "permutation test")
+                               "stratified bootstrap" = "stratified bootstrap resampling",
+                               "permutation" = "permutation test",
+                               "stratified permutation" = "stratified permutation test")
             
             cat("Settings (",txt.type,"): \n",
                 "   > requested time for one sample: ", time.punctual, "\n",
@@ -343,17 +350,22 @@ BuyseTest <- function(formula,
         ## *** computations
         n.eachStrataT <- unlist(lapply(index.strataT, length)) 
         n.eachStrataC <- unlist(lapply(index.strataC, length))
+        n.T <- sum(n.eachStrataT)
+        n.C <- sum(n.eachStrataC)
         nCumSum.strataControl <- cumsum(c(1,n.eachStrataC))
         nCumSum.strataTreatment <- cumsum(c(1,n.eachStrataT))
         envirBT <- environment()
- 
+        envirBT$.BuyseTest <- .BuyseTest
+        envirBT$warperResampling <- warperResampling
+        envirBT$initializeSurvival_Peto <- initializeSurvival_Peto
+        envirBT$initializeSurvival_Peron <- initializeSurvival_Peron
+
         outResampling <- inferenceResampling(envirBT)
         outPunctual <- c(outPunctual,
                          outResampling)
     }else if(method.inference %in% c("asymptotic")){
         stop("Not implemented yet \n")
     }
-        
     ## ** Export
     return(outPunctual)
 }

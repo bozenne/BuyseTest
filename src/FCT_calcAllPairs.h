@@ -193,7 +193,7 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
     }
   }else{
     vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
-    double weight_residual, weight_favorable, weight_unfavorable;   
+    double weight_residual;   
     
     for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
       for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients

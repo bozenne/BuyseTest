@@ -12,13 +12,6 @@
 #' @return
 #'   A \code{"vector"} containing the number of pairs
 #'
-#' @examples
-#' dt <- simBuyseTest(1e2)
-#' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=dt,
-#'                 n.resampling = 0)
-#' getCount(BT)
-#' getCount(BT, type = "favorable")
-#'
 #' @keywords getCount BuyseRes-method
 
 ## * Method - getCount

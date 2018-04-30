@@ -160,7 +160,7 @@ simBuyseTest <- function(n.T, n.C = NULL,
 ## * Function simBuyseTest_bin
 simBuyseTest_bin <- function(modelT, modelC, p.T = 0.5, p.C = NULL, name = NULL){
 
-  ## ** intialisation
+  ## ** initialisation
   n.endpoints <- length(p.T)
   if(is.null(name)){ 
     if(n.endpoints == 1){name <- "toxicity"}else{name <- paste0("toxicity",1:n.endpoints)}
@@ -207,7 +207,7 @@ simBuyseTest_cont <- function(modelT,
                               sigma.C = NULL,
                               name = NULL){
     
-    ## ** intialisation
+    ## ** initialisation
     n.endpoints <- length(mu.T)
     if(is.null(name)){ 
         if(n.endpoints == 1){name <- "score"}else{name <- paste0("score",1:n.endpoints)}
@@ -263,7 +263,7 @@ simBuyseTest_TTE <- function(modelT,
                              name = NULL,
                              nameCensoring = NULL){
     
-    ## ** intialisation
+    ## ** initialisation
     n.endpoints <- length(rates.T)
     if(is.null(name)){ 
         if(n.endpoints == 1){name <- "eventtime"}else{name <- paste0("eventtime",1:n.endpoints)}

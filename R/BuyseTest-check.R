@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr 29 2018 (22:32) 
+## Last-Updated: apr 30 2018 (11:54) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 31
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -154,8 +154,8 @@ testArgs <- function(alternative,
                          valid.length = NULL,
                          refuse.NA = TRUE,
                          method = "BuyseTest")
-            validNumeric(data[[censoring[which(intex.TTE == iTTE)]]],
-                         name1 = censoring[which(intex.TTE == iTTE)],
+            validNumeric(data[[censoring[which(index.TTE == iTTE)]]],
+                         name1 = censoring[which(index.TTE == iTTE)],
                          valid.values = c(0,1),
                          valid.length = NULL,
                          method = "BuyseTest")
@@ -191,11 +191,11 @@ testArgs <- function(alternative,
     ## ** method.inference
     validCharacter(method.inference,
                    valid.length = 1,
-                   valid.values = c("none","asymptotic","bootstrap","permutation"),
+                   valid.values = c("none","asymptotic","bootstrap","permutation","stratified bootstrap","stratified permutation"),
                    method = "BuyseTest")
 
     ## ** n.resampling
-    if(method.inference %in% c("bootstrap","permutation")){
+    if(method.inference %in% c("bootstrap","permutation","stratified bootstrap","stratified permutation")){
         validInteger(n.resampling,
                      valid.length = 1,
                      min = 1,

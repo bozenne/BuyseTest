@@ -1,17 +1,3 @@
-## * Documentation
-#' @name internal-computation
-#' @name internal-computation
-#' @title internal functions for BuyseTest - computations
-#' @aliases calcPermutation calcCI
-#' 
-#' @description Functions called by \code{\link{BuyseTest}} to perform calculations.
-#' 
-#' @details
-#' \code{inferenceResampling} performs the permutation test in sequential or parallel mode. \cr
-#' \code{warperResampling} resample the data for the cpp function. \cr
-#' 
-#' @keywords function internal BuyseTest
-
 ## * inferenceResampling
 inferenceResampling <- function(envir){
 
@@ -23,7 +9,6 @@ inferenceResampling <- function(envir){
     n.strata <- envir$n.strata
     seed <- envir$seed
     trace <- envir$trace
-    warperResampling <- envir$warperResampling
     
     ## ** computation
     if (cpus == 1) { ## *** sequential permutation test
@@ -44,26 +29,33 @@ inferenceResampling <- function(envir){
             
     }else { ## *** parallel permutation test
             
-            if (trace > 1) {cat("Parallel permutation test \n")}
-            cl <- snow::makeSOCKcluster(cpus)
-            doSNOW::registerDoSNOW(cl)
+        if (trace > 1) {cat("Parallel permutation test \n")}
 
-            if(trace){
-                pb <- utils::txtProgressBar(min=1, max=n.resampling, style=3)
-                ls.options <- list(progress = function(n){ setTxtProgressBar(pb, n) })
-            }else{
-                ls.options <- NULL
-            }
 
-            iB <- NULL ## [:forCRANcheck:] foreach
-            ls.permutation <- foreach::`%dopar%`(
-                                           foreach::foreach(iB=1:n.resampling,
-                                                            .packages=c("BuyseTest"),
-                                                            .options.snow = ls.options,
-                                                            .export = "warperResampling"), {
-                                                                return(warperResampling(iB, envir = envir))
-                                                            })
-            stopCluster(cl)
+        cl <- snow::makeSOCKcluster(cpus)
+        doSNOW::registerDoSNOW(cl)
+        
+        if(trace){
+            pb <- utils::txtProgressBar(min=1, max=n.resampling, style=3)
+            ls.options <- list(progress = function(n){ utils::setTxtProgressBar(pb, n) })
+        }else{
+            ls.options <- NULL
+        }
+
+        toExport <- c("warperResampling","initializeSurvival_Peto","initializeSurvival_Peron")
+
+        iB <- NULL ## [:forCRANcheck:] foreach        
+        ls.permutation <- foreach::`%dopar%`(
+                                       foreach::foreach(iB=1:n.resampling,
+                                                        .packages = "BuyseTest",
+                                                        .options.snow = ls.options,
+                                                        .export = toExport),                                            
+                                       {
+                                           return(warperResampling(iB, envir = envir))
+                                       })
+                                   
+        parallel::stopCluster(cl)
+        if(trace>0){close(pb)}
     }
 
     ## ** post treatment
@@ -94,7 +86,6 @@ inferenceResampling <- function(envir){
     return(out)
 }
 ## * warperResampling
-#' @rdname internal-computation
 warperResampling <- function(x, envir){
 
     ## ** prepare
@@ -109,33 +100,75 @@ warperResampling <- function(x, envir){
     ## ** Data management
     new.nT <- 0
     new.nC <- 0
-  
-    for (iterS in 1:envir$n.strata) {  ## randomisation : new allocation of the treatment and control arm
-
-        if(envir$method.inference == "boostrap"){
-            indexT <- sample.int(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS],
-                                 size = envir$n.eachStrataT[iterS], 
+    if(envir$method.inference %in% c("bootstrap","permutation")){
+        if(envir$method.inference == "bootstrap"){
+            indexT <- sample.int(envir$n.T+envir$n.C,
+                                 size = envir$n.T, 
                                  replace = TRUE)
-            indexC <- sample.int(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS],
-                                 size = envir$n.eachStrataC[iterS], 
+        
+            indexC <- sample.int(envir$n.T+envir$n.C,
+                                 size = envir$n.C, 
                                  replace = TRUE)
+        
         }else if(envir$method.inference == "permutation"){
-            indexT <- sample.int(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS],
-                                 size = envir$n.eachStrataT[iterS], 
+            indexT <- sample.int(envir$n.T+envir$n.C,
+                                 size = envir$n.T, 
                                  replace = FALSE)
-            indexC <- setdiff(1:(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS]), indexT)
+
+            indexC <- setdiff(1:(envir$n.T+envir$n.C), indexT)
         }
 
-        indexT.T <- indexT[indexT<=envir$n.eachStrataT[iterS]] 
-        indexT.C <- setdiff(indexT, indexT.T) - envir$n.eachStrataT[iterS]
-                
-        indexC.T <- indexC[indexC<=envir$n.eachStrataT[iterS]] 
-        indexC.C <- setdiff(indexC, indexC.T) - envir$n.eachStrataT[iterS]
+        indexT.T <- intersect(indexT,1:envir$n.T)
+        indexT.C <- setdiff(indexT,indexT.T) - envir$n.T
+        indexC.T <- intersect(indexC,1:envir$n.T)
+        indexC.C <- setdiff(indexC,indexC.T) - envir$n.T
+     
+    }
 
-        ## sort(c(indexT.T,indexC.T))
-        ## sort(c(indexT.C,indexC.C))
-        nResampling.T <- length(indexT) 
-        nResampling.C <- length(indexC) 
+    for (iterS in 1:envir$n.strata) {  ## randomisation : new allocation of the treatment and control arm
+
+        if(envir$method.inference %in% c("bootstrap","permutation")){
+            ## +1 because index.strataX starts at 0 since it is sent to C++ in the punctual estimation
+            iIndexT.T <- intersect(indexT.T, envir$index.strataT[[iterS]] + 1)
+            iIndexT.C <- intersect(indexT.C, envir$index.strataC[[iterS]] + 1) 
+            iIndexC.T <- intersect(indexC.T, envir$index.strataT[[iterS]] + 1)
+            iIndexC.C <- intersect(indexC.C, envir$index.strataC[[iterS]] + 1)
+            ## sort(c(iIndexT, iIndexC))
+            
+        }else{
+            
+            if(envir$method.inference == "stratified bootstrap"){
+                iIndexT <- sample.int(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS],
+                                      size = envir$n.eachStrataT[iterS], 
+                                      replace = TRUE)
+                iIndexC <- sample.int(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS],
+                                      size = envir$n.eachStrataC[iterS], 
+                                      replace = TRUE)
+            }else if(envir$method.inference == "stratified permutation"){
+                iIndexT <- sample.int(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS],
+                                      size = envir$n.eachStrataT[iterS], 
+                                      replace = FALSE)
+                iIndexC <- setdiff(1:(envir$n.eachStrataT[iterS]+envir$n.eachStrataC[iterS]), iIndexT)
+            }
+
+            iIndexT.T <- iIndexT[iIndexT<=envir$n.eachStrataT[iterS]]
+            iIndexT.C <- setdiff(iIndexT, iIndexT.T) - envir$n.eachStrataT[iterS]
+            
+            iIndexC.T <- iIndexC[iIndexC<=envir$n.eachStrataT[iterS]] 
+            iIndexC.C <- setdiff(iIndexC, iIndexC.T) - envir$n.eachStrataT[iterS]
+
+            ## convert back to global index (instead of within strata index)
+            ## +1 because index.strataX starts at 0 since it is sent to C++ in the punctual estimation
+            iIndexT.T <- envir$index.strataT[[iterS]][iIndexT.T] + 1
+            iIndexT.C <- envir$index.strataC[[iterS]][iIndexT.C] + 1
+            iIndexC.T <- envir$index.strataT[[iterS]][iIndexC.T] + 1
+            iIndexC.C <- envir$index.strataC[[iterS]][iIndexC.C] + 1
+        }
+
+        ## sort(c(iIndexT.T,iIndexC.T))
+        ## sort(c(iIndexT.C,iIndexC.C))
+        nResampling.T <- length(iIndexT.T) + length(iIndexT.C) 
+        nResampling.C <- length(iIndexC.T) + length(iIndexC.C)
         
         ## *** test whether there are observations in each group
         if (nResampling.T == 0 || nResampling.C == 0) {
@@ -146,34 +179,34 @@ warperResampling <- function(x, envir){
     
         ## *** update dataset
         Mnew.Treatment <- rbind(Mnew.Treatment, 
-                                envir$M.Treatment[indexT.T,,drop = FALSE], 
-                                envir$M.Control[indexT.C,,drop = FALSE])
+                                envir$M.Treatment[iIndexT.T,,drop = FALSE], 
+                                envir$M.Control[iIndexT.C,,drop = FALSE])
         Mnew.Control <- rbind(Mnew.Control, 
-                              envir$M.Treatment[indexC.T,,drop = FALSE],
-                              envir$M.Control[indexC.C,,drop = FALSE]) 
+                              envir$M.Treatment[iIndexC.T,,drop = FALSE],
+                              envir$M.Control[iIndexC.C,,drop = FALSE]) 
     
-        ## *** update strata - the new strata index minus 1 (for C++ compatibility, vector begin at 0)
+        ## *** update strata - the new strata iIndex minus 1 (for C++ compatibility, vector begin at 0)
         new.strataT[[iterS]] <- seq(from = new.nT, by = 1, length = nResampling.T) 
         new.strataC[[iterS]] <- seq(from = new.nC, by = 1, length = nResampling.C)
     
         ## *** update censoring variables
         if (envir$D.TTE > 0) { 
             Mnew.delta.Treatment <- rbind(Mnew.delta.Treatment, 
-                                          envir$M.delta.Treatment[indexT.T,, drop = FALSE], 
-                                          envir$M.delta.Control[indexT.C,, drop = FALSE])
+                                          envir$M.delta.Treatment[iIndexT.T,, drop = FALSE], 
+                                          envir$M.delta.Control[iIndexT.C,, drop = FALSE])
             Mnew.delta.Control <- rbind(Mnew.delta.Control, 
-                                        envir$M.delta.Treatment[indexC.T,, drop = FALSE],
-                                        envir$M.delta.Control[indexC.C,, drop = FALSE])
+                                        envir$M.delta.Treatment[iIndexC.T,, drop = FALSE],
+                                        envir$M.delta.Control[iIndexC.C,, drop = FALSE])
       
             if (envir$method == 2) { # "Efron": set last event to non-censored
                 Mnewstrata.Treatment <- Mnew.Treatment[new.strataT[[iterS]] + 1, which(envir$type == 3), drop = FALSE]
                 Mnewstrata.Control <- Mnew.Control[new.strataC[[iterS]] + 1, which(envir$type == 3), drop = FALSE]
         
                 for (iEndpoint.TTE in 1:envir$D.TTE) {
-                    indexT_maxCensored <- which.max(Mnewstrata.Treatment[,iEndpoint.TTE])
-                    Mnew.delta.Treatment[new.strataT[[iterS]][indexT_maxCensored] + 1,iEndpoint.TTE] <- 1
-                    indexC_maxCensored <- which.max(Mnewstrata.Control[,iEndpoint.TTE])
-                    Mnew.delta.Control[new.strataC[[iterS]][indexC_maxCensored] + 1,iEndpoint.TTE] <- 1
+                    iIndexT_maxCensored <- which.max(Mnewstrata.Treatment[,iEndpoint.TTE])
+                    Mnew.delta.Treatment[new.strataT[[iterS]][iIndexT_maxCensored] + 1,iEndpoint.TTE] <- 1
+                    iIndexC_maxCensored <- which.max(Mnewstrata.Control[,iEndpoint.TTE])
+                    Mnew.delta.Control[new.strataC[[iterS]][iIndexC_maxCensored] + 1,iEndpoint.TTE] <- 1
                 }
             }
         }else {
@@ -195,21 +228,7 @@ warperResampling <- function(x, envir){
         new.survivalT <- lapply(1:envir$D.TTE, matrix)
         new.survivalC <- lapply(1:envir$D.TTE, matrix)
     }else if(envir$method == 1){ ## Peto
-        outSurv <- intializeSurvival_Peto(M.Treatment=Mnew.Treatment,
-                                          M.Control=Mnew.Control,
-                                          M.delta.Treatment=Mnew.delta.Treatment,
-                                          M.delta.Control=Mnew.delta.Control,
-                                          endpoint=envir$endpoint,
-                                          D.TTE=envir$D.TTE,
-                                          type=envir$type,
-                                          threshold=envir$threshold,
-                                          index.strataT=new.strataT,
-                                          index.strataC=new.strataC,
-                                          n.strata=envir$n.strata)
-        new.survivalT <- outSurv$list.survivalT
-        new.survivalC <- outSurv$list.survivalC
-    }else if(envir$method %in% 2:3){
-        outSurv <- intializeSurvival_Peron(M.Treatment=Mnew.Treatment,
+        outSurv <- initializeSurvival_Peto(M.Treatment=Mnew.Treatment,
                                            M.Control=Mnew.Control,
                                            M.delta.Treatment=Mnew.delta.Treatment,
                                            M.delta.Control=Mnew.delta.Control,
@@ -220,6 +239,20 @@ warperResampling <- function(x, envir){
                                            index.strataT=new.strataT,
                                            index.strataC=new.strataC,
                                            n.strata=envir$n.strata)
+        new.survivalT <- outSurv$list.survivalT
+        new.survivalC <- outSurv$list.survivalC
+    }else if(envir$method %in% 2:3){
+        outSurv <- initializeSurvival_Peron(M.Treatment=Mnew.Treatment,
+                                            M.Control=Mnew.Control,
+                                            M.delta.Treatment=Mnew.delta.Treatment,
+                                            M.delta.Control=Mnew.delta.Control,
+                                            endpoint=envir$endpoint,
+                                            D.TTE=envir$D.TTE,
+                                            type=envir$type,
+                                            threshold=envir$threshold,
+                                            index.strataT=new.strataT,
+                                            index.strataC=new.strataC,
+                                            n.strata=envir$n.strata)
         new.survivalT <- outSurv$list.survivalT
         new.survivalC <- outSurv$list.survivalC
     }

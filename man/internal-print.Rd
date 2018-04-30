@@ -3,20 +3,13 @@
 \name{internal-print}
 \alias{internal-print}
 \alias{printGeneral}
-\alias{printPermutation}
 \title{internal functions for BuyseTest - display}
 \usage{
-printGeneral(levels.treatment, levels.strata, n.strata, endpoint, threshold,
-  censoring, operator, type, D, D.TTE, method, neutral.as.uninf, Wscheme,
-  threshold_TTEM1)
+printGeneral(censoring, D, D.TTE, data, endpoint, level.strata, level.treatment,
+  method, neutral.as.uninf, operator, strata, threshold, threshold.TTEM1,
+  treatment, type, Wscheme, ...)
 }
 \description{
-Functions called by \code{\link{BuyseTest}} to display what is going on.
+Functions called by \code{\link{BuyseTest}} to display the settings.
 }
-\details{
-\code{printGeneral} display general settings. \cr
-\code{printPermutation} display the settings of the permutation test. \cr
-}
-\keyword{BuyseTest}
-\keyword{function}
 \keyword{internal}

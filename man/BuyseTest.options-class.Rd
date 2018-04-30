@@ -4,11 +4,6 @@
 \name{BuyseTest.options-class}
 \alias{BuyseTest.options-class}
 \title{Class "BuyseTest.options" (global setting for the BuyseTest package)}
-\arguments{
-\item{conf.level}{the confidence level of the confidence interval}
-
-\item{keep.permutation}{should the result of each sample from the permutation test be stored in BuyseRes objects?}
-}
 \description{
 Class defining the global settings for the BuyseTest package.
 }

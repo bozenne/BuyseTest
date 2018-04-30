@@ -1,6 +1,6 @@
 sensitivityBT <- function(formula, ...){
   
-   resFormula <- initFormula(formula)
+   ## resFormula <- initFormula(formula)
    # create grid with those lenght>1
    # change Buyse Test to export the initalisation (once for all)
    # run over the grid - adapt parallel computation

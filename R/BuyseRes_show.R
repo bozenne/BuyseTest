@@ -21,19 +21,14 @@
 setMethod(f = "show",
           signature = "BuyseRes",
           definition = function(object){
-            
-              table <- summary(object, show = FALSE, percentage = NA, strata="global")              
-              table$threshold[is.na(table$threshold)] <- ""
-              if("p.value" %in% names(table)){
-                  table$CIinf.Delta <- paste0("[",table$CIinf.Delta,
-                                              ";",table$CIsup.Delta,"]")
-                  names(table)[names(table) == "CIinf.Delta"] <- "CI"
-                  table$CIsup.Delta <- NULL
-                  table$n.resampling <- NULL
-              }
+            outSummary <- summary(object, conf.level = NA, show = FALSE, percentage = NA, strata = "global")
+
+            table.print <- outSummary$table.print
+            exclude.col <- c("CI [NA ; NA]","p.value","","n.resampling")
+            table.print <- table.print[,setdiff(names(table.print), exclude.col)]
               
-              print(table, row.names = FALSE)
+            print(table.print, row.names = FALSE)
            
-              return(invisible(NULL))
+            return(invisible(NULL))
           }
           )

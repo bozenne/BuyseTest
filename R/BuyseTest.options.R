@@ -32,6 +32,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
   if (reinitialise == TRUE) {
     assign(".BuyseTest-options", 
            new("BuyseTest.options",
+               check = TRUE,
                conf.level = 0.95,
                cpus = 1,
                method = "Peron",

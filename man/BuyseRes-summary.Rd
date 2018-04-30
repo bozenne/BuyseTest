@@ -11,43 +11,41 @@
 summary(object, ...)
 
 \S4method{summary}{BuyseRes}(object, show = TRUE, percentage = TRUE,
-  statistic = BuyseTest.options()$statistic, strata = if
-  (length(object@strata) == 1) {     "global" } else {     NULL },
-  digit = c(2, 3))
+  statistic = BuyseTest.options()$statistic, conf.level = 0.95,
+  alternative = "two.sided", strata = if (length(object@level.strata) == 1)
+  {     "global" } else {     NULL }, digit = c(2, 3))
 }
 \arguments{
-\item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
+\item{object}{output of \code{\link{BuyseTest}}}
 
 \item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 
-\item{show}{Should the table be displayed? \emph{logical}.}
+\item{show}{[logical] Should the table be displayed?.}
 
-\item{percentage}{Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.}
+\item{percentage}{[logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.}
 
-\item{statistic}{the statistic summarizing the pairwise comparison: \code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)), whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).}
+\item{statistic}{[character] the statistic summarizing the pairwise comparison:
+\code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)),
+whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).}
 
-\item{strata}{the name of the strata to be displayed \emph{character vector}. Can also be \code{"global"} which displays the overall results.}
+\item{conf.level}{[numeric] confidence level for the confidence intervals.}
 
-\item{digit}{the number of digit to use for printing the results. \emph{integer}.}
-}
-\value{
-A matrix containing the endpoint (and the strata) in rows and the results of the pairwise comparison in columns:
-    \itemize{
-      \item\code{"n.favorable","n.unfavorable","n.neutral","n.uninformative"} : The favorable, unfavorable, neutral and uninformative pairs are reported in number of pairs classified in each category. \cr 
-      \item\code{"delta"} indicates for each endpoint and each strata the summary statistic of the pairwise comparison. \cr
-      \item\code{"Delta"} indicates for each endpoint the summary statistic of the pairwise comparison over all strata. \cr
-      \item\code{"CIinf.Delta","CIsup.Delta"} the confidence interval of the summary statistic. \cr
-      \item\code{"p.value"} the p.value relative to the null hypothesis. 
-    }
+\item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.}
+
+\item{strata}{[character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.}
+
+\item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
 }
 \description{
 Summarize the results from the \code{\link{BuyseTest}} function.
 }
 \details{
-WARNING : the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment under the null hypothesis. 
-It thus may not be valid if this hypothesis is rejected. In particular, if the cumulative proportion in favor of the treatment is close to 1, the upper limit of the confidence interval may exceed 1. 
+WARNING : when using a permutation test, the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment
+under the null hypothesis. 
+It thus may not be valid if this hypothesis is rejected.
 
-WARNING: For the win ratio, the proposed implementation enables the use of thresholds, endpoints that are not time to events, and the correction proposed in Peron et al. (2016) to account for censoring. 
+WARNING: For the win ratio, the proposed implementation enables the use of thresholds, endpoints that are not time to events,
+and the correction proposed in Peron et al. (2016) to account for censoring. 
 These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge). They are only provided here by implementation convenience.
 }
 \examples{
@@ -57,7 +55,7 @@ dt <- simBuyseTest(1e2, n.strata = 3)
  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
  }
  \dontshow{
- BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.permutation = 10, trace = 0)
+ BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.resampling = 10, trace = 0)
  }
  summary(BT)
  summary(BT, percentage = FALSE)

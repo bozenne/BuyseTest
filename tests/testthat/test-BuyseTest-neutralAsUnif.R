@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: apr 16 2018 (13:47) 
+## last-updated: apr 30 2018 (14:50) 
 ##           By: Brice Ozenne
-##     Update #: 37
+##     Update #: 39
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -25,7 +25,10 @@ if(FALSE){
 context("Check that the option neutral.as.uninf in BuyseTest is working correctly \n")
 
 ## * settings
-BuyseTest.options(n.permutation = 0, trace = 0, keep.comparison = TRUE)
+BuyseTest.options(check = FALSE,
+                  keep.comparison = TRUE,
+                  method.inference = "none",
+                  trace = 0)
 
 ## * generate data
 ## two survival endpoints and no censoring
@@ -50,10 +53,10 @@ test_that("continue after NA (no NA)", {
                          data = dt.data,
                          neutral.as.uninf = TRUE)
     
-    expect_equal(as.double(BT.TRUE@count_favorable),c(0,0))
-    expect_equal(as.double(BT.TRUE@count_unfavorable),c(0,4))
-    expect_equal(as.double(BT.TRUE@count_neutral),c(4,0))
-    expect_equal(as.double(BT.TRUE@count_uninf),c(0,0))
+    expect_equal(as.double(BT.TRUE@count.favorable),c(0,0))
+    expect_equal(as.double(BT.TRUE@count.unfavorable),c(0,4))
+    expect_equal(as.double(BT.TRUE@count.neutral),c(4,0))
+    expect_equal(as.double(BT.TRUE@count.uninf),c(0,0))
     
 })
 
@@ -62,10 +65,10 @@ test_that("continue after NA (NA)", {
                             data = dt.dataNA,
                             neutral.as.uninf = TRUE)
 
-    expect_equal(as.double(BT.TRUE_NA@count_favorable),c(0,0))
-    expect_equal(as.double(BT.TRUE_NA@count_unfavorable),c(0,4))
-    expect_equal(as.double(BT.TRUE_NA@count_neutral),c(2,0))
-    expect_equal(as.double(BT.TRUE_NA@count_uninf),c(2,0))
+    expect_equal(as.double(BT.TRUE_NA@count.favorable),c(0,0))
+    expect_equal(as.double(BT.TRUE_NA@count.unfavorable),c(0,4))
+    expect_equal(as.double(BT.TRUE_NA@count.neutral),c(2,0))
+    expect_equal(as.double(BT.TRUE_NA@count.uninf),c(2,0))
     
 })
 
@@ -76,10 +79,10 @@ test_that("stop after NA (no NA)", {
                           data = dt.data,
                           neutral.as.uninf = FALSE)
     
-    expect_equal(as.double(BT.FALSE@count_favorable),c(0,0))
-    expect_equal(as.double(BT.FALSE@count_unfavorable),c(0,0))
-    expect_equal(as.double(BT.FALSE@count_neutral),c(4,0))
-    expect_equal(as.double(BT.FALSE@count_uninf),c(0,0))
+    expect_equal(as.double(BT.FALSE@count.favorable),c(0,0))
+    expect_equal(as.double(BT.FALSE@count.unfavorable),c(0,0))
+    expect_equal(as.double(BT.FALSE@count.neutral),c(4,0))
+    expect_equal(as.double(BT.FALSE@count.uninf),c(0,0))
     
 })
 
@@ -88,10 +91,10 @@ test_that("stop after NA (NA)", {
                           data = dt.dataNA,
                           neutral.as.uninf = FALSE)
     
-    expect_equal(as.double(BT.FALSE@count_favorable),c(0,0))
-    expect_equal(as.double(BT.FALSE@count_unfavorable),c(0,2))
-    expect_equal(as.double(BT.FALSE@count_neutral),c(2,0))
-    expect_equal(as.double(BT.FALSE@count_uninf),c(2,0))
+    expect_equal(as.double(BT.FALSE@count.favorable),c(0,0))
+    expect_equal(as.double(BT.FALSE@count.unfavorable),c(0,2))
+    expect_equal(as.double(BT.FALSE@count.neutral),c(2,0))
+    expect_equal(as.double(BT.FALSE@count.uninf),c(2,0))
     
 })
 

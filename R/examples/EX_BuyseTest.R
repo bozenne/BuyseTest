@@ -1,5 +1,5 @@
 # reset the default value of the number of permuation sample
-BuyseTest.options(n.resampling = 0) # no permutation test
+BuyseTest.options(method.inference = "none") # no permutation test
 
 #### simulate some data ####
 df.data <- simBuyseTest(1e2, n.strata = 2)
@@ -19,39 +19,29 @@ summary(BT, statistic = "winRatio") # win Ratio
 
 ## bootstrap to compute the CI
 \dontrun{
-BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                n.resampling = 1e3)
+    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                    method.inference = "permutation", n.resampling = 1e3)
 }
 \dontshow{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.resampling = 1e1, trace = 0)
+    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                    method.inference = "permutation", n.resampling = 1e1, trace = 0)
 }
-summary(BT)
-summary(BT, statistic = "winRatio") # win Ratio
+summary(BT, statistic = "netChance") ## default
+summary(BT, statistic = "winRatio") 
 
 ## parallel boostrap
 \dontrun{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.resampling = 1e3, cpus = 2)
+    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                    method.inference = "permutation", n.resampling = 1e3, cpus = 2)
+    summary(BT)
 }
-\dontshow{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.resampling = 1e1, cpus = 2, trace = 0)
-}
-summary(BT)
 
 ## method Gehan is much faster but does not optimally handle censored observations
-\dontrun{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.resampling = 1e3, method = "Gehan")
-}
-\dontshow{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.resampling = 1e1, method = "Gehan", trace = 0)
-}
+BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                method = "Gehan", trace = 0)
 summary(BT)
 
-#### one time to event endpoint: only differences in survival over 1 count ####
+#### one time to event endpoint: only differences in survival over 1 unit ####
 BT <- BuyseTest(Treatment ~ TTE(eventtime, threshold = 1, censoring = status), data=df.data)
 summary(BT)
 
@@ -77,15 +67,16 @@ if(require(survival)){
  
   ## method = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, n.resampling = 100, method="Gehan")
+                        data=veteran, method="Gehan",
+                        method.inference = "permutation", n.resampling = 1e3)
   
   summary_Gehan <- summary(BT_Gehan)
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
   ## method = "Peron"
-  BT_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
-                        type="timeToEvent",censoring="status",threshold=0,
-                        n.resampling=100,method="Peron")
+  BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+                        data=veteran, method="Peron",
+                        method.inference = "permutation", n.resampling = 1e3)
 
   class(BT_Peron)
   summary(BT_Peron)

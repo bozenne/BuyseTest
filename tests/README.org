@@ -1,35 +1,35 @@
 * Tests
 
-** test-BT_noStrata
-Test BuyseTest without strata
-- check whether the number of pairs displayed in the summary is ok (e.g. total = favorable + unfavorable + neutral + uninf)
-- check consistency with existing tests
-- check consistency with results from previous version (on common slots, version >1.1, history from 1.0)
+** test-initThreshold
+Check correct intialization of the threshold in the user interface.
 
-** test-BT_strata
-Test BuyseTest with strata
-- check whether the number of pairs displayed in the summary is ok (e.g. total = favorable + unfavorable + neutral + uninf)
-- check whether when using identical values across strata, the result is the same across strata
-- check consistency with results from previous version (on common slots, version >1.1, history from 1.0)
-
-** test-Julien
-
-** test-BT_neutralAsUnif
-- check on a simple example for a TTE endpoint that neutral pairs are not analysed with endpoints of lower priority when neutralAsUninf = FALSE
-NOTE: not sure it is ok when considering several TTE, or what is happening when using weights
 
 ** test-initSurvival
-Test the computation of the survival
-- no strata: Check jump at t- and no jump at t+ in the estimated survival by KM
-- no strata: Check survival=NA after last event if censored else death (rational being that we do not know what it would be for censored but we do know that the survival if 0 if everybody is dead)
-- no strata and strata: check identical with previous version
-- check consistency with results from previous version (version >1.1)
+Check the computation of the survival using Kaplan Meier:
+- no strata: Check jump at t- and no jump at t+ in the estimated survival by KM.
+- no strata: Check survival=NA after last event if censored else death.
+(rational being that we do not know what it would be for censored but we do know that the survival if 0 if everybody is dead)
+- strata: check identical with other strata if all strata are identical.
+- strata and no strata: check consistency with results from previous version (version >1.2)
 
-** test-parallel
-Test BuyseTest with parallel bootstra
-- check consistency with results from previous version (on common slots, version >1.1, history from 1.0)
+** test-BuyseTest-Pairs
+Test BuyseTest on tractable examples:
+- count of positive, negative, neutral, uniformative pairs
+- delta and Delta net Chance and win Ratio
 
-** test-valid
+** test-BuyseTest-operator
+Test whether the argument operator="<0" and operator=">0" works on a simple example.
 
-* Not tested
-saut au moment du dernier evenement.
+** test-BuyseTest-neutralAsUnif
+Test whether the argument neutral.as.uninf works:
+- on an example without NA
+- on an example with NA
+
+** test-BuyseTest-previousBug
+Test issues reported by users:
+- incorrect management of pairs with neutral.as.uninf
+
+** test-BuyseTest-checkValues
+Check against known output in complex cases.
+
+** test-resampling

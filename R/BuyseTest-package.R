@@ -11,11 +11,9 @@
 #' @import methods
 #' @importFrom parallel detectCores
 #' @import Rcpp
-#' @import snowfall
 #' @importFrom stats as.formula delete.response formula na.omit rbinom setNames terms
 #' @importFrom stats4 summary
 #' @importFrom prodlim prodlim Hist
-#' @importFrom tcltk tkProgressBar setTkProgressBar
 #' @importFrom utils capture.output tail
 #' @references 
 #' Methodological references: \cr

@@ -6,8 +6,8 @@
 \usage{
 BuyseTest(formula, data, treatment = NULL, endpoint = NULL, type = NULL,
   threshold = NULL, censoring = NULL, operator = NULL, strata = NULL,
-  method = NULL, neutral.as.uninf = NULL, n.permutation = NULL,
-  prob.alloc = NULL, stratified = FALSE, keep.comparison = NULL,
+  method = NULL, correctionTTE = FALSE, neutral.as.uninf = NULL,
+  method.inference = NULL, n.resampling = NULL, keep.comparison = NULL,
   alternative = "two.sided", seed = NULL, cpus = NULL, trace = NULL)
 }
 \arguments{
@@ -45,17 +45,17 @@ Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
 
+\item{correctionTTE}{[logical] bias correction for non-informative pairs. Experimental.}
+
 \item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{n.permutation}{[integer] the number of permutations used for computing the confidence interval and the p.values. See details.
+\item{method.inference}{[character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
+or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
+be used to compute p-values and confidence intervals.}
+
+\item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 Default value read from \code{BuyseTest.options()}.}
-
-\item{prob.alloc}{[0<double<1] the resampling probability for being allocated to the experimental group in the permutation test.
-Can also be \code{NULL} to use the proportion of patients in the experimental group.}
-
-\item{stratified}{[logical] should the allocation in the permutation test be performed within strata.
-This means that the \code{prob.alloc} will be satisfied within strata not only globally.}
 
 \item{keep.comparison}{[logical] should the result of each pairwise comparison be kept?}
 
@@ -87,12 +87,13 @@ Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"
 code{"TTE"} (time-to-event endpoint). 
 \bold{operator:} when the operator is set to \code{"<0"} the corresponding column in the dataset is multiplied by \code{-1}.
 
-\bold{n.permutation:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
-A large number of permutations (e.g. \code{n.permutation=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
+\bold{n.resampling:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
+A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
 
 \bold{trace:} \code{3} reports all messages  \code{2} reports all messages except silent parallelization messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
 
-\bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus. The parallelization relies on the \emph{snowfall} package (function \emph{sfClusterApplyLB}). The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
+\bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus.
+The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
 
 \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal outcome.\cr
 Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
@@ -108,7 +109,7 @@ See Peron et al. (2016) for more details.
 }
 \examples{
 # reset the default value of the number of permuation sample
-BuyseTest.options(n.permutation = 0) # no permutation test
+BuyseTest.options(method.inference = "none") # no permutation test
 
 #### simulate some data ####
 df.data <- simBuyseTest(1e2, n.strata = 2)
@@ -128,39 +129,29 @@ summary(BT, statistic = "winRatio") # win Ratio
 
 ## bootstrap to compute the CI
 \dontrun{
-BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                n.permutation = 1e3)
+    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                    method.inference = "permutation", n.resampling = 1e3)
 }
 \dontshow{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.permutation = 1e1, trace = 0)
+    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                    method.inference = "permutation", n.resampling = 1e1, trace = 0)
 }
-summary(BT)
-summary(BT, statistic = "winRatio") # win Ratio
+summary(BT, statistic = "netChance") ## default
+summary(BT, statistic = "winRatio") 
 
 ## parallel boostrap
 \dontrun{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.permutation = 1e3, cpus = 2)
+    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                    method.inference = "permutation", n.resampling = 1e3, cpus = 2)
+    summary(BT)
 }
-\dontshow{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.permutation = 1e1, cpus = 2, trace = 0)
-}
-summary(BT)
 
 ## method Gehan is much faster but does not optimally handle censored observations
-\dontrun{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.permutation = 1e3, method = "Gehan")
-}
-\dontshow{
-  BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                  n.permutation = 1e1, method = "Gehan", trace = 0)
-}
+BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+                method = "Gehan", trace = 0)
 summary(BT)
 
-#### one time to event endpoint: only differences in survival over 1 count ####
+#### one time to event endpoint: only differences in survival over 1 unit ####
 BT <- BuyseTest(Treatment ~ TTE(eventtime, threshold = 1, censoring = status), data=df.data)
 summary(BT)
 
@@ -186,15 +177,16 @@ if(require(survival)){
  
   ## method = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, n.permutation = 100, method="Gehan")
+                        data=veteran, method="Gehan",
+                        method.inference = "permutation", n.resampling = 1e3)
   
   summary_Gehan <- summary(BT_Gehan)
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
   ## method = "Peron"
-  BT_Peron <- BuyseTest(data=veteran,endpoint="time",treatment="trt",strata="celltype",
-                        type="timeToEvent",censoring="status",threshold=0,
-                        n.permutation=100,method="Peron")
+  BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+                        data=veteran, method="Peron",
+                        method.inference = "permutation", n.resampling = 1e3)
 
   class(BT_Peron)
   summary(BT_Peron)

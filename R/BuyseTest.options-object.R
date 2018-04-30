@@ -19,17 +19,18 @@ setClass(
   Class = "BuyseTest.options",
   
   representation(
-    conf.level = "numeric",
-    cpus = "numeric",
-    method = "character",
-    correctionTTE = "logical",
-    method.inference = "character",
-    n.resampling = "numeric",
-    neutral.as.uninf = "logical",
-    keep.comparison = "logical",
-    trace = "numeric",
-    seed = "numeric",
-    statistic = "character"
+      check = "logical",
+      conf.level = "numeric",
+      cpus = "numeric",
+      method = "character",
+      correctionTTE = "logical",
+      method.inference = "character",
+      n.resampling = "numeric",
+      neutral.as.uninf = "logical",
+      keep.comparison = "logical",
+      trace = "numeric",
+      seed = "numeric",
+      statistic = "character"
   ),
 
   ### ** Check validity of the object

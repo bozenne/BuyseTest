@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 1.2.3
-Date: 2018-04-18
+Version: 1.3
+Date: 2018-04-30
 Author: Brice Ozenne[aut, cre], Julien Peron[aut]
 Maintainer: brice ozenne <brice.ozenne@orange.fr>
 Description: Implementation of the Generalized Pairwise Comparisons. This test
@@ -24,13 +24,14 @@ Depends:
     R (>= 2.10),
     prodlim,
     Rcpp,
-    data.table,
-    snowfall
+    data.table
 Imports:
-    doParallel,
     doSNOW,
+    foreach,
     methods,
     lava,
+    parallel,
+    snow,
     stats,
     stats4,
     utils
@@ -44,12 +45,14 @@ RoxygenNote: 6.0.1
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
+    'BuyseRes-calcCI.R'
     'BuyseRes-object.R'
     'BuyseRes-summary.R'
     'BuyseRes_get.R'
     'BuyseRes_show.R'
-    'BuyseTest-computation.R'
-    'BuyseTest-initilization.R'
+    'BuyseTest-check.R'
+    'BuyseTest-inference.R'
+    'BuyseTest-initialization.R'
     'BuyseTest-package.R'
     'BuyseTest-print.R'
     'BuyseTest.R'

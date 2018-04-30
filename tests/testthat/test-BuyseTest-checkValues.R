@@ -7,8 +7,10 @@ context("Check BuyseTest without strata")
 
 ## * Settings
 n.patients <- c(90,100)
-format <- "data.table"
-BuyseTest.options(n.permutation = 0, trace = 0, keep.comparison = TRUE)
+BuyseTest.options(check = FALSE,
+                  keep.comparison = TRUE,
+                  method.inference = "none",
+                  trace = 0)
 
 ## * Simulated data
 set.seed(10)
@@ -36,12 +38,12 @@ test_that("BuyseTest - binary (no strata)", {
                      type = "bin")
     
     ## *** test against fixed value
-    test <- list(favorable = as.double(BT.bin@count_favorable),
-                 unfavorable = as.double(BT.bin@count_unfavorable),
-                 neutral = as.double(BT.bin@count_neutral),
-                 uninf = as.double(BT.bin@count_uninf),
-                 netChange = as.double(BT.bin@Delta$netChance),
-                 winRatio = as.double(BT.bin@Delta$winRatio)
+    test <- list(favorable = as.double(BT.bin@count.favorable),
+                 unfavorable = as.double(BT.bin@count.unfavorable),
+                 neutral = as.double(BT.bin@count.neutral),
+                 uninf = as.double(BT.bin@count.uninf),
+                 netChange = as.double(BT.bin@Delta.netChance),
+                 winRatio = as.double(BT.bin@Delta.winRatio)
                  )
 
     GS <- list(favorable = c(2856) ,
@@ -58,9 +60,11 @@ test_that("BuyseTest - binary (no strata)", {
     ## fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$Treatment))
 
     ## *** count pairs
-    tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)
-    expect_equal(tableS[,c("n.total")],
-                 unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])))
+    tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)$table
+    dt.tableS <- as.data.table(tableS)[strata == "global"]
+    expect_equal(dt.tableS[,n.total],
+                 unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf])
+                 )
 })
 
 ## ** Strata
@@ -69,25 +73,22 @@ test_that("BuyseTest - binary (strata)", {
     BT.bin <- BuyseTest(Treatment ~ bin(toxicity1) + strata,
                         data = dtS.sim)
 
-    tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)
-
-    ## *** count pairs
-    expect_equal(tableS[,c("n.total")],
-                 unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])))
-    expect_equal(tableS[tableS$strata == "global","n.total"],
-                 sum(tableS[tableS$strata %in% as.character(1:3),"n.total"]))
-    expect_true(all(tableS[tableS$strata %in% as.character(1:3),"n.total"]==9000))
+    tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)$table
+    dt.tableS <- as.data.table(tableS)
     
+    ## *** count pairs
+    expect_equal(dt.tableS[,n.total],
+                 unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]
+                 ))
+    expect_equal(dt.tableS[,n.total], c(27000,9000,9000,9000))
+    expect_equal(dt.tableS[,n.favorable], c(8568, 2856, 2856, 2856))
+    expect_equal(dt.tableS[,n.unfavorable], c(5148, 1716, 1716, 1716))
+    expect_equal(dt.tableS[,n.neutral], c(13284, 4428, 4428, 4428))
+    expect_equal(dt.tableS[,n.uninf], c(0, 0, 0, 0))
 
     ## *** test summary statistic
-    expect_equal(as.double(tableS[tableS$strata=="global",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 c(27000.000, 8568.000, 5148.000, 13284.000, 0.000, 0.127, 0.127))
-    expect_equal(as.double(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 c(9000.0000, 2856.0000, 1716.0000, 4428.0000, 0.0000, 0.0422, NA))
-    expect_equal(as.double(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 as.double(tableS[tableS$strata=="2",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))
-    expect_equal(as.double(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 as.double(tableS[tableS$strata=="3",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))    
+    expect_equal(dt.tableS[,delta], c(0.1266667, 0.0422222, 0.0422222, 0.0422222), tol = 1e-6)
+    expect_equal(dt.tableS[,Delta], c(0.1266667, NA, NA, NA), tol = 1e-6)
 })
 
 ## * Continuous endpoint
@@ -104,12 +105,12 @@ test_that("BuyseTest - continuous (no strata)", {
                      )
     
     ## *** test against fixed value    
-    test <- list(favorable = as.double(BT.cont@count_favorable),
-                 unfavorable = as.double(BT.cont@count_unfavorable),
-                 neutral = as.double(BT.cont@count_neutral),
-                 uninf = as.double(BT.cont@count_uninf),
-                 netChange = as.double(BT.cont@Delta$netChance),
-                 winRatio = as.double(BT.cont@Delta$winRatio)
+    test <- list(favorable = as.double(BT.cont@count.favorable),
+                 unfavorable = as.double(BT.cont@count.unfavorable),
+                 neutral = as.double(BT.cont@count.neutral),
+                 uninf = as.double(BT.cont@count.uninf),
+                 netChange = as.double(BT.cont@Delta.netChance),
+                 winRatio = as.double(BT.cont@Delta.winRatio)
                  )
     GS <- list(favorable = c(1562, 2336) ,
                unfavorable = c(2690, 2412) ,
@@ -123,9 +124,11 @@ test_that("BuyseTest - continuous (no strata)", {
     expect_equal(BT.cont,BT2)
 
     ## *** count pairs
-    tableS <- summary(BT.cont, show = FALSE, percentage = FALSE)
-    expect_equal(tableS[,c("n.total")],
-                 unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])))
+    tableS <- summary(BT.cont, show = FALSE, percentage = FALSE)$table
+    dt.tableS <- as.data.table(tableS)[strata == "global"]
+    expect_equal(dt.tableS[,n.total],
+                 unname(dt.tableS[, n.favorable + n.unfavorable + n.neutral + n.uninf]
+                 ))
 })
 
 ## ** Strata
@@ -134,43 +137,22 @@ test_that("BuyseTest - continuous (strata)", {
     BT.cont <- BuyseTest(Treatment ~ cont(score1, 1) + cont(score2, 0) + strata,
                          data = dtS.sim)
 
-    tableS <- summary(BT.cont, show = FALSE, percentage = FALSE)
+    tableS <- summary(BT.cont, show = FALSE, percentage = FALSE)$table
+    dt.tableS <- as.data.table(tableS)
 
-    ## *** count pairs
-    expect_equal(tableS[,c("n.total")],
-                 unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])))
-
-    vec.n <- c(sum(tableS[tableS$strata %in% as.character(1:3) & tableS$endpoint == "score1","n.total"]),
-               sum(tableS[tableS$strata %in% as.character(1:3) & tableS$endpoint == "score2","n.total"]))
-    expect_equal(tableS[tableS$strata == "global","n.total"],
-                 vec.n)
-    expect_equal(vec.n, c(27000, 14244))
-    
+        ## *** count pairs
+    expect_equal(dt.tableS[,n.total],
+                 unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]
+                 ))
+    expect_equal(dt.tableS[,n.total], c(27000, 9000, 9000, 9000, 14244, 4748, 4748, 4748))
+    expect_equal(dt.tableS[,n.favorable], c(4686, 1562, 1562, 1562, 7008, 2336, 2336, 2336))
+    expect_equal(dt.tableS[,n.unfavorable], c(8070, 2690, 2690, 2690, 7236, 2412, 2412, 2412))
+    expect_equal(dt.tableS[,n.neutral], c(14244, 4748, 4748, 4748, 0, 0, 0, 0))
+    expect_equal(dt.tableS[,n.uninf], c(0, 0, 0, 0, 0, 0, 0, 0))
 
     ## *** test summary statistic
-    ## butils:::object2script(unlist(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))
-    GS <- c("n.total1" = 27000, "n.total2" = 14244,
-            "n.favorable1" = 4686, "n.favorable2" = 7008,
-            "n.unfavorable1" = 8070, "n.unfavorable2" = 7236,
-            "n.neutral1" = 14244, "n.neutral2" = 0,
-            "n.uninf1" = 0, "n.uninf2" = 0,
-            "delta1" = -0.125, "delta2" = -0.00844,
-            "Delta1" = -0.125, "Delta2" = -0.134)
-    expect_equal(unlist(tableS[tableS$strata=="global",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 GS)
-    GS <- c("n.total1" = 9000, "n.total2" = 4748,
-            "n.favorable1" = 1562, "n.favorable2" = 2336,
-            "n.unfavorable1" = 2690, "n.unfavorable2" = 2412,
-            "n.neutral1" = 4748, "n.neutral2" = 0,
-            "n.uninf1" = 0, "n.uninf2" = 0,
-            "delta1" = -0.0418, "delta2" = -0.00281,
-            "Delta1" = NA, "Delta2" = NA)
-    expect_equal(unlist(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 GS)
-    expect_equal(unlist(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 unlist(tableS[tableS$strata=="2",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))
-    expect_equal(unlist(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                 unlist(tableS[tableS$strata=="3",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))    
+    expect_equal(dt.tableS[,delta], c(-0.1253333, -0.0417778, -0.0417778, -0.0417778, -0.0084444, -0.0028148, -0.0028148, -0.0028148), tol = 1e-6)
+    expect_equal(dt.tableS[,Delta], c(-0.1253333, NA, NA, NA, -0.1337778, NA, NA, NA), tol = 1e-6)
 })
 
 
@@ -193,12 +175,12 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Efron"
 
     
         ## *** test against fixed value
-        test <- list(favorable = as.double(BT.tte@count_favorable),
-                     unfavorable = as.double(BT.tte@count_unfavorable),
-                     neutral = as.double(BT.tte@count_neutral),
-                     uninf = as.double(BT.tte@count_uninf),
-                     netChange = as.double(BT.tte@Delta$netChance),
-                     winRatio = as.double(BT.tte@Delta$winRatio)
+        test <- list(favorable = as.double(BT.tte@count.favorable),
+                     unfavorable = as.double(BT.tte@count.unfavorable),
+                     neutral = as.double(BT.tte@count.neutral),
+                     uninf = as.double(BT.tte@count.uninf),
+                     netChange = as.double(BT.tte@Delta.netChance),
+                     winRatio = as.double(BT.tte@Delta.winRatio)
                      )
         if(method == "Gehan"){
             GS <- list(favorable = c(353, 649, 524) ,
@@ -238,10 +220,12 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Efron"
         expect_equal(BT.tte,BT2)
 
         ## *** count pairs
-        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)
-        expect_equal(tableS[,c("n.total")],
-                     unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])),
+        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)$table
+        dt.tableS <- as.data.table(tableS)[strata == "global"]
+        expect_equal(dt.tableS[,n.total],
+                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
                      tolerance = 1e-1, scale = 1) ## inexact for Efron/Peron
+                     
     })
 }
 
@@ -262,12 +246,12 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
                          )
     
         ## *** test against fixed value
-        test <- list(favorable = as.double(BT.tte@count_favorable),
-                     unfavorable = as.double(BT.tte@count_unfavorable),
-                     neutral = as.double(BT.tte@count_neutral),
-                     uninf = as.double(BT.tte@count_uninf),
-                     netChange = as.double(BT.tte@Delta$netChance),
-                     winRatio = as.double(BT.tte@Delta$winRatio)
+        test <- list(favorable = as.double(BT.tte@count.favorable),
+                     unfavorable = as.double(BT.tte@count.unfavorable),
+                     neutral = as.double(BT.tte@count.neutral),
+                     uninf = as.double(BT.tte@count.uninf),
+                     netChange = as.double(BT.tte@Delta.netChance),
+                     winRatio = as.double(BT.tte@Delta.winRatio)
                      )
         if(method == "Gehan"){
             GS <- list(favorable = c(353, 666, 924) ,
@@ -307,9 +291,10 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
         expect_equal(BT.tte,BT2)
 
         ## *** count pairs
-        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)
-        expect_equal(tableS[,c("n.total")],
-                     unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])),
+        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)$table
+        dt.tableS <- as.data.table(tableS)[strata == "global"]
+        expect_equal(dt.tableS[,n.total],
+                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
                      tolerance = 1e-1, scale = 1) ## inexact for Efron/Peron
     })
 }
@@ -321,48 +306,36 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1) + strata,
                             data = dtS.sim, method = method)
 
-        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)
 
-        ## *** count pairs
-        expect_equal(tableS[,c("n.total")],
-                     unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])),
-                     tol = 1e-1, scale = 1)
+        ## *** test against fixed value
+        test <- list(favorable = as.double(BT.tte@count.favorable),
+                     unfavorable = as.double(BT.tte@count.unfavorable),
+                     neutral = as.double(BT.tte@count.neutral),
+                     uninf = as.double(BT.tte@count.uninf),
+                     netChange = as.double(BT.tte@Delta.netChance),
+                     winRatio = as.double(BT.tte@Delta.winRatio)
+                     )
 
-        vec.n <- c(sum(tableS[tableS$strata %in% as.character(1:3) & tableS$threshold == 1,"n.total"]),
-                   sum(tableS[tableS$strata %in% as.character(1:3) & tableS$threshold == 1/2,"n.total"]),
-                   sum(tableS[tableS$strata %in% as.character(1:3) & tableS$threshold == 1/4,"n.total"])
-                   )
-        expect_equal(tableS[tableS$strata == "global","n.total"],
-                     vec.n, tol = 1e-1, scale = 1)
-        expect_equal(vec.n, c(27000, 15484.05, 9204.87))
-    
+        GS <- list(favorable = c(2443.4624501, 2443.4624501, 2443.4624501, 979.4863859, 979.4863859, 979.4863859, 629.9051792, 629.9051792, 629.9051792) ,
+                   unfavorable = c(1395.1839846, 1395.1839846, 1395.1839846, 1113.5745081, 1113.5745081, 1113.5745081, 723.5751254, 723.5751254, 723.5751254) ,
+                   neutral = c(1931, 1931, 1931, 1294, 1294, 1294, 789, 789, 789) ,
+                   uninf = c(3230.3535653, 3230.3535653, 3230.3535653, 1774.2926713, 1774.2926713, 1774.2926713, 925.8123667, 925.8123667, 925.8123667) ,
+                   netChange = c(0.1164754, 0.1015767, 0.0911689) ,
+                   winRatio = c(1.751355, 1.3643995, 1.2538477) )
 
-        ## *** test summary statistic
-        ## butils:::object2script(unlist(tableS[tableS$strata=="global",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))
-        GS <- c("n.total1" = 27000, "n.total2" = 15484.06, "n.total3" = 9204.88,
-                "n.favorable1" = 7330.39, "n.favorable2" = 2938.46, "n.favorable3" = 1889.72,
-                "n.unfavorable1" = 4185.55, "n.unfavorable2" = 3340.72, "n.unfavorable3" = 2170.73,
-                "n.neutral1" = 5793, "n.neutral2" = 3882, "n.neutral3" = 2367,
-                "n.uninf1" = 9691.06, "n.uninf2" = 5322.88, "n.uninf3" = 2777.44,
-                "delta1" = 0.116, "delta2" = -0.0149, "delta3" = -0.0104,
-                "Delta1" = 0.116, "Delta2" = 0.102, "Delta3" = 0.0912)
-        expect_equal(unlist(tableS[tableS$strata=="global",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                     GS)
+        expect_equal(GS, test, tol = 1e-6, scale = 1)
         
-        GS <- c("n.total1" = 9000, "n.total2" = 5161.35, "n.total3" = 3068.29,
-                "n.favorable1" = 2443.46, "n.favorable2" = 979.49, "n.favorable3" = 629.91,
-                "n.unfavorable1" = 1395.18, "n.unfavorable2" = 1113.57, "n.unfavorable3" = 723.58,
-                "n.neutral1" = 1931, "n.neutral2" = 1294, "n.neutral3" = 789,
-                "n.uninf1" = 3230.35, "n.uninf2" = 1774.29, "n.uninf3" = 925.81,
-                "delta1" = 0.0388, "delta2" = -0.00497, "delta3" = -0.00347,
-                "Delta1" = NA, "Delta2" = NA, "Delta3" = NA)
-
-        expect_equal(unlist(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                     GS)
-        expect_equal(unlist(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                     unlist(tableS[tableS$strata=="2",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))
-        expect_equal(unlist(tableS[tableS$strata=="1",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]),
-                     unlist(tableS[tableS$strata=="3",c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf","delta","Delta")]))    
+        ## *** same result for each pair
+        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)$table
+        expect_equal(tableS[tableS$strata=="1","Delta"],tableS[tableS$strata=="2","Delta"])
+        expect_equal(tableS[tableS$strata=="1","Delta"],tableS[tableS$strata=="3","Delta"])
+        expect_equal(tableS[tableS$strata=="1","Delta"],tableS[tableS$strata=="3","Delta"])
+        
+        ## *** count pairs
+        dt.tableS <- as.data.table(tableS)[strata == "global"]
+        expect_equal(dt.tableS[,n.total],
+                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
+                     tolerance = 1e-1, scale = 1) ## inexact for Efron/Peron
 })
 
 ## * Mixed endpoints 
@@ -381,12 +354,12 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
                          method=method)
   
         ## *** test against fixed value
-        test <- list(favorable = as.double(BT.mixed@count_favorable),
-                     unfavorable = as.double(BT.mixed@count_unfavorable),
-                     neutral = as.double(BT.mixed@count_neutral),
-                     uninf = as.double(BT.mixed@count_uninf),
-                     netChange = as.double(BT.mixed@Delta$netChance),
-                     winRatio = as.double(BT.mixed@Delta$winRatio)
+        test <- list(favorable = as.double(BT.mixed@count.favorable),
+                     unfavorable = as.double(BT.mixed@count.unfavorable),
+                     neutral = as.double(BT.mixed@count.neutral),
+                     uninf = as.double(BT.mixed@count.uninf),
+                     netChange = as.double(BT.mixed@Delta.netChance),
+                     winRatio = as.double(BT.mixed@Delta.winRatio)
                      )
         if(method == "Gehan"){
             GS <- list(favorable = c(1002, 1294, 1175, 146, 334) ,
@@ -426,10 +399,11 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
         expect_equal(BT.mixed,BT2)
 
         ## *** count pairs
-        tableS <- summary(BT.mixed, show = FALSE, percentage = FALSE)
-        expect_equal(tableS[,c("n.total")],
-                     unname(rowSums(tableS[,c("n.favorable","n.unfavorable","n.neutral","n.uninf")])),
-                     tolerance = 1e-1, scale = 1) ## inexact for Efron/Peron
+        tableS <- summary(BT.mixed, show = FALSE, percentage = FALSE)$table
+        dt.tableS <- as.data.table(tableS)[strata == "global"]
+        expect_equal(dt.tableS[,n.total],
+                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf])
+                     )
     })
 }
 
@@ -448,144 +422,3 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
            ## "eventtime3" = c(0.293733014310895, 2.99448384259032, 1.33980963104124, 0.496300941943964, 1.22099704012309, 0.0373721538212026, 0.187137345501571, 0.323353691247819, 0.780978115280896, 0.310442431933021, 1.03796020197828, 1.24147211309831, 0.723207099456172, 1.34698546721254, 0.496082238658226, 1.44827529079895, 0.521865161625976, 0.68353467186253, 0.0198144012665529, 0.18416592198316, 2.31754726208254, 1.77382739085223, 0.333985198539388, 0.201898095701069, 0.037804703116014, 0.451823603145119, 0.537318116873933, 0.0232303865342007, 0.208453658687415, 0.529862782119121, 1.69534262583851, 0.739995644446326, 0.584670890400981, 0.660194671591075, 2.43692159047791, 0.321378717095711, 0.470858907291999, 0.300885586737895, 0.0849040174277981, 0.346258729789037, 2.18121012735058, 1.46578570695944, 0.619693384243129, 4.42551925063202, 0.000597661984300133, 1.00932679616087, 0.359839679192164, 0.240645438675249, 1.08569678415356, 1.45416021630186, 1.6789996741874, 1.69425750511157, 0.00653236821680537, 0.51073806177961, 0.369948552020504, 1.59945127194625, 1.3236125713606, 1.48425067326426, 0.836247284887988, 0.893571488741335, 0.578189318532236, 0.0358568453949352, 0.210830021086216, 0.0155471175212725, 0.394160619241234, 0.0326274558475622, 0.266731382084703, 0.669753493153975, 0.717969431771765, 0.88286046637068, 0.791108651161664, 0.898976499057733, 0.524081920308154, 2.70977349940292, 1.3893057822478, 3.03969626306362, 0.73321636007742, 1.92017961391452, 0.124273130677993, 0.945653065011673, 0.00825042251846677, 0.658779176139988, 0.767451781761614, 1.90638352080968, 1.58163544871625, 0.10784913954513, 0.949147655286187, 0.168078340234353, 0.593803958726638, 1.54462579103663, 0.186956513160319, 0.629283258841148, 0.0873049052077904, 0.733068239947979, 1.40420931094632, 0.192337129955149, 0.333401945283805, 0.0344329731559355, 0.274189826651433, 0.910836697306516, 0.303391134016558, 0.0357706691919942, 3.29871717520528, 0.0630263274790764, 0.870804234130271, 0.697519244529544, 0.575385421918495, 0.534992787498408, 0.246228993287661, 0.856935582483809, 0.397308648829461, 0.652084221032082, 0.748507989143236, 1.01316574482707, 0.436163629031014, 0.838827345700121, 0.355026910826948, 0.0226469858363734, 0.207005798093843, 0.143966032607798, 0.103899316845053, 0.460289468073832, 0.636746770010642, 0.00925149206114618, 0.697405223382561, 0.153286469753514, 0.231242138311338, 0.773299188841039, 0.186848489963772, 0.110831690172533, 2.62681005866194, 0.200019215644149, 0.210402688604894, 1.19494880583752, 1.06805406720807, 1.907865681834, 1.11206305537185, 0.618034748898127, 0.314894371331222, 0.216433776042293, 0.138175934415695, 0.0223831497736912, 1.0080281416691, 0.000886687715363389, 0.149976647673442, 0.587403117291067, 0.763739129916681, 1.13659499025919, 0.337817817638958, 2.5394672812709, 0.438141548521403, 0.545826010773546, 0.123791923007256, 0.221596126459003, 0.262950329269119, 0.0594304439601256, 1.85251812173937, 1.14050193820485, 0.207557858461683, 0.139412620676529, 0.412037497960816, 0.572701674131632, 0.482605565484431, 0.931729755352493, 0.578474308680047, 0.217751594386994, 0.400383897661771, 0.995068312969113, 0.0731883850535335, 0.707260090899151, 0.630421212270399, 0.219220847146326, 0.769801122154004, 1.28525629916782, 0.114169640433724, 0.442909041647634, 0.411128758763132, 0.611387496129468, 0.569868990840883, 1.12728015256685, 1.08061234409855, 0.389625906632013, 0.542099314514301, 0.798104775082986, 0.394623881474312, 0.675502904922754, 0.0858133655206339, 0.129660053960637, 0.268116405477624, 0.694271357435761), 
            ## "status3" = c(0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0))
 
-## * TODO
-## ** with many pairs (lambda.C = 0.5)
-## set.seed(10)
-## TpsFin <- 1 # 0.75
-## lambda.T <- 0.5
-## n.Treatment <- 10
-## n.Control <- 10
-## n <- n.Treatment + n.Control
-## group <- c(rep(1, n.Treatment),rep(0, n.Control))
-
-## lambda.C <- 0.5
-## TimeEvent <- c(rexp(n.Treatment,rate=lambda.T),
-##              rexp(n.Control,rate=lambda.C))
-## Time.Cens <- runif(n,0,TpsFin)
-## Time <-pmin(Time.Cens,TimeEvent)
-## Event <- Time == TimeEvent
-## Event <- as.numeric(Event)
-## tab <- data.frame(group,Time,Event)
-
-## ## *** Gehan
-## test_that("lambdaC = 0.5 - Gehan",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Gehan",seed=11)
-  
-##   expect_equal(as.double(BT@count_favorable),6)
-##   expect_equal(as.double(BT@count_unfavorable),8)
-##   expect_equal(as.double(BT@count_neutral),0)
-##   expect_equal(as.double(BT@count_uninf),86)
-  
-##   expect_equal(as.double(BT@delta$netChance),-0.02)
-##   expect_equal(as.double(BT@delta$winRatio),15/20)
-## })
-
-## ## *** Peto
-## test_that("lambdaC = 0.5 - Peto",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peto",seed=11)
-  
-##   expect_equal(as.double(BT@count_favorable),40.95, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_unfavorable),41.67, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_neutral),0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_uninf),17.38, tolerance = 1e-3)
-  
-##   expect_equal(as.double(BT@delta$netChance),-0.00712, tolerance = 1e-3)
-##   expect_equal(as.double(BT@delta$winRatio),0.9829167, tolerance = 1e-3)
-## })
-
-## ## *** Efron
-## test_that("lambdaC = 0.5 - Efron",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Efron",seed=11)
-  
-##   expect_equal(as.double(BT@count_favorable),11.11, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_unfavorable),11.11, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_neutral),1, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_uninf),76.78, tolerance = 1e-3)
-  
-##   expect_equal(as.double(BT@delta$netChance),0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@delta$winRatio),1, tolerance = 1e-3)
-  
-## })
-
-## ## *** Peron
-## test_that("lambdaC = 0.5 - Peron",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peron",seed=11)
- 
-##   expect_equal(as.double(BT@count_favorable), 11.11, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_unfavorable), 11.11, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_neutral), 0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_uninf), 77.78, tolerance = 1e-3)
-  
-##   expect_equal(as.double(BT@delta$netChance),0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@delta$winRatio),1, tolerance = 1e-3)
-## })
-
-## ## ** with many pairs (lambda.C = 1)
-## lambda.C <- 1
-## TimeEvent<-c(rexp(n.Treatment,rate=lambda.T),
-##              rexp(n.Control,rate=lambda.C))
-## Time.Cens<-runif(n,0,TpsFin)
-## Time<-pmin(Time.Cens,TimeEvent)
-## Event<-Time==TimeEvent
-## Event<-as.numeric(Event)
-## tab<-data.frame(group,Time,Event)
-
-## ## *** Gehan
-## test_that("lambdaC = 1 - Gehan",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Gehan",seed=11)
-  
-##   expect_equal(as.double(BT@count_favorable),0)
-##   expect_equal(as.double(BT@count_unfavorable),9)
-##   expect_equal(as.double(BT@count_neutral),0)
-##   expect_equal(as.double(BT@count_uninf),91)
-  
-##   expect_equal(as.double(BT@delta$netChance),-0.09)
-##   expect_equal(as.double(BT@delta$winRatio),0)
-## })
-
-## ## *** Peto
-## test_that("lambdaC = 1 - Peto",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peto",seed=11)
-  
-##   expect_equal(as.double(BT@count_favorable),36, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_unfavorable),42, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_neutral),0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_uninf),22, tolerance = 1e-3)
-  
-##   expect_equal(as.double(BT@delta$netChance),-0.06, tolerance = 1e-3)
-##   expect_equal(as.double(BT@delta$winRatio),0.8571429, tolerance = 1e-3)
-## })
-
-## ## *** Efron
-## test_that("lambdaC = 1 - Efron",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Efron",seed=11)
-##   expect_equal(as.double(BT@count_favorable),0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_unfavorable),55, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_neutral),1, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_uninf),44, tolerance = 1e-3)
-  
-##   expect_equal(as.double(BT@delta$netChance),-0.55, tolerance = 1e-3)
-##   expect_equal(as.double(BT@delta$winRatio),0, tolerance = 1e-3)
-  
-## })
-
-## ## *** Peron
-## test_that("lambdaC = 1 - Peron",{
-##   BT <- BuyseTest(data=tab,endpoint="Time",treatment="group",
-##                   type="TTE",censoring="Event",threshold=0.1,n.bootstrap=1,method="Peron",seed=11)
-  
-##   expect_equal(as.double(BT@count_favorable), 0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_unfavorable), 10, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_neutral), 0, tolerance = 1e-3)
-##   expect_equal(as.double(BT@count_uninf), 90, tolerance = 1e-3)
-  
-##   expect_equal(as.double(BT@delta$netChance),-0.1, tolerance = 1e-3)
-##   expect_equal(as.double(BT@delta$winRatio),0, tolerance = 1e-3)
-## })
