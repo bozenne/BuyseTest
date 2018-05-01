@@ -179,23 +179,22 @@ List GPC_cpp(const arma::mat& Treatment,
     size_neutral = iIndex_neutralT.size(); // update the number of neutral pairs
     size_uninf = iIndex_uninfT.size(); // update the number of uninformative pairs
     
-    // **** update Wpairs 
+    // **** update Wpairs
     if(D>1){ // if there is more than one endpoint
       Wpairs.resize(size_neutral+size_uninf,1); // temporary matrix containing the weigth of each remaining pair for each outcome
+      Wpairs.fill(1.0);
       w.resize(size_neutral+size_uninf); // temporary vector containing the weight of each remaining pair to be used for the next outcome
-      
-      if(iter_dTTE>0){ // update the weights for the neutral pairs in Wpairs and w
+      w.fill(1.0);
+	    
+      if((methodTTE>0 || correctionTTE) && iter_dTTE>0){ // update the weights for the neutral pairs in Wpairs and w	
 	for(int iter_neutral=0 ; iter_neutral<size_neutral ; iter_neutral++){
           Wpairs(iter_neutral,0) = iw[iter_neutral];
           if(Wscheme(0,0)==1){w(iter_neutral) = iw[iter_neutral];}
         }
         for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){ 
-          Wpairs(size_neutral+iter_uninf,0) = iw[iter_uninf];
-          if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = iw[iter_uninf];}
+          Wpairs(size_neutral+iter_uninf,0) = iw[size_neutral + iter_uninf];
+          if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = iw[size_neutral + iter_uninf];}
         }
-      }else{
-	Wpairs.fill(1.0);
-	w.fill(1.0);
       }
     }
     
@@ -277,10 +276,11 @@ List GPC_cpp(const arma::mat& Treatment,
       // **** update Wpairs
       if(D>iter_d+1){
         Wpairs.resize(size_neutral+size_uninf,iter_dTTE); // update the size of Wpairs
+        Wpairs.fill(1.0);
         w.resize(size_neutral+size_uninf); // update the size of w
-        w.fill(1);
+        w.fill(1.0);
         
-        if(methodTTE>0 && iter_dTTE>0){
+        if((methodTTE>0 || correctionTTE) && iter_dTTE>0){
           tempo_index=iIndex_w; // store the position of the remaining pairs in the previous Wpairs (i.e. Wpairs_sauve)
           for(size_t iter_pair=0; iter_pair<tempo_index.size(); iter_pair++){
             

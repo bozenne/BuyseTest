@@ -275,7 +275,7 @@ arma::mat calcAllPairs_TTE( const arma::colvec& Treatment, const arma::colvec& C
       index_uninfT.resize(0);
       index_uninfC.resize(0);
 
-      for(int iNeutral=0; iNeutral<wNeutral.size() ; iNeutral++){
+      for(unsigned int iNeutral=0; iNeutral<wNeutral.size() ; iNeutral++){
        wNeutral[iNeutral] *= factor;
       }
     }
