@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: apr 30 2018 (14:01) 
+## Last-Updated: maj  1 2018 (11:40) 
 ##           By: Brice Ozenne
-##     Update #: 124
+##     Update #: 125
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -563,7 +563,6 @@ test_that("check previous bug with option keep.comparison",{
     BT <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2),
                     data = dt, method = "Gehan")
 
-    ## butils::object2script(BT@tableComparison)
     GS <- list(eventtime1_1 = data.frame("strata" = c("1", "1", "1"), 
                                          "index.1" = c(1, 1, 1), 
                                          "index.0" = c(2, 3, 4), 
@@ -584,7 +583,8 @@ test_that("check previous bug with option keep.comparison",{
                                            "uninformative" = c(1, 1, 1))
                )
     
-    expect_equal(BT@tableComparison,GS)
+    expect_equal(BT@tableComparison[[1]],GS[[1]])
+    expect_equal(BT@tableComparison[[2]],GS[[2]])
              
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))

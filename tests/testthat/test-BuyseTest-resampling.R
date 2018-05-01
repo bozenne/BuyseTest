@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: apr 30 2018 (17:06) 
+## last-updated: maj  1 2018 (11:20) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 19
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -42,7 +42,7 @@ test_that("permutation", {
     BT <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1),
                     data = dt.sim, method = method,
                     method.inference = "permutation", n.resampling = 10)
-    summary(BT)
+    summary(BT, show = FALSE)
     ## new
     ## endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value 
     ## eventtime1     1e-12   100      48.6       23.86       0 27.54 0.247 0.247    [-0.3;0.251]     0.4
