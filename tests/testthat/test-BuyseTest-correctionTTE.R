@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: apr 30 2018 (23:59) 
+## Last-Updated: maj  5 2018 (22:57) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,7 +37,7 @@ df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
 test_that("1 endpoint - Gehan", {
     Gehan <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df, 
-                       method = "Gehan")
+                       method.tte = "Gehan")
 
     expect_equal(as.double(Gehan@count.favorable), c(9,0))
     expect_equal(as.double(Gehan@count.unfavorable), c(2,0))
@@ -46,7 +46,7 @@ test_that("1 endpoint - Gehan", {
 
     GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
-                        method = "Gehan", correctionTTE = TRUE)
+                        method.tte = "Gehan", correctionTTE = TRUE)
 
     factor <- 16/12 ## n.pairs/(n.pairs-n.uninf)
     expect_equal(as.double(GehanC@count.favorable), c(9*factor,0))
@@ -59,7 +59,7 @@ test_that("1 endpoint - Gehan", {
 test_that("1 endpoint - Peron", {
     Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df, 
-                       method = "Peron")
+                       method.tte = "Peron")
 
     expect_equal(as.double(Peron@count.favorable), c(10,0))
     expect_equal(as.double(Peron@count.unfavorable), c(2,0))
@@ -68,7 +68,7 @@ test_that("1 endpoint - Peron", {
 
     PeronC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
-                        method = "Peron", correctionTTE = TRUE)
+                        method.tte = "Peron", correctionTTE = TRUE)
 
     factor <- 16/13 ## n.pairs/(n.pairs-n.uninf)
     expect_equal(as.double(PeronC@count.favorable), c(10*factor,0))

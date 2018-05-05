@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr 30 2018 (23:42) 
+## Last-Updated: maj  5 2018 (22:53) 
 ##           By: Brice Ozenne
-##     Update #: 38
+##     Update #: 39
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,7 +29,7 @@ testArgs <- function(alternative,
                      endpoint,
                      formula,
                      keep.comparison,
-                     method,
+                     method.tte,
                      method.inference,
                      n.resampling,
                      neutral.as.uninf,
@@ -177,10 +177,10 @@ testArgs <- function(alternative,
                  valid.length = 1,
                  method = "BuyseTest")
  
-    ## ** method
-    if(any(method %in% 0:3 == FALSE)){
-        txt <- method[method %in% 0:3 == FALSE]
-        stop("BuyseTest: wrong specification of \'method\' \n",
+    ## ** method.tte
+    if(any(method.tte %in% 0:3 == FALSE)){
+        txt <- method.tte[method.tte %in% 0:3 == FALSE]
+        stop("BuyseTest: wrong specification of \'method.tte\' \n",
              "valid values: \"Gehan\" \"Peto\" \"Efron\" \"Peron\" \n",
              "incorrect values: \"",paste(txt, collapse = "\" \""),"\" \n")
     }

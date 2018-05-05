@@ -8,7 +8,7 @@
 #' 
 #' \code{initializeArgs}: Normalize the argument 
 #' \itemize{
-#' \item method, neutral.as.uninf, keep.comparison, n.resampling, seed, cpus, trace: set to default value when not specified.
+#' \item method.tte, neutral.as.uninf, keep.comparison, n.resampling, seed, cpus, trace: set to default value when not specified.
 #' \item formula: call \code{initializeFormula} to extract arguments.
 #' \item type: convert to numeric.
 #' \item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
@@ -16,7 +16,7 @@
 #' the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12.
 #' When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
 #' \item data: convert to data.table object.
-#' \item method: convert to numeric.#' 
+#' \item method.tte: convert to numeric.
 #' }
 #' and create \code{Wscheme}. \cr \cr
 #'
@@ -26,7 +26,7 @@
 #' \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 #' Merge the strata into one with the interaction variable.
 #' Extract for each strata the index of the observations within each group.
-#' Apply Efron correction (when method is set to Efron), i.e. set the last event to an observed event.
+#' Apply Efron correction (when method.tte is set to Efron), i.e. set the last event to an observed event.
 #' 
 #' \code{initializeSurvival}: Compute the survival via KM.
 #' 
@@ -43,7 +43,7 @@ initializeArgs <- function(alternative,
                            endpoint,
                            formula,
                            keep.comparison,
-                           method,
+                           method.tte,
                            method.inference,
                            n.resampling,
                            neutral.as.uninf,
@@ -60,7 +60,7 @@ initializeArgs <- function(alternative,
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.comparison)){ keep.comparison <- option$keep.comparison }
-    if(is.null(method)){ method <- option$method }
+    if(is.null(method.tte)){ method.tte <- option$method.tte }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
@@ -139,9 +139,9 @@ initializeArgs <- function(alternative,
         data <- data.table::copy(data)
     }
 
-    ## ** method
-    if(!is.numeric(method)){
-        method <- switch(method,
+    ## ** method.tte
+    if(!is.numeric(method.tte)){
+        method.tte <- switch(method.tte,
                                "Gehan" = 0,
                                "Peto" = 1,
                                "Efron" = 2,
@@ -150,9 +150,9 @@ initializeArgs <- function(alternative,
     }
 
     if (D.TTE == 0) {
-        method <- 0
-        if ("method" %in% name.call && trace > 0) {
-            message("NOTE : there is no survival endpoint, \'method\' argument is ignored \n")
+        method.tte <- 0
+        if ("method.tte" %in% name.call && trace > 0) {
+            message("NOTE : there is no survival endpoint, \'method.tte\' argument is ignored \n")
         }
     }
 
@@ -235,7 +235,7 @@ initializeArgs <- function(alternative,
         keep.comparison = keep.comparison,
         level.strata = level.strata,
         level.treatment = level.treatment,
-        method = method,
+        method.tte = method.tte,
         method.inference = method.inference,
         n.resampling = n.resampling,
         neutral.as.uninf = neutral.as.uninf,
@@ -380,7 +380,7 @@ initializeFormula <- function(x){
 
 ## * initializeData
 #' @rdname internal-initialization
-initializeData <- function(data, treatment, endpoint, censoring, type, operator, method, strata){
+initializeData <- function(data, treatment, endpoint, censoring, type, operator, method.tte, strata){
     
 
     ## ** Treatment: extract the 2 levels
@@ -455,7 +455,7 @@ initializeData <- function(data, treatment, endpoint, censoring, type, operator,
     }
 
     ## ** efron correction
-    if(method==2){ # "Efron"
+    if(method.tte==2){ # "Efron"
             for(iStrata in 1:n.strata){ ## iStrata <- 1
 
                 index.typeTTE <- which(type==3)

@@ -32,7 +32,7 @@ You can download the latest stable version on =CRAN= using:
 install.packages("BuyseTest")
 #+END_SRC
 
-or download the development version from =github=:
+or download the development version from =GitHub=:
 #+BEGIN_SRC R :exports both :eval never
 library(devtools)
 install_github("bozenne/BuyseTest")

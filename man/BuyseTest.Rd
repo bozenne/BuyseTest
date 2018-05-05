@@ -6,9 +6,10 @@
 \usage{
 BuyseTest(formula, data, treatment = NULL, endpoint = NULL, type = NULL,
   threshold = NULL, censoring = NULL, operator = NULL, strata = NULL,
-  method = NULL, correctionTTE = FALSE, neutral.as.uninf = NULL,
+  method.tte = NULL, correctionTTE = FALSE, neutral.as.uninf = NULL,
   method.inference = NULL, n.resampling = NULL, keep.comparison = NULL,
-  alternative = "two.sided", seed = NULL, cpus = NULL, trace = NULL)
+  alternative = "two.sided", seed = NULL, cpus = NULL, trace = NULL,
+  n.bootstrap, method)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
@@ -40,7 +41,7 @@ Disregarded if the argument \code{formula} is defined.}
 \item{strata}{[numeric vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 Disregarded if the argument \code{formula} is defined.}
 
-\item{method}{[character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
+\item{method.tte}{[character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
 Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
@@ -71,6 +72,10 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{trace}{[integer] should the execution of the function be traced ? See details.
 Default value read from \code{BuyseTest.options()}.}
+
+\item{n.bootstrap}{Obsolete. Alias for 'n.resampling'.}
+
+\item{method}{Obsolete. Alias for 'method.tte'.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.
@@ -148,7 +153,7 @@ summary(BT, statistic = "winRatio")
 
 ## method Gehan is much faster but does not optimally handle censored observations
 BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                method = "Gehan", trace = 0)
+                method.tte = "Gehan", trace = 0)
 summary(BT)
 
 #### one time to event endpoint: only differences in survival over 1 unit ####
@@ -169,23 +174,23 @@ summary(BT)
 
 #### real example : Veteran dataset of the survival package ####
 #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
-#### method = "Gehan"
+#### method.tte = "Gehan"
 
 if(require(survival)){
 \dontrun{
   data(veteran,package="survival")
  
-  ## method = "Gehan"
+  ## method.tte = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, method="Gehan",
+                        data=veteran, method.tte="Gehan",
                         method.inference = "permutation", n.resampling = 1e3)
   
   summary_Gehan <- summary(BT_Gehan)
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
-  ## method = "Peron"
+  ## method.tte = "Peron"
   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, method="Peron",
+                        data=veteran, method.tte="Peron",
                         method.inference = "permutation", n.resampling = 1e3)
 
   class(BT_Peron)

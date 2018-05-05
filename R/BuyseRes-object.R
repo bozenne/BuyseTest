@@ -33,10 +33,11 @@ setClass(
       index.neutralC = "vector",
       index.uninfT = "vector",
       index.uninfC = "vector",
+      type = "vector",
       endpoint = "vector",
       level.treatment = "vector",
       level.strata = "vector",
-      method = "character",
+      method.tte = "character",
       method.inference = "character",
       strata = "vector",
       threshold = "numeric",
@@ -148,12 +149,32 @@ methods::setMethod(
              f = "initialize", 
              signature = "BuyseRes", 
              definition = function(.Object, 
-                                   count.favorable, count.unfavorable, count.neutral, count.uninf, n.pairs,
-                                   delta.netChance, delta.winRatio, Delta.netChance, Delta.winRatio,
-                                   index.neutralT, index.neutralC, index.uninfT, index.uninfC, 
-                                   endpoint, level.strata, level.treatment, method, method.inference, strata, threshold,
+                                   count.favorable,
+                                   count.unfavorable,
+                                   count.neutral,
+                                   count.uninf,
+                                   n.pairs,
+                                   delta.netChance,
+                                   delta.winRatio,
+                                   Delta.netChance,
+                                   Delta.winRatio,
+                                   index.neutralT,
+                                   index.neutralC,
+                                   index.uninfT,
+                                   index.uninfC,
+                                   type,
+                                   endpoint,
+                                   level.strata,
+                                   level.treatment,
+                                   method.tte,
+                                   method.inference,
+                                   strata,
+                                   threshold,
                                    n.resampling,
-                                   deltaResampling.netChance, deltaResampling.winRatio, DeltaResampling.netChance, DeltaResampling.winRatio, 
+                                   deltaResampling.netChance,
+                                   deltaResampling.winRatio,
+                                   DeltaResampling.netChance,
+                                   DeltaResampling.winRatio, 
                                    tableComparison,
                                    args){
 
@@ -228,10 +249,11 @@ methods::setMethod(
                  .Object@index.uninfT <- index.uninfT
                  .Object@index.uninfC <- index.uninfC
                  
+                 .Object@type <- type
                  .Object@endpoint <- endpoint
                  .Object@level.strata <- level.strata
                  .Object@level.treatment <- level.treatment
-                 .Object@method <- method
+                 .Object@method.tte <- method.tte
                  .Object@method.inference <- method.inference
                  .Object@strata <- strata
                  .Object@threshold <- threshold
@@ -244,11 +266,11 @@ methods::setMethod(
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
 
                  .Object@tableComparison <- tableComparison
-    
-    ## validObject(.Object)
-    return(.Object)
-    
-})
+                 
+                 ## validObject(.Object)
+                 return(.Object)
+                 
+             })
 
 
 ## * Constructor BuyseRes objects

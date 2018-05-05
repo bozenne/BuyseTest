@@ -10,13 +10,13 @@
 \title{internal functions for BuyseTest - initialization}
 \usage{
 initializeArgs(alternative, name.call, censoring, correctionTTE, cpus, data,
-  endpoint, formula, keep.comparison, method, method.inference, n.resampling,
-  neutral.as.uninf, operator, option, prob.alloc, seed, strata, threshold,
-  trace, treatment, type)
+  endpoint, formula, keep.comparison, method.tte, method.inference,
+  n.resampling, neutral.as.uninf, operator, option, prob.alloc, seed, strata,
+  threshold, trace, treatment, type)
 
 initializeFormula(x)
 
-initializeData(data, treatment, endpoint, censoring, type, operator, method,
+initializeData(data, treatment, endpoint, censoring, type, operator, method.tte,
   strata)
 
 initializeSurvival_Peto(M.Treatment, M.Control, M.delta.Treatment,
@@ -33,7 +33,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \details{
 \code{initializeArgs}: Normalize the argument 
 \itemize{
-\item method, neutral.as.uninf, keep.comparison, n.resampling, seed, cpus, trace: set to default value when not specified.
+\item method.tte, neutral.as.uninf, keep.comparison, n.resampling, seed, cpus, trace: set to default value when not specified.
 \item formula: call \code{initializeFormula} to extract arguments.
 \item type: convert to numeric.
 \item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
@@ -41,7 +41,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12.
 When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
 \item data: convert to data.table object.
-\item method: convert to numeric.#' 
+\item method.tte: convert to numeric.
 }
 and create \code{Wscheme}. \cr \cr
 
@@ -51,7 +51,7 @@ from the formula. \cr \cr
 \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 Merge the strata into one with the interaction variable.
 Extract for each strata the index of the observations within each group.
-Apply Efron correction (when method is set to Efron), i.e. set the last event to an observed event.
+Apply Efron correction (when method.tte is set to Efron), i.e. set the last event to an observed event.
 
 \code{initializeSurvival}: Compute the survival via KM.
 }

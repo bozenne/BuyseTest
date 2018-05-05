@@ -202,7 +202,7 @@ warperResampling <- function(x, envir){
                                         envir$M.delta.Treatment[iIndexC.T,, drop = FALSE],
                                         envir$M.delta.Control[iIndexC.C,, drop = FALSE])
       
-            if (envir$method == 2) { # "Efron": set last event to non-censored
+            if (envir$method.tte == 2) { # "Efron": set last event to non-censored
                 Mnewstrata.Treatment <- Mnew.Treatment[new.strataT[[iterS]] + 1, which(envir$type == 3), drop = FALSE]
                 Mnewstrata.Control <- Mnew.Control[new.strataC[[iterS]] + 1, which(envir$type == 3), drop = FALSE]
         
@@ -228,10 +228,10 @@ warperResampling <- function(x, envir){
     }
     
     ## ** Update survival
-    if(envir$method == 0){ ## Gehan
+    if(envir$method.tte == 0){ ## Gehan
         new.survivalT <- lapply(1:envir$D.TTE, matrix)
         new.survivalC <- lapply(1:envir$D.TTE, matrix)
-    }else if(envir$method == 1){ ## Peto
+    }else if(envir$method.tte == 1){ ## Peto
         outSurv <- initializeSurvival_Peto(M.Treatment=Mnew.Treatment,
                                            M.Control=Mnew.Control,
                                            M.delta.Treatment=Mnew.delta.Treatment,
@@ -245,7 +245,7 @@ warperResampling <- function(x, envir){
                                            n.strata=envir$n.strata)
         new.survivalT <- outSurv$list.survivalT
         new.survivalC <- outSurv$list.survivalC
-    }else if(envir$method %in% 2:3){
+    }else if(envir$method.tte %in% 2:3){
         outSurv <- initializeSurvival_Peron(M.Treatment=Mnew.Treatment,
                                             M.Control=Mnew.Control,
                                             M.delta.Treatment=Mnew.delta.Treatment,
@@ -279,7 +279,7 @@ warperResampling <- function(x, envir){
                        threshold_TTEM1 = envir$threshold.TTEM1,
                        list_survivalT = new.survivalT,
                        list_survivalC = new.survivalC,
-                       methodTTE = envir$method,
+                       methodTTE = envir$method.tte,
                        correctionTTE = envir$correctionTTE,
                        neutralAsUninf = envir$neutral.as.uninf,
                        keepComparison = FALSE

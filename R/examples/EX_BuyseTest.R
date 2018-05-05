@@ -38,7 +38,7 @@ summary(BT, statistic = "winRatio")
 
 ## method Gehan is much faster but does not optimally handle censored observations
 BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                method = "Gehan", trace = 0)
+                method.tte = "Gehan", trace = 0)
 summary(BT)
 
 #### one time to event endpoint: only differences in survival over 1 unit ####
@@ -59,23 +59,23 @@ summary(BT)
 
 #### real example : Veteran dataset of the survival package ####
 #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
-#### method = "Gehan"
+#### method.tte = "Gehan"
 
 if(require(survival)){
 \dontrun{
   data(veteran,package="survival")
  
-  ## method = "Gehan"
+  ## method.tte = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, method="Gehan",
+                        data=veteran, method.tte="Gehan",
                         method.inference = "permutation", n.resampling = 1e3)
   
   summary_Gehan <- summary(BT_Gehan)
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
-  ## method = "Peron"
+  ## method.tte = "Peron"
   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, method="Peron",
+                        data=veteran, method.tte="Peron",
                         method.inference = "permutation", n.resampling = 1e3)
 
   class(BT_Peron)

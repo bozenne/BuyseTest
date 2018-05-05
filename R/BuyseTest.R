@@ -24,7 +24,7 @@
 #' Must value \code{NA} when the endpoint is not a time to event.
 #' Disregarded if the argument \code{formula} is defined.
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
-#' @param method [character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
+#' @param method.tte [character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
 #' Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
@@ -46,6 +46,8 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param trace [integer] should the execution of the function be traced ? See details.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param method Obsolete. Alias for 'method.tte'.
+#' @param n.bootstrap Obsolete. Alias for 'n.resampling'.
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
@@ -109,7 +111,7 @@ BuyseTest <- function(formula,
                       censoring = NULL,
                       operator = NULL,
                       strata = NULL, 
-                      method = NULL,
+                      method.tte = NULL,
                       correctionTTE = FALSE,
                       neutral.as.uninf = NULL,
                       method.inference = NULL,
@@ -118,11 +120,23 @@ BuyseTest <- function(formula,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
-                      trace = NULL){
+                      trace = NULL,
+                      n.bootstrap,
+                      method){
 
     name.call <- names(match.call())
     option <- BuyseTest.options()
 
+    ## ** compatibility with previous version
+    if(!missing(n.bootstrap)){
+        stop("Argument \'n.bootstrap\' is obsolete. \n",
+             "It has been replaced by the argument \'n.resampling\' \n")
+    }
+    if(!missing(method)){
+        stop("Argument \'method\' is obsolete. \n",
+             "It has been replaced by the argument \'method.tte\' \n")
+    }
+    
     ## ** initialize arguments
     outArgs <- initializeArgs(alternative = alternative,
                               name.call = name.call,
@@ -133,7 +147,7 @@ BuyseTest <- function(formula,
                               endpoint = endpoint,
                               formula = formula,
                               keep.comparison = keep.comparison,
-                              method = method,
+                              method.tte = method.tte,
                               n.resampling = n.resampling,
                               neutral.as.uninf = neutral.as.uninf,
                               operator = operator,
@@ -169,12 +183,8 @@ BuyseTest <- function(formula,
     outBT <- do.call(.BuyseTest, args = outArgs)
     
     ## ** Gather results into a BuyseRes object
-    method <- switch(as.character(outArgs$method),
-                     "0" = "Gehan",
-                     "1" = "Peto" ,
-                     "2" = "Efron",
-                     "3" = "Peron"
-                     )
+    method.tte <- c("Gehan","Peto","Efron","Peron")[outArgs$method.tte+1]
+    type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
 
     BuyseRes.object <- BuyseRes(
         count.favorable = outBT$count_favorable,      
@@ -190,9 +200,10 @@ BuyseTest <- function(formula,
         index.neutralC = outBT$index_neutralC,
         index.uninfT = outBT$index_uninfT,
         index.uninfC = outBT$index_uninfC,
+        type = type,
         endpoint = outArgs$endpoint,
         level.treatment = level.treatment,
-        method = method,
+        method.tte = method.tte,
         method.inference = outArgs$method.inference,
         strata = outArgs$strata,
         level.strata = level.strata,
@@ -221,7 +232,7 @@ BuyseTest <- function(formula,
                        endpoint,
                        index.survivalM1,
                        keep.comparison,                       
-                       method,
+                       method.tte,
                        method.inference,
                        n.resampling,
                        neutral.as.uninf,
@@ -242,7 +253,7 @@ BuyseTest <- function(formula,
                               censoring = censoring,
                               type = type,
                               operator = operator,
-                              method = method,
+                              method.tte = method.tte,
                               strata = strata)
     
     index.strataT <- outData$index.strataT
@@ -257,11 +268,11 @@ BuyseTest <- function(formula,
     D.TTE <- sum(type==3)
         
     ## ** Initialize survival
-    if(method==0){
+    if(method.tte==0){
         ## factice lists. Will be sent to the C++ arguments to fill the argument but not used by the function.
         list.survivalT <- list()
         list.survivalC <- list()
-    }else if(method==1){
+    }else if(method.tte==1){
         outSurv <- initializeSurvival_Peto(M.Treatment=M.Treatment,
                                           M.Control=M.Control,
                                           M.delta.Treatment=M.delta.Treatment,
@@ -275,7 +286,7 @@ BuyseTest <- function(formula,
                                           n.strata=n.strata)
         list.survivalT <- outSurv$list.survivalT
         list.survivalC <- outSurv$list.survivalC
-    }else if(method %in% 2:3){
+    }else if(method.tte %in% 2:3){
         outSurv <- initializeSurvival_Peron(M.Treatment=M.Treatment,
                                            M.Control=M.Control,
                                            M.delta.Treatment=M.delta.Treatment,
@@ -312,7 +323,7 @@ BuyseTest <- function(formula,
                                threshold_TTEM1 = threshold.TTEM1, 
                                list_survivalT = list.survivalT,
                                list_survivalC = list.survivalC,
-                               methodTTE = method,
+                               methodTTE = method.tte,
                                correctionTTE = correctionTTE,
                                neutralAsUninf = neutral.as.uninf,
                                keepComparison = keep.comparison

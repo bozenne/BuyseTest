@@ -22,7 +22,7 @@ setClass(
       check = "logical",
       conf.level = "numeric",
       cpus = "numeric",
-      method = "character",
+      method.tte = "character",
       correctionTTE = "logical",
       method.inference = "character",
       n.resampling = "numeric",
@@ -46,13 +46,8 @@ setClass(
                  min = 1,
                  valid.length = 1,
                  method = "Class BuyseTest.options")
-    validCharacter(object@method,
-                   name1 = "@method",
-                   valid.values = c("Peron","Efron","Peto","Gehan"),
-                   valid.length = 1,
-                   method = "Class BuyseTest.options")
-    validCharacter(object@method,
-                   name1 = "@method",
+    validCharacter(object@method.tte,
+                   name1 = "@method.tte",
                    valid.values = c("Peron","Efron","Peto","Gehan"),
                    valid.length = 1,
                    method = "Class BuyseTest.options")

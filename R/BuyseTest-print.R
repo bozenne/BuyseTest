@@ -14,7 +14,7 @@ printGeneral <- function(censoring,
                          endpoint,
                          level.strata,
                          level.treatment,
-                         method,
+                         method.tte,
                          neutral.as.uninf,
                          operator,
                          strata,
@@ -75,7 +75,7 @@ printGeneral <- function(censoring,
     
     ## ** Display
     cat("Settings (punctual estimation) \n")
-    cat("   > reference: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
+    cat("   > treatment groups: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
     cat("   > ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
     if(n.strata>1){
@@ -89,13 +89,13 @@ printGeneral <- function(censoring,
     }
     if(any(type==3)){
         cat("   > management of censored survival pairs : ")
-        switch(method,
+        switch(method.tte,
                "Gehan" = cat("uninformative pairs \n"),
-               "Peto" = cat("imputation using one survival curve estimated on all patients \n"),
-               "Efron" = cat("imputation using different survival curve for control and treatment patients \n"),
-               "Peron" = cat("imputation using different survival curve for control and treatment patients \n")
+               "Peto" = cat("imputation using Kaplan Meier \n"),
+               "Efron" = cat("imputation using Kaplan Meier stratified by treatment group \n"),
+               "Peron" = cat("imputation using Kaplan Meier stratified by treatment group \n")
                ) 
-        if (method %in% c("Peto","Efron","Peron")) {
+        if (method.tte %in% c("Peto","Efron","Peron")) {
             
             cat("   > weights of the pairs relatively to the enpoints : \n")
             print(Wscheme)

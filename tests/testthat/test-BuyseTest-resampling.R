@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: apr 30 2018 (17:06) 
+## last-updated: maj  5 2018 (22:59) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 22
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -24,7 +24,7 @@ if(FALSE){
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.comparison = TRUE,
+                  keep.comparison = TRUE,                  
                   trace = 0)
 n.patients <- 10
 
@@ -40,9 +40,17 @@ dt.sim <- simBuyseTest(n.T = n.patients,
 method <- "Peron"
 test_that("permutation", {
     BT <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1),
-                    data = dt.sim, method = method,
+                    data = dt.sim, method.tte = method, seed = 10,
                     method.inference = "permutation", n.resampling = 10)
-    summary(BT)
+
+    ## set.seed(10)
+    ## dt.perm <- copy(dt.sim)
+    ## indexT <- sample.int(NROW(dt.sim), size = sum(dt.sim$Treatment==1), replace = FALSE)
+    ## dt.perm[indexT, Treatment := 1]
+    ## dt.perm[-indexT, Treatment := 0]
+    ## BT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1),
+                         ## data = dt.perm, method.tte = method, n.resampling = 0)
+    ## summary(BT)
     ## new
     ## endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value 
     ## eventtime1     1e-12   100      48.6       23.86       0 27.54 0.247 0.247    [-0.3;0.251]     0.4
@@ -55,7 +63,7 @@ test_that("permutation", {
 
     if(FALSE){
         BT <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1),
-                    data = dt.sim, method = "Peron", trace = 3,
+                    data = dt.sim, method.tte = "Peron", trace = 3,
                     cpus = 4, 
                     method.inference = "permutation", n.resampling = 1000)
 

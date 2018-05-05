@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr 30 2018 (15:22) 
+## Last-Updated: maj  5 2018 (22:57) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -83,7 +83,7 @@ test_that("number of pairs - argument neutral.as.uninf", {
 ##                        endpoint = c("timeOS","Mgrade.tox"),
 ##                        index.survivalM1 = numeric(0),
 ##                        keep.comparison = FALSE,
-##                        method = 0,
+##                        method.tte = 0,
 ##                        method.inference = "none",
 ##                        neutral.as.uninf = TRUE,
 ##                        operator = c(">0",">0"),

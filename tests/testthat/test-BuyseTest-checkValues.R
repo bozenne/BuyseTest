@@ -158,11 +158,12 @@ test_that("BuyseTest - continuous (strata)", {
 
 ## * Time to event endpoint
 ## ** No strata - same endpoint
-for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Efron"
+for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
-                            data = dt.sim[,.SD[1:5], by = Treatment], method = method)
+                            data = dt.sim,
+                            method.tte = method)
 
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
@@ -170,9 +171,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Efron"
                          treatment = "Treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
-                         method = method
+                         method.tte = method
                          )
-
     
         ## *** test against fixed value
         test <- list(favorable = as.double(BT.tte@count.favorable),
@@ -216,9 +216,8 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Efron"
                        winRatio = c(1.751355, 1.3643995, 1.25384768) )
         }
 
-        summary(BT.tte)
         expect_equal(test, GS, tolerance = 1e-6, scale = 1)
-        expect_equal(BT.tte,BT2)
+        expect_equal(BT.tte, BT2)
 
         ## *** count pairs
         tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)$table
@@ -235,7 +234,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),
-                            data = dt.sim, method = method)
+                            data = dt.sim, method.tte = method)
 
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime2","eventtime3"),
@@ -243,7 +242,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
                          treatment = "Treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
-                         method = method
+                         method.tte = method
                          )
     
         ## *** test against fixed value
@@ -305,7 +304,7 @@ method <- "Efron"
 test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1) + strata,
-                            data = dtS.sim, method = method)
+                            data = dtS.sim, method.tte = method)
 
 
         ## *** test against fixed value
@@ -344,7 +343,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - mixed (",method,", no strata)"),{ 
     
         BT.mixed <- BuyseTest(Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5),
-                              data = dt.sim, method = method)
+                              data = dt.sim, method.tte = method)
 
         BT2 <- BuyseTest(data=dt.sim,
                          endpoint=c("eventtime1","score1","toxicity1","eventtime1","score1"),
@@ -352,7 +351,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
                          treatment="Treatment",
                          type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                          threshold=c(0.5,1,NA,0.25,0.5),
-                         method=method)
+                         method.tte=method)
   
         ## *** test against fixed value
         test <- list(favorable = as.double(BT.mixed@count.favorable),

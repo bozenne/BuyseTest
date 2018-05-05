@@ -42,7 +42,7 @@ for(iData in 1:3){ ## iData <- 1
                               censoring= paste0("status",iData),
                               type = 3,
                               operator = ">0",
-                              method = method.num,
+                              method.tte = method.num,
                               strata = NULL)
 
     FCT.surv <- switch(as.character(method.num),
@@ -211,7 +211,7 @@ for(method in c("Peto","Efron","Peron")){
                               censoring= "status",
                               type = 3,
                               operator = ">0",
-                              method = method.num,
+                              method.tte = method.num,
                               strata = "strata")
 
     FCT.surv <- switch(as.character(method.num),

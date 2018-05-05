@@ -333,9 +333,19 @@ setMethod(f = "summary",
                       cat(" >  test: ",txt.permutation," samples, confidence level ",1-alpha," \n", sep = "")
                   }
                   
-                  cat(" > groups          : ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
+                  cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
+                  if(any(object@type == "TimeToEvent")){
+                      txt.method.tte <- switch(object@method.tte,
+                                               "Gehan" = "uninformative pairs \n",
+                                               "Peto" = "imputation using Kaplan Meier \n",
+                                               "Efron" = "imputation using Kaplan Meier stratified by treatment group \n",
+                                               "Peron" = "imputation using Kaplan Meier stratified by treatment group \n"
+                                               ) 
+
+                      cat(" > censored pairs  : ",txt.method.tte,"\n", sep = "")
+                  }
                   cat(" > results\n")
-                  print(table.print, row.names = FALSE)         
+                  print(table.print, row.names = FALSE)
               }
             
               ## ** export

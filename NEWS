@@ -3,6 +3,7 @@
 * Version 1.3
 ** User visble changes - BuyseTest function
   - argument n.permutation becomes n.resampling
+  - argument method becomes method.tte
   - add argument method.inference to choose how to compute pvalues and
     CI.
 

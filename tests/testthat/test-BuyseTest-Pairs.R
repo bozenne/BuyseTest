@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: apr 30 2018 (14:01) 
+## Last-Updated: maj  5 2018 (22:57) 
 ##           By: Brice Ozenne
-##     Update #: 124
+##     Update #: 125
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -450,7 +450,7 @@ dt.2pairs <- data.table(id = 1:4,
 ## *** Gehan
 test_that("2 pairs - Gehan",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method="Gehan")
+                    method.tte="Gehan")
   
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),2)
@@ -467,7 +467,7 @@ test_that("2 pairs - Gehan",{
 ## *** Peto
 test_that("2 pairs - Peto",{ 
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method="Peto")
+                    method.tte="Peto")
 
     ## same survival curve for both groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = P[S>=t|S>=10] = 1 (t=<12), 2/3 (12<t=<20), 1/3 (20<t=<32), 0 (t>32)
@@ -496,7 +496,7 @@ test_that("2 pairs - Peto",{
 ## *** Efron
 test_that("2 pairs - Efron",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method="Efron")
+                    method.tte="Efron")
   
     ## different survival curve per groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
@@ -523,7 +523,7 @@ test_that("2 pairs - Efron",{
 ## *** Peron
 test_that("2 pairs - Peron",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method="Peron")
+                    method.tte="Peron")
   
     ## different survival curve per groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
@@ -561,7 +561,7 @@ test_that("check previous bug with option keep.comparison",{
     ## the bug was some of the results of BT@tableComparison were set to random intialization values (when C++ create the vector)
     ## because they were not updated during the execution of the function
     BT <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2),
-                    data = dt, method = "Gehan")
+                    data = dt, method.tte = "Gehan")
 
     ## butils::object2script(BT@tableComparison)
     GS <- list(eventtime1_1 = data.frame("strata" = c("1", "1", "1"), 

@@ -5,7 +5,7 @@
 \title{Check Arguments Passed to BuyseTest}
 \usage{
 testArgs(alternative, name.call, censoring, correctionTTE, cpus, data, endpoint,
-  formula, keep.comparison, method, method.inference, n.resampling,
+  formula, keep.comparison, method.tte, method.inference, n.resampling,
   neutral.as.uninf, operator, seed, strata, threshold, trace, treatment, type,
   ...)
 }
