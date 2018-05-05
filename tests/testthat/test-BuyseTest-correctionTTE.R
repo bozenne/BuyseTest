@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: maj  5 2018 (22:57) 
+## Last-Updated: maj  5 2018 (23:32) 
 ##           By: Brice Ozenne
-##     Update #: 9
+##     Update #: 10
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,7 +34,7 @@ df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
                  "score" = 1)
 
 ## ** Gehan
-test_that("1 endpoint - Gehan", {
+test_that("1 TTE endpoint - Gehan", {
     Gehan <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df, 
                        method.tte = "Gehan")
@@ -44,6 +44,7 @@ test_that("1 endpoint - Gehan", {
     expect_equal(as.double(Gehan@count.neutral), c(1,5))
     expect_equal(as.double(Gehan@count.uninf), c(4,0))
 
+    ## survival first
     GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
                         method.tte = "Gehan", correctionTTE = TRUE)
@@ -53,10 +54,20 @@ test_that("1 endpoint - Gehan", {
     expect_equal(as.double(GehanC@count.unfavorable), c(2*factor,0))
     expect_equal(as.double(GehanC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(GehanC@count.uninf), c(0,0))
+
+    ## survival second
+    GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
+                         data = df, 
+                         method = "Gehan", correctionTTE = TRUE)
+    expect_equal(GehanC@count.favorable[1], GehanC2@count.favorable[2])
+    expect_equal(GehanC@count.unfavorable[1], GehanC2@count.unfavorable[2])
+    expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])
+    expect_equal(GehanC@count.uninf[1], GehanC2@count.uninf[2])
+
 })
 
 ## ** Peron
-test_that("1 endpoint - Peron", {
+test_that("1 TTE endpoint - Peron", {
     Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df, 
                        method.tte = "Peron")
@@ -75,6 +86,16 @@ test_that("1 endpoint - Peron", {
     expect_equal(as.double(PeronC@count.unfavorable), c(2*factor,0))
     expect_equal(as.double(PeronC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(PeronC@count.uninf), c(0,0))
+
+        ## survival second
+    PeronC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
+                         data = df, 
+                         method = "Peron", correctionTTE = TRUE)
+    expect_equal(PeronC@count.favorable[1], PeronC2@count.favorable[2])
+    expect_equal(PeronC@count.unfavorable[1], PeronC2@count.unfavorable[2])
+    expect_equal(PeronC@count.neutral[1], PeronC@count.neutral[2])
+    expect_equal(PeronC@count.uninf[1], PeronC2@count.uninf[2])
+
 })
 
 ##----------------------------------------------------------------------

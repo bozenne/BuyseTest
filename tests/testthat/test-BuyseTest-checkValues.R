@@ -160,7 +160,7 @@ test_that("BuyseTest - continuous (strata)", {
 ## ** No strata - same endpoint
 for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
-    
+
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
                             data = dt.sim,
                             method.tte = method)

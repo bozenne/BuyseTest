@@ -1,0 +1,372 @@
+% Created 2018-05-01 ti 11:57
+% Intended LaTeX compiler: pdflatex
+\documentclass{article}
+
+%%%% settings when exporting code %%%% 
+
+\usepackage{listings}
+\lstset{
+backgroundcolor=\color{white},
+basewidth={0.5em,0.4em},
+basicstyle=\ttfamily\small,
+breakatwhitespace=false,
+breaklines=true,
+columns=fullflexible,
+commentstyle=\color[rgb]{0.5,0,0.5},
+frame=single,
+keepspaces=true,
+keywordstyle=\color{black},
+literate={~}{$\sim$}{1},
+numbers=left,
+numbersep=10pt,
+numberstyle=\ttfamily\tiny\color{gray},
+showspaces=false,
+showstringspaces=false,
+stepnumber=1,
+stringstyle=\color[rgb]{0,.5,0},
+tabsize=4,
+xleftmargin=.23in,
+emph={anova,apply,class,coef,colnames,colNames,colSums,dim,dcast,for,ggplot,head,if,ifelse,is.na,lapply,list.files,library,logLik,melt,plot,require,rowSums,sapply,setcolorder,setkey,str,summary,tapply},
+emphstyle=\color{blue}
+}
+
+%%%% packages %%%%%
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{wrapfig}
+\usepackage{capt-of}
+\usepackage{caption}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{changes}
+\usepackage{pdflscape}
+\usepackage{geometry}
+\usepackage[normalem]{ulem}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{dsfont}
+\usepackage{textcomp}
+\usepackage{array}
+\usepackage{ifthen}
+\usepackage{hyperref}
+\usepackage{natbib}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+\RequirePackage{colortbl} % arrayrulecolor to mix colors
+\RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+\usepackage{authblk} % enable several affiliations (clash with beamer)
+\RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+%
+%%%% additional latex commands %%%%
+%
+\RequirePackage{amsmath}
+\RequirePackage{algorithm}
+\RequirePackage[noend]{algpseudocode}
+\RequirePackage{ifthen}
+\RequirePackage{xspace} % space for newcommand macro
+\RequirePackage{xifthen}
+\RequirePackage{xargs}
+\RequirePackage{dsfont}
+\RequirePackage{amsmath,stmaryrd,graphicx}
+\RequirePackage{prodint} % product integral symbol (\PRODI)
+\RequirePackage{amsthm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newcommand\defOperator[7]{%
+\ifthenelse{\isempty{#2}}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+}
+}
+\newcommand\defUOperator[5]{%
+\ifthenelse{\isempty{#1}}{
+#5\left#3 #2 \right#4
+}{
+\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+}
+}
+\newcommand{\defBoldVar}[2]{
+\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+}
+\newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+\newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+\newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+\newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+\newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+\newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+\newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+\newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+\newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+\newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+\newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+\newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+\newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+\newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+\newcommandx\Hypothesis[2][1=,2=]{
+\ifthenelse{\isempty{#1}}{
+\mathcal{H}
+}{
+\ifthenelse{\isempty{#2}}{
+\mathcal{H}_{#1}
+}{
+\mathcal{H}^{(#2)}_{#1}
+}
+}
+}
+\newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+\ifthenelse{\isempty{#3}}{
+\frac{#4 #1}{#4 #2}
+}{
+\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+}
+}
+\newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+\newcommandx\ddpartial[3][1=,2=,3=]{
+\ifthenelse{\isempty{#3}}{
+\frac{\partial^{2} #1}{\left( \partial #2\right)^2}
+}{
+\frac{\partial^2 #1}{\partial #2\partial #3}
+}
+}
+\newcommand\Real{\mathbb{R}}
+\newcommand\Rational{\mathbb{Q}}
+\newcommand\Natural{\mathbb{N}}
+\newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+\newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+\newcommand\half{\frac{1}{2}}
+\newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+\newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+\author{Brice Ozenne}
+\date{\today}
+\title{Generalized Pairwise Comparison - bias correction (example)}
+\hypersetup{
+ colorlinks=true,
+ citecolor=[rgb]{0,0.5,0},
+ urlcolor=[rgb]{0,0,0.5},
+ linkcolor=[rgb]{0,0,0.5},
+ pdfauthor={Brice Ozenne},
+ pdftitle={Generalized Pairwise Comparison - bias correction (example)},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 25.2.1 (Org mode 9.0.4)},
+ pdflang={English}
+ }
+\begin{document}
+
+\maketitle
+Load package
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(BuyseTest) # BuyseTest version 1.3
+\end{lstlisting}
+
+Load data
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10), 
+		 "event" = c(1, 1, 1, 0, 1, 0, 0, 1), 
+		 "group" = c(0, 0, 0, 0, 1, 1, 1, 1))
+df
+\end{lstlisting}
+
+\begin{verbatim}
+  survie event group
+1    2.1     1     0
+2    4.1     1     0
+3    6.1     1     0
+4    8.1     0     0
+5    4.0     1     1
+6    6.0     0     1
+7    8.0     0     1
+8   10.0     1     1
+\end{verbatim}
+
+Default options:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest.options(method = "Peron", method.inference = "none")
+\end{lstlisting}
+
+\clearpage
+
+\section{No correction}
+\label{sec:org3d54615}
+
+Run GPC:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BT_Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1),
+		      data = df)
+\end{lstlisting}
+
+\begin{verbatim}
+Settings (punctual estimation) 
+   > reference: Control = 0 and Treatment = 1
+   > 1 endpoint: 
+      |priority endpoint type          operator            threshold censoring |
+      |1        survie   time to event higher is favorable 1         event     |
+   > management of neutral pairs : re-analyzed using endpoints of lower priority (if any) 
+   > management of censored survival pairs : imputation using different survival curve for control and treatment patients 
+Punctual estimation (done)
+\end{verbatim}
+
+Display results (percentage):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(BT_Peron)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> groups          : 0 (control) vs. 1 (treatment) 
+> results
+endpoint threshold total favorable unfavorable neutral uninf delta Delta
+  survie         1   100      62.5        12.5    6.25 18.75   0.5   0.5
+\end{verbatim}
+
+Display results (number of pairs):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(BT_Peron, percentage = FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> groups          : 0 (control) vs. 1 (treatment) 
+> results
+endpoint threshold total favorable unfavorable neutral uninf delta Delta
+  survie         1    16        10           2       1     3   0.5   0.5
+\end{verbatim}
+
+\clearpage
+
+\section{Manual correction:}
+\label{sec:orgb574db8}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+table <- summary(BT_Peron, percentage = FALSE, show = FALSE)$table
+vec.count <- table[table$strata == "global",
+		   c("n.favorable","n.unfavorable","n.neutral","n.uninf")]
+vec.count
+\end{lstlisting}
+
+\begin{verbatim}
+  n.favorable n.unfavorable n.neutral n.uninf
+1          10             2         1       3
+\end{verbatim}
+
+Multiplicative factor:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+factor <- sum(vec.count)/as.double(sum(vec.count)-vec.count["n.uninf"])
+factor
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 1.230769
+\end{verbatim}
+
+Corrected output (number of pairs):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+vec.count2 <- vec.count[1:3]*factor
+vec.count2
+\end{lstlisting}
+
+\begin{verbatim}
+  n.favorable n.unfavorable n.neutral
+1    12.30769      2.461538  1.230769
+\end{verbatim}
+
+Corrected output (percentage of pairs):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+vec.count2/sum(vec.count)
+\end{lstlisting}
+
+\begin{verbatim}
+  n.favorable n.unfavorable  n.neutral
+1   0.7692308     0.1538462 0.07692308
+\end{verbatim}
+
+\clearpage
+
+\section{Automatic correction}
+\label{sec:orgcc84a18}
+
+Run GPC with correction (argument \texttt{correctionTTE})
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BT_PeronC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1),
+		       correctionTTE = TRUE,                      
+		       data = df)
+\end{lstlisting}
+
+\begin{verbatim}
+Settings (punctual estimation) 
+   > reference: Control = 0 and Treatment = 1
+   > 1 endpoint: 
+      |priority endpoint type          operator            threshold censoring |
+      |1        survie   time to event higher is favorable 1         event     |
+   > management of neutral pairs : re-analyzed using endpoints of lower priority (if any) 
+   > management of censored survival pairs : imputation using different survival curve for control and treatment patients 
+Punctual estimation (done)
+\end{verbatim}
+
+Display results (percentage):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(BT_PeronC)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> groups          : 0 (control) vs. 1 (treatment) 
+> results
+endpoint threshold total favorable unfavorable neutral uninf delta Delta
+  survie         1   100     76.92       15.38    7.69     0 0.615 0.615
+\end{verbatim}
+
+Display results (number of pairs):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(BT_PeronC, percentage = FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> groups          : 0 (control) vs. 1 (treatment) 
+> results
+endpoint threshold total favorable unfavorable neutral uninf delta Delta
+  survie         1    16     12.31        2.46    1.23     0 0.615 0.615
+\end{verbatim}
+\end{document}

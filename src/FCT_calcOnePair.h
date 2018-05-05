@@ -15,14 +15,14 @@ using namespace arma ;
 inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold,
 					   const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					   vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
+					   vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC, 
 					   vector<int>& index_wUninf, vector<int>&  index_wNeutral,
 					   bool keepComparison);
  
 inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold,
 		       		 const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 				 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-				 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
+				 vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC, 
 				 vector<int>& index_wUninf, vector<int>&  index_wNeutral,
 				 bool keepComparison);
  
@@ -38,11 +38,13 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 inline double calcIntegralProba(const double time_begin, const arma::mat& survival, const int index_col);
 
 
+
+
 // * calcOnePair_Continuous
 inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold,
 					   const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					   vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
+					   vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC, 
 					   vector<int>& index_wUninf, vector<int>&  index_wNeutral,
 					   bool keepComparison){
 
@@ -97,7 +99,7 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
 inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double endpoint_C, const double delta_T, const double delta_C, const double threshold,
 				 const int index_T, const int index_C, const double Wpair, const int iter_pair, 
 				 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-				 vector<int>& index_uninfT, vector<int>& index_uninfC, vector<int>& index_neutralT, vector<int>& index_neutralC,
+				 vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC, 
 				 vector<int>& index_wUninf, vector<int>&  index_wNeutral,
 				 bool keepComparison){
   
@@ -187,7 +189,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
         }
     }
   }
-  
+  /* Rcout << iRow[0] << " " << iRow[1] << " " <<  iRow[2] << " " << iRow[3] << " " << iRow[4] << " " << iRow[5]  << endl; */
   return iRow;
   
 }
