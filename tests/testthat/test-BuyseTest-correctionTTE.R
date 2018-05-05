@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: maj  5 2018 (23:32) 
+## Last-Updated: maj  5 2018 (23:35) 
 ##           By: Brice Ozenne
-##     Update #: 10
+##     Update #: 12
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -58,7 +58,7 @@ test_that("1 TTE endpoint - Gehan", {
     ## survival second
     GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
-                         method = "Gehan", correctionTTE = TRUE)
+                         method.tte = "Gehan", correctionTTE = TRUE)
     expect_equal(GehanC@count.favorable[1], GehanC2@count.favorable[2])
     expect_equal(GehanC@count.unfavorable[1], GehanC2@count.unfavorable[2])
     expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])
@@ -90,7 +90,7 @@ test_that("1 TTE endpoint - Peron", {
         ## survival second
     PeronC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
-                         method = "Peron", correctionTTE = TRUE)
+                         method.tte = "Peron", correctionTTE = TRUE)
     expect_equal(PeronC@count.favorable[1], PeronC2@count.favorable[2])
     expect_equal(PeronC@count.unfavorable[1], PeronC2@count.unfavorable[2])
     expect_equal(PeronC@count.neutral[1], PeronC@count.neutral[2])
