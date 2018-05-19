@@ -92,9 +92,6 @@ suppressPackageStartupMessages(library(BuyseTest))
 #+END_SRC
 
 #+RESULTS:
-: Warning messages:
-: 1: package 'Rcpp' was built under R version 3.4.4 
-: 2: package 'data.table' was built under R version 3.4.4
 
 ** Simulate data
 You can simulate data with the =simBuyseTest= function. For instance
@@ -186,12 +183,12 @@ BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
 
 #+RESULTS:
 : Settings (punctual estimation) 
-:    > reference: Control = 1 and Treatment = 2
+:    > treatment groups: Control = 1 and Treatment = 2
 :    > 1 endpoint: 
 :       |priority endpoint type          operator            threshold censoring |
 :       |1        time     time to event higher is favorable 20        status    |
 :    > management of neutral pairs : re-analyzed using endpoints of lower priority (if any) 
-:    > management of censored survival pairs : imputation using different survival curve for control and treatment patients 
+:    > management of censored survival pairs : imputation using Kaplan Meier stratified by treatment group 
 : Punctual estimation (done)
 
 - or using a separate argument for each element:
@@ -219,8 +216,6 @@ expect_equal(BT.f,BT)
 #+END_SRC
 
 #+RESULTS:
-: Warning message:
-: package 'testthat' was built under R version 3.4.4
 
 The =BuyseTest= function can perform stratified GPC with several endpoints:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -244,14 +239,18 @@ summary(BT)
 #+END_SRC 
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
-: 
-:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > groups          : 1 (control) vs. 2 (treatment) 
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
-:      time        20   100     37.78       46.54      15  0.68 -0.088 -0.088
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
+     time        20   100     37.78       46.54      15  0.68 -0.088 -0.088
+#+end_example
 
 By default =summary= displays results relative to the statistic "net
 chance of a better outcome". To get results for the win ratio set the
@@ -261,14 +260,18 @@ summary(BT, statistic = "winRatio")
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
-: 
-:  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 1 
-:  > groups          : 1 (control) vs. 2 (treatment) 
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
-:      time        20   100     37.78       46.54      15  0.68 0.812 0.812
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : win ratio (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 1 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf delta Delta
+     time        20   100     37.78       46.54      15  0.68 0.812 0.812
+#+end_example
 
 #+RESULTS:
 Since we have set the argument =n.permutation= to 0 (i.e. no
@@ -284,7 +287,9 @@ summary(BT2)
 
  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > groups          : 1 (control) vs. 2 (treatment) 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
  > results
  endpoint threshold    strata  total favorable unfavorable neutral uninf  delta  Delta
      time        20    global 100.00     36.06       45.77   16.92  1.25 -0.097 -0.097
@@ -311,15 +316,19 @@ summary(BT.perm)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
-: 
-:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > permutation test: 10 samples, confidence level 0.95 
-:  > groups          : 1 (control) vs. 2 (treatment) 
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta CI [2.5 ; 97.5] p.value 
-:      time        20   100     37.78       46.54      15  0.68 -0.088 -0.088 [-0.207;-0.016]     0.3
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > permutation test: 10 samples, confidence level 0.95 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf  delta  Delta CI [2.5 ; 97.5] p.value 
+     time        20   100     37.78       46.54      15  0.68 -0.088 -0.088  [-0.241;0.195]     0.4
+#+end_example
 
 The argument =n.resampling= indicates the permutation that will be
 performed. We set it to 10 to save computation time but to obtain
@@ -350,7 +359,7 @@ try(BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "
 #+END_SRC
 
 #+RESULTS:
-: Error in (function (alternative, name.call, censoring, correctionTTE,  : 
+: Error in (function (alternative, name.call, censoring, correction.tte,  : 
 :   Cannot have different operator for the same endpoint used at different priorities
 
 *** Stopping comparison for neutral pairs
@@ -383,7 +392,7 @@ summary(BT.pair)
 : 
 :  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
-:  > groups          : No (control) vs. Yes (treatment) 
+:  > treatment groups: No (control) vs. Yes (treatment) 
 :  > results
 :  endpoint threshold total favorable unfavorable neutral uninf delta Delta
 :     tumor       0.5   100         0           0     100     0     0     0
@@ -404,7 +413,7 @@ summary(BT.pair2)
 : 
 :  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
-:  > groups          : No (control) vs. Yes (treatment) 
+:  > treatment groups: No (control) vs. Yes (treatment) 
 :  > results
 :  endpoint threshold total favorable unfavorable neutral uninf delta Delta
 :     tumor       0.5   100         0           0     100     0     0     0
@@ -531,14 +540,14 @@ $conf.level
 $cpus
 [1] 1
 
-$method
-[1] "Peron"
-
-$correctionTTE
+$keep.comparison
 [1] FALSE
 
 $method.inference
-[1] "permutation"
+[1] "stratified permutation"
+
+$method.tte
+[1] "Peron"
 
 $n.resampling
 [1] 1000
@@ -546,17 +555,17 @@ $n.resampling
 $neutral.as.uninf
 [1] TRUE
 
-$keep.comparison
-[1] FALSE
-
-$trace
-[1] 2
+$returnIndex
+[1] TRUE
 
 $seed
 [1] 10
 
 $statistic
 [1] "netChance"
+
+$trace
+[1] 2
 #+end_example
 
 The following code enables to change =trace= to 0:
@@ -586,25 +595,28 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 3.4.0 (2017-04-21)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 7 x64 (build 7601) Service Pack 1
+R version 3.4.1 (2017-06-30)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 16.04.3 LTS
 
 Matrix products: default
+BLAS: /usr/lib/libblas/libblas.so.3.6.0
+LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252    LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.1252    
+ [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8        LC_COLLATE=fr_FR.UTF-8    
+ [5] LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8    LC_PAPER=da_DK.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] testthat_2.0.0      BuyseTest_1.3       data.table_1.10.4-3 Rcpp_0.12.16        prodlim_1.6.1      
+[1] testthat_2.0.0     BuyseTest_1.3.1    data.table_1.11.0  Rcpp_0.12.16       prodlim_2018.04.18
 
 loaded via a namespace (and not attached):
- [1] lattice_0.20-35 grid_3.4.0      R6_2.2.1        stats4_3.4.0    magrittr_1.5    rlang_0.1.1     Matrix_1.2-9    lava_1.6.1      splines_3.4.0  
-[10] tools_3.4.0     survival_2.41-3 parallel_3.4.0  compiler_3.4.0
+ [1] lattice_0.20-35 grid_3.4.1      R6_2.2.2        stats4_3.4.1    magrittr_1.5    rlang_0.2.0     Matrix_1.2-11  
+ [8] lava_1.6.1      splines_3.4.1   tools_3.4.1     survival_2.41-3 parallel_3.4.1  compiler_3.4.1
 #+end_example
 
 
