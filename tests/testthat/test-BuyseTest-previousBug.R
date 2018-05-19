@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj  5 2018 (22:57) 
+## Last-Updated: maj 19 2018 (12:31) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 19
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,12 +41,12 @@ test_that("number of pairs - argument neutral.as.uninf", {
     BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                       data = dt.sim,
                       neutral.as.uninf = TRUE)
-    BTS.T <- as.data.table(summary(BT.T, show = FALSE)$table)
+    BTS.T <- as.data.table(summary(BT.T, print = FALSE)$table)
     
     BT.F <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                       data = dt.sim,
                       neutral.as.uninf = FALSE)
-    BTS.F <- as.data.table(summary(BT.F, show = FALSE)$table)
+    BTS.F <- as.data.table(summary(BT.F, print = FALSE)$table)
 
     expect_equal(BTS.T[1,],BTS.F[1,])
     expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", pc.total],
@@ -69,6 +69,8 @@ test_that("number of pairs - argument neutral.as.uninf", {
                      "p.value" = c(NA, NA, NA, NA), 
                      "n.resampling" = c(NA, NA, NA, NA))
     ##    butils::object2script(BTS.T)
+
+    attr(BTS.T,"index") <- NULL
     expect_equal(BTS.T, GS, tol = 1e-6)
 })
 

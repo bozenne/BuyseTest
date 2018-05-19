@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: maj  5 2018 (22:53) 
+## Last-Updated: maj  6 2018 (13:09) 
 ##           By: Brice Ozenne
-##     Update #: 39
+##     Update #: 52
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@
 testArgs <- function(alternative,
                      name.call,
                      censoring,
-                     correctionTTE,
+                     correction.tte,
                      cpus,
                      data,
                      endpoint,
@@ -90,11 +90,6 @@ testArgs <- function(alternative,
         }
         
     }
-
-    ## ** correctionTTE
-    validLogical(correctionTTE,
-                 valid.length = 1,
-                 method = "BuyseTest")
 
     ## ** cpus
     if(cpus>1){
@@ -178,12 +173,15 @@ testArgs <- function(alternative,
                  method = "BuyseTest")
  
     ## ** method.tte
-    if(any(method.tte %in% 0:3 == FALSE)){
-        txt <- method.tte[method.tte %in% 0:3 == FALSE]
+    if(is.na(method.tte)){
         stop("BuyseTest: wrong specification of \'method.tte\' \n",
-             "valid values: \"Gehan\" \"Peto\" \"Efron\" \"Peron\" \n",
-             "incorrect values: \"",paste(txt, collapse = "\" \""),"\" \n")
+             "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\" \n")
     }
+
+    ## ** correction.tte
+    validLogical(correction.tte,
+                 valid.length = 1,
+                 method = "BuyseTest")
 
     ## ** method.inference
     validCharacter(method.inference,

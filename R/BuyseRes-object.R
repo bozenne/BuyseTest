@@ -178,7 +178,6 @@ methods::setMethod(
                                    tableComparison,
                                    args){
 
-
                  ## ** count
                  dimnames(count.favorable) <- list(level.strata, endpoint)
                  dimnames(count.unfavorable) <- list(level.strata, endpoint)
@@ -232,7 +231,6 @@ methods::setMethod(
                      })
                      names(tableComparison) <- paste0(endpoint,"_",threshold)
                  }
-
                  .Object@count.favorable <- count.favorable      
                  .Object@count.unfavorable <- count.unfavorable
                  .Object@count.neutral <- count.neutral   

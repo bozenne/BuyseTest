@@ -22,15 +22,15 @@ setClass(
       check = "logical",
       conf.level = "numeric",
       cpus = "numeric",
-      method.tte = "character",
-      correctionTTE = "logical",
+      keep.comparison = "logical",
       method.inference = "character",
+      method.tte = "character",
       n.resampling = "numeric",
       neutral.as.uninf = "logical",
-      keep.comparison = "logical",
-      trace = "numeric",
+      returnIndex = "logical",
       seed = "numeric",
-      statistic = "character"
+      statistic = "character",
+      trace = "numeric"
   ),
 
   ### ** Check validity of the object
@@ -81,7 +81,9 @@ setClass(
                    method = "Class BuyseTest.options")
     validCharacter(object@method.inference,
                    name1 = "@resampling",
-                   valid.values = c("bootstrap","permutation","asymptotic"),
+                   valid.values = c("bootstrap", "stratified boostrata",
+                                    "permutation", "stratified permutation",
+                                    "asymptotic"),
                    valid.length = 1,
                    method = "Class BuyseTest.options")
     return(TRUE)} 

@@ -25,8 +25,7 @@ printGeneral <- function(censoring,
                          Wscheme,
                          ...){
 
-    D <- length(endpoint)
-    D.TTE <- sum(type == 3)
+
     if(!is.null(strata)){
         n.strata <- length(level.strata)
     }else{

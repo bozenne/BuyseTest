@@ -8,7 +8,7 @@
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
 #' 
 #' @param object output of \code{\link{BuyseTest}}
-#' @param show [logical] Should the table be displayed?.
+#' @param print [logical] Should the table be displayed?.
 #' @param percentage [logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
 #' \code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)),
@@ -57,15 +57,15 @@ setGeneric(name = "summary",
 #' @exportMethod summary
 setMethod(f = "summary",
           signature = "BuyseRes",
-          definition = function(object, show = TRUE, percentage = TRUE,
+          definition = function(object, print = TRUE, percentage = TRUE,
                                 statistic = BuyseTest.options()$statistic,
                                 conf.level = 0.95, alternative = "two.sided",
                                 strata = if(length(object@level.strata)==1){"global"}else{NULL},                                
                                 digit = c(2,3)){
 
               ## ** normalize and check arguments
-              validLogical(show,
-                           name1 = "show",
+              validLogical(print,
+                           name1 = "print",
                            valid.length = 1,
                            method = "summary[BuyseRes]")
               
@@ -299,7 +299,7 @@ setMethod(f = "summary",
               table.print[which(test.duplicated),c("endpoint","threshold")] <- ""
               
               ## ** display
-              if(show){
+              if(print){
                   ## *** additional text
                   txt.strata <- if(n.strata>1){paste0(" and ",n.strata," strata")}else{""}
                   txt.endpoint <- paste0("with ",n.endpoint," prioritized endpoint")

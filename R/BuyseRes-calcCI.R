@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 29 2018 (17:42) 
 ## Version: 
-## Last-Updated: apr 30 2018 (15:57) 
+## Last-Updated: maj  6 2018 (10:54) 
 ##           By: Brice Ozenne
-##     Update #: 30
+##     Update #: 32
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -43,24 +43,16 @@ calcCIpermutation <- function(Delta, Delta.permutation,
   
     ## ** p.value
     out$Delta.pvalue <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the punctual estimate
-                           "two.sided" = sapply(endpoint, function(iE){
-                               mean(abs(Delta[iE] - null) < abs(Delta.permutation[iE,] - null))
-                           }),
-                           "less" = sapply(endpoint, function(iE){
-                               if(Delta[iE]<null){
+                               "two.sided" = sapply(endpoint, function(iE){
+                                   mean(abs(Delta[iE] - null) < abs(Delta.permutation[iE,] - null))
+                               }),
+                               "less" = sapply(endpoint, function(iE){
                                    return(mean((Delta[iE] - null) > (Delta.permutation[iE,] - null)))
-                               }else{
-                                   return(1)
-                               }
-                           }),
-                           "greater" = sapply(endpoint, function(iE){
-                               if(Delta[iE]>null){
+                               }),
+                               "greater" = sapply(endpoint, function(iE){
                                    return(mean((Delta[iE] - null) < (Delta.permutation[iE,] - null)))
-                               }else{
-                                   return(1)
-                               }
-                           })
-                           )
+                               })
+                               )
 
     
     ## ** export  

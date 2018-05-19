@@ -3,7 +3,6 @@
 ** test-initThreshold
 Check correct intialization of the threshold in the user interface.
 
-
 ** test-initSurvival
 Check the computation of the survival using Kaplan Meier:
 - no strata: Check jump at t- and no jump at t+ in the estimated survival by KM.
@@ -30,6 +29,11 @@ Test issues reported by users:
 - incorrect management of pairs with neutral.as.uninf
 
 ** test-BuyseTest-checkValues
-Check against known output in complex cases.
-
+Check against known output in complex cases
+** test-BuyseTest-correctionTTE
+Check method.tte="Gehan corrected" and method.tte="Peron corrected"
 ** test-resampling
+
+* TODO
+** test-BuyseTest-correctionTTE: test for case with two survival endpoints (same or different endpoints)
+

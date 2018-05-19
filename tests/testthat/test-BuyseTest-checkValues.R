@@ -60,7 +60,7 @@ test_that("BuyseTest - binary (no strata)", {
     ## fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$Treatment))
 
     ## *** count pairs
-    tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)$table
+    tableS <- summary(BT.bin, print = FALSE, percentage = FALSE)$table
     dt.tableS <- as.data.table(tableS)[strata == "global"]
     expect_equal(dt.tableS[,n.total],
                  unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf])
@@ -73,7 +73,7 @@ test_that("BuyseTest - binary (strata)", {
     BT.bin <- BuyseTest(Treatment ~ bin(toxicity1) + strata,
                         data = dtS.sim)
 
-    tableS <- summary(BT.bin, show = FALSE, percentage = FALSE)$table
+    tableS <- summary(BT.bin, print = FALSE, percentage = FALSE)$table
     dt.tableS <- as.data.table(tableS)
     
     ## *** count pairs
@@ -124,7 +124,7 @@ test_that("BuyseTest - continuous (no strata)", {
     expect_equal(BT.cont,BT2)
 
     ## *** count pairs
-    tableS <- summary(BT.cont, show = FALSE, percentage = FALSE)$table
+    tableS <- summary(BT.cont, print = FALSE, percentage = FALSE)$table
     dt.tableS <- as.data.table(tableS)[strata == "global"]
     expect_equal(dt.tableS[,n.total],
                  unname(dt.tableS[, n.favorable + n.unfavorable + n.neutral + n.uninf]
@@ -137,7 +137,7 @@ test_that("BuyseTest - continuous (strata)", {
     BT.cont <- BuyseTest(Treatment ~ cont(score1, 1) + cont(score2, 0) + strata,
                          data = dtS.sim)
 
-    tableS <- summary(BT.cont, show = FALSE, percentage = FALSE)$table
+    tableS <- summary(BT.cont, print = FALSE, percentage = FALSE)$table
     dt.tableS <- as.data.table(tableS)
 
         ## *** count pairs
@@ -220,7 +220,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
         expect_equal(BT.tte, BT2)
 
         ## *** count pairs
-        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)$table
+        tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
         dt.tableS <- as.data.table(tableS)[strata == "global"]
         expect_equal(dt.tableS[,n.total],
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
@@ -291,7 +291,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
         expect_equal(BT.tte,BT2)
 
         ## *** count pairs
-        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)$table
+        tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
         dt.tableS <- as.data.table(tableS)[strata == "global"]
         expect_equal(dt.tableS[,n.total],
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
@@ -326,7 +326,7 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
         expect_equal(GS, test, tol = 1e-6, scale = 1)
         
         ## *** same result for each pair
-        tableS <- summary(BT.tte, show = FALSE, percentage = FALSE)$table
+        tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
         expect_equal(tableS[tableS$strata=="1","Delta"],tableS[tableS$strata=="2","Delta"])
         expect_equal(tableS[tableS$strata=="1","Delta"],tableS[tableS$strata=="3","Delta"])
         expect_equal(tableS[tableS$strata=="1","Delta"],tableS[tableS$strata=="3","Delta"])
@@ -399,7 +399,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
         expect_equal(BT.mixed,BT2)
 
         ## *** count pairs
-        tableS <- summary(BT.mixed, show = FALSE, percentage = FALSE)$table
+        tableS <- summary(BT.mixed, print = FALSE, percentage = FALSE)$table
         dt.tableS <- as.data.table(tableS)[strata == "global"]
         expect_equal(dt.tableS[,n.total],
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf])

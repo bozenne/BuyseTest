@@ -21,7 +21,7 @@
 setMethod(f = "show",
           signature = "BuyseRes",
           definition = function(object){
-            outSummary <- summary(object, conf.level = NA, show = FALSE, percentage = NA, strata = "global")
+            outSummary <- summary(object, conf.level = NA, print = FALSE, percentage = NA, strata = "global")
 
             table.print <- outSummary$table.print
             exclude.col <- c("CI [NA ; NA]","p.value","","n.resampling")

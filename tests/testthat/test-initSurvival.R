@@ -11,6 +11,106 @@ initializeData <- BuyseTest:::initializeData
 initializeSurvival_Peto <- BuyseTest:::initializeSurvival_Peto
 initializeSurvival_Peron <- BuyseTest:::initializeSurvival_Peron
 
+calcSurvTest <- function(data, treatment, endpoint, strata, censoring,
+                         type, D.TTE, threshold,
+                         method.tte){
+    level.treatment <- levels(as.factor(data[[treatment]])) ## added
+    if(!is.null(strata)){
+        n.strata <- length(unique(data[[strata]])) ## added
+    } else {
+        n.strata <- 1
+    }
+################ START: CODE COPIED FROM .BuyseTest.R #######################
+    ## *** data: split the data according to the two levels
+    indexT <- which(data[[treatment]] == level.treatment[2])
+    indexC <- which(data[[treatment]] == level.treatment[1])
+
+    ## *** data: extract endpoint 
+    M.Treatment <- as.matrix(data[indexT,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
+    M.Control <- as.matrix(data[indexC,endpoint,with=FALSE]) # matrix of endpoints for the control arm
+
+    ## *** strata
+    if(!is.null(strata)){
+        ## For each strata, the index of the patients belonging to each strata, by treatment arm
+        ## Index begins at 0. This is compulsory for C++.
+         index.strataT <- lapply(1:n.strata,function(iS){
+            which(data[indexT,strata[1],with=FALSE] == iS) - 1
+        })
+        index.strataC <- lapply(1:n.strata,function(iS){
+            which(data[indexC,strata[1],with=FALSE] == iS) - 1
+        })
+                                        
+    }else{ # if there is no strata variable the same strata is used for all patient
+        ## For each strata, the index of the patients belonging to each strata, by treatment arm
+        ## Index begins at 0. This is compulsory for C++.
+        index.strataT <- list(0:(length(indexT)-1))
+        index.strataC <- list(0:(length(indexC)-1))
+    }
+
+    ## *** data: censoring
+    if(!is.null(censoring)){
+        M.delta.Treatment <- as.matrix(data[indexT,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
+        M.delta.Control <- as.matrix(data[indexC,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
+    }else{ # if the is no time to event variables
+        M.delta.Treatment <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
+        M.delta.Control <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
+    }
+
+    ## *** efron correction
+    if(method.tte==2){ # "Efron"
+        for(iStrata in 1:n.strata){ ## iStrata <- 1
+
+                index.typeTTE <- which(type==3)
+                Mstrata.Treatment <- M.Treatment[index.strataT[[iStrata]]+1,,drop=FALSE]
+                Mstrata.Control <- M.Control[index.strataC[[iStrata]]+1,,drop=FALSE]
+        
+                ## set last observation for each TTE endpoint to non-censored
+                for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
+                    iEndpoint <- index.typeTTE[iEndpoint.TTE]
+                        
+                    indexT_maxCensored <- which(Mstrata.Treatment[,iEndpoint] == max(Mstrata.Treatment[,iEndpoint])) ## cannot use which.max - not handlle correctly multiple times
+                    M.delta.Treatment[index.strataT[[iStrata]][indexT_maxCensored]+1,iEndpoint.TTE] <- 1
+                    indexC_maxCensored <- which(Mstrata.Control[,iEndpoint] == max(Mstrata.Control[,iEndpoint]))
+                    M.delta.Control[index.strataC[[iStrata]][indexC_maxCensored]+1,iEndpoint.TTE] <- 1
+                }
+            }
+    }
+
+    ## *** Update survival
+    if(method.tte == 0){ ## Gehan
+        outSurv <- list(list.survivalT = lapply(1:D.TTE, matrix),
+                        list.survivalC = lapply(1:D.TTE, matrix))        
+    }else if(method.tte == 1){ ## Peto
+        outSurv <- initializeSurvival_Peto(M.Treatment = M.Treatment,
+                                           M.Control = M.Control,
+                                           M.delta.Treatment = M.delta.Treatment,
+                                           M.delta.Control = M.delta.Control,
+                                           endpoint = endpoint,
+                                           D.TTE = D.TTE,
+                                           type = type,
+                                           threshold = threshold,
+                                           index.strataT = index.strataT,
+                                           index.strataC = index.strataC,
+                                           n.strata = n.strata)
+    }else if(method.tte %in% 2:3){
+        outSurv <- initializeSurvival_Peron(M.Treatment = M.Treatment,
+                                            M.Control = M.Control,
+                                            M.delta.Treatment = M.delta.Treatment,
+                                            M.delta.Control = M.delta.Control,
+                                            endpoint = endpoint,
+                                            D.TTE = D.TTE,
+                                            type = type,
+                                            threshold = threshold,
+                                            index.strataT = index.strataT,
+                                            index.strataC = index.strataC,
+                                            n.strata = n.strata)
+    }
+    ################ END: CODE COPIED FROM .BuyseTest.R #######################
+
+    return(outSurv)
+}
+
+
 ## * No strata
 
 ## ** settings
@@ -31,37 +131,23 @@ threshold <- 0.001 # threshold smaller than the interval between two events
 for(iData in 1:3){ ## iData <- 1
   
   for(method in c("Peto","Efron","Peron")){ ## method <- "Peto"
-    method.num <- which(c("Gehan","Peto","Efron","Peron") == method) - 1
     
-    ## *** Compute survival
-    ## Cannot use initSurvival instead of initData because for method="Efron",
-    ## initData needs to force the last observation to be an event
-    outData <- initializeData(data = data,
+      ## *** Compute survival
+      ## Cannot use initSurvival instead of initData because for method="Efron",
+      ## initData needs to force the last observation to be an event
+      outSurv <- calcSurvTest(data,
                               treatment = "treatment",
                               endpoint = "time",
-                              censoring= paste0("status",iData),
+                              strata = NULL,
+                              censoring = paste0("status",iData),
                               type = 3,
-                              operator = ">0",
-                              method.tte = method.num,
-                              strata = NULL)
-
-    FCT.surv <- switch(as.character(method.num),
-                       "1" = initializeSurvival_Peto,
-                       "2" = initializeSurvival_Peron,
-                       "3" = initializeSurvival_Peron)
-
-    outSurv <- do.call(FCT.surv, args = list(M.Treatment = outData$M.Treatment,
-                                             M.Control = outData$M.Control,
-                                             M.delta.Treatment = outData$M.delta.Treatment,
-                                             M.delta.Control = outData$M.delta.Control,
-                                             endpoint = "time",
-                                             D.TTE = 1,
-                                             type = 3,
-                                             threshold = threshold,
-                                             index.strataT = outData$index.strataT,
-                                             index.strataC = outData$index.strataC,
-                                             n.strata = outData$n.strata)
-                       )
+                              D.TTE = 1,
+                              threshold = 1e-12,
+                              method.tte = switch(method,
+                                                  "Peto" = 1,
+                                                  "Efron" = 2,
+                                                  "Peron" = 3)
+                              )
     
     ## *** index relative to each group and the last events
     if(method == "Peto"){
@@ -205,32 +291,20 @@ for(method in c("Peto","Efron","Peron")){
     ## *** Compute survival
     ## Cannot use initSurvival instead of initData because for method="Efron",
     ## initData needs to force the last observation to be an event
-    outData <- initializeData(data = dataStrata,
-                              treatment = "treatment",
-                              endpoint = "time",
-                              censoring= "status",
-                              type = 3,
-                              operator = ">0",
-                              method.tte = method.num,
-                              strata = "strata")
+    outSurv <- calcSurvTest(dataStrata,
+                            treatment = "treatment",
+                            endpoint = "time",
+                            strata = "strata",
+                            censoring = "status",
+                            type = 3,
+                            D.TTE = 1,
+                            threshold = 1e-12,
+                            method.tte = switch(method,
+                                                "Peto" = 1,
+                                                "Efron" = 2,
+                                                "Peron" = 3)
+                            )
 
-    FCT.surv <- switch(as.character(method.num),
-                       "1" = initializeSurvival_Peto,
-                       "2" = initializeSurvival_Peron,
-                       "3" = initializeSurvival_Peron)
-
-    outSurv <- do.call(FCT.surv, args = list(M.Treatment = outData$M.Treatment,
-                                             M.Control = outData$M.Control,
-                                             M.delta.Treatment = outData$M.delta.Treatment,
-                                             M.delta.Control = outData$M.delta.Control,
-                                             endpoint = "time",
-                                             D.TTE = 1,
-                                             type = 3,
-                                             threshold = threshold,
-                                             index.strataT = outData$index.strataT,
-                                             index.strataC = outData$index.strataC,
-                                             n.strata = outData$n.strata)
-                       )
   ## *** [test] identical survival between strata
   test_that(paste0("identical between strata, ",method),{
       expect_equal(outSurv$list.survivalT[[1]][outData$index.strataT[[1]]+1,],

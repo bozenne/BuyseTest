@@ -37,7 +37,6 @@
 initializeArgs <- function(alternative,
                            name.call,
                            censoring,
-                           correctionTTE,
                            cpus,
                            data,
                            endpoint,
@@ -104,7 +103,10 @@ initializeArgs <- function(alternative,
 
     ## ** method.inference
     method.inference <- tolower(method.inference)
-    
+    if(is.null(strata) && length(grep("stratified ",method.inference))>0){ ## remove stratified if no strata variable
+        method.inference <- gsub("stratified ","",method.inference)
+    }
+
     ## ** censoring
     if(D.TTE==0){
         if(!is.null(censoring) && all(is.na(censoring))){
@@ -131,23 +133,32 @@ initializeArgs <- function(alternative,
             threshold[which(abs(threshold)<10^{-12})] <- 10^{-12}
         }
     }
-
-    ## ** data
-    if (!data.table::is.data.table(data)) {
-        data <- data.table::as.data.table(data)
-    }else{
-        data <- data.table::copy(data)
-    }
-
+    
     ## ** method.tte
-    if(!is.numeric(method.tte)){
-        method.tte <- switch(method.tte,
-                               "Gehan" = 0,
-                               "Peto" = 1,
-                               "Efron" = 2,
-                               "Peron" = 3
-                               )
-    }
+    method.tte <- tolower(method.tte)
+    correction.tte <- switch(method.tte,
+                             "gehan" = FALSE,
+                             "gehan corrected" = TRUE,
+                             "peto" = FALSE,
+                             "peto corrected" = TRUE,
+                             "efron" = FALSE,
+                             "efron corrected" = TRUE,
+                             "peron" = FALSE,
+                             "peron corrected" = TRUE,
+                             NA
+                             )
+
+    method.tte <- switch(method.tte,
+                         "gehan" = 0,
+                         "gehan corrected" = 0,
+                         "peto" = 1,
+                         "peto corrected" = 1,
+                         "efron" = 2,
+                         "efron corrected" = 2,
+                         "peron" = 3,
+                         "peron corrected" = 3,
+                         NA
+                         )
 
     if (D.TTE == 0) {
         method.tte <- 0
@@ -164,19 +175,106 @@ initializeArgs <- function(alternative,
         cpus <- parallel::detectCores() # this function detect the number of CPU cores 
     }
 
-    ## ** Wscheme
-    if(D.TTE>0 && D>1){
+    if (!data.table::is.data.table(data)) {
+        data <- data.table::as.data.table(data)
+    }else{
+        data <- data.table::copy(data)
+    }
+    
+    ## ** export
+    return(list(
+        alternative = alternative,
+        name.call = name.call,
+        censoring = censoring,
+        correction.tte = correction.tte,
+        cpus = cpus,
+        D = length(endpoint),
+        D.TTE = sum(type == 3),
+        data = data,
+        endpoint = endpoint,
+        formula = formula,
+        keep.comparison = keep.comparison,
+        method.tte = method.tte,
+        method.inference = method.inference,
+        n.resampling = n.resampling,
+        neutral.as.uninf = neutral.as.uninf,
+        operator = operator,
+        seed = seed,
+        strata = strata,
+        threshold = threshold,
+        trace = trace,
+        treatment = treatment,
+        type = type
+    ))
+}
 
-        endpoint.TTE <- endpoint[type==3]
+## * initializeData
+#' @rdname internal-initialization
+initializeData <- function(data, type, endpoint, operator, strata, treatment){
+
+    ## ** convert character/factor to numeric for binary endpoints
+    name.bin <- endpoint[which(type %in% 1)]
+    if(length(name.bin)>0){
+        data.class <- sapply(data,class)
+        
+        for(iBin in name.bin){
+            if(data.class[iBin] %in% c("numeric","integer") == FALSE){
+                data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
+            }
+        }
+    }    
+
+    ## ** operator
+    operator.endpoint <- setNames(operator, endpoint)[!duplicated(endpoint)]
+    name.negative <- names(operator.endpoint)[operator.endpoint=="<0"]
+    if(length(name.negative)>0){
+        name.negative.binary <- intersect(name.negative, endpoint[type==1])
+        if(length(name.negative.binary)>0){
+            data[, (name.negative.binary) := -.SD+1, .SDcols = name.negative.binary]
+        }
+        
+        name.negative.other <- setdiff(name.negative, name.negative.binary)
+        if(length(name.negative.other)){
+            data[, (name.negative.other) := -.SD , .SDcols = name.negative.other]
+        }
+    }
+
+    ## ** treatment
+    level.treatment <- levels(as.factor(data[[treatment]]))
+
+    
+    ## ** strata
+    if(!is.null(strata) && length(strata) > 0){
+        data[ , c(strata[1]) := interaction(.SD[[1]], drop = TRUE, lex.order = FALSE, sep="."), .SDcols = strata] # combine all strata variable into one
+        level.strata <- levels(data[[strata[1]]])
+        data[ , c(strata[1]) := as.numeric(.SD[[1]]), .SDcols = strata[1]] # convert to numeric
+        allstrata <- strata[1]
+    }else{
+        level.strata <- "1"
+        allstrata <- NULL
+    }
+
+    ## ** export
+    return(list(data = data,
+                level.treatment = level.treatment,
+                level.strata = level.strata,
+                n.strata = length(level.strata),
+                allstrata = allstrata))
+}
+
+## * buildWscheme
+buildWscheme <- function(endpoint, D.TTE, D,
+                         type, threshold){
+    
+    endpoint.TTE <- endpoint[type==3]
       
-        Wscheme <- matrix(NA,nrow=D.TTE,ncol=D-1) # design matrix indicating to combine the weights obtained at differents TTE endpoints
-        rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold[type==3],")",sep="")
-        colnames(Wscheme) <- paste("for ",endpoint[-1],"(",threshold[-1],")",sep="")
+    Wscheme <- matrix(NA,nrow=D.TTE,ncol=D-1) # design matrix indicating to combine the weights obtained at differents TTE endpoints
+    rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold[type==3],")",sep="")
+    colnames(Wscheme) <- paste("for ",endpoint[-1],"(",threshold[-1],")",sep="")
     
-        index.survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
-        threshold.TTEM1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used)
-    
-        iEndpoint.TTE <- if(type[1]==3){1}else{0} #  index.survivalM1 and threshold.TTEM1 are -1 even if the first endoint is a survival endpoint
+    index.survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
+    threshold.TTEM1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used)
+    iEndpoint.TTE <- if(type[1]==3){1}else{0} #  index.survivalM1 and threshold.TTEM1 are -1 even if the first endoint is a survival endpoint
     
         for(iEndpoint in 2:D){   
       
@@ -204,51 +302,12 @@ initializeArgs <- function(alternative,
             if(length(index.rowTTE)>0){
                 Wscheme[index.rowTTE,iEndpoint-1] <- 1
             }
-      
         }
-
-    }else{
-        Wscheme <- matrix(nrow=0,ncol=0) #  factice matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        index.survivalM1 <- numeric(0) # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        threshold.TTEM1 <- numeric(0) # factice vector. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    }
-
-    ## ** additional elements for print and object
-    level.treatment <- levels(as.factor(data[[treatment]]))
-    if(!is.null(strata)){
-        level.strata <- levels(interaction(data[,strata,with=FALSE], drop = TRUE, lex.order = FALSE, sep = "."))
-    }else{
-        level.strata <- "1"
-    }
     
-    ## ** export
-    return(list(
-        alternative = alternative,
-        name.call = name.call,
-        censoring = censoring,
-        correctionTTE = correctionTTE,
-        cpus = cpus,
-        data = data,
-        endpoint = endpoint,
-        formula = formula,
-        index.survivalM1 = index.survivalM1,
-        keep.comparison = keep.comparison,
-        level.strata = level.strata,
-        level.treatment = level.treatment,
-        method.tte = method.tte,
-        method.inference = method.inference,
-        n.resampling = n.resampling,
-        neutral.as.uninf = neutral.as.uninf,
-        operator = operator,
-        seed = seed,
-        strata = strata,
-        threshold = threshold,
-        threshold.TTEM1 = threshold.TTEM1,
-        trace = trace,
-        treatment = treatment,
-        type = type,
-        Wscheme = Wscheme
-    ))
+    return(list(Wscheme = Wscheme,
+                index.survivalM1 = index.survivalM1,
+                threshold.TTEM1 = threshold.TTEM1)
+           )
 }
 
 ## * initializeFormula
@@ -377,123 +436,6 @@ initializeFormula <- function(x){
                 operator = operator,
                 strata = strata))
 }
-
-## * initializeData
-#' @rdname internal-initialization
-initializeData <- function(data, treatment, endpoint, censoring, type, operator, method.tte, strata){
-    
-
-    ## ** Treatment: extract the 2 levels
-    level.treatment <- levels(as.factor(data[[treatment]])) # extraction of the levels of the treatment variable
-
-    ## ** convert character/factor to numeric for binary endpoints
-    name.bin <- endpoint[which(type %in% 1)]
-    if(length(name.bin)>0){
-        data.class <- sapply(data,class)
-        
-        for(iBin in name.bin){
-            if(data.class[iBin] %in% c("numeric","integer") == FALSE){
-                data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
-            }
-        }
-    }    
-
-    ## ** operator
-    operator.endpoint <- setNames(operator, endpoint)[!duplicated(endpoint)]
-    name.negative <- names(operator.endpoint)[operator.endpoint=="<0"]
-    if(length(name.negative)>0){
-        name.negative.binary <- intersect(name.negative, endpoint[type==1])
-        if(length(name.negative.binary)>0){
-            data[, (name.negative.binary) := -.SD+1, .SDcols = name.negative.binary]
-        }
-        
-        name.negative.other <- setdiff(name.negative, name.negative.binary)
-        if(length(name.negative.other)){
-            data[, (name.negative.other) := -.SD , .SDcols = name.negative.other]
-        }
-    }
-
-    ## ** data: split the data according to the two levels
-    indexT <- which(data[[treatment]] == level.treatment[2])
-    indexC <- which(data[[treatment]] == level.treatment[1])
-    dataT <- data[indexT, c(endpoint, strata, censoring), with = FALSE]
-    dataC <- data[indexC, c(endpoint, strata, censoring), with = FALSE]
-
-    n.Treatment <- NROW(dataT) # number of patient in the treatment arm
-    n.Control <- NROW(dataC) # number of patient in the control arm
-        
-    ## ** strata
-    if(!is.null(strata)){
-        strataT <- interaction(dataT[,strata,with=FALSE], drop = TRUE, lex.order = FALSE, sep=".") # strata variable for the treatment arm transformed into factor
-        strataC <- interaction(dataC[,strata,with=FALSE], drop = TRUE, lex.order = FALSE, sep=".") # strata variable for the control arm transformed into factor
-        level.strata <- levels(strataT) # extraction of the levels of the strata variables
-
-        strataT <- as.numeric(strataT) # strata variable for the treatment arm converted into numeric 
-        strataC <- as.numeric(strataC) # strata variable for the control arm converted into numeric
-    
-    }else{ # if there is no strata variable the same strata is used for all patient
-        strataT <- rep(1,n.Treatment) # all patient of the treatment arm are in the same strata : strata 1
-        strataC <- rep(1,n.Control)  # all patient of the control arm are in the same strata : strata 1
-        level.strata <- 1 # the only strata is strata 1
-    }
-    n.strata <- length(level.strata) # number of strata
-    index.strataT <- lapply(1:n.strata,function(x){which(x==strataT)-1}) # for each strata, the index of the patients belonging to this strata in the treatment arm is stored in an element of the list. 
-    index.strataC <- lapply(1:n.strata,function(x){which(x==strataC)-1}) # for each strata, the index of the patients belonging to this strata in the control arm is stored in an element of the list. 
-                                        # Because of the minus one after the which, both indexes begin at 0. This is compulsory for C++ compatibility
-    
-    ## ** data: extract endpoint 
-    M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
-    M.Control <- as.matrix(dataC[,endpoint,with=FALSE]) # matrix of endpoints for the control arm
-
-    ## ** data: censoring
-    if(!is.null(censoring)){
-        M.delta.Treatment <- as.matrix(dataT[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-        M.delta.Control <- as.matrix(dataC[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-    }else{ # if the is no time to event variables
-        M.delta.Treatment <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        M.delta.Control <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    }
-
-    ## ** efron correction
-    if(method.tte==2){ # "Efron"
-            for(iStrata in 1:n.strata){ ## iStrata <- 1
-
-                index.typeTTE <- which(type==3)
-                D.TTE <- length(index.typeTTE)
-                Mstrata.Treatment <- M.Treatment[index.strataT[[iStrata]]+1,,drop=FALSE]
-                Mstrata.Control <- M.Control[index.strataC[[iStrata]]+1,,drop=FALSE]
-        
-                ## set last observation for each TTE endpoint to non-censored
-                for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
-                    iEndpoint <- index.typeTTE[iEndpoint.TTE]
-                        
-                    indexT_maxCensored <- which(Mstrata.Treatment[,iEndpoint] == max(Mstrata.Treatment[,iEndpoint])) ## cannot use which.max - not handlle correctly multiple times
-                    M.delta.Treatment[index.strataT[[iStrata]][indexT_maxCensored]+1,iEndpoint.TTE] <- 1
-                    indexC_maxCensored <- which(Mstrata.Control[,iEndpoint] == max(Mstrata.Control[,iEndpoint]))
-                    M.delta.Control[index.strataC[[iStrata]][indexC_maxCensored]+1,iEndpoint.TTE] <- 1
-                }
-            }
-    }
-    
-    ## ** export
-    return(list(index.strataT = index.strataT,
-                index.strataC = index.strataC,
-                level.strata = level.strata,
-                n.strata = n.strata,
-                M.Treatment = M.Treatment,
-                M.Control = M.Control,
-                M.delta.Treatment = M.delta.Treatment,
-                M.delta.Control = M.delta.Control))
-}
-
-
-
-
-
-
-
-
-
 
 ## * initializeSurvival
 ## ** initializeSurvival_Peto
