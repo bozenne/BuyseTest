@@ -4,12 +4,9 @@
 \name{BuyseRes-summary}
 \alias{BuyseRes-summary}
 \alias{summary}
-\alias{summary,BuyseRes}
 \alias{summary,BuyseRes-method}
 \title{Summary Method for Class "BuyseRes"}
 \usage{
-summary(object, ...)
-
 \S4method{summary}{BuyseRes}(object, print = TRUE, percentage = TRUE,
   statistic = BuyseTest.options()$statistic, conf.level = 0.95,
   alternative = "two.sided", method.boot = "percentile", strata = if
@@ -18,8 +15,6 @@ summary(object, ...)
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}
-
-\item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 
 \item{print}{[logical] Should the table be displayed?.}
 
@@ -40,6 +35,8 @@ Can be \code{"percentile"} for computing the CI using the quantiles of the boost
 \item{strata}{[character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.}
 
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
+
+\item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 }
 \description{
 Summarize the results from the \code{\link{BuyseTest}} function.

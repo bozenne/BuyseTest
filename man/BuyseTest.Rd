@@ -40,7 +40,8 @@ Disregarded if the argument \code{formula} is defined.}
 \item{strata}{[numeric vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 Disregarded if the argument \code{formula} is defined.}
 
-\item{method.tte}{[character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
+\item{method.tte}{[character] defines the method used to handle pairs
+which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
 Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
