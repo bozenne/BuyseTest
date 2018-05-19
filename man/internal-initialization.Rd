@@ -3,21 +3,19 @@
 \name{internal-initialization}
 \alias{internal-initialization}
 \alias{initializeArgs}
-\alias{initializeFormula}
 \alias{initializeData}
+\alias{initializeFormula}
 \alias{initializeSurvival_Peto}
 \alias{initializeSurvival_Peron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
-initializeArgs(alternative, name.call, censoring, correctionTTE, cpus, data,
-  endpoint, formula, keep.comparison, method.tte, method.inference,
-  n.resampling, neutral.as.uninf, operator, option, prob.alloc, seed, strata,
-  threshold, trace, treatment, type)
+initializeArgs(alternative, name.call, censoring, cpus, data, endpoint, formula,
+  keep.comparison, method.tte, method.inference, n.resampling, neutral.as.uninf,
+  operator, option, prob.alloc, seed, strata, threshold, trace, treatment, type)
+
+initializeData(data, type, endpoint, operator, strata, treatment)
 
 initializeFormula(x)
-
-initializeData(data, treatment, endpoint, censoring, type, operator, method.tte,
-  strata)
 
 initializeSurvival_Peto(M.Treatment, M.Control, M.delta.Treatment,
   M.delta.Control, D.TTE, endpoint, type, threshold, index.strataT,

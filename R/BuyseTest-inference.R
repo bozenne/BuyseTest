@@ -88,7 +88,7 @@ inferenceResampling <- function(envir){
             ls.options <- NULL
         }
 
-        toExport <- c("warperResampling","initializeSurvival_Peto","initializeSurvival_Peron")
+        toExport <- c(".BuyseTest","initializeSurvival_Peto","initializeSurvival_Peron")
 
         iB <- NULL ## [:forCRANcheck:] foreach        
         ls.permutation <- foreach::`%dopar%`(

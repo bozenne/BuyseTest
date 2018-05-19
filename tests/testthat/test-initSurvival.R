@@ -107,6 +107,8 @@ calcSurvTest <- function(data, treatment, endpoint, strata, censoring,
     }
     ################ END: CODE COPIED FROM .BuyseTest.R #######################
 
+    outSurv$index.strataT <- index.strataT
+    outSurv$index.strataC <- index.strataC
     return(outSurv)
 }
 
@@ -305,13 +307,13 @@ for(method in c("Peto","Efron","Peron")){
                                                 "Peron" = 3)
                             )
 
-  ## *** [test] identical survival between strata
-  test_that(paste0("identical between strata, ",method),{
-      expect_equal(outSurv$list.survivalT[[1]][outData$index.strataT[[1]]+1,],
-                   outSurv$list.survivalT[[1]][outData$index.strataT[[2]]+1,])
-      expect_equal(outSurv$list.survivalC[[1]][outData$index.strataC[[1]]+1,],
-                   outSurv$list.survivalC[[1]][outData$index.strataC[[2]]+1,])
-  })
+    ## *** [test] identical survival between strata
+    test_that(paste0("identical between strata, ",method),{
+        expect_equal(outSurv$list.survivalT[[1]][outSurv$index.strataT[[1]]+1,],
+                     outSurv$list.survivalT[[1]][outSurv$index.strataT[[2]]+1,])
+        expect_equal(outSurv$list.survivalC[[1]][outSurv$index.strataC[[1]]+1,],
+                     outSurv$list.survivalC[[1]][outSurv$index.strataC[[2]]+1,])
+    })
 
   ## *** [test] check survival
     test_that(paste0("check survival (strata),  ",method), {

@@ -10,17 +10,18 @@
 \usage{
 summary(object, ...)
 
-\S4method{summary}{BuyseRes}(object, show = TRUE, percentage = TRUE,
+\S4method{summary}{BuyseRes}(object, print = TRUE, percentage = TRUE,
   statistic = BuyseTest.options()$statistic, conf.level = 0.95,
-  alternative = "two.sided", strata = if (length(object@level.strata) == 1)
-  {     "global" } else {     NULL }, digit = c(2, 3))
+  alternative = "two.sided", method.boot = "percentile", strata = if
+  (length(object@level.strata) == 1) {     "global" } else {     NULL },
+  digit = c(2, 3))
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}
 
 \item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 
-\item{show}{[logical] Should the table be displayed?.}
+\item{print}{[logical] Should the table be displayed?.}
 
 \item{percentage}{[logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.}
 
@@ -31,6 +32,10 @@ whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2
 \item{conf.level}{[numeric] confidence level for the confidence intervals.}
 
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.}
+
+\item{method.boot}{[character] the method used to compute the boostrap confidence intervals and p-values.
+Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
+\code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.}
 
 \item{strata}{[character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.}
 

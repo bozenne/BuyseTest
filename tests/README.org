@@ -33,7 +33,7 @@ Check against known output in complex cases
 ** test-BuyseTest-correctionTTE
 Check method.tte="Gehan corrected" and method.tte="Peron corrected"
 ** test-resampling
-
+Check permutation and bootstrap resampling
 * TODO
 ** test-BuyseTest-correctionTTE: test for case with two survival endpoints (same or different endpoints)
 

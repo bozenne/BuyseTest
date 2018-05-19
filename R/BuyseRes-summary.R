@@ -15,6 +15,9 @@
 #' whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
+#' @param method.boot [character] the method used to compute the boostrap confidence intervals and p-values.
+#' Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
+#' \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.
 #' @param strata [character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.
 #' @param digit [integer vector] the number of digit to use for printing the counts and the delta.  
 #' @param ... arguments to be passed from the generic method to the class specific method [not relevant to the user]
@@ -60,6 +63,7 @@ setMethod(f = "summary",
           definition = function(object, print = TRUE, percentage = TRUE,
                                 statistic = BuyseTest.options()$statistic,
                                 conf.level = 0.95, alternative = "two.sided",
+                                method.boot = "percentile",
                                 strata = if(length(object@level.strata)==1){"global"}else{NULL},                                
                                 digit = c(2,3)){
 
@@ -192,6 +196,18 @@ setMethod(f = "summary",
                   table[index.global,"n.resampling"] <- outCI$n.resampling_real
                   
               }else if(method.inference %in% c("bootstrap","stratified bootstrap") ){
+                  outCI <- calcCIbootstrap(Delta = Delta,
+                                           Delta.permutation = slot(object, name = paste0("DeltaResampling.",statistic)),
+                                           statistic = statistic,
+                                           endpoint = endpoint,
+                                           alternative = alternative,
+                                           alpha =  alpha,
+                                           method = method.boot)
+                  table[index.global,"CIinf.Delta"] <- outCI$Delta.CI[1,]
+                  table[index.global,"CIsup.Delta"] <- outCI$Delta.CI[2,]
+                  table[index.global,"p.value"] <- outCI$Delta.pvalue
+                  table[index.global,"n.resampling"] <- outCI$n.resampling_real
+
               }else if(method.inference == "asymptotic"){
               }
             

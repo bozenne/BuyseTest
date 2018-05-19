@@ -6,10 +6,9 @@
 \usage{
 BuyseTest(formula, data, treatment = NULL, endpoint = NULL, type = NULL,
   threshold = NULL, censoring = NULL, operator = NULL, strata = NULL,
-  method.tte = NULL, correctionTTE = FALSE, neutral.as.uninf = NULL,
-  method.inference = NULL, n.resampling = NULL, keep.comparison = NULL,
-  alternative = "two.sided", seed = NULL, cpus = NULL, trace = NULL,
-  n.bootstrap, method)
+  method.tte = NULL, neutral.as.uninf = NULL, method.inference = NULL,
+  n.resampling = NULL, keep.comparison = NULL, alternative = "two.sided",
+  seed = NULL, cpus = NULL, trace = NULL, n.bootstrap, method)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
@@ -42,11 +41,9 @@ Disregarded if the argument \code{formula} is defined.}
 Disregarded if the argument \code{formula} is defined.}
 
 \item{method.tte}{[character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
-Can be \code{"Gehan"}, \code{"Peto"}, \code{"Efron"}, or \code{"Peron"}.
+Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
-
-\item{correctionTTE}{[logical] bias correction for non-informative pairs. Experimental.}
 
 \item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 Default value read from \code{BuyseTest.options()}.}
@@ -104,13 +101,14 @@ The detection of the number of cpus relies on the \code{detectCores} function fr
 Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
 
 \bold{method:} Pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method="Gehan"}, Gehan 1965). 
-Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions. 
-\code{method="Peto"} estimate these probabilities using the common Kaplan-Meier estimator of the survival function for treated and control patients (Peto et al. 1972). 
-\code{method="Efron"}, and \code{method="Peron"} estimate these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
-When the largest observation is censored, it is not possible to estimate the survival probability by the Kaplan-Meier estimator beyond this time point.  
-\code{method="Efron"} treats the largest observations in each patient group as if it were uncensored (Efron 1967). 
-\code{method="Peron"} treats the probability of survival beyond the last observation as NA, resulting in a non null probability that the pair is uninformative    
-See Peron et al. (2016) for more details.
+Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions.
+\code{method="Peron"} estimates these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
+Probabilities of survival beyond the last observation are set NA, resulting in a non null probability that the pair is informative.
+See Peron et al. (2016) for more details. \cr
+Due to the presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated. 
+\code{method="Gehan corrected"} and \code{method="Peron corrected"} aim at correcting this bias
+by multiplying the contribution of each pair by the inverse of the total number of pairs minus the number of uninformative pairs
+and setting the number of uninformative pairs to 0.
 }
 \examples{
 # reset the default value of the number of permuation sample

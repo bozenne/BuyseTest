@@ -24,7 +24,8 @@
 #' Must value \code{NA} when the endpoint is not a time to event.
 #' Disregarded if the argument \code{formula} is defined.
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
-#' @param method.tte [character] defines the method used to handle pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
+#' @param method.tte [character] defines the method used to handle pairs
+#' which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
 #' Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
@@ -174,7 +175,7 @@ BuyseTest <- function(formula,
                                                                                                  treatment = outArgs$treatment)
 
     ## ** create weights matrix for survival endpoints
-    if(outArgs$method.tte > 0 && outArgs$D.TTE>0 && outArgs$D>1){
+    if(outArgs$D.TTE>0 && outArgs$D>1){
         ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
         outArgs[c("Wscheme","index.survivalM1","threshold.TTEM1")] <- buildWscheme(endpoint = outArgs$endpoint,
                                                                                    D = outArgs$D,
@@ -187,7 +188,7 @@ BuyseTest <- function(formula,
         outArgs$threshold.TTEM1 <- numeric(0)
     }
     
-    ## ** Display
+    ## ** Displayd
     if (outArgs$trace > 1) {
         outPrint <- do.call(printGeneral, args = outArgs)
     }
@@ -217,7 +218,6 @@ BuyseTest <- function(formula,
                                   type = outArgs$type,
                                   Wscheme = outArgs$Wscheme)
     })
-    
     if (outArgs$trace > 1) {cat("(done) \n")}
     
     ## ** Permutation test
@@ -310,15 +310,19 @@ BuyseTest <- function(formula,
     }else if(method.inference == "permutation"){
         data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE)], .SDcols = treatment]
     }else if(method.inference == "bootstrap"){
-        data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = TRUE)], .SDcols = treatment]
+        data <- data[sample.int(.N, size = .N, replace = TRUE)]    
     }else if(method.inference == "stratified permutation"){
-        data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE), by = strata], .SDcols = treatment]
+        data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE)], .SDcols = treatment, by = strata]
     }else if(method.inference == "stratified bootstrap"){
-        data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = TRUE), by = strata], .SDcols = treatment]
+        data <- data[,.SD[sample.int(.N, size = .N, replace = TRUE)], by = strata]
     }
 
     ## ** Check valid resampling
-    n.groups <- data[,.(nlevels = length(unique(.SD[[1]]))), by = strata, .SDcols = treatment][["nlevels"]]
+    if(is.null(strata)){
+        n.groups <- length(unique(data[[treatment]]))
+    }else{
+        n.groups <- data[,length(unique(.SD[[1]])), by = strata, .SDcols = treatment][[2]]
+    }
     if (any(n.groups!=2) || length(n.groups) != n.strata) { ## failure of the resampling
         ##        return(matrix(NA, nrow = n.strata + 1, ncol = 2*D))
         return(NULL)
@@ -434,7 +438,6 @@ BuyseTest <- function(formula,
                        neutralAsUninf = neutral.as.uninf,
                        keepComparison = keep.comparison
                        )
-
     ## ** export
     if(method.inference == "none"){
         return(resBT)
