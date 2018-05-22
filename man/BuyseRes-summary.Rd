@@ -42,13 +42,16 @@ Can be \code{"percentile"} for computing the CI using the quantiles of the boost
 Summarize the results from the \code{\link{BuyseTest}} function.
 }
 \details{
-WARNING : when using a permutation test, the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment
-under the null hypothesis. 
-It thus may not be valid if this hypothesis is rejected.
+When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
+Thus the confidence interval may not be valid if the null hypothesis is false. \cr
+More precisely, the quantiles of the distribution of the statistic are computed under the null hypothesis and then shifted by the punctual estimate of the statistic.
+Therefore it is possible that the limits of the confidence interval
+are estimated outside of the interval of definition of the statistic (e.g. outside [-1,1] for the proportion in favor of treatment). \cr \cr
 
-WARNING: For the win ratio, the proposed implementation enables the use of thresholds, endpoints that are not time to events,
-and the correction proposed in Peron et al. (2016) to account for censoring. 
-These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge). They are only provided here by implementation convenience.
+Note: For the win ratio, the proposed implementation enables the use of thresholds and endpoints that are not time to events
+as well as the correction proposed in Peron et al. (2016) to account for censoring. 
+These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge).
+They are only provided here by implementation convenience.
 }
 \examples{
 dt <- simBuyseTest(1e2, n.strata = 3)

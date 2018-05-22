@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 19 2018 (15:32) 
+## last-updated: maj 19 2018 (23:33) 
 ##           By: Brice Ozenne
-##     Update #: 58
+##     Update #: 64
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -46,15 +46,17 @@ test_that("permutation", {
 
     ## ** summary (two.sided)
     outSummary <- summary(BT, print = FALSE, alternative = "two.sided")
+    ## summary(BT, alternative = "two.sided")
     ##   endpoint threshold strata  total favorable unfavorable neutral uninf  delta Delta CI [2.5 ; 97.5] p.value 
-    ## eventtime1     1e-12 global 100.00     48.83       47.77    0.00  3.40  0.011 0.011  [-0.247;0.068]       1 
+    ## eventtime1     1e-12 global 100.00     48.83       47.77    0.00  3.40  0.011 0.011   [-0.099;0.33]       1 
     ##                           a  33.56     18.07       15.50    0.00  0.00  0.026                               
     ##                           b  34.74     16.92       17.03    0.00  0.79 -0.001                               
     ##                           c  31.70     13.84       15.24    0.00  2.62 -0.014                               
-    ##  toxicity1       0.5 global   3.40      0.61        0.86    1.94  0.00 -0.002 0.008  [-0.261;0.066]       1 
+    ##  toxicity1       0.5 global   3.40      0.61        0.86    1.94  0.00 -0.002 0.008  [-0.104;0.335]       1 
     ##                           a   0.00      0.00        0.00    0.00  0.00  0.000                               
     ##                           b   0.79      0.11        0.24    0.43  0.00 -0.001                               
-    ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001 
+    ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001      
+    
 
     p.value <- c(mean(abs(BT@Delta.netChance["eventtime1"]) < abs(BT@DeltaResampling.netChance["eventtime1",])),
                  mean(abs(BT@Delta.netChance["toxicity1"]) < abs(BT@DeltaResampling.netChance["toxicity1",])))
@@ -105,29 +107,17 @@ test_that("permutation", {
                         cpus = 4, 
                         method.inference = "permutation", n.resampling = 1000)
 
-        ## new
-        ##         Generalized pairwise comparison with 1 prioritized endpoint
-
+        ## summary(BT)       
         ## > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
         ## > null hypothesis : Delta == 0 
         ## > permutation test: 1000 samples, confidence level 0.95 
-        ## > groups          : 0 (control) vs. 1 (treatment) 
-        ## > results
-        ## endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value 
-        ## eventtime1     1e-12   100      48.6       23.86       0 27.54 0.247 0.247  [-0.321;0.769]   0.348 
+        ## > treatment groups: 0 (control) vs. 1 (treatment) 
+        ## > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
 
-        ## old
-        ## Generalized pairwise comparison with 1 prioritized endpoint
-
-        ## > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
-        ## > null hypothesis : Delta == 0 
-        ## > permutation test: 1000 samples, confidence level 0.95 
-        ## > groups          : 0(control) vs. 1(treatment) 
         ## > results
-        ## endpoint threshold total favorable unfavorable neutral uninf delta Delta
-        ## eventtime1     1e-12   100      48.6       23.86       0 27.54 0.247 0.247
-        ## CI [2.5 ; 97.5] p.value 
-        ## [-0.284;0.765]   0.377 
+        ##   endpoint threshold total favorable unfavorable neutral uninf  delta  Delta CI [2.5 ; 97.5] p.value 
+        ## eventtime1     1e-12   100     48.57       51.43       0     0 -0.029 -0.029  [-0.231;0.164]   0.789 
+       
     }
 })
 
@@ -190,6 +180,30 @@ test_that("stratified permutation", {
         expect_equal(as.double(BT.perm@Delta.winRatio),
                      as.double(BT@DeltaResampling.winRatio[,iResample]))
     }
+
+    ## ** with more samples
+    if(FALSE){
+        BT <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1),
+                        data = dt.sim, method.tte = "Peron", trace = 3,
+                        cpus = 4, 
+                        method.inference = "stratified permutation", n.resampling = 1000)
+
+        ## summary(BT)       
+        ##                Generalized pairwise comparison with 1 prioritized endpoint
+
+        ## > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+        ## > null hypothesis : Delta == 0 
+        ## > permutation test: 1000 samples, confidence level 0.95 
+        ## > treatment groups: 0 (control) vs. 1 (treatment) 
+        ## > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+        ## > results
+        ##   endpoint threshold total favorable unfavorable neutral uninf  delta  Delta CI [2.5 ; 97.5] p.value 
+        ## eventtime1     1e-12   100     48.57       51.43       0     0 -0.029 -0.029   [-0.24;0.163]   0.773
+        
+       
+    }
+
 })
 ## * Bootstrap
 test_that("Bootstrap", {
@@ -200,17 +214,25 @@ test_that("Bootstrap", {
 
     ## ** summary (two.sided)
     outSummary <- summary(BT, print = FALSE, alternative = "two.sided")
-    
+    ## summary(BT)
+    ##            Generalized pairwise comparison with 2 prioritized endpoints and 3 strata
+
+    ## > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+    ## > null hypothesis : Delta == 0 
+    ## > bootstrap resampling: 10 samples, confidence level 0.95 
+    ## > treatment groups: 0 (control) vs. 1 (treatment) 
+    ## > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+    ## > results
     ##   endpoint threshold strata  total favorable unfavorable neutral uninf  delta Delta CI [2.5 ; 97.5] p.value 
-    ## eventtime1     1e-12 global 100.00     48.83       47.77    0.00  3.40  0.011 0.011  [-0.247;0.068]       1 
+    ## eventtime1     1e-12 global 100.00     48.83       47.77    0.00  3.40  0.011 0.011  [-0.043;0.265]     0.9 
     ##                           a  33.56     18.07       15.50    0.00  0.00  0.026                               
     ##                           b  34.74     16.92       17.03    0.00  0.79 -0.001                               
     ##                           c  31.70     13.84       15.24    0.00  2.62 -0.014                               
-    ##  toxicity1       0.5 global   3.40      0.61        0.86    1.94  0.00 -0.002 0.008  [-0.261;0.066]       1 
+    ##  toxicity1       0.5 global   3.40      0.61        0.86    1.94  0.00 -0.002 0.008  [-0.045;0.263]     0.9 
     ##                           a   0.00      0.00        0.00    0.00  0.00  0.000                               
     ##                           b   0.79      0.11        0.24    0.43  0.00 -0.001                               
-    ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001 
-
+    ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001   
     
     p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] > 0 ), ## >0 because >0 punctual estimate
                  mean(BT@DeltaResampling.netChance["toxicity1",] > 0 ) ## >0 because >0 punctual estimate
@@ -267,16 +289,26 @@ test_that("Stratified bootstrap", {
 
     ## ** summary (two.sided)
     outSummary <- summary(BT, print = FALSE, alternative = "two.sided")
-    
+
+    ## summary(BT)
+    ##            Generalized pairwise comparison with 2 prioritized endpoints and 3 strata
+
+    ## > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+    ## > null hypothesis : Delta == 0 
+    ## > stratified bootstrap resampling: 10 samples, confidence level 0.95 
+    ## > treatment groups: 0 (control) vs. 1 (treatment) 
+    ## > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+    ## > results
     ##   endpoint threshold strata  total favorable unfavorable neutral uninf  delta Delta CI [2.5 ; 97.5] p.value 
-    ## eventtime1     1e-12 global 100.00     48.83       47.77    0.00  3.40  0.011 0.011  [-0.247;0.068]       1 
+    ## eventtime1     1e-12 global 100.00     48.83       47.77    0.00  3.40  0.011 0.011  [-0.133;0.148]     0.4 
     ##                           a  33.56     18.07       15.50    0.00  0.00  0.026                               
     ##                           b  34.74     16.92       17.03    0.00  0.79 -0.001                               
     ##                           c  31.70     13.84       15.24    0.00  2.62 -0.014                               
-    ##  toxicity1       0.5 global   3.40      0.61        0.86    1.94  0.00 -0.002 0.008  [-0.261;0.066]       1 
+    ##  toxicity1       0.5 global   3.40      0.61        0.86    1.94  0.00 -0.002 0.008  [-0.135;0.166]     0.4 
     ##                           a   0.00      0.00        0.00    0.00  0.00  0.000                               
     ##                           b   0.79      0.11        0.24    0.43  0.00 -0.001                               
-    ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001 
+    ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001     
 
     
     p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] > 0 ), ## >0 because >0 punctual estimate

@@ -174,12 +174,6 @@ initializeArgs <- function(alternative,
     if (cpus == "all") { 
         cpus <- parallel::detectCores() # this function detect the number of CPU cores 
     }
-
-    if (!data.table::is.data.table(data)) {
-        data <- data.table::as.data.table(data)
-    }else{
-        data <- data.table::copy(data)
-    }
     
     ## ** export
     return(list(
@@ -211,6 +205,12 @@ initializeArgs <- function(alternative,
 ## * initializeData
 #' @rdname internal-initialization
 initializeData <- function(data, type, endpoint, operator, strata, treatment){
+
+    if (!data.table::is.data.table(data)) {
+        data <- data.table::as.data.table(data)
+    }else{
+        data <- data.table::copy(data)
+    }
 
     ## ** convert character/factor to numeric for binary endpoints
     name.bin <- endpoint[which(type %in% 1)]

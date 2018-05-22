@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: maj  6 2018 (13:09) 
+## Last-Updated: maj 22 2018 (23:46) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 57
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,7 +41,19 @@ testArgs <- function(alternative,
                      treatment,
                      type,
                      ...){
-    
+
+    ## ** data
+    if (!data.table::is.data.table(data)) {
+        if(inherits(data,"function")){
+            stop("Argument \'data\' is mispecified \n",
+                 "\'data\' cannot be a function \n")
+        }
+        data <- data.table::as.data.table(data)
+    }else{
+        data <- data.table::copy(data)
+    }
+
+    ## ** extract usefull quantities
     argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
 
     D <- length(endpoint) 
@@ -58,6 +70,7 @@ testArgs <- function(alternative,
         level.strata <- levels(strataT)
         n.strata <- length(level.strata)
     }
+
     
     ## ** alternative
     validCharacter(alternative,

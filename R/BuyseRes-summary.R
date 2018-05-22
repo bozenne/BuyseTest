@@ -23,13 +23,16 @@
 #' @param ... arguments to be passed from the generic method to the class specific method [not relevant to the user]
 #'
 #' @details 
-#' WARNING : when using a permutation test, the confidence interval is computed using quantiles of the distribution of the cumulative proportion in favor of the treatment
-#' under the null hypothesis. 
-#' It thus may not be valid if this hypothesis is rejected.
+#' When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
+#' Thus the confidence interval may not be valid if the null hypothesis is false. \cr
+#' More precisely, the quantiles of the distribution of the statistic are computed under the null hypothesis and then shifted by the punctual estimate of the statistic.
+#' Therefore it is possible that the limits of the confidence interval
+#' are estimated outside of the interval of definition of the statistic (e.g. outside [-1,1] for the proportion in favor of treatment). \cr \cr
 #' 
-#' WARNING: For the win ratio, the proposed implementation enables the use of thresholds, endpoints that are not time to events,
-#' and the correction proposed in Peron et al. (2016) to account for censoring. 
-#' These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge). They are only provided here by implementation convenience.
+#' Note: For the win ratio, the proposed implementation enables the use of thresholds and endpoints that are not time to events
+#' as well as the correction proposed in Peron et al. (2016) to account for censoring. 
+#' These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge).
+#' They are only provided here by implementation convenience.
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -85,22 +88,6 @@ setMethod(f = "summary",
                              valid.length = 1,
                              method = "summary[BuyseRes]")
 
-              validNumeric(conf.level,
-                           name1 = "conf.level",
-                           min = 0, max = 1,
-                           refuse.NA = FALSE,
-                           valid.length = 1,
-                           method = "summary[BuyseRes]")
-              if(is.na(conf.level)){
-                  method.inference <- "none"
-              }
-              
-              validCharacter(alternative,
-                             name1 = "alternative",
-                             valid.values = c("two.sided","less","greater"),
-                             valid.length = 1,
-                             method = "summary[BuyseRes]")
-
               validCharacter(strata,
                              name1 = "strata",
                              valid.length = NULL,
@@ -126,6 +113,13 @@ setMethod(f = "summary",
               method.inference <- object@method.inference
               alpha <- 1-conf.level
 
+              ## ** compute confidence intervals and p-values
+              outConfint <- confint(object,
+                                    method.boot = method.boot,
+                                    statistic = statistic,
+                                    conf.level = conf.level,
+                                    alternative = alternative)
+              
               ## ** generate summary table
               ## *** prepare
               table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=14))
@@ -178,33 +172,10 @@ setMethod(f = "summary",
               }
              
               ## *** compute CI and p-value
-              if(method.inference %in% c("permutation","stratified permutation")){
-                  outCI <- calcCIpermutation(Delta = Delta,
-                                             Delta.permutation = slot(object, name = paste0("DeltaResampling.",statistic)),
-                                             statistic = statistic,
-                                             endpoint = endpoint,
-                                             alternative = alternative,
-                                             alpha =  alpha)
-                  table[index.global,"CIinf.Delta"] <- outCI$Delta.CI[1,]
-                  table[index.global,"CIsup.Delta"] <- outCI$Delta.CI[2,]
-                  table[index.global,"p.value"] <- outCI$Delta.pvalue
-                  table[index.global,"n.resampling"] <- outCI$n.resampling_real
-                  
-              }else if(method.inference %in% c("bootstrap","stratified bootstrap") ){
-                  outCI <- calcCIbootstrap(Delta = Delta,
-                                           Delta.permutation = slot(object, name = paste0("DeltaResampling.",statistic)),
-                                           statistic = statistic,
-                                           endpoint = endpoint,
-                                           alternative = alternative,
-                                           alpha =  alpha,
-                                           method = method.boot)
-                  table[index.global,"CIinf.Delta"] <- outCI$Delta.CI[1,]
-                  table[index.global,"CIsup.Delta"] <- outCI$Delta.CI[2,]
-                  table[index.global,"p.value"] <- outCI$Delta.pvalue
-                  table[index.global,"n.resampling"] <- outCI$n.resampling_real
-
-              }else if(method.inference == "asymptotic"){
-              }
+              table[index.global,"CIinf.Delta"] <- outConfint[,"lower.ci"]
+              table[index.global,"CIsup.Delta"] <- outConfint[,"upper.ci"]
+              table[index.global,"p.value"] <- outConfint[,"p.value"]
+              table[index.global,"n.resampling"] <- attr(outConfint,"n.resampling")
             
               ## ** generate print table
               table.print <- table
@@ -212,7 +183,7 @@ setMethod(f = "summary",
               ## *** add column with stars
               if(method.inference != "none"){
                   colStars <- sapply(table.print[index.global,"p.value"],function(x){
-                      if(is.na(x)){NA}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
+                      if(is.na(x)){""}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
                   })
 
                   if(method.inference != "asymptotic"){
@@ -285,10 +256,16 @@ setMethod(f = "summary",
               ## *** merge CI inf and CI sup column
               if(method.inference != "none"){
                   if("strata" %in% names(table.print)){
-                      index.tempo <- which(table.print$strata == "global")
+                      index.tempo <- which(table.print$strata == "global")                                       
                   }else{
                       index.tempo <- 1:NROW(table.print)
                   }
+                  ## remove CI when the estimate is not defined
+                  index.tempo <- intersect(index.tempo,
+                                           intersect(which(!is.infinite(table.print$Delta)),
+                                                     which(!is.na(table.print$Delta)))
+                                           )
+                  
                   table.print$CIinf.Delta[index.tempo] <- paste0("[",table.print[index.tempo,"CIinf.Delta"],
                                                                  ";",table.print[index.tempo,"CIsup.Delta"],"]")
                   qInf <- round(100*alpha/2,digit[2])
@@ -357,6 +334,9 @@ setMethod(f = "summary",
                   }
                   cat(" > results\n")
                   print(table.print, row.names = FALSE)
+                  if(method.inference %in% c("permutation","stratified permutation")){
+                      cat("NOTE: confidence intervals computed under the null hypothesis\n")
+                  }
               }
             
               ## ** export

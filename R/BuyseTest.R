@@ -126,7 +126,7 @@ BuyseTest <- function(formula,
 
     name.call <- names(match.call())
     option <- BuyseTest.options()
-
+    
     ## ** compatibility with previous version
     if(!missing(n.bootstrap)){
         stop("Argument \'n.bootstrap\' is obsolete. \n",
