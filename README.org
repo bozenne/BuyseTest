@@ -92,6 +92,9 @@ suppressPackageStartupMessages(library(BuyseTest))
 #+END_SRC
 
 #+RESULTS:
+: Warning messages:
+: 1: package 'Rcpp' was built under R version 3.4.4 
+: 2: package 'data.table' was built under R version 3.4.4
 
 ** Simulate data
 You can simulate data with the =simBuyseTest= function. For instance
@@ -327,13 +330,40 @@ summary(BT.perm)
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta CI [2.5 ; 97.5] p.value 
-     time        20   100     37.78       46.54      15  0.68 -0.088 -0.088  [-0.241;0.195]     0.4
+     time        20   100     37.78       46.54      15  0.68 -0.088 -0.088  [-0.241;0.195]     0.4 
+NOTE: confidence intervals computed under the null hypothesis
 #+end_example
 
 The argument =n.resampling= indicates the permutation that will be
 performed. We set it to 10 to save computation time but to obtain
 reliable p-value/confidence intervals, =n.resampling= should be at
-least 1000.
+least 1000. The validity of the confidence intervals obtained via a
+permutation test is questionnable and we recommand instead to use a
+bootstrap approach for estimating confidence intervals. To do so, set
+the argument =method.inference= to ="bootstrap"= when calling
+=BuyseTest=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
+                     data = veteran, trace = 0, method.inference = "bootstrap",
+                     n.resampling = 10) 
+summary(BT.boot)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > bootstrap resampling: 10 samples, confidence level 0.95 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf  delta  Delta CI [2.5 ; 97.5] p.value 
+     time        20   100     37.78       46.54      15  0.68 -0.088 -0.088   [-0.179;0.03]     0.7
+#+end_example
+
 
 *** What if smaller is better?
 By default =BuyseTest= will always assume that higher values of an
@@ -595,28 +625,25 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 3.4.1 (2017-06-30)
-Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 16.04.3 LTS
+R version 3.4.0 (2017-04-21)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
 
 Matrix products: default
-BLAS: /usr/lib/libblas/libblas.so.3.6.0
-LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
- [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8        LC_COLLATE=fr_FR.UTF-8    
- [5] LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8    LC_PAPER=da_DK.UTF-8       LC_NAME=C                 
- [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252    LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] testthat_2.0.0     BuyseTest_1.3.1    data.table_1.11.0  Rcpp_0.12.16       prodlim_2018.04.18
+[1] testthat_2.0.0      BuyseTest_1.3.1     data.table_1.10.4-3 Rcpp_0.12.16        prodlim_1.6.1      
 
 loaded via a namespace (and not attached):
- [1] lattice_0.20-35 grid_3.4.1      R6_2.2.2        stats4_3.4.1    magrittr_1.5    rlang_0.2.0     Matrix_1.2-11  
- [8] lava_1.6.1      splines_3.4.1   tools_3.4.1     survival_2.41-3 parallel_3.4.1  compiler_3.4.1
+ [1] lattice_0.20-35 grid_3.4.0      R6_2.2.1        stats4_3.4.0    magrittr_1.5    rlang_0.1.1     Matrix_1.2-9    lava_1.6.1      splines_3.4.0  
+[10] tools_3.4.0     survival_2.41-3 parallel_3.4.0  compiler_3.4.0
 #+end_example
 
 
