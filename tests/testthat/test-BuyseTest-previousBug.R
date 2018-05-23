@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj 23 2018 (00:11) 
+## Last-Updated: maj 23 2018 (13:50) 
 ##           By: Brice Ozenne
-##     Update #: 25
+##     Update #: 31
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -79,40 +79,56 @@ test_that("number of pairs - argument neutral.as.uninf", {
 
 ## * Joris: jeudi 5 avril 2018 à 14:57
 if(FALSE){
-dt.sim <- data.table(
-    ttt = c(0,0,0,0,0,1,1,1,1,1),
-    y = c(1,2,3,4,5,2,3,4,5,6),
-    end = c(1,1,1,1,1,0,1,1,1,1),
-    time = c(10,11,12,13,14,11,12,13,14,15)
-)
+    system.time(
+        BT_Gehan <- BuyseTest(treatment = "trt",
+                              strata = "celltype",
+                              type = "TTE",
+                              endpoint = "time",
+                              threshold = 0,
+                              censoring = "status", 
+                              data=veteran, method.tte = "Gehan",
+                              n.resampling = 1e4)
+    )
+    1
+    confint(BT_Gehan)
+    dt.sim <- data.table(
+        ttt = c(0,0,0,0,0,1,1,1,1,1),
+        y = c(1,2,3,4,5,2,3,4,5,6),
+        end = c(1,1,1,1,1,1,1,1,1,1),
+        time = c(10,11,12,13,14,11,12,13,14,15)
+    )
 
-BT <- BuyseTest(ttt ~ cont(y,threshold=4) + TTE(time,censoring=end) + cont(y,threshold=3),
-                data = dt.sim, method.inference = "permutation", n.resampling = 1000)
-summary(BT, statistic = "netChance")
-###         Generalized pairwise comparison with 3 prioritized endpoints
-### 
-###  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
-###  > null hypothesis : Delta == 0 
-###  > permutation test: 1000 samples, confidence level 0.95 
-###  > groups          : 0 (control) vs. 1 (treatment) 
-###  > results
-###  endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value 
-###         y         4   100        12           0      88     0  0.12  0.12    [-0.04;0.32]   0.153 
-###      time     1e-12    88        48          24      16     0  0.24  0.36    [-0.32;1.04]   0.292 
-###         y         3    16         0           0      16     0  0.00  0.36    [-0.04;0.32]   0.153 
+    BT <- BuyseTest(ttt ~ cont(y,threshold=4) + TTE(time,censoring=end) + cont(y,threshold=3),
+                    data = dt.sim, method.inference = "permutation", method.tte = "Peron", n.resampling = 1000)
+    summary(BT, statistic = "netChance")
+ ##        Generalized pairwise comparison with 3 prioritized endpoints
 
-summary(BT,statistic="winRatio")
-###         Generalized pairwise comparison with 3 prioritized endpoints
-### 
-###  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
-###  > null hypothesis : Delta == 1 
-###  > permutation test: 1000 samples, confidence level 0.95 
-###  > groups          : 0 (control) vs. 1 (treatment) 
-###  > results
-###  endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value    
-###         y         4   100        12           0      88     0   Inf   Inf       [Inf;Inf]   0.000 ***
-###      time     1e-12    88        48          24      16     0     2   2.5    [1.65;8.167]   0.117 ***
-###         y         3    16         0           0      16     0         2.5       [Inf;Inf]   0.000
+ ## > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ ## > null hypothesis : Delta == 0 
+ ## > permutation test: 1000 samples, confidence level 0.95 
+ ## > treatment groups: 0 (control) vs. 1 (treatment) 
+ ## > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+ ## > results
+ ## endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value 
+ ##        y         4   100        12           0      88     0  0.12  0.12   [-0.04;0.281]   0.184 
+ ##     time     1e-12    88        48          24      16     0  0.24  0.36    [-0.32;1.04]   0.297 
+ ##        y         3    16         0           0      16     0  0.00  0.36    [-0.32;1.04]   0.297 
+
+  xx <- summary(BT,statistic="winRatio")
+## Generalized pairwise comparison with 3 prioritized endpoints
+
+##  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
+##  > null hypothesis : Delta == 1 
+##  > permutation test: 1000 samples, confidence level 0.95 
+##  > treatment groups: 0 (control) vs. 1 (treatment) 
+##  > censored pairs  : imputation using Kaplan Meier stratified by treatment group 
+
+##  > results
+##  endpoint threshold total favorable unfavorable neutral uninf delta Delta CI [2.5 ; 97.5] p.value 
+##         y         4   100        12           0      88     0   Inf   Inf                         
+##      time     1e-12    88        48          24      16     0     2   2.5    [1.65;8.167]   0.118 
+##         y         3    16         0           0      16     0         2.5    [1.65;8.167]   0.118
 }
 
 ## ** table Comparison

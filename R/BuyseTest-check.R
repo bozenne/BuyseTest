@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: maj 22 2018 (23:46) 
+## Last-Updated: maj 23 2018 (12:25) 
 ##           By: Brice Ozenne
-##     Update #: 57
+##     Update #: 60
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -112,7 +112,7 @@ testArgs <- function(alternative,
                      method = "BuyseTest")
     }
 
-    ## ** data
+    ## ** data (endpoints)
     ## *** binary endpoints
     index.Bin <- which(type==1)
     if(length(index.Bin)>0){

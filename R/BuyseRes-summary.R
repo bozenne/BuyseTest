@@ -245,8 +245,34 @@ setMethod(f = "summary",
                   names(table.print)[match(oldnames,names(table.print))] <- newnames
               }
 
+              ## *** set Inf to NA in summary
+              ## e.g. in the case of no unfavorable pairs the win ratio is Inf
+              ##      this is not a valid estimate and it is set to NA
+              if(any(is.infinite(table.print$delta))){
+                  table.print[is.infinite(table.print$delta), "delta"] <- NA
+              }
+              if(any(is.nan(table.print$delta))){
+                  table.print[is.nan(table.print$delta), "delta"] <- NA
+              }
+
+              if(any(is.infinite(table.print$Delta))){
+                  table.print[is.infinite(table.print$Delta), "Delta"] <- NA
+              }
+              if(any(is.nan(table.print$Delta))){
+                  table.print[is.nan(table.print$Delta), "Delta"] <- NA
+              }
+              
               ## *** convert NA to ""
-              table.print[is.na(table.print)] <- ""
+              if(any(is.na(table.print$CIinf.Delta))){
+                  table.print[is.na(table.print$CIinf.Delta), "CIinf.Delta"] <- ""
+              }
+              if(any(is.na(table.print$CIsup.Delta))){
+                  table.print[is.na(table.print$CIsup.Delta), "CIsup.Delta"] <- ""
+              }
+              if(any(is.na(table.print$p.value))){
+                  table.print[is.na(table.print$p.value), "p.value"] <- ""
+              }
+
 
               ## *** remove name significance
               if(method.inference != "none"){

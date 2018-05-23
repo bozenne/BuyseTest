@@ -167,12 +167,12 @@ BuyseTest <- function(formula,
 
     ## ** initialization data
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    outArgs[c("data","level.treatment","level.strata","n.strata","allstrata")] <- initializeData(data = outArgs$data,
-                                                                                                 type = outArgs$type,
-                                                                                                 endpoint = outArgs$endpoint,
-                                                                                                 operator = outArgs$operator,
-                                                                                                 strata = outArgs$strata,
-                                                                                                 treatment = outArgs$treatment)
+    outArgs[c("data","level.treatment","level.strata","n.strata","n.obs","n.obsStrata","allstrata")] <- initializeData(data = outArgs$data,
+                                                                                                                       type = outArgs$type,
+                                                                                                                       endpoint = outArgs$endpoint,
+                                                                                                                       operator = outArgs$operator,
+                                                                                                                       strata = outArgs$strata,
+                                                                                                                       treatment = outArgs$treatment)
 
     ## ** create weights matrix for survival endpoints
     if(outArgs$D.TTE>0 && outArgs$D>1){
@@ -192,44 +192,29 @@ BuyseTest <- function(formula,
     if (outArgs$trace > 1) {
         outPrint <- do.call(printGeneral, args = outArgs)
     }
+
+    ## ** define environment
+    envirBT <- environment()
+    envirBT$.BuyseTest <- .BuyseTest
+    envirBT$initializeData <- initializeData
+    envirBT$initializeSurvival_Peto <- initializeSurvival_Peto
+    envirBT$initializeSurvival_Peron <- initializeSurvival_Peron
     
     ## ** Punctual estimation
     if (outArgs$trace > 1) {cat("Punctual estimation ")}
 
     time <- system.time({
-        outPunctual <- .BuyseTest(data = outArgs$data,
-                                  censoring = outArgs$censoring,
-                                  correction.tte = outArgs$correction.tte,
-                                  D = outArgs$D,
-                                  D.TTE = outArgs$D.TTE,
-                                  endpoint = outArgs$endpoint,
-                                  index.survivalM1 = outArgs$index.survivalM1,                       
+        outPunctual <- .BuyseTest(envir = envirBT,
+                                  return.index = option$return.index,
                                   keep.comparison = outArgs$keep.comparison,
-                                  level.treatment = outArgs$level.treatment,
-                                  method.inference = "none",
-                                  method.tte = outArgs$method.tte,
-                                  neutral.as.uninf = outArgs$neutral.as.uninf,
-                                  n.strata = outArgs$n.strata,
-                                  returnIndex = option$returnIndex,
-                                  strata = outArgs$allstrata,
-                                  threshold = outArgs$threshold,
-                                  treatment = outArgs$treatment,
-                                  threshold.TTEM1 = outArgs$threshold.TTEM1,
-                                  type = outArgs$type,
-                                  Wscheme = outArgs$Wscheme)
+                                  method.inference = "none")
     })
+    
     if (outArgs$trace > 1) {cat("(done) \n")}
     
     ## ** Permutation test
     if (outArgs$method.inference %in% c("permutation","bootstrap","stratified permutation", "stratified bootstrap")) {
-
-        ## ** define environment
-        envirBT <- environment()
-        envirBT$.BuyseTest <- .BuyseTest
-        envirBT$initializeData <- initializeData
-        envirBT$initializeSurvival_Peto <- initializeSurvival_Peto
-        envirBT$initializeSurvival_Peron <- initializeSurvival_Peron
-       
+          
         ## ** run
         outResampling <- inferenceResampling(envirBT)
         
@@ -282,39 +267,41 @@ BuyseTest <- function(formula,
 }
 
 ## * .BuyseTest
-.BuyseTest <- function(data,
-                       censoring,
-                       correction.tte,
-                       D,
-                       D.TTE,
-                       endpoint,
-                       index.survivalM1,                       
+.BuyseTest <- function(envir,
+                       return.index,
                        keep.comparison,
-                       level.treatment,
-                       method.inference,
-                       method.tte,
-                       neutral.as.uninf,
-                       returnIndex,
-                       n.strata,
-                       strata,
-                       threshold,
-                       treatment,
-                       threshold.TTEM1,
-                       type,
-                       Wscheme){
+                       method.inference){
 
+    strata <- envir$outArgs$strata ## for by in data.table otherwise it cant find what it is
+    n.strata <- envir$outArgs$n.strata ## to simplify code
+    treatment <- envir$outArgs$treatment ## to simplify code
+    level.treatment <- envir$outArgs$level.treatment ## to simplify code
+    censoring <- envir$outArgs$censoring ## to simplify code
+    endpoint <- envir$outArgs$endpoint ## to simplify code
+    method.tte <- envir$outArgs$method.tte ## to simplify code
+    type <- envir$outArgs$type ## to simplify code
+    D.TTE <- envir$outArgs$D.TTE ## to simplify code
+    D <- envir$outArgs$D ## to simplify code
+    
     ## ** Resampling
-    data <- data.table::copy(data)
     if(method.inference == "none"){
-        ## do nothing
-    }else if(method.inference == "permutation"){
-        data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE)], .SDcols = treatment]
-    }else if(method.inference == "bootstrap"){
-        data <- data[sample.int(.N, size = .N, replace = TRUE)]    
-    }else if(method.inference == "stratified permutation"){
-        data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE)], .SDcols = treatment, by = strata]
-    }else if(method.inference == "stratified bootstrap"){
-        data <- data[,.SD[sample.int(.N, size = .N, replace = TRUE)], by = strata]
+        data <- envir$outArgs$data
+    }else {
+        if(method.inference == "permutation"){
+            ## permute the treatment variable over all strata
+            data <- data.table::copy(envir$outArgs$data)
+            data[[treatment]] <- data[[treatment]][sample.int(envir$outArgs$n.obs, replace = FALSE)]
+        }else if(method.inference == "bootstrap"){
+            ## randomly pick observations over all strata
+            data <- envir$outArgs$data[sample.int(envir$outArgs$n.obs, replace = TRUE)]    
+        }else if(method.inference == "stratified permutation"){
+            ## permute the treatment variable within each strata
+            data <- data.table::copy(envir$outArgs$data)
+            data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE)], .SDcols = treatment, by = strata]
+        }else if(method.inference == "stratified bootstrap"){
+            ## randomly pick observations within each
+            data <- envir$outArgs$data[,.SD[sample.int(.N, size = .N, replace = TRUE)], by = strata]
+        }
     }
 
     ## ** Check valid resampling
@@ -331,35 +318,35 @@ BuyseTest <- function(formula,
     ## ** Initialize data    
 
     ## *** data: split the data according to the two levels
-    indexT <- which(data[[treatment]] == level.treatment[2])
-    indexC <- which(data[[treatment]] == level.treatment[1])
+    dataT <- data[data[[treatment]] == level.treatment[2]]
+    dataC <- data[data[[treatment]] == level.treatment[1]]
 
     ## *** data: extract endpoint 
-    M.Treatment <- as.matrix(data[indexT,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
-    M.Control <- as.matrix(data[indexC,endpoint,with=FALSE]) # matrix of endpoints for the control arm
+    M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
+    M.Control <- as.matrix(dataC[,endpoint,with=FALSE]) # matrix of endpoints for the control arm
 
     ## *** strata
     if(!is.null(strata)){
         ## For each strata, the index of the patients belonging to each strata, by treatment arm
         ## Index begins at 0. This is compulsory for C++.
-         index.strataT <- lapply(1:n.strata,function(iS){
-            which(data[indexT,strata[1],with=FALSE] == iS) - 1
+        index.strataT <- lapply(1:n.strata,function(iS){
+            which(dataT[[strata[1]]] == iS) - 1
         })
         index.strataC <- lapply(1:n.strata,function(iS){
-            which(data[indexC,strata[1],with=FALSE] == iS) - 1
+            which(dataC[[strata[1]]] == iS) - 1
         })
-                                        
+        
     }else{ # if there is no strata variable the same strata is used for all patient
         ## For each strata, the index of the patients belonging to each strata, by treatment arm
         ## Index begins at 0. This is compulsory for C++.
-        index.strataT <- list(0:(length(indexT)-1))
-        index.strataC <- list(0:(length(indexC)-1))
+        index.strataT <- list(0:(NROW(dataT)-1))
+        index.strataC <- list(0:(NROW(dataC)-1))
     }
 
     ## *** data: censoring
     if(!is.null(censoring)){
-        M.delta.Treatment <- as.matrix(data[indexT,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-        M.delta.Control <- as.matrix(data[indexC,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
+        M.delta.Treatment <- as.matrix(dataT[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
+        M.delta.Control <- as.matrix(dataC[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
     }else{ # if the is no time to event variables
         M.delta.Treatment <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
         M.delta.Control <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
@@ -369,20 +356,20 @@ BuyseTest <- function(formula,
     if(method.tte==2){ # "Efron"
         for(iStrata in 1:n.strata){ ## iStrata <- 1
 
-                index.typeTTE <- which(type==3)
-                Mstrata.Treatment <- M.Treatment[index.strataT[[iStrata]]+1,,drop=FALSE]
-                Mstrata.Control <- M.Control[index.strataC[[iStrata]]+1,,drop=FALSE]
-        
-                ## set last observation for each TTE endpoint to non-censored
-                for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
-                    iEndpoint <- index.typeTTE[iEndpoint.TTE]
-                        
-                    indexT_maxCensored <- which(Mstrata.Treatment[,iEndpoint] == max(Mstrata.Treatment[,iEndpoint])) ## cannot use which.max - not handlle correctly multiple times
-                    M.delta.Treatment[index.strataT[[iStrata]][indexT_maxCensored]+1,iEndpoint.TTE] <- 1
-                    indexC_maxCensored <- which(Mstrata.Control[,iEndpoint] == max(Mstrata.Control[,iEndpoint]))
-                    M.delta.Control[index.strataC[[iStrata]][indexC_maxCensored]+1,iEndpoint.TTE] <- 1
-                }
+            index.typeTTE <- which(type==3)
+            Mstrata.Treatment <- M.Treatment[index.strataT[[iStrata]]+1,,drop=FALSE]
+            Mstrata.Control <- M.Control[index.strataC[[iStrata]]+1,,drop=FALSE]
+            
+            ## set last observation for each TTE endpoint to non-censored
+            for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
+                iEndpoint <- index.typeTTE[iEndpoint.TTE]
+                
+                indexT_maxCensored <- which(Mstrata.Treatment[,iEndpoint] == max(Mstrata.Treatment[,iEndpoint])) ## cannot use which.max - not handlle correctly multiple times
+                M.delta.Treatment[index.strataT[[iStrata]][indexT_maxCensored]+1,iEndpoint.TTE] <- 1
+                indexC_maxCensored <- which(Mstrata.Control[,iEndpoint] == max(Mstrata.Control[,iEndpoint]))
+                M.delta.Control[index.strataC[[iStrata]][indexC_maxCensored]+1,iEndpoint.TTE] <- 1
             }
+        }
     }
 
     ## *** Update survival
@@ -397,7 +384,7 @@ BuyseTest <- function(formula,
                                            endpoint = endpoint,
                                            D.TTE = D.TTE,
                                            type = type,
-                                           threshold = threshold,
+                                           threshold = envir$outArgs$threshold,
                                            index.strataT = index.strataT,
                                            index.strataC = index.strataC,
                                            n.strata = n.strata)
@@ -409,7 +396,7 @@ BuyseTest <- function(formula,
                                             endpoint = endpoint,
                                             D.TTE = D.TTE,
                                             type = type,
-                                            threshold = threshold,
+                                            threshold = envir$outArgs$threshold,
                                             index.strataT = index.strataT,
                                             index.strataC = index.strataC,
                                             n.strata = n.strata)
@@ -418,24 +405,24 @@ BuyseTest <- function(formula,
     ## ** Computation
     resBT <-   GPC_cpp(Treatment = M.Treatment,
                        Control = M.Control,
-                       threshold = threshold,
+                       threshold = envir$outArgs$threshold,
                        survEndpoint = (type == 3),
                        delta_Treatment = M.delta.Treatment,
                        delta_Control = M.delta.Control,
                        D = D,
-                       returnIndex = returnIndex,
+                       returnIndex = return.index,
                        strataT = index.strataT,
                        strataC = index.strataC,
                        n_strata = n.strata,
                        n_TTE = D.TTE,
-                       Wscheme = Wscheme,
-                       index_survivalM1 = index.survivalM1,
-                       threshold_TTEM1 = threshold.TTEM1,
+                       Wscheme = envir$outArgs$Wscheme,
+                       index_survivalM1 = envir$outArgs$index.survivalM1,
+                       threshold_TTEM1 = envir$outArgs$threshold.TTEM1,
                        list_survivalT = outSurv$list.survivalT,
                        list_survivalC = outSurv$list.survivalC,
                        methodTTE = method.tte,
-                       correctionTTE = correction.tte,
-                       neutralAsUninf = neutral.as.uninf,
+                       correctionTTE = envir$outArgs$correction.tte,
+                       neutralAsUninf = envir$outArgs$neutral.as.uninf,
                        keepComparison = keep.comparison
                        )
     ## ** export
