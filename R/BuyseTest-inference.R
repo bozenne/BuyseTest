@@ -49,29 +49,15 @@ inferenceResampling <- function(envir){
         }else{
             method.loop <- lapply
         }
+        
         ls.permutation <- do.call(method.loop,
                                   args = list(X = 1:n.resampling,
                                               FUN = function(iB){
-                                                  .BuyseTest(data = envir$outArgs$data,
-                                                             censoring = envir$outArgs$censoring,
-                                                             correction.tte = envir$outArgs$correction.tte,
-                                                             D = envir$outArgs$D,
-                                                             D.TTE = envir$outArgs$D.TTE,
-                                                             endpoint = envir$outArgs$endpoint,
-                                                             index.survivalM1 = envir$outArgs$index.survivalM1,                       
+                                                  .BuyseTest(envir = envir,
+                                                             return.index = FALSE,
                                                              keep.comparison = FALSE,
-                                                             level.treatment = envir$outArgs$level.treatment,
-                                                             method.inference = envir$outArgs$method.inference,
-                                                             method.tte = envir$outArgs$method.tte,
-                                                             neutral.as.uninf = envir$outArgs$neutral.as.uninf,
-                                                             n.strata = envir$outArgs$n.strata,
-                                                             returnIndex = FALSE,
-                                                             strata = envir$outArgs$allstrata,
-                                                             threshold = envir$outArgs$threshold,
-                                                             treatment = envir$outArgs$treatment,
-                                                             threshold.TTEM1 = envir$outArgs$threshold.TTEM1,
-                                                             type = envir$outArgs$type,
-                                                             Wscheme = envir$outArgs$Wscheme)
+                                                             method.inference = envir$outArgs$method.inference
+                                                             )
                                               })
                                   )
     }else { ## *** parallel permutation test
@@ -97,26 +83,11 @@ inferenceResampling <- function(envir){
                                                         .options.snow = ls.options,
                                                         .export = toExport),                                            
                                        {
-                                           .BuyseTest(data = envir$outArgs$data,
-                                                      censoring = envir$outArgs$censoring,
-                                                      correction.tte = envir$outArgs$correction.tte,
-                                                      D = envir$outArgs$D,
-                                                      D.TTE = envir$outArgs$D.TTE,
-                                                      endpoint = envir$outArgs$endpoint,
-                                                      index.survivalM1 = envir$outArgs$index.survivalM1,                       
+                                           .BuyseTest(envir = envir,
+                                                      return.index = FALSE,
                                                       keep.comparison = FALSE,
-                                                      level.treatment = envir$outArgs$level.treatment,
-                                                      method.inference = envir$outArgs$method.inference,
-                                                      method.tte = envir$outArgs$method.tte,
-                                                      neutral.as.uninf = envir$outArgs$neutral.as.uninf,
-                                                      n.strata = envir$outArgs$n.strata,
-                                                      returnIndex = FALSE,
-                                                      strata = envir$outArgs$allstrata,
-                                                      threshold = envir$outArgs$threshold,
-                                                      treatment = envir$outArgs$treatment,
-                                                      threshold.TTEM1 = envir$outArgs$threshold.TTEM1,
-                                                      type = envir$outArgs$type,
-                                                      Wscheme = envir$outArgs$Wscheme)
+                                                      method.inference = envir$outArgs$method.inference)
+
                                        })
                                    
         parallel::stopCluster(cl)
@@ -142,7 +113,6 @@ inferenceResampling <- function(envir){
                 )
 
     for(iR in test.resampling){
-            
         out$deltaResampling_netChance[,,iR] <- ls.permutation[[iR]][paste0("delta.",1:n.strata),paste0("netChance.",1:D)]
         out$deltaResampling_winRatio[,,iR] <- ls.permutation[[iR]][paste0("delta.",1:n.strata),paste0("winRatio.",1:D)]
 

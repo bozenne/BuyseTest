@@ -254,11 +254,21 @@ initializeData <- function(data, type, endpoint, operator, strata, treatment){
         allstrata <- NULL
     }
 
+    ## ** n.obs
+    n.obs <- data[,.N]
+    if(!is.null(strata)){
+        n.obsStrata <- data[,.N,by = allstrata][,setNames(.SD[[1]],.SD[[2]]),.SD = c("N",allstrata)]
+    }else{
+        n.obsStrata <- setNames(n.obs,level.strata)
+    }
+    
     ## ** export
     return(list(data = data,
                 level.treatment = level.treatment,
                 level.strata = level.strata,
                 n.strata = length(level.strata),
+                n.obs = n.obs,
+                n.obsStrata = n.obsStrata,
                 allstrata = allstrata))
 }
 
