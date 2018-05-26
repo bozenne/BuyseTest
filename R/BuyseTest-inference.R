@@ -26,9 +26,9 @@ inferenceResampling <- function(envir){
                            "permutation" = "permutation test",
                            "stratified permutation" = "stratified permutation test")
             
-            cat("Settings (",txt.type,"): \n",
-                "   > requested time for one sample: ", time.punctual, "\n",
-                "   > estimated time for ", n.resampling, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.permutation, "\n", sep = "")
+            cat("Settings (",txt.type,"): \n", sep = "")
+                ## "   > requested time for one sample: ", time.punctual, "\n",
+                ## "   > estimated time for ", n.resampling, " samples with ", cpus, " core", if (cpus > 1) {"s"}, ": ", time.permutation, "\n", sep = "")
             if (!is.null(seed)) {
                 cat("   > seed", if (cpus > 1) {"s"}, ": ",paste(seq(seed,seed + cpus - 1), collapse = " "), sep = "")       
             }
