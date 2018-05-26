@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 19 2018 (23:33) 
+## last-updated: maj 26 2018 (17:20) 
 ##           By: Brice Ozenne
-##     Update #: 64
+##     Update #: 67
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -58,24 +58,24 @@ test_that("permutation", {
     ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001      
     
 
-    p.value <- c(mean(abs(BT@Delta.netChance["eventtime1"]) < abs(BT@DeltaResampling.netChance["eventtime1",])),
-                 mean(abs(BT@Delta.netChance["toxicity1"]) < abs(BT@DeltaResampling.netChance["toxicity1",])))
+    p.value <- c(mean(abs(BT@Delta.netChance[1]) < abs(BT@DeltaResampling.netChance[1,])),
+                 mean(abs(BT@Delta.netChance[2]) < abs(BT@DeltaResampling.netChance[2,])))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
     ## ** summary (greater)
     outSummary <- summary(BT, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT@Delta.netChance["eventtime1"] < BT@DeltaResampling.netChance["eventtime1",]),
-                 mean(BT@Delta.netChance["toxicity1"] < BT@DeltaResampling.netChance["toxicity1",]))
+    p.value <- c(mean(BT@Delta.netChance[1] < BT@DeltaResampling.netChance[1,]),
+                 mean(BT@Delta.netChance[2] < BT@DeltaResampling.netChance[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
-       ## ** summary (less)
+    ## ** summary (less)
     outSummary <- summary(BT, print = FALSE, alternative = "less")
     
-    p.value <- c(mean(BT@Delta.netChance["eventtime1"] > BT@DeltaResampling.netChance["eventtime1",]),
-                 mean(BT@Delta.netChance["toxicity1"] > BT@DeltaResampling.netChance["toxicity1",]))
+    p.value <- c(mean(BT@Delta.netChance[1] > BT@DeltaResampling.netChance[1,]),
+                 mean(BT@Delta.netChance[2] > BT@DeltaResampling.netChance[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
     
@@ -140,24 +140,24 @@ test_that("stratified permutation", {
  ##                           b   0.00      0.00        0.00       0   0.0  0.000                               
  ##                           c   2.20      2.20        0.00       0   0.0  0.022
 
-    p.value <- c(mean(abs(BT@Delta.netChance["eventtime1"]) < abs(BT@DeltaResampling.netChance["eventtime1",])),
-                 mean(abs(BT@Delta.netChance["toxicity1"]) < abs(BT@DeltaResampling.netChance["toxicity1",])))
+    p.value <- c(mean(abs(BT@Delta.netChance[1]) < abs(BT@DeltaResampling.netChance[1,])),
+                 mean(abs(BT@Delta.netChance[2]) < abs(BT@DeltaResampling.netChance[2,])))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
     ## ** summary (greater)
     outSummary <- summary(BT, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT@Delta.netChance["eventtime1"] < BT@DeltaResampling.netChance["eventtime1",]),
-                 mean(BT@Delta.netChance["toxicity1"] < BT@DeltaResampling.netChance["toxicity1",]))
+    p.value <- c(mean(BT@Delta.netChance[1] < BT@DeltaResampling.netChance[1,]),
+                 mean(BT@Delta.netChance[2] < BT@DeltaResampling.netChance[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
        ## ** summary (less)
     outSummary <- summary(BT, print = FALSE, alternative = "less")
     
-    p.value <- c(mean(BT@Delta.netChance["eventtime1"] > BT@DeltaResampling.netChance["eventtime1",]),
-                 mean(BT@Delta.netChance["toxicity1"] > BT@DeltaResampling.netChance["toxicity1",]))
+    p.value <- c(mean(BT@Delta.netChance[1] > BT@DeltaResampling.netChance[1,]),
+                 mean(BT@Delta.netChance[2] > BT@DeltaResampling.netChance[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
     
@@ -234,8 +234,8 @@ test_that("Bootstrap", {
     ##                           b   0.79      0.11        0.24    0.43  0.00 -0.001                               
     ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001   
     
-    p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] > 0 ), ## >0 because >0 punctual estimate
-                 mean(BT@DeltaResampling.netChance["toxicity1",] > 0 ) ## >0 because >0 punctual estimate
+    p.value <- c(mean(BT@DeltaResampling.netChance[1,] > 0 ), ## >0 because >0 punctual estimate
+                 mean(BT@DeltaResampling.netChance[2,] > 0 ) ## >0 because >0 punctual estimate
                  )
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
@@ -243,8 +243,8 @@ test_that("Bootstrap", {
     ## ** summary (greater)
     outSummary <- summary(BT, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] > 0 ), 
-                 mean(BT@DeltaResampling.netChance["toxicity1",] > 0 ) 
+    p.value <- c(mean(BT@DeltaResampling.netChance[1,] > 0 ), 
+                 mean(BT@DeltaResampling.netChance[2,] > 0 ) 
                  )
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
@@ -252,8 +252,8 @@ test_that("Bootstrap", {
     ## ** summary (less)
     outSummary <- summary(BT, print = FALSE, alternative = "less")
     
-    p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] < 0 ), 
-                 mean(BT@DeltaResampling.netChance["toxicity1",] < 0 ) 
+    p.value <- c(mean(BT@DeltaResampling.netChance[1,] < 0 ), 
+                 mean(BT@DeltaResampling.netChance[2,] < 0 ) 
                  )
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
@@ -311,8 +311,8 @@ test_that("Stratified bootstrap", {
     ##                           c   2.62      0.50        0.61    1.51  0.00 -0.001     
 
     
-    p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] > 0 ), ## >0 because >0 punctual estimate
-                 mean(BT@DeltaResampling.netChance["toxicity1",] > 0 ) ## >0 because >0 punctual estimate
+    p.value <- c(mean(BT@DeltaResampling.netChance[1,] > 0 ), ## >0 because >0 punctual estimate
+                 mean(BT@DeltaResampling.netChance[2,] > 0 ) ## >0 because >0 punctual estimate
                  )
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
@@ -320,8 +320,8 @@ test_that("Stratified bootstrap", {
     ## ** summary (greater)
     outSummary <- summary(BT, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] > 0 ), 
-                 mean(BT@DeltaResampling.netChance["toxicity1",] > 0 ) 
+    p.value <- c(mean(BT@DeltaResampling.netChance[1,] > 0 ), 
+                 mean(BT@DeltaResampling.netChance[2,] > 0 ) 
                  )
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
@@ -329,8 +329,8 @@ test_that("Stratified bootstrap", {
     ## ** summary (less)
     outSummary <- summary(BT, print = FALSE, alternative = "less")
     
-    p.value <- c(mean(BT@DeltaResampling.netChance["eventtime1",] < 0 ), 
-                 mean(BT@DeltaResampling.netChance["toxicity1",] < 0 ) 
+    p.value <- c(mean(BT@DeltaResampling.netChance[1,] < 0 ), 
+                 mean(BT@DeltaResampling.netChance[2,] < 0 ) 
                  )
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)

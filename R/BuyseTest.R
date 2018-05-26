@@ -261,7 +261,7 @@ BuyseTest <- function(formula,
         type = type,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
-        method.tte = method.tte,
+        method.tte = data.frame(method = method.tte, correction = outArgs$correction.tte, stringsAsFactors = FALSE),
         method.inference = outArgs$method.inference,
         strata = outArgs$strata,
         level.strata = outArgs$level.strata,
@@ -438,6 +438,7 @@ BuyseTest <- function(formula,
                        neutralAsUninf = neutral.as.uninf,
                        keepComparison = keep.comparison
                        )
+    
     ## ** export
     if(method.inference == "none"){
         return(resBT)
@@ -450,6 +451,7 @@ BuyseTest <- function(formula,
         return(Mout)
     }
 }
+
 
 
 

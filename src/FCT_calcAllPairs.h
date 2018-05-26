@@ -238,17 +238,23 @@ arma::mat calcAllPairs_TTEgehan(const arma::colvec& Treatment, const arma::colve
   if(correctionTTE){
     double factor = (count_favorable + count_unfavorable + count_neutral + count_uninf)/(count_favorable + count_unfavorable + count_neutral);
     
-    count_favorable *= factor;
-    
-    count_unfavorable *= factor;
-    
-    count_neutral *= factor;
-    std::fill(wNeutral.begin(),wNeutral.end(),factor);
-    
+    count_favorable *= factor;    
+    count_unfavorable *= factor;    
+    count_neutral *= factor;   
     count_uninf = 0;
+    
     index_uninfT.resize(0);
     index_uninfC.resize(0);
+
+    std::fill(wNeutral.begin(),wNeutral.end(),factor);
     wUninf.resize(0);
+
+    // if(keepComparison){
+	    // comparison.col(2) *= factor;
+	    // comparison.col(3) *= factor;
+	    // comparison.col(4) *= factor;
+	    // comparison.col(5) *= 0;
+	  // }
   }
   
   // ** export
@@ -339,16 +345,26 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
   // ** correction
   if(correctionTTE){
     double factor = (count_favorable + count_unfavorable + count_neutral + count_uninf)/(count_favorable + count_unfavorable + count_neutral);
+
     count_favorable *= factor;
     count_unfavorable *= factor;
     count_neutral *= factor;
     count_uninf = 0;
+    
     index_uninfT.resize(0);
     index_uninfC.resize(0);
     
     for(unsigned int iNeutral=0; iNeutral<wNeutral.size() ; iNeutral++){
       wNeutral[iNeutral] *= factor;
     }
+    wUninf.resize(0);
+
+    // if(keepComparison){
+	    // comparison.col(2) *= factor;
+	    // comparison.col(3) *= factor;
+	    // comparison.col(4) *= factor;
+	    // comparison.col(5) *= 0;
+	  // }
   }
   
   // ** export
@@ -440,18 +456,22 @@ arma::mat calcSubsetPairs_TTEgehan(const arma::colvec& Treatment, const arma::co
     double factor = (count_favorable + count_unfavorable + count_neutral + count_uninf)/(count_favorable + count_unfavorable + count_neutral);
     
     count_favorable *= factor;
-    
-    
     count_unfavorable *= factor;
-    
-    
     count_neutral *= factor;
-    std::fill(wNeutral.begin(),wNeutral.end(),factor);     
-    
     count_uninf = 0;
+	
     index_uninfT.resize(0);
     index_uninfC.resize(0);
+
+    std::fill(wNeutral.begin(),wNeutral.end(),factor);     
     wUninf.resize(0);
+
+    // if(keepComparison){
+	    // comparison.col(2) *= factor;
+	    // comparison.col(3) *= factor;
+	    // comparison.col(4) *= factor;
+	    // comparison.col(5) *= 0;
+	  // }
   }
   
   // ** export
@@ -657,12 +677,22 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
     count_unfavorable *= factor;
     count_neutral *= factor;
     count_uninf = 0;
+
     index_uninfT.resize(0);
     index_uninfC.resize(0);
     
     for(unsigned int iNeutral=0; iNeutral<wNeutral.size() ; iNeutral++){
       wNeutral[iNeutral] *= factor;
     }
+    wUninf.resize(0);
+
+    // if(keepComparison){
+	    // comparison.col(2) *= factor;
+	    // comparison.col(3) *= factor;
+	    // comparison.col(4) *= factor;
+	    // comparison.col(5) *= 0;
+	  // }
+    
   }
   
   // ** export

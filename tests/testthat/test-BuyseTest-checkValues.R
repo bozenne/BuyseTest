@@ -404,6 +404,7 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
         expect_equal(dt.tableS[,n.total],
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf])
                      )
+
     })
 }
 

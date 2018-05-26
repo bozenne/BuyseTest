@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: maj  5 2018 (23:32) 
+## Last-Updated: maj 26 2018 (17:05) 
 ##           By: Brice Ozenne
-##     Update #: 126
+##     Update #: 128
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -563,7 +563,7 @@ test_that("check previous bug with option keep.comparison",{
     BT <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2),
                     data = dt, method.tte = "Gehan")
 
-    GS <- list(eventtime1_1 = data.frame("strata" = c("1", "1", "1"), 
+    GS <- list(eventtime1_1 = data.table("strata" = factor(c("1", "1", "1")), 
                                          "index.1" = c(1, 1, 1), 
                                          "index.0" = c(2, 3, 4), 
                                          "indexWithinStrata.1" = c(1, 1, 1), 
@@ -572,7 +572,7 @@ test_that("check previous bug with option keep.comparison",{
                                          "unfavorable" = c(0, 0, 0), 
                                          "neutral" = c(0, 0, 1), 
                                          "uninformative" = c(1, 1, 0)) ,
-               eventtime2_0.5 = data.frame("strata" = c("1", "1", "1"), 
+               eventtime2_0.5 = data.table("strata" = factor(c("1", "1", "1")), 
                                            "index.1" = c(1, 1, 1), 
                                            "index.0" = c(4, 2, 3), 
                                            "indexWithinStrata.1" = c(1, 1, 1), 
@@ -582,7 +582,7 @@ test_that("check previous bug with option keep.comparison",{
                                            "neutral" = c(0, 0, 0), 
                                            "uninformative" = c(1, 1, 1))
                )
-    
+
     expect_equal(BT@tableComparison[[1]],GS[[1]])
     expect_equal(BT@tableComparison[[2]],GS[[2]])
              

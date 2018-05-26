@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj 23 2018 (00:11) 
+## Last-Updated: maj 26 2018 (17:16) 
 ##           By: Brice Ozenne
-##     Update #: 25
+##     Update #: 28
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -177,6 +177,14 @@ summary(BT,statistic="winRatio")
 ## 4      1       6       3                   1                   3         0        0.00    0.25             0
 ## 5      1       6       4                   1                   4         0        0.00    0.25             0
 ## 6      1       6       5                   1                   5         0        0.25    0.00             0
+
+
+## * Emeline T: samedi 26 mai 2018 à 14:39
+
+## data<-read.csv2("/home/brice/Téléchargements/data",header=TRUE,sep=";")
+## data3<-as.data.frame(cbind(time=data$time,event=data$event,trt=data$trt))
+## BT_tau0<-BuyseTest(data=data3,treatment="trt",endpoint="time",type="timeToEvent",threshold=as.numeric(0),censoring="event",method="Peron",n.bootstrap=1000,cpus=8)
+## BT2s_0<-BT_tau0@p.value
 
 
 ## * running time (hidden)

@@ -37,7 +37,7 @@ setClass(
       endpoint = "vector",
       level.treatment = "vector",
       level.strata = "vector",
-      method.tte = "character",
+      method.tte = "data.frame",
       method.inference = "character",
       strata = "vector",
       threshold = "numeric",
@@ -178,17 +178,19 @@ methods::setMethod(
                                    tableComparison,
                                    args){
 
+                 name.endpoint <- paste0(endpoint,"_",threshold)
+                 
                  ## ** count
-                 dimnames(count.favorable) <- list(level.strata, endpoint)
-                 dimnames(count.unfavorable) <- list(level.strata, endpoint)
-                 dimnames(count.neutral) <- list(level.strata, endpoint)
-                 dimnames(count.uninf) <- list(level.strata, endpoint)
+                 dimnames(count.favorable) <- list(level.strata, name.endpoint)
+                 dimnames(count.unfavorable) <- list(level.strata, name.endpoint)
+                 dimnames(count.neutral) <- list(level.strata, name.endpoint)
+                 dimnames(count.uninf) <- list(level.strata, name.endpoint)
 
                  ## ** delta/Delta
-                 dimnames(delta.netChance) <- list(level.strata, endpoint)
-                 dimnames(delta.winRatio) <- list(level.strata, endpoint)
-                 names(Delta.netChance) <- endpoint
-                 names(Delta.winRatio) <- endpoint
+                 dimnames(delta.netChance) <- list(level.strata, name.endpoint)
+                 dimnames(delta.winRatio) <- list(level.strata, name.endpoint)
+                 names(Delta.netChance) <- name.endpoint
+                 names(Delta.winRatio) <- name.endpoint
                  
                  ## ** endpoint
                  D <- length(endpoint)
@@ -211,26 +213,16 @@ methods::setMethod(
                  ## ** tableComparison
                  nComparison <- unlist(lapply(tableComparison,length))
                  if(any(nComparison>0)){
-                     ## Rcpp outputs vector: convert to matrix and rename
-                     name.tempo <- c("strata",
-                                     paste0("index.",level.treatment[2]), ## treated
-                                     paste0("index.",level.treatment[1]), ## control
-                                     paste0("indexWithinStrata.",level.treatment[2]), ## treated
-                                     paste0("indexWithinStrata.",level.treatment[1]), ## control
-                                     "favorable","unfavorable","neutral","uninformative")
-
-                     tableComparison <- lapply(tableComparison, function(iC){
-                         iM <- as.data.frame(matrix(iC, ncol = 9, byrow = FALSE,
-                                                    dimnames = list(NULL,name.tempo)))
-                         iM[,"strata"] <- factor(iM[,"strata"], levels = 0:(n.strata-1), labels = level.strata) ## indexes start at 1 in R and not at 0 as in C++
-                         ## recall that indexes start at 1 in R and not at 0 as in C++
-                         iM[,2] <- args$indexT[iM[,2]+1] ## restaure position in the original dataset, not the datasets relative to T and C
-                         iM[,3] <- args$indexC[iM[,3]+1]
-                         iM[,4:5] <- iM[,4:5] + 1 
-                         return(iM)
-                     })
-                     names(tableComparison) <- paste0(endpoint,"_",threshold)
+                     tableComparison <- tableComparison2dt(tableComparison,
+                                                           level.treatment = level.treatment,
+                                                           level.strata = level.strata,
+                                                           n.strata = n.strata,
+                                                           endpoint = endpoint,
+                                                           threshold = threshold,
+                                                           indexT = args$indexT,
+                                                           indexC = args$indexC)
                  }
+                     
                  .Object@count.favorable <- count.favorable      
                  .Object@count.unfavorable <- count.unfavorable
                  .Object@count.neutral <- count.neutral   

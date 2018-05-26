@@ -285,7 +285,7 @@ setMethod(f = "summary",
               ## *** remove duplicated values in endpoint/threshold
               test.duplicated <- duplicated(interaction(table.print$endpoint,table.print$threshold))
               table.print[which(test.duplicated),c("endpoint","threshold")] <- ""
-              
+
               ## ** display
               if(print){
                   ## *** additional text
@@ -323,14 +323,18 @@ setMethod(f = "summary",
                   
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
                   if(any(object@type == "TimeToEvent")){
-                      txt.method.tte <- switch(object@method.tte,
-                                               "Gehan" = "uninformative pairs \n",
-                                               "Peto" = "imputation using Kaplan Meier \n",
-                                               "Efron" = "imputation using Kaplan Meier stratified by treatment group \n",
-                                               "Peron" = "imputation using Kaplan Meier stratified by treatment group \n"
+                      txt.method.tte <- switch(object@method.tte$method,
+                                               "Gehan" = "uninformative pairs",
+                                               "Peto" = "imputation using Kaplan Meier",
+                                               "Efron" = "imputation using Kaplan Meier stratified by treatment group",
+                                               "Peron" = "imputation using Kaplan Meier stratified by treatment group"
                                                ) 
 
                       cat(" > censored pairs  : ",txt.method.tte,"\n", sep = "")
+                      if(object@method.tte$correction){
+                          cat("                     IPW for uninformative pairs\n", sep = "")
+                      }
+                      cat("\n")
                   }
                   cat(" > results\n")
                   print(table.print, row.names = FALSE)
@@ -338,7 +342,6 @@ setMethod(f = "summary",
                       cat("NOTE: confidence intervals computed under the null hypothesis\n")
                   }
               }
-            
               ## ** export
               return(invisible(list(table = table,
                                     table.print = table.print))
