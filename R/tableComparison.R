@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: maj 26 2018 (17:09) 
+## Last-Updated: maj 26 2018 (17:48) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 34
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 ## Compute the global statistics based on tableComparison - used to check the validity of tableComparison
 tableComparison2Delta <- function(table, correct.tte){
 
-     favorable <- unfavorable <- neutral <- uninformative <- NULL ## [:CRAN:] for CRAN check
+    . <- favorable <- unfavorable <- neutral <- uninformative <- NULL ## [:CRAN:] for CRAN check
     
     endpoint <- names(table)
     D <- length(endpoint)
