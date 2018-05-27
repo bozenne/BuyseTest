@@ -46,102 +46,9 @@ setClass(
       deltaResampling.winRatio = "array",
       DeltaResampling.netChance = "matrix",
       DeltaResampling.winRatio = "matrix",
+      covariance = "matrix",
       tableComparison = "list")
 
-  ## ### ** Check validity of the object
-  ## , validity = function(object){
-
-  ##     n.strata <- length(object@level.strata)
-  ##     n.outcome <- length(object@endpoint)
-
-  ##     ## *** count
-  ##     validDimension(object@count.favorable,
-  ##                    name1 = "@count.favorable",
-  ##                    valid.dimension = c(n.strata, n.outcome),
-  ##                    type = c("NROW","NCOL"),
-  ##                    method = "validity[BuyseTest]")
-  ##     validDimension(object@count.unfavorable,
-  ##                    name1 = "@count.unfavorable",
-  ##                    valid.dimension =  c(n.strata, n.outcome),
-  ##                    type = c("NROW","NCOL"),
-  ##                    method = "validity[BuyseTest]")
-  ##     validDimension(object@count.neutral,
-  ##                    name1 = "@count.neutral",
-  ##                    valid.dimension = c(n.strata, n.outcome),
-  ##                    type = c("NROW","NCOL"),
-  ##                    method = "validity[BuyseTest]")
-  ##     validDimension(object@count.uninf,
-  ##                    name1 = "@count.uninf",
-  ##                    valid.dimension = c(n.strata, n.outcome),
-  ##                    type = c("NROW","NCOL"),
-  ##                    method = "validity[BuyseTest]")
-
-  ##     ## *** delta
-  ##     validDimension(object@delta.netChance,
-  ##                    name1 = "@delta.netChance",
-  ##                    valid.dimension = c(n.strata, n.outcome),
-  ##                    type = c("NROW","NCOL"),
-  ##                    method = "validity[BuyseTest]")
-  ##     validDimension(object@delta.winRatio,
-  ##                    name1 = "@delta.winRatio",
-  ##                    valid.dimension = c(n.strata, n.outcome),
-  ##                    type = c("NROW","NCOL"),
-  ##                    method = "validity[BuyseTest]")
-
-  ##     ## *** Delta
-  ##     validDimension(object@Delta.netChance,
-  ##                    name1 = "@Delta.netChance",
-  ##                    valid.dimension = n.outcome,
-  ##                    type = c("length"),
-  ##                    method = "validity[BuyseTest]")
-  ##     validDimension(object@Delta.winRatio,
-  ##                    name1 = "@Delta.winRatio",
-  ##                    valid.dimension = n.outcome,
-  ##                    type = c("length"),
-  ##                    method = "validity[BuyseTest]")
-
-  ##     ## *** index
-  ##     validDimension(object@index.neutralT,
-  ##                    name1 = "@index.neutralT",
-  ##                    value2 = object@index.neutralC,
-  ##                    name2 = "@index.neutralC",
-  ##                    type = c("length"),
-  ##                    method = "validity[BuyseTest]")
-  ##     validDimension(object@index.uninfT,
-  ##                    name1 = "@index.uninfT",
-  ##                    value2 = object@index.uninfC,
-  ##                    name2 = "@index.uninfC",
-  ##                    type = c("length"),
-  ##                    method = "validity[BuyseTest]")
-
-  ##     ## *** level.strata
-  ##     validDimension(object@level.strata,
-  ##                    name1 = "@level.strata",
-  ##                    valid.dimension = n.strata,
-  ##                    type = c("length"),
-  ##                    method = "validity[BuyseTest]")
-
-  ##     ## *** level.treatment
-  ##     validDimension(object@level.treatment,
-  ##                    name1 = "@level.treatment",
-  ##                    valid.dimension = 2,
-  ##                    type = c("length"),
-  ##                    method = "validity[BuyseTest]")
-
-  ##     ## *** threshold
-  ##     validDimension(object@threshold,
-  ##                    name1 = "@threshold",
-  ##                    valid.dimension = n.outcome,
-  ##                    type = c("length"),
-  ##                    method = "validity[BuyseTest]")
-  
-  ##     ## *** delta resampling
-  ##     ## resampling can fail - should not be tested against object@n.resampling
-      
-  ##     ## *** Delta resampling
-  ##     ## resampling can fail - should not be tested against object@n.resampling
-     
-  ##   return(TRUE)} 
 )
 
 ## * Initialize BuyseRes objects
@@ -174,7 +81,8 @@ methods::setMethod(
                                    deltaResampling.netChance,
                                    deltaResampling.winRatio,
                                    DeltaResampling.netChance,
-                                   DeltaResampling.winRatio, 
+                                   DeltaResampling.winRatio,
+                                   covariance,
                                    tableComparison,
                                    args){
 
@@ -201,28 +109,7 @@ methods::setMethod(
                  }
                  n.strata <- length(level.strata)
 
-                 ## ** no resampling
-                 if(method.inference %in% c("none","asymptotic")){
-                     deltaResampling.netChance <- array(dim=c(0,0,0))
-                     deltaResampling.winRatio <- array(dim=c(0,0,0))
-                     DeltaResampling.netChance <- matrix(NA, nrow = 0, ncol = 0)
-                     DeltaResampling.winRatio <- matrix(NA, nrow = 0, ncol = 0)
-                     n.resampling <- as.double(NA)
-                 }
-
-                 ## ** tableComparison
-                 nComparison <- unlist(lapply(tableComparison,length))
-                 if(any(nComparison>0)){
-                     tableComparison <- tableComparison2dt(tableComparison,
-                                                           level.treatment = level.treatment,
-                                                           level.strata = level.strata,
-                                                           n.strata = n.strata,
-                                                           endpoint = endpoint,
-                                                           threshold = threshold,
-                                                           indexT = args$indexT,
-                                                           indexC = args$indexC)
-                 }
-                     
+                 ## ** store
                  .Object@count.favorable <- count.favorable      
                  .Object@count.unfavorable <- count.unfavorable
                  .Object@count.neutral <- count.neutral   
@@ -254,6 +141,8 @@ methods::setMethod(
                  .Object@deltaResampling.winRatio <- deltaResampling.winRatio
                  .Object@DeltaResampling.netChance <- DeltaResampling.netChance
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
+
+                 .Object@covariance <- covariance
 
                  .Object@tableComparison <- tableComparison
                  

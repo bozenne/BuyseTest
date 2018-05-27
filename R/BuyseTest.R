@@ -160,6 +160,12 @@ BuyseTest <- function(formula,
                               type = type,
                               method.inference = method.inference)
 
+    if(outArgs$keep.comparison || outArgs$method.inference == "asymptotic"){
+        keep.comparison <- TRUE
+    }else{
+        keep.comparison <- FALSE
+    }
+        
     ## ** test arguments
     if(option$check){
         outTest <- do.call(testArgs, args = outArgs)
@@ -188,7 +194,7 @@ BuyseTest <- function(formula,
         outArgs$threshold.TTEM1 <- numeric(0)
     }
     
-    ## ** Displayd
+    ## ** Display
     if (outArgs$trace > 1) {
         outPrint <- do.call(printGeneral, args = outArgs)
     }
@@ -206,9 +212,24 @@ BuyseTest <- function(formula,
     time <- system.time({
         outPunctual <- .BuyseTest(envir = envirBT,
                                   return.index = option$return.index,
-                                  keep.comparison = outArgs$keep.comparison,
+                                  keep.comparison = keep.comparison,
                                   method.inference = "none")
     })
+    ## convert from a list of vector (output of C++) to a list of data.table
+    if(keep.comparison){
+        ## needed for inference
+        envirBT$indexT <- which(outArgs$data[[outArgs$treatment]]==outArgs$level.treatment[2])
+        envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==outArgs$level.treatment[1])
+        
+        outPunctual$tableComparison <- tableComparison2dt(outPunctual$tableComparison,
+                                                          level.treatment = outArgs$level.treatment,
+                                                          level.strata = outArgs$level.strata,
+                                                          n.strata = outArgs$n.strata,
+                                                          endpoint = outArgs$endpoint,
+                                                          threshold = outArgs$threshold,
+                                                          indexT = envirBT$indexT,
+                                                          indexC = envirBT$indexC)
+    }
     
     if (outArgs$trace > 1) {cat("(done) \n")}
     
@@ -217,12 +238,24 @@ BuyseTest <- function(formula,
           
         ## ** run
         outResampling <- inferenceResampling(envirBT)
+        outCovariance <- matrix(nrow = 0, ncol = 0)
         
     }else if(outArgs$method.inference %in% c("asymptotic")){
-        stop("Not implemented yet \n")
-        outResampling <- list()
+
+        outCovariance <- inferenceUstatistic(envirBT)
+
+        outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
+                              deltaResampling.winRatio = array(dim=c(0,0,0)),
+                              DeltaResampling.netChance = matrix(NA, nrow = 0, ncol = 0),
+                              DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+                              n.resampling = as.double(NA))
     }else{
-        outResampling <- list()
+        outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
+                              deltaResampling.winRatio = array(dim=c(0,0,0)),
+                              DeltaResampling.netChance = matrix(NA, nrow = 0, ncol = 0),
+                              DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+                              n.resampling = as.double(NA))
+        outCovariance <- matrix(nrow = 0, ncol = 0)
     }
     
     ## ** Gather results into a BuyseRes object
@@ -252,14 +285,12 @@ BuyseTest <- function(formula,
         level.strata = outArgs$level.strata,
         threshold = outArgs$threshold,
         n.resampling = outArgs$n.resampling,
-        deltaResampling.netChance = outResampling$deltaResampling_netChance,
-        deltaResampling.winRatio = outResampling$deltaResampling_winRatio,
-        DeltaResampling.netChance = outResampling$DeltaResampling_netChance,
-        DeltaResampling.winRatio = outResampling$DeltaResampling_winRatio,
-        tableComparison = outPunctual$tableComparison,
-        args = list(indexC = which(outArgs$data[[outArgs$treatment]]==outArgs$level.treatment[1]),
-                    indexT = which(outArgs$data[[outArgs$treatment]]==outArgs$level.treatment[2])
-                    )
+        deltaResampling.netChance = outResampling$deltaResampling.netChance,
+        deltaResampling.winRatio = outResampling$deltaResampling.winRatio,
+        DeltaResampling.netChance = outResampling$DeltaResampling.netChance,
+        DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
+        covariance = outCovariance,
+        tableComparison = if(outArgs$keep.comparison){outPunctual$tableComparison}else{list()}
     )
 
     ## ** export
@@ -271,7 +302,7 @@ BuyseTest <- function(formula,
                        return.index,
                        keep.comparison,
                        method.inference){
-
+   
     strata <- envir$outArgs$strata ## for by in data.table otherwise it cant find what it is
     n.strata <- envir$outArgs$n.strata ## to simplify code
     treatment <- envir$outArgs$treatment ## to simplify code
@@ -285,7 +316,7 @@ BuyseTest <- function(formula,
     
     ## ** Resampling
     if(method.inference == "none"){
-        data <- envir$outArgs$data
+        data <- data.table::copy(envir$outArgs$data)
     }else {
         if(method.inference == "permutation"){
             ## permute the treatment variable over all strata
@@ -318,8 +349,10 @@ BuyseTest <- function(formula,
     ## ** Initialize data    
 
     ## *** data: split the data according to the two levels
-    dataT <- data[data[[treatment]] == level.treatment[2]]
-    dataC <- data[data[[treatment]] == level.treatment[1]]
+    indexT <- which(data[[treatment]] == level.treatment[2])
+    indexC <- which(data[[treatment]] == level.treatment[1])
+    dataT <- data[indexT]
+    dataC <- data[indexC]
 
     ## *** data: extract endpoint 
     M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 

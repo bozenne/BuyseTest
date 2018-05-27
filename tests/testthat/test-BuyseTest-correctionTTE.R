@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: maj 26 2018 (17:07) 
+## Last-Updated: maj 27 2018 (20:44) 
 ##           By: Brice Ozenne
-##     Update #: 33
+##     Update #: 47
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,7 +21,6 @@ if(FALSE){
 }
 
 context("Check that method.tte = corrected  in BuyseTest is working correctly \n")
-tableComparison2Delta <- BuyseTest:::tableComparison2Delta
 
 ## * settings
 BuyseTest.options(check = FALSE,
@@ -37,7 +36,7 @@ df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
 ## ** Gehan
 test_that("1 TTE endpoint - Gehan (no correction)", {
     Gehan <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
-                       data = df, 
+                       data = df,
                        method.tte = "Gehan")
 
     expect_equal(as.double(Gehan@count.favorable), c(9,0))
@@ -45,15 +44,16 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
     expect_equal(as.double(Gehan@count.neutral), c(1,5))
     expect_equal(as.double(Gehan@count.uninf), c(4,0))
 
-    test <- tableComparison2Delta(table = Gehan@tableComparison,
-                                  correct.tte = Gehan@method.tte$correction)
-    expect_equal(Gehan@Delta.netChance,test[["Delta.netChance"]])
-    expect_equal(Gehan@Delta.winRatio,test[["Delta.winRatio"]])
+    test <- aggrTableComparison(table = Gehan@tableComparison,
+                                correct.tte = Gehan@method.tte$correction)
+        
+    expect_equal(unname(tail(Gehan@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
+    expect_equal(unname(tail(Gehan@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+
 })
 
 test_that("1 TTE endpoint - Gehan (correction)", {
-    ## survival first
-    
+    ## survival first    
     GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
                         method.tte = "Gehan corrected")
@@ -64,10 +64,11 @@ test_that("1 TTE endpoint - Gehan (correction)", {
     expect_equal(as.double(GehanC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(GehanC@count.uninf), c(0,0))
 
-    test <- tableComparison2Delta(table = GehanC@tableComparison,
-                                  correct.tte = GehanC@method.tte$correction)
-    expect_equal(GehanC@Delta.netChance,test[["Delta.netChance"]])
-    expect_equal(GehanC@Delta.winRatio,test[["Delta.winRatio"]])
+    test <- aggrTableComparison(table = GehanC@tableComparison,
+                                correct.tte = GehanC@method.tte$correction)
+        
+    expect_equal(unname(tail(GehanC@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
+    expect_equal(unname(tail(GehanC@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
 
     ## survival second
     GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
@@ -78,10 +79,12 @@ test_that("1 TTE endpoint - Gehan (correction)", {
     expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])
     expect_equal(GehanC@count.uninf[1], GehanC2@count.uninf[2])
 
-    test <- tableComparison2Delta(table = GehanC2@tableComparison,
-                                  correct.tte = GehanC2@method.tte$correction)
-    expect_equal(GehanC2@Delta.netChance,test[["Delta.netChance"]])
-    expect_equal(GehanC2@Delta.winRatio,test[["Delta.winRatio"]])
+    test <- aggrTableComparison(table = GehanC2@tableComparison,
+                                correct.tte = GehanC2@method.tte$correction)
+        
+    expect_equal(unname(tail(GehanC2@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
+    expect_equal(unname(tail(GehanC2@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+
 })
 
 ## ** Peron
@@ -95,11 +98,12 @@ test_that("1 TTE endpoint - Peron (no correction)", {
     expect_equal(as.double(Peron@count.neutral), c(1,4))
     expect_equal(as.double(Peron@count.uninf), c(3,0))
 
-    test <- tableComparison2Delta(table = Peron@tableComparison,
-                                  correct.tte = Peron@method.tte$correction)
-                                  
-    expect_equal(Peron@Delta.netChance,test[["Delta.netChance"]])
-    expect_equal(Peron@Delta.winRatio,test[["Delta.winRatio"]])
+    test <- aggrTableComparison(table = Peron@tableComparison,
+                                correct.tte = Peron@method.tte$correction)
+        
+    expect_equal(unname(tail(Peron@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
+    expect_equal(unname(tail(Peron@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+
 })
 
     
@@ -115,10 +119,11 @@ test_that("1 TTE endpoint - Peron (correction)", {
     expect_equal(as.double(PeronC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(PeronC@count.uninf), c(0,0))
 
-    test <- tableComparison2Delta(table = PeronC@tableComparison,
-                                  correct.tte = PeronC@method.tte$correction)
-    expect_equal(PeronC@Delta.netChance,test[["Delta.netChance"]])
-    expect_equal(PeronC@Delta.winRatio,test[["Delta.winRatio"]])
+    test <- aggrTableComparison(table = PeronC@tableComparison,
+                                correct.tte = PeronC@method.tte$correction)
+        
+    expect_equal(unname(tail(PeronC@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
+    expect_equal(unname(tail(PeronC@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
 
     ## survival second
     PeronC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
@@ -129,10 +134,11 @@ test_that("1 TTE endpoint - Peron (correction)", {
     expect_equal(PeronC@count.neutral[1], PeronC@count.neutral[2])
     expect_equal(PeronC@count.uninf[1], PeronC2@count.uninf[2])
 
-    test <- tableComparison2Delta(table = PeronC2@tableComparison,
-                                  correct.tte = PeronC2@method.tte$correction)
-    expect_equal(PeronC2@Delta.netChance,test[["Delta.netChance"]])
-    expect_equal(PeronC2@Delta.winRatio,test[["Delta.winRatio"]])
+    test <- aggrTableComparison(table = PeronC2@tableComparison,
+                                correct.tte = PeronC2@method.tte$correction)
+        
+    expect_equal(unname(tail(PeronC2@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
+    expect_equal(unname(tail(PeronC2@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
 })
 
 

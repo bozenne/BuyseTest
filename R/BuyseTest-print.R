@@ -65,8 +65,8 @@ printGeneral <- function(censoring,
         }
         
         threshold.display <- rbind(sapply(1:D.TTE,
-                                          function(x){paste(c("[",round(threshold.TTEM1.display[x],4),
-                                                              " ; ",round(threshold[type == 3][x],4),
+                                          function(x){paste(c("[",round(threshold[type == 3][x],4),
+                                                              " ; ",round(threshold.TTEM1.display[x],4),
                                                               "] "), collapse = "")}))
         colnames(threshold.display) <- endpoint[type == 3]      
         rownames(threshold.display) <- "threshold interval"
@@ -88,18 +88,18 @@ printGeneral <- function(censoring,
     }
     if(any(type==3)){
         cat("   > management of censored survival pairs : ")
-        switch(method.tte,
-               "Gehan" = cat("uninformative pairs \n"),
-               "Peto" = cat("imputation using Kaplan Meier \n"),
-               "Efron" = cat("imputation using Kaplan Meier stratified by treatment group \n"),
-               "Peron" = cat("imputation using Kaplan Meier stratified by treatment group \n")
+        switch(as.character(method.tte),
+               "0" = cat("uninformative pairs \n"),
+               "1" = cat("imputation using Kaplan Meier \n"),
+               "2" = cat("imputation using Kaplan Meier stratified by treatment group \n"),
+               "3" = cat("imputation using Kaplan Meier stratified by treatment group \n")
                ) 
-        if (method.tte %in% c("Peto","Efron","Peron")) {
+        if (method.tte %in% c("1","2","3")) {
             
-            cat("   > weights of the pairs relatively to the enpoints : \n")
+            cat("   > weights of the pairs relatively to the enpoints: \n")
             print(Wscheme)
             
-            cat("   > intervals thresholds for survival endpoints : \n")    
+            cat("   > intervals thresholds for survival endpoints: \n")    
             print(threshold.display)
         }
     }

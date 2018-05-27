@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: maj 26 2018 (17:48) 
+## Last-Updated: maj 27 2018 (20:45) 
 ##           By: Brice Ozenne
-##     Update #: 34
+##     Update #: 45
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -69,6 +69,51 @@ tableComparison2Delta <- function(table, correct.tte){
     ## ** export
     return(list(Delta.netChance = setNames(Delta.netChance, endpoint),
                 Delta.winRatio = setNames(Delta.winRatio, endpoint)))
+}
+
+## * aggrTableComparison
+## Compute the global statistics based on tableComparison - used to check the validity of tableComparison
+aggrTableComparison <- function(table, correct.tte){
+
+        favorable <- unfavorable <- neutral <- uninformative <- . <- NULL ## [:forCRANcheck:] data.table
+    
+    endpoint <- names(table)
+    D <- length(endpoint)
+    outTable <- NULL
+
+    col.id <- names(table[[1]])[1:3]
+    
+    for(iE in 1:D){ ## iE <- 1
+
+        iTable <- data.table::copy(table[[iE]])
+        
+        ## ** perform correction
+        if(correct.tte){
+            vec.tempo <- unlist(iTable[,.(favorable = sum(favorable),
+                                          unfavorable = sum(unfavorable),
+                                          neutral = sum(neutral),
+                                          uninformative = sum(uninformative))])
+            factor <- sum(vec.tempo)/sum(vec.tempo[1:3])
+            
+            iTable[, favorable := favorable * factor]
+            iTable[, unfavorable := unfavorable * factor]
+            iTable[, neutral := neutral * factor]
+            iTable[, uninformative := 0]
+        }
+
+        if(iE==1){
+            outTable <- iTable[,.SD,.SDcols = c(col.id,c("favorable","unfavorable"))]
+        }else{
+            outTable <- rbindlist(list(outTable,
+                                       iTable[,.SD,.SDcols = c(col.id,c("favorable","unfavorable"))])
+                                  )[, lapply(.SD, sum, na.rm = TRUE), by = col.id]
+        }
+    }
+
+
+
+    ## ** export
+    return(outTable)
 }
 
 ## * tableComparison2dt

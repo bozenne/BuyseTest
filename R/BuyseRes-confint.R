@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: maj 23 2018 (00:03) 
+## Last-Updated: maj 27 2018 (16:43) 
 ##           By: Brice Ozenne
-##     Update #: 105
+##     Update #: 128
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -90,9 +90,6 @@ setMethod(f = "confint",
                            refuse.NA = FALSE,
                            valid.length = 1,
                            method = "confint[BuyseRes]")
-              if(is.na(conf.level)){
-                  method.inference <- "none"
-              }
 
               validCharacter(alternative,
                              name1 = "alternative",
@@ -102,8 +99,13 @@ setMethod(f = "confint",
 
               ## ** extract information
               method.inference <- object@method.inference
+              if(is.na(conf.level)){
+                  method.inference <- "none"
+              }
+
               Delta <- slot(object, name = paste0("Delta.",statistic))
               Delta.permutation <- slot(object, name = paste0("DeltaResampling.",statistic))
+              covariance <- object@covariance
               endpoint <- object@endpoint
               alpha <- 1-conf.level
               
@@ -118,13 +120,14 @@ setMethod(f = "confint",
                                        "stratified permutation" = confint_permutation,
                                        "bootstrap" = if(method.boot == "percentile"){confint_percentileBootstrap}else{confint_gaussianBootstrap},
                                        "stratified bootstrap" = if(method.boot == "percentile"){confint_percentileBootstrap}else{confint_gaussianBootstrap},
-                                       "asymptotic" = confint_Ustat,
+                                       "asymptotic" = confint_Ustatistic,
                                        "none" = confint_none 
                                        )
 
               ## ** compute the confidence intervals
               outConfint <- do.call(method.confint, args = list(Delta = Delta,
                                                                 Delta.permutation = Delta.permutation,
+                                                                covariance = covariance,
                                                                 alternative = alternative,
                                                                 null = null,
                                                                 alpha = alpha,
@@ -136,7 +139,7 @@ setMethod(f = "confint",
               }else{
                   attr(outConfint, "n.resampling")  <- setNames(rep(as.numeric(NA), length(endpoint)), endpoint)
               }
-  
+
               ## ** export              
               return(outConfint)
               
@@ -233,7 +236,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
     ## ** punctual estimate
     outTable[,"estimate"] <- Delta
     
-    ## ** computations
+    ## ** CI + p
     for(iE in 1:n.endpoint){
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
         
@@ -261,10 +264,10 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
 }
                   
 
-## * confint_Ustat (called by confint)
-confint_Ustat <- function(Delta, tableComparison,
-                          null, alternative, alpha,
-                          endpoint, ...){
+## * confint_Ustatistic (called by confint)
+confint_Ustatistic <- function(Delta, covariance,
+                               null, alternative, alpha,
+                               endpoint, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
@@ -272,9 +275,31 @@ confint_Ustat <- function(Delta, tableComparison,
 
     ## ** punctual estimate
     outTable[,"estimate"] <- Delta
+    
+    ## ** CI + p
+    for(iE in 1:n.endpoint){
+        if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
 
-    ## 
-    stop("Not yet implemented \n")
+        ## *** standard error
+        iSE <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2*covariance[iE,"covariance"])
+        
+        ## *** confidence interval
+        outTable[iE,c("lower.ci","upper.ci")] <- switch(alternative,
+                                                        "two.sided" = Delta[iE] + stats::qnorm(c(alpha/2,1 - alpha/2)) * iSE,
+                                                        "less" = c(Delta[iE] + stats::qnorm(alpha) * iSE, Inf),
+                                                        "greater" = c(-Inf,Delta[iE] + stats::qnorm(1-alpha) * iSE)
+                                                        )
+
+        ## *** p.value
+        outTable[iE,"p.value"] <- switch(alternative,
+                                         "two.sided" = 2*(1-stats::pnorm(abs(Delta[iE]/iSE - null))), ## 2*(1-pnorm(1.96))
+                                         "less" = stats::pnorm(Delta[iE]/iSE - null), ## pnorm(1.96)
+                                         "greater" = 1-stats::pnorm(Delta[iE]/iSE - null)
+                                         )
+    }
+
+    ## ** export
+    return(outTable)
 }
 
 ## * confint_none (called by confint)

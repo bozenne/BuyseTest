@@ -110,7 +110,11 @@ setMethod(f = "summary",
               delta <- slot(object, name = paste0("delta.",statistic))
               Delta <- slot(object, name = paste0("Delta.",statistic))
               n.resampling <- object@n.resampling
-              method.inference <- object@method.inference
+              if(!is.na(conf.level)){
+                  method.inference <- object@method.inference
+              }else{
+                  method.inference <- "none"
+              }
               alpha <- 1-conf.level
 
               ## ** compute confidence intervals and p-values
@@ -119,7 +123,7 @@ setMethod(f = "summary",
                                     statistic = statistic,
                                     conf.level = conf.level,
                                     alternative = alternative)
-              
+          
               ## ** generate summary table
               ## *** prepare
               table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=14))
@@ -182,11 +186,11 @@ setMethod(f = "summary",
                   
               ## *** add column with stars
               if(method.inference != "none"){
-                  colStars <- sapply(table.print[index.global,"p.value"],function(x){
+                  colStars <- rep("",NROW(table.print))
+                  colStars[index.global] <- sapply(table.print[index.global,"p.value"],function(x){
                       if(is.na(x)){""}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
                   })
-
-                  if(method.inference != "asymptotic"){
+                  if(method.inference == "asymptotic"){
                       table.print <- cbind(table.print[,setdiff(names(table.print), "n.resampling")],
                                            "significance" = colStars)
                   }else{
@@ -195,6 +199,7 @@ setMethod(f = "summary",
                                            table.print[,"n.resampling"])
                   }
               }
+
               ## *** restrict to strata
               if(!is.null(strata)){
                   table.print <- table.print[table.print$strata %in% strata,,drop = FALSE]                      
@@ -226,17 +231,29 @@ setMethod(f = "summary",
               ## counts
               if(!is.na(percentage) && !is.na(digit[1])){
                   param.signif <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
-                  table.print[,param.signif] <- sapply(table.print[,param.signif], round, digit = digit[1])
+                  table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[1])
               }
               
               if(!is.na(digit[2])){
                   param.signif <- c("delta","Delta")
                   if(method.inference != "none"){
-                     param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
-                  }
-                  table.print[,param.signif] <- sapply(table.print[,param.signif], round, digit = digit[2])
-              }
+                      param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
 
+                      ## take care of the p.value
+                      p.min <- 10^(-digit[2])
+                      table.print[,"p.value"] <- sapply(table.print[,"p.value"], function(x){
+                          if(is.na(x)){
+                              return(NA)
+                          }else if(x<p.min){
+                              return(paste0("<10^{-",digit[2],"}"))
+                          }else{
+                              return(round(x, digits = digit[2]))
+                          }
+                      })
+                      table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[2])
+                  }
+              }
+              
               ## *** set names
               if(identical(percentage,TRUE)){
                   oldnames <- c("n.favorable","n.unfavorable","n.neutral","n.uninf","n.total")
@@ -263,13 +280,13 @@ setMethod(f = "summary",
               }
               
               ## *** convert NA to ""
-              if(any(is.na(table.print$CIinf.Delta))){
+              if(!is.null(table.print$CIinf.Delta) && any(is.na(table.print$CIinf.Delta))){
                   table.print[is.na(table.print$CIinf.Delta), "CIinf.Delta"] <- ""
               }
-              if(any(is.na(table.print$CIsup.Delta))){
+              if(!is.null(table.print$CIsup.Delta) && any(is.na(table.print$CIsup.Delta))){
                   table.print[is.na(table.print$CIsup.Delta), "CIsup.Delta"] <- ""
               }
-              if(any(is.na(table.print$p.value))){
+              if(!is.null(table.print$p.value) && any(is.na(table.print$p.value))){
                   table.print[is.na(table.print$p.value), "p.value"] <- ""
               }
 
@@ -294,8 +311,8 @@ setMethod(f = "summary",
                   
                   table.print$CIinf.Delta[index.tempo] <- paste0("[",table.print[index.tempo,"CIinf.Delta"],
                                                                  ";",table.print[index.tempo,"CIsup.Delta"],"]")
-                  qInf <- round(100*alpha/2,digit[2])
-                  qSup <- round(100*(1-alpha/2),digit[2])
+                  qInf <- round(100*alpha/2, digits = digit[2])
+                  qSup <- round(100*(1-alpha/2), digits = digit[2])
 
                   names(table.print)[names(table.print) == "CIinf.Delta"] <- paste0("CI [",qInf," ; ",qSup,"]")
                   table.print$CIsup.Delta <- NULL
@@ -344,7 +361,7 @@ setMethod(f = "summary",
                                            )
                       cat(" > ",txt.method,": ",txt.permutation," samples, confidence level ",1-alpha," \n", sep = "")
                   }else if(method.inference == "asymptotic"){
-                      cat(" >  test: ",txt.permutation," samples, confidence level ",1-alpha," \n", sep = "")
+                      cat(" >  asymptotic confidence intervals and p-values, confidence level ",1-alpha," \n", sep = "")
                   }
                   
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
