@@ -8,18 +8,10 @@ inferenceResampling <- function(envir){
     n.resampling <- envir$outArgs$n.resampling
     n.strata <- envir$outArgs$n.strata
     seed <- envir$outArgs$seed
-    time <- envir$time
     trace <- envir$outArgs$trace
 
     ## ** display
     if (trace > 1) {
-        if (time[3] == 0) {
-            time.punctual <- "<0.001 s"
-            time.permutation <- paste0("<",signif(0.001*n.resampling/cpus,4)," s")
-        }else{
-            time.punctual <- paste(time[3],"s")
-            time.permutation <- paste(signif(time[3]*n.resampling/cpus,4),"s")
-        }
         txt.type <- switch(envir$outArgs$method.inference,
                            "bootstrap" = "Bootstrap resampling",
                            "stratified bootstrap" = "Stratified bootstrap resampling",
@@ -44,7 +36,6 @@ inferenceResampling <- function(envir){
         }else{
             method.loop <- lapply
         }
-        
         ls.permutation <- do.call(method.loop,
                                   args = list(X = 1:n.resampling,
                                               FUN = function(iB){
@@ -56,33 +47,38 @@ inferenceResampling <- function(envir){
                                               })
                                   )
     }else { ## *** parallel permutation test
-            
-        cl <- snow::makeSOCKcluster(cpus)
-        doSNOW::registerDoSNOW(cl)
-        
-        if(trace){
-            pb <- utils::txtProgressBar(min=1, max=n.resampling, style=3)
-            ls.options <- list(progress = function(n){ utils::setTxtProgressBar(pb, n) })
-        }else{
-            ls.options <- NULL
-        }
 
+        ## define cluster
+        if(trace>0){
+            cl <- suppressMessages(parallel::makeCluster(cpus, outfile = ""))
+            pb <- utils::txtProgressBar(max = n.resampling, style = 3)          
+        }else{
+            cl <- parallel::makeCluster(cpus)
+        }
+        ## link to foreach
+        doParallel::registerDoParallel(cl)
+
+        ## export package
+        parallel::clusterCall(cl, fun = function(x){
+            suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
+        })
+        ## export functions
         toExport <- c(".BuyseTest","initializeSurvival_Peto","initializeSurvival_Peron")
 
         iB <- NULL ## [:forCRANcheck:] foreach        
         ls.permutation <- foreach::`%dopar%`(
                                        foreach::foreach(iB=1:n.resampling,
-                                                        .packages = "BuyseTest",
-                                                        .options.snow = ls.options,
                                                         .export = toExport),                                            
-                                       {
-                                           .BuyseTest(envir = envir,
+                                       {                                           
+                                           if(trace>0){utils::setTxtProgressBar(pb, iB)}
+
+                                           return(.BuyseTest(envir = envir,
                                                       return.index = FALSE,
                                                       keep.comparison = FALSE,
-                                                      method.inference = envir$outArgs$method.inference)
-
+                                                      method.inference = envir$outArgs$method.inference))
+                      
                                        })
-                                   
+
         parallel::stopCluster(cl)
         if(trace>0){close(pb)}
     }

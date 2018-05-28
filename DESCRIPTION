@@ -34,9 +34,7 @@ Imports:
     stats4,
     utils
 Suggests:
-    doSNOW,
     pbapply,
-    snow,
     survival,
     testthat
 LinkingTo: Rcpp, RcppArmadillo
