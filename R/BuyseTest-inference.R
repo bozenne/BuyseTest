@@ -122,6 +122,7 @@ inferenceResampling <- function(envir){
 ## * Inference U-statistic
 inferenceUstatistic <- function(envir){
 
+    warning("In development - do not trust the results \n")
     favorable <- unfavorable <- neutral <- uninformative <- . <- NULL ## [:forCRANcheck:] data.table
     
     trace <- envir$outArgs$trace

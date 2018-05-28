@@ -101,13 +101,13 @@ The detection of the number of cpus relies on the \code{detectCores} function fr
 \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal outcome.\cr
 Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
 
-\bold{method:} Pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method="Gehan"}, Gehan 1965). 
+\bold{method.tte:} Pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method.tte="Gehan"}, Gehan 1965). 
 Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions.
-\code{method="Peron"} estimates these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
+\code{method.tte="Peron"} estimates these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
 Probabilities of survival beyond the last observation are set NA, resulting in a non null probability that the pair is informative.
 See Peron et al. (2016) for more details. \cr
 Due to the presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated. 
-\code{method="Gehan corrected"} and \code{method="Peron corrected"} aim at correcting this bias
+\code{method.tte="Gehan corrected"} and \code{method.tte="Peron corrected"} aim at correcting this bias
 by multiplying the contribution of each pair by the inverse of the total number of pairs minus the number of uninformative pairs
 and setting the number of uninformative pairs to 0.
 }

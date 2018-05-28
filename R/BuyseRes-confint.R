@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: maj 27 2018 (16:43) 
+## Last-Updated: maj 28 2018 (08:51) 
 ##           By: Brice Ozenne
-##     Update #: 128
+##     Update #: 130
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -269,6 +269,8 @@ confint_Ustatistic <- function(Delta, covariance,
                                null, alternative, alpha,
                                endpoint, ...){
 
+    warning("In development - do not trust the results \n")
+    
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
                        dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
