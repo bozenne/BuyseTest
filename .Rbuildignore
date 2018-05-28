@@ -4,3 +4,4 @@ README.org
 ^\.Rproj\.user$
 Projet
 Bibliography
+^appveyor\.yml$
