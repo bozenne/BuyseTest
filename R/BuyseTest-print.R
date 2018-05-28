@@ -103,5 +103,6 @@ printGeneral <- function(censoring,
             print(threshold.display)
         }
     }
+    cat("\n")
 }
 

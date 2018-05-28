@@ -316,7 +316,7 @@ BuyseTest <- function(formula,
     
     ## ** Resampling
     if(method.inference == "none"){
-        data <- data.table::copy(envir$outArgs$data)
+        data <- envir$outArgs$data
     }else {
         if(method.inference == "permutation"){
             ## permute the treatment variable over all strata
@@ -349,10 +349,8 @@ BuyseTest <- function(formula,
     ## ** Initialize data    
 
     ## *** data: split the data according to the two levels
-    indexT <- which(data[[treatment]] == level.treatment[2])
-    indexC <- which(data[[treatment]] == level.treatment[1])
-    dataT <- data[indexT]
-    dataC <- data[indexC]
+    dataT <- data[which(data[[treatment]] == level.treatment[2])]
+    dataC <- data[which(data[[treatment]] == level.treatment[1])]
 
     ## *** data: extract endpoint 
     M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 

@@ -26,6 +26,7 @@ Depends:
     Rcpp,
     data.table
 Imports:
+    doParallel,
     foreach,
     methods,
     lava,
