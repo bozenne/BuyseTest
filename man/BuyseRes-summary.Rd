@@ -11,7 +11,7 @@
   statistic = BuyseTest.options()$statistic, conf.level = 0.95,
   alternative = "two.sided", method.boot = "percentile", strata = if
   (length(object@level.strata) == 1) {     "global" } else {     NULL },
-  digit = c(2, 3))
+  digit = c(2, 4))
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}

@@ -63,7 +63,7 @@ setMethod(f = "summary",
                                 conf.level = 0.95, alternative = "two.sided",
                                 method.boot = "percentile",
                                 strata = if(length(object@level.strata)==1){"global"}else{NULL},                                
-                                digit = c(2,3)){
+                                digit = c(2,4)){
 
               ## ** normalize and check arguments
               validLogical(print,
@@ -196,7 +196,7 @@ setMethod(f = "summary",
                   }else{
                       table.print <- cbind(table.print[,setdiff(names(table.print), "n.resampling")],
                                            "significance" = colStars,
-                                           table.print[,"n.resampling"])
+                                           "n.resampling" = table.print[["n.resampling"]])
                   }
               }
 
@@ -215,7 +215,8 @@ setMethod(f = "summary",
               }
 
               if(method.inference == "none"){
-                  keep.cols <- setdiff(names(table.print), c("CIinf.Delta","CIsup.Delta","n.resampling","p.value"))
+                  keep.cols <- setdiff(names(table.print),
+                                       c("CIinf.Delta","CIsup.Delta","n.resampling","p.value"))
                   table.print <- table.print[,keep.cols, drop = FALSE]
               }else if(method.inference == "asymptotic"){
                   keep.cols <- setdiff(names(table.print), "n.resampling")
@@ -233,7 +234,7 @@ setMethod(f = "summary",
                   param.signif <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
                   table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[1])
               }
-              
+
               if(!is.na(digit[2])){
                   param.signif <- c("delta","Delta")
                   if(method.inference != "none"){
@@ -250,8 +251,9 @@ setMethod(f = "summary",
                               return(round(x, digits = digit[2]))
                           }
                       })
-                      table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[2])
+                      
                   }
+                  table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[2])
               }
               
               ## *** set names
