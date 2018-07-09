@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: maj 28 2018 (08:51) 
+## Last-Updated: jul  9 2018 (13:00) 
 ##           By: Brice Ozenne
-##     Update #: 130
+##     Update #: 141
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -204,19 +204,12 @@ confint_percentileBootstrap <- function(Delta, Delta.permutation,
                                                         "less" = c(stats::quantile(Delta.permutation[iE,], probs = alpha,na.rm = TRUE), Inf),
                                                         "greater" = c(-Inf,stats::quantile(Delta.permutation[iE,], probs = 1 - alpha,na.rm = TRUE))
                                                         )
-
         ## *** p.values
-        outTable[iE, "p.value"] <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the punctual estimate
-                                          "two.sided" = if(Delta[iE]>null){
-                                                            mean(Delta.permutation[iE,] > null)
-                                                        }else if(Delta[iE]<null){
-                                                            mean(Delta.permutation[iE,] < null)
-                                                        }else{
-                                                            1
-                                                        },
-                                          "less" = mean(Delta.permutation[iE,] < null),
-                                          "greater" = mean(Delta.permutation[iE,] > null)
-                                          )
+        outTable[iE, "p.value"] <- boot2pvalue(Delta.permutation[iE,], null = null, estimate = Delta[iE],
+                                               alternative = alternative, FUN.ci = quantileCI)
+        ## quantileCI(Delta.permutation[iE,], alternative = "two.sided", p.value = 0.64, sign.estimate = 1)
+        ## quantileCI(Delta.permutation[iE,], alternative = "two.sided", p.value = 0.66, sign.estimate = 1)
+
     }
 
     ## ** export
