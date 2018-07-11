@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jul  9 2018 (13:09) 
+## Last-Updated: jul  9 2018 (13:22) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 33
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -218,22 +218,22 @@ BT_tau0 <- BuyseTest(data=data,
 
 ## pvalues computed through bootstrap and stratified bootstrap seem to be reversed, while associated confidence intervals are correct
 if(FALSE){
-dt <- data.table(
-    ttt = rep(c(0,0,0,0,0,1,1,1,1,1),10),
-    y1 = rep(c(1,2,3,4,5,0,3,4,5,6),10),
-    strat = rep(1:5,each=20)
-)
+    dt <- data.table(
+        ttt = rep(c(0,0,0,0,0,1,1,1,1,1),10),
+        y1 = rep(c(1,2,3,4,5,0,3,4,5,6),10),
+        strat = rep(1:5,each=20)
+    )
 
-BT.boot <- BuyseTest(data = dt, formula = ttt ~ cont(y1, threshold=1),
-                     method.inference = "bootstrap",
-                     n.resampling = 50)
+    BT.boot <- BuyseTest(data = dt, formula = ttt ~ cont(y1, threshold=1),
+                         method.inference = "bootstrap",
+                         n.resampling = 500)
 
-summary(BT.boot)
+    summary(BT.boot)
 
-BT.perm <- BuyseTest(data = dt, formula = ttt ~ cont(y1, threshold=1),
-                     method.inference = "permutation",
-                     n.resampling = 50)
-summary(BT.perm)
+    BT.perm <- BuyseTest(data = dt, formula = ttt ~ cont(y1, threshold=1),
+                         method.inference = "permutation",
+                         n.resampling = 500)
+    summary(BT.perm)
 }
 
 ## * running time (hidden)

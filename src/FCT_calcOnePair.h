@@ -107,6 +107,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
   arma::rowvec iRow;
 
   if(delta_T==1){
+    
     if(delta_C==1){
       
       if(diff>=threshold && diff>pow(10.0,-12.0)){  // (1,1) >= tau    : favorable
@@ -133,8 +134,8 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 
       }      
       
-    }else{ // delta_C==0
-    
+    }else if(delta_C==0){
+	
       if(diff<= -threshold && diff<pow(10.0,-12.0)){              // (1,0) <= -tau   : unfavorable
 	count_unfavorable+=Wpair;           
 	if(keepComparison){
@@ -153,10 +154,16 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
         }
 
       } 
+    }else if(delta_C==2){
+	count_unfavorable+=Wpair;           
+	if(keepComparison){
+	 iRow = {(double)index_T, (double)index_C, 0, Wpair, 0, 0};
+        }      
     }
     
-  }else{ // delta_T==0
-    if(delta_C){
+  }else if(delta_T==0){
+    
+    if(delta_C==1){
     
       if(diff>=threshold && diff>pow(10.0,-12.0)){   // (0,1) > tau    : favorable
 	count_favorable+=Wpair;      
@@ -176,7 +183,8 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
         }
       }
     
-    }else{ // delta_C==0                (0,0) ]-Inf;+Inf[ : uninformative
+    }else{ // delta_C==0 or 2              // (0,0) ]-Inf;+Inf[ : uninformative
+      
       index_uninfT.push_back(index_T);
       index_uninfC.push_back(index_C); 
       count_uninf+=Wpair;
@@ -188,7 +196,29 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 	  iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair};
         }
     }
+    
+  }else if(delta_T==2){
+
+    if(delta_C==1){
+      count_favorable+=Wpair;      
+      if(keepComparison){
+	 iRow = {(double)index_T, (double)index_C, Wpair, 0, 0, 0};
+        }
+    }else{ // delta_C==0 or 2
+      index_uninfT.push_back(index_T);
+      index_uninfC.push_back(index_C); 
+      count_uninf+=Wpair;
+  
+      if(iter_pair>=0){
+	index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs 
+      }
+      if(keepComparison){
+         iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair};
+      }
+    }
+    
   }
+  
   /* Rcout << iRow[0] << " " << iRow[1] << " " <<  iRow[2] << " " << iRow[3] << " " << iRow[4] << " " << iRow[5]  << endl; */
   return iRow;
   

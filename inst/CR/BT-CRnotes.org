@@ -1,0 +1,493 @@
+#+TITLE: Explicit formula for the net benefit
+#+Author: Brice Ozenne, Julien Péron
+
+
+\clearpage
+
+* Parameter of interest
+
+Let consider two independent random variables \(X\) and \(Y\).
+We are interested in:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta = \Prob[Y>X] - \Prob[X>Y]
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+In the examples we will use a sample size of:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+n <- 1e4
+#+END_SRC
+and use the following R packages
+#+BEGIN_SRC R :exports code :results silent :session *R* :cache no
+library(BuyseTest)
+library(riskRegression)
+#+END_SRC
+
+\clearpage
+
+* Binary variable
+
+** Theory
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y>X] = \Prob[Y=1,X=0]
+\end{align*}
+#+END_EXPORT
+Using the independence between \(Y\) and \(X\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y>X] = \Prob[Y=1]\Prob[X=0] = \Prob[Y=1](1-\Prob[X=0]) = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
+\end{align*}
+#+END_EXPORT
+By symmetry:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X>Y] = \Prob[X=1] - \Prob[Y=1]\Prob[X=1]
+\end{align*}
+#+END_EXPORT
+So 
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta = \Prob[Y=1] - \Prob[X=0]
+\end{align*}
+#+END_EXPORT
+
+** In R
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+prob1 <- 0.4
+prob2 <- 0.2
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- rbind(data.frame(tox = rbinom(n, prob = prob1, size = 1), group = "C"),
+            data.frame(tox = rbinom(n, prob = prob2, size = 1), group = "T"))
+#+END_SRC
+
+#+RESULTS:
+
+Buyse test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest(group ~ bin(tox), data = df, method.inference = "none", trace = 0)
+#+END_SRC
+#+RESULTS:
+:  endpoint threshold   delta   Delta
+:       tox       0.5 -0.1981 -0.1981
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+prob2 - prob1
+#+END_SRC
+
+#+RESULTS:
+: [1] -0.2
+
+\clearpage
+
+* Continuous variable
+
+** Theory
+Let's consider two normally distributed variables with common variance:
+- \(X \sim \Gaus[\mu_X,\sigma^2]\) 
+- \(Y \sim \Gaus[\mu_Y,\sigma^2]\) 
+Denoting \(d = \frac{\mu_Y-\mu_X}{\sigma}\): 
+- \(X^* \sim \Gaus[0,1]\) 
+- \(Y^* \sim \Gaus[d,1]\) 
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y>X] &= \Esp[\Ind[Y>X]] = \Esp[\Ind[Y*>X*]] = \Esp[\Ind[Z>0]]
+\end{align*}
+#+END_EXPORT
+where \(Z \sim \Gaus[d,2]\) so \(\Prob[Y>X] = \Phi(\frac{d}{\sqrt{2}})\)
+
+By symmetry
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta = 2*\Phi(\frac{d}{\sqrt{2}})-1
+\end{align*}
+#+END_EXPORT
+
+** In R
+
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+mean1 <- 0
+mean2 <- 2
+sd12 <- 1
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- rbind(data.frame(tox = rnorm(n, mean = mean1, sd = sd12), group = "C"),
+            data.frame(tox = rnorm(n, mean = mean2, sd = sd12), group = "T"))
+#+END_SRC
+
+#+RESULTS:
+
+Buyse test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest(group ~ cont(tox), data = df, method.inference = "none", trace = 0)
+#+END_SRC
+
+#+RESULTS:
+:  endpoint threshold  delta  Delta
+:       tox     1e-12 0.8359 0.8359
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+d <- (mean2-mean1)/sd12
+2*pnorm(d/sqrt(2))-1
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.8427008
+
+\clearpage
+
+* Survival
+
+** Theory
+For a given cumulative density function \(F(x)\) and a corresponding
+probability density function \(f(x)\) we define the hazard by:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\lambda(t) &=  \left. \frac{\Prob[t\leq T \leq t+h|T\geq t]}{h}\right|_{h \rightarrow 0^+} \\
+&= \left. \frac{\Prob[t\leq T \leq t+h]}{\Prob[T\geq t]h}\right|_{h \rightarrow 0^+} \\
+&= \frac{f(t)}{1-F(t)}
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+Let now consider two times to events following an exponential distribution:
+- \(T1 \sim Exp(\alpha_1)\). The corresponding hazard function is \(\lambda(t)=\alpha_1\).
+- \(T2 \sim Exp(\alpha_2)\). The corresponding hazard function is \(\lambda(t)=\alpha_2\).
+So the hazad ratio is \(HR = \frac{\lambda_1}{\lambda_2}\). Note that if we use a cox model we will have:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\lambda(t) = \lambda_0(t) \exp(\beta \Ind[group])
+\end{align*}
+#+END_EXPORT
+where \(\exp(\beta)\) is the hazard ratio.
+
+\bigskip
+
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[T_1>T_2] &= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 t)  \int_0^{t_1} \alpha_2 \exp(-\alpha_2 t) dt_2 dt_1 \\
+&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 t)  [ \exp(-\alpha_2 t) ]_{t_1}^{0} dt_1 \\
+&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 t)  ( \exp(-\alpha_2 t_1) - 1 ) dt_1 \\
+&= \frac{\alpha_1}{\alpha_1+\alpha_2} [\exp(-(\alpha_1+\alpha_2) t)]_{\infty}^{0} - [\exp(-\alpha_1 t)]_{\infty}^{0} \\
+&= 1-\frac{\alpha_1}{\alpha_1+\alpha_2}\\
+&= 1-\frac{HR}{1+HR}\\
+\end{align*}
+#+END_EXPORT
+So \(\Prob[T_2>T_1]=\frac{HR}{1+HR}\).
+
+** In R
+
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+alpha1 <- 2
+alpha2 <- 1
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- rbind(data.frame(time = rexp(n, rate = alpha1), group = "C", event = 1),
+            data.frame(time = rexp(n, rate = alpha2), group = "T", event = 1))
+#+END_SRC
+
+#+RESULTS:
+
+Buyse test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest(group ~ tte(time, censoring = event), data = df,
+          method.inference = "none", trace = 0, method.tte = "Gehan")
+#+END_SRC
+#+RESULTS:
+:  endpoint threshold  delta  Delta
+:      time     1e-12 0.3403 0.3403
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.coxph <- coxph(Surv(time,event)~group,data = df)
+HR <- as.double(exp(coef(e.coxph)))
+c("HR" = alpha2/alpha1, "Delta" = (alpha2/alpha1)/(1+alpha2/alpha1))
+c("HR.cox" = HR, "Delta" = (HR)/(1+HR))
+#+END_SRC
+
+#+RESULTS:
+:        HR     Delta 
+: 0.5000000 0.3333333
+:    HR.cox     Delta 
+: 0.4918256 0.3296804
+
+\clearpage
+
+* Competing risks
+
+** Theory
+
+Let now consider two competing events whose times to event follow an exponential distribution:
+- \(T1 \sim Exp(\alpha_1)\). The corresponding hazard function is \(\lambda(t)=\alpha_1\).
+- \(T2 \sim Exp(\alpha_2)\). The corresponding hazard function is \(\lambda(t)=\alpha_2\).
+The cumulative incidence function can be written:
+#+BEGIN_EXPORT latex
+\begin{align*}
+CIF_1(t) &= \int_0^t \lambda_1(s) S(s_-) ds \\
+&= \int_0^t \alpha_1 \exp(- (\alpha_1 + \alpha_2) * s_-) ds \\
+&= \frac{\alpha_1}{\alpha_1 + \alpha_2} \left[ \exp(- (\alpha_1 + \alpha_2) * s_-)\right]_t^0 \\
+&= \frac{\alpha_1}{\alpha_1 + \alpha_2} \left(1 - \exp(- (\alpha_1 + \alpha_2) * t_-)\right) 
+\end{align*}
+#+END_EXPORT
+where \(S(t)\) denote the event free survival and \(s_-\) denotes the right sided limit.
+
+\bigskip
+
+Now if we consider two groups such that:
+- \(T1 \sim Exp(\alpha_{1,T})\) in group \(T\) and \(T1 \sim Exp(\alpha_{1,C})\) in group \(C\)
+- \(T2 \sim Exp(\alpha_{2,T})\) in group \(T\) and \(T2 \sim Exp(\alpha_{2,C})\) in group \(C\)
+
+Then:
+#+BEGIN_EXPORT latex
+\begin{align*}
+CIF_1(t|group = T) &= \frac{\alpha_{1,T}}{\alpha_{1,T} + \alpha_{2,T}} \left(1 - \exp(- (\alpha_{1,T} + \alpha_{2,T}) * t_-)\right) \\
+CIF_1(t|group = C) &= \frac{\alpha_{1,C}}{\alpha_{1,C} + \alpha_{2,C}} \left(1 - \exp(- (\alpha_{1,C} + \alpha_{2,C}) * t_-)\right) 
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+Let denote \(\varepsilon_T\) the event type indicator (1 cause of
+interest and 2 competing risk) in group \(T\) and \(\varepsilon_C\)
+the event type indicator in group \(C\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta &= \frac{1}{\Prob[\varepsilon_T=1,\varepsilon_C=1]} \frac{\alpha_{1,T}}{\alpha_{1,T}+\alpha_{1,C}}
+- \frac{1}{\Prob[\varepsilon_T=1,\varepsilon_C=2]}
++ \frac{1}{\Prob[\varepsilon_T=2,\varepsilon_C=1]} \\
+&=
+\end{align*}
+#+END_EXPORT
+
+** In R
+
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+alpha1 <- 2
+alpha2 <- 1
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- data.frame(time1 = rexp(n, rate = alpha1), time2 = rexp(n, rate = alpha2), group = "1", event = 1)
+df$time <- pmin(df$time1,df$time2)
+df$event <- (df$time2<df$time1)+1
+#+END_SRC
+
+#+RESULTS:
+
+Cumulative incidence (via risk regression):
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.CSC <- CSC(Hist(time, event) ~ 1, data = df)
+vec.times <- unique(round(exp(seq(log(min(df$time)),log(max(df$time)),length.out = 12)),2))
+e.CSCpred <- predict(e.CSC, newdata = data.frame(X = 1), time = vec.times , cause = 1)
+#+END_SRC
+
+#+RESULTS:
+
+Expected vs. calculated:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+cbind(time = vec.times,
+      CSC = e.CSCpred$absRisk[1,],
+      manual = alpha1/(alpha1+alpha2)*(1-exp(-(alpha1+alpha2)*(vec.times)))
+      )
+#+END_SRC
+
+#+RESULTS:
+:      time    CSC     manual
+: [1,] 0.00 0.0000 0.00000000
+: [2,] 0.01 0.0186 0.01970298
+: [3,] 0.02 0.0377 0.03882364
+: [4,] 0.05 0.0924 0.09286135
+: [5,] 0.14 0.2248 0.22863545
+: [6,] 0.42 0.4690 0.47756398
+: [7,] 1.24 0.6534 0.65051069
+: [8,] 3.70 0.6703 0.66665659
+
+Could also be obtained treating the outcome as binary:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+mean((df$time<=1)*(df$event==1))
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.6375
+
+Now with Buyse test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+df11 <- df[]
+#+END_SRC
+
+
+# * References
+# bibliographystyle:apalike
+# [[bibliography:bibliography.bib]]
+
+# @@latex:any arbitrary LaTeX code@@
+
+
+
+
+* CONFIG :noexport:
+# #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}
+#+LANGUAGE:  en
+#+LaTeX_CLASS: org-article
+#+OPTIONS:   title:t author:t toc:t todo:nil
+#+OPTIONS:   H:3 num:t 
+#+OPTIONS:   TeX:t LaTeX:t
+
+** Code
+#+PROPERTY: header-args :session *R*
+#+PROPERTY: header-args :tange yes % extract source code: http://orgmode.org/manual/Extracting-source-code.html
+#+PROPERTY: header-args :cache no
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+
+** Display 
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+#+LaTeX_HEADER:\usepackage{authblk} % enable several affiliations (clash with beamer)
+
+** Image
+#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+
+** Latex command
+#+LaTeX_HEADER: %
+#+LaTeX_HEADER: %%%% additional latex commands %%%%
+#+LaTeX_HEADER: %
+
+** Algorithm
+#+LATEX_HEADER: \RequirePackage{amsmath}
+#+LATEX_HEADER: \RequirePackage{algorithm}
+#+LATEX_HEADER: \RequirePackage[noend]{algpseudocode}
+
+** Math
+#+LATEX_HEADER: \RequirePackage{ifthen}
+#+LATEX_HEADER: \RequirePackage{xspace} % space for newcommand macro
+#+LATEX_HEADER: \RequirePackage{xifthen}
+#+LATEX_HEADER: \RequirePackage{xargs}
+#+LATEX_HEADER: \RequirePackage{dsfont}
+#+LATEX_HEADER: \RequirePackage{amsmath,stmaryrd,graphicx}
+#+LATEX_HEADER: \RequirePackage{prodint} % product integral symbol (\PRODI)
+
+# ## lemma
+#+LaTeX_HEADER: \RequirePackage{amsthm}
+#+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
+#+LaTeX_HEADER: \newtheorem{lemma}[theorem]{Lemma}
+
+*** Template for shortcut
+#+LATEX_HEADER: \newcommand\defOperator[7]{%
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER:		\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+#+LATEX_HEADER:	}{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand\defUOperator[5]{%
+#+LATEX_HEADER: \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:		#5\left#3 #2 \right#4
+#+LATEX_HEADER: }{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+#+LATEX_HEADER:		\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand{\defBoldVar}[2]{	
+#+LATEX_HEADER:	\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+#+LATEX_HEADER: }
+
+*** Shortcuts
+
+**** Probability
+#+LATEX_HEADER: \newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+
+#+LATEX_HEADER: \newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+
+#+LATEX_HEADER: \newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+
+**** Operators
+#+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+
+#+LATEX_HEADER: \newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+#+LATEX_HEADER: \newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+#+LATEX_HEADER: \newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+#+LATEX_HEADER: \newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+#+LATEX_HEADER: \newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+
+#+LATEX_HEADER: \newcommandx\Hypothesis[2][1=,2=]{
+#+LATEX_HEADER:         \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:         \mathcal{H}
+#+LATEX_HEADER:         }{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER: 		\mathcal{H}_{#1}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\mathcal{H}^{(#2)}_{#1}
+#+LATEX_HEADER:         }
+#+LATEX_HEADER:         }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{#4 #1}{#4 #2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+
+#+LATEX_HEADER: \newcommandx\ddpartial[3][1=,2=,3=]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{\partial^{2} #1}{\left( \partial #2\right)^2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\frac{\partial^2 #1}{\partial #2\partial #3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: } 
+
+**** General math
+#+LATEX_HEADER: \newcommand\Real{\mathbb{R}}
+#+LATEX_HEADER: \newcommand\Rational{\mathbb{Q}}
+#+LATEX_HEADER: \newcommand\Natural{\mathbb{N}}
+#+LATEX_HEADER: \newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+#+LATEX_HEADER: \newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+#+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
+#+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+#+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}

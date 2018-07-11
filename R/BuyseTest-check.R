@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: maj 23 2018 (12:25) 
+## Last-Updated: jul 11 2018 (16:39) 
 ##           By: Brice Ozenne
-##     Update #: 60
+##     Update #: 61
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -159,9 +159,9 @@ testArgs <- function(alternative,
                          valid.length = NULL,
                          refuse.NA = TRUE,
                          method = "BuyseTest")
-            validNumeric(data[[censoring[which(index.TTE == iTTE)]]],
+            validNumeric(unique(data[[censoring[which(index.TTE == iTTE)]]]),
                          name1 = censoring[which(index.TTE == iTTE)],
-                         valid.values = c(0,1),
+                         valid.values = c(0,1,2),
                          valid.length = NULL,
                          method = "BuyseTest")
         }
