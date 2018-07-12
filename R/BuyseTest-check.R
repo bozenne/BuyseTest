@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jul 11 2018 (16:39) 
+## Last-Updated: jul 12 2018 (10:35) 
 ##           By: Brice Ozenne
-##     Update #: 61
+##     Update #: 63
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -153,6 +153,11 @@ testArgs <- function(alternative,
                    refuse.NULL = FALSE,
                    method = "BuyseTest")
 
+        if(method.tte==0){ ## Gehan
+            valid.values.censoring <- 0:2
+        }else if(method.tte==1){ ## Peron
+            valid.values.censoring <- 0:1
+        }
         for(iTTE in index.TTE){
             validNumeric(data[[endpoint[iTTE]]],
                          name1 = endpoint[iTTE],
@@ -161,7 +166,7 @@ testArgs <- function(alternative,
                          method = "BuyseTest")
             validNumeric(unique(data[[censoring[which(index.TTE == iTTE)]]]),
                          name1 = censoring[which(index.TTE == iTTE)],
-                         valid.values = c(0,1,2),
+                         valid.values = valid.values.censoring,
                          valid.length = NULL,
                          method = "BuyseTest")
         }

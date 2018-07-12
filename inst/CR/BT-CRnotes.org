@@ -6,7 +6,7 @@
 
 * Parameter of interest
 
-Let consider two independent random variables \(X\) and \(Y\).
+Let consider two independent real valued random variables \(X\) and \(Y\).
 We are interested in:
 #+BEGIN_EXPORT latex
 \begin{align*}
@@ -20,10 +20,14 @@ In the examples we will use a sample size of:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 n <- 1e4
 #+END_SRC
+
+#+RESULTS:
+
 and use the following R packages
 #+BEGIN_SRC R :exports code :results silent :session *R* :cache no
 library(BuyseTest)
 library(riskRegression)
+library(survival)
 #+END_SRC
 
 \clearpage
@@ -118,9 +122,9 @@ By symmetry
 
 Settings:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-mean1 <- 0
-mean2 <- 2
-sd12 <- 1
+meanX <- 0
+meanY <- 2
+sdXY <- 1
 #+END_SRC
 
 #+RESULTS:
@@ -128,8 +132,8 @@ sd12 <- 1
 Simulate data:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
-df <- rbind(data.frame(tox = rnorm(n, mean = mean1, sd = sd12), group = "C"),
-            data.frame(tox = rnorm(n, mean = mean2, sd = sd12), group = "T"))
+df <- rbind(data.frame(tox = rnorm(n, mean = meanX, sd = sdXY), group = "C"),
+            data.frame(tox = rnorm(n, mean = meanY, sd = sdXY), group = "T"))
 #+END_SRC
 
 #+RESULTS:
@@ -145,7 +149,7 @@ BuyseTest(group ~ cont(tox), data = df, method.inference = "none", trace = 0)
 
 Expected:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-d <- (mean2-mean1)/sd12
+d <- (meanY-meanX)/sdXY
 2*pnorm(d/sqrt(2))-1
 #+END_SRC
 
@@ -170,9 +174,9 @@ probability density function \(f(x)\) we define the hazard by:
 \bigskip
 
 Let now consider two times to events following an exponential distribution:
-- \(T1 \sim Exp(\alpha_1)\). The corresponding hazard function is \(\lambda(t)=\alpha_1\).
-- \(T2 \sim Exp(\alpha_2)\). The corresponding hazard function is \(\lambda(t)=\alpha_2\).
-So the hazad ratio is \(HR = \frac{\lambda_1}{\lambda_2}\). Note that if we use a cox model we will have:
+- \(X \sim Exp(\alpha_1)\). The corresponding hazard function is \(\lambda(t)=\alpha_1\).
+- \(Y \sim Exp(\alpha_2)\). The corresponding hazard function is \(\lambda(t)=\alpha_2\).
+So the hazad ratio is \(HR = \frac{\lambda_2}{\lambda_1}\). Note that if we use a cox model we will have:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \lambda(t) = \lambda_0(t) \exp(\beta \Ind[group])
@@ -184,22 +188,28 @@ where \(\exp(\beta)\) is the hazard ratio.
 
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[T_1>T_2] &= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 t)  \int_0^{t_1} \alpha_2 \exp(-\alpha_2 t) dt_2 dt_1 \\
-&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 t)  [ \exp(-\alpha_2 t) ]_{t_1}^{0} dt_1 \\
-&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 t)  ( \exp(-\alpha_2 t_1) - 1 ) dt_1 \\
-&= \frac{\alpha_1}{\alpha_1+\alpha_2} [\exp(-(\alpha_1+\alpha_2) t)]_{\infty}^{0} - [\exp(-\alpha_1 t)]_{\infty}^{0} \\
-&= 1-\frac{\alpha_1}{\alpha_1+\alpha_2}\\
-&= 1-\frac{HR}{1+HR}\\
+\Prob[Y>X] &= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x)  \int_x^{\infty} \alpha_2 \exp(-\alpha_2 y) dy dx \\
+&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x)  [ \exp(-\alpha_2 y) ]_{\infty}^{x} dx \\
+&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x) \exp(-\alpha_2 x) dx \\
+&= \frac{\alpha_1}{\alpha_1+\alpha_2} [\exp(-(\alpha_1+\alpha_2) x)]_{\infty}^{0} \\
+&= \frac{\alpha_1}{\alpha_1+\alpha_2}\\
+&= \frac{1}{1+HR}\\
 \end{align*}
 #+END_EXPORT
-So \(\Prob[T_2>T_1]=\frac{HR}{1+HR}\).
+
+So:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta = 2\frac{1}{1+HR}-1 = \frac{1-HR}{1+HR}
+\end{align*}
+#+END_EXPORT
 
 ** In R
 
 Settings:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-alpha1 <- 2
-alpha2 <- 1
+alphaX <- 2
+alphaY <- 1
 #+END_SRC
 
 #+RESULTS:
@@ -207,8 +217,8 @@ alpha2 <- 1
 Simulate data:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
-df <- rbind(data.frame(time = rexp(n, rate = alpha1), group = "C", event = 1),
-            data.frame(time = rexp(n, rate = alpha2), group = "T", event = 1))
+df <- rbind(data.frame(time = rexp(n, rate = alphaX), group = "C", event = 1),
+            data.frame(time = rexp(n, rate = alphaY), group = "T", event = 1))
 #+END_SRC
 
 #+RESULTS:
@@ -226,15 +236,15 @@ Expected:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.coxph <- coxph(Surv(time,event)~group,data = df)
 HR <- as.double(exp(coef(e.coxph)))
-c("HR" = alpha2/alpha1, "Delta" = (alpha2/alpha1)/(1+alpha2/alpha1))
-c("HR.cox" = HR, "Delta" = (HR)/(1+HR))
+c("HR" = alphaY/alphaX, "Delta" = 2*alphaX/(alphaY+alphaX)-1)
+c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 #+END_SRC
 
 #+RESULTS:
 :        HR     Delta 
 : 0.5000000 0.3333333
 :    HR.cox     Delta 
-: 0.4918256 0.3296804
+: 0.4918256 0.3406392
 
 \clearpage
 
@@ -242,54 +252,160 @@ c("HR.cox" = HR, "Delta" = (HR)/(1+HR))
 
 ** Theory
 
-Let now consider two competing events whose times to event follow an exponential distribution:
-- \(T1 \sim Exp(\alpha_1)\). The corresponding hazard function is \(\lambda(t)=\alpha_1\).
-- \(T2 \sim Exp(\alpha_2)\). The corresponding hazard function is \(\lambda(t)=\alpha_2\).
+*** General case (no censoring)
+Let consider: 
+- \(X^*_{E}\) the time to the occurrence of the event of interest in the control group.
+- \(Y^*_{E}\) the time to the occurrence of the event of interest in the treatment group.
+- \(X^*_{CR}\) the time to the occurrence of the competing event of interest in the control group.
+- \(Y^*_{CR}\) the time to the occurrence of the competing event of interest in the treatment group.
+Let denote \(\varepsilon_X = 1 +\Ind[X^*_{E} > X^*_{CR}]\) the event type
+indicator in the control group and \(\varepsilon_Y = 1 + \Ind[Y^*_{E} >
+Y^*_{CR}]\) the event type indicator in treatment group (\(=1\) when the
+cause of interest is realised first and 2 when the competing risk is
+realised first).
+
+\bigskip
+
+For each subject either the event of interest or the competing event
+is realized. We now define:
+#+BEGIN_EXPORT latex
+\begin{align*}
+X = \left\{
+              \begin{array}{ll}
+                 X^*_{E} \text{ if }\varepsilon_X = 1  \\
+                 +\infty \text{ if }\varepsilon_X = 2 
+                \end{array}
+              \right.
+\text{ and }
+Y = \left\{
+              \begin{array}{ll}
+                 Y^*_{E} \text{ if }\varepsilon_Y = 1  \\
+                 +\infty \text{ if }\varepsilon_Y = 2 
+                \end{array}
+              \right.
+\end{align*}
+#+END_EXPORT
+i.e. when the event of interest is not realized we say that the time to event is infinite.
+
+\bigskip
+
+We thus have:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y > X] 
+= & \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=2]\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ \Prob[Y > X|\varepsilon_X=2,\varepsilon_Y=1]\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&+ \Prob[Y > X|\varepsilon_X=2,\varepsilon_Y=2]\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
+= & \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ 1*\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ 0*\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&+ 0*\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
+\end{align*}
+#+END_EXPORT
+
+So \(\Prob[X > Y] = \Prob[X >
+Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
+\Prob[\varepsilon_X=1,\varepsilon_Y=2] \) and:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta = &
+ \big(\Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1] - \Prob[X < Y|\varepsilon_X=1,\varepsilon_Y=1] \big) \Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+& + \Prob[\varepsilon_X=1,\varepsilon_Y=2] - \Prob[\varepsilon_X=2,\varepsilon_Y=1]
+\end{align*}
+#+END_EXPORT
+
+*** General case (censoring, method: Gehan)
+In case of censoring we can use an inverse probability weighting
+approach. For a given individual \(i\) let denote \(\delta_{c,i}\) the
+indicator of no censoring, \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
+censored event time. We can use inverse probability weighting to
+compute the net benefit:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_i^{IPW} &= \frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_i])\\
+&= \left\{
+                \begin{array}{ll}
+                  \frac{1}{\Prob[\delta_c]} (\Ind[\tilde{Y}_i>\tilde{X}_i]-\Ind[\tilde{Y}_i<\tilde{X}_i])\text{, if no censoring}\\
+                  0\text{, if censoring}
+                \end{array}
+              \right.
+\end{align*}
+#+END_EXPORT
+
+This is equivalent to weight the informative pairs (i.e. favorable,
+unfavorable and neutral) by the inverse of the complement of the
+probability of being uninformative. This is what is done by the
+argument =correction.tte= of =BuyseTest=. This works whenever the
+censoring mechanism is independent of the event times and we have a
+consistent estimate of \(\Prob[\delta_c]\) since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Esp[\Delta_i^{IPW}] &= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
+&= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]}\right] \Esp\left[(\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
+&= \frac{\Esp[\delta_{c,i}]}{\Prob[\delta_c]} \Delta\\
+&= \Delta\\
+\end{align*}
+#+END_EXPORT
+
+
+*** Exponential distribution (no censoring)
+
+Now let's assume that:
+- \(X_{E} \sim Exp(\alpha_{E,X})\).
+- \(Y_{E} \sim Exp(\alpha_{E,Y})\).
+- \(X_{CR} \sim Exp(\alpha_{CR,X})\).
+- \(Y_{CR} \sim Exp(\alpha_{CR,Y})\).
+
+Then:
+#+BEGIN_EXPORT latex
+\begin{align*}
+ \Prob[Y_{E} > X_{E}] &= \Prob[Y_{E} >
+X_{E}|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
+\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&= \frac{1}{(\alpha_{E,X}+\alpha_{CR,X})(\alpha_{E,Y}+\alpha_{CR,Y})} \left(
+ \alpha_{E,X}\alpha_{E,Y} \frac{\alpha_{E,X}}{\alpha_{E,X}+\alpha_{E,Y}}
++ \alpha_{E,X}\alpha_{CR,Y} \right) \\
+\end{align*}
+#+END_EXPORT
+
+
+Just for comparison let's compare to the cumulative incidence. First
+we only consider one group and two competing events whose times to
+event follow an exponential distribution:
+- \(T_E \sim Exp(\alpha_E)\). The corresponding hazard function is \(\lambda(t)=\alpha_E\).
+- \(T_{CR} \sim Exp(\alpha_{CR})\). The corresponding hazard function is \(\lambda(t)=\alpha_{CR}\).
 The cumulative incidence function can be written:
 #+BEGIN_EXPORT latex
 \begin{align*}
 CIF_1(t) &= \int_0^t \lambda_1(s) S(s_-) ds \\
-&= \int_0^t \alpha_1 \exp(- (\alpha_1 + \alpha_2) * s_-) ds \\
-&= \frac{\alpha_1}{\alpha_1 + \alpha_2} \left[ \exp(- (\alpha_1 + \alpha_2) * s_-)\right]_t^0 \\
-&= \frac{\alpha_1}{\alpha_1 + \alpha_2} \left(1 - \exp(- (\alpha_1 + \alpha_2) * t_-)\right) 
+&= \int_0^t \alpha_E \exp(- (\alpha_E + \alpha_{CR}) * s_-) ds \\
+&= \frac{\alpha_E}{\alpha_E + \alpha_{CR}} \left[ \exp(- (\alpha_E + \alpha_{CR}) * s_-)\right]_t^0 \\
+&= \frac{\alpha_E}{\alpha_E + \alpha_{CR}} \left(1 - \exp(- (\alpha_E + \alpha_{CR}) * t_-)\right) 
 \end{align*}
 #+END_EXPORT
 where \(S(t)\) denote the event free survival and \(s_-\) denotes the right sided limit.
 
 \bigskip
 
-Now if we consider two groups such that:
-- \(T1 \sim Exp(\alpha_{1,T})\) in group \(T\) and \(T1 \sim Exp(\alpha_{1,C})\) in group \(C\)
-- \(T2 \sim Exp(\alpha_{2,T})\) in group \(T\) and \(T2 \sim Exp(\alpha_{2,C})\) in group \(C\)
-
-Then:
+Then applying this formula in the case of two groups gives:
 #+BEGIN_EXPORT latex
 \begin{align*}
-CIF_1(t|group = T) &= \frac{\alpha_{1,T}}{\alpha_{1,T} + \alpha_{2,T}} \left(1 - \exp(- (\alpha_{1,T} + \alpha_{2,T}) * t_-)\right) \\
-CIF_1(t|group = C) &= \frac{\alpha_{1,C}}{\alpha_{1,C} + \alpha_{2,C}} \left(1 - \exp(- (\alpha_{1,C} + \alpha_{2,C}) * t_-)\right) 
-\end{align*}
-#+END_EXPORT
-
-\bigskip
-
-Let denote \(\varepsilon_T\) the event type indicator (1 cause of
-interest and 2 competing risk) in group \(T\) and \(\varepsilon_C\)
-the event type indicator in group \(C\):
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Delta &= \frac{1}{\Prob[\varepsilon_T=1,\varepsilon_C=1]} \frac{\alpha_{1,T}}{\alpha_{1,T}+\alpha_{1,C}}
-- \frac{1}{\Prob[\varepsilon_T=1,\varepsilon_C=2]}
-+ \frac{1}{\Prob[\varepsilon_T=2,\varepsilon_C=1]} \\
-&=
+CIF_1(t|group = X) &= \frac{\alpha_{E,X}}{\alpha_{E,X} + \alpha_{CR,X}} \left(1 - \exp(- (\alpha_{E,X} + \alpha_{CR,X}) * t_-)\right) \\
+CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 - \exp(- (\alpha_{E,Y} + \alpha_{CR,Y}) * t_-)\right) 
 \end{align*}
 #+END_EXPORT
 
 ** In R
 
-Settings:
+*** BuyseTest (no censoring)
+
+Setting:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-alpha1 <- 2
-alpha2 <- 1
+alphaE.X <- 2
+alphaCR.X <- 1
+alphaE.Y <- 3
+alphaCR.Y <- 2
 #+END_SRC
 
 #+RESULTS:
@@ -297,7 +413,152 @@ alpha2 <- 1
 Simulate data:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
-df <- data.frame(time1 = rexp(n, rate = alpha1), time2 = rexp(n, rate = alpha2), group = "1", event = 1)
+df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), group = "1"),
+            data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
+df$time <- pmin(df$time1,df$time2) ## first event
+df$event <- (df$time2<df$time1)+1 ## type of event
+#+END_SRC
+
+#+RESULTS:
+
+BuyseTest:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
+                  method.inference = "none", method.tte = "Gehan",
+                  trace = 0)
+summary(e.BT, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : uninformative pairs
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
+#+end_example
+
+Note that without censoring one can get the same results by treating
+time as a continuous variable that take value \(\infty\) when the
+competing risk is observed:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+df$timeXX <- df$time
+df$timeXX[df$event==2] <- max(df$time)+1
+e.BT.bis <- BuyseTest(group ~ cont(timeXX), data = df,
+                  method.inference = "none", trace = 0)
+summary(e.BT.bis, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+:         Generalized pairwise comparison with 1 prioritized endpoint
+: 
+:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 1 (control) vs. 2 (treatment) 
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+:    timeXX     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+weight <- (alphaE.X+alphaCR.X)*(alphaE.Y+alphaCR.Y)
+exp <- list()
+exp$favorable <- 1/weight*(alphaE.X*alphaE.Y*alphaE.X/(alphaE.X+alphaE.Y)+(alphaE.X*alphaCR.Y))
+exp$unfavorable <- 1/weight*(alphaE.X*alphaE.Y*alphaE.Y/(alphaE.X+alphaE.Y)+(alphaE.Y*alphaCR.X))
+exp$neutral <- alphaCR.X*alphaCR.Y/weight
+
+100*unlist(exp)
+#+END_SRC
+
+#+RESULTS:
+:   favorable unfavorable     neutral 
+:    42.66667    44.00000    13.33333
+
+# Subdistributional hazard:
+# #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+# e.coxph <- coxph(Surv(timeXX, event>0) ~ group, data = df)
+# HR.coxph <- as.double(exp(coef(e.coxph)))
+# c("HR.sub" = HR.coxph, "Delta.sub" = (1-HR.coxph)/(1+HR.coxph))
+# #+END_SRC
+
+# #+RESULTS:
+# :     HR.sub  Delta.sub 
+# : 0.97182195 0.01429036
+
+*** BuyseTest (with censoring)
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+df$eventC <- df$event
+df$eventC[rbinom(n, size = 1, prob = 0.2)==1] <- 0
+#+END_SRC
+
+#+RESULTS:
+
+BuyseTest (biased):
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BTC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
+                   method.inference = "none", method.tte = "Gehan",
+                   trace = 0)
+summary(e.BTC, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : uninformative pairs
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time     1e-12   100      31.1       35.15    8.65  25.1 -0.0406 -0.0406
+#+end_example
+
+BuyseTest (unbiased):
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BTCC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
+                   method.inference = "none", method.tte = "Gehan corrected",
+                   trace = 0)
+summary(e.BTCC, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : uninformative pairs
+                     IPW for uninformative pairs
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time     1e-12   100     41.52       46.94   11.54     0 -0.0542 -0.0542
+#+end_example
+
+*** Cumulative incidence
+
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+alphaE <- 2
+alphaCR <- 1
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- data.frame(time1 = rexp(n, rate = alphaE), time2 = rexp(n, rate = alphaCR), group = "1", event = 1)
 df$time <- pmin(df$time1,df$time2)
 df$event <- (df$time2<df$time1)+1
 #+END_SRC
@@ -317,7 +578,7 @@ Expected vs. calculated:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 cbind(time = vec.times,
       CSC = e.CSCpred$absRisk[1,],
-      manual = alpha1/(alpha1+alpha2)*(1-exp(-(alpha1+alpha2)*(vec.times)))
+      manual = alphaE/(alphaE+alphaCR)*(1-exp(-(alphaE+alphaCR)*(vec.times)))
       )
 #+END_SRC
 
@@ -339,11 +600,6 @@ mean((df$time<=1)*(df$event==1))
 
 #+RESULTS:
 : [1] 0.6375
-
-Now with Buyse test:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-df11 <- df[]
-#+END_SRC
 
 
 # * References

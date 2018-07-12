@@ -4,10 +4,12 @@
 ** User visble changes - BuyseTest function
   - NEW FEATURE: boostrap resampling (method.inference = "boostrap")
   - NEW FEATURE: confint method to extract confidence intervals
+  - NEW FEATURE: BuyseTest can handle competing risks (experimental) 
   - argument n.permutation becomes n.resampling
   - argument method becomes method.tte
   - add argument method.inference to choose how to compute pvalues and
     CI.
+  - option method.tte="Peto" and method.tte="Efron" have been removed.
 
 ** Internal change
   - reorganize BuyseTest into BuyseTest and .BuyseTest. Make

@@ -198,7 +198,20 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
       if(keepComparison){
 	 iRow = {(double)index_T, (double)index_C, Wpair, 0, 0, 0};
         }
-    }else{ // delta_C==0 or 2
+    }else if(delta_C==2){
+
+      index_neutralT.push_back(index_T);
+      index_neutralC.push_back(index_C);
+      count_neutral+=Wpair;
+      
+      if(iter_pair>=pow(10.0,-12.0)){
+	  index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs    
+      }
+      if(keepComparison){
+	 iRow = {(double)index_T, (double)index_C, 0, 0, Wpair, 0};
+      }
+
+    }else if(delta_C==0){
       index_uninfT.push_back(index_T);
       index_uninfC.push_back(index_C); 
       count_uninf+=Wpair;
