@@ -5,7 +5,6 @@
 \alias{initializeArgs}
 \alias{initializeData}
 \alias{initializeFormula}
-\alias{initializeSurvival_Peto}
 \alias{initializeSurvival_Peron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
@@ -16,10 +15,6 @@ initializeArgs(alternative, name.call, censoring, cpus, data, endpoint, formula,
 initializeData(data, type, endpoint, operator, strata, treatment)
 
 initializeFormula(x)
-
-initializeSurvival_Peto(M.Treatment, M.Control, M.delta.Treatment,
-  M.delta.Control, D.TTE, endpoint, type, threshold, index.strataT,
-  index.strataC, n.strata)
 
 initializeSurvival_Peron(M.Treatment, M.Control, M.delta.Treatment,
   M.delta.Control, D.TTE, endpoint, type, threshold, index.strataT,
@@ -49,8 +44,6 @@ from the formula. \cr \cr
 \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 Merge the strata into one with the interaction variable.
 Extract for each strata the index of the observations within each group.
-Apply Efron correction (when method.tte is set to Efron), i.e. set the last event to an observed event.
-
 \code{initializeSurvival}: Compute the survival via KM.
 }
 \keyword{BuyseTest}

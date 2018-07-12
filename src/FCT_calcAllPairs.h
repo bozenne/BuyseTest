@@ -33,7 +33,7 @@ arma::mat calcAllPairs_TTEgehan(const arma::colvec& Treatment, const arma::colve
                                 bool keepComparison);
 arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
                                  const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                 const int methodTTE, const bool correctionTTE,
+                                 const bool correctionTTE,
                                  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
                                  vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
                                  vector<double>& wUninf,
@@ -49,7 +49,7 @@ arma::mat calcSubsetPairs_TTEgehan(const arma::colvec& Treatment, const arma::co
                                    bool keepComparison);
 arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
                                    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                   const int methodTTE, const bool correctionTTE,
+                                   const bool correctionTTE,
                                    double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
                                    vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
                                    vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
@@ -267,7 +267,7 @@ arma::mat calcAllPairs_TTEgehan(const arma::colvec& Treatment, const arma::colve
 // perform pairwise comparisons over all possible pairs for a TTE endpoint
 arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colvec& Control, const double threshold,
                                  const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                 const int methodTTE, const bool correctionTTE,
+                                 const bool correctionTTE,
                                  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
                                  vector<int>& index_neutralT, vector<int>& index_neutralC, vector<int>& index_uninfT, vector<int>& index_uninfC,
                                  vector<double>& wNeutral, 
@@ -293,16 +293,8 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
       
-      if(methodTTE == 1){
-        proba_threshold = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                               matKMT, matKMC);  
-      } else if(methodTTE == 2){
-        proba_threshold = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                matKMT, matKMC);
-      } else{ // methodTTE == 3
         proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
                                                 matKMT, matKMC);
-      }
       
       if(proba_threshold[2]>0.5){ // i.e. test neutral == 1
         index_neutralT.push_back(iter_T);
@@ -492,7 +484,7 @@ arma::mat calcSubsetPairs_TTEgehan(const arma::colvec& Treatment, const arma::co
 // perform pairwise comparisons over the neutral and uniformative pairs for a TTE endpoint
 arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::colvec& Control, const double threshold, 
                                    const arma::colvec& deltaT, const arma::colvec& deltaC, const arma::mat& matKMT, const arma::mat& matKMC,
-                                   const int methodTTE, const bool correctionTTE,
+                                   const bool correctionTTE,
                                    double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
                                    vector<int>& index_neutralT, vector<int>& index_neutralC, const int nNeutral_pairs, 
                                    vector<int>& index_uninfT, vector<int>& index_uninfC, const int nUninf_pairs,
@@ -532,28 +524,12 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
       iter_T = index_neutralT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
       iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control matrix
       
-      if(methodTTE == 1){
-        proba_threshold = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                               matKMT, matKMC);        
-      }else if(methodTTE == 2){
-        proba_threshold = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+       proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
                                                 matKMT, matKMC);
-      }else { // methodTTE == 3
-        proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                matKMT, matKMC);
-      }
       
       if(test_tauM1){ // useless if pairs from a different outcome
-        if(methodTTE == 1){
-          proba_thresholdM1 = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                   matKMT_M1, matKMC_M1);
-        }else if(methodTTE == 2){
-          proba_thresholdM1 = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                    matKMT_M1, matKMC_M1);
-        }else { // methodTTE == 3
           proba_thresholdM1 = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
                                                     matKMT_M1, matKMC_M1);
-        }
       }else{
         proba_thresholdM1[0] = 0;
         proba_thresholdM1[1] = 0;      
@@ -605,28 +581,12 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
       iter_T = index_uninfT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
       iter_C = index_uninfC[iter_pairs]; // index of the control patient of the pair in the Control matrix
       
-      if(methodTTE == 1){
-        proba_threshold = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                               matKMT, matKMC);  
-      }else if(methodTTE == 2){
-        proba_threshold = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                matKMT, matKMC);  
-      }else { // methodTTE == 3
         proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
                                                 matKMT, matKMC);            
-      }
       
       if(test_tauM1){
-        if(methodTTE == 1){
-          proba_thresholdM1 = calcOneProba_TTEpeto(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                   matKMT_M1, matKMC_M1);        
-        }else if(methodTTE == 2){
-          proba_thresholdM1 = calcOneProba_TTEefron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
-                                                    matKMT_M1, matKMC_M1);
-        }else { // methodTTE == 3
           proba_thresholdM1 = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold_M1, iter_T, iter_C,
                                                     matKMT_M1, matKMC_M1);  
-        }
       }else{
         proba_thresholdM1[0] = 0;
         proba_thresholdM1[1] = 0;      

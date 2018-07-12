@@ -48,7 +48,7 @@ setClass(
                  method = "Class BuyseTest.options")
     validCharacter(object@method.tte,
                    name1 = "@method.tte",
-                   valid.values = c("Peron","Efron","Peto","Gehan"),
+                   valid.values = c("Gehan","Peron"),
                    valid.length = 1,
                    method = "Class BuyseTest.options")
     validInteger(object@n.resampling,
