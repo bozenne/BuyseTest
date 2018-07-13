@@ -72,7 +72,7 @@ arma::mat calcAllPairs_Continuous( const arma::colvec& Treatment, const arma::co
   arma::rowvec iRow; // temporary store results
   arma::mat comparison;
   if(keepComparison){
-    comparison.set_size(n_Treatment * n_Control, 6); // store results from all comparisons
+    comparison.set_size(n_Treatment * n_Control, 7); // store results from all comparisons
   }else{
     comparison.set_size(0, 0); 
   }
@@ -124,7 +124,7 @@ arma::mat calcSubsetPairs_Continuous( const arma::colvec& Treatment, const arma:
   arma::rowvec iRow; // temporary store results
   arma::mat comparison;
   if(keepComparison){
-    comparison.set_size(nNeutral_pairs+nUninf_pairs, 6); // store results from all comparisons
+    comparison.set_size(nNeutral_pairs+nUninf_pairs, 7); // store results from all comparisons
   }else{
     comparison.set_size(0, 0); 
   }
@@ -200,7 +200,7 @@ arma::mat calcAllPairs_TTEgehan(const arma::colvec& Treatment, const arma::colve
   arma::mat comparison;
   int iter_pairs = 0;
   if(keepComparison){
-    comparison.set_size(n_Treatment * n_Control, 6); // store results from all comparisons
+    comparison.set_size(n_Treatment * n_Control, 7); // store results from all comparisons
   }else{
     comparison.set_size(0, 0); 
   }
@@ -249,12 +249,9 @@ arma::mat calcAllPairs_TTEgehan(const arma::colvec& Treatment, const arma::colve
     std::fill(wNeutral.begin(),wNeutral.end(),factor);
     wUninf.resize(0);
 
-    // if(keepComparison){
-	    // comparison.col(2) *= factor;
-	    // comparison.col(3) *= factor;
-	    // comparison.col(4) *= factor;
-	    // comparison.col(5) *= 0;
-	  // }
+    if(keepComparison){
+       comparison.col(6) *= factor;
+    }
   }
   
   // ** export
@@ -277,7 +274,7 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
   int n_Control=Control.size(); // number of patients from the control arm
   arma::mat comparison;
   if(keepComparison){
-    comparison.set_size(n_Treatment * n_Control, 6); // store results from all comparisons
+    comparison.set_size(n_Treatment * n_Control, 7); // store results from all comparisons
   }else{
     comparison.set_size(0, 0);
   }
@@ -304,7 +301,8 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
         count_neutral++;
         
         if(keepComparison){
-          comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
+          comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0, 1});
+       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
           iter_pairs++;
         }
         
@@ -325,7 +323,8 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
         
         if(keepComparison){
           comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C,
-                         proba_threshold[0], proba_threshold[1], 0, weight_residual});
+		proba_threshold[0], proba_threshold[1], 0, weight_residual, 1});
+      	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
           iter_pairs++;
         }
       }
@@ -351,12 +350,9 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
     }
     wUninf.resize(0);
 
-    // if(keepComparison){
-	    // comparison.col(2) *= factor;
-	    // comparison.col(3) *= factor;
-	    // comparison.col(4) *= factor;
-	    // comparison.col(5) *= 0;
-	  // }
+    if(keepComparison){
+      comparison.col(6) *= factor;
+    }
   }
   
   // ** export
@@ -392,7 +388,7 @@ arma::mat calcSubsetPairs_TTEgehan(const arma::colvec& Treatment, const arma::co
   arma::rowvec iRow; // temporary store results
   arma::mat comparison;
   if(keepComparison){
-    comparison.set_size(nNeutral_pairs+nUninf_pairs, 6); // store results from all comparisons
+    comparison.set_size(nNeutral_pairs+nUninf_pairs, 7); // store results from all comparisons
   }else{
     comparison.set_size(0, 0);
   }
@@ -458,12 +454,9 @@ arma::mat calcSubsetPairs_TTEgehan(const arma::colvec& Treatment, const arma::co
     std::fill(wNeutral.begin(),wNeutral.end(),factor);     
     wUninf.resize(0);
 
-    // if(keepComparison){
-	    // comparison.col(2) *= factor;
-	    // comparison.col(3) *= factor;
-	    // comparison.col(4) *= factor;
-	    // comparison.col(5) *= 0;
-	  // }
+    if(keepComparison){
+	    comparison.col(6) *= factor;
+	  }
   }
   
   // ** export
@@ -506,7 +499,7 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
   arma::rowvec iRow; // temporary store results
   arma::mat comparison;
   if(keepComparison){
-    comparison.set_size(nNeutral_pairs+nUninf_pairs, 6); // store results from all comparisons
+    comparison.set_size(nNeutral_pairs+nUninf_pairs, 7); // store results from all comparisons
   }else{
     comparison.set_size(0, 0);
   }
@@ -543,7 +536,9 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
         wNeutral.push_back(1); 
         count_neutral+=Wpairs(iter_pairs);
         if(keepComparison){
-          comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
+          comparison.row(iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0, 1});
+       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+
         }
       }else{
         
@@ -567,7 +562,9 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
                          weight_favorable,
                          weight_unfavorable,
                          0,
-                         Wpairs(iter_pairs)*weight_residual});
+		         Wpairs(iter_pairs)*weight_residual,
+		         1});
+       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
         }
       }
       
@@ -600,7 +597,8 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
         wNeutral.push_back(1); 
         count_neutral += Wpairs(nNeutral_pairs+iter_pairs);
         if(keepComparison){
-          comparison.row(nNeutral_pairs+iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0});
+          comparison.row(nNeutral_pairs+iter_pairs) = rowvec({(double)iter_T, (double)iter_C, 0, 0, 1, 0, 1});
+       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
         }
       }else{
         
@@ -624,7 +622,8 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
                          weight_favorable,
                          weight_unfavorable,
                          0,
-                         Wpairs(nNeutral_pairs+iter_pairs)*weight_residual});
+		Wpairs(nNeutral_pairs+iter_pairs)*weight_residual, 1});
+       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
         }
       }
     }
@@ -646,12 +645,9 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
     }
     wUninf.resize(0);
 
-    // if(keepComparison){
-	    // comparison.col(2) *= factor;
-	    // comparison.col(3) *= factor;
-	    // comparison.col(4) *= factor;
-	    // comparison.col(5) *= 0;
-	  // }
+    if(keepComparison){
+	    comparison.col(6) *= factor;
+    }
     
   }
   

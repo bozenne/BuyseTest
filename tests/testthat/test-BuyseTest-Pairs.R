@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: jul 12 2018 (10:09) 
+## Last-Updated: jul 13 2018 (11:29) 
 ##           By: Brice Ozenne
-##     Update #: 129
+##     Update #: 130
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -515,7 +515,8 @@ test_that("check previous bug with option keep.comparison",{
                                          "favorable" = c(0, 0, 0), 
                                          "unfavorable" = c(0, 0, 0), 
                                          "neutral" = c(0, 0, 1), 
-                                         "uninformative" = c(1, 1, 0)) ,
+                                         "uninformative" = c(1, 1, 0),
+                                         "IPCW" = 1) ,
                eventtime2_0.5 = data.table("strata" = factor(c("1", "1", "1")), 
                                            "index.1" = c(1, 1, 1), 
                                            "index.0" = c(4, 2, 3), 
@@ -524,7 +525,8 @@ test_that("check previous bug with option keep.comparison",{
                                            "favorable" = c(0, 0, 0), 
                                            "unfavorable" = c(0, 0, 0), 
                                            "neutral" = c(0, 0, 0), 
-                                           "uninformative" = c(1, 1, 1))
+                                           "uninformative" = c(1, 1, 1),
+                                           "IPCW" = 1)
                )
 
     expect_equal(BT@tableComparison[[1]],GS[[1]])

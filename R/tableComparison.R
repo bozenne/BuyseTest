@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: maj 27 2018 (20:45) 
+## Last-Updated: jul 13 2018 (11:09) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 47
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -136,10 +136,10 @@ tableComparison2dt <- function(tableComparison,
     name.tempo <- c("strata",
                     name.indexT, name.indexC, 
                     name.indexWT, name.indexWC, 
-                    "favorable","unfavorable","neutral","uninformative")
+                    "favorable","unfavorable","neutral","uninformative","IPCW")
 
     tableComparison <- lapply(tableComparison, function(iC){
-        iM <- data.table::as.data.table(matrix(iC, ncol = 9, byrow = FALSE,
+        iM <- data.table::as.data.table(matrix(iC, ncol = 10, byrow = FALSE,
                                                dimnames = list(NULL,name.tempo)))
         iM[, c("strata") := factor(.SD[["strata"]], levels = 0:(n.strata-1), labels = level.strata)] ## indexes start at 1 in R and not at 0 as in C++
         ## recall that indexes start at 1 in R and not at 0 as in C++
