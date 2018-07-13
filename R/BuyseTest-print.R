@@ -90,9 +90,7 @@ printGeneral <- function(censoring,
         cat("   > management of censored survival pairs : ")
         switch(as.character(method.tte),
                "0" = cat("uninformative pairs \n"),
-               "1" = cat("imputation using Kaplan Meier \n"),
-               "2" = cat("imputation using Kaplan Meier stratified by treatment group \n"),
-               "3" = cat("imputation using Kaplan Meier stratified by treatment group \n")
+               "1" = cat("imputation using Kaplan Meier stratified by treatment group \n")
                ) 
         if (method.tte %in% c("1","2","3")) {
             

@@ -311,7 +311,7 @@ BuyseTest <- function(formula,
     type <- envir$outArgs$type ## to simplify code
     D.TTE <- envir$outArgs$D.TTE ## to simplify code
     D <- envir$outArgs$D ## to simplify code
-    
+
     ## ** Resampling
     if(method.inference == "none"){
         data <- envir$outArgs$data
@@ -347,9 +347,10 @@ BuyseTest <- function(formula,
     ## ** Initialize data    
 
     ## *** data: split the data according to the two levels
-    dataT <- data[which(data[[treatment]] == level.treatment[2])]
-    dataC <- data[which(data[[treatment]] == level.treatment[1])]
-
+    indexT <- which(data[[treatment]] == level.treatment[2])
+    dataT <- data[indexT]
+    dataC <- data[setdiff(1:.N,indexT)]
+    
     ## *** data: extract endpoint 
     M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
     M.Control <- as.matrix(dataC[,endpoint,with=FALSE]) # matrix of endpoints for the control arm
@@ -398,7 +399,7 @@ BuyseTest <- function(formula,
                                             index.strataC = index.strataC,
                                             n.strata = n.strata)
     }
-    
+
     ## ** Computation
     resBT <-   GPC_cpp(Treatment = M.Treatment,
                        Control = M.Control,

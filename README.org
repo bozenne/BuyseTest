@@ -88,16 +88,10 @@ eprint = {http://dx.doi.org/10.1177/0962280216658320}
 * Functionalities
 
 Load *BuyseTest* in the R session:
-#+BEGIN_SRC R  :results output   :exports both  :session *R* :cache no
-library(BuyseTest, quietly = TRUE, verbose = FALSE)
+#+BEGIN_SRC R  :results silent   :exports both  :session *R* :cache no
+library(BuyseTest)
 #+END_SRC
 
-#+RESULTS:
-: data.table 1.11.2
-:   The fastest way to learn (by data.table authors): https://www.datacamp.com/courses/data-analysis-the-data-table-way
-:   Documentation: ?data.table, example(data.table) and browseVignettes("data.table")
-:   Release notes, videos and slides: http://r-datatable.com
-: BuyseTest version 1.3.2
 
 ** Simulate data
 You can simulate data with the =simBuyseTest= function. For instance
@@ -152,6 +146,7 @@ dt
  9:         0        0 11.525498  9.257539 1.8477048      1
 10:         0        1  9.932625 10.609684 0.3639572      1
 #+end_example
+
 This functionality is based on the =sim= function of the *lava*
 package (https://github.com/kkholst/lava)
 
@@ -201,6 +196,7 @@ Settings (punctual estimation)
    > intervals thresholds for survival endpoints: 
                    time         
 threshold interval "[20 ; Inf] "
+
 Punctual estimation (done)
 #+end_example
 
@@ -217,6 +213,7 @@ BT <- BuyseTest(endpoint = "time",
 #+END_SRC
 
 #+RESULTS:
+
 Here we set in addition the argument =trace= to 0 to force the
 function to be silent (i.e. no display in the terminal). Also setting
 the argument =method.inference= to ="none"= diseable the computation
@@ -224,13 +221,10 @@ of p-values and confidence intervals.
 
 We can check that the two approaches are equivalent:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(testthat)
-expect_equal(BT.f,BT)
+testthat::expect_equal(BT.f,BT)
 #+END_SRC
 
 #+RESULTS:
-: Warning message:
-: package 'testthat' was built under R version 3.4.4
 
 The =BuyseTest= function can perform stratified GPC with several endpoints:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -288,7 +282,6 @@ summary(BT, statistic = "winRatio")
      time        20   100     37.78       46.54      15  0.68 0.8117 0.8117
 #+end_example
 
-#+RESULTS:
 Since we have set the argument =n.permutation= to 0 (i.e. no
 permutation test) in the stratified analysis, we do not get confidence
 intervals or p.values when calling the =summary= method:
@@ -372,7 +365,7 @@ summary(BT.boot)
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta  CI [2.5 ; 97.5] p.value 
-     time        20   100     37.78       46.54      15  0.68 -0.0876 -0.0876 [-0.1794;0.0302]     0.7
+     time        20   100     37.78       46.54      15  0.68 -0.0876 -0.0876 [-0.1794;0.0302]     0.5
 #+end_example
 
 
@@ -459,6 +452,7 @@ summary(BT.pair2)
 :  endpoint threshold total favorable unfavorable neutral uninf delta Delta
 :     tumor       0.5   100         0           0     100     0     0     0
 :      size     1e-12     0         0           0       0     0     0     0
+
 So in this case no pair is analyzed at second priority.
 
 *** Keeping track of all the comparisons
@@ -545,6 +539,7 @@ on being event free up to 97 is:
 
 #+RESULTS:
 : [1] 0.3049173
+
 This corresponds to the rating of the pair as uninformative. The rest
 of the weight, 1-0.3049173, will be transferred to the unfavorable
 category.
@@ -645,11 +640,11 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] testthat_2.0.0      BuyseTest_1.3.2     data.table_1.10.4-3 Rcpp_0.12.16        prodlim_1.6.1      
+[1] BuyseTest_1.3.4     data.table_1.10.4-3 Rcpp_0.12.17        prodlim_1.6.1      
 
 loaded via a namespace (and not attached):
- [1] lattice_0.20-35 grid_3.4.0      R6_2.2.1        stats4_3.4.0    magrittr_1.5    rlang_0.2.0     Matrix_1.2-9    lava_1.6.1      splines_3.4.0  
-[10] tools_3.4.0     survival_2.41-3 parallel_3.4.0  compiler_3.4.0
+ [1] lattice_0.20-35 grid_3.4.0      R6_2.2.1        stats4_3.4.0    magrittr_1.5    rlang_0.2.0     testthat_2.0.0  Matrix_1.2-9    lava_1.6.1     
+[10] splines_3.4.0   tools_3.4.0     survival_2.41-3 parallel_3.4.0  compiler_3.4.0
 #+end_example
 
 

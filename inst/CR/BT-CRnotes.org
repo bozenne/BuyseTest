@@ -26,7 +26,7 @@ n <- 1e4
 and use the following R packages
 #+BEGIN_SRC R :exports code :results silent :session *R* :cache no
 library(BuyseTest)
-library(riskRegression)
+librnary(riskRegression)
 library(survival)
 #+END_SRC
 

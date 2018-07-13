@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: jul 12 2018 (17:01) 
+## Last-Updated: jul 12 2018 (17:11) 
 ##           By: Brice Ozenne
-##     Update #: 3
+##     Update #: 5
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,12 +47,13 @@ test_that("tte = 2 is equivalent to continuous with infty when cause=2", {
     e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
                       method.inference = "none", method.tte = "Gehan",
                       trace = 0)
-    
+    ## summary(e.BT)
     df$timeXX <- df$time
     df$timeXX[df$event==2] <- max(df$time)+1
     e.BT.bis <- BuyseTest(group ~ cont(timeXX), data = df,
                           method.inference = "none", trace = 0)
-
+    ## summary(e.BT.bis)
+    
     expect_equal(as.double(e.BT@Delta.netChance),
                  as.double(e.BT.bis@Delta.netChance))
     expect_equal(as.double(e.BT@delta.netChance),
