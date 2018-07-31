@@ -86,7 +86,6 @@
 #' D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 #' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. Statistical Methods in Medical Research. \cr
 #' Efron B (1967). \bold{The two sample problem with censored data}. \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} 4:831-583 \cr
-#' Peto R, Peto J (1972). \bold{Asymptotically efficient rank invariant test procedures}. \emph{Journal of the Royal Statistical Society - series A} 135(2):185-198 \cr
 #' Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 #'
 #' @seealso 
@@ -203,7 +202,6 @@ BuyseTest <- function(formula,
     envirBT <- environment()
     envirBT$.BuyseTest <- .BuyseTest
     envirBT$initializeData <- initializeData
-    envirBT$initializeSurvival_Peto <- initializeSurvival_Peto
     envirBT$initializeSurvival_Peron <- initializeSurvival_Peron
     
     ## ** Punctual estimation
@@ -259,7 +257,7 @@ BuyseTest <- function(formula,
     }
     
     ## ** Gather results into a BuyseRes object
-    method.tte <- c("Gehan","Peto","Efron","Peron")[outArgs$method.tte+1]
+    method.tte <- c("Gehan","Peron")[outArgs$method.tte+1]
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
 
     BuyseRes.object <- BuyseRes(
@@ -313,7 +311,7 @@ BuyseTest <- function(formula,
     type <- envir$outArgs$type ## to simplify code
     D.TTE <- envir$outArgs$D.TTE ## to simplify code
     D <- envir$outArgs$D ## to simplify code
-    
+
     ## ** Resampling
     if(method.inference == "none"){
         data <- envir$outArgs$data
@@ -349,9 +347,10 @@ BuyseTest <- function(formula,
     ## ** Initialize data    
 
     ## *** data: split the data according to the two levels
-    dataT <- data[which(data[[treatment]] == level.treatment[2])]
-    dataC <- data[which(data[[treatment]] == level.treatment[1])]
-
+    indexT <- which(data[[treatment]] == level.treatment[2])
+    dataT <- data[indexT]
+    dataC <- data[setdiff(1:.N,indexT)]
+    
     ## *** data: extract endpoint 
     M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
     M.Control <- as.matrix(dataC[,endpoint,with=FALSE]) # matrix of endpoints for the control arm
@@ -383,43 +382,11 @@ BuyseTest <- function(formula,
         M.delta.Control <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
     }
 
-    ## *** efron correction
-    if(method.tte==2){ # "Efron"
-        for(iStrata in 1:n.strata){ ## iStrata <- 1
-
-            index.typeTTE <- which(type==3)
-            Mstrata.Treatment <- M.Treatment[index.strataT[[iStrata]]+1,,drop=FALSE]
-            Mstrata.Control <- M.Control[index.strataC[[iStrata]]+1,,drop=FALSE]
-            
-            ## set last observation for each TTE endpoint to non-censored
-            for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
-                iEndpoint <- index.typeTTE[iEndpoint.TTE]
-                
-                indexT_maxCensored <- which(Mstrata.Treatment[,iEndpoint] == max(Mstrata.Treatment[,iEndpoint])) ## cannot use which.max - not handlle correctly multiple times
-                M.delta.Treatment[index.strataT[[iStrata]][indexT_maxCensored]+1,iEndpoint.TTE] <- 1
-                indexC_maxCensored <- which(Mstrata.Control[,iEndpoint] == max(Mstrata.Control[,iEndpoint]))
-                M.delta.Control[index.strataC[[iStrata]][indexC_maxCensored]+1,iEndpoint.TTE] <- 1
-            }
-        }
-    }
-
     ## *** Update survival
     if(method.tte == 0){ ## Gehan
         outSurv <- list(list.survivalT = lapply(1:D.TTE, matrix),
                         list.survivalC = lapply(1:D.TTE, matrix))        
-    }else if(method.tte == 1){ ## Peto
-        outSurv <- initializeSurvival_Peto(M.Treatment = M.Treatment,
-                                           M.Control = M.Control,
-                                           M.delta.Treatment = M.delta.Treatment,
-                                           M.delta.Control = M.delta.Control,
-                                           endpoint = endpoint,
-                                           D.TTE = D.TTE,
-                                           type = type,
-                                           threshold = envir$outArgs$threshold,
-                                           index.strataT = index.strataT,
-                                           index.strataC = index.strataC,
-                                           n.strata = n.strata)
-    }else if(method.tte %in% 2:3){
+    }else{ ## Peron
         outSurv <- initializeSurvival_Peron(M.Treatment = M.Treatment,
                                             M.Control = M.Control,
                                             M.delta.Treatment = M.delta.Treatment,
@@ -432,7 +399,7 @@ BuyseTest <- function(formula,
                                             index.strataC = index.strataC,
                                             n.strata = n.strata)
     }
-    
+
     ## ** Computation
     resBT <-   GPC_cpp(Treatment = M.Treatment,
                        Control = M.Control,

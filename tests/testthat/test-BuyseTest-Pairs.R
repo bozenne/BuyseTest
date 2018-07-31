@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: maj 26 2018 (17:05) 
+## Last-Updated: jul 13 2018 (11:29) 
 ##           By: Brice Ozenne
-##     Update #: 128
+##     Update #: 130
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -438,7 +438,7 @@ test_that("check NA - time to event",{
     expect_equal(as.double(BT@count.uninf),0)
 })
 
-## * one time to event endpoint (extrapolation using Peto/Efron/Peron)
+## * one time to event endpoint (extrapolation using Peron)
 ## ** with 2 pairs
 # one is censored
 dt.2pairs <- data.table(id = 1:4,
@@ -459,62 +459,6 @@ test_that("2 pairs - Gehan",{
  
     expect_equal(as.double(BT@delta.netChance),-1/2) ## 
     expect_equal(as.double(BT@Delta.netChance),-1/2) ##
-    
-    expect_equal(as.double(BT@delta.winRatio),0)
-    expect_equal(as.double(BT@Delta.winRatio),0)
-})
-
-## *** Peto
-test_that("2 pairs - Peto",{ 
-    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Peto")
-
-    ## same survival curve for both groups (denoting S survival time and T group)
-    ## P[T>=t|T=0,S>=10] = P[S>=t|S>=10] = 1 (t=<12), 2/3 (12<t=<20), 1/3 (20<t=<32), 0 (t>32)
-    ## summary(survival::survfit(survival::Surv(time=time, event=cens) ~ 1, data=dt.2pairs))
-
-    ## all comparisons (see BT@tableComparison)
-    ## 10* vs 20 : unfavorable (1/3) favorable (1/3) uninformative (1/3)
-    ## Indeed in P[S>20|T=0,S>=10] = 1/3 and P[S<20|T=0,S>=10] = 1-P[S>=20|T=0,S>=10]= 1-2/3 = 1/3
-    ## 10* vs 32 : unfavorable (2/3) favorable (0) uninformative (1/3)
-    ## Indeed in P[S>32|T=0,S>12] = 0 and P[S<32|T=0,S>=10] = 1-P[S>=32|T=0,S>=10] = 1-1/3 = 2/3
-    ## 12 vs 20 : unfavorable
-    ## 12 vs 32 : unfavorable
-
-    expect_equal(as.double(BT@count.favorable),1/3)
-    expect_equal(as.double(BT@count.unfavorable),3)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),2/3)
-
-    expect_equal(as.double(BT@delta.netChance),-2/3)
-    expect_equal(as.double(BT@Delta.netChance),-2/3)
-
-    expect_equal(as.double(BT@delta.winRatio),1/9)
-    expect_equal(as.double(BT@Delta.winRatio),1/9)
-})
-
-## *** Efron
-test_that("2 pairs - Efron",{
-    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Efron")
-  
-    ## different survival curve per groups (denoting S survival time and T group)
-    ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
-    ## P[T>=t|T=1,S>=10] = 1 (t=<20), 1/2 (20<t=<32), 0 (t>32)
-
-    ## all comparisons (see BT@tableComparison)
-    ## 10* vs 20 : unfavorable
-    ## 10* vs 32 : unfavorable
-    ## 12 vs 20 : unfavorable
-    ## 12 vs 32 : unfavorable
-
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),4)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
-  
-    expect_equal(as.double(BT@delta.netChance),-1)
-    expect_equal(as.double(BT@Delta.netChance),-1)
     
     expect_equal(as.double(BT@delta.winRatio),0)
     expect_equal(as.double(BT@Delta.winRatio),0)
@@ -571,7 +515,8 @@ test_that("check previous bug with option keep.comparison",{
                                          "favorable" = c(0, 0, 0), 
                                          "unfavorable" = c(0, 0, 0), 
                                          "neutral" = c(0, 0, 1), 
-                                         "uninformative" = c(1, 1, 0)) ,
+                                         "uninformative" = c(1, 1, 0),
+                                         "IPCW" = 1) ,
                eventtime2_0.5 = data.table("strata" = factor(c("1", "1", "1")), 
                                            "index.1" = c(1, 1, 1), 
                                            "index.0" = c(4, 2, 3), 
@@ -580,7 +525,8 @@ test_that("check previous bug with option keep.comparison",{
                                            "favorable" = c(0, 0, 0), 
                                            "unfavorable" = c(0, 0, 0), 
                                            "neutral" = c(0, 0, 0), 
-                                           "uninformative" = c(1, 1, 1))
+                                           "uninformative" = c(1, 1, 1),
+                                           "IPCW" = 1)
                )
 
     expect_equal(BT@tableComparison[[1]],GS[[1]])

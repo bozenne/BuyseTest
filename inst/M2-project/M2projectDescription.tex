@@ -1,0 +1,144 @@
+% Created 2018-07-09 ma 16:29
+% Intended LaTeX compiler: pdflatex
+\documentclass{article}
+
+%%%% settings when exporting code %%%% 
+
+\usepackage{listings}
+\lstset{
+backgroundcolor=\color{white},
+basewidth={0.5em,0.4em},
+basicstyle=\ttfamily\small,
+breakatwhitespace=false,
+breaklines=true,
+columns=fullflexible,
+commentstyle=\color[rgb]{0.5,0,0.5},
+frame=single,
+keepspaces=true,
+keywordstyle=\color{black},
+literate={~}{$\sim$}{1},
+numbers=left,
+numbersep=10pt,
+numberstyle=\ttfamily\tiny\color{gray},
+showspaces=false,
+showstringspaces=false,
+stepnumber=1,
+stringstyle=\color[rgb]{0,.5,0},
+tabsize=4,
+xleftmargin=.23in,
+emph={anova,apply,class,coef,colnames,colNames,colSums,dim,dcast,for,ggplot,head,if,ifelse,is.na,lapply,list.files,library,logLik,melt,plot,require,rowSums,sapply,setcolorder,setkey,str,summary,tapply},
+emphstyle=\color{blue}
+}
+
+%%%% packages %%%%%
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{wrapfig}
+\usepackage{capt-of}
+\usepackage{caption}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{changes}
+\usepackage{pdflscape}
+\usepackage{geometry}
+\usepackage[normalem]{ulem}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{dsfont}
+\usepackage{textcomp}
+\usepackage{array}
+\usepackage{ifthen}
+\usepackage{hyperref}
+\usepackage{natbib}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+\RequirePackage{colortbl} % arrayrulecolor to mix colors
+\RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+\usepackage{authblk} % enable several affiliations (clash with beamer)
+\RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+%
+%%%% additional latex commands %%%%
+%
+\date{}
+\title{Comparaison de méthodes d'inférence dans le cadre des comparaisons par paires généralisées}
+\hypersetup{
+ colorlinks=true,
+ citecolor=[rgb]{0,0.5,0},
+ urlcolor=[rgb]{0,0,0.5},
+ linkcolor=[rgb]{0,0,0.5},
+ pdfauthor={Brice Ozenne},
+ pdftitle={Comparaison de méthodes d'inférence dans le cadre des comparaisons par paires généralisées},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 25.2.1 (Org mode 9.0.4)},
+ pdflang={English}
+ }
+\begin{document}
+
+\author{}
+\maketitle{}
+
+Les comparaisons par paires généralisées (\citep{buyse2010generalized},
+\citep{peron2018extension}) est une méthode d'analyse statistique
+permettant de comparer un groupe de patients ayant reçu un traitement
+à un groupe contrôle en considérant plusieurs critères de
+jugement. Cette méthode permet d'estimer le bénéfice net en faveur du
+traitement valant 1 lorsque le traitement a été favorable pour tous
+les patients, -1 lorsqu'il a toujours été défavorable, et 0 lorsque
+l'effet traitement au niveau groupe est nul. 
+
+\bigskip
+
+Afin de pouvoir tester si l'effet traitement est favorable or de
+calculer son intervalle de confiance, il est nécessaire de connaître la
+distribution statistique du bénéfice net en faveur du traitement. Pour
+cela plusieurs méthodes sont envisageables:
+\begin{itemize}
+\item méthode de permutation \citep{buyse2010generalized}
+\item techniques de bootstrap \citep{dong2016generalized}
+\item utilisation de la distribution asymptotique \citep{luo2015alternative}, \citep{bebu2015large}
+\end{itemize}
+
+L'objectif du stage est de comparer ces méthodes en terme d'hypothèses
+nécessaires à leur validité, contrôle de l'erreur de type 1 en
+échantillons finis, et ressources informatiques nécessaires à leur
+utilisation. L'évaluation de ces méthodes se fera en relation avec la
+librairie \texttt{BuyseTest} du logiciel R qui implémente les comparaisons par
+paires généralisées. Cette librairie permet d'utiliser une méthode de
+permutation ainsi que deux types de boostrap. L'estimation de la
+distribution asymptotique est actuellement en cours de développement;
+l'étudiant pourra prendre part à ce développement s'il souhaite un
+sujet de stage plus théorique.
+
+\bigskip
+
+\textbf{Durée}: 6 mois
+
+\textbf{Début du stage}: ??
+
+\textbf{Laboratoire de rattachement}: Service de biostatistiques des hospices de Lyon.
+
+\textbf{Profil}: Le candidat devra être en formation au sein d’un Master 2 à
+dominante statistique ou dans école d’ingénieur avec une spécialisation en statistique.
+
+\textbf{Encadrants}: Julien Péron (\ldots{})  Brice Ozenne (Post doctorant au
+département de biostatistique de l'université de Copenhague, en charge
+du dévelopement et de la maintenance du code du package \texttt{BuyseTest})
+
+\textbf{Contact}: Julien Péron (julien.peron@chu-lyon.fr) 
+
+\bigskip
+
+\bibliographystyle{apalike}
+\bibliography{bibliography}
+\end{document}

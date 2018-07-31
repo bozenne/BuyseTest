@@ -1,0 +1,764 @@
+% Created 2018-07-12 to 17:03
+% Intended LaTeX compiler: pdflatex
+\documentclass{article}
+
+%%%% settings when exporting code %%%% 
+
+\usepackage{listings}
+\lstset{
+backgroundcolor=\color{white},
+basewidth={0.5em,0.4em},
+basicstyle=\ttfamily\small,
+breakatwhitespace=false,
+breaklines=true,
+columns=fullflexible,
+commentstyle=\color[rgb]{0.5,0,0.5},
+frame=single,
+keepspaces=true,
+keywordstyle=\color{black},
+literate={~}{$\sim$}{1},
+numbers=left,
+numbersep=10pt,
+numberstyle=\ttfamily\tiny\color{gray},
+showspaces=false,
+showstringspaces=false,
+stepnumber=1,
+stringstyle=\color[rgb]{0,.5,0},
+tabsize=4,
+xleftmargin=.23in,
+emph={anova,apply,class,coef,colnames,colNames,colSums,dim,dcast,for,ggplot,head,if,ifelse,is.na,lapply,list.files,library,logLik,melt,plot,require,rowSums,sapply,setcolorder,setkey,str,summary,tapply},
+emphstyle=\color{blue}
+}
+
+%%%% packages %%%%%
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{wrapfig}
+\usepackage{capt-of}
+\usepackage{caption}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{changes}
+\usepackage{pdflscape}
+\usepackage{geometry}
+\usepackage[normalem]{ulem}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{dsfont}
+\usepackage{textcomp}
+\usepackage{array}
+\usepackage{ifthen}
+\usepackage{hyperref}
+\usepackage{natbib}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+\RequirePackage{colortbl} % arrayrulecolor to mix colors
+\RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+\usepackage{authblk} % enable several affiliations (clash with beamer)
+\RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+%
+%%%% additional latex commands %%%%
+%
+\RequirePackage{amsmath}
+\RequirePackage{algorithm}
+\RequirePackage[noend]{algpseudocode}
+\RequirePackage{ifthen}
+\RequirePackage{xspace} % space for newcommand macro
+\RequirePackage{xifthen}
+\RequirePackage{xargs}
+\RequirePackage{dsfont}
+\RequirePackage{amsmath,stmaryrd,graphicx}
+\RequirePackage{prodint} % product integral symbol (\PRODI)
+\RequirePackage{amsthm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newcommand\defOperator[7]{%
+\ifthenelse{\isempty{#2}}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+}
+}
+\newcommand\defUOperator[5]{%
+\ifthenelse{\isempty{#1}}{
+#5\left#3 #2 \right#4
+}{
+\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+}
+}
+\newcommand{\defBoldVar}[2]{
+\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+}
+\newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+\newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+\newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+\newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+\newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+\newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+\newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+\newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+\newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+\newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+\newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+\newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+\newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+\newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+\newcommandx\Hypothesis[2][1=,2=]{
+\ifthenelse{\isempty{#1}}{
+\mathcal{H}
+}{
+\ifthenelse{\isempty{#2}}{
+\mathcal{H}_{#1}
+}{
+\mathcal{H}^{(#2)}_{#1}
+}
+}
+}
+\newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+\ifthenelse{\isempty{#3}}{
+\frac{#4 #1}{#4 #2}
+}{
+\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+}
+}
+\newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+\newcommandx\ddpartial[3][1=,2=,3=]{
+\ifthenelse{\isempty{#3}}{
+\frac{\partial^{2} #1}{\left( \partial #2\right)^2}
+}{
+\frac{\partial^2 #1}{\partial #2\partial #3}
+}
+}
+\newcommand\Real{\mathbb{R}}
+\newcommand\Rational{\mathbb{Q}}
+\newcommand\Natural{\mathbb{N}}
+\newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+\newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+\newcommand\half{\frac{1}{2}}
+\newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+\newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+\author{Brice Ozenne, Julien Péron}
+\date{\today}
+\title{Explicit formula for the net benefit}
+\hypersetup{
+ colorlinks=true,
+ citecolor=[rgb]{0,0.5,0},
+ urlcolor=[rgb]{0,0,0.5},
+ linkcolor=[rgb]{0,0,0.5},
+ pdfauthor={Brice Ozenne, Julien Péron},
+ pdftitle={Explicit formula for the net benefit},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 25.2.1 (Org mode 9.0.4)},
+ pdflang={English}
+ }
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\clearpage
+
+\section{Parameter of interest}
+\label{sec:org2a4ac91}
+
+Let consider two independent real valued random variables \(X\) and \(Y\).
+We are interested in:
+\begin{align*}
+\Delta = \Prob[Y>X] - \Prob[X>Y]
+\end{align*}
+
+\bigskip
+
+In the examples we will use a sample size of:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+n <- 1e4
+\end{lstlisting}
+
+and use the following R packages
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(BuyseTest)
+library(riskRegression)
+library(survival)
+\end{lstlisting}
+
+\clearpage
+
+\section{Binary variable}
+\label{sec:org4c8de65}
+
+\subsection{Theory}
+\label{sec:orgd8fff2d}
+\begin{align*}
+\Prob[Y>X] = \Prob[Y=1,X=0]
+\end{align*}
+Using the independence between \(Y\) and \(X\):
+\begin{align*}
+\Prob[Y>X] = \Prob[Y=1]\Prob[X=0] = \Prob[Y=1](1-\Prob[X=0]) = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
+\end{align*}
+By symmetry:
+\begin{align*}
+\Prob[X>Y] = \Prob[X=1] - \Prob[Y=1]\Prob[X=1]
+\end{align*}
+So 
+\begin{align*}
+\Delta = \Prob[Y=1] - \Prob[X=0]
+\end{align*}
+
+\subsection{In R}
+\label{sec:orgd2bdcb2}
+Settings:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+prob1 <- 0.4
+prob2 <- 0.2
+\end{lstlisting}
+
+Simulate data:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10)
+df <- rbind(data.frame(tox = rbinom(n, prob = prob1, size = 1), group = "C"),
+	    data.frame(tox = rbinom(n, prob = prob2, size = 1), group = "T"))
+\end{lstlisting}
+
+Buyse test:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest(group ~ bin(tox), data = df, method.inference = "none", trace = 0)
+\end{lstlisting}
+\begin{verbatim}
+endpoint threshold   delta   Delta
+     tox       0.5 -0.1981 -0.1981
+\end{verbatim}
+
+Expected:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+prob2 - prob1
+\end{lstlisting}
+
+\begin{verbatim}
+[1] -0.2
+\end{verbatim}
+
+\clearpage
+
+\section{Continuous variable}
+\label{sec:org35cdf4a}
+
+\subsection{Theory}
+\label{sec:org7ca799f}
+Let's consider two normally distributed variables with common variance:
+\begin{itemize}
+\item \(X \sim \Gaus[\mu_X,\sigma^2]\)
+\item \(Y \sim \Gaus[\mu_Y,\sigma^2]\)
+\end{itemize}
+Denoting \(d = \frac{\mu_Y-\mu_X}{\sigma}\): 
+\begin{itemize}
+\item \(X^* \sim \Gaus[0,1]\)
+\item \(Y^* \sim \Gaus[d,1]\)
+\end{itemize}
+\begin{align*}
+\Prob[Y>X] &= \Esp[\Ind[Y>X]] = \Esp[\Ind[Y*>X*]] = \Esp[\Ind[Z>0]]
+\end{align*}
+where \(Z \sim \Gaus[d,2]\) so \(\Prob[Y>X] = \Phi(\frac{d}{\sqrt{2}})\)
+
+By symmetry
+\begin{align*}
+\Delta = 2*\Phi(\frac{d}{\sqrt{2}})-1
+\end{align*}
+
+\subsection{In R}
+\label{sec:org27ed09a}
+
+Settings:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+meanX <- 0
+meanY <- 2
+sdXY <- 1
+\end{lstlisting}
+
+Simulate data:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10)
+df <- rbind(data.frame(tox = rnorm(n, mean = meanX, sd = sdXY), group = "C"),
+	    data.frame(tox = rnorm(n, mean = meanY, sd = sdXY), group = "T"))
+\end{lstlisting}
+
+Buyse test:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest(group ~ cont(tox), data = df, method.inference = "none", trace = 0)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint threshold  delta  Delta
+     tox     1e-12 0.8359 0.8359
+\end{verbatim}
+
+Expected:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+d <- (meanY-meanX)/sdXY
+2*pnorm(d/sqrt(2))-1
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 0.8427008
+\end{verbatim}
+
+\clearpage
+
+\section{Survival}
+\label{sec:org274f0b2}
+
+\subsection{Theory}
+\label{sec:org0189822}
+For a given cumulative density function \(F(x)\) and a corresponding
+probability density function \(f(x)\) we define the hazard by:
+\begin{align*}
+\lambda(t) &=  \left. \frac{\Prob[t\leq T \leq t+h|T\geq t]}{h}\right|_{h \rightarrow 0^+} \\
+&= \left. \frac{\Prob[t\leq T \leq t+h]}{\Prob[T\geq t]h}\right|_{h \rightarrow 0^+} \\
+&= \frac{f(t)}{1-F(t)}
+\end{align*}
+
+\bigskip
+
+Let now consider two times to events following an exponential distribution:
+\begin{itemize}
+\item \(X \sim Exp(\alpha_1)\). The corresponding hazard function is \(\lambda(t)=\alpha_1\).
+\item \(Y \sim Exp(\alpha_2)\). The corresponding hazard function is \(\lambda(t)=\alpha_2\).
+\end{itemize}
+So the hazad ratio is \(HR = \frac{\lambda_2}{\lambda_1}\). Note that if we use a cox model we will have:
+\begin{align*}
+\lambda(t) = \lambda_0(t) \exp(\beta \Ind[group])
+\end{align*}
+where \(\exp(\beta)\) is the hazard ratio.
+
+\bigskip
+
+\begin{align*}
+\Prob[Y>X] &= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x)  \int_x^{\infty} \alpha_2 \exp(-\alpha_2 y) dy dx \\
+&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x)  [ \exp(-\alpha_2 y) ]_{\infty}^{x} dx \\
+&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x) \exp(-\alpha_2 x) dx \\
+&= \frac{\alpha_1}{\alpha_1+\alpha_2} [\exp(-(\alpha_1+\alpha_2) x)]_{\infty}^{0} \\
+&= \frac{\alpha_1}{\alpha_1+\alpha_2}\\
+&= \frac{1}{1+HR}\\
+\end{align*}
+
+So:
+\begin{align*}
+\Delta = 2\frac{1}{1+HR}-1 = \frac{1-HR}{1+HR}
+\end{align*}
+
+\subsection{In R}
+\label{sec:org79b0667}
+
+Settings:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+alphaX <- 2
+alphaY <- 1
+\end{lstlisting}
+
+Simulate data:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10)
+df <- rbind(data.frame(time = rexp(n, rate = alphaX), group = "C", event = 1),
+	    data.frame(time = rexp(n, rate = alphaY), group = "T", event = 1))
+\end{lstlisting}
+
+Buyse test:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest(group ~ tte(time, censoring = event), data = df,
+	  method.inference = "none", trace = 0, method.tte = "Gehan")
+\end{lstlisting}
+\begin{verbatim}
+endpoint threshold  delta  Delta
+    time     1e-12 0.3403 0.3403
+\end{verbatim}
+
+Expected:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.coxph <- coxph(Surv(time,event)~group,data = df)
+HR <- as.double(exp(coef(e.coxph)))
+c("HR" = alphaY/alphaX, "Delta" = 2*alphaX/(alphaY+alphaX)-1)
+c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
+\end{lstlisting}
+
+\begin{verbatim}
+       HR     Delta 
+0.5000000 0.3333333
+   HR.cox     Delta 
+0.4918256 0.3406392
+\end{verbatim}
+
+\clearpage
+
+\section{Competing risks}
+\label{sec:orge05c83f}
+
+\subsection{Theory}
+\label{sec:org21498cc}
+
+\subsubsection{General case (no censoring)}
+\label{sec:org6c02d90}
+Let consider: 
+\begin{itemize}
+\item \(X^*_{E}\) the time to the occurrence of the event of interest in the control group.
+\item \(Y^*_{E}\) the time to the occurrence of the event of interest in the treatment group.
+\item \(X^*_{CR}\) the time to the occurrence of the competing event of interest in the control group.
+\item \(Y^*_{CR}\) the time to the occurrence of the competing event of interest in the treatment group.
+\end{itemize}
+Let denote \(\varepsilon_X = 1 +\Ind[X^*_{E} > X^*_{CR}]\) the event type
+indicator in the control group and \(\varepsilon_Y = 1 + \Ind[Y^*_{E} >
+Y^*_{CR}]\) the event type indicator in treatment group (\(=1\) when the
+cause of interest is realised first and 2 when the competing risk is
+realised first).
+
+\bigskip
+
+For each subject either the event of interest or the competing event
+is realized. We now define:
+\begin{align*}
+X = \left\{
+              \begin{array}{ll}
+                 X^*_{E} \text{ if }\varepsilon_X = 1  \\
+                 +\infty \text{ if }\varepsilon_X = 2 
+                \end{array}
+              \right.
+\text{ and }
+Y = \left\{
+              \begin{array}{ll}
+                 Y^*_{E} \text{ if }\varepsilon_Y = 1  \\
+                 +\infty \text{ if }\varepsilon_Y = 2 
+                \end{array}
+              \right.
+\end{align*}
+i.e. when the event of interest is not realized we say that the time to event is infinite.
+
+\bigskip
+
+We thus have:
+\begin{align*}
+\Prob[Y > X] 
+= & \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=2]\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ \Prob[Y > X|\varepsilon_X=2,\varepsilon_Y=1]\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&+ \Prob[Y > X|\varepsilon_X=2,\varepsilon_Y=2]\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
+= & \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ 1*\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ 0*\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&+ 0*\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
+\end{align*}
+
+So \(\Prob[X > Y] = \Prob[X >
+Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
+\Prob[\varepsilon_X=1,\varepsilon_Y=2]\) and:
+\begin{align*}
+\Delta = &
+ \big(\Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1] - \Prob[X < Y|\varepsilon_X=1,\varepsilon_Y=1] \big) \Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+& + \Prob[\varepsilon_X=1,\varepsilon_Y=2] - \Prob[\varepsilon_X=2,\varepsilon_Y=1]
+\end{align*}
+
+\subsubsection{General case (censoring, method: Gehan)}
+\label{sec:orgef96d27}
+In case of censoring we can use an inverse probability weighting
+approach. For a given individual \(i\) let denote \(\delta_{c,i}\) the
+indicator of no censoring, \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
+censored event time. We can use inverse probability weighting to
+compute the net benefit:
+\begin{align*}
+\Delta_i^{IPW} &= \frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_i])\\
+&= \left\{
+                \begin{array}{ll}
+                  \frac{1}{\Prob[\delta_c]} (\Ind[\tilde{Y}_i>\tilde{X}_i]-\Ind[\tilde{Y}_i<\tilde{X}_i])\text{, if no censoring}\\
+                  0\text{, if censoring}
+                \end{array}
+              \right.
+\end{align*}
+
+This is equivalent to weight the informative pairs (i.e. favorable,
+unfavorable and neutral) by the inverse of the complement of the
+probability of being uninformative. This is what is done by the
+argument \texttt{correction.tte} of \texttt{BuyseTest}. This works whenever the
+censoring mechanism is independent of the event times and we have a
+consistent estimate of \(\Prob[\delta_c]\) since:
+\begin{align*}
+\Esp[\Delta_i^{IPW}] &= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
+&= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]}\right] \Esp\left[(\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
+&= \frac{\Esp[\delta_{c,i}]}{\Prob[\delta_c]} \Delta\\
+&= \Delta\\
+\end{align*}
+
+
+\subsubsection{Exponential distribution (no censoring)}
+\label{sec:org04feeb0}
+
+Now let's assume that:
+\begin{itemize}
+\item \(X_{E} \sim Exp(\alpha_{E,X})\).
+\item \(Y_{E} \sim Exp(\alpha_{E,Y})\).
+\item \(X_{CR} \sim Exp(\alpha_{CR,X})\).
+\item \(Y_{CR} \sim Exp(\alpha_{CR,Y})\).
+\end{itemize}
+
+Then:
+\begin{align*}
+ \Prob[Y_{E} > X_{E}] &= \Prob[Y_{E} >
+X_{E}|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
+\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&= \frac{1}{(\alpha_{E,X}+\alpha_{CR,X})(\alpha_{E,Y}+\alpha_{CR,Y})} \left(
+ \alpha_{E,X}\alpha_{E,Y} \frac{\alpha_{E,X}}{\alpha_{E,X}+\alpha_{E,Y}}
++ \alpha_{E,X}\alpha_{CR,Y} \right) \\
+\end{align*}
+
+
+Just for comparison let's compare to the cumulative incidence. First
+we only consider one group and two competing events whose times to
+event follow an exponential distribution:
+\begin{itemize}
+\item \(T_E \sim Exp(\alpha_E)\). The corresponding hazard function is \(\lambda(t)=\alpha_E\).
+\item \(T_{CR} \sim Exp(\alpha_{CR})\). The corresponding hazard function is \(\lambda(t)=\alpha_{CR}\).
+\end{itemize}
+The cumulative incidence function can be written:
+\begin{align*}
+CIF_1(t) &= \int_0^t \lambda_1(s) S(s_-) ds \\
+&= \int_0^t \alpha_E \exp(- (\alpha_E + \alpha_{CR}) * s_-) ds \\
+&= \frac{\alpha_E}{\alpha_E + \alpha_{CR}} \left[ \exp(- (\alpha_E + \alpha_{CR}) * s_-)\right]_t^0 \\
+&= \frac{\alpha_E}{\alpha_E + \alpha_{CR}} \left(1 - \exp(- (\alpha_E + \alpha_{CR}) * t_-)\right) 
+\end{align*}
+where \(S(t)\) denote the event free survival and \(s_-\) denotes the right sided limit.
+
+\bigskip
+
+Then applying this formula in the case of two groups gives:
+\begin{align*}
+CIF_1(t|group = X) &= \frac{\alpha_{E,X}}{\alpha_{E,X} + \alpha_{CR,X}} \left(1 - \exp(- (\alpha_{E,X} + \alpha_{CR,X}) * t_-)\right) \\
+CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 - \exp(- (\alpha_{E,Y} + \alpha_{CR,Y}) * t_-)\right) 
+\end{align*}
+
+\subsection{In R}
+\label{sec:org44afb7e}
+
+\subsubsection{BuyseTest (no censoring)}
+\label{sec:orgc6dff55}
+
+Setting:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+alphaE.X <- 2
+alphaCR.X <- 1
+alphaE.Y <- 3
+alphaCR.Y <- 2
+\end{lstlisting}
+
+Simulate data:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10)
+df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), group = "1"),
+	    data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
+df$time <- pmin(df$time1,df$time2) ## first event
+df$event <- (df$time2<df$time1)+1 ## type of event
+\end{lstlisting}
+
+BuyseTest:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
+		  method.inference = "none", method.tte = "Gehan",
+		  trace = 0)
+summary(e.BT, percentage = TRUE)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> treatment groups: 1 (control) vs. 2 (treatment) 
+> censored pairs  : uninformative pairs
+
+> results
+endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+    time     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
+\end{verbatim}
+
+Note that without censoring one can get the same results by treating
+time as a continuous variable that take value \(\infty\) when the
+competing risk is observed:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+df$timeXX <- df$time
+df$timeXX[df$event==2] <- max(df$time)+1
+e.BT.bis <- BuyseTest(group ~ cont(timeXX), data = df,
+		  method.inference = "none", trace = 0)
+summary(e.BT.bis, percentage = TRUE)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> treatment groups: 1 (control) vs. 2 (treatment) 
+> results
+endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+  timeXX     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
+\end{verbatim}
+
+Expected:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+weight <- (alphaE.X+alphaCR.X)*(alphaE.Y+alphaCR.Y)
+exp <- list()
+exp$favorable <- 1/weight*(alphaE.X*alphaE.Y*alphaE.X/(alphaE.X+alphaE.Y)+(alphaE.X*alphaCR.Y))
+exp$unfavorable <- 1/weight*(alphaE.X*alphaE.Y*alphaE.Y/(alphaE.X+alphaE.Y)+(alphaE.Y*alphaCR.X))
+exp$neutral <- alphaCR.X*alphaCR.Y/weight
+
+100*unlist(exp)
+\end{lstlisting}
+
+\begin{verbatim}
+favorable unfavorable     neutral 
+ 42.66667    44.00000    13.33333
+\end{verbatim}
+
+\subsubsection{BuyseTest (with censoring)}
+\label{sec:org7e0199e}
+
+Simulate data:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+df$eventC <- df$event
+df$eventC[rbinom(n, size = 1, prob = 0.2)==1] <- 0
+\end{lstlisting}
+
+BuyseTest (biased):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.BTC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
+		   method.inference = "none", method.tte = "Gehan",
+		   trace = 0)
+summary(e.BTC, percentage = TRUE)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> treatment groups: 1 (control) vs. 2 (treatment) 
+> censored pairs  : uninformative pairs
+
+> results
+endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+    time     1e-12   100      31.1       35.15    8.65  25.1 -0.0406 -0.0406
+\end{verbatim}
+
+BuyseTest (unbiased):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.BTCC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
+		   method.inference = "none", method.tte = "Gehan corrected",
+		   trace = 0)
+summary(e.BTCC, percentage = TRUE)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparison with 1 prioritized endpoint
+
+> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> null hypothesis : Delta == 0 
+> treatment groups: 1 (control) vs. 2 (treatment) 
+> censored pairs  : uninformative pairs
+                    IPW for uninformative pairs
+
+> results
+endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+    time     1e-12   100     41.52       46.94   11.54     0 -0.0542 -0.0542
+\end{verbatim}
+
+\subsubsection{Cumulative incidence}
+\label{sec:orgf5c70b5}
+
+Settings:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+alphaE <- 2
+alphaCR <- 1
+\end{lstlisting}
+
+Simulate data:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10)
+df <- data.frame(time1 = rexp(n, rate = alphaE), time2 = rexp(n, rate = alphaCR), group = "1", event = 1)
+df$time <- pmin(df$time1,df$time2)
+df$event <- (df$time2<df$time1)+1
+\end{lstlisting}
+
+Cumulative incidence (via risk regression):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.CSC <- CSC(Hist(time, event) ~ 1, data = df)
+vec.times <- unique(round(exp(seq(log(min(df$time)),log(max(df$time)),length.out = 12)),2))
+e.CSCpred <- predict(e.CSC, newdata = data.frame(X = 1), time = vec.times , cause = 1)
+\end{lstlisting}
+
+Expected vs. calculated:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+cbind(time = vec.times,
+      CSC = e.CSCpred$absRisk[1,],
+      manual = alphaE/(alphaE+alphaCR)*(1-exp(-(alphaE+alphaCR)*(vec.times)))
+      )
+\end{lstlisting}
+
+\begin{verbatim}
+     time    CSC     manual
+[1,] 0.00 0.0000 0.00000000
+[2,] 0.01 0.0186 0.01970298
+[3,] 0.02 0.0377 0.03882364
+[4,] 0.05 0.0924 0.09286135
+[5,] 0.14 0.2248 0.22863545
+[6,] 0.42 0.4690 0.47756398
+[7,] 1.24 0.6534 0.65051069
+[8,] 3.70 0.6703 0.66665659
+\end{verbatim}
+
+Could also be obtained treating the outcome as binary:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+mean((df$time<=1)*(df$event==1))
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 0.6375
+\end{verbatim}
+\end{document}

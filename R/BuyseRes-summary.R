@@ -370,8 +370,6 @@ setMethod(f = "summary",
                   if(any(object@type == "TimeToEvent")){
                       txt.method.tte <- switch(object@method.tte$method,
                                                "Gehan" = "uninformative pairs",
-                                               "Peto" = "imputation using Kaplan Meier",
-                                               "Efron" = "imputation using Kaplan Meier stratified by treatment group",
                                                "Peron" = "imputation using Kaplan Meier stratified by treatment group"
                                                ) 
 

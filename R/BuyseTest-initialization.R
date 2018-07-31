@@ -26,8 +26,6 @@
 #' \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 #' Merge the strata into one with the interaction variable.
 #' Extract for each strata the index of the observations within each group.
-#' Apply Efron correction (when method.tte is set to Efron), i.e. set the last event to an observed event.
-#' 
 #' \code{initializeSurvival}: Compute the survival via KM.
 #' 
 #' @keywords function internal BuyseTest
@@ -139,10 +137,6 @@ initializeArgs <- function(alternative,
     correction.tte <- switch(method.tte,
                              "gehan" = FALSE,
                              "gehan corrected" = TRUE,
-                             "peto" = FALSE,
-                             "peto corrected" = TRUE,
-                             "efron" = FALSE,
-                             "efron corrected" = TRUE,
                              "peron" = FALSE,
                              "peron corrected" = TRUE,
                              NA
@@ -151,12 +145,8 @@ initializeArgs <- function(alternative,
     method.tte <- switch(method.tte,
                          "gehan" = 0,
                          "gehan corrected" = 0,
-                         "peto" = 1,
-                         "peto corrected" = 1,
-                         "efron" = 2,
-                         "efron corrected" = 2,
-                         "peron" = 3,
-                         "peron corrected" = 3,
+                         "peron" = 1,
+                         "peron corrected" = 1,
                          NA
                          )
 
@@ -448,96 +438,6 @@ initializeFormula <- function(x){
 }
 
 ## * initializeSurvival
-## ** initializeSurvival_Peto
-#' @rdname internal-initialization
-initializeSurvival_Peto <- function(M.Treatment,
-                                    M.Control,
-                                    M.delta.Treatment,
-                                    M.delta.Control,
-                                    D.TTE,
-                                    endpoint,
-                                    type,
-                                    threshold,
-                                    index.strataT,
-                                    index.strataC,
-                                    n.strata){
-
-    D.TTE <- sum(type==3)
-    
-    ## ** conversion to R index
-    index.strataT <- lapply(index.strataT,function(x){x+1})
-    index.strataC <- lapply(index.strataC,function(x){x+1})
-    
-    ## ** preparing 
-    colnamesT <- paste("Survival_TimeT",c("-threshold","_0","+threshold"),sep="")
-    colnamesC <- paste("Survival_TimeC",c("-threshold","_0","+threshold"),sep="")
-
-    ## list of matrix of survival data for each endpoint in the treatment arm
-    list.survivalT <- rep(list(matrix(NA,
-                                      nrow=nrow(M.Treatment),
-                                      ncol=3,
-                                      dimnames=list(1:nrow(M.Treatment),colnamesT))),
-                          times=D.TTE) 
-    ## list of matrix of survival data for each endpoint in the control arm
-    list.survivalC <- rep(list(matrix(NA,
-                                      nrow=nrow(M.Control),
-                                      ncol=3,
-                                      dimnames=list(1:nrow(M.Control),colnamesC))),
-                          times=D.TTE) 
-
-    
-    ## ** Compute survival in each strata 
-    for(iStrata in 1:n.strata){
-
-        Mstrata.Treatment <- M.Treatment[index.strataT[[iStrata]],,drop=FALSE]
-        Mstrata.Control <- M.Control[index.strataC[[iStrata]],,drop=FALSE]
-        Mstrata.delta.Treatment <- M.delta.Treatment[index.strataT[[iStrata]],,drop=FALSE]
-        Mstrata.delta.Control <- M.delta.Control[index.strataC[[iStrata]],,drop=FALSE]
-        
-        for(iEndpoint.TTE in 1:D.TTE){
-            
-            time_treatment <- Mstrata.Treatment[,endpoint[type==3][iEndpoint.TTE]] # store the event times of the treatment arm for a given TTE endpoint
-            time_control <- Mstrata.Control[,endpoint[type==3][iEndpoint.TTE]] # store the event times of the control arm for a given TTE endpoint
-                
-            ## prefer c(time_treatment,time_control) to time_all to avoid rounding error
-            df.all <- data.frame(time = c(time_treatment,time_control),
-                                 status = c(Mstrata.delta.Treatment[,iEndpoint.TTE], Mstrata.delta.Control[,iEndpoint.TTE]))
-
-            ## *** estimate survival
-            resKM_tempo <- prodlim::prodlim(prodlim::Hist(time,status)~1, data = df.all)
-
-            ## *** define interpolation function
-            if(all(df.all$status[which(df.all$time==max(df.all$time))]==1)){ # step interpolation of the survival function
-                survestKM_tempo <- stats::approxfun(x=unique(sort(c(time_treatment,time_control))),y=resKM_tempo$surv,
-                                                    yleft=1,yright=0,f=0, method= "constant") # 0 at infinity if last event is a death
-                    
-            }else{
-                survestKM_tempo <- stats::approxfun(x=unique(sort(c(time_treatment,time_control))),y=resKM_tempo$surv,
-                                                    yleft=1,yright=NA,f=0, method= "constant") # NA at infinity if last event is a death
-            }
-
-            ## *** apply interpolation function to event times (treatment group)
-            list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],1] <- survestKM_tempo(time_treatment-threshold[type==3][iEndpoint.TTE]) # survival at t - tau, tau being the threshold
-            list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],2] <- survestKM_tempo(time_treatment) # survival at t
-            list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],3] <- survestKM_tempo(time_treatment+threshold[type==3][iEndpoint.TTE]) # survival at t + tau
-                
-            rownames(list.survivalT[[iEndpoint.TTE]])[index.strataT[[iStrata]]] <- time_treatment
-                
-            ## *** apply interpolation function to event times (control group)
-            list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],1] <- survestKM_tempo(time_control-threshold[type==3][iEndpoint.TTE]) # survival at t - tau
-            list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],2] <- survestKM_tempo(time_control) # survival at t
-            list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],3] <- survestKM_tempo(time_control+threshold[type==3][iEndpoint.TTE]) # survival at t + tau
-                
-            rownames(list.survivalC[[iEndpoint.TTE]])[index.strataC[[iStrata]]] <- time_control    
-        }        
-        
-    }
-
-    ## ** export
-    return(list(list.survivalT=list.survivalT,
-                list.survivalC=list.survivalC))
-    
-}
 ## ** initializeSurvival_Peron
 #' @rdname internal-initialization
 initializeSurvival_Peron <- function(M.Treatment,
@@ -642,7 +542,7 @@ initializeSurvival_Peron <- function(M.Treatment,
                 
             list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],7:9] <- list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],c(2,4,6),drop=FALSE][order_time_treatment,,drop=FALSE] # St[t_treatment], Sc[t_treatment-threshold,t_treatment+threshold]
             list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],10] <-  df.treatment$time[order_time_treatment]
-            list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],11] <-   Mstrata.delta.Treatment[order_time_treatment,iEndpoint.TTE] # to compute the integral (Efron)
+            list.survivalT[[iEndpoint.TTE]][index.strataT[[iStrata]],11] <-   Mstrata.delta.Treatment[order_time_treatment,iEndpoint.TTE] # to compute the integral (Peron)
                 
             rownames(list.survivalT[[iEndpoint.TTE]])[index.strataT[[iStrata]]] <- df.treatment$time
 
@@ -657,7 +557,7 @@ initializeSurvival_Peron <- function(M.Treatment,
                 
             list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],7:9] <- list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],c(2,4,6),drop=FALSE][order_time_control,,drop=FALSE] # Sc[t_control], St[t_control-threshold,t_control+threshold]
             list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],10] <- df.control$time[order_time_control]
-            list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],11] <- Mstrata.delta.Control[order_time_control,iEndpoint.TTE] # to compute the integral (Efron)
+            list.survivalC[[iEndpoint.TTE]][index.strataC[[iStrata]],11] <- Mstrata.delta.Control[order_time_control,iEndpoint.TTE] # to compute the integral (Peron)
                 
             rownames(list.survivalC[[iEndpoint.TTE]])[index.strataC[[iStrata]]] <- df.control$time    
                             

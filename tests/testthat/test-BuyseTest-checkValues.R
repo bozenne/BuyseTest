@@ -158,7 +158,7 @@ test_that("BuyseTest - continuous (strata)", {
 
 ## * Time to event endpoint
 ## ** No strata - same endpoint
-for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
+for(method in c("Gehan","Peron")){ ## method <- "Gehan"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
 
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
@@ -191,22 +191,6 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
                        winRatio = c(0.8959391, 1.0070352, 1.0276094) )
             ## butils::object2script(test, digit = 8)
             
-        }else if(method == "Peto"){
-            GS <- list(favorable = c(1964.36496521, 1098.10041074, 681.86042726) ,
-                       unfavorable = c(1666.85528833, 1124.39800571, 716.53785464) ,
-                       neutral = c(1931, 1294, 789) ,
-                       uninf = c(3437.77974645, 1852.28133001, 958.88304811) ,
-                       netChange = c(0.03305663, 0.03013468, 0.02628163) ,
-                       winRatio = c(1.17848561, 1.09716498, 1.06743123) )
-            
-        }else if(method == "Efron"){
-            GS <- list(favorable = c(2443.46245011, 979.48638589, 629.90517919) ,
-                       unfavorable = c(1395.18398457, 1113.5745081, 723.5751254) ,
-                       neutral = c(1931, 1294, 789) ,
-                       uninf = c(3230.35356532, 1774.29267133, 925.81236674) ,
-                       netChange = c(0.11647539, 0.1015767, 0.09116893) ,
-                       winRatio = c(1.751355, 1.3643995, 1.25384768) )
-
         }else if(method == "Peron"){
             GS <- list(favorable = c(2443.46245011, 979.48638589, 629.90517919) ,
                        unfavorable = c(1395.18398457, 1113.5745081, 723.5751254) ,
@@ -224,13 +208,13 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
         dt.tableS <- as.data.table(tableS)[strata == "global"]
         expect_equal(dt.tableS[,n.total],
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
-                     tolerance = 1e-1, scale = 1) ## inexact for Efron/Peron
+                     tolerance = 1e-1, scale = 1) ## inexact for Peron
                      
     })
 }
 
 ## ** No strata - different endpoints
-for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
+for(method in c("Gehan","Peron")){ ## method <- "Gehan"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),
@@ -262,22 +246,6 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
                        winRatio = c(0.89593909, 0.88608696, 1.18692731) )
             ## butils::object2script(test, digit = 8)
             
-        }else if(method == "Peto"){
-            GS <- list(favorable = c(1964.36496521, 2043.80882335, 606.29622507) ,
-                       unfavorable = c(1666.85528833, 2152.32946986, 416.53070861) ,
-                       neutral = c(1931, 379.7158347, 43.96719692) ,
-                       uninf = c(3437.77974645, 792.92561855, 105.84732265) ,
-                       netChange = c(0.03305663, 0.02099878, 0.04208384) ,
-                       winRatio = c(1.17848561, 1.04948413, 1.08941926) )
-            
-        }else if(method == "Efron"){
-            GS <- list(favorable = c(2443.46245011, 1988.35190003, 729.79366974) ,
-                       unfavorable = c(1395.18398457, 2064.87616713, 258.96519794) ,
-                       neutral = c(1931, 379.28386907, 42.17038331) ,
-                       uninf = c(3230.35356532, 728.84162909, 77.19624717) ,
-                       netChange = c(0.11647539, 0.10797269, 0.16028696) ,
-                       winRatio = c(1.751355, 1.28084893, 1.38789267) )
-
         }else if(method == "Peron"){
             GS <- list(favorable = c(2443.46245011, 1988.35190003, 828.35580754) ,
                        unfavorable = c(1395.18398457, 1816.30639483, 318.33164813) ,
@@ -295,12 +263,12 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Gehan"
         dt.tableS <- as.data.table(tableS)[strata == "global"]
         expect_equal(dt.tableS[,n.total],
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
-                     tolerance = 1e-1, scale = 1) ## inexact for Efron/Peron
+                     tolerance = 1e-1, scale = 1) ## inexact for Peron
     })
 }
 
 ## ** Strata - same endpoint
-method <- "Efron"
+method <- "Peron"
 test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1) + strata,
@@ -335,11 +303,11 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
         dt.tableS <- as.data.table(tableS)[strata == "global"]
         expect_equal(dt.tableS[,n.total],
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
-                     tolerance = 1e-1, scale = 1) ## inexact for Efron/Peron
+                     tolerance = 1e-1, scale = 1) ## inexact for Peron
 })
 
 ## * Mixed endpoints 
-for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
+for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - mixed (",method,", no strata)"),{ 
     
         BT.mixed <- BuyseTest(Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5),
@@ -370,22 +338,6 @@ for(method in c("Gehan","Peto","Efron","Peron")){ ## method <- "Peron"
                        winRatio = c(1.00703518, 0.77541371, 0.9444898, 0.95234334, 0.93870278) )
             ## butils::object2script(test, digit = 8)
             
-        }else if(method == "Peto"){
-            GS <- list(favorable = c(3062.46537595, 538.66400011, 496.45208474, 193.99292402, 87.35234931) ,
-                       unfavorable = c(2791.25329404, 956.22726799, 325.02566223, 186.6693571, 120.81524266) ,
-                       neutral = c(1294, 1651.3900619, 829.91231494, 186, 241.08244185) ,
-                       uninf = c(1852.28133001, 0, 0, 263.25003382, 0) ,
-                       netChange = c(0.03013468, -0.01626124, 0.00278614, 0.00359987, -0.00011823) ,
-                       winRatio = c(1.09716498, 0.96094678, 1.0061572, 1.00760683, 0.99975706) )
-
-        }else if(method == "Efron"){
-            GS <- list(favorable = c(3422.94883599, 523.83682056, 486.58403996, 179.36802198, 84.40050237) ,
-                       unfavorable = c(2508.75849267, 940.43278022, 311.753946, 189.11524727, 118.87398395) ,
-                       neutral = c(1294, 1604.02307056, 805.6850846, 186, 233.92732904) ,
-                       uninf = c(1774.29267133, 0, 0, 251.20181536, 0) ,
-                       netChange = c(0.1015767, 0.05528826, 0.07471383, 0.07363081, 0.06980042) ,
-                       winRatio = c(1.3643995, 1.14426407, 1.17879135, 1.16776382, 1.15439024) )
-
         }else if(method == "Peron"){
             GS <- list(favorable = c(3422.94883599, 523.83682056, 486.58403996, 179.36802198, 84.40050237) ,
                        unfavorable = c(2508.75849267, 940.43278022, 311.753946, 189.11524727, 118.87398395) ,
