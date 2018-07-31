@@ -129,6 +129,7 @@ inferenceUstatistic <- function(envir){
     endpoint <- names(envir$outPunctual$tableComparison)
     D <- length(endpoint)
     col.id <- names(envir$outPunctual$tableComparison[[1]])[1:3]
+    keep.col <- c(col.id,"favorable","unfavorable","neutral","uninformative")
     
     ## ** fct
     myFct_T <- function(favorable,unfavorable){
@@ -175,24 +176,26 @@ inferenceUstatistic <- function(envir){
     
     for(iE in 1:D){ ## iE <- 1
 
-        iTable <- data.table::copy(envir$outPunctual$tableComparison[[iE]][,.SD,.SDcols = c(col.id,"favorable","unfavorable","neutral","uninformative")])
+        iTable <- data.table::copy(envir$outPunctual$tableComparison[[iE]][,.SD,.SDcols = keep.col])
         data.table::setnames(iTable, old = col.id, new = c("strata","indexT","indexC"))
 
         ## *** perform correction
         if(envir$outArgs$correction.tte){
-            vec.tempo <- unlist(iTable[,.(favorable = sum(favorable),
-                                          unfavorable = sum(unfavorable),
-                                          neutral = sum(neutral),
-                                          uninformative = sum(uninformative))])
-            factor <- sum(vec.tempo)/sum(vec.tempo[1:3])
+            stop("Inference U statistic in presence of correction.tte needs to be updated!!!")
+            ## vec.tempo <- unlist(iTable[,.(favorable = sum(favorable),
+            ##                               unfavorable = sum(unfavorable),
+            ##                               neutral = sum(neutral),
+            ##                               uninformative = sum(uninformative))])
+            ## factor <- sum(vec.tempo)/sum(vec.tempo[1:3])
             
-            iTable[, favorable := favorable * factor]
-            iTable[, unfavorable := unfavorable * factor]
-            iTable[, neutral := neutral * factor]
-            iTable[, uninformative := 0]
+            ## iTable[, favorable := favorable * factor]
+            ## iTable[, unfavorable := unfavorable * factor]
+            ## iTable[, neutral := neutral * factor]
+            ## iTable[, uninformative := 0]
         }
 
-        ## *** compute sufficient statisitcs
+        ## *** compute sufficient statistics
+        browser()
         ls.count_T <- iTable[,.(list = .(myFct_T(favorable, unfavorable))), by = c("strata","indexT") ][["list"]]
         M.sufficient[iE,1:4] <- colSums(do.call(rbind,ls.count_T))
     
