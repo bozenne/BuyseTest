@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: jul 13 2018 (11:29) 
+## Last-Updated: aug 12 2018 (09:52) 
 ##           By: Brice Ozenne
-##     Update #: 130
+##     Update #: 131
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -516,7 +516,10 @@ test_that("check previous bug with option keep.comparison",{
                                          "unfavorable" = c(0, 0, 0), 
                                          "neutral" = c(0, 0, 1), 
                                          "uninformative" = c(1, 1, 0),
-                                         "IPCW" = 1) ,
+                                         "favorable.corrected" = as.numeric(c(NA,NA,NA)),
+                                         "unfavorable.corrected" = as.numeric(c(NA,NA,NA)),
+                                         "neutral.corrected" = as.numeric(c(NA,NA,NA))
+                                         ) ,
                eventtime2_0.5 = data.table("strata" = factor(c("1", "1", "1")), 
                                            "index.1" = c(1, 1, 1), 
                                            "index.0" = c(4, 2, 3), 
@@ -526,7 +529,10 @@ test_that("check previous bug with option keep.comparison",{
                                            "unfavorable" = c(0, 0, 0), 
                                            "neutral" = c(0, 0, 0), 
                                            "uninformative" = c(1, 1, 1),
-                                           "IPCW" = 1)
+                                           "favorable.corrected" = as.numeric(c(NA,NA,NA)),
+                                           "unfavorable.corrected" = as.numeric(c(NA,NA,NA)),
+                                           "neutral.corrected" = as.numeric(c(NA,NA,NA))
+                                           )
                )
 
     expect_equal(BT@tableComparison[[1]],GS[[1]])

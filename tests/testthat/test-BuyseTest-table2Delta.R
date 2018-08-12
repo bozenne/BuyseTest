@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: maj 27 2018 (20:13) 
+## Last-Updated: aug 12 2018 (10:40) 
 ##           By: Brice Ozenne
-##     Update #: 14
+##     Update #: 15
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,7 +22,6 @@ if(FALSE){
 }
 
 context("Check tableComparison2Delta is matching BuyseTest")
-tableComparison2Delta <- BuyseTest:::tableComparison2Delta
 
 ## * Settings
 n.patients <- c(90,100)
@@ -45,7 +44,6 @@ dtRed.sim <- dt.sim[, .SD[1:50], by = "Treatment"]
 ## * test against tableComparison (no correction)
 formula <- Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5)
 BT.mixed <- BuyseTest(formula,
-                      method.inference = "bootstrap",
                       data = dt.sim, method.tte = "Peron")
 
 test_that("Full data", {

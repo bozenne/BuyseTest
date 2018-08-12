@@ -26,7 +26,7 @@ n <- 1e4
 and use the following R packages
 #+BEGIN_SRC R :exports code :results silent :session *R* :cache no
 library(BuyseTest)
-librnary(riskRegression)
+library(riskRegression)
 library(survival)
 #+END_SRC
 
@@ -43,7 +43,7 @@ library(survival)
 Using the independence between \(Y\) and \(X\):
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[Y>X] = \Prob[Y=1]\Prob[X=0] = \Prob[Y=1](1-\Prob[X=0]) = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
+\Prob[Y>X] = \Prob[Y=1]\Prob[X=0] = \Prob[Y=1](1-\Prob[X=1]) = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
 \end{align*}
 #+END_EXPORT
 By symmetry:
@@ -98,7 +98,7 @@ prob2 - prob1
 * Continuous variable
 
 ** Theory
-Let's consider two normally distributed variables with common variance:
+Let's consider two independent normally distributed variables with common variance:
 - \(X \sim \Gaus[\mu_X,\sigma^2]\) 
 - \(Y \sim \Gaus[\mu_Y,\sigma^2]\) 
 Denoting \(d = \frac{\mu_Y-\mu_X}{\sigma}\): 
@@ -106,7 +106,7 @@ Denoting \(d = \frac{\mu_Y-\mu_X}{\sigma}\):
 - \(Y^* \sim \Gaus[d,1]\) 
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[Y>X] &= \Esp[\Ind[Y>X]] = \Esp[\Ind[Y*>X*]] = \Esp[\Ind[Z>0]]
+\Prob[Y>X] &= \Esp \left[ \Ind[Y>X] \right] = \Esp\left[ \Ind[Y*>X*] \right] = \Esp\left[ \Ind[Z>0] \right]
 \end{align*}
 #+END_EXPORT
 where \(Z \sim \Gaus[d,2]\) so \(\Prob[Y>X] = \Phi(\frac{d}{\sqrt{2}})\)
@@ -317,16 +317,16 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 
 *** General case (censoring, method: Gehan)
 In case of censoring we can use an inverse probability weighting
-approach. For a given individual \(i\) let denote \(\delta_{c,i}\) the
-indicator of no censoring, \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
+approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
+indicator of no censoring relative to \(\tilde{X}\) (resp \(\tilde{Y}\)), \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
 censored event time. We can use inverse probability weighting to
 compute the net benefit:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Delta_i^{IPW} &= \frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_i])\\
+\Delta^{IPW} &= \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}])\\
 &= \left\{
                 \begin{array}{ll}
-                  \frac{1}{\Prob[\delta_c]} (\Ind[\tilde{Y}_i>\tilde{X}_i]-\Ind[\tilde{Y}_i<\tilde{X}_i])\text{, if no censoring}\\
+                  \frac{1}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[Y>X]-\Ind[Y<X])\text{, if no censoring}\\
                   0\text{, if censoring}
                 \end{array}
               \right.
@@ -341,13 +341,14 @@ censoring mechanism is independent of the event times and we have a
 consistent estimate of \(\Prob[\delta_c]\) since:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Esp[\Delta_i^{IPW}] &= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
-&= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]}\right] \Esp\left[(\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
-&= \frac{\Esp[\delta_{c,i}]}{\Prob[\delta_c]} \Delta\\
-&= \Delta\\
+\Esp[\Delta^{IPW}] &= \Esp\left[ \Esp\left[ \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}]) \Bigg| \tilde{X}, \tilde{Y} \right] \right]\\
+&= \Esp\left[\Esp\left[\frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Bigg| \tilde{X}, \tilde{Y} \right]\right] \Esp\left[\Ind[Y>X]-\Ind[Y<X]\right]\\
+&= \frac{\Esp\left[\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}} \right]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta
+= \frac{\Esp[\delta_{c,\tilde{X}}]\Esp[\delta_{c,\tilde{Y}}]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta\\
+&= \Delta
 \end{align*}
 #+END_EXPORT
-
+where we used the law of total expectation (first line) and the independence between the censoring mecanisms.
 
 *** Exponential distribution (no censoring)
 
@@ -479,16 +480,40 @@ exp$neutral <- alphaCR.X*alphaCR.Y/weight
 :   favorable unfavorable     neutral 
 :    42.66667    44.00000    13.33333
 
+# ## Flexible simulation of competing risks data following prespecified subdistribution hazards
 # Subdistributional hazard:
 # #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-# e.coxph <- coxph(Surv(timeXX, event>0) ~ group, data = df)
+# e.coxph <- coxph(Surv(timeXX, event==1) ~ group, data = df)
 # HR.coxph <- as.double(exp(coef(e.coxph)))
 # c("HR.sub" = HR.coxph, "Delta.sub" = (1-HR.coxph)/(1+HR.coxph))
 # #+END_SRC
 
 # #+RESULTS:
 # :     HR.sub  Delta.sub 
-# : 0.97182195 0.01429036
+# : 0.95597188 0.02250959
+
+# # #+RESULTS:
+# # :     HR.sub  Delta.sub 
+# # : 0.97182195 0.01429036
+
+# #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+# library(timereg)
+# e.fg <- comp.risk(Event(time,event) ~ const(group), data = df, cause = 1, model = "fg",
+#                   resample.iid = 1)
+# summary(e.fg)
+# HR.fg <- as.double(exp(coef(e.fg)[1]))
+# c("HR.sub" = HR.fg, "Delta.sub" = (1-HR.fg)/(1+HR.fg))
+# #+END_SRC
+
+# #+RESULTS:
+# : Competing risks Model 
+# : 
+# : No test for non-parametric terms
+# : Parametric terms : 
+# :               Coef.     SE Robust SE    z P-val lower2.5% upper97.5%
+# : const(group)2 0.165 0.0195    0.0195 8.47     0     0.127      0.203
+# :      HR.sub   Delta.sub 
+# :  1.17939312 -0.08231334
 
 *** BuyseTest (with censoring)
 

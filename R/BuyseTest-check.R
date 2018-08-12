@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jul 12 2018 (10:35) 
+## Last-Updated: aug 12 2018 (10:44) 
 ##           By: Brice Ozenne
-##     Update #: 63
+##     Update #: 81
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -112,6 +112,31 @@ testArgs <- function(alternative,
                      method = "BuyseTest")
     }
 
+    ## ** method.tte
+    ## must be before time to event endpoints
+    if(is.na(method.tte)){
+        stop("BuyseTest: wrong specification of \'method.tte\' \n",
+             "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\" \n")
+    }
+
+    ## ## ** model.tte
+    ## if(!is.null(model.tte)){
+    ##     if(!is.list(model.tte) || length(model.tte) != D.TTE){
+    ##         stop("BuyseTest: argument \'model.tte\' must be a list containing ",D.TTE," elements \n",
+    ##              "(one for each time to event model) \n")
+    ##     }
+
+    ##     vec.class  <- sapply(model.tte, function(iTTE){identical(class(iTTE), "prodlim")})
+    ##     if(any(vec.class == FALSE) ){
+    ##         stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects \n")
+    ##     }
+
+    ##     vec.predictors  <- sapply(model.tte, function(iTTE){identical(iTTE$discrete.predictors, c(treatment,strata))})
+    ##     if(any(vec.predictors == FALSE) ){
+    ##         stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors \n")
+    ##     }        
+    ## }
+    
     ## ** data (endpoints)
     ## *** binary endpoints
     index.Bin <- which(type==1)
@@ -190,15 +215,9 @@ testArgs <- function(alternative,
                  valid.length = 1,
                  method = "BuyseTest")
  
-    ## ** method.tte
-    if(is.na(method.tte)){
-        stop("BuyseTest: wrong specification of \'method.tte\' \n",
-             "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\" \n")
-    }
-
     ## ** correction.tte
-    validLogical(correction.tte,
-                 valid.length = 1,
+    validInteger(correction.tte,
+                 valid.length = 1, valid.values = 0:3,
                  method = "BuyseTest")
 
     ## ** method.inference
@@ -253,6 +272,10 @@ testArgs <- function(alternative,
                  "different levels between Control and Treatment \n",
                  "levels(strataT) : ",paste(levels(strataT),collapse=" "),"\n",
                  "levels(strataC) : ",paste(levels(strataC),collapse=" "),"\n")
+        }
+
+        if(".allStrata" %in% names(data)){
+            stop("BuyseTest : argument \'data\' should not contain a column \".allStrata\" \n")
         }
     
     }

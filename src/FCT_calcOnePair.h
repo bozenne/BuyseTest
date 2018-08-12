@@ -53,8 +53,13 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
       index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs 
     }
     if(keepComparison){
-      iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair, 1};
-      // (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+      iRow = {(double)index_T, (double)index_C, // indexT, indexC
+	      0, // favorable
+	      0, // unfavorable
+	      0, // neutral
+	      Wpair, // uninformative
+	      NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+      };
     }
   }else{    
     double diff = endpoint_T-endpoint_C; // difference between the endpoints from the treatment and control patients of the pair
@@ -62,14 +67,24 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
     if(diff>=threshold && diff>pow(10.0,-12.0)){ // diff>0 for threshold == 0
       count_favorable+=Wpair;
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, Wpair, 0, 0, 0, 1};
-	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		Wpair, // favorable
+		0, // unfavorable
+		0, // neutral
+		0, // uninformative
+		NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	};
       }
     }else if(diff<= -threshold && diff<pow(10.0,-12.0)){ // diff<0 for threshold == 0
       count_unfavorable+=Wpair;
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, 0, Wpair, 0, 0, 1}; 
-  	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		0, // favorable
+		Wpair, // unfavorable
+		0, // neutral
+		0, // uninformative
+		NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	}; 
       }
 
     }else{
@@ -81,8 +96,13 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
         index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs      
       }
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, 0, 0, Wpair, 0, 1};
-  	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		0, // favorable
+		0, // unfavorable
+		Wpair, // neutral
+		0, // uninformative
+		NA_REAL, NA_REAL, NA_REAL  // unfavorable corrected, neutral corrected, uninformative corrected
+	};
       }
 
     }
@@ -111,14 +131,24 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
       if(diff>=threshold && diff>pow(10.0,-12.0)){  // (1,1) >= tau    : favorable
         count_favorable+=Wpair;
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, Wpair, 0, 0, 0, 1};
-  	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C,  // indexT, indexC
+		  Wpair, // favorable
+		  0, // unfavorable
+		  0, // neutral
+		  0, // uninformative
+       	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
       }else if(diff<= -threshold && diff<pow(10.0,-12.0)){              // (1,1) <= -tau   : unfavorable
 	count_unfavorable+=Wpair;
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, 0, Wpair, 0, 0, 1};
-   	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		  0, // favorable
+		  Wpair, // unfavorable
+		  0, // neutral 
+		  0, // uninformative
+    	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
       }else{                                  //  (1,1)  ]-tau;tau[ : uninformative
 	index_neutralT.push_back(index_T);
@@ -129,8 +159,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 	  index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs    
 	}
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, 0, 0, Wpair, 0, 1};
-    	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C,  // indexT, indexC
+		  0, // favorable
+		  0, // unfavorable
+		  Wpair, // neutral
+		  0, // uninformative
+   	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
 
       }      
@@ -140,8 +175,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
       if(diff<= -threshold && diff<pow(10.0,-12.0)){              // (1,0) <= -tau   : unfavorable
 	count_unfavorable+=Wpair;           
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, 0, Wpair, 0, 0, 1};
-     	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		  0, // favorable
+		  Wpair, // unfavorable
+		  0, // neutral 
+		  0, // uninformative
+	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
       }else{                             //  (1,0)  ]-tau;+Inf[ : uninformative
 	index_uninfT.push_back(index_T);
@@ -152,16 +192,26 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 	  index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs 
 	}
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair, 1};
-       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		  0, // favorable
+		  0, // unfavorable
+		  0, // neutral 
+		  Wpair, // uninformative
+	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
 
       } 
     }else if(delta_C==2){
 	count_unfavorable+=Wpair;           
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, 0, Wpair, 0, 0, 1};
-       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C,  // indexT, indexC
+		  0, // favorable
+		  Wpair, // unfavorable
+		  0, // neutral 
+		  0, // uninformative	
+   	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected	  
+	  };
         }      
     }
     
@@ -172,8 +222,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
       if(diff>=threshold && diff>pow(10.0,-12.0)){   // (0,1) > tau    : favorable
 	count_favorable+=Wpair;      
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, Wpair, 0, 0, 0, 1};
-       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		  Wpair, // favorable
+		  0, // unfavorable
+		  0, // neutral 
+		  0, // uninformative
+	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
       }else{                 //  (1,0)  ]-Inf;+tau[ : uninformative
 	index_uninfT.push_back(index_T);
@@ -184,8 +239,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 	  index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs
 	}
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair, 1};
-       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		  0, // favorable
+		  0, // unfavorable
+		  0, // neutral 
+		  Wpair, // uninformative
+	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
       }
     
@@ -199,8 +259,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 	index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs 
       }
 	if(keepComparison){
-	  iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair, 1};
-       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	  iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		  0, // favorable
+		  0, // unfavorable
+		  0, // neutral 
+		  Wpair, // uninformative
+	          NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	  };
         }
     }
     
@@ -209,8 +274,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
     if(delta_C==1){
       count_favorable+=Wpair;      
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, Wpair, 0, 0, 0, 1};
-       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		Wpair, // favorable
+		0, // unfavorable
+		0, // neutral 
+		0, // uninformative
+	        NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	};
         }
     }else if(delta_C==2){
 
@@ -222,8 +292,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 	  index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs    
       }
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, 0, 0, Wpair, 0, 1};
-       	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
+	iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		0, // favorable
+		0, // unfavorable
+		Wpair, // neutral 
+		0, // uninformative
+	        NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	};
       }
 
     }else if(delta_C==0){
@@ -235,7 +310,13 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 	index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs 
       }
       if(keepComparison){
-	iRow = {(double)index_T, (double)index_C, 0, 0, 0, Wpair, 1};
+	iRow = {(double)index_T, (double)index_C, // indexT, indexC
+		0, // favorable
+		0, // unfavorable
+		0, // neutral 
+		Wpair, // uninformative
+	        NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+	};
        	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
       }
     }
@@ -433,3 +514,32 @@ inline double calcIntegralProba(const double time_begin, const arma::mat& surviv
   return(integral);
   
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

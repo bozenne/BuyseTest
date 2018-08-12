@@ -23,6 +23,7 @@ setClass(
       conf.level = "numeric",
       cpus = "numeric",
       keep.comparison = "logical",
+      keep.survival = "logical",
       method.inference = "character",
       method.tte = "character",
       n.resampling = "numeric",
@@ -62,6 +63,10 @@ setClass(
                  method = "Class BuyseTest.options")
     validLogical(object@keep.comparison,
                  name1 = "@keep.comparison",
+                 valid.length = 1,
+                 method = "Class BuyseTest.options")
+    validLogical(object@keep.survival,
+                 name1 = "@keep.survival",
                  valid.length = 1,
                  method = "Class BuyseTest.options")
     validInteger(object@trace,

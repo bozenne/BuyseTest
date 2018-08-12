@@ -16,9 +16,9 @@ initializeData(data, type, endpoint, operator, strata, treatment)
 
 initializeFormula(x)
 
-initializeSurvival_Peron(M.Treatment, M.Control, M.delta.Treatment,
-  M.delta.Control, D.TTE, endpoint, type, threshold, index.strataT,
-  index.strataC, n.strata)
+initializeSurvival_Peron(data, dataT, dataC, n.T, n.C, treatment, endpoint,
+  censoring, D.TTE, type, strata, threshold, index.strataT, index.strataC,
+  n.strata)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

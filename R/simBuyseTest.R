@@ -148,12 +148,12 @@ simBuyseTest <- function(n.T, n.C = NULL,
     }
   
     ## ** simulate data from the generative model
-    df.T <- cbind(Treatment = 1, lava::sim(mT.lvm, n.T, latent = latent))
-    df.C <- cbind(Treatment = 0, lava::sim(mC.lvm, n.C, latent = latent))
+    df.T <- cbind(Treatment = "T", lava::sim(mT.lvm, n.T, latent = latent))
+    df.C <- cbind(Treatment = "C", lava::sim(mC.lvm, n.C, latent = latent))
   
   
     ## ** export
-    res <- do.call(format, args =  rbind(df.T, df.C))
+    res <- do.call(format, args =  rbind(df.C, df.T))
     return(res)
 }
 

@@ -65,7 +65,7 @@ List GPC_cpp(const arma::mat& Treatment,
              const std::vector< arma::mat >& list_survivalT,
 	     const std::vector< arma::mat >& list_survivalC,
 	     const int methodTTE,
-	     const bool correctionTTE,
+	     const int correctionTTE,
 	     const bool neutralAsUninf,
 	     const bool keepComparison){
   
@@ -110,7 +110,7 @@ List GPC_cpp(const arma::mat& Treatment,
   vector<int> iIndex_uninfT; // index of the uninformative pairs of the treatment arm
   vector<int> iIndex_uninfC; // index of the uninformative pairs of the control arm
   vector<double> iw; // weights of the neutral / uninformative pairs
-  vector<int> iIndex_w; // index of the pair number of the neutral / uninformative pairs
+  vector<int> iIndex_w; // index of the pairs number of the neutral / uninformative pairs
   
   int size_neutral; // number of neutral pairs (temporary)
   int size_uninf; // number of uninformative pairs (temporary)
@@ -195,7 +195,7 @@ List GPC_cpp(const arma::mat& Treatment,
       w.resize(size_neutral+size_uninf); // temporary vector containing the weight of each remaining pair to be used for the next outcome
       w.fill(1.0);
 	    
-      if((methodTTE>0 || correctionTTE) && iter_dTTE>0){ // update the weights for the neutral pairs in Wpairs and w	
+      if((methodTTE>0 || correctionTTE>0) && iter_dTTE>0){ // update the weights for the neutral pairs in Wpairs and w	
 	for(int iter_neutral=0 ; iter_neutral<size_neutral ; iter_neutral++){
           Wpairs(iter_neutral,0) = iw[iter_neutral];
           if(Wscheme(0,0)==1){w(iter_neutral) = iw[iter_neutral];}
@@ -295,7 +295,7 @@ List GPC_cpp(const arma::mat& Treatment,
         w.resize(size_neutral+size_uninf); // update the size of w
         w.fill(1.0);
         
-        if((methodTTE>0 || correctionTTE) && iter_dTTE>0){
+        if((methodTTE>0 || correctionTTE>0) && iter_dTTE>0){
           tempo_index=iIndex_w; // store the position of the remaining pairs in the previous Wpairs (i.e. Wpairs_sauve)
           for(size_t iter_pair=0; iter_pair<tempo_index.size(); iter_pair++){
             

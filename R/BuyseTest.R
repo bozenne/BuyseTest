@@ -135,7 +135,7 @@ BuyseTest <- function(formula,
         stop("Argument \'method\' is obsolete. \n",
              "It has been replaced by the argument \'method.tte\' \n")
     }
-    
+
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(alternative = alternative,
@@ -164,7 +164,7 @@ BuyseTest <- function(formula,
     }else{
         keep.comparison <- FALSE
     }
-        
+
     ## ** test arguments
     if(option$check){
         outTest <- do.call(testArgs, args = outArgs)
@@ -178,7 +178,6 @@ BuyseTest <- function(formula,
                                                                                                                        operator = outArgs$operator,
                                                                                                                        strata = outArgs$strata,
                                                                                                                        treatment = outArgs$treatment)
-
     ## ** create weights matrix for survival endpoints
     if(outArgs$D.TTE>0 && outArgs$D>1){
         ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
@@ -192,7 +191,7 @@ BuyseTest <- function(formula,
         outArgs$index.survivalM1 <- numeric(0)
         outArgs$threshold.TTEM1 <- numeric(0)
     }
-    
+
     ## ** Display
     if (outArgs$trace > 1) {
         outPrint <- do.call(printGeneral, args = outArgs)
@@ -206,7 +205,6 @@ BuyseTest <- function(formula,
     
     ## ** Punctual estimation
     if (outArgs$trace > 1) {cat("Punctual estimation ")}
-
     time <- system.time({
         outPunctual <- .BuyseTest(envir = envirBT,
                                   return.index = option$return.index,
@@ -216,10 +214,11 @@ BuyseTest <- function(formula,
     ## convert from a list of vector (output of C++) to a list of data.table
     if(keep.comparison){
         ## needed for inference
-        envirBT$indexT <- which(outArgs$data[[outArgs$treatment]]==outArgs$level.treatment[2])
-        envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==outArgs$level.treatment[1])
+        envirBT$indexT <- which(outArgs$data[[outArgs$treatment]]==1)
+        envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==0)
         
         outPunctual$tableComparison <- tableComparison2dt(outPunctual$tableComparison,
+                                                          correction.tte = outArgs$correction.tte,
                                                           level.treatment = outArgs$level.treatment,
                                                           level.strata = outArgs$level.strata,
                                                           n.strata = outArgs$n.strata,
@@ -288,7 +287,8 @@ BuyseTest <- function(formula,
         DeltaResampling.netChance = outResampling$DeltaResampling.netChance,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
         covariance = outCovariance,
-        tableComparison = if(outArgs$keep.comparison){outPunctual$tableComparison}else{list()}
+        tableComparison = if(outArgs$keep.comparison){outPunctual$tableComparison}else{list()},
+        tableSurvival = if(outArgs$keep.survival){outPunctual$tableSurvival}else{list()}
     )
 
     ## ** export
@@ -304,14 +304,13 @@ BuyseTest <- function(formula,
     strata <- envir$outArgs$strata ## for by in data.table otherwise it cant find what it is
     n.strata <- envir$outArgs$n.strata ## to simplify code
     treatment <- envir$outArgs$treatment ## to simplify code
-    level.treatment <- envir$outArgs$level.treatment ## to simplify code
     censoring <- envir$outArgs$censoring ## to simplify code
     endpoint <- envir$outArgs$endpoint ## to simplify code
     method.tte <- envir$outArgs$method.tte ## to simplify code
     type <- envir$outArgs$type ## to simplify code
     D.TTE <- envir$outArgs$D.TTE ## to simplify code
     D <- envir$outArgs$D ## to simplify code
-
+    
     ## ** Resampling
     if(method.inference == "none"){
         data <- envir$outArgs$data
@@ -337,9 +336,9 @@ BuyseTest <- function(formula,
     if(is.null(strata)){
         n.groups <- length(unique(data[[treatment]]))
     }else{
-        n.groups <- data[,length(unique(.SD[[1]])), by = strata, .SDcols = treatment][[2]]
+        n.groups <- sum(data[,.N, by = c(".allStrata",treatment)][["N"]]>0)
     }
-    if (any(n.groups!=2) || length(n.groups) != n.strata) { ## failure of the resampling
+    if (n.groups != 2*n.strata) { ## failure of the resampling
         ##        return(matrix(NA, nrow = n.strata + 1, ncol = 2*D))
         return(NULL)
     }
@@ -347,7 +346,7 @@ BuyseTest <- function(formula,
     ## ** Initialize data    
 
     ## *** data: split the data according to the two levels
-    indexT <- which(data[[treatment]] == level.treatment[2])
+    indexT <- which(data[[treatment]] == 1)
     dataT <- data[indexT]
     dataC <- data[setdiff(1:.N,indexT)]
     
@@ -360,10 +359,10 @@ BuyseTest <- function(formula,
         ## For each strata, the index of the patients belonging to each strata, by treatment arm
         ## Index begins at 0. This is compulsory for C++.
         index.strataT <- lapply(1:n.strata,function(iS){
-            which(dataT[[strata[1]]] == iS) - 1
+            which(dataT[[".allStrata"]] == iS) - 1
         })
         index.strataC <- lapply(1:n.strata,function(iS){
-            which(dataC[[strata[1]]] == iS) - 1
+            which(dataC[[".allStrata"]] == iS) - 1
         })
         
     }else{ # if there is no strata variable the same strata is used for all patient
@@ -387,13 +386,14 @@ BuyseTest <- function(formula,
         outSurv <- list(list.survivalT = lapply(1:D.TTE, matrix),
                         list.survivalC = lapply(1:D.TTE, matrix))        
     }else{ ## Peron
-        outSurv <- initializeSurvival_Peron(M.Treatment = M.Treatment,
-                                            M.Control = M.Control,
-                                            M.delta.Treatment = M.delta.Treatment,
-                                            M.delta.Control = M.delta.Control,
+        outSurv <- initializeSurvival_Peron(data =  data, dataT = dataT, dataC = dataC,
+                                            n.T = NROW(M.Treatment), n.C = NROW(M.Control),
+                                            treatment = treatment,
                                             endpoint = endpoint,
+                                            censoring = censoring,
                                             D.TTE = D.TTE,
                                             type = type,
+                                            strata = strata,
                                             threshold = envir$outArgs$threshold,
                                             index.strataT = index.strataT,
                                             index.strataC = index.strataC,
@@ -426,6 +426,9 @@ BuyseTest <- function(formula,
     
     ## ** export
     if(method.inference == "none"){
+        if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
+            resBT$tableSurvival <- outSurv
+        }
         return(resBT)
     }else{
         Mout <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),

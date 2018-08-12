@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: jul 13 2018 (11:09) 
+## Last-Updated: aug 12 2018 (09:50) 
 ##           By: Brice Ozenne
-##     Update #: 47
+##     Update #: 49
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -119,6 +119,7 @@ aggrTableComparison <- function(table, correct.tte){
 ## * tableComparison2dt
 ## Convert output of .BuyseTest (list of vector) into a list of data.table
 tableComparison2dt <- function(tableComparison,
+                               correction.tte,
                                level.treatment,
                                level.strata,
                                n.strata,
@@ -136,10 +137,11 @@ tableComparison2dt <- function(tableComparison,
     name.tempo <- c("strata",
                     name.indexT, name.indexC, 
                     name.indexWT, name.indexWC, 
-                    "favorable","unfavorable","neutral","uninformative","IPCW")
+                    "favorable","unfavorable","neutral","uninformative",
+                    "favorable.corrected","unfavorable.corrected","neutral.corrected")
 
-    tableComparison <- lapply(tableComparison, function(iC){
-        iM <- data.table::as.data.table(matrix(iC, ncol = 10, byrow = FALSE,
+    tableComparison <- lapply(tableComparison, function(iC){ ## iC <- tableComparison[[1]]
+        iM <- data.table::as.data.table(matrix(iC, ncol = 12, byrow = FALSE,
                                                dimnames = list(NULL,name.tempo)))
         iM[, c("strata") := factor(.SD[["strata"]], levels = 0:(n.strata-1), labels = level.strata)] ## indexes start at 1 in R and not at 0 as in C++
         ## recall that indexes start at 1 in R and not at 0 as in C++

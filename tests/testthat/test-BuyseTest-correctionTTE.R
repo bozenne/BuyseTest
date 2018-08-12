@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: maj 27 2018 (20:44) 
+## Last-Updated: aug 12 2018 (10:38) 
 ##           By: Brice Ozenne
-##     Update #: 47
+##     Update #: 52
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,11 +52,11 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
 
 })
 
-test_that("1 TTE endpoint - Gehan (correction)", {
+test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     ## survival first    
     GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
-                        method.tte = "Gehan corrected")
+                        method.tte = "Gehan IPCW")
 
     factor <- 16/12 ## n.pairs/(n.pairs-n.uninf)
     expect_equal(as.double(GehanC@count.favorable), c(9*factor,0))
@@ -73,7 +73,7 @@ test_that("1 TTE endpoint - Gehan (correction)", {
     ## survival second
     GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
-                         method.tte = "Gehan corrected")
+                         method.tte = "Gehan IPCW")
     expect_equal(GehanC@count.favorable[1], GehanC2@count.favorable[2])
     expect_equal(GehanC@count.unfavorable[1], GehanC2@count.unfavorable[2])
     expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])
@@ -107,11 +107,11 @@ test_that("1 TTE endpoint - Peron (no correction)", {
 })
 
     
-test_that("1 TTE endpoint - Peron (correction)", {
+test_that("1 TTE endpoint - Peron (IPCW)", {
     ## survival first
     PeronC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
-                        method.tte = "Peron corrected")
+                        method.tte = "Peron IPCW")
 
     factor <- 16/13 ## n.pairs/(n.pairs-n.uninf)
     expect_equal(as.double(PeronC@count.favorable), c(10*factor,0))
@@ -128,7 +128,7 @@ test_that("1 TTE endpoint - Peron (correction)", {
     ## survival second
     PeronC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
-                         method.tte = "Peron corrected")
+                         method.tte = "Peron IPCW")
     expect_equal(PeronC@count.favorable[1], PeronC2@count.favorable[2])
     expect_equal(PeronC@count.unfavorable[1], PeronC2@count.unfavorable[2])
     expect_equal(PeronC@count.neutral[1], PeronC@count.neutral[2])

@@ -1,4 +1,4 @@
-% Created 2018-07-12 to 17:03
+% Created 2018-08-05 søn 23:55
 % Intended LaTeX compiler: pdflatex
 \documentclass{article}
 
@@ -165,7 +165,7 @@ emphstyle=\color{blue}
  pdftitle={Explicit formula for the net benefit},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 25.2.1 (Org mode 9.0.4)},
+ pdfcreator={Emacs 26.0.50 (Org mode 9.0.4)},
  pdflang={English}
  }
 \begin{document}
@@ -176,7 +176,7 @@ emphstyle=\color{blue}
 \clearpage
 
 \section{Parameter of interest}
-\label{sec:org2a4ac91}
+\label{sec:orgbfc4ec0}
 
 Let consider two independent real valued random variables \(X\) and \(Y\).
 We are interested in:
@@ -203,16 +203,16 @@ library(survival)
 \clearpage
 
 \section{Binary variable}
-\label{sec:org4c8de65}
+\label{sec:org722bfe9}
 
 \subsection{Theory}
-\label{sec:orgd8fff2d}
+\label{sec:orgd1e2934}
 \begin{align*}
 \Prob[Y>X] = \Prob[Y=1,X=0]
 \end{align*}
 Using the independence between \(Y\) and \(X\):
 \begin{align*}
-\Prob[Y>X] = \Prob[Y=1]\Prob[X=0] = \Prob[Y=1](1-\Prob[X=0]) = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
+\Prob[Y>X] = \Prob[Y=1]\Prob[X=0] = \Prob[Y=1](1-\Prob[X=1]) = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
 \end{align*}
 By symmetry:
 \begin{align*}
@@ -224,7 +224,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:orgd2bdcb2}
+\label{sec:org9b00681}
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -263,11 +263,11 @@ prob2 - prob1
 \clearpage
 
 \section{Continuous variable}
-\label{sec:org35cdf4a}
+\label{sec:org55f4baf}
 
 \subsection{Theory}
-\label{sec:org7ca799f}
-Let's consider two normally distributed variables with common variance:
+\label{sec:org5d3cc18}
+Let's consider two independent normally distributed variables with common variance:
 \begin{itemize}
 \item \(X \sim \Gaus[\mu_X,\sigma^2]\)
 \item \(Y \sim \Gaus[\mu_Y,\sigma^2]\)
@@ -278,7 +278,7 @@ Denoting \(d = \frac{\mu_Y-\mu_X}{\sigma}\):
 \item \(Y^* \sim \Gaus[d,1]\)
 \end{itemize}
 \begin{align*}
-\Prob[Y>X] &= \Esp[\Ind[Y>X]] = \Esp[\Ind[Y*>X*]] = \Esp[\Ind[Z>0]]
+\Prob[Y>X] &= \Esp \left[ \Ind[Y>X] \right] = \Esp\left[ \Ind[Y*>X*] \right] = \Esp\left[ \Ind[Z>0] \right]
 \end{align*}
 where \(Z \sim \Gaus[d,2]\) so \(\Prob[Y>X] = \Phi(\frac{d}{\sqrt{2}})\)
 
@@ -288,7 +288,7 @@ By symmetry
 \end{align*}
 
 \subsection{In R}
-\label{sec:org27ed09a}
+\label{sec:org3b2956d}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -331,10 +331,10 @@ d <- (meanY-meanX)/sdXY
 \clearpage
 
 \section{Survival}
-\label{sec:org274f0b2}
+\label{sec:org3f25ff8}
 
 \subsection{Theory}
-\label{sec:org0189822}
+\label{sec:org83151e6}
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 \begin{align*}
@@ -373,7 +373,7 @@ So:
 \end{align*}
 
 \subsection{In R}
-\label{sec:org79b0667}
+\label{sec:org45a416c}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -420,13 +420,13 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 \clearpage
 
 \section{Competing risks}
-\label{sec:orge05c83f}
+\label{sec:orgf534bfe}
 
 \subsection{Theory}
-\label{sec:org21498cc}
+\label{sec:orgd9ead0d}
 
 \subsubsection{General case (no censoring)}
-\label{sec:org6c02d90}
+\label{sec:org7646e55}
 Let consider: 
 \begin{itemize}
 \item \(X^*_{E}\) the time to the occurrence of the event of interest in the control group.
@@ -486,17 +486,17 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \end{align*}
 
 \subsubsection{General case (censoring, method: Gehan)}
-\label{sec:orgef96d27}
+\label{sec:org4fa1a25}
 In case of censoring we can use an inverse probability weighting
-approach. For a given individual \(i\) let denote \(\delta_{c,i}\) the
-indicator of no censoring, \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
+approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
+indicator of no censoring relative to \(\tilde{X}\) (resp \(\tilde{Y}\)), \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
 censored event time. We can use inverse probability weighting to
 compute the net benefit:
 \begin{align*}
-\Delta_i^{IPW} &= \frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_i])\\
+\Delta^{IPW} &= \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}])\\
 &= \left\{
                 \begin{array}{ll}
-                  \frac{1}{\Prob[\delta_c]} (\Ind[\tilde{Y}_i>\tilde{X}_i]-\Ind[\tilde{Y}_i<\tilde{X}_i])\text{, if no censoring}\\
+                  \frac{1}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[Y>X]-\Ind[Y<X])\text{, if no censoring}\\
                   0\text{, if censoring}
                 \end{array}
               \right.
@@ -509,15 +509,16 @@ argument \texttt{correction.tte} of \texttt{BuyseTest}. This works whenever the
 censoring mechanism is independent of the event times and we have a
 consistent estimate of \(\Prob[\delta_c]\) since:
 \begin{align*}
-\Esp[\Delta_i^{IPW}] &= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]} (\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
-&= \Esp\left[\frac{\delta_{c,i}}{\Prob[\delta_c]}\right] \Esp\left[(\Ind[Y_{i}>X_{i}]-\Ind[Y_{i}<X_{i}])\right]\\
-&= \frac{\Esp[\delta_{c,i}]}{\Prob[\delta_c]} \Delta\\
-&= \Delta\\
+\Esp[\Delta^{IPW}] &= \Esp\left[ \Esp\left[ \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}]) \Bigg| \tilde{X}, \tilde{Y} \right] \right]\\
+&= \Esp\left[\Esp\left[\frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Bigg| \tilde{X}, \tilde{Y} \right]\right] \Esp\left[\Ind[Y>X]-\Ind[Y<X]\right]\\
+&= \frac{\Esp\left[\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}} \right]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta
+= \frac{\Esp[\delta_{c,\tilde{X}}]\Esp[\delta_{c,\tilde{Y}}]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta\\
+&= \Delta
 \end{align*}
-
+where we used the law of total expectation (first line) and the independence between the censoring mecanisms.
 
 \subsubsection{Exponential distribution (no censoring)}
-\label{sec:org04feeb0}
+\label{sec:org9ff5994}
 
 Now let's assume that:
 \begin{itemize}
@@ -563,10 +564,10 @@ CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 
 \end{align*}
 
 \subsection{In R}
-\label{sec:org44afb7e}
+\label{sec:org7473e8f}
 
 \subsubsection{BuyseTest (no censoring)}
-\label{sec:orgc6dff55}
+\label{sec:org5a9f248}
 
 Setting:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -650,7 +651,7 @@ favorable unfavorable     neutral
 \end{verbatim}
 
 \subsubsection{BuyseTest (with censoring)}
-\label{sec:org7e0199e}
+\label{sec:orge63cc38}
 
 Simulate data:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -705,7 +706,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \end{verbatim}
 
 \subsubsection{Cumulative incidence}
-\label{sec:orgf5c70b5}
+\label{sec:orgd351c85}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}

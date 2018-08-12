@@ -164,7 +164,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan"
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
                             data = dt.sim,
                             method.tte = method)
-
+        
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
                          censoring = c("status1","status1","status1"),

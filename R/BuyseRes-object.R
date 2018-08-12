@@ -47,7 +47,9 @@ setClass(
       DeltaResampling.netChance = "matrix",
       DeltaResampling.winRatio = "matrix",
       covariance = "matrix",
-      tableComparison = "list")
+      tableComparison = "list",
+      tableSurvival = "list"
+      )
 
 )
 
@@ -84,6 +86,7 @@ methods::setMethod(
                                    DeltaResampling.winRatio,
                                    covariance,
                                    tableComparison,
+                                   tableSurvival,
                                    args){
 
                  name.endpoint <- paste0(endpoint,"_",threshold)
@@ -145,6 +148,7 @@ methods::setMethod(
                  .Object@covariance <- covariance
 
                  .Object@tableComparison <- tableComparison
+                 .Object@tableSurvival <- tableSurvival
                  
                  ## validObject(.Object)
                  return(.Object)

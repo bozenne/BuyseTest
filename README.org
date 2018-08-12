@@ -187,8 +187,10 @@ BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
 Settings (punctual estimation) 
    > treatment groups: Control = 1 and Treatment = 2
    > 1 endpoint: 
-      |priority endpoint type          operator            threshold censoring |
-      |1        time     time to event higher is favorable 20        status    |
+      |priority endpoint type          operator            threshold censoring
+      |1        time     time to event higher is favorable 20        status   
+ |
+ |
    > management of neutral pairs : re-analyzed using endpoints of lower priority (if any) 
    > management of censored survival pairs : imputation using Kaplan Meier stratified by treatment group 
    > weights of the pairs relatively to the enpoints: 
@@ -561,10 +563,6 @@ When using ="Gehan corrected"= or ="Peron corrected"=, inverse
 probability weighting (IPW) is used to obtain an estimate that does
 not depend on the censoring distribution:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"), ##+ cont(karno),
-                     data = veteran, keep.comparison = TRUE, method.tte = "Gehan corrected",
-                     trace = 0, method.inference = "none")
-summary(BT.keep)
 #+END_SRC
 
 #+RESULTS:

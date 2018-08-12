@@ -5,80 +5,9 @@ if(FALSE){
 }
 
 context("Check KM computation")
-
-## * functions
-initializeData <- BuyseTest:::initializeData
-initializeSurvival_Peron <- BuyseTest:::initializeSurvival_Peron
-
-calcSurvTest <- function(data, treatment, endpoint, strata, censoring,
-                         type, D.TTE, threshold,
-                         method.tte){
-    level.treatment <- levels(as.factor(data[[treatment]])) ## added
-    if(!is.null(strata)){
-        n.strata <- length(unique(data[[strata]])) ## added
-    } else {
-        n.strata <- 1
-    }
-################ START: CODE COPIED FROM .BuyseTest.R #######################
-    ## *** data: split the data according to the two levels
-    indexT <- which(data[[treatment]] == level.treatment[2])
-    indexC <- which(data[[treatment]] == level.treatment[1])
-
-    ## *** data: extract endpoint 
-    M.Treatment <- as.matrix(data[indexT,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
-    M.Control <- as.matrix(data[indexC,endpoint,with=FALSE]) # matrix of endpoints for the control arm
-
-    ## *** strata
-    if(!is.null(strata)){
-        ## For each strata, the index of the patients belonging to each strata, by treatment arm
-        ## Index begins at 0. This is compulsory for C++.
-         index.strataT <- lapply(1:n.strata,function(iS){
-            which(data[indexT,strata[1],with=FALSE] == iS) - 1
-        })
-        index.strataC <- lapply(1:n.strata,function(iS){
-            which(data[indexC,strata[1],with=FALSE] == iS) - 1
-        })
-                                        
-    }else{ # if there is no strata variable the same strata is used for all patient
-        ## For each strata, the index of the patients belonging to each strata, by treatment arm
-        ## Index begins at 0. This is compulsory for C++.
-        index.strataT <- list(0:(length(indexT)-1))
-        index.strataC <- list(0:(length(indexC)-1))
-    }
-
-    ## *** data: censoring
-    if(!is.null(censoring)){
-        M.delta.Treatment <- as.matrix(data[indexT,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-        M.delta.Control <- as.matrix(data[indexC,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-    }else{ # if the is no time to event variables
-        M.delta.Treatment <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        M.delta.Control <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    }
-
-    ## *** Update survival
-    if(method.tte == 0){ ## Gehan
-        outSurv <- list(list.survivalT = lapply(1:D.TTE, matrix),
-                        list.survivalC = lapply(1:D.TTE, matrix))        
-    }else {
-        outSurv <- initializeSurvival_Peron(M.Treatment = M.Treatment,
-                                            M.Control = M.Control,
-                                            M.delta.Treatment = M.delta.Treatment,
-                                            M.delta.Control = M.delta.Control,
-                                            endpoint = endpoint,
-                                            D.TTE = D.TTE,
-                                            type = type,
-                                            threshold = threshold,
-                                            index.strataT = index.strataT,
-                                            index.strataC = index.strataC,
-                                            n.strata = n.strata)
-    }
-    ################ END: CODE COPIED FROM .BuyseTest.R #######################
-
-    outSurv$index.strataT <- index.strataT
-    outSurv$index.strataC <- index.strataC
-    return(outSurv)
-}
-
+BuyseTest.options(keep.survival = TRUE,
+                  trace = 0,
+                  method.inference = "none")
 
 ## * No strata
 
@@ -97,22 +26,12 @@ data <- rbind(dataC, dataT)
 threshold <- 0.001 # threshold smaller than the interval between two events
 
 ## ** tests
-for(iData in 1:3){ ## iData <- 1
+for(iData in 1:3){ ## iData <- 3
     
-      ## *** Compute survival
-      ## Cannot use initSurvival instead of initData because for method="Efron",
-      ## initData needs to force the last observation to be an event
-      outSurv <- calcSurvTest(data,
-                              treatment = "treatment",
-                              endpoint = "time",
-                              strata = NULL,
-                              censoring = paste0("status",iData),
-                              type = 3,
-                              D.TTE = 1,
-                              threshold = 1e-12,
-                              method.tte = 1
-                              )
-    
+    ## *** Compute survival
+    BT.formula <- as.formula(paste0("treatment ~ tte(time, censoring = status",iData,")"))
+    outSurv <- BuyseTest(BT.formula, data = data)@tableSurvival
+   
     ## *** index relative to each group and the last events
     col.Surv <- c(T = "SurvivalT_TimeT", C = "SurvivalC_TimeC")
 
@@ -199,7 +118,54 @@ for(iData in 1:3){ ## iData <- 1
         if(test.censoringLastT == FALSE){expect_true(all(Surv_after[["T"]]==0))}
         if(test.censoringLastC == FALSE){expect_true(all(Surv_after[["C"]]==0))}
     })
-      
+
+    ## *** test value
+    if(iData==1){
+        list.survivalT <- list(matrix(c(1, 0.8, 0.8, 0.5333, 0.2667, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, NA, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, NA, 1, 2, 3, 4, 5, 1, 0, 1, 1, 1), 
+                                      nrow = 5, 
+                                      ncol = 11, 
+                                      dimnames = list(c("1", "2", "3", "4", "5"),c("SurvivalT_TimeT-threshold", "SurvivalT_TimeT_0", "SurvivalT_TimeT+threshold", "SurvivalC_TimeT-threshold", "SurvivalC_TimeT_0", "SurvivalC_TimeT+threshold", "SurvivalT_TimeT_0(ordered)", "SurvivalC_TimeT-threshold(ordered)", "SurvivalC_TimeT+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
+                                      ) 
+                               )
+        list.survivalC <- list(matrix(c(1, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, NA, NA, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.5357, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5, 1, 1, 0, 1, 0, 0, 0), 
+                                      nrow = 7, 
+                                      ncol = 11, 
+                                      dimnames = list(c("0.9", "1.9", "2.9", "3.9", "4.9", "5", "5"),c("SurvivalC_TimeC-threshold", "SurvivalC_TimeC_0", "SurvivalC_TimeC+threshold", "SurvivalT_TimeC-threshold", "SurvivalT_TimeC_0", "SurvivalT_TimeC+threshold", "SurvivalC_TimeC_0(ordered)", "SurvivalT_TimeC-threshold(ordered)", "SurvivalT_TimeC+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
+                                      ) 
+                               )
+    }else if(iData == 2){
+        list.survivalT <- list(matrix(c(1, 0.8, 0.8, 0.5333, 0.2667, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0, 1, 2, 3, 4, 5, 1, 0, 1, 1, 1), 
+                                      nrow = 5, 
+                                      ncol = 11, 
+                                      dimnames = list(c("1", "2", "3", "4", "5"),c("SurvivalT_TimeT-threshold", "SurvivalT_TimeT_0", "SurvivalT_TimeT+threshold", "SurvivalC_TimeT-threshold", "SurvivalC_TimeT_0", "SurvivalC_TimeT+threshold", "SurvivalT_TimeT_0(ordered)", "SurvivalC_TimeT-threshold(ordered)", "SurvivalC_TimeT+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
+                                      ) 
+                               )
+        list.survivalC <- list(matrix(c(1, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5, 1, 1, 0, 1, 0, 1, 1), 
+                                      nrow = 7, 
+                                      ncol = 11, 
+                                      dimnames = list(c("0.9", "1.9", "2.9", "3.9", "4.9", "5", "5"),c("SurvivalC_TimeC-threshold", "SurvivalC_TimeC_0", "SurvivalC_TimeC+threshold", "SurvivalT_TimeC-threshold", "SurvivalT_TimeC_0", "SurvivalT_TimeC+threshold", "SurvivalC_TimeC_0(ordered)", "SurvivalT_TimeC-threshold(ordered)", "SurvivalT_TimeC+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
+                                      ) 
+                               )
+    }else if(iData == 3){
+        list.survivalT <- list(matrix(c(1, 0.8, 0.6, 0.4, 0.2, 0.8, 0.6, 0.4, 0.2, 0, 0.8, 0.6, 0.4, 0.2, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0.8571, 0.7143, 0.5714, 0.4286, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0, 0.8, 0.6, 0.4, 0.2, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0.8571, 0.7143, 0.5714, 0.4286, 0, 1, 2, 3, 4, 5, 1, 1, 1, 1, 1), 
+                                      nrow = 5, 
+                                      ncol = 11, 
+                                      dimnames = list(c("1", "2", "3", "4", "5"),c("SurvivalT_TimeT-threshold", "SurvivalT_TimeT_0", "SurvivalT_TimeT+threshold", "SurvivalC_TimeT-threshold", "SurvivalC_TimeT_0", "SurvivalC_TimeT+threshold", "SurvivalT_TimeT_0(ordered)", "SurvivalC_TimeT-threshold(ordered)", "SurvivalC_TimeT+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
+                                      ) 
+                               )
+        list.survivalC <- list(matrix(c(1, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0.2857, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0, 0, 1, 0.8, 0.6, 0.4, 0.2, 0.2, 0.2, 1, 0.8, 0.6, 0.4, 0.2, 0, 0, 1, 0.8, 0.6, 0.4, 0.2, 0, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0, 0, 1, 0.8, 0.6, 0.4, 0.2, 0.2, 0.2, 1, 0.8, 0.6, 0.4, 0.2, 0, 0, 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5, 1, 1, 1, 1, 1, 1, 1), 
+                                      nrow = 7, 
+                                      ncol = 11, 
+                                      dimnames = list(c("0.9", "1.9", "2.9", "3.9", "4.9", "5", "5"),c("SurvivalC_TimeC-threshold", "SurvivalC_TimeC_0", "SurvivalC_TimeC+threshold", "SurvivalT_TimeC-threshold", "SurvivalT_TimeC_0", "SurvivalT_TimeC+threshold", "SurvivalC_TimeC_0(ordered)", "SurvivalT_TimeC-threshold(ordered)", "SurvivalT_TimeC+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
+                                      ) 
+                               )
+    }
+
+    test_that("value - noStrata, Peron", {
+            expect_equal(outSurv$list.survivalT, list.survivalT, tol = 1e-3)
+            expect_equal(outSurv$list.survivalC, list.survivalC, tol = 1e-3)
+    })
+    
 }
     
 ## * With strata
@@ -222,18 +188,8 @@ dataStrata <- rbind(cbind(data, strata = 1),
 
 ## ** tests
 ## *** Compute survival
-## Cannot use initSurvival instead of initData because for method="Efron",
-## initData needs to force the last observation to be an event
-outSurv <- calcSurvTest(dataStrata,
-                        treatment = "treatment",
-                        endpoint = "time",
-                        strata = "strata",
-                        censoring = "status",
-                        type = 3,
-                        D.TTE = 1,
-                        threshold = 1e-12,
-                        method.tte = 1
-                        )
+outSurv <- BuyseTest(treatment ~ tte(time,censoring = status) + strata,
+                     data = dataStrata)@tableSurvival
 
 ## *** [test] identical survival between strata
 test_that("identical between strata, Peron",{
