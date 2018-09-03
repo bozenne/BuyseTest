@@ -46,8 +46,6 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param trace [integer] should the execution of the function be traced ? See details.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param method Obsolete. Alias for 'method.tte'.
-#' @param n.bootstrap Obsolete. Alias for 'n.resampling'.
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
@@ -119,22 +117,12 @@ BuyseTest <- function(formula,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
-                      trace = NULL,
-                      n.bootstrap,
-                      method){
+                      trace = NULL){
 
     name.call <- names(match.call())
     option <- BuyseTest.options()
     
     ## ** compatibility with previous version
-    if(!missing(n.bootstrap)){
-        stop("Argument \'n.bootstrap\' is obsolete. \n",
-             "It has been replaced by the argument \'n.resampling\' \n")
-    }
-    if(!missing(method)){
-        stop("Argument \'method\' is obsolete. \n",
-             "It has been replaced by the argument \'method.tte\' \n")
-    }
 
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
