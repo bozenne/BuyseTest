@@ -35,8 +35,10 @@ using namespace arma ;
 //' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have n_TTE lines and D-1 columns.
 //' @param index_survivalM1 The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.
 //' @param threshold_TTEM1 The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.
-//' @param list_survivalT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Peron, two survival functions are computed) columns. Ignored if method is Gehan.
-//' @param list_survivalC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Peron) columns. Ignored if method is Gehan.
+//' @param list_survTimeC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}.
+//' @param list_survTimeT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. 
+//' @param list_survJumpC A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps. \emph{List&}.
+//' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}. 
 //' @param correctionTTE Should the uninformative weight be re-distributed to favorable and unfavorable?
 //' @param methodTTE The type of method used to compare censored pairs (0 Gehan 1 Peron).
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
@@ -48,25 +50,27 @@ using namespace arma ;
 //' @export
 // [[Rcpp::export]]
 List GPC_cpp(const arma::mat& Treatment,
-	     const arma::mat& Control,
-	     const NumericVector& threshold,
-	     const LogicalVector& survEndpoint,
-	     const arma::mat& delta_Treatment,
-	     const arma::mat& delta_Control,
+			 const arma::mat& Control,
+			 const NumericVector& threshold,
+			 const LogicalVector& survEndpoint,
+			 const arma::mat& delta_Treatment,
+			 const arma::mat& delta_Control,
              const int D,
-	     const bool returnIndex,
-	     const std::vector< arma::uvec >& strataT,
-	     const std::vector< arma::uvec >& strataC,
-	     const int n_strata,
-	     const int n_TTE, 
+			 const bool returnIndex,
+			 const std::vector< arma::uvec >& strataT,
+			 const std::vector< arma::uvec >& strataC,
+			 const int n_strata,
+			 const int n_TTE, 
              const arma::mat& Wscheme,
-	     const IntegerVector index_survivalM1,
-	     const NumericVector threshold_TTEM1, 
-             const std::vector< arma::mat >& list_survivalT,
-	     const std::vector< arma::mat >& list_survivalC,
-	     const int methodTTE,
-	     const int correctionTTE,
-	     const bool neutralAsUninf,
+			 const IntegerVector index_survivalM1,
+			 const NumericVector threshold_TTEM1, 
+			 const std::vector< std::vector< arma::mat > >& list_survTimeC,
+             const std::vector< std::vector< arma::mat > >& list_survTimeT,
+             const std::vector< std::vector< arma::mat > >& list_survJumpC,
+			 const std::vector< std::vector< arma::mat > >& list_survJumpT,
+			 const int methodTTE,
+			 const int correctionTTE,
+			const bool neutralAsUninf,
 	     const bool keepComparison){
   
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
@@ -97,8 +101,6 @@ List GPC_cpp(const arma::mat& Treatment,
   arma::mat ControlK; // Endpoint(s) for controls restricted to stata k
   arma::mat delta_TreatmentK ; // statut for TTE endpoints for treated restricted to strata k
   arma::mat delta_ControlK ; // statut for TTE endpoints for controls restricted to stata k
-  arma::mat matKMT_K ; // KM estimates for treated restricted to stata k
-  arma::mat matKMC_K ; // KM estimates for controls restricted to stata k
   
   int iter_d; // the index of the endpoints
   int iter_dTTE; // number of time to event endpoints that have been used
@@ -120,9 +122,11 @@ List GPC_cpp(const arma::mat& Treatment,
   arma::mat Wpairs_sauve; // the previous update of Wpairs
   arma::vec w; // current weigths
   double iThreshold_M1; // threshold of the previous survival endpoint
-  arma::mat iMatKMT_KM1 ; // KM estimates for treated restricted to stata k (previous endpoint, necessary for Peron)
-  arma::mat iMatKMC_KM1 ; // KM estimates for controls restricted to stata k (previous endpoint, necessary for Peron)
-  
+  arma::mat iSurvTimeC_M1;
+  arma::mat iSurvTimeT_M1;
+  arma::mat iSurvJumpC_M1;
+  arma::mat iSurvJumpT_M1;
+		
   vector<int> tempo_index;  // temporary index vector used to convert the index SEXP into vector<int>
 
   // *** keep track of each comparison
@@ -162,11 +166,10 @@ List GPC_cpp(const arma::mat& Treatment,
 					    iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
 					    iw, keepComparison); 
       }else{
-	matKMT_K = list_survivalT[0].rows(index_strataT);
-	matKMC_K = list_survivalC[0].rows(index_strataC);
 
 	iComparison = calcAllPairs_TTEperon(TreatmentK.col(0), ControlK.col(0), threshold[0],
-					    delta_TreatmentK.col(0), delta_ControlK.col(0), matKMT_K, matKMC_K,
+					    delta_TreatmentK.col(0), delta_ControlK.col(0),
+					    list_survTimeC[0][iter_strata], list_survTimeT[0][iter_strata], list_survJumpC[0][iter_strata], list_survJumpT[0][iter_strata],
 					    correctionTTE,
 					    Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 					    iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
@@ -246,25 +249,31 @@ List GPC_cpp(const arma::mat& Treatment,
 						 w, iw, iIndex_w,
 						 keepComparison);
 	}else{
-          matKMT_K = list_survivalT[iter_dTTE].rows(index_strataT);
-          matKMC_K = list_survivalC[iter_dTTE].rows(index_strataC);
         
 	  if(threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used [no threshold-1]
 	    iThreshold_M1 = -1;
-	    iMatKMT_KM1 = arma::mat(1,1) ;
-	    iMatKMC_KM1 = arma::mat(1,1) ;
+		iSurvTimeC_M1 = arma::mat(0,0);
+        iSurvTimeT_M1 = arma::mat(0,0);
+        iSurvJumpC_M1 = arma::mat(0,0);
+        iSurvJumpT_M1 = arma::mat(0,0);
+
 	  }else{ // following times
 	    iThreshold_M1 = threshold_TTEM1[iter_dTTE];
-	    iMatKMT_KM1 = list_survivalT[index_survivalM1[iter_dTTE]].rows(index_strataT) ;
-	    iMatKMC_KM1 = list_survivalC[index_survivalM1[iter_dTTE]].rows(index_strataC) ;
+		iSurvTimeC_M1 = list_survTimeC[index_survivalM1[iter_dTTE]][iter_strata];
+        iSurvTimeT_M1 = list_survTimeT[index_survivalM1[iter_dTTE]][iter_strata];
+        iSurvJumpC_M1 = list_survJumpC[index_survivalM1[iter_dTTE]][iter_strata];
+        iSurvJumpT_M1 = list_survJumpT[index_survivalM1[iter_dTTE]][iter_strata];
 	  }
 	
           iComparison = calcSubsetPairs_TTEperon(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-						 delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE), matKMT_K, matKMC_K, correctionTTE,
+						 delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
+						 list_survTimeC[iter_dTTE][iter_strata], list_survTimeT[iter_dTTE][iter_strata], list_survJumpC[iter_dTTE][iter_strata], list_survJumpT[iter_dTTE][iter_strata],
+						 correctionTTE,
 						 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 						 iIndex_neutralT, iIndex_neutralC, size_neutral,
 						 iIndex_uninfT, iIndex_uninfC, size_uninf,
-						 w, iThreshold_M1, iMatKMT_KM1, iMatKMC_KM1,
+						 w, iThreshold_M1,
+						 iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
 						 iw, iIndex_w,
 						 keepComparison);
 	}

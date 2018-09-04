@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: aug 12 2018 (10:44) 
+## Last-Updated: sep  3 2018 (15:10) 
 ##           By: Brice Ozenne
-##     Update #: 81
+##     Update #: 84
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,6 +30,7 @@ testArgs <- function(alternative,
                      formula,
                      keep.comparison,
                      method.tte,
+                     model.tte,
                      method.inference,
                      n.resampling,
                      neutral.as.uninf,
@@ -120,22 +121,22 @@ testArgs <- function(alternative,
     }
 
     ## ## ** model.tte
-    ## if(!is.null(model.tte)){
-    ##     if(!is.list(model.tte) || length(model.tte) != D.TTE){
-    ##         stop("BuyseTest: argument \'model.tte\' must be a list containing ",D.TTE," elements \n",
-    ##              "(one for each time to event model) \n")
-    ##     }
+    if(!is.null(model.tte)){
+        if(!is.list(model.tte) || length(model.tte) != D.TTE){
+            stop("BuyseTest: argument \'model.tte\' must be a list containing ",D.TTE," elements \n",
+                 "(one for each time to event model) \n")
+        }
 
-    ##     vec.class  <- sapply(model.tte, function(iTTE){identical(class(iTTE), "prodlim")})
-    ##     if(any(vec.class == FALSE) ){
-    ##         stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects \n")
-    ##     }
+        vec.class  <- sapply(model.tte, function(iTTE){inherits(iTTE, "prodlim")})
+        if(any(vec.class == FALSE) ){
+            stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects \n")
+        }
 
-    ##     vec.predictors  <- sapply(model.tte, function(iTTE){identical(iTTE$discrete.predictors, c(treatment,strata))})
-    ##     if(any(vec.predictors == FALSE) ){
-    ##         stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors \n")
-    ##     }        
-    ## }
+        vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(iTTE$discrete.predictors), sort(c(treatment,strata)))})
+        if(any(vec.predictors == FALSE) ){
+            stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors \n")
+        }        
+    }
     
     ## ** data (endpoints)
     ## *** binary endpoints

@@ -29,6 +29,8 @@
 #' Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param model.tte [list] optionnal survival models relative to each time to each time to event outcome.
+#' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
 #' @param method.inference [character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
 #' or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
 #' be used to compute p-values and confidence intervals.
@@ -101,7 +103,13 @@
 ##' @rdname BuyseTest
 ##' @export
 BuyseTest <- function(formula,
-                      data, 
+                      data,
+                      method.tte = NULL,
+                      model.tte = NULL,
+                      method.inference = NULL,
+                      n.resampling = NULL,
+                      neutral.as.uninf = NULL,
+                      keep.comparison = NULL,
                       treatment = NULL,
                       endpoint = NULL,
                       type = NULL,
@@ -109,11 +117,6 @@ BuyseTest <- function(formula,
                       censoring = NULL,
                       operator = NULL,
                       strata = NULL, 
-                      method.tte = NULL,
-                      neutral.as.uninf = NULL,
-                      method.inference = NULL,
-                      n.resampling = NULL,
-                      keep.comparison = NULL,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
@@ -135,6 +138,7 @@ BuyseTest <- function(formula,
                               formula = formula,
                               keep.comparison = keep.comparison,
                               method.tte = method.tte,
+                              model.tte = model.tte,
                               n.resampling = n.resampling,
                               neutral.as.uninf = neutral.as.uninf,
                               operator = operator,
@@ -375,6 +379,7 @@ BuyseTest <- function(formula,
                         list.survivalC = lapply(1:D.TTE, matrix))        
     }else{ ## Peron
         outSurv <- initializeSurvival_Peron(data =  data, dataT = dataT, dataC = dataC,
+                                            model.tte = envir$outArgs$model.tte,
                                             n.T = NROW(M.Treatment), n.C = NROW(M.Control),
                                             treatment = treatment,
                                             endpoint = endpoint,
@@ -404,8 +409,10 @@ BuyseTest <- function(formula,
                        Wscheme = envir$outArgs$Wscheme,
                        index_survivalM1 = envir$outArgs$index.survivalM1,
                        threshold_TTEM1 = envir$outArgs$threshold.TTEM1,
-                       list_survivalT = outSurv$list.survivalT,
-                       list_survivalC = outSurv$list.survivalC,
+                       list_survTimeC = outSurv$list.survTimeC,
+                       list_survTimeT = outSurv$list.survTimeT,
+                       list_survJumpC = outSurv$list.survJumpC,
+                       list_survJumpT = outSurv$list.survJumpT,
                        methodTTE = method.tte,
                        correctionTTE = envir$outArgs$correction.tte,
                        neutralAsUninf = envir$outArgs$neutral.as.uninf,
