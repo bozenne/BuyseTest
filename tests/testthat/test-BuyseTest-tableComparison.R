@@ -1,11 +1,11 @@
-### test-BuyseTest-table2Delta.R --- 
+### test-BuyseTest-tableComparison.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: aug 12 2018 (10:40) 
+## Last-Updated: sep  5 2018 (09:47) 
 ##           By: Brice Ozenne
-##     Update #: 15
+##     Update #: 20
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,7 +21,7 @@ if(FALSE){
     library(BuyseTest)
 }
 
-context("Check tableComparison2Delta is matching BuyseTest")
+context("Check tableComparison matches the summary of BuyseTest objects")
 
 ## * Settings
 n.patients <- c(90,100)
@@ -86,4 +86,4 @@ test_that("Full data", {
 ## })
 
 ##----------------------------------------------------------------------
-### test-BuyseTest-table2Delta.R ends here
+### test-BuyseTest-tableComparison.R ends here

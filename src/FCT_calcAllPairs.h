@@ -306,11 +306,13 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
   
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
+      /* Rcout << iter_T << ";" << iter_C ; */
+	  
+        proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C],
+												deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
+                                                survTimeC, survTimeT, survJumpC, survJumpT);
       
-        proba_threshold = calcOneProba_TTEperon(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold, iter_T, iter_C,
-                                                survTimeT, survTimeC, survJumpC, survJumpT);
-      
-
+      /* Rcout << endl; */
 		count_favorable += proba_threshold[0];    
         count_unfavorable += proba_threshold[1];
 

@@ -2,6 +2,7 @@ if(FALSE){
     library(testthat)
     library(BuyseTest)
     library(data.table)
+    library(prodlim)
 }
 
 context("Check KM computation")
@@ -26,16 +27,22 @@ data <- rbind(dataC, dataT)
 threshold <- 0.001 # threshold smaller than the interval between two events
 
 ## ** tests
-for(iData in 1:3){ ## iData <- 3
+for(iData in 1:3){ ## iData <- 1
+
+    data[, status := .SD[[paste0("status",iData)]]]
     
     ## *** Compute survival
-    BT.formula <- as.formula(paste0("treatment ~ tte(time, censoring = status",iData,")"))
-    outSurv <- BuyseTest(BT.formula, data = data)@tableSurvival
-   
-    ## *** index relative to each group and the last events
-    col.Surv <- c(T = "SurvivalT_TimeT", C = "SurvivalC_TimeC")
+    outSurv <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)@tableSurvival
 
-    last.time <- max(data$time)
+    ## *** control survival at jump times
+    e.survC <- prodlim(Hist(time, status) ~ 1, data = data[treatment=="C"])
+    e.survT <- prodlim(Hist(time, status) ~ 1, data = data[treatment=="T"])
+        outSurv$list.survJumpC
+    
+    ## *** index relative to each group and the last events
+    
+    outSurv$list.survJumpT
+
     indexT.last <- data[treatment == "T",which(time==last.time)]
     indexC.last <- data[treatment == "C",which(time==last.time)]
 

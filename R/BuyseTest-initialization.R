@@ -591,8 +591,8 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                                                                  nrow = length(index.strataT[[iStrata]]), ncol = length(colnames.obs),
                                                                  dimnames = list(NULL, colnames.obs))
 
-            iControl.time <- dataC[index.strataC[[iStrata]],.SD[[endpoint.TTE]]]
-            iTreatment.time <- dataT[index.strataT[[iStrata]],.SD[[endpoint.TTE]]]
+            iControl.time <- dataC[index.strataC[[iStrata]],.SD[[endpoint.TTE[iEndpoint.TTE]]]]
+            iTreatment.time <- dataT[index.strataT[[iStrata]],.SD[[endpoint.TTE[iEndpoint.TTE]]]]
 
             for(iGroup in 0:1){ ## iGroup <- 0
 
@@ -617,9 +617,8 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
 
         }
     }
-
-    return(list(list.survTimeT=list.survTimeT,
-                list.survTimeC=list.survTimeC,
+    return(list(list.survTimeC=list.survTimeC,
+                list.survTimeT=list.survTimeT,
                 list.survJumpC=list.survJumpC,
                 list.survJumpT=list.survJumpT))
     

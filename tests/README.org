@@ -1,8 +1,30 @@
 * Tests
 
-** test-initThreshold
-Check correct intialization of the threshold in the user interface.
-
+** test-BuyseTest-checkValues
+Check against known output when considering many pairs (binary,
+continuous, time to event, mixed endpoint) with and without strata.
+** test-BuyseTest-correctionTTE
+Check the IPCW correction for method.tte="Gehan" and
+method.tte="Peron".
+** test-BuyseTest-CR
+Check that using competing risks is equivalent to using the pseudo
+survival times.
+** test-BuyseTest-neutralAsUnif
+Test whether the argument neutral.as.uninf works:
+- on an example without NA
+- on an example with NA
+** test-BuyseTest-operator
+Test whether the argument operator="<0" and operator=">0" works on a simple example.
+** test-BuyseTest-Pairs
+Test BuyseTest on tractable examples:
+- count of positive, negative, neutral, uniformative pairs
+- delta and Delta net Chance and win Ratio
+** test-BuyseTest-previousBug
+Check that issues that have been reported are indeed fixed.
+** test-BuyseTest-resampling
+Check permutation and bootstrap resampling
+** test-BuyseTest-tableComparison
+Check tableComparison matches the summary of BuyseTest objects
 ** test-initSurvival
 Check the computation of the survival using Kaplan Meier:
 - no strata: Check jump at t- and no jump at t+ in the estimated survival by KM.
@@ -10,30 +32,13 @@ Check the computation of the survival using Kaplan Meier:
 (rational being that we do not know what it would be for censored but we do know that the survival if 0 if everybody is dead)
 - strata: check identical with other strata if all strata are identical.
 - strata and no strata: check consistency with results from previous version (version >1.2)
+** test-initThreshold
+Check correct intialization of the threshold in the user interface.
+** test-otherPackage
+Not run. Used to compare the estimation of the win ratio with the
+library WWR, winRatioAnalysis, and WLreg.
 
-** test-BuyseTest-Pairs
-Test BuyseTest on tractable examples:
-- count of positive, negative, neutral, uniformative pairs
-- delta and Delta net Chance and win Ratio
 
-** test-BuyseTest-operator
-Test whether the argument operator="<0" and operator=">0" works on a simple example.
 
-** test-BuyseTest-neutralAsUnif
-Test whether the argument neutral.as.uninf works:
-- on an example without NA
-- on an example with NA
 
-** test-BuyseTest-previousBug
-Test issues reported by users:
-- incorrect management of pairs with neutral.as.uninf
-
-** test-BuyseTest-checkValues
-Check against known output in complex cases
-** test-BuyseTest-correctionTTE
-Check method.tte="Gehan corrected" and method.tte="Peron corrected"
-** test-resampling
-Check permutation and bootstrap resampling
-* TODO
-** test-BuyseTest-correctionTTE: test for case with two survival endpoints (same or different endpoints)
 
