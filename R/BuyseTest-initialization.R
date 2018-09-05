@@ -402,7 +402,7 @@ initializeFormula <- function(x){
     for(iE in 1:n.endpoint){
         ## extract type
         type[iE] <- ls.x.endpoint[[iE]][1]
-        
+
         ## get each argument
         iVec.args <- strsplit(gsub(")", replacement = "",ls.x.endpoint[[iE]][2]),
                               split = ",", fixed = TRUE)[[1]]
@@ -449,7 +449,15 @@ initializeFormula <- function(x){
         ## extract arguments
         endpoint[iE] <- gsub("\"","",iArg[iName=="endpoint"])
         if("threshold" %in% iName){
-            threshold[iE] <- as.numeric(iArg[iName=="threshold"])
+            thresholdTempo <- tryCatch(as.numeric(iArg[iName=="threshold"]),
+                                       error = function(c){ "error" },
+                                       warning = function(c){ "warning" }
+                                       )
+            if(thresholdTempo %in% c("error", "warning")){ ## maybe a variable was passed instead of a value
+              thresholdTempo <- eval(expr = parse(text = iArg[iName=="threshold"]))
+            }
+            
+            threshold[iE] <- thresholdTempo
         }
         if("censoring" %in% iName){
             censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])
@@ -545,33 +553,37 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
             for(iGroup in 0:1){ ## iGroup <- 0            
                 iStart <- iModelStrata[list(iGroup,iStrata),.SD$start]
                 iStop <- iModelStrata[list(iGroup,iStrata),.SD$stop]
+                iAllTime <- model.tte[[iEndpoint.TTE]]$time[iStart:iStop]
+                iAllSurv <- model.tte[[iEndpoint.TTE]]$surv[iStart:iStop]
+                iOrder <- order(iAllTime)
+
                 iIndex.jump <- intersect(iStart:iStop,which(model.tte[[iEndpoint.TTE]]$hazard>0))
                 iJump <- model.tte[[iEndpoint.TTE]]$time[iIndex.jump]
-                iSurv <- model.tte[[iEndpoint.TTE]]$surv[iIndex.jump]
                 iLast.Jump <- utils::tail(iIndex.jump,1)
                 iLastEvent <- (model.tte[[iEndpoint.TTE]]$surv[iLast.Jump]==0)
-
+                
                 if(iGroup == 0){
                     ## 0 at infinity if last event is a death
-                    predSurvC <- stats::approxfun(x=iJump, y=iSurv,
-                                                   yleft=1, yright=switch(as.character(iLastEvent),
-                                                                          "TRUE" = 0,
-                                                                          "FALSE" = NA),
-                                                   f=0,
-                                                   method = "constant")
+                    predSurvC <- stats::approxfun(x = iAllTime[iOrder],
+                                                  y = iAllSurv[iOrder],
+                                                  yleft=1, yright=switch(as.character(iLastEvent),
+                                                                         "TRUE" = 0,
+                                                                         "FALSE" = NA),
+                                                  f=0,
+                                                  method = "constant")
                     jumpC <- iJump
                 }else if(iGroup == 1){
                     ## 0 at infinity if last event is a death
-                    predSurvT <- stats::approxfun(x=iJump, y=iSurv,
-                                                   yleft=1, yright=switch(as.character(iLastEvent),
-                                                                          "TRUE" = 0,
-                                                                          "FALSE" = NA),
-                                                   f=0,
-                                                   method = "constant")
+                    predSurvT <- stats::approxfun(x = iAllTime[iOrder],
+                                                  y = iAllSurv[iOrder],
+                                                  yleft=1, yright=switch(as.character(iLastEvent),
+                                                                         "TRUE" = 0,
+                                                                         "FALSE" = NA),
+                                                  f=0,
+                                                  method = "constant")
 
                     jumpT <- iJump
                 }
-                
             }
 
             ## **** survival at jump times

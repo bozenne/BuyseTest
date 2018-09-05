@@ -10,6 +10,19 @@ BuyseTest.options(keep.survival = TRUE,
                   trace = 0,
                   method.inference = "none")
 
+## does the same as prodlim:::predict.prodlim
+## except continue the survival at 0 after last event if it is 0 at last event
+predictPL2 <- function(object, times, ...){
+    pred <- predict(object, times = times, ...)
+
+    index.plus <- which(times>max(object$time))
+    if( (length(index.plus)>0) && (utils::tail(object$surv,1) == 0) ){
+        pred[index.plus] <- 0
+    }
+
+    return(pred)
+}
+
 ## * No strata
 
 ## ** settings
@@ -24,155 +37,88 @@ dataC <- data.table(time = c(1:5-0.1,5,5),
                     status2 = c(1,1,0,1,0,1,1),
                     status3 = c(1,1,1,1,1,1,1))
 data <- rbind(dataC, dataT)
-threshold <- 0.001 # threshold smaller than the interval between two events
+seqThreshold <- c(0,0.5,1)
 
 ## ** tests
 for(iData in 1:3){ ## iData <- 1
 
     data[, status := .SD[[paste0("status",iData)]]]
-    
-    ## *** Compute survival
-    outSurv <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)@tableSurvival
 
-    ## *** control survival at jump times
     e.survC <- prodlim(Hist(time, status) ~ 1, data = data[treatment=="C"])
     e.survT <- prodlim(Hist(time, status) ~ 1, data = data[treatment=="T"])
-        outSurv$list.survJumpC
     
-    ## *** index relative to each group and the last events
-    
-    outSurv$list.survJumpT
-
-    indexT.last <- data[treatment == "T",which(time==last.time)]
-    indexC.last <- data[treatment == "C",which(time==last.time)]
-
-    index.Tevent <- setdiff(which(data[treatment == "T"][[paste0("status",iData)]]==1),indexT.last)
-    index.Cevent <- setdiff(which(data[treatment == "C"][[paste0("status",iData)]]==1),indexC.last)
-
-    index.Tcensoring <- setdiff(which(data[treatment == "T"][[paste0("status",iData)]]==0),indexT.last)
-    index.Ccensoring <- setdiff(which(data[treatment == "C"][[paste0("status",iData)]]==0),indexC.last)
-
-    ## *** [Test] jump at event (except last event)
-    Surv_before <- list(T = outSurv$list.survivalT[[1]][index.Tevent,paste0(col.Surv["T"],"-threshold")],
-                        C = outSurv$list.survivalC[[1]][index.Cevent,paste0(col.Surv["C"],"-threshold")])
-    Surv_at <- list(T = outSurv$list.survivalT[[1]][index.Tevent,paste0(col.Surv["T"],"_0")],
-                    C = outSurv$list.survivalC[[1]][index.Cevent,paste0(col.Surv["C"],"_0")])
-    Surv_after <- list(T = outSurv$list.survivalT[[1]][index.Tevent,paste0(col.Surv["T"],"+threshold")],
-                       C = outSurv$list.survivalC[[1]][index.Cevent,paste0(col.Surv["C"],"+threshold")])
-    
-    test_that("jump at event time (t-, noStrata), Peron", { ## jump at event time
-        expect_true(all(Surv_before[["T"]] > Surv_at[["T"]]))
-        expect_true(all(Surv_before[["C"]] > Surv_at[["C"]]))
-    })
-    
-    test_that("no jump after event time (t+, noStrata), Peron", { ## no jump just after event time
-        expect_true(all(Surv_at[["T"]] == Surv_after[["T"]]))
-        expect_true(all(Surv_at[["C"]] == Surv_after[["C"]]))
-    })
-
-    test_that("check survival at event time (noStrata), Peron", { 
-        GS <- switch(as.character(iData),
-                     "1" = list(T = c(0.8000000, 0.5333333, 0.2666667), C = c(0.8571429, 0.7142857, 0.5357143)),
-                     "2" = list(T = c(0.8000000, 0.5333333, 0.2666667), C = c(0.8571429, 0.7142857, 0.5357143)),
-                     "3" = list(T = c(0.8, 0.6, 0.4, 0.2), C = c(0.8571429, 0.7142857, 0.5714286, 0.4285714, 0.2857143)))
-        expect_equal(unname(Surv_at[["T"]]), GS[["T"]], tol = 1e-6)
-        expect_equal(unname(Surv_at[["C"]]), GS[["C"]], tol = 1e-6)
-    })
-
-    ## *** [Test] jump at censoring 
-    Surv_before <- list(T = outSurv$list.survivalT[[1]][index.Tcensoring,paste0(col.Surv["T"],"-threshold")],
-                        C = outSurv$list.survivalC[[1]][index.Ccensoring,paste0(col.Surv["C"],"-threshold")])
-    Surv_at <- list(T = outSurv$list.survivalT[[1]][index.Tcensoring,paste0(col.Surv["T"],"_0")],
-                    C = outSurv$list.survivalC[[1]][index.Ccensoring,paste0(col.Surv["C"],"_0")])
-    Surv_after <- list(T = outSurv$list.survivalT[[1]][index.Tcensoring,paste0(col.Surv["T"],"+threshold")],
-                       C = outSurv$list.survivalC[[1]][index.Ccensoring,paste0(col.Surv["C"],"+threshold")])
-    
-    test_that("no jump at censoring time (t-, noStrata), Peron", { ## no jump at censoring time
-      expect_true(all(Surv_before[["T"]] == Surv_at[["T"]]))
-      expect_true(all(Surv_before[["C"]] == Surv_at[["C"]]))
-    })
-    
-    test_that("no jump after censoring time (t+, noStrata), Peron", { ## no jump just after censoring time
-      expect_true(all(Surv_at[["T"]] == Surv_after[["T"]]))
-      expect_true(all(Surv_at[["C"]] == Surv_after[["C"]]))
-    })
-    
-    test_that("check survival at censoring time (noStrata), Peron", { 
-            GS <- switch(as.character(iData),
-                         "1" = list(T = 0.8, C = c(0.7142857, 0.5357143)),
-                         "2" = list(T = 0.8, C = c(0.7142857, 0.5357143)),
-                         "3" = list(T = numeric(0), C = numeric(0)))
-            expect_equal(unname(Surv_at[["T"]]), GS[["T"]], tol = 1e-6)
-            expect_equal(unname(Surv_at[["C"]]), GS[["C"]], tol = 1e-6)
-    })
-    
-    ## *** last events
-    lastData <- data[time == max(time)]
-    lastDataT <- lastData[treatment == "T"]
-    lastDataC <- lastData[treatment == "C"]
-    Surv_after <- list(T = outSurv$list.survivalT[[1]][indexT.last,paste0(col.Surv["T"],"+threshold")],
-                       C = outSurv$list.survivalC[[1]][indexC.last,paste0(col.Surv["C"],"+threshold")])
-    
-    test.censoringLastT <- any(lastDataT[[paste0("status",iData)]]==0)
-    test.censoringLastC <- any(lastDataC[[paste0("status",iData)]]==0)
+    for(iThreshold in seqThreshold){ ## iThreshold <- 0.5
         
-    test_that("NA after last event if censoring - noStrata, Peron", {        
-        if(test.censoringLastT){expect_true(all(is.na(Surv_after[["T"]])))}
-        if(test.censoringLastC){expect_true(all(is.na(Surv_after[["C"]])))}
-    })
-      
-    test_that("0 after last event if death - noStrata, Peron", {
-        if(test.censoringLastT == FALSE){expect_true(all(Surv_after[["T"]]==0))}
-        if(test.censoringLastC == FALSE){expect_true(all(Surv_after[["C"]]==0))}
-    })
+        ## *** Compute survival
+        outBT <- BuyseTest(treatment ~ tte(time, censoring = status, threshold = iThreshold),
+                           data = data)
+        outSurv <- outBT@tableSurvival
 
-    ## *** test value
-    if(iData==1){
-        list.survivalT <- list(matrix(c(1, 0.8, 0.8, 0.5333, 0.2667, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, NA, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, NA, 1, 2, 3, 4, 5, 1, 0, 1, 1, 1), 
-                                      nrow = 5, 
-                                      ncol = 11, 
-                                      dimnames = list(c("1", "2", "3", "4", "5"),c("SurvivalT_TimeT-threshold", "SurvivalT_TimeT_0", "SurvivalT_TimeT+threshold", "SurvivalC_TimeT-threshold", "SurvivalC_TimeT_0", "SurvivalC_TimeT+threshold", "SurvivalT_TimeT_0(ordered)", "SurvivalC_TimeT-threshold(ordered)", "SurvivalC_TimeT+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
-                                      ) 
-                               )
-        list.survivalC <- list(matrix(c(1, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, NA, NA, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.5357, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5, 1, 1, 0, 1, 0, 0, 0), 
-                                      nrow = 7, 
-                                      ncol = 11, 
-                                      dimnames = list(c("0.9", "1.9", "2.9", "3.9", "4.9", "5", "5"),c("SurvivalC_TimeC-threshold", "SurvivalC_TimeC_0", "SurvivalC_TimeC+threshold", "SurvivalT_TimeC-threshold", "SurvivalT_TimeC_0", "SurvivalT_TimeC+threshold", "SurvivalC_TimeC_0(ordered)", "SurvivalT_TimeC-threshold(ordered)", "SurvivalT_TimeC+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
-                                      ) 
-                               )
-    }else if(iData == 2){
-        list.survivalT <- list(matrix(c(1, 0.8, 0.8, 0.5333, 0.2667, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0, 0.8, 0.8, 0.5333, 0.2667, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0, 1, 2, 3, 4, 5, 1, 0, 1, 1, 1), 
-                                      nrow = 5, 
-                                      ncol = 11, 
-                                      dimnames = list(c("1", "2", "3", "4", "5"),c("SurvivalT_TimeT-threshold", "SurvivalT_TimeT_0", "SurvivalT_TimeT+threshold", "SurvivalC_TimeT-threshold", "SurvivalC_TimeT_0", "SurvivalC_TimeT+threshold", "SurvivalT_TimeT_0(ordered)", "SurvivalC_TimeT-threshold(ordered)", "SurvivalC_TimeT+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
-                                      ) 
-                               )
-        list.survivalC <- list(matrix(c(1, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0.5357, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.8571, 0.7143, 0.7143, 0.5357, 0.5357, 0, 0, 1, 0.8, 0.8, 0.5333, 0.2667, 0.2667, 0.2667, 1, 0.8, 0.8, 0.5333, 0.2667, 0, 0, 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5, 1, 1, 0, 1, 0, 1, 1), 
-                                      nrow = 7, 
-                                      ncol = 11, 
-                                      dimnames = list(c("0.9", "1.9", "2.9", "3.9", "4.9", "5", "5"),c("SurvivalC_TimeC-threshold", "SurvivalC_TimeC_0", "SurvivalC_TimeC+threshold", "SurvivalT_TimeC-threshold", "SurvivalT_TimeC_0", "SurvivalT_TimeC+threshold", "SurvivalC_TimeC_0(ordered)", "SurvivalT_TimeC-threshold(ordered)", "SurvivalT_TimeC+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
-                                      ) 
-                               )
-    }else if(iData == 3){
-        list.survivalT <- list(matrix(c(1, 0.8, 0.6, 0.4, 0.2, 0.8, 0.6, 0.4, 0.2, 0, 0.8, 0.6, 0.4, 0.2, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0.8571, 0.7143, 0.5714, 0.4286, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0, 0.8, 0.6, 0.4, 0.2, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0.8571, 0.7143, 0.5714, 0.4286, 0, 1, 2, 3, 4, 5, 1, 1, 1, 1, 1), 
-                                      nrow = 5, 
-                                      ncol = 11, 
-                                      dimnames = list(c("1", "2", "3", "4", "5"),c("SurvivalT_TimeT-threshold", "SurvivalT_TimeT_0", "SurvivalT_TimeT+threshold", "SurvivalC_TimeT-threshold", "SurvivalC_TimeT_0", "SurvivalC_TimeT+threshold", "SurvivalT_TimeT_0(ordered)", "SurvivalC_TimeT-threshold(ordered)", "SurvivalC_TimeT+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
-                                      ) 
-                               )
-        list.survivalC <- list(matrix(c(1, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0.2857, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0, 0, 1, 0.8, 0.6, 0.4, 0.2, 0.2, 0.2, 1, 0.8, 0.6, 0.4, 0.2, 0, 0, 1, 0.8, 0.6, 0.4, 0.2, 0, 0, 0.8571, 0.7143, 0.5714, 0.4286, 0.2857, 0, 0, 1, 0.8, 0.6, 0.4, 0.2, 0.2, 0.2, 1, 0.8, 0.6, 0.4, 0.2, 0, 0, 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5, 1, 1, 1, 1, 1, 1, 1), 
-                                      nrow = 7, 
-                                      ncol = 11, 
-                                      dimnames = list(c("0.9", "1.9", "2.9", "3.9", "4.9", "5", "5"),c("SurvivalC_TimeC-threshold", "SurvivalC_TimeC_0", "SurvivalC_TimeC+threshold", "SurvivalT_TimeC-threshold", "SurvivalT_TimeC_0", "SurvivalT_TimeC+threshold", "SurvivalC_TimeC_0(ordered)", "SurvivalT_TimeC-threshold(ordered)", "SurvivalT_TimeC+threshold(ordered)", "time_control(ordered)", "events(ordered)")) 
-                                      ) 
-                               )
-    }
-
-    test_that("value - noStrata, Peron", {
-            expect_equal(outSurv$list.survivalT, list.survivalT, tol = 1e-3)
-            expect_equal(outSurv$list.survivalC, list.survivalC, tol = 1e-3)
-    })
+        ## data[,sum(status),by="treatment"]
     
+        ## *** Control at jump times
+        test_that("initSurvival (jump times, no strata)",{
+            ## correct jump times
+            expect_equal(e.survC$time[e.survC$hazard>0],
+                         outSurv$list.survJumpC[[1]][[1]][,"time"])
+            expect_equal(e.survT$time[e.survT$hazard>0],
+                         outSurv$list.survJumpT[[1]][[1]][,"time"])
+
+            ## correct jumps in survival
+            expect_equal(diff(c(1,e.survC$surv[e.survC$hazard>0])),
+                         outSurv$list.survJumpC[[1]][[1]][,"dSurvival"])
+            expect_equal(diff(c(1,e.survT$surv[e.survT$hazard>0])),
+                         outSurv$list.survJumpT[[1]][[1]][,"dSurvival"])
+
+            ## correct survival
+            expect_equal(predictPL2(e.survT, times = e.survC$time[e.survC$hazard>0] + outBT@threshold),
+                         outSurv$list.survJumpC[[1]][[1]][,"survival"])
+            expect_equal(predictPL2(e.survC, times = e.survT$time[e.survT$hazard>0] + outBT@threshold),
+                         outSurv$list.survJumpT[[1]][[1]][,"survival"])
+        })
+        
+        ## *** Control at observation time
+    
+        test_that("initSurvival (observation times, no strata)",{
+        ## correct time
+        expect_equal(data[treatment=="C",time],
+                         outSurv$list.survTimeC[[1]][[1]][,"time"])
+
+        expect_equal(data[treatment=="T",time],
+                     outSurv$list.survTimeT[[1]][[1]][,"time"])
+
+        ## correct survival (control observation times)
+        expect_equal(predictPL2(e.survC, times = data[treatment=="C",time] - outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[1]][,"SurvivalC-threshold"])
+        expect_equal(predictPL2(e.survC, times = data[treatment=="C",time]),
+                     outSurv$list.survTimeC[[1]][[1]][,"SurvivalC_0"])
+        expect_equal(predictPL2(e.survC, times = data[treatment=="C",time] + outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[1]][,"SurvivalC+threshold"])
+
+        expect_equal(predictPL2(e.survT, times = data[treatment=="C",time] - outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[1]][,"SurvivalT-threshold"])
+        expect_equal(predictPL2(e.survT, times = data[treatment=="C",time]),
+                     outSurv$list.survTimeC[[1]][[1]][,"SurvivalT_0"])
+        expect_equal(predictPL2(e.survT, times = data[treatment=="C",time] + outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[1]][,"SurvivalT+threshold"])
+
+        ## correct survival (treatment observation times)
+        expect_equal(predictPL2(e.survC, times = data[treatment=="T",time] - outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[1]][,"SurvivalC-threshold"])
+        expect_equal(predictPL2(e.survC, times = data[treatment=="T",time]),
+                     outSurv$list.survTimeT[[1]][[1]][,"SurvivalC_0"])
+        expect_equal(predictPL2(e.survC, times = data[treatment=="T",time] + outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[1]][,"SurvivalC+threshold"])
+
+        expect_equal(predictPL2(e.survT, times = data[treatment=="T",time] - outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[1]][,"SurvivalT-threshold"])
+        expect_equal(predictPL2(e.survT, times = data[treatment=="T",time]),
+                     outSurv$list.survTimeT[[1]][[1]][,"SurvivalT_0"])
+        expect_equal(predictPL2(e.survT, times = data[treatment=="T",time] + outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[1]][,"SurvivalT+threshold"])
+        })
+        
+    }
 }
     
 ## * With strata
@@ -194,56 +140,75 @@ dataStrata <- rbind(cbind(data, strata = 1),
                     )
 
 ## ** tests
-## *** Compute survival
-outSurv <- BuyseTest(treatment ~ tte(time,censoring = status) + strata,
-                     data = dataStrata)@tableSurvival
+outBT <- BuyseTest(treatment ~ tte(time,censoring = status) + strata,
+                     data = dataStrata)
+outSurv <- outBT@tableSurvival
 
-## *** [test] identical survival between strata
-test_that("identical between strata, Peron",{
-    expect_equal(outSurv$list.survivalT[[1]][outSurv$index.strataT[[1]]+1,],
-                 outSurv$list.survivalT[[1]][outSurv$index.strataT[[2]]+1,])
-    expect_equal(outSurv$list.survivalC[[1]][outSurv$index.strataC[[1]]+1,],
-                 outSurv$list.survivalC[[1]][outSurv$index.strataC[[2]]+1,])
-})
+for(iStrata in 1:2){ ## iStrata <- 1
+    iE.survC <- prodlim(Hist(time, status) ~ 1, data = dataStrata[treatment=="C" & strata == iStrata])
+    iE.survT <- prodlim(Hist(time, status) ~ 1, data = dataStrata[treatment=="T" & strata == iStrata])
 
-## *** [test] check survival
-test_that("check survival (strata),  Peron", {
-    ## to import the expected values:
-    ## rownames(Survival_Strata$list_survivalT[[1]]) <- NULL
-    ## butils::object2script(Survival_Strata$list_survivalT[[1]], digit = 6)
-    ## rownames(Survival_Strata$list_survivalC[[1]]) <- NULL
-    ## butils::object2script(Survival_Strata$list_survivalC[[1]], digit = 6)
-        
-    GS.list_survivalT <-  cbind(c("SurvivalT_TimeT-threshold" = 1, 0.8, 0.8, 0.533333, 0.266667, 1, 0.8, 0.8, 0.533333, 0.266667), 
-                                c("SurvivalT_TimeT_0" = 0.8, 0.8, 0.533333, 0.266667, 0, 0.8, 0.8, 0.533333, 0.266667, 0), 
-                                c("SurvivalT_TimeT+threshold" = 0.8, 0.8, 0.533333, 0.266667, 0, 0.8, 0.8, 0.533333, 0.266667, 0), 
-                                c("SurvivalC_TimeT-threshold" = 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714), 
-                                c("SurvivalC_TimeT_0" = 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714), 
-                                c("SurvivalC_TimeT+threshold" = 0.857143, 0.714286, 0.714286, 0.535714, NA, 0.857143, 0.714286, 0.714286, 0.535714, NA), 
-                                c("SurvivalT_TimeT_0(ordered)" = 0.8, 0.8, 0.533333, 0.266667, 0, 0.8, 0.8, 0.533333, 0.266667, 0), 
-                                c("SurvivalC_TimeT-threshold(ordered)" = 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714), 
-                                c("SurvivalC_TimeT+threshold(ordered)" = 0.857143, 0.714286, 0.714286, 0.535714, NA, 0.857143, 0.714286, 0.714286, 0.535714, NA), 
-                                c("time_control(ordered)" = 1, 2, 3, 4, 5, 1, 2, 3, 4, 5), 
-                                c("events(ordered)" = 1, 0, 1, 1, 1, 1, 0, 1, 1, 1)
-                                )
+    ## *** Control at jump times
+    test_that("initSurvival (jump times, strata)",{    
+        ## correct jump times
+        expect_equal(iE.survC$time[iE.survC$hazard>0],
+                     outSurv$list.survJumpC[[1]][[iStrata]][,"time"])
+        expect_equal(iE.survT$time[iE.survT$hazard>0],
+                     outSurv$list.survJumpT[[1]][[iStrata]][,"time"])
 
-    GS.list_survivalC <- cbind(c("SurvivalC_TimeC-threshold" = 1, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.535714, 1, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.535714), 
-                               c("SurvivalC_TimeC_0" = 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.535714, 0.535714, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.535714, 0.535714), 
-                               c("SurvivalC_TimeC+threshold" = 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, NA, NA, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, NA, NA), 
-                               c("SurvivalT_TimeC-threshold" = 1, 0.8, 0.8, 0.533333, 0.266667, 0.266667, 0.266667, 1, 0.8, 0.8, 0.533333, 0.266667, 0.266667, 0.266667), 
-                               c("SurvivalT_TimeC_0" = 1, 0.8, 0.8, 0.533333, 0.266667, 0, 0, 1, 0.8, 0.8, 0.533333, 0.266667, 0, 0), 
-                               c("SurvivalT_TimeC+threshold" = 1, 0.8, 0.8, 0.533333, 0.266667, 0, 0, 1, 0.8, 0.8, 0.533333, 0.266667, 0, 0), 
-                               c("SurvivalC_TimeC_0(ordered)" = 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.535714, 0.535714, 0.857143, 0.714286, 0.714286, 0.535714, 0.535714, 0.535714, 0.535714), 
-                               c("SurvivalT_TimeC-threshold(ordered)" = 1, 0.8, 0.8, 0.533333, 0.266667, 0.266667, 0.266667, 1, 0.8, 0.8, 0.533333, 0.266667, 0.266667, 0.266667), 
-                               c("SurvivalT_TimeC+threshold(ordered)" = 1, 0.8, 0.8, 0.533333, 0.266667, 0, 0, 1, 0.8, 0.8, 0.533333, 0.266667, 0, 0), 
-                               c("time_control(ordered)" = 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5, 0.9, 1.9, 2.9, 3.9, 4.9, 5, 5), 
-                               c("events(ordered)" = 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0)
-                               )
-           
-    expect_equal(unname(outSurv$list.survivalT[[1]]), unname(GS.list_survivalT), tol = 1e-5)
-    expect_equal(unname(outSurv$list.survivalC[[1]]), unname(GS.list_survivalC), tol = 1e-5)
-})
+        ## correct jumps in survival
+        expect_equal(diff(c(1,iE.survC$surv[iE.survC$hazard>0])),
+                     outSurv$list.survJumpC[[1]][[iStrata]][,"dSurvival"])
+        expect_equal(diff(c(1,iE.survT$surv[iE.survT$hazard>0])),
+                     outSurv$list.survJumpT[[1]][[iStrata]][,"dSurvival"])
 
+        ## correct survival
+        expect_equal(predictPL2(iE.survT, times = iE.survC$time[iE.survC$hazard>0] + outBT@threshold),
+                     outSurv$list.survJumpC[[1]][[iStrata]][,"survival"])
+        expect_equal(predictPL2(iE.survC, times = iE.survT$time[iE.survT$hazard>0] + outBT@threshold),
+                     outSurv$list.survJumpT[[1]][[iStrata]][,"survival"])
+    })
+    
+    ## *** Control at observation time
+    test_that("initSurvival (observation times, strata)",{        
+        ## correct time
+        expect_equal(data[treatment=="C",time],
+                     outSurv$list.survTimeC[[1]][[iStrata]][,"time"])
+
+        expect_equal(data[treatment=="T",time],
+                     outSurv$list.survTimeT[[1]][[iStrata]][,"time"])
+
+        ## correct survival (control observation times)
+        expect_equal(predictPL2(iE.survC, times = data[treatment=="C",time] - outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[iStrata]][,"SurvivalC-threshold"])
+        expect_equal(predictPL2(iE.survC, times = data[treatment=="C",time]),
+                     outSurv$list.survTimeC[[1]][[iStrata]][,"SurvivalC_0"])
+        expect_equal(predictPL2(iE.survC, times = data[treatment=="C",time] + outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[iStrata]][,"SurvivalC+threshold"])
+
+        expect_equal(predictPL2(iE.survT, times = data[treatment=="C",time] - outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[iStrata]][,"SurvivalT-threshold"])
+        expect_equal(predictPL2(iE.survT, times = data[treatment=="C",time]),
+                     outSurv$list.survTimeC[[1]][[iStrata]][,"SurvivalT_0"])
+        expect_equal(predictPL2(iE.survT, times = data[treatment=="C",time] + outBT@threshold),
+                     outSurv$list.survTimeC[[1]][[iStrata]][,"SurvivalT+threshold"])
+
+        ## correct survival (treatment observation times)
+        expect_equal(predictPL2(iE.survC, times = data[treatment=="T",time] - outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[iStrata]][,"SurvivalC-threshold"])
+        expect_equal(predictPL2(iE.survC, times = data[treatment=="T",time]),
+                     outSurv$list.survTimeT[[1]][[iStrata]][,"SurvivalC_0"])
+        expect_equal(predictPL2(iE.survC, times = data[treatment=="T",time] + outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[iStrata]][,"SurvivalC+threshold"])
+
+        expect_equal(predictPL2(iE.survT, times = data[treatment=="T",time] - outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[iStrata]][,"SurvivalT-threshold"])
+        expect_equal(predictPL2(iE.survT, times = data[treatment=="T",time]),
+                     outSurv$list.survTimeT[[1]][[iStrata]][,"SurvivalT_0"])
+        expect_equal(predictPL2(iE.survT, times = data[treatment=="T",time] + outBT@threshold),
+                     outSurv$list.survTimeT[[1]][[iStrata]][,"SurvivalT+threshold"])
+    })
+}
 
 
 
