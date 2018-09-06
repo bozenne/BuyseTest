@@ -301,9 +301,7 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
   // ** loop over the pairs
   vector<double> proba_threshold(4); // probaF, probaUF, test.neutral and test.uninformative for the current threhold
   double zeroPlus = pow(10.0,-12.0);
-  double oneMinus = 1 - zeroPlus;
-					 
-  
+
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
       /* Rcout << iter_T << ";" << iter_C ; */
@@ -316,7 +314,7 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
 		count_favorable += proba_threshold[0];    
         count_unfavorable += proba_threshold[1];
 
-		if(proba_threshold[2] > oneMinus){ // i.e. test neutral == 1
+		if(proba_threshold[2] > zeroPlus){ // i.e. test neutral == 1
         index_neutralT.push_back(iter_T);
         index_neutralC.push_back(iter_C);
         
@@ -324,11 +322,11 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
         count_neutral += proba_threshold[2];        
         }
         
-        if(proba_threshold[3] > zeroPlus){ // i.e. test uninformative == 1
+        if(proba_threshold[3] > zeroPlus){
           index_uninfT.push_back(iter_T);
           index_uninfC.push_back(iter_C);
           
-          wUninf.push_back(proba_threshold[3]); 
+          wUninf.push_back(proba_threshold[3]);
           count_uninf += proba_threshold[3];
         }
         
@@ -346,7 +344,6 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
 		iter_pairs++;
         }
   }
-  
   
  // ** correction
   if(correctionTTE == 1){

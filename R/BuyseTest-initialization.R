@@ -483,6 +483,7 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                                      model.tte,
                                      n.T, n.C,
                                      treatment,
+                                     level.treatment,
                                      endpoint,
                                      censoring,
                                      D.TTE,
@@ -514,8 +515,14 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
             model.tte[[iEndpoint.TTE]] <- prodlim::prodlim(as.formula(txt.modelTTE[iEndpoint.TTE]),
                                                            data = data)
         }
+    }else{ ## convert treatment to numeric
+        for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
+            if(!is.numeric(model.tte[[iEndpoint.TTE]]$X[[treatment]])){
+                model.tte[[iEndpoint.TTE]]$X[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.TTE]]$X[[treatment]], levels = level.treatment))-1
+            }
+        }
     }
-    
+
     ## ** predict individual survival
     ## *** dataset
     colnames.obs <- c("time",
@@ -550,7 +557,8 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
         for(iStrata in 1:n.strata){ ## iStrata <- 1
 
             ## **** identify jump times and model
-            for(iGroup in 0:1){ ## iGroup <- 0            
+            for(iGroup in 0:1){ ## iGroup <- 0
+
                 iStart <- iModelStrata[list(iGroup,iStrata),.SD$start]
                 iStop <- iModelStrata[list(iGroup,iStrata),.SD$stop]
                 iAllTime <- model.tte[[iEndpoint.TTE]]$time[iStart:iStop]

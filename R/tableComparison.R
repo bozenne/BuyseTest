@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: aug 12 2018 (09:50) 
+## Last-Updated: sep  6 2018 (10:09) 
 ##           By: Brice Ozenne
-##     Update #: 49
+##     Update #: 50
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -158,7 +158,7 @@ tableComparison2dt <- function(tableComparison,
         iM[, c(name.indexWT) := .SD[[1]] + 1, .SDcols = name.indexWT]
         iM[, c(name.indexWC) := .SD[[1]] + 1, .SDcols = name.indexWC]
         ## data.table::setkeyv(iM, cols = c(name.indexT,name.indexC), verbose = FALSE)
-        return(iM)
+        return(iM[])
     })
     names(tableComparison) <- paste0(endpoint,"_",threshold)
 

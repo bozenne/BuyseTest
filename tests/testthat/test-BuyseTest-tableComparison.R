@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: sep  5 2018 (09:47) 
+## Last-Updated: sep  6 2018 (11:11) 
 ##           By: Brice Ozenne
-##     Update #: 20
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -45,11 +45,20 @@ dtRed.sim <- dt.sim[, .SD[1:50], by = "Treatment"]
 formula <- Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5)
 BT.mixed <- BuyseTest(formula,
                       data = dt.sim, method.tte = "Peron")
-
 test_that("Full data", {
     test <- aggrTableComparison(table = BT.mixed@tableComparison,
                                 correct.tte = BT.mixed@method.tte$correction)
-        
+    ## 
+    ## mean(BT.mixed@tableComparison[[1]]$unfavorable)
+    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$favorable)})),
+                 as.double(BT.mixed@count.favorable))
+    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$unfavorable)})),
+                 as.double(BT.mixed@count.unfavorable))
+    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$neutral)})),
+                 as.double(BT.mixed@count.neutral))
+    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$uninformative)})),
+                 as.double(BT.mixed@count.uninf))
+
     expect_equal(unname(tail(BT.mixed@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
     expect_equal(unname(tail(BT.mixed@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
 })

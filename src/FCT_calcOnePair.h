@@ -429,8 +429,19 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
     }else{ // delta_C==0
 
 	  double denom = survTimeT(index_T,5)*survTimeC(index_C,2);
-	  double intFavorable = calcIntegralProba(survJumpC, endpoint_T-threshold) / denom;
-	  double intUnfavorable = calcIntegralProba(survJumpT, endpoint_C-threshold) / denom;
+	  double intFavorable; 
+	  double intUnfavorable;
+	  if(diff >= threshold){
+		intFavorable = calcIntegralProba(survJumpC, endpoint_T-threshold) / denom;
+	  }else{
+		intFavorable = calcIntegralProba(survJumpC, endpoint_C) / denom;
+	  }
+	  if(diff <= -threshold){
+		intUnfavorable = calcIntegralProba(survJumpT, endpoint_C-threshold) / denom;
+	  }else{
+		intUnfavorable = calcIntegralProba(survJumpT, endpoint_T) / denom;
+	  }
+	  // Rcout << denom << " " << intFavorable << " " << intUnfavorable << endl;
 	  
 	  // favorable
       if(diff>threshold){ // (0,0) > tau
