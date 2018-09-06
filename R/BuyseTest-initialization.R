@@ -555,18 +555,20 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                 iStop <- iModelStrata[list(iGroup,iStrata),.SD$stop]
                 iAllTime <- model.tte[[iEndpoint.TTE]]$time[iStart:iStop]
                 iAllSurv <- model.tte[[iEndpoint.TTE]]$surv[iStart:iStop]
+                i0LastSurv <- (utils::tail(iAllSurv,1)==0)
                 iOrder <- order(iAllTime)
 
                 iIndex.jump <- intersect(iStart:iStop,which(model.tte[[iEndpoint.TTE]]$hazard>0))
+                if(length(iIndex.jump)==0){ ## i.e. no event
+                    iIndex.jump <- iStart
+                }
                 iJump <- model.tte[[iEndpoint.TTE]]$time[iIndex.jump]
-                iLast.Jump <- utils::tail(iIndex.jump,1)
-                iLastEvent <- (model.tte[[iEndpoint.TTE]]$surv[iLast.Jump]==0)
                 
                 if(iGroup == 0){
                     ## 0 at infinity if last event is a death
                     predSurvC <- stats::approxfun(x = iAllTime[iOrder],
                                                   y = iAllSurv[iOrder],
-                                                  yleft=1, yright=switch(as.character(iLastEvent),
+                                                  yleft=1, yright=switch(as.character(i0LastSurv),
                                                                          "TRUE" = 0,
                                                                          "FALSE" = NA),
                                                   f=0,
@@ -576,7 +578,7 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                     ## 0 at infinity if last event is a death
                     predSurvT <- stats::approxfun(x = iAllTime[iOrder],
                                                   y = iAllSurv[iOrder],
-                                                  yleft=1, yright=switch(as.character(iLastEvent),
+                                                  yleft=1, yright=switch(as.character(i0LastSurv),
                                                                          "TRUE" = 0,
                                                                          "FALSE" = NA),
                                                   f=0,
@@ -629,6 +631,7 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
 
         }
     }
+
     return(list(list.survTimeC=list.survTimeC,
                 list.survTimeT=list.survTimeT,
                 list.survJumpC=list.survJumpC,

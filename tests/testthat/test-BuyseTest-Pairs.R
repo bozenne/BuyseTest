@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: aug 12 2018 (09:52) 
+## Last-Updated: sep  6 2018 (10:02) 
 ##           By: Brice Ozenne
-##     Update #: 131
+##     Update #: 133
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -438,7 +438,7 @@ test_that("check NA - time to event",{
     expect_equal(as.double(BT@count.uninf),0)
 })
 
-## * one time to event endpoint (extrapolation using Peron)
+## * one time to event endpoint (extrapolation using Gehan/Peron)
 ## ** with 2 pairs
 # one is censored
 dt.2pairs <- data.table(id = 1:4,

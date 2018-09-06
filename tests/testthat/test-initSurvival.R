@@ -5,7 +5,7 @@ if(FALSE){
     library(prodlim)
 }
 
-context("Check KM computation")
+context("Check computation of the survival")
 BuyseTest.options(keep.survival = TRUE,
                   trace = 0,
                   method.inference = "none")
