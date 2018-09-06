@@ -105,16 +105,16 @@ simBuyseTest(n.T = 5, n.C = 5)
 #+RESULTS:
 #+begin_example
     Treatment toxicity       score eventtime status
- 1:         1        1  0.01874617 0.1453481      0
- 2:         1        1 -0.18425254 0.4855601      0
- 3:         1        0 -1.37133055 0.2547505      0
- 4:         1        1 -0.59916772 1.0340368      0
- 5:         1        0  0.29454513 0.3579324      1
- 6:         0        1  0.54361539 1.8252132      0
- 7:         0        1 -0.70762484 2.9489056      1
- 8:         0        1 -0.36944577 0.7213402      0
- 9:         0        1 -1.32197565 0.6322603      1
-10:         0        1  1.28059746 0.2212117      0
+ 1:         C        1  0.54361539 1.8252132      0
+ 2:         C        1 -0.70762484 2.9489056      1
+ 3:         C        1 -0.36944577 0.7213402      0
+ 4:         C        1 -1.32197565 0.6322603      1
+ 5:         C        1  1.28059746 0.2212117      0
+ 6:         T        1  0.01874617 0.1453481      0
+ 7:         T        1 -0.18425254 0.4855601      0
+ 8:         T        0 -1.37133055 0.2547505      0
+ 9:         T        1 -0.59916772 1.0340368      0
+10:         T        0  0.29454513 0.3579324      1
 #+end_example
 
 By default a categorical, continuous and time to event outcome are
@@ -135,22 +135,22 @@ dt
 #+RESULTS:
 #+begin_example
     Treatment toxicity tumorSize     score eventtime status
- 1:         1        1  5.389794  5.018746 0.6243732      0
- 2:         1        1  3.791924  4.815747 0.3527879      1
- 3:         1        1  4.636324  3.628669 1.7731161      0
- 4:         1        0  3.373327  4.400832 0.1055467      0
- 5:         1        0  4.743522  5.294545 0.8612402      0
- 6:         0        1  9.010394 10.667415 0.2729620      0
- 7:         0        0  9.965152 11.691755 0.5562477      0
- 8:         0        0 10.847160 10.001261 0.8040608      0
- 9:         0        0 11.525498  9.257539 1.8477048      1
-10:         0        1  9.932625 10.609684 0.3639572      1
+ 1:         C        1  9.010394 10.667415 0.2729620      0
+ 2:         C        0  9.965152 11.691755 0.5562477      0
+ 3:         C        0 10.847160 10.001261 0.8040608      0
+ 4:         C        0 11.525498  9.257539 1.8477048      1
+ 5:         C        1  9.932625 10.609684 0.3639572      1
+ 6:         T        1  5.389794  5.018746 0.6243732      0
+ 7:         T        1  3.791924  4.815747 0.3527879      1
+ 8:         T        1  4.636324  3.628669 1.7731161      0
+ 9:         T        0  3.373327  4.400832 0.1055467      0
+10:         T        0  4.743522  5.294545 0.8612402      0
 #+end_example
 
 This functionality is based on the =sim= function of the *lava*
 package (https://github.com/kkholst/lava)
 
-** Perform generalized pairwise comparisons
+** Perform generalized pairwise comparisons (GPC)
 *** Specifying GPC using the =BuyseTest= function
 Let's consider the veteran dataset:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -183,24 +183,15 @@ BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Settings (punctual estimation) 
-   > treatment groups: Control = 1 and Treatment = 2
-   > 1 endpoint: 
-      |priority endpoint type          operator            threshold censoring
-      |1        time     time to event higher is favorable 20        status   
- |
- |
-   > management of neutral pairs : re-analyzed using endpoints of lower priority (if any) 
-   > management of censored survival pairs : imputation using Kaplan Meier stratified by treatment group 
-   > weights of the pairs relatively to the enpoints: 
-<0 x 0 matrix>
-   > intervals thresholds for survival endpoints: 
-                   time         
-threshold interval "[20 ; Inf] "
-
-Punctual estimation (done)
-#+end_example
+: Settings (point estimation) 
+:    > treatment groups: Control = 1 and Treatment = 2
+:    > 1 endpoint: 
+:        priority endpoint type          operator            threshold censoring
+:        1        time     time to event higher is favorable 20        status   
+:    > management of neutral pairs: re-analyzed using endpoints of lower priority (if any) 
+:    > management of censored survival pairs: imputation using Kaplan Meier stratified by treatment group 
+: 
+: Point estimation (done)
 
 - or using a separate argument for each element:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -260,7 +251,7 @@ summary(BT)
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     37.78       46.54      15  0.68 -0.0876 -0.0876
+     time        20   100     37.78       46.55      15  0.66 -0.0877 -0.0877
 #+end_example
 
 By default =summary= displays results relative to the statistic "net
@@ -281,7 +272,7 @@ summary(BT, statistic = "winRatio")
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
-     time        20   100     37.78       46.54      15  0.68 0.8117 0.8117
+     time        20   100     37.78       46.55      15  0.66 0.8116 0.8116
 #+end_example
 
 Since we have set the argument =n.permutation= to 0 (i.e. no
@@ -336,7 +327,7 @@ summary(BT.perm)
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta  CI [2.5 ; 97.5] p.value 
-     time        20   100     37.78       46.54      15  0.68 -0.0876 -0.0876 [-0.2411;0.1947]     0.4 
+     time        20   100     37.78       46.55      15  0.66 -0.0877 -0.0877 [-0.2412;0.1946]     0.4 
 NOTE: confidence intervals computed under the null hypothesis
 #+end_example
 
@@ -367,7 +358,7 @@ summary(BT.boot)
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta  CI [2.5 ; 97.5] p.value 
-     time        20   100     37.78       46.54      15  0.68 -0.0876 -0.0876 [-0.1794;0.0302]     0.5
+     time        20   100     37.78       46.55      15  0.66 -0.0877 -0.0877 [-0.1796;0.0301]     0.5
 #+end_example
 
 *** What if smaller is better?
@@ -476,23 +467,24 @@ lapply(BT.keep@tableComparison, dim)
 
 #+RESULTS:
 : $time_20
-: [1] 4692   10
+: [1] 4692   12
 : 
 : $`karno_1e-12`
-: [1] 940  10
+: [1] 940  12
 
 The names of the list correspond to the endpoint underscore the
 threshold. We can now inspect the first element:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.keep@tableComparison[[1]][c(1:2,90:91),]
+keep.cols <- c("index.2", "index.1", "favorable", "unfavorable", "neutral", "uninformative")
+BT.keep@tableComparison[[1]][c(1:2,90:91),.SD,.SDcols = keep.cols]
 #+END_SRC
 
 #+RESULTS:
-:    strata index.2 index.1 indexWithinStrata.2 indexWithinStrata.1 favorable unfavorable neutral uninformative IPCW
-: 1:      1      70       1                   1                   1         1   0.0000000       0    0.00000000    1
-: 2:      1      70       2                   1                   2         1   0.0000000       0    0.00000000    1
-: 3:      1      71      21                   2                  21         0   0.9166667       0    0.08333333    1
-: 4:      1      71      22                   2                  22         0   0.6950827       0    0.30491728    1
+:    index.2 index.1 favorable unfavorable neutral uninformative
+: 1:      70       1         1   0.0000000       0    0.00000000
+: 2:      70       2         1   0.0000000       0    0.00000000
+: 3:      71      21         0   0.9166667       0    0.08333333
+: 4:      71      22         0   0.6950827       0    0.30491728
 
 Each line corresponds to different comparison between a pair from the
 control arm and the treatment arm. The column =strata= store to which
@@ -549,16 +541,22 @@ We can then follow what has happened to the pair (71,22) with the
 next endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.tempo <- as.data.table(BT.keep@tableComparison[[2]])
-dt.tempo[index.2==71 & index.1==22]
+dt.tempo[index.2==71 & index.1==22, .SD, .SDcols = keep.cols]
 #+END_SRC
 
 #+RESULTS:
-:    strata index.2 index.1 indexWithinStrata.2 indexWithinStrata.1 favorable unfavorable neutral uninformative IPCW
-: 1:      1      71      22                   2                  22 0.3049173           0       0             0    1
+:    index.2 index.1 favorable unfavorable neutral uninformative
+: 1:      71      22 0.3049173           0       0             0
 
 Since 80 > 60, the rest of the weight relative to the pair is
 transferred to the favorable category.
 
+** GPC with time to event outcomes in presence of censoring
+GPC is based on our ability to rank the values taken for a given
+outcome in the control vs. the treatment group. This is 
+
+
+** Corrections
 When using ="Gehan corrected"= or ="Peron corrected"=, inverse
 probability weighting (IPW) is used to obtain an estimate that does
 not depend on the censoring distribution:
@@ -631,6 +629,9 @@ $cpus
 $keep.comparison
 [1] FALSE
 
+$keep.survival
+[1] FALSE
+
 $method.inference
 [1] "stratified permutation"
 
@@ -692,11 +693,11 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] BuyseTest_1.3.4     data.table_1.10.4-3 Rcpp_0.12.17        prodlim_1.6.1      
+[1] BuyseTest_1.4     data.table_1.11.4 Rcpp_0.12.17      prodlim_1.6.1    
 
 loaded via a namespace (and not attached):
- [1] lattice_0.20-35 grid_3.4.0      R6_2.2.1        stats4_3.4.0    magrittr_1.5    rlang_0.2.0     testthat_2.0.0  Matrix_1.2-9    lava_1.6.1     
-[10] splines_3.4.0   tools_3.4.0     survival_2.41-3 parallel_3.4.0  compiler_3.4.0
+ [1] lattice_0.20-35    grid_3.4.0         R6_2.2.1           stats4_3.4.0       magrittr_1.5       KernSmooth_2.23-15 rlang_0.2.0        testthat_2.0.0    
+ [9] Matrix_1.2-9       lava_1.6.1         splines_3.4.0      tools_3.4.0        survival_2.41-3    parallel_3.4.0     compiler_3.4.0
 #+end_example
 
 

@@ -517,9 +517,7 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
         }
     }else{ ## convert treatment to numeric
         for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
-            if(!is.numeric(model.tte[[iEndpoint.TTE]]$X[[treatment]])){
-                model.tte[[iEndpoint.TTE]]$X[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.TTE]]$X[[treatment]], levels = level.treatment))-1
-            }
+            model.tte[[iEndpoint.TTE]]$X[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.TTE]]$X[[treatment]], levels = level.treatment))-1
         }
     }
 

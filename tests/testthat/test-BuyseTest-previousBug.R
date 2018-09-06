@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep  6 2018 (11:19) 
+## Last-Updated: sep  6 2018 (18:55) 
 ##           By: Brice Ozenne
-##     Update #: 34
+##     Update #: 36
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -117,3 +117,29 @@ if(FALSE){
     summary(BT.perm)
 }
 
+
+## * Brice: 09/06/18 6:51 (Tied event with tte endpoint)
+## when computing the integral for peron with double censoring
+## the ordering of the data modified the ouput
+## this has been correct with version 1.4
+data(veteran,package="survival")
+
+testthat("ordering of tied event does not affect BuyseTest", {
+    ## veteran2[veteran2$time==100,]
+    BT.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
+                        data = veteran, method.inference = "none")
+
+    veteran1 <- veteran[order(veteran$time,veteran$status),c("time","status","trt")]
+    ## veteran1[veteran2$time==100,]
+    BT1.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
+                         data = veteran1, method.inference = "none")
+
+    veteran2 <- veteran[order(veteran$time,-veteran$status),c("time","status","trt")]
+    ## ## veteran2[veteran2$time==100,]
+    BT2.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
+                         data = veteran2, method.inference = "none")
+
+    expect_equal(as.double(BT.all@Delta.winRatio), 0.8384072, tol = 1e-5)
+    expect_equal(BT.all@Delta.winRatio, BT1.all@Delta.winRatio)
+    expect_equal(BT.all@Delta.winRatio, BT2.all@Delta.winRatio)
+})

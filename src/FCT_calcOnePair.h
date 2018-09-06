@@ -479,6 +479,18 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 }
 
 // * calcIntegralProba
+//' @title C++ Function Computing the Integral Terms for the Peron Method. 
+//' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
+//' @name calcIntegralProba
+//' 
+//' @param survival [matrix] Contains the jump times in the first column,
+//' the survival in the other arm at times plus threshold in the second column,
+//' and the jump in survival in the third column.
+//' @param start [numeric] Time at which to start the integral.
+//'
+//' @keywords function Cpp internal
+//' @export
+// [[Rcpp::export]]
 inline double calcIntegralProba(const arma::mat& survival, double start){
   // computes \int_t>tau S dS
 
@@ -501,7 +513,7 @@ inline double calcIntegralProba(const arma::mat& survival, double start){
 
 	}     
   }
-  
+
   return(integral);
 }
 
