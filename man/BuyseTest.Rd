@@ -4,17 +4,39 @@
 \alias{BuyseTest}
 \title{Generalized Pairwise Comparisons (GPC)}
 \usage{
-BuyseTest(formula, data, treatment = NULL, endpoint = NULL, type = NULL,
-  threshold = NULL, censoring = NULL, operator = NULL, strata = NULL,
-  method.tte = NULL, neutral.as.uninf = NULL, method.inference = NULL,
-  n.resampling = NULL, keep.comparison = NULL, alternative = "two.sided",
-  seed = NULL, cpus = NULL, trace = NULL, n.bootstrap, method)
+BuyseTest(formula, data, method.tte = NULL, model.tte = NULL,
+  method.inference = NULL, n.resampling = NULL, neutral.as.uninf = NULL,
+  keep.comparison = NULL, treatment = NULL, endpoint = NULL,
+  type = NULL, threshold = NULL, censoring = NULL, operator = NULL,
+  strata = NULL, alternative = "two.sided", seed = NULL, cpus = NULL,
+  trace = NULL)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
 The rest of the formula should indicate the strata variables (if any) and the endpoints by order of priority.}
 
 \item{data}{[data.frame] dataset.}
+
+\item{method.tte}{[character] defines the method used to handle pairs
+which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
+Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
+Only relevant when there is one or more time-to-event endpoints.
+Default value read from \code{BuyseTest.options()}.}
+
+\item{model.tte}{[list] optionnal survival models relative to each time to each time to event outcome.
+Models must \code{prodlim} objects and stratified on the treatment and strata variable.}
+
+\item{method.inference}{[character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
+or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
+be used to compute p-values and confidence intervals.}
+
+\item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
+Default value read from \code{BuyseTest.options()}.}
+
+\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
+Default value read from \code{BuyseTest.options()}.}
+
+\item{keep.comparison}{[logical] should the result of each pairwise comparison be kept?}
 
 \item{treatment}{[character] the name of the treatment variable identifying the control and the experimental group.
 Disregarded if the argument \code{formula} is defined.}
@@ -40,24 +62,6 @@ Disregarded if the argument \code{formula} is defined.}
 \item{strata}{[numeric vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 Disregarded if the argument \code{formula} is defined.}
 
-\item{method.tte}{[character] defines the method used to handle pairs
-which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
-Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
-Only relevant when there is one or more time-to-event endpoints.
-Default value read from \code{BuyseTest.options()}.}
-
-\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
-Default value read from \code{BuyseTest.options()}.}
-
-\item{method.inference}{[character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
-or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
-be used to compute p-values and confidence intervals.}
-
-\item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
-Default value read from \code{BuyseTest.options()}.}
-
-\item{keep.comparison}{[logical] should the result of each pairwise comparison be kept?}
-
 \item{alternative}{[character] the alternative hypothesis.
 Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
 
@@ -70,10 +74,6 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{trace}{[integer] should the execution of the function be traced ? See details.
 Default value read from \code{BuyseTest.options()}.}
-
-\item{n.bootstrap}{Obsolete. Alias for 'n.resampling'.}
-
-\item{method}{Obsolete. Alias for 'method.tte'.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.

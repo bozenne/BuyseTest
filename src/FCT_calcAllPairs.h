@@ -546,23 +546,23 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
 
         count_favorable += weight_favorable;
         count_unfavorable += weight_unfavorable;
-		
-      if(weight_neutral > zeroPlus){ 
+
+      if(weight_neutral > zeroPlus){
         indexNew_neutralT.push_back(iter_T);
         indexNew_neutralC.push_back(iter_C);
         index_wNeutral.push_back(iter_pairs);
         
-        wNeutral.push_back(weight_neutral); 
+        wNeutral.push_back(proba_threshold[2]); // not weight_neutral since the product is done in BuyseTest.cpp
         count_neutral += weight_neutral;
       }
 
 	  if(weight_uninformative > zeroPlus){
-         indexNew_uninfT.push_back(iter_T);
-         indexNew_uninfC.push_back(iter_C);
-         index_wUninf.push_back(iter_pairs);        
+		indexNew_uninfT.push_back(iter_T);
+        indexNew_uninfC.push_back(iter_C);
+        index_wUninf.push_back(iter_pairs);        
          
-         wUninf.push_back(weight_uninformative); 
-         count_uninf += weight_uninformative;
+        wUninf.push_back(proba_threshold[3]);  // not weight_uninformative since the product is done in BuyseTest.cpp
+        count_uninf += weight_uninformative;
       }
         
         if(keepComparison){
@@ -613,16 +613,16 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
         indexNew_neutralC.push_back(iter_C);
         index_wNeutral.push_back(nNeutral_pairs+iter_pairs);
         
-        wNeutral.push_back(weight_neutral); 
+        wNeutral.push_back(proba_threshold[2]); // not weight_neutral since the product is done in BuyseTest.cpp 
         count_neutral += weight_neutral;
       }
 
-	  if(weight_uninformative > zeroPlus){ 
+	  if(weight_uninformative > zeroPlus){
           indexNew_uninfT.push_back(iter_T);
           indexNew_uninfC.push_back(iter_C);
           index_wUninf.push_back(nNeutral_pairs+iter_pairs);
           
-          wUninf.push_back(weight_uninformative); 
+          wUninf.push_back(proba_threshold[3]);  // not weight_uninformative since the product is done in BuyseTest.cpp
           count_uninf += weight_uninformative;
         }
         
@@ -638,6 +638,8 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
     }
   }    
 
+  // Rcout << endl;
+  
   // ** update index
   index_neutralT = indexNew_neutralT;
   index_neutralC = indexNew_neutralC;
@@ -663,7 +665,7 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
   // ** export
   index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
   wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
-  
+
   return comparison;
 }
 

@@ -158,7 +158,7 @@ test_that("BuyseTest - continuous (strata)", {
 
 ## * Time to event endpoint
 ## ** No strata - same endpoint
-for(method in c("Gehan","Peron")){ ## method <- "Gehan"
+for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
 
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
@@ -214,7 +214,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan"
 }
 
 ## ** No strata - different endpoints
-for(method in c("Gehan","Peron")){ ## method <- "Gehan"
+for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),

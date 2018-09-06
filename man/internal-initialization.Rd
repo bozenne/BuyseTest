@@ -9,16 +9,17 @@
 \title{internal functions for BuyseTest - initialization}
 \usage{
 initializeArgs(alternative, name.call, censoring, cpus, data, endpoint, formula,
-  keep.comparison, method.tte, method.inference, n.resampling, neutral.as.uninf,
-  operator, option, prob.alloc, seed, strata, threshold, trace, treatment, type)
+  keep.comparison, method.tte, model.tte, method.inference, n.resampling,
+  neutral.as.uninf, operator, option, prob.alloc, seed, strata, threshold,
+  trace, treatment, type)
 
 initializeData(data, type, endpoint, operator, strata, treatment)
 
 initializeFormula(x)
 
-initializeSurvival_Peron(data, dataT, dataC, n.T, n.C, treatment, endpoint,
-  censoring, D.TTE, type, strata, threshold, index.strataT, index.strataC,
-  n.strata)
+initializeSurvival_Peron(data, dataT, dataC, model.tte, n.T, n.C, treatment,
+  level.treatment, endpoint, censoring, D.TTE, type, strata, threshold,
+  index.strataT, index.strataC, n.strata)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

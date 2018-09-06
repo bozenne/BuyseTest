@@ -372,11 +372,12 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
       }else{
 
 		// favorable
-		if(diff >= threshold && R_IsNA(survTimeT(index_T,1))==false){ // (1,0) > tau
+		if(diff >= threshold){
+		  if(R_IsNA(survTimeT(index_T,1))==false){ // (1,0) > tau
 		  proba[0]=1.0-survTimeT(index_T,1)/survTimeC(index_C,2); // 1-[Sc(x_i-taux)/Sc(y_j)]
-  	    }// else {
-		//      proba[0]=0.0; 
-		// }
+		  }
+		  //      proba[0]=0.0; 
+		}
 
 		// unfavorable
 		// for both diff > threshold and |diff|<threshold
@@ -412,11 +413,11 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 		//      proba[0]=0.0;
 		// }
 	
-		if(diff <= -threshold && R_IsNA(survTimeC(index_C,4))==false){  // (0,1) < tau
-		  proba[1]=1-survTimeC(index_C,4)/survTimeT(index_T,5); // unfavorable [St(y_j-taux)/St(x_i)] 
-		}// else {
-		//      proba[1]=0.0; // unfavorable 
-		// }
+		if(diff <= -threshold){
+		  if(R_IsNA(survTimeC(index_C,4))==false){  // (0,1) < tau
+			proba[1]=1-survTimeC(index_C,4)/survTimeT(index_T,5); // unfavorable [St(y_j-taux)/St(x_i)] 
+		  }	//      proba[1]=0.0; // unfavorable 		  
+		}
 		
 		// neutral
 		// proba[2] = 0.0;
@@ -424,13 +425,14 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 		// uninformative
 		proba[3] = 1.0 - (proba[1] + proba[0]); 
 
-      } 
+	  } 
     
-    }else{ // delta_C==0
+	}else{ // delta_C==0
 
 	  double denom = survTimeT(index_T,5)*survTimeC(index_C,2);
 	  double intFavorable; 
 	  double intUnfavorable;
+	  
 	  if(diff >= threshold){
 		intFavorable = calcIntegralProba(survJumpC, endpoint_T-threshold) / denom;
 	  }else{
@@ -441,24 +443,29 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 	  }else{
 		intUnfavorable = calcIntegralProba(survJumpT, endpoint_T) / denom;
 	  }
-	  // Rcout << denom << " " << intFavorable << " " << intUnfavorable << endl;
+	  // Rcout << "{" << denom << " " << intFavorable << " " << intUnfavorable << "}" << endl;
 	  
 	  // favorable
       if(diff>threshold){ // (0,0) > tau
-		// favorable 1-[Sc(x_i-taux)/Sc(y_j)]-I/(St(x_i)*Sc(y_j)) 
+		// favorable 1-[Sc(x_i-taux)/Sc(y_j)]-I/(St(x_i)*Sc(y_j))
+		if(R_IsNA(survTimeT(index_T,1))==false){
 	    proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2) - intFavorable;
+		}
 	  }else{
 		proba[0]=  -intFavorable;
 	  }
 
 	  // unfavorable        
       if(diff < -threshold){  // (0,0) < -tau
-		// unfavorable 1-[St(y_j-taux)/St(x_i)]-I/(St(x_i)*Sc(y_j))		
-		proba[1]= 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5) - intUnfavorable; 
+		// unfavorable 1-[St(y_j-taux)/St(x_i)]-I/(St(x_i)*Sc(y_j))
+		if(R_IsNA(survTimeC(index_C,4))==false){
+		  proba[1]= 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5) - intUnfavorable;
+		}
 	  }else{
 		proba[1]= -intUnfavorable;
 	  }
 
+	  
 	  // neutral
 	  // proba[2] = 0.0;
 	

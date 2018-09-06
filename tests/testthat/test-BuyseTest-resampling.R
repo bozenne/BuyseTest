@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: jul  9 2018 (13:06) 
+## last-updated: sep  6 2018 (11:16) 
 ##           By: Brice Ozenne
-##     Update #: 76
+##     Update #: 77
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -41,8 +41,8 @@ dt.sim <- simBuyseTest(n.T = n.patients,
 ## * Permutation
 test_that("permutation", {
     BT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                    data = dt.sim, method.tte = method, seed = 10, 
-                    method.inference = "permutation", n.resampling = 20)
+                         data = dt.sim, method.tte = method, seed = 10, 
+                         method.inference = "permutation", n.resampling = 20)
 
     ## ** summary (two.sided)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "two.sided")

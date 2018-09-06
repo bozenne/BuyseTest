@@ -1,5 +1,14 @@
 # -*- mode: org -*-
 
+* Version 1.4
+** User visble changes - BuyseTest function
+  - NEW FEATURE: Instead of estimating the survival curves on the data
+    used for the GPC, BuyseTest can use pre-defined survival models
+    for method "Peron" (argument model.tte)
+
+** Internal change
+- improve initSurvival and the computation of the Peron (C++ code)
+
 * Version 1.3
 ** User visble changes - BuyseTest function
   - NEW FEATURE: boostrap resampling (method.inference = "boostrap")

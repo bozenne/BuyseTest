@@ -7,8 +7,9 @@
 \usage{
 GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
   delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme,
-  index_survivalM1, threshold_TTEM1, list_survivalT, list_survivalC, methodTTE,
-  correctionTTE, neutralAsUninf, keepComparison)
+  index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT,
+  list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf,
+  keepComparison)
 }
 \arguments{
 \item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.}
@@ -41,9 +42,13 @@ GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
 
 \item{threshold_TTEM1}{The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.}
 
-\item{list_survivalT}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto, only one survival function is computed) or 11 (if method is Peron, two survival functions are computed) columns. Ignored if method is Gehan.}
+\item{list_survTimeC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}.}
 
-\item{list_survivalC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}. Must have length n_TTE. Each matrix must have 3 (if method is Peto) or 11 (if method is Peron) columns. Ignored if method is Gehan.}
+\item{list_survTimeT}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}.}
+
+\item{list_survJumpC}{A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps. \emph{List&}.}
+
+\item{list_survJumpT}{A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}.}
 
 \item{methodTTE}{The type of method used to compare censored pairs (0 Gehan 1 Peron).}
 

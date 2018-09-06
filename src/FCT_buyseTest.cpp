@@ -154,7 +154,8 @@ List GPC_cpp(const arma::mat& Treatment,
     }
     
     // *** first endpoint
-    iIndex_neutralT.resize(0); iIndex_neutralC.resize(0); iIndex_uninfT.resize(0); iIndex_uninfC.resize(0); iw.resize(0);
+	// Rcout << "** endpoint 0 **" << endl;
+	iIndex_neutralT.resize(0); iIndex_neutralC.resize(0); iIndex_uninfT.resize(0); iIndex_uninfC.resize(0); iw.resize(0);
     
     if(survEndpoint[0]){ // time to event endpoint
       
@@ -233,6 +234,7 @@ List GPC_cpp(const arma::mat& Treatment,
 
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
+	  // Rcout << "** endpoint " << iter_d << " **" << endl;
       Wpairs_sauve = Wpairs; // save the current Wpairs
       if(neutralAsUninf==false){size_neutral = 0;} // stop the analysis of the neutral pairs
       iw.resize(0); iIndex_w.resize(0);

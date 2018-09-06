@@ -5,7 +5,7 @@ if(FALSE){
     library(prodlim)
 }
 
-context("Check computation of the survival")
+context("Check computation")
 BuyseTest.options(keep.survival = TRUE,
                   trace = 0,
                   method.inference = "none")
@@ -50,7 +50,8 @@ for(iData in 1:3){ ## iData <- 1
     for(iThreshold in seqThreshold){ ## iThreshold <- 0.5
         
         ## *** Compute survival
-        outBT <- BuyseTest(treatment ~ tte(time, censoring = status, threshold = iThreshold),
+        form <- as.formula(paste0("treatment ~ tte(time, censoring = status, threshold = ",iThreshold,")"))
+        outBT <- BuyseTest(form,
                            data = data)
         outSurv <- outBT@tableSurvival
 

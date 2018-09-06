@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: sep  3 2018 (15:10) 
+## Last-Updated: sep  6 2018 (11:30) 
 ##           By: Brice Ozenne
-##     Update #: 84
+##     Update #: 89
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -139,6 +139,7 @@ testArgs <- function(alternative,
     }
     
     ## ** data (endpoints)
+
     ## *** binary endpoints
     index.Bin <- which(type==1)
     if(length(index.Bin)>0){
@@ -330,11 +331,18 @@ testArgs <- function(alternative,
                method = "BuyseTest")
 
     if (length(level.treatment) != 2) {
-        stop("BuyseTest : wrong specification of \'treatment\' \n",
+        stop("BuyseTest: wrong specification of \'treatment\' \n",
              "the corresponding column in \'data\' must have exactly 2 levels \n",
              "proposed levels : ",paste(level.treatment,collapse = " "),"\n")
     }
 
+    if(any(table(data[[treatment]])==0)){
+        txt.stop <- names(which(table(data[[treatment]])==0))
+        stop("BuyseTest: wrong specification of \'data\' \n",
+             "no observation taking level ",txt.stop," in the treatment variable \n")
+        
+    }
+    
     ## ** type
     if(any(type %in% 1:3 == FALSE)){
         txt <- type[type %in% 1:3 == FALSE]
