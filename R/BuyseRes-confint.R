@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jul  9 2018 (13:00) 
+## Last-Updated: sep  6 2018 (14:06) 
 ##           By: Brice Ozenne
-##     Update #: 141
+##     Update #: 142
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,7 +41,7 @@
 #' @details 
 #' When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
 #' Thus the confidence interval may not be valid if the null hypothesis is false. \cr
-#' More precisely, the quantiles of the distribution of the statistic are computed under the null hypothesis and then shifted by the punctual estimate of the statistic.
+#' More precisely, the quantiles of the distribution of the statistic are computed under the null hypothesis and then shifted by the point estimate of the statistic.
 #' Therefore it is possible that the limits of the confidence interval
 #' are estimated outside of the interval of definition of the statistic (e.g. outside [-1,1] for the proportion in favor of treatment).
 #'
@@ -154,7 +154,7 @@ confint_permutation <- function(Delta, Delta.permutation,
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
                        dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
 
-    ## ** punctual estimate
+    ## ** point estimate
     outTable[,"estimate"] <- Delta
 
     ## ** computations
@@ -170,7 +170,7 @@ confint_permutation <- function(Delta, Delta.permutation,
         outTable[iE,c("lower.ci","upper.ci")] <- Delta[iE] + (qDelta_H0 - null)
 
         ## *** p.value
-        outTable[iE,"p.value"] <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the punctual estimate
+        outTable[iE,"p.value"] <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
                                          "two.sided" = mean(abs(Delta[iE] - null) < abs(Delta.permutation[iE,] - null)),
                                          "less" = mean((Delta[iE] - null) > (Delta.permutation[iE,] - null)),
                                          "greater" = mean((Delta[iE] - null) < (Delta.permutation[iE,] - null))
@@ -191,7 +191,7 @@ confint_percentileBootstrap <- function(Delta, Delta.permutation,
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
                        dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
 
-    ## ** punctual estimate
+    ## ** point estimate
     outTable[,"estimate"] <- Delta
 
     ## ** computations
@@ -226,7 +226,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
                        dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
 
-    ## ** punctual estimate
+    ## ** point estimate
     outTable[,"estimate"] <- Delta
     
     ## ** CI + p
@@ -268,7 +268,7 @@ confint_Ustatistic <- function(Delta, covariance,
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
                        dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
 
-    ## ** punctual estimate
+    ## ** point estimate
     outTable[,"estimate"] <- Delta
     
     ## ** CI + p
@@ -304,7 +304,7 @@ confint_none <- function(Delta, endpoint, ...){
     outTable <- matrix(NA, nrow = n.endpoint, ncol = 4,
                        dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
 
-    ## ** punctual estimate
+    ## ** point estimate
     outTable[,"estimate"] <- Delta
 
     ## ** return

@@ -72,7 +72,7 @@ printGeneral <- function(censoring,
     }
     
     ## ** Display
-    cat("Settings (punctual estimation) \n")
+    cat("Settings (point estimation) \n")
     cat("   > treatment groups: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
     cat("   > ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
