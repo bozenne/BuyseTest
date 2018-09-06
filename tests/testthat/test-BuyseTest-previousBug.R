@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep  6 2018 (18:55) 
+## Last-Updated: sep  6 2018 (19:05) 
 ##           By: Brice Ozenne
-##     Update #: 36
+##     Update #: 37
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -124,7 +124,7 @@ if(FALSE){
 ## this has been correct with version 1.4
 data(veteran,package="survival")
 
-testthat("ordering of tied event does not affect BuyseTest", {
+test_that("ordering of tied event does not affect BuyseTest", {
     ## veteran2[veteran2$time==100,]
     BT.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
                         data = veteran, method.inference = "none")
