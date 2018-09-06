@@ -195,10 +195,10 @@ BuyseTest <- function(formula,
     envirBT$initializeData <- initializeData
     envirBT$initializeSurvival_Peron <- initializeSurvival_Peron
     
-    ## ** Punctual estimation
-    if (outArgs$trace > 1) {cat("Punctual estimation ")}
+    ## ** Point estimation
+    if (outArgs$trace > 1) {cat("Point estimation ")}
     time <- system.time({
-        outPunctual <- .BuyseTest(envir = envirBT,
+        outPoint <- .BuyseTest(envir = envirBT,
                                   return.index = option$return.index,
                                   keep.comparison = keep.comparison,
                                   method.inference = "none")
@@ -209,7 +209,7 @@ BuyseTest <- function(formula,
         envirBT$indexT <- which(outArgs$data[[outArgs$treatment]]==1)
         envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==0)
         
-        outPunctual$tableComparison <- tableComparison2dt(outPunctual$tableComparison,
+        outPoint$tableComparison <- tableComparison2dt(outPoint$tableComparison,
                                                           correction.tte = outArgs$correction.tte,
                                                           level.treatment = outArgs$level.treatment,
                                                           level.strata = outArgs$level.strata,
@@ -252,19 +252,19 @@ BuyseTest <- function(formula,
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
 
     BuyseRes.object <- BuyseRes(
-        count.favorable = outPunctual$count_favorable,      
-        count.unfavorable = outPunctual$count_unfavorable,
-        count.neutral = outPunctual$count_neutral,    
-        count.uninf = outPunctual$count_uninf,
-        n.pairs = outPunctual$n_pairs,
-        delta.netChance = outPunctual$delta_netChance,
-        delta.winRatio = outPunctual$delta_winRatio,
-        Delta.netChance = outPunctual$Delta_netChance,
-        Delta.winRatio = outPunctual$Delta_winRatio,
-        index.neutralT = outPunctual$index_neutralT,
-        index.neutralC = outPunctual$index_neutralC,
-        index.uninfT = outPunctual$index_uninfT,
-        index.uninfC = outPunctual$index_uninfC,
+        count.favorable = outPoint$count_favorable,      
+        count.unfavorable = outPoint$count_unfavorable,
+        count.neutral = outPoint$count_neutral,    
+        count.uninf = outPoint$count_uninf,
+        n.pairs = outPoint$n_pairs,
+        delta.netChance = outPoint$delta_netChance,
+        delta.winRatio = outPoint$delta_winRatio,
+        Delta.netChance = outPoint$Delta_netChance,
+        Delta.winRatio = outPoint$Delta_winRatio,
+        index.neutralT = outPoint$index_neutralT,
+        index.neutralC = outPoint$index_neutralC,
+        index.uninfT = outPoint$index_uninfT,
+        index.uninfC = outPoint$index_uninfC,
         type = type,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
@@ -279,8 +279,8 @@ BuyseTest <- function(formula,
         DeltaResampling.netChance = outResampling$DeltaResampling.netChance,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
         covariance = outCovariance,
-        tableComparison = if(outArgs$keep.comparison){outPunctual$tableComparison}else{list()},
-        tableSurvival = if(outArgs$keep.survival){outPunctual$tableSurvival}else{list()}
+        tableComparison = if(outArgs$keep.comparison){outPoint$tableComparison}else{list()},
+        tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
     )
 
     ## ** export

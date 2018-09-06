@@ -126,9 +126,9 @@ inferenceUstatistic <- function(envir){
     if (trace > 1) {cat("Moments of the U-statistic")}
         
     ## ** extract informations
-    endpoint <- names(envir$outPunctual$tableComparison)
+    endpoint <- names(envir$outPoint$tableComparison)
     D <- length(endpoint)
-    col.id <- names(envir$outPunctual$tableComparison[[1]])[1:3]
+    col.id <- names(envir$outPoint$tableComparison[[1]])[1:3]
     keep.col <- c(col.id,"favorable","unfavorable","neutral","uninformative")
     
     ## ** fct
@@ -176,7 +176,7 @@ inferenceUstatistic <- function(envir){
     
     for(iE in 1:D){ ## iE <- 1
 
-        iTable <- data.table::copy(envir$outPunctual$tableComparison[[iE]][,.SD,.SDcols = keep.col])
+        iTable <- data.table::copy(envir$outPoint$tableComparison[[iE]][,.SD,.SDcols = keep.col])
         data.table::setnames(iTable, old = col.id, new = c("strata","indexT","indexC"))
 
         ## *** perform correction
@@ -207,10 +207,10 @@ inferenceUstatistic <- function(envir){
     ## ** compute sigma for each endpoint
 
     ## *** P[X1>Y1 & X1>Y1']
-    p1.favorable <- cumsum(envir$outPunctual$count_favorable)/envir$outPunctual$n_pairs
+    p1.favorable <- cumsum(envir$outPoint$count_favorable)/envir$outPoint$n_pairs
     
     ## *** P[X1<Y1 & X1<Y1']
-    p1.unfavorable <- cumsum(envir$outPunctual$count_unfavorable)/envir$outPunctual$n_pairs
+    p1.unfavorable <- cumsum(envir$outPoint$count_unfavorable)/envir$outPoint$n_pairs
     
     ## *** P[X1>Y1 & X1>Y1']
     p2.favorableT <- cumsum(M.sufficient[,"sum.favorableT"])/cumsum(M.sufficient[,"n.pairT"])
