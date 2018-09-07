@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: sep  6 2018 (11:18) 
+## Last-Updated: sep  7 2018 (13:39) 
 ##           By: Brice Ozenne
-##     Update #: 13
+##     Update #: 14
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,7 @@ context("Check that the option operator in BuyseTest is working correctly \n")
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.comparison = TRUE,
+                  keep.individualScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 
@@ -38,7 +38,7 @@ test_that("check - 1 pair",{
     expect_equal(as.double(BT@count.unfavorable),1)
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
-    ## BT@tableComparison
+    ## BT@tableIndividualScore
 
     ## continuous
     data <- data.frame(toxicity1 = c(1,0), Treatment = c(1,0))

@@ -35,7 +35,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                check = TRUE,
                conf.level = 0.95,
                cpus = 1,
-               keep.comparison = FALSE,
+               keep.individualScore = FALSE,
                keep.survival = FALSE,
                method.inference = "stratified permutation",
                method.tte = "Peron",               
@@ -55,7 +55,6 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
     object <- get(".BuyseTest-options", envir = BuyseTest.env)
     
     if (!is.null(names(args))) { # write
-      
       validCharacter(names(args),
                      name1 = "...",
                      valid.length = NULL,

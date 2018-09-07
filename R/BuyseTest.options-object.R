@@ -22,7 +22,7 @@ setClass(
       check = "logical",
       conf.level = "numeric",
       cpus = "numeric",
-      keep.comparison = "logical",
+      keep.individualScore = "logical",
       keep.survival = "logical",
       method.inference = "character",
       method.tte = "character",
@@ -61,8 +61,8 @@ setClass(
                  name1 = "@neutral.as.uninf",
                  valid.length = 1,
                  method = "Class BuyseTest.options")
-    validLogical(object@keep.comparison,
-                 name1 = "@keep.comparison",
+    validLogical(object@keep.individualScore,
+                 name1 = "@keep.individualScore",
                  valid.length = 1,
                  method = "Class BuyseTest.options")
     validLogical(object@keep.survival,

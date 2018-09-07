@@ -38,7 +38,7 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param n.resampling [integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param keep.comparison [logical] should the result of each pairwise comparison be kept?
+#' @param keep.individualScore [logical] should the result of each pairwise comparison be kept?
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 #' @param seed [integer, >0] the seed to consider for the permutation test.
@@ -48,6 +48,7 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param trace [integer] should the execution of the function be traced ? See details.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param keep.comparison Obsolete. Alias for 'keep.individualScore'.
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
@@ -92,14 +93,97 @@
 #' \code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
 #' \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
 #' \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
-#' 
-#' @example
-#' R/examples/EX_BuyseTest.R
-#'     
 #' @keywords function BuyseTest
-#'
 
-## * BuyseTest
+## * BuyseTest (example)
+#' @rdname BuyseTest
+#' @examples
+#' # reset the default value of the number of permuation sample
+#' BuyseTest.options(method.inference = "none") # no permutation test
+#'
+#' #### simulate some data ####
+#' df.data <- simBuyseTest(1e2, n.strata = 2)
+#'
+#'                                        # display 
+#' if(require(survival)){
+#'    resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
+#'    plot(resKM_tempo)
+#' }
+#'
+#' #### one time to event endpoint ####
+#' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data)
+#' 
+#' summary(BT) # net chance in favor of treatment
+#' summary(BT, percentage = FALSE)  
+#' summary(BT, statistic = "winRatio") # win Ratio
+#' 
+#' ## bootstrap to compute the CI
+#' \dontrun{
+#'     BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#'                     method.inference = "permutation", n.resampling = 1e3)
+#' }
+#' \dontshow{
+#'     BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#'                     method.inference = "permutation", n.resampling = 1e1, trace = 0)
+#' }
+#' summary(BT, statistic = "netChance") ## default
+#' summary(BT, statistic = "winRatio") 
+#' 
+#' ## parallel boostrap
+#' \dontrun{
+#'     BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#'                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)
+#'     summary(BT)
+#' }
+#' 
+#' ## method Gehan is much faster but does not optimally handle censored observations
+#' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#'                 method.tte = "Gehan", trace = 0)
+#' summary(BT)
+#' 
+#' #### one time to event endpoint: only differences in survival over 1 unit ####
+#' BT <- BuyseTest(Treatment ~ TTE(eventtime, threshold = 1, censoring = status), data=df.data)
+#' summary(BT)
+#' 
+#' #### one time to event endpoint with a strata variable
+#' BT <- BuyseTest(Treatment ~ strata + TTE(eventtime, censoring = status), data=df.data)
+#' summary(BT)
+#' 
+#' #### several endpoints with a strata variable
+#' f <- Treatment ~ strata + T(eventtime, 1, status) + B(toxicity) 
+#' f <- update(f, 
+#'             ~. + T(eventtime, 0.5, status) + C(score, 1) + T(eventtime, 0.25, status))
+#' 
+#' BT <- BuyseTest(f, data=df.data)
+#' summary(BT)
+#' 
+#' #### real example : Veteran dataset of the survival package ####
+#' #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
+#' #### method.tte = "Gehan"
+#' 
+#' if(require(survival)){
+#' \dontrun{
+#'   data(veteran,package="survival")
+#'  
+#'   ## method.tte = "Gehan"
+#'   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+#'                         data=veteran, method.tte="Gehan",
+#'                         method.inference = "permutation", n.resampling = 1e3)
+#'   
+#'   summary_Gehan <- summary(BT_Gehan)
+#'   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
+#'   
+#'   ## method.tte = "Peron"
+#'   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+#'                         data=veteran, method.tte="Peron",
+#'                         method.inference = "permutation", n.resampling = 1e3)
+#' 
+#'   class(BT_Peron)
+#'   summary(BT_Peron)
+#' }
+#' }
+
+## * BuyseTest (code)
 ##' @rdname BuyseTest
 ##' @export
 BuyseTest <- function(formula,
@@ -109,7 +193,7 @@ BuyseTest <- function(formula,
                       method.inference = NULL,
                       n.resampling = NULL,
                       neutral.as.uninf = NULL,
-                      keep.comparison = NULL,
+                      keep.individualScore = NULL,
                       treatment = NULL,
                       endpoint = NULL,
                       type = NULL,
@@ -120,13 +204,18 @@ BuyseTest <- function(formula,
                       alternative = "two.sided", 
                       seed = NULL,
                       cpus = NULL,
-                      trace = NULL){
+                      trace = NULL,
+                      keep.comparison){
 
     name.call <- names(match.call())
     option <- BuyseTest.options()
     
     ## ** compatibility with previous version
-
+    if(!missing(keep.comparison)){
+        stop("Argument \'keep.comparison\' is obsolete. \n",
+             "It has been replaced by the argument \'keep.individualScore\' \n")
+    }
+    
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(alternative = alternative,
@@ -136,7 +225,7 @@ BuyseTest <- function(formula,
                               data = data,
                               endpoint = endpoint,
                               formula = formula,
-                              keep.comparison = keep.comparison,
+                              keep.individualScore = keep.individualScore,
                               method.tte = method.tte,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
@@ -151,10 +240,10 @@ BuyseTest <- function(formula,
                               type = type,
                               method.inference = method.inference)
 
-    if(outArgs$keep.comparison || outArgs$method.inference == "asymptotic"){
-        keep.comparison <- TRUE
+    if(outArgs$keep.individualScore || outArgs$method.inference == "asymptotic"){
+        keep.individualScore <- TRUE
     }else{
-        keep.comparison <- FALSE
+        keep.individualScore <- FALSE
     }
 
     ## ** test arguments
@@ -199,25 +288,25 @@ BuyseTest <- function(formula,
     if (outArgs$trace > 1) {cat("Point estimation ")}
     time <- system.time({
         outPoint <- .BuyseTest(envir = envirBT,
-                                  return.index = option$return.index,
-                                  keep.comparison = keep.comparison,
-                                  method.inference = "none")
+                               return.index = option$return.index,
+                               keep.individualScore = keep.individualScore,
+                               method.inference = "none")
     })
     ## convert from a list of vector (output of C++) to a list of data.table
-    if(keep.comparison){
+    if(keep.individualScore){
         ## needed for inference
         envirBT$indexT <- which(outArgs$data[[outArgs$treatment]]==1)
         envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==0)
-        
-        outPoint$tableComparison <- tableComparison2dt(outPoint$tableComparison,
-                                                          correction.tte = outArgs$correction.tte,
-                                                          level.treatment = outArgs$level.treatment,
-                                                          level.strata = outArgs$level.strata,
-                                                          n.strata = outArgs$n.strata,
-                                                          endpoint = outArgs$endpoint,
-                                                          threshold = outArgs$threshold,
-                                                          indexT = envirBT$indexT,
-                                                          indexC = envirBT$indexC)
+
+        outPoint$tableIndividualScore <- individualScore2dt(outPoint$tableScore,
+                                                            correction.tte = outArgs$correction.tte,
+                                                            level.treatment = outArgs$level.treatment,
+                                                            level.strata = outArgs$level.strata,
+                                                            n.strata = outArgs$n.strata,
+                                                            endpoint = outArgs$endpoint,
+                                                            threshold = outArgs$threshold,
+                                                            indexT = envirBT$indexT,
+                                                            indexC = envirBT$indexC)
     }
     
     if (outArgs$trace > 1) {cat("(done) \n")}
@@ -279,7 +368,7 @@ BuyseTest <- function(formula,
         DeltaResampling.netChance = outResampling$DeltaResampling.netChance,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
         covariance = outCovariance,
-        tableComparison = if(outArgs$keep.comparison){outPoint$tableComparison}else{list()},
+        tableIndividualScore = if(outArgs$keep.individualScore){outPoint$tableIndividualScore}else{list()},
         tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
     )
 
@@ -287,10 +376,10 @@ BuyseTest <- function(formula,
     return(BuyseRes.object)
 }
 
-## * .BuyseTest
+## * .BuyseTest (code)
 .BuyseTest <- function(envir,
                        return.index,
-                       keep.comparison,
+                       keep.individualScore,
                        method.inference){
    
     strata <- envir$outArgs$strata ## for by in data.table otherwise it cant find what it is
@@ -375,8 +464,11 @@ BuyseTest <- function(formula,
 
     ## *** Update survival
     if(method.tte == 0){ ## Gehan
-        outSurv <- list(list.survivalT = lapply(1:D.TTE, matrix),
-                        list.survivalC = lapply(1:D.TTE, matrix))        
+        outSurv <- list(survTimeC = list(list(matrix())),
+                        survTimeT = list(list(matrix())),
+                        survJumpC = list(list(matrix())),
+                        survJumpT = list(list(matrix()))
+                        )        
     }else{ ## Peron
         outSurv <- initializeSurvival_Peron(data =  data, dataT = dataT, dataC = dataC,
                                             model.tte = envir$outArgs$model.tte,
@@ -395,30 +487,30 @@ BuyseTest <- function(formula,
     }
 
     ## ** Computation
-    resBT <-   GPC_cpp(Treatment = M.Treatment,
-                       Control = M.Control,
-                       threshold = envir$outArgs$threshold,
-                       survEndpoint = (type == 3),
-                       delta_Treatment = M.delta.Treatment,
-                       delta_Control = M.delta.Control,
-                       D = D,
-                       returnIndex = return.index,
-                       strataT = index.strataT,
-                       strataC = index.strataC,
-                       n_strata = n.strata,
-                       n_TTE = D.TTE,
-                       Wscheme = envir$outArgs$Wscheme,
-                       index_survivalM1 = envir$outArgs$index.survivalM1,
-                       threshold_TTEM1 = envir$outArgs$threshold.TTEM1,
-                       list_survTimeC = outSurv$list.survTimeC,
-                       list_survTimeT = outSurv$list.survTimeT,
-                       list_survJumpC = outSurv$list.survJumpC,
-                       list_survJumpT = outSurv$list.survJumpT,
-                       methodTTE = method.tte,
-                       correctionTTE = envir$outArgs$correction.tte,
-                       neutralAsUninf = envir$outArgs$neutral.as.uninf,
-                       keepComparison = keep.comparison
-                       )
+    resBT <- GPC_cpp(Treatment = M.Treatment,
+                     Control = M.Control,
+                     threshold = envir$outArgs$threshold,
+                     survEndpoint = (type == 3),
+                     delta_Treatment = M.delta.Treatment,
+                     delta_Control = M.delta.Control,
+                     D = D,
+                     returnIndex = return.index,
+                     strataT = index.strataT,
+                     strataC = index.strataC,
+                     n_strata = n.strata,
+                     n_TTE = D.TTE,
+                     Wscheme = envir$outArgs$Wscheme,
+                     index_survivalM1 = envir$outArgs$index.survivalM1,
+                     threshold_TTEM1 = envir$outArgs$threshold.TTEM1,
+                     list_survTimeC = outSurv$survTimeC,
+                     list_survTimeT = outSurv$survTimeT,
+                     list_survJumpC = outSurv$survJumpC,
+                     list_survJumpT = outSurv$survJumpT,
+                     methodTTE = method.tte,
+                     correctionTTE = envir$outArgs$correction.tte,
+                     neutralAsUninf = envir$outArgs$neutral.as.uninf,
+                     keepScore = keep.individualScore
+                     )
     
     ## ** export
     if(method.inference == "none"){

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: sep  6 2018 (10:02) 
+## Last-Updated: sep  7 2018 (17:37) 
 ##           By: Brice Ozenne
-##     Update #: 133
+##     Update #: 135
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ context("Check BuyseTest on simple examples")
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.comparison = TRUE,
+                  keep.individualScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 
@@ -39,7 +39,7 @@ test_that("check favorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
-    ## BT@tableComparison
+    ## BT@tableIndividualScore
 
     ## several pairs
     data2 <- rbind(data, data)
@@ -48,7 +48,7 @@ test_that("check favorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
-    ## BT@tableComparison
+    ## BT@tableIndividualScore
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
@@ -57,7 +57,7 @@ test_that("check favorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
-    ## BT@tableComparison
+    ## BT@tableIndividualScore
 
 })
 
@@ -86,7 +86,7 @@ test_that("check unfavorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
-    ## BT@tableComparison
+    ## BT@tableIndividualScore
 
 })
 
@@ -115,7 +115,7 @@ test_that("check neutral - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
     expect_equal(as.double(BT@count.uninf),c(0,0))
-    ## BT@tableComparison
+    ## BT@tableIndividualScore
 })
 
 ## ** NA as uninformative
@@ -144,7 +144,7 @@ test_that("check unfavorable - 2 Binary",{
                      toxicity2 = c(1,0),
                      Id = 1:10)
     BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt)
-    ## BT@tableComparison
+    ## BT@tableIndividualScore
 
     ## total pairs: 25
     expect_equal(as.double(BT@count.favorable),c(0,0))
@@ -165,8 +165,8 @@ test_that("check mixed - 2 Binary",{
                      toxicity1 = 0,
                      toxicity2 = c(1,0,1,0))
     BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt,
-                    keep.comparison = TRUE)
-    ## BT@tableComparison
+                    keep.individualScore = TRUE)
+    ## BT@tableIndividualScore
 
     expect_equal(as.double(BT@count.favorable),c(0,1))
     expect_equal(as.double(BT@count.unfavorable),c(0,1))
@@ -473,7 +473,7 @@ test_that("2 pairs - Peron",{
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
     ## P[T>=t|T=1,S>=10] = 1 (t=<20), 1/2 (20<t=<32), 0 (t>32)
 
-    ## all comparisons (see BT@tableComparison)
+    ## all individualScores (see BT@tableIndividualScore)
     ## 10* vs 20 : unfavorable
     ## 10* vs 32 : unfavorable
     ## 12 vs 20 : unfavorable
@@ -492,57 +492,6 @@ test_that("2 pairs - Peron",{
   
 })
 
-## * two time to events
-## ** unbalanced number of pairs
-## check previous bug with export of the pairs
-dt <- data.table("Treatment" = c(1, 0, 0, 0), 
-                 "eventtime1" = c(0.68, 0.84, 0.43, 0.48), 
-                 "status1" = c(1, 0, 0, 1), 
-                 "eventtime2" = c(0.37, 0.85, 1.04, 1.33), 
-                 "status2" = c(0, 0, 1, 0))
-
-test_that("check previous bug with option keep.comparison",{
-    ## the bug was some of the results of BT@tableComparison were set to random intialization values (when C++ create the vector)
-    ## because they were not updated during the execution of the function
-    BT <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2),
-                    data = dt, method.tte = "Gehan")
-
-    GS <- list(eventtime1_1 = data.table("strata" = factor(c("1", "1", "1")), 
-                                         "index.1" = c(1, 1, 1), 
-                                         "index.0" = c(2, 3, 4), 
-                                         "indexWithinStrata.1" = c(1, 1, 1), 
-                                         "indexWithinStrata.0" = c(1, 2, 3), 
-                                         "favorable" = c(0, 0, 0), 
-                                         "unfavorable" = c(0, 0, 0), 
-                                         "neutral" = c(0, 0, 1), 
-                                         "uninformative" = c(1, 1, 0),
-                                         "favorable.corrected" = as.numeric(c(NA,NA,NA)),
-                                         "unfavorable.corrected" = as.numeric(c(NA,NA,NA)),
-                                         "neutral.corrected" = as.numeric(c(NA,NA,NA))
-                                         ) ,
-               eventtime2_0.5 = data.table("strata" = factor(c("1", "1", "1")), 
-                                           "index.1" = c(1, 1, 1), 
-                                           "index.0" = c(4, 2, 3), 
-                                           "indexWithinStrata.1" = c(1, 1, 1), 
-                                           "indexWithinStrata.0" = c(3, 1, 2), 
-                                           "favorable" = c(0, 0, 0), 
-                                           "unfavorable" = c(0, 0, 0), 
-                                           "neutral" = c(0, 0, 0), 
-                                           "uninformative" = c(1, 1, 1),
-                                           "favorable.corrected" = as.numeric(c(NA,NA,NA)),
-                                           "unfavorable.corrected" = as.numeric(c(NA,NA,NA)),
-                                           "neutral.corrected" = as.numeric(c(NA,NA,NA))
-                                           )
-               )
-
-    expect_equal(BT@tableComparison[[1]],GS[[1]])
-    expect_equal(BT@tableComparison[[2]],GS[[2]])
-             
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(1,0))
-    expect_equal(as.double(BT@count.uninf),c(2,3))
-})
 ##----------------------------------------------------------------------
 ### test-BuyseTest-Pairs.R ends here
 

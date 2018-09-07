@@ -8,7 +8,7 @@ context("Check BuyseTest without strata")
 ## * Settings
 n.patients <- c(90,100)
 BuyseTest.options(check = FALSE,
-                  keep.comparison = TRUE,
+                  keep.individualScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 

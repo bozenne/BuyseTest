@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: jul 12 2018 (17:11) 
+## Last-Updated: sep  7 2018 (13:39) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 6
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ context("Check that BuyseTest with competing risks \n")
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.comparison = TRUE,
+                  keep.individualScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 

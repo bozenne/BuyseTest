@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: aug 12 2018 (10:38) 
+## Last-Updated: sep  7 2018 (13:39) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 53
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ context("Check that method.tte = corrected  in BuyseTest is working correctly \n
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.comparison = TRUE,
+                  keep.individualScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 ## * 1 endpoint
@@ -44,7 +44,7 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
     expect_equal(as.double(Gehan@count.neutral), c(1,5))
     expect_equal(as.double(Gehan@count.uninf), c(4,0))
 
-    test <- aggrTableComparison(table = Gehan@tableComparison,
+    test <- aggrTableIndividualScore(table = Gehan@tableIndividualScore,
                                 correct.tte = Gehan@method.tte$correction)
         
     expect_equal(unname(tail(Gehan@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
@@ -64,7 +64,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     expect_equal(as.double(GehanC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(GehanC@count.uninf), c(0,0))
 
-    test <- aggrTableComparison(table = GehanC@tableComparison,
+    test <- aggrTableIndividualScore(table = GehanC@tableIndividualScore,
                                 correct.tte = GehanC@method.tte$correction)
         
     expect_equal(unname(tail(GehanC@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
@@ -79,7 +79,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])
     expect_equal(GehanC@count.uninf[1], GehanC2@count.uninf[2])
 
-    test <- aggrTableComparison(table = GehanC2@tableComparison,
+    test <- aggrTableIndividualScore(table = GehanC2@tableIndividualScore,
                                 correct.tte = GehanC2@method.tte$correction)
         
     expect_equal(unname(tail(GehanC2@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
@@ -98,7 +98,7 @@ test_that("1 TTE endpoint - Peron (no correction)", {
     expect_equal(as.double(Peron@count.neutral), c(1,4))
     expect_equal(as.double(Peron@count.uninf), c(3,0))
 
-    test <- aggrTableComparison(table = Peron@tableComparison,
+    test <- aggrTableIndividualScore(table = Peron@tableIndividualScore,
                                 correct.tte = Peron@method.tte$correction)
         
     expect_equal(unname(tail(Peron@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
@@ -119,7 +119,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     expect_equal(as.double(PeronC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(PeronC@count.uninf), c(0,0))
 
-    test <- aggrTableComparison(table = PeronC@tableComparison,
+    test <- aggrTableIndividualScore(table = PeronC@tableIndividualScore,
                                 correct.tte = PeronC@method.tte$correction)
         
     expect_equal(unname(tail(PeronC@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
@@ -134,7 +134,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     expect_equal(PeronC@count.neutral[1], PeronC@count.neutral[2])
     expect_equal(PeronC@count.uninf[1], PeronC2@count.uninf[2])
 
-    test <- aggrTableComparison(table = PeronC2@tableComparison,
+    test <- aggrTableIndividualScore(table = PeronC2@tableIndividualScore,
                                 correct.tte = PeronC2@method.tte$correction)
         
     expect_equal(unname(tail(PeronC2@Delta.netChance,1)),test[,mean(favorable-unfavorable)])

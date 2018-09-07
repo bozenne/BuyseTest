@@ -41,7 +41,7 @@ inferenceResampling <- function(envir){
                                               FUN = function(iB){
                                                   .BuyseTest(envir = envir,
                                                              return.index = FALSE,
-                                                             keep.comparison = FALSE,
+                                                             keep.individualScore = FALSE,
                                                              method.inference = envir$outArgs$method.inference
                                                              )
                                               })
@@ -74,7 +74,7 @@ inferenceResampling <- function(envir){
 
                                            return(.BuyseTest(envir = envir,
                                                       return.index = FALSE,
-                                                      keep.comparison = FALSE,
+                                                      keep.individualScore = FALSE,
                                                       method.inference = envir$outArgs$method.inference))
                       
                                        })
@@ -126,9 +126,9 @@ inferenceUstatistic <- function(envir){
     if (trace > 1) {cat("Moments of the U-statistic")}
         
     ## ** extract informations
-    endpoint <- names(envir$outPoint$tableComparison)
+    endpoint <- names(envir$outPoint$tableIndividualScore)
     D <- length(endpoint)
-    col.id <- names(envir$outPoint$tableComparison[[1]])[1:3]
+    col.id <- names(envir$outPoint$tableIndividualScore[[1]])[1:3]
     keep.col <- c(col.id,"favorable","unfavorable","neutral","uninformative")
     
     ## ** fct
@@ -176,7 +176,7 @@ inferenceUstatistic <- function(envir){
     
     for(iE in 1:D){ ## iE <- 1
 
-        iTable <- data.table::copy(envir$outPoint$tableComparison[[iE]][,.SD,.SDcols = keep.col])
+        iTable <- data.table::copy(envir$outPoint$tableIndividualScore[[iE]][,.SD,.SDcols = keep.col])
         data.table::setnames(iTable, old = col.id, new = c("strata","indexT","indexC"))
 
         ## *** perform correction

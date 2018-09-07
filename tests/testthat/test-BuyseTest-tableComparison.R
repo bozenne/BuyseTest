@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: sep  6 2018 (11:11) 
+## Last-Updated: sep  7 2018 (17:36) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 27
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,7 +26,7 @@ context("Check tableComparison matches the summary of BuyseTest objects")
 ## * Settings
 n.patients <- c(90,100)
 BuyseTest.options(check = FALSE,
-                  keep.comparison = TRUE,
+                  keep.individualScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 
@@ -46,36 +46,51 @@ formula <- Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(tox
 BT.mixed <- BuyseTest(formula,
                       data = dt.sim, method.tte = "Peron")
 test_that("Full data", {
-    test <- aggrTableComparison(table = BT.mixed@tableComparison,
-                                correct.tte = BT.mixed@method.tte$correction)
-    ## 
-    ## mean(BT.mixed@tableComparison[[1]]$unfavorable)
-    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$favorable)})),
-                 as.double(BT.mixed@count.favorable))
-    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$unfavorable)})),
-                 as.double(BT.mixed@count.unfavorable))
-    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$neutral)})),
-                 as.double(BT.mixed@count.neutral))
-    expect_equal(as.double(sapply(BT.mixed@tableComparison, function(iTable){sum(iTable$uninformative)})),
-                 as.double(BT.mixed@count.uninf))
 
-    expect_equal(unname(tail(BT.mixed@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
-    expect_equal(unname(tail(BT.mixed@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+    manualScore <- NULL
+    for(iEndpoint in 1:length(BT.mixed@endpoint)){
+        iScore <- getIndividualScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
+                                                                        unfavorable = sum(unfavorable*weight),
+                                                                        neutral = sum(neutral*weight),
+                                                                        uninformative = sum(uninformative*weight))]
+        manualScore <- rbind(manualScore,iScore)
+    }
+    expect_equal(as.double(manualScore$favorable),
+                 as.double(BT.mixed@count.favorable))
+    expect_equal(as.double(manualScore$unfavorable),
+                 as.double(BT.mixed@count.unfavorable))
+    expect_equal(as.double(manualScore$neutral),
+                 as.double(BT.mixed@count.neutral))
+    expect_equal(as.double(manualScore$uninformative),
+                 as.double(BT.mixed@count.uninf))
+    
+    expect_equal(as.double(cumsum(BT.mixed@count.favorable-BT.mixed@count.unfavorable)/BT.mixed@n.pairs),
+                 as.double(BT.mixed@Delta.netChance))
+    expect_equal(as.double(cumsum(BT.mixed@count.favorable)/cumsum(BT.mixed@count.unfavorable)),
+                 as.double(BT.mixed@Delta.winRatio))
 })
 
 ## * test against tableComparison (correction)
+if(FALSE){
 formula <- Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5)
 BT.mixed <- BuyseTest(formula,
                       data = dt.sim, method.tte = "Peron corrected")
 
 test_that("Full data", {
-    test <- aggrTableComparison(table = BT.mixed@tableComparison,
-                                correct.tte = BT.mixed@method.tte$correction)
-        
+
+    manualScore <- NULL
+    for(iEndpoint in 1:length(BT.mixed@endpoint)){
+        iScore <- getIndividualScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
+                                                                        unfavorable = sum(unfavorable*weight),
+                                                                        neutral = sum(neutral*weight),
+                                                                        uninformative = sum(uninformative*weight))]
+        manualScore <- rbind(manualScore,iScore)
+    }
+
     expect_equal(unname(tail(BT.mixed@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
     expect_equal(unname(tail(BT.mixed@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
 })
-
+}
 
 
 ### does not work because of the estimation of the survival

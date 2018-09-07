@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 22 2017 (18:37) 
 ## Version: 
-## Last-Updated: sep  6 2018 (10:02) 
+## Last-Updated: sep  7 2018 (13:39) 
 ##           By: Brice Ozenne
-##     Update #: 19
+##     Update #: 20
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ context("Check the function initializing the thresholds")
 
 ## * settings
 BuyseTest.options(check = TRUE,
-                  keep.comparison = TRUE,
+                  keep.individualScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 

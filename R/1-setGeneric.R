@@ -14,3 +14,17 @@ setGeneric(name = "select",
 setGeneric(name = "getCount",
            def = function(object, type){standardGeneric("getCount")}
 )
+
+## * Selector (for BuyseRes)
+#' @rdname BuyseRes-getIndividualScore
+#' @exportMethod getIndividualScore
+setGeneric(name = "getIndividualScore",
+           def = function(object, ...){standardGeneric("getIndividualScore")}
+)
+
+## * Selector (for BuyseRes)
+#' @rdname BuyseRes-getSurvival
+#' @exportMethod getSurvival
+setGeneric(name = "getSurvival",
+           def = function(object, ...){standardGeneric("getSurvival")}
+)
