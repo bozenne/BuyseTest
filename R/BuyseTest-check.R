@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: sep  7 2018 (13:22) 
+## Last-Updated: sep 10 2018 (10:41) 
 ##           By: Brice Ozenne
-##     Update #: 90
+##     Update #: 91
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@ testArgs <- function(alternative,
                      data,
                      endpoint,
                      formula,
-                     keep.individualScore,
+                     keep.pairScore,
                      method.tte,
                      model.tte,
                      method.inference,
@@ -212,8 +212,8 @@ testArgs <- function(alternative,
                 "when specified, only argument \'formula\' is used \n")
     }
 
-    ## ** keep.individualScore
-    validLogical(keep.individualScore,
+    ## ** keep.pairScore
+    validLogical(keep.pairScore,
                  valid.length = 1,
                  method = "BuyseTest")
  

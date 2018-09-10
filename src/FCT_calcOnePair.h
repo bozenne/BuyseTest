@@ -31,7 +31,7 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
                     					    const arma::mat& survTimeC, const arma::mat& survTimeT,
 											const arma::mat& survJumpC, const arma::mat& survJumpT);
 
-inline double calcIntegralProba(const arma::mat& survival, double start);
+double calcIntegralProba(const arma::mat& survival, double start);
 
 // * calcOnePair_Continuous
 inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold,
@@ -58,7 +58,7 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
 			  0, // neutral
 			  1, // uninformative
 			  Wpair, // weight
-			  NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+			  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
       };
     }
   }else{    
@@ -73,7 +73,7 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
 				0, // neutral
 				0, // uninformative
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		};
       }
     }else if(diff <= -threshold){ // diff<0 for threshold == 0
@@ -85,7 +85,7 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
 				0, // neutral
 				0, // uninformative
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		}; 
       }
 
@@ -107,7 +107,7 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double
 				1, // neutral
 				0, // uninformative
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL  // favorable corrected, unfavorable corrected, neutral corrected
+				0, 0, Wpair  // favorable corrected, unfavorable corrected, neutral corrected
 		};
       }
 
@@ -143,7 +143,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				  0, // neutral
 				  0, // uninformative
 				  Wpair, // weight
-				  NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				  Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		  };
         }
       }else if(diff <= -threshold){              // (1,1) <= -tau   : unfavorable
@@ -155,7 +155,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				  0, // neutral 
 				  0, // uninformative
 				  Wpair, // weight
-    	          NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+    	          0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		  };
         }
       }else{                                  //  (1,1)  ]-tau;tau[ : uninformative
@@ -176,7 +176,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				  1, // neutral
 				  0, // uninformative
 				  Wpair, // weight
-				  NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				  0, 0, Wpair // favorable corrected, unfavorable corrected, neutral corrected
 		  };
         }
 
@@ -193,7 +193,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				  0, // neutral 
 				  0, // uninformative
 				  Wpair, // weight
-				  NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				  0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		  };
         }
       }else{                             //  (1,0)  ]-tau;+Inf[ : uninformative
@@ -211,7 +211,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				  0, // neutral 
 				  1, // uninformative
 				  Wpair, // weight
-				  NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		  };
         }
 
@@ -225,7 +225,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				0, // neutral 
 				0, // uninformative	
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected	  
+				0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected	  
 		};
 	  }      
     }
@@ -243,7 +243,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				  0, // neutral 
 				  0, // uninformative
 				  Wpair, // weight
-				  NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				  Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		  };
         }
       }else{                 //  (1,0)  ]-Inf;+tau[ : uninformative
@@ -261,7 +261,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				  0, // neutral 
 				  1, // uninformative
 				  Wpair, // weight
-				  NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		  };
         }
       }
@@ -282,7 +282,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				0, // neutral 
 				1, // uninformative
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		};
 	  }
     }
@@ -298,7 +298,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				0, // neutral 
 				0, // uninformative
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				Wpair, 0, 0  // favorable corrected, unfavorable corrected, neutral corrected
 		};
 	  }
     }else if(delta_C==2){
@@ -319,7 +319,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				1, // neutral 
 				0, // uninformative
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				0, 0, Wpair // favorable corrected, unfavorable corrected, neutral corrected
 		};
       }
 
@@ -338,7 +338,7 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_T, const double e
 				0, // neutral 
 				1, // uninformative
 				Wpair, // weight
-				NA_REAL, NA_REAL, NA_REAL // favorable corrected, unfavorable corrected, neutral corrected
+				0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
 		};
        	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
       }
@@ -554,7 +554,7 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 //' @keywords function Cpp internal
 //' @export
 // [[Rcpp::export]]
-inline double calcIntegralProba(const arma::mat& survival, double start){
+double calcIntegralProba(const arma::mat& survival, double start){
   // computes \int_t>tau S dS
 
   // survival contains:

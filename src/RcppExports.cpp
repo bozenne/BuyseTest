@@ -40,7 +40,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // calcIntegralProba
-inline double calcIntegralProba(const arma::mat& survival, double start);
+double calcIntegralProba(const arma::mat& survival, double start);
 RcppExport SEXP _BuyseTest_calcIntegralProba(SEXP survivalSEXP, SEXP startSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

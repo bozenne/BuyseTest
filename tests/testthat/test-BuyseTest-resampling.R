@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: sep 10 2018 (08:58) 
+## last-updated: sep 10 2018 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 79
+##     Update #: 80
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -24,7 +24,7 @@ if(FALSE){
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.individualScore = TRUE,                  
+                  keep.pairScore = TRUE,                  
                   trace = 0)
 n.patients <- 100
 method <- "Peron"

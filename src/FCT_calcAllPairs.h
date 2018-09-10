@@ -341,7 +341,7 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Treatment, const arma::colv
 			  proba_threshold[2], // neutral
 			  proba_threshold[3], // uninformative
 			  1, // weight
-              NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+              proba_threshold[0], proba_threshold[1], proba_threshold[2] // unfavorable corrected, neutral corrected, uninformative corrected
 			  });
 	  }
 
@@ -578,7 +578,7 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
 			  proba_threshold[2], // neutral
 			  proba_threshold[3],  // uninformative,
 			  Wpairs(iter_pairs), // weight
-			  NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected					       
+			  weight_favorable, weight_unfavorable, weight_neutral // unfavorable corrected, neutral corrected, uninformative corrected					       
 			  });        
       }
     }
@@ -642,7 +642,7 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Treatment, const arma::co
 			  proba_threshold[2], // neutral
 			  proba_threshold[3],  // uninformative,
 			  Wpairs(nNeutral_pairs + iter_pairs), // weight
-			  NA_REAL, NA_REAL, NA_REAL // unfavorable corrected, neutral corrected, uninformative corrected
+			  weight_favorable, weight_unfavorable, weight_neutral // unfavorable corrected, neutral corrected, uninformative corrected
 			  });        
       }
     }

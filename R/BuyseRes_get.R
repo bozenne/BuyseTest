@@ -1,4 +1,4 @@
-## * Documentation - getCount
+## * getCount (documentation)
 #' @name BuyseRes-getCount
 #' @title Extract the Number of Favorable, Unfavorable, Neutral, Uninformative pairs
 #' @include BuyseRes-object.R
@@ -14,7 +14,7 @@
 #'
 #' @keywords get BuyseRes-method
 
-## * Method - getCount
+## * getCount (code)
 #' @rdname BuyseRes-getCount
 setMethod(f = "getCount",
           signature = "BuyseRes",
@@ -40,11 +40,11 @@ setMethod(f = "getCount",
 )
 
 
-## * Documentation - getIndividualScore
-#' @name BuyseRes-getIndividualScore
+## * getPairScore (documentation)
+#' @name BuyseRes-getPairScore
 #' @title Extract the Score of Each Pair
 #' @include BuyseRes-object.R
-#' @aliases BuyseRes-getIndividualScore getIndividualScore getIndividualScore,BuyseRes-method
+#' @aliases BuyseRes-getPairScore getPairScore getPairScore,BuyseRes-method
 #'
 #' @description Extract the score of each pair.
 #'
@@ -71,26 +71,79 @@ setMethod(f = "getCount",
 #' \item \code{"neutral"}: the probability that the endpoint is no different in the treatment arm vs. in the control arm.
 #' \item \code{"uninformative"}: the weight of the pair that cannot be attributed to favorable/unfavorable/neutral.
 #' \item \code{"weight"}: the residual weight of the pair to be analysed at the current outcome. Each pair starts with a weight of 1.
+#' \item \code{"favorable.corrected"}: same as \code{"favorable"}  after weighting.
+#' \item \code{"unfavorable.corrected"}: same as \code{"favorable"} after weighting.
+#' \item \code{"neutral.corrected"}: same as \code{"favorable"} after weighting.
+#' \item \code{"uninformative.corrected"}: same as \code{"favorable"} after weighting.
 #' }
 #' Note that the \code{.T} and \code{.C} may change since they correspond of the label of the treatment and control arms.
+#' The first weighting consists in multiplying the probability by the residual weight of the pair
+#' (i.e. the weight of the pair that was not informative at the previous endpoint). This is always performed.
+#' For time to event endpoint an additional weighting may be performed to avoid a possible bias in presence of censoring.
 #' @keywords get BuyseRes-method
 
-## * Method - getIndividualScore
-#' @rdname BuyseRes-getIndividualScore
-setMethod(f = "getIndividualScore",
+## * getPairScore (examples)
+#' @rdname BuyseRes-getPairScore
+#' @examples
+#' ## run BuyseTest
+#' data(veteran,package="survival")
+#'
+#' BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
+#'                      data = veteran, keep.pairScore = TRUE, 
+#'                      trace = 0, method.inference = "none")
+#'
+#' ## Extract scores
+#' pScore <- getPairScore(BT.keep, endpoint = 1)
+#'
+#' ## look at one pair
+#' pScore[91]
+#'
+#' ## retrive pair in the original dataset
+#' pVeteran <- veteran[pScore[91,c(index.1,index.2)],]
+#' pVeteran
+#' 
+#' ## the observation from the control group is censored at 97
+#' ## the observation from the treatment group has an event at 112
+#' ## since the threshold is 20, and (112-20)<97
+#' ## we know that the pair is not in favor of the treatment
+#'
+#' ## the formula for probability in favor of the control is
+#' ## Sc(97)/Sc(112+20)
+#' ## where Sc(t) is the survival at time t in the control arm.
+#' 
+#' ## we first estimate the survival in each arm
+#' e.KM <- prodlim(Hist(time,status)~trt, data = veteran)
+#'
+#' ## and compute the survival
+#' iSurv <- predict(e.KM, times =  c(97,112+20), newdata = data.frame(trt = 1))[[1]]
+#'
+#' ## the probability in favor of the control is then
+#' pUF <- iSurv[2]/iSurv[1]
+#' pUF
+#' ## and the complement to one of that is the probability of being neutral
+#' pN <- 1 - pUF
+#' pN
+#' 
+#' if(require(testthat)){
+#'    testthat::expect_equal(pUF, pScore[91, unfavorable])
+#'    testthat::expect_equal(pN, pScore[91, neutral])
+#' }
+## * getPairScore (code)
+#' @rdname BuyseRes-getPairScore
+setMethod(f = "getPairScore",
           signature = "BuyseRes",
           definition = function(object, endpoint = NULL, strata = NULL,
                                 rm.withinStrata = TRUE, rm.weight = FALSE,
                                 unlist = TRUE, trace = 1){
 
-              if(length(object@tableIndividualScore)==0){
+              if(length(object@tablePairScore)==0){
                   if(trace){
                       cat("Survival was not exported from the object \n",
                           "Consider setting the argument \'keep.survival\' to \"TRUE\" in BuyseTest.options \n", sep = "")
                   }
                   return(invisible(NULL))
               }else{
-                  out <- data.table::copy(object@tableIndividualScore)
+                  out <- data.table::copy(object@tablePairScore)
 
                   endpoint.names <- names(object@Delta.netChance)
                   strata.names <- object@level.strata
@@ -157,7 +210,7 @@ setMethod(f = "getIndividualScore",
               }
           })
 
-## * Documentation - getSurvival
+## * getSurvival (documentation)
 #' @name BuyseRes-getSurvival
 #' @title Extract the Survival and Survival Jumps
 #' @include BuyseRes-object.R
@@ -184,7 +237,7 @@ setMethod(f = "getIndividualScore",
 #'
 #' @keywords get BuyseRes-method
 
-## * Method - getSurvival
+## * getSurvival - (code)
 #' @rdname BuyseRes-getSurvival
 setMethod(f = "getSurvival",
           signature = "BuyseRes",

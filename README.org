@@ -92,6 +92,10 @@ Load *BuyseTest* in the R session:
 library(BuyseTest)
 #+END_SRC
 
+#+BEGIN_SRC R  :results silent   :exports both  :session *R* :cache no
+BuyseTest.options(method.tte = "Gehan")
+#+END_SRC
+
 
 ** Simulate data
 You can simulate data with the =simBuyseTest= function. For instance
@@ -189,7 +193,7 @@ BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
 :        priority endpoint type          operator            threshold censoring
 :        1        time     time to event higher is favorable 20        status   
 :    > management of neutral pairs: re-analyzed using endpoints of lower priority (if any) 
-:    > management of censored survival pairs: imputation using Kaplan Meier stratified by treatment group 
+:    > management of censored survival pairs: uninformative pairs 
 : 
 : Point estimation (done)
 
@@ -247,11 +251,11 @@ summary(BT)
  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : imputation using Kaplan Meier stratified by treatment group
+ > censored pairs  : uninformative pairs
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     37.78       46.55      15  0.66 -0.0877 -0.0877
+     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916
 #+end_example
 
 By default =summary= displays results relative to the statistic "net
@@ -268,11 +272,11 @@ summary(BT, statistic = "winRatio")
  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 1 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : imputation using Kaplan Meier stratified by treatment group
+ > censored pairs  : uninformative pairs
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
-     time        20   100     37.78       46.55      15  0.66 0.8116 0.8116
+     time        20   100     34.93        44.1      15  5.97 0.7922 0.7922
 #+end_example
 
 Since we have set the argument =n.permutation= to 0 (i.e. no
@@ -289,20 +293,20 @@ summary(BT2)
  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : imputation using Kaplan Meier stratified by treatment group
+ > censored pairs  : uninformative pairs
 
  > results
  endpoint threshold    strata  total favorable unfavorable neutral uninf   delta   Delta
-     time        20    global 100.00     36.06       45.77   16.92  1.25 -0.0971 -0.0971
-                     squamous  25.38     14.33        8.77    2.03  0.25  0.0557      NA
-                    smallcell  45.69     12.69       20.88   11.25  0.86 -0.0819      NA
-                        adeno  13.71      4.74        6.15    2.71  0.11 -0.0142      NA
-                        large  15.23      4.30        9.97    0.93  0.03 -0.0567      NA
-    karno     1e-12    global  18.17      6.72        8.07    3.38  0.00 -0.0135 -0.1106
-                     squamous   2.28      0.76        0.94    0.59  0.00 -0.0018      NA
-                    smallcell  12.12      4.33        5.75    2.03  0.00 -0.0142      NA
-                        adeno   2.81      1.46        0.85    0.51  0.00  0.0061      NA
-                        large   0.96      0.17        0.54    0.25  0.00 -0.0037      NA
+     time        20    global 100.00     33.33       44.08   16.92  5.67 -0.1074 -0.1074
+                     squamous  25.38     11.93        7.78    2.03  3.64  0.0415      NA
+                    smallcell  45.69     12.69       20.47   11.25  1.27 -0.0778      NA
+                        adeno  13.71      4.57        6.01    2.71  0.42 -0.0144      NA
+                        large  15.23      4.15        9.81    0.93  0.34 -0.0567      NA
+    karno     1e-12    global  22.59      8.80        9.73    4.06  0.00 -0.0093 -0.1168
+                     squamous   5.67      2.28        2.20    1.18  0.00  0.0008      NA
+                    smallcell  12.52      4.57        5.84    2.12  0.00 -0.0127      NA
+                        adeno   3.13      1.78        0.85    0.51  0.00  0.0093      NA
+                        large   1.27      0.17        0.85    0.25  0.00 -0.0068      NA
 #+end_example
 
 *** What about p-value and confidence intervals?
@@ -323,11 +327,11 @@ summary(BT.perm)
  > null hypothesis : Delta == 0 
  > permutation test: 10 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : imputation using Kaplan Meier stratified by treatment group
+ > censored pairs  : uninformative pairs
 
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta  CI [2.5 ; 97.5] p.value 
-     time        20   100     37.78       46.55      15  0.66 -0.0877 -0.0877 [-0.2412;0.1946]     0.4 
+     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916 [-0.2355;0.1803]     0.3 
 NOTE: confidence intervals computed under the null hypothesis
 #+end_example
 
@@ -354,11 +358,11 @@ summary(BT.boot)
  > null hypothesis : Delta == 0 
  > bootstrap resampling: 10 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : imputation using Kaplan Meier stratified by treatment group
+ > censored pairs  : uninformative pairs
 
  > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta  CI [2.5 ; 97.5] p.value 
-     time        20   100     37.78       46.55      15  0.66 -0.0877 -0.0877 [-0.1796;0.0301]     0.5
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta CI [2.5 ; 97.5] p.value 
+     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916 [-0.174;0.0215]     0.5
 #+end_example
 
 *** What if smaller is better?
@@ -373,7 +377,7 @@ BTinv
 
 #+RESULTS:
 :  endpoint threshold  delta  Delta
-:      time        20 0.0844 0.0844
+:      time        20 0.0838 0.0838
 
 Internally =BuyseTest= will multiply by -1 the values of the endpoint
 to ensure that lower values are considered as favorable. A direct
@@ -447,116 +451,86 @@ summary(BT.pair2)
 
 So in this case no pair is analyzed at second priority.
 
-*** Keeping track of all the comparisons
-To keep track of all the comparisons that have been performed, for
-each endpoint, between the all the pairs of observations from the two
-groups set the argument =keep.comparison= to =TRUE=:
+*** Extracting the contribution of each pair to the statistic
+The net chance of better outcome or the win ratio statistics can be
+expressed as a sum over all pairs of patients. It is possible to track
+the contribution of each pair to the statistic using the argument
+=keep.pairScore=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
-                     data = veteran, keep.comparison = TRUE, 
+                     data = veteran, keep.pairScore = TRUE, 
                      trace = 0, method.inference = "none")
 #+END_SRC
 
 #+RESULTS:
 
-This will store an list of matrices, one for each endpoint, in the
-object at the slot =tableComparison=:
+The method =getPairScore= can then be used to extract the contribution
+of each pair. For instance the following code extracts the
+contribution for the first endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-lapply(BT.keep@tableComparison, dim)
+getPairScore(BT.keep, endpoint = 1)
 #+END_SRC
 
 #+RESULTS:
-: $time_20
-: [1] 4692   12
-: 
-: $`karno_1e-12`
-: [1] 940  12
+#+begin_example
+      strata index.1 index.2 favorable unfavorable neutral uninformative weight favorable.corrected unfavorable.corrected neutral.corrected
+   1:      1      70       1         1           0       0             0      1                  NA                    NA                NA
+   2:      1      70       2         1           0       0             0      1                  NA                    NA                NA
+   3:      1      70       3         1           0       0             0      1                  NA                    NA                NA
+   4:      1      70       4         1           0       0             0      1                  NA                    NA                NA
+   5:      1      70       5         1           0       0             0      1                  NA                    NA                NA
+  ---                                                                                                                                      
+4688:      1     137      65         0           1       0             0      1                  NA                    NA                NA
+4689:      1     137      66         0           1       0             0      1                  NA                    NA                NA
+4690:      1     137      67         0           1       0             0      1                  NA                    NA                NA
+4691:      1     137      68         0           1       0             0      1                  NA                    NA                NA
+4692:      1     137      69         0           1       0             0      1                  NA                    NA                NA
+#+end_example
 
-The names of the list correspond to the endpoint underscore the
-threshold. We can now inspect the first element:
+The documentation of the method =getPairScore= describes the content
+of each column. In short, each line corresponds to different
+comparison between a pair from the control arm and the treatment
+arm. The column =strata= store to which strata the pair belongs
+(first, second, ...). The columns favorable, unfavorable, neutral,
+uninformative contains the result of the comparison, e.g. the first
+pair was classified as favorable while the last was classified as
+favorable with a weight of 1. The second and third columns indicates
+the rows in the original dataset corresponding to the pair:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-keep.cols <- c("index.2", "index.1", "favorable", "unfavorable", "neutral", "uninformative")
-BT.keep@tableComparison[[1]][c(1:2,90:91),.SD,.SDcols = keep.cols]
+veteran[c(70,1),]
 #+END_SRC
 
 #+RESULTS:
-:    index.2 index.1 favorable unfavorable neutral uninformative
-: 1:      70       1         1   0.0000000       0    0.00000000
-: 2:      70       2         1   0.0000000       0    0.00000000
-: 3:      71      21         0   0.9166667       0    0.08333333
-: 4:      71      22         0   0.6950827       0    0.30491728
-
-Each line corresponds to different comparison between a pair from the
-control arm and the treatment arm. The column =strata= store to which
-strata the pair belongs (first, second, ...). The last 4 columns
-contains the result of the comparison, e.g. the first pair was
-classified as favorable while the last was classified as unfavorable
-with a weight of 0.695 and as informative with a weight of 0.305.  The
-second and third columns indicates the rows in the original dataset
-corresponding to the pair:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-veteran[c(70,71,1:2,21:22),]
-#+END_SRC
-
-#+RESULTS:
-:    trt  celltype time status karno diagtime age prior
-: 70   2  squamous  999      1    90       12  54    10
-: 71   2  squamous  112      1    80        6  60     0
-: 1    1  squamous   72      1    60        7  69     0
-: 2    1  squamous  411      1    70        5  64    10
-: 21   1 smallcell  123      0    40        3  55     0
-: 22   1 smallcell   97      0    60        5  67     0
+:    trt celltype time status karno diagtime age prior
+: 70   2 squamous  999      1    90       12  54    10
+: 1    1 squamous   72      1    60        7  69     0
 
 
 For the first pair, the event was observed for both observations and
-since 999 > 72 + 20 the pair is rated favorable. For the last pair,
-the event time of the observation from the control group was censored
-at 97. The event time was observed for the observation from treatment
-group at 112. Since an event can occur before the censoring time and
-112 - 20 < 97 the pair is not favorable. We now need to compute the
-survival in the control arm to go further:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache n
-e.KM <- prodlim(Hist(time,status)~trt, data = veteran)
-iSurv <- predict(e.KM, times = c(97,112+20), newdata = data.frame(trt = 1))[[1]]
-iSurv
-#+END_SRC
-
-#+RESULTS:
-: [1] 0.5171924 0.3594915
-
-So the probability of experiencing the event before 112+20 conditional
-on being event free up to 97 is:
+since 999 > 72 + 20 the pair is rated favorable. Substracting the
+average probability of the pair being favorable minus the average
+probability of the pair being unfavorable:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-(iSurv[1]-iSurv[2])/iSurv[1]
+getPairScore(BT.keep, endpoint = 1)[, mean(favorable) - mean(unfavorable)]
 #+END_SRC
 
 #+RESULTS:
-: [1] 0.3049173
+: [1] -0.09164535
 
-This corresponds to the rating of the pair as uninformative. The rest
-of the weight, 1-0.3049173, will be transferred to the unfavorable
-category.
-
-We can then follow what has happened to the pair (71,22) with the
-next endpoint:
+ gives the net benefit in favor of the treatment for the first
+ endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.tempo <- as.data.table(BT.keep@tableComparison[[2]])
-dt.tempo[index.2==71 & index.1==22, .SD, .SDcols = keep.cols]
+BT.keep
 #+END_SRC
 
 #+RESULTS:
-:    index.2 index.1 favorable unfavorable neutral uninformative
-: 1:      71      22 0.3049173           0       0             0
-
-Since 80 > 60, the rest of the weight relative to the pair is
-transferred to the favorable category.
-
-** GPC with time to event outcomes in presence of censoring
-GPC is based on our ability to rank the values taken for a given
-outcome in the control vs. the treatment group. This is 
-
+:  endpoint threshold   delta   Delta
+:      time        20 -0.0916 -0.0916
+:     karno     1e-12 -0.0051 -0.0968
 
 ** Corrections
+
+
 When using ="Gehan corrected"= or ="Peron corrected"=, inverse
 probability weighting (IPW) is used to obtain an estimate that does
 not depend on the censoring distribution:

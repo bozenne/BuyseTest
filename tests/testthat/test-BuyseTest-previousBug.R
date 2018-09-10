@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 10 2018 (09:36) 
+## Last-Updated: sep 10 2018 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 46
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,7 @@ context("Check that bugs that have been reported are fixed \n")
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.individualScore = TRUE,
+                  keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:15) 
+## Last-Updated: sep 10 2018 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 66
+##     Update #: 68
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ context("Check that method.tte = corrected  in BuyseTest is working correctly \n
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.individualScore = TRUE,
+                  keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 ## * 1 endpoint
@@ -44,7 +44,7 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
     expect_equal(as.double(Gehan@count.neutral), c(1,5))
     expect_equal(as.double(Gehan@count.uninf), c(4,0))
 
-    iScore <- copy(getIndividualScore(Gehan))
+    iScore <- copy(getPairScore(Gehan))
     iScore[[1]][,c("endpoint","n") := list(1,NROW(iScore[[1]]))]
     iScore[[2]][,c("endpoint","n") := list(2,NROW(iScore[[1]]))]
     iiScore <- do.call(rbind, iScore)
@@ -65,7 +65,7 @@ test_that("1 TTE endpoint - Gehan (correction  at the pair level)", {
     expect_equal(as.double(GehanC@count.neutral), c(1 + 1/3,1))
     expect_equal(as.double(GehanC@count.uninf), c(0,0))
 
-    iScore <- copy(getIndividualScore(GehanC, endpoint = 1, strata = 1))
+    iScore <- copy(getPairScore(GehanC, endpoint = 1, strata = 1))
     expect_equal(iScore[, favorable + uninformative * sum(favorable)/sum(favorable + unfavorable + neutral)], iScore[["favorable.corrected"]])
     expect_equal(iScore[, unfavorable + uninformative * sum(unfavorable)/sum(favorable + unfavorable + neutral)], iScore[["unfavorable.corrected"]])
     expect_equal(iScore[, neutral + uninformative * sum(neutral)/sum(favorable + unfavorable + neutral)], iScore[["neutral.corrected"]])
@@ -87,7 +87,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     expect_equal(as.double(GehanC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(GehanC@count.uninf), c(0,0))
 
-    iScore <- copy(getIndividualScore(GehanC, endpoint = 1, strata = 1))
+    iScore <- copy(getPairScore(GehanC, endpoint = 1, strata = 1))
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable),
                          factor = .N/sum(favorable+unfavorable+neutral))]
 
@@ -104,7 +104,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])
     expect_equal(GehanC@count.uninf[1], GehanC2@count.uninf[2])
 
-    iScore <- copy(getIndividualScore(GehanC2, endpoint = 2, strata = 1))
+    iScore <- copy(getPairScore(GehanC2, endpoint = 2, strata = 1))
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable),
                            factor = .N/sum(favorable+unfavorable+neutral))]
 
@@ -124,7 +124,7 @@ test_that("1 TTE endpoint - Peron (no correction)", {
     expect_equal(as.double(Peron@count.neutral), c(1,4))
     expect_equal(as.double(Peron@count.uninf), c(3,0))
 
-    test <- aggrTableIndividualScore(table = Peron@tableIndividualScore,
+    test <- aggrTablePairScore(table = Peron@tablePairScore,
                                 correct.tte = Peron@method.tte$correction)
         
     expect_equal(unname(tail(Peron@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
@@ -145,7 +145,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     expect_equal(as.double(PeronC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(PeronC@count.uninf), c(0,0))
 
-    test <- aggrTableIndividualScore(table = PeronC@tableIndividualScore,
+    test <- aggrTablePairScore(table = PeronC@tablePairScore,
                                 correct.tte = PeronC@method.tte$correction)
         
     expect_equal(unname(tail(PeronC@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
@@ -160,7 +160,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     expect_equal(PeronC@count.neutral[1], PeronC@count.neutral[2])
     expect_equal(PeronC@count.uninf[1], PeronC2@count.uninf[2])
 
-    test <- aggrTableIndividualScore(table = PeronC2@tableIndividualScore,
+    test <- aggrTablePairScore(table = PeronC2@tablePairScore,
                                 correct.tte = PeronC2@method.tte$correction)
         
     expect_equal(unname(tail(PeronC2@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
