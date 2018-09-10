@@ -39,22 +39,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// calcIntegralProba
-double calcIntegralProba(const arma::mat& survival, double start);
-RcppExport SEXP _BuyseTest_calcIntegralProba(SEXP survivalSEXP, SEXP startSEXP) {
+// calcIntegralProba_cpp
+double calcIntegralProba_cpp(const arma::mat& survival, double start);
+RcppExport SEXP _BuyseTest_calcIntegralProba_cpp(SEXP survivalSEXP, SEXP startSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type survival(survivalSEXP);
     Rcpp::traits::input_parameter< double >::type start(startSEXP);
-    rcpp_result_gen = Rcpp::wrap(calcIntegralProba(survival, start));
+    rcpp_result_gen = Rcpp::wrap(calcIntegralProba_cpp(survival, start));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 23},
-    {"_BuyseTest_calcIntegralProba", (DL_FUNC) &_BuyseTest_calcIntegralProba, 2},
+    {"_BuyseTest_calcIntegralProba_cpp", (DL_FUNC) &_BuyseTest_calcIntegralProba_cpp, 2},
     {NULL, NULL, 0}
 };
 

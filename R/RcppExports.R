@@ -39,7 +39,7 @@ GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 
 #' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
-#' @name calcIntegralProba
+#' @name calcIntegralProba_cpp
 #' 
 #' @param survival [matrix] Contains the jump times in the first column,
 #' the survival in the other arm at times plus threshold in the second column,
@@ -48,7 +48,7 @@ GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment
 #'
 #' @keywords function Cpp internal
 #' @export
-calcIntegralProba <- function(survival, start) {
-    .Call(`_BuyseTest_calcIntegralProba`, survival, start)
+calcIntegralProba_cpp <- function(survival, start) {
+    .Call(`_BuyseTest_calcIntegralProba_cpp`, survival, start)
 }
 

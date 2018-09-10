@@ -186,7 +186,7 @@ setMethod(f = "getPairScore",
 
                   }
 
-                  old.names <- c("index.T", "index.C", "indexWithinStrata.T","indexWithinStrata.C")
+                  old.names <- c("index.C", "index.T", "indexWithinStrata.C", "indexWithinStrata.T")
                   new.names <- c(paste0("index.",object@level.treatment), paste0("indexWithinStrata.",object@level.treatment))
 
                   for(iEndpoint in 1:length(out)){ ## iEndpoint <- 1
@@ -237,7 +237,7 @@ setMethod(f = "getPairScore",
 #'
 #' @keywords get BuyseRes-method
 
-## * getSurvival - (code)
+## * getSurvival (code)
 #' @rdname BuyseRes-getSurvival
 setMethod(f = "getSurvival",
           signature = "BuyseRes",

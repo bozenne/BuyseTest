@@ -453,9 +453,9 @@ So in this case no pair is analyzed at second priority.
 
 *** Extracting the contribution of each pair to the statistic
 The net chance of better outcome or the win ratio statistics can be
-expressed as a sum over all pairs of patients. It is possible to track
-the contribution of each pair to the statistic using the argument
-=keep.pairScore=:
+expressed as a sum over all pairs of patients. The argument
+keep.pairScore enables to export the score relative to each pair in
+the output of BuyseTest:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
                      data = veteran, keep.pairScore = TRUE, 
@@ -474,28 +474,27 @@ getPairScore(BT.keep, endpoint = 1)
 #+RESULTS:
 #+begin_example
       strata index.1 index.2 favorable unfavorable neutral uninformative weight favorable.corrected unfavorable.corrected neutral.corrected
-   1:      1      70       1         1           0       0             0      1                  NA                    NA                NA
-   2:      1      70       2         1           0       0             0      1                  NA                    NA                NA
-   3:      1      70       3         1           0       0             0      1                  NA                    NA                NA
-   4:      1      70       4         1           0       0             0      1                  NA                    NA                NA
-   5:      1      70       5         1           0       0             0      1                  NA                    NA                NA
+   1:      1      70       1         1           0       0             0      1                   1                     0                 0
+   2:      1      70       2         1           0       0             0      1                   1                     0                 0
+   3:      1      70       3         1           0       0             0      1                   1                     0                 0
+   4:      1      70       4         1           0       0             0      1                   1                     0                 0
+   5:      1      70       5         1           0       0             0      1                   1                     0                 0
   ---                                                                                                                                      
-4688:      1     137      65         0           1       0             0      1                  NA                    NA                NA
-4689:      1     137      66         0           1       0             0      1                  NA                    NA                NA
-4690:      1     137      67         0           1       0             0      1                  NA                    NA                NA
-4691:      1     137      68         0           1       0             0      1                  NA                    NA                NA
-4692:      1     137      69         0           1       0             0      1                  NA                    NA                NA
+4688:      1     137      65         0           1       0             0      1                   0                     1                 0
+4689:      1     137      66         0           1       0             0      1                   0                     1                 0
+4690:      1     137      67         0           1       0             0      1                   0                     1                 0
+4691:      1     137      68         0           1       0             0      1                   0                     1                 0
+4692:      1     137      69         0           1       0             0      1                   0                     1                 0
 #+end_example
 
-The documentation of the method =getPairScore= describes the content
-of each column. In short, each line corresponds to different
-comparison between a pair from the control arm and the treatment
-arm. The column =strata= store to which strata the pair belongs
-(first, second, ...). The columns favorable, unfavorable, neutral,
-uninformative contains the result of the comparison, e.g. the first
-pair was classified as favorable while the last was classified as
-favorable with a weight of 1. The second and third columns indicates
-the rows in the original dataset corresponding to the pair:
+Each line corresponds to different comparison between a pair from the
+control arm and the treatment arm. The column =strata= store to which
+strata the pair belongs (first, second, ...). The columns favorable,
+unfavorable, neutral, uninformative contains the result of the
+comparison, e.g. the first pair was classified as favorable while the
+last was classified as favorable with a weight of 1. The second and
+third columns indicates the rows in the original dataset corresponding
+to the pair:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 veteran[c(70,1),]
 #+END_SRC
@@ -527,6 +526,184 @@ BT.keep
 :  endpoint threshold   delta   Delta
 :      time        20 -0.0916 -0.0916
 :     karno     1e-12 -0.0051 -0.0968
+
+More examples and explaination can be found in the documentation of
+the method =getPairScore=.
+
+*** Extracting the survival probabilities
+When using method.tte="Peron", survival probabilities at event time,
+and event times +/- threshold in the control and treatment arms are
+used to score the pair. Setting keep.survival to TRUE in
+BuyseTest.options enables to export the survival probabilities in the
+output of BuyseTest:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(keep.survival = TRUE)
+BT.keep2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
+                      data = veteran, keep.pairScore = TRUE, method.tte = "Peron",
+                      trace = 0, method.inference = "none")
+#+END_SRC
+
+#+RESULTS:
+
+
+The method =getSurvival= can then be used to extract these survival
+probabilities.For instance the following code extracts the
+survival for the first endpoint:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+outSurv <- getSurvival(BT.keep2, endpoint = 1, strata = 1)
+str(outSurv)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+List of 4
+ $ survTimeC: num [1:69, 1:7] 72 411 228 126 118 10 82 110 314 100 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:7] "time" "SurvivalC-threshold" "SurvivalC_0" "SurvivalC+threshold" ...
+ $ survTimeT: num [1:68, 1:7] 999 112 87 231 242 991 111 1 587 389 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:7] "time" "SurvivalC-threshold" "SurvivalC_0" "SurvivalC+threshold" ...
+ $ survJumpC: num [1:57, 1:3] 3 4 7 8 10 11 12 13 16 18 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:3] "time" "survival" "dSurvival"
+ $ survJumpT: num [1:51, 1:3] 1 2 7 8 13 15 18 19 20 21 ...
+  ..- attr(*, "dimnames")=List of 2
+  .. ..$ : NULL
+  .. ..$ : chr [1:3] "time" "survival" "dSurvival"
+#+end_example
+
+Let's look at pair 91:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[91]
+#+END_SRC
+
+#+RESULTS:
+:    strata index.2 index.1 indexWithinStrata.2 indexWithinStrata.1 favorable unfavorable   neutral uninformative weight favorable.corrected
+: 1:      1      71      22                   2                  22         0   0.6950827 0.3049173             0      1                   0
+:    unfavorable.corrected neutral.corrected
+: 1:             0.6950827         0.3049173
+
+In the dataset this corresponds to:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+veteran[c(22,71),]
+#+END_SRC
+
+#+RESULTS:
+:    trt  celltype time status karno diagtime age prior
+: 22   1 smallcell   97      0    60        5  67     0
+: 71   2  squamous  112      1    80        6  60     0
+
+The observation from the control group is censored at 97 while the
+observation from the treatment group has an event at 112. Since the
+threshold is 20, and (112-20)<97, we know that the pair is not in
+favor of the treatment. The formula for probability in favor of the
+control is Sc(97)/Sc(112+20). The survival at the event time in the
+censoring group is stored in survTimeC. Since observation 23 is the
+22th observation in the control group:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+iSurv <- outSurv$survTimeC[22,] 
+iSurv
+#+END_SRC 
+
+#+RESULTS:
+:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold SurvivalT-threshold         SurvivalT_0 SurvivalT+threshold 
+:          97.0000000           0.5615232           0.5171924           0.4235463           0.4558824           0.3643277           0.2827500
+Since we are interested in the survival in the control arm exactly at the event time:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Sc97 <- iSurv["SurvivalC_0"] 
+Sc97
+#+END_SRC
+
+#+RESULTS:
+: SurvivalC_0 
+:   0.5171924
+
+The survival at the event time in the treatment group is stored in
+survTimeC. Since observation 71 is the 2nd observation in the treatment
+group:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+iSurv <- outSurv$survTimeT[2,] ## survival at time 112+20
+iSurv
+#+END_SRC
+
+#+RESULTS:
+:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold SurvivalT-threshold         SurvivalT_0 SurvivalT+threshold 
+:         112.0000000           0.5319693           0.4549201           0.3594915           0.3801681           0.2827500           0.2827500
+
+Since we are interested in the survival in the control arm at the event time plus threshold:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Sc132 <- iSurv["SurvivalC+threshold"] 
+Sc132
+#+END_SRC
+
+#+RESULTS:
+: SurvivalC+threshold 
+:           0.3594915
+
+The probability in favor of the control is then:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Sc132/Sc97
+#+END_SRC
+
+#+RESULTS:
+: SurvivalC+threshold 
+:           0.6950827
+
+When both observations are censored, the formula for computing the
+probability in favor of treatment or control involves an
+integral. This integral can be computed using the function
+calcIntegralProba_cpp that takes as argument a matrix containing the
+survival and the jumps in survival, e.g.:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+head(outSurv$survJumpT)
+#+END_SRC
+
+#+RESULTS:
+:      time  survival   dSurvival
+: [1,]    1 0.7681159 -0.02941176
+: [2,]    2 0.7536232 -0.01470588
+: [3,]    7 0.7388463 -0.02941176
+: [4,]    8 0.7388463 -0.02941176
+: [5,]   13 0.7092924 -0.01470588
+: [6,]   15 0.6945155 -0.02941176
+
+and the starting time of the integration time. For instance, let's
+look at pair 148:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[148]
+#+END_SRC
+
+#+RESULTS:
+:    strata index.2 index.1 indexWithinStrata.2 indexWithinStrata.1 favorable unfavorable    neutral uninformative weight favorable.corrected
+: 1:      1      72      10                   3                  10 0.5275049   0.4131003 0.05939481             0      1           0.5275049
+:    unfavorable.corrected neutral.corrected
+: 1:             0.4131003        0.05939481
+
+which corresponds to the observations:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+veteran[c(10,72),]
+#+END_SRC
+
+#+RESULTS:
+:    trt celltype time status karno diagtime age prior
+: 10   1 squamous  100      0    70        6  70     0
+: 72   2 squamous   87      0    80        3  48     0
+
+The probability in favor of the treatment and control can be computed
+as \(-\int_(t>y) S_T(t+\tau) dS_C(t)\) and \(-\int_(t>x) S_C(t+\tau)
+dS_T(t)\) where \(x=87\) and \(y=100\). We obtain:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+denom <- outSurv$survTimeT[3,"SurvivalT_0"] * outSurv$survTimeC[10,"SurvivalC_0"]
+c("favorable" = -calcIntegralProba_cpp(outSurv$survJumpC, start = 100)/denom,
+  "unfavorable" = -calcIntegralProba_cpp(outSurv$survJumpT, start = 87)/denom)
+#+END_SRC
+
+#+RESULTS:
+:   favorable.SurvivalT_0 unfavorable.SurvivalT_0 
+:               0.5275049               0.4131003
 
 ** Corrections
 

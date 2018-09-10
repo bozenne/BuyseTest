@@ -31,7 +31,7 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
                     					    const arma::mat& survTimeC, const arma::mat& survTimeT,
 											const arma::mat& survJumpC, const arma::mat& survJumpT);
 
-double calcIntegralProba(const arma::mat& survival, double start);
+double calcIntegralProba_cpp(const arma::mat& survival, double start);
 
 // * calcOnePair_Continuous
 inline arma::rowvec calcOnePair_Continuous(const double endpoint_T, const double endpoint_C, const double threshold,
@@ -489,8 +489,8 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 	  
 	  if(diff >= threshold){
 		if(R_IsNA(survTimeT(index_T,1))==false){
-		  intFavorable = calcIntegralProba(survJumpC, endpoint_T-threshold) / denom;
-		  intUnfavorable = calcIntegralProba(survJumpT, endpoint_T) / denom;
+		  intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_T-threshold) / denom;
+		  intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom;
 		  // favorable
 		  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2) - intFavorable;
 		  // unfavorable  
@@ -505,8 +505,8 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 		}
 	  }else if(diff <= -threshold){
 		if(R_IsNA(survTimeC(index_C,4))==false){
-		  intFavorable = calcIntegralProba(survJumpC, endpoint_C) / denom;
-		  intUnfavorable = calcIntegralProba(survJumpT, endpoint_C-threshold) / denom;
+		  intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom;
+		  intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_C-threshold) / denom;
 
 		  // favorable
 		  proba[0]= -intFavorable;
@@ -523,8 +523,8 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 		  proba[3] = 1.0; // uninformative
 		}
 	  }else{
-		intFavorable = calcIntegralProba(survJumpC, endpoint_C) / denom;
-		intUnfavorable = calcIntegralProba(survJumpT, endpoint_T) / denom;
+		intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom;
+		intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom;
 		// favorable
 		proba[0]= -intFavorable;
 		// unfavorable
@@ -541,10 +541,10 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
   return(proba);  
 }
 
-// * calcIntegralProba
+// * calcIntegralProba_cpp
 //' @title C++ Function Computing the Integral Terms for the Peron Method. 
 //' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
-//' @name calcIntegralProba
+//' @name calcIntegralProba_cpp
 //' 
 //' @param survival [matrix] Contains the jump times in the first column,
 //' the survival in the other arm at times plus threshold in the second column,
@@ -554,7 +554,7 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_T, const doubl
 //' @keywords function Cpp internal
 //' @export
 // [[Rcpp::export]]
-double calcIntegralProba(const arma::mat& survival, double start){
+double calcIntegralProba_cpp(const arma::mat& survival, double start){
   // computes \int_t>tau S dS
 
   // survival contains:
