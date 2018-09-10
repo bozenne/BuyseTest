@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: sep  7 2018 (13:39) 
+## last-updated: sep 10 2018 (09:26) 
 ##           By: Brice Ozenne
-##     Update #: 40
+##     Update #: 41
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -44,7 +44,6 @@ n.data <- NROW(dt.data)
 ## same with some NA
 dt.dataNA  <- copy(dt.data)
 dt.dataNA[1,memory := NA]
-
 
 ## * neutral.as.uninf = TRUE (default)
 ## the neutral observations are analysed using the following endpoints

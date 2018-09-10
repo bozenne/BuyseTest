@@ -9,7 +9,7 @@ GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
   delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme,
   index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT,
   list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf,
-  keepComparison)
+  keepScore)
 }
 \arguments{
 \item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.}
@@ -56,7 +56,7 @@ GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
 
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.}
 
-\item{keepComparison}{Should the result of each pairwise comparison be kept? \emph{logical}.}
+\item{keepScore}{Should the result of each pairwise comparison be kept? \emph{logical}.}
 }
 \description{
 \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts.

@@ -6,10 +6,10 @@
 \usage{
 BuyseTest(formula, data, method.tte = NULL, model.tte = NULL,
   method.inference = NULL, n.resampling = NULL, neutral.as.uninf = NULL,
-  keep.comparison = NULL, treatment = NULL, endpoint = NULL,
+  keep.individualScore = NULL, treatment = NULL, endpoint = NULL,
   type = NULL, threshold = NULL, censoring = NULL, operator = NULL,
   strata = NULL, alternative = "two.sided", seed = NULL, cpus = NULL,
-  trace = NULL)
+  trace = NULL, keep.comparison)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
@@ -36,7 +36,7 @@ Default value read from \code{BuyseTest.options()}.}
 \item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{keep.comparison}{[logical] should the result of each pairwise comparison be kept?}
+\item{keep.individualScore}{[logical] should the result of each pairwise comparison be kept?}
 
 \item{treatment}{[character] the name of the treatment variable identifying the control and the experimental group.
 Disregarded if the argument \code{formula} is defined.}
@@ -74,6 +74,8 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{trace}{[integer] should the execution of the function be traced ? See details.
 Default value read from \code{BuyseTest.options()}.}
+
+\item{keep.comparison}{Obsolete. Alias for 'keep.individualScore'.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.
@@ -118,10 +120,10 @@ BuyseTest.options(method.inference = "none") # no permutation test
 #### simulate some data ####
 df.data <- simBuyseTest(1e2, n.strata = 2)
 
-                                        # display 
+                                       # display 
 if(require(survival)){
-    resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
-    plot(resKM_tempo)
+   resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
+   plot(resKM_tempo)
 }
 
 #### one time to event endpoint ####

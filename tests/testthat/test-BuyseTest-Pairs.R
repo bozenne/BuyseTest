@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: sep  7 2018 (17:37) 
+## Last-Updated: sep 10 2018 (09:37) 
 ##           By: Brice Ozenne
-##     Update #: 135
+##     Update #: 136
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -39,7 +39,7 @@ test_that("check favorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
-    ## BT@tableIndividualScore
+    ## getIndividualScore(BT)
 
     ## several pairs
     data2 <- rbind(data, data)
@@ -48,7 +48,7 @@ test_that("check favorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
-    ## BT@tableIndividualScore
+    ## getIndividualScore(BT)
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
@@ -57,7 +57,7 @@ test_that("check favorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
-    ## BT@tableIndividualScore
+    ## getIndividualScore(BT)
 
 })
 
@@ -86,7 +86,7 @@ test_that("check unfavorable - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
-    ## BT@tableIndividualScore
+    ## getIndividualScore(BT)
 
 })
 
@@ -115,7 +115,7 @@ test_that("check neutral - 1 Binary",{
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
     expect_equal(as.double(BT@count.uninf),c(0,0))
-    ## BT@tableIndividualScore
+    ## getIndividualScore(BT)
 })
 
 ## ** NA as uninformative
@@ -144,7 +144,7 @@ test_that("check unfavorable - 2 Binary",{
                      toxicity2 = c(1,0),
                      Id = 1:10)
     BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt)
-    ## BT@tableIndividualScore
+    ## getIndividualScore(BT)
 
     ## total pairs: 25
     expect_equal(as.double(BT@count.favorable),c(0,0))
@@ -166,7 +166,7 @@ test_that("check mixed - 2 Binary",{
                      toxicity2 = c(1,0,1,0))
     BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt,
                     keep.individualScore = TRUE)
-    ## BT@tableIndividualScore
+    ## getIndividualScore(BT)
 
     expect_equal(as.double(BT@count.favorable),c(0,1))
     expect_equal(as.double(BT@count.unfavorable),c(0,1))
@@ -473,7 +473,7 @@ test_that("2 pairs - Peron",{
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
     ## P[T>=t|T=1,S>=10] = 1 (t=<20), 1/2 (20<t=<32), 0 (t>32)
 
-    ## all individualScores (see BT@tableIndividualScore)
+    ## all individualScores (see getIndividualScore(BT))
     ## 10* vs 20 : unfavorable
     ## 10* vs 32 : unfavorable
     ## 12 vs 20 : unfavorable

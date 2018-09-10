@@ -6,7 +6,7 @@
 \alias{BuyseRes-getCount}
 \alias{getCount}
 \alias{getCount,BuyseRes-method}
-\title{get Method for Class "BuyseRes"}
+\title{Extract the Number of Favorable, Unfavorable, Neutral, Uninformative pairs}
 \usage{
 getCount(object, type)
 
@@ -21,7 +21,7 @@ getCount(object, type)
 A \code{"vector"} containing the number of pairs
 }
 \description{
-Extract the number of pairs.
+Extract the number of favorable, unfavorable, neutral, uninformative pairs.
 }
 \keyword{BuyseRes-method}
-\keyword{getCount}
+\keyword{get}

@@ -57,6 +57,7 @@ setMethod(f = "getCount",
 #' @param unlist [logical] should the structure of the output be simplified when possible?
 #' @param trace [logical] should a message be printed to explain what happened
 #' when the function returned \code{NULL}?
+#' @param ... not used. For compatibility with the generic method.
 #'
 #' @details The maximal output (i.e. with all columns) contains for each endpoint, a data.table with:
 #' \itemize{
@@ -171,7 +172,8 @@ setMethod(f = "getIndividualScore",
 #' @param unlist [logical] should the structure of the output be simplified when possible.
 #' @param trace [logical] should a message be printed to explain what happened
 #' when the function returned \code{NULL}.
-#'
+#' @param ... not used. For compatibility with the generic method.
+#' 
 #' @details The argument \code{type} can take any of the following values:
 #' \itemize{
 #' \item \code{"survTimeC"}: survival at the event times for the observations of the control arm.

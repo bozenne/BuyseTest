@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: sep  7 2018 (13:39) 
+## Last-Updated: sep 10 2018 (10:15) 
 ##           By: Brice Ozenne
-##     Update #: 53
+##     Update #: 66
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -44,11 +44,34 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
     expect_equal(as.double(Gehan@count.neutral), c(1,5))
     expect_equal(as.double(Gehan@count.uninf), c(4,0))
 
-    test <- aggrTableIndividualScore(table = Gehan@tableIndividualScore,
-                                correct.tte = Gehan@method.tte$correction)
+    iScore <- copy(getIndividualScore(Gehan))
+    iScore[[1]][,c("endpoint","n") := list(1,NROW(iScore[[1]]))]
+    iScore[[2]][,c("endpoint","n") := list(2,NROW(iScore[[1]]))]
+    iiScore <- do.call(rbind, iScore)
+    iiScoreS <- iiScore[,.(n = n[1], favorable = sum(favorable), unfavorable = sum(unfavorable)),by = "endpoint"]
         
-    expect_equal(unname(tail(Gehan@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
-    expect_equal(unname(tail(Gehan@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+    expect_equal(as.double(Gehan@Delta.netChance),iiScoreS[,cumsum(favorable-unfavorable)/n])
+    expect_equal(as.double(Gehan@Delta.winRatio),iiScoreS[,cumsum(favorable)/cumsum(unfavorable)])
+})
+
+test_that("1 TTE endpoint - Gehan (correction  at the pair level)", {
+    ## survival first    
+    GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
+                        data = df, 
+                        method.tte = "Gehan corrected")
+
+    expect_equal(as.double(GehanC@count.favorable), c(12,0))
+    expect_equal(as.double(GehanC@count.unfavorable), c(2+2/3,0))
+    expect_equal(as.double(GehanC@count.neutral), c(1 + 1/3,1))
+    expect_equal(as.double(GehanC@count.uninf), c(0,0))
+
+    iScore <- copy(getIndividualScore(GehanC, endpoint = 1, strata = 1))
+    expect_equal(iScore[, favorable + uninformative * sum(favorable)/sum(favorable + unfavorable + neutral)], iScore[["favorable.corrected"]])
+    expect_equal(iScore[, unfavorable + uninformative * sum(unfavorable)/sum(favorable + unfavorable + neutral)], iScore[["unfavorable.corrected"]])
+    expect_equal(iScore[, neutral + uninformative * sum(neutral)/sum(favorable + unfavorable + neutral)], iScore[["neutral.corrected"]])
+    
+    expect_equal(as.double(GehanC@Delta.netChance)[1],iScore[,sum(favorable.corrected-unfavorable.corrected)/.N])
+    expect_equal(as.double(GehanC@Delta.winRatio)[1],iScore[,sum(favorable.corrected)/sum(unfavorable.corrected)])
 
 })
 
@@ -64,30 +87,33 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     expect_equal(as.double(GehanC@count.neutral), c(1*factor,1*factor))
     expect_equal(as.double(GehanC@count.uninf), c(0,0))
 
-    test <- aggrTableIndividualScore(table = GehanC@tableIndividualScore,
-                                correct.tte = GehanC@method.tte$correction)
-        
-    expect_equal(unname(tail(GehanC@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
-    expect_equal(unname(tail(GehanC@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+    iScore <- copy(getIndividualScore(GehanC, endpoint = 1, strata = 1))
+    iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable),
+                         factor = .N/sum(favorable+unfavorable+neutral))]
+
+    expect_equal(as.double(GehanC@Delta.netChance[1]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
+    expect_equal(as.double(GehanC@Delta.winRatio[1]),iScoreS[,sum(favorable*factor)/sum(unfavorable*factor)])
 
     ## survival second
     GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
                          method.tte = "Gehan IPCW")
+
     expect_equal(GehanC@count.favorable[1], GehanC2@count.favorable[2])
     expect_equal(GehanC@count.unfavorable[1], GehanC2@count.unfavorable[2])
     expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])
     expect_equal(GehanC@count.uninf[1], GehanC2@count.uninf[2])
 
-    test <- aggrTableIndividualScore(table = GehanC2@tableIndividualScore,
-                                correct.tte = GehanC2@method.tte$correction)
-        
-    expect_equal(unname(tail(GehanC2@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
-    expect_equal(unname(tail(GehanC2@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+    iScore <- copy(getIndividualScore(GehanC2, endpoint = 2, strata = 1))
+    iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable),
+                           factor = .N/sum(favorable+unfavorable+neutral))]
 
+    expect_equal(as.double(GehanC2@Delta.netChance[2]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
+    expect_equal(as.double(GehanC2@Delta.winRatio[2]),iScoreS[,sum(favorable*factor)/cumsum(unfavorable*factor)])
 })
 
 ## ** Peron
+if(FALSE){
 test_that("1 TTE endpoint - Peron (no correction)", {
     Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df, 
@@ -140,7 +166,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     expect_equal(unname(tail(PeronC2@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
     expect_equal(unname(tail(PeronC2@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
 })
-
+}
 
 ##----------------------------------------------------------------------
 ### test-BuyseTest-correctionTTE.R ends here
