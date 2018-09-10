@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:50) 
+## Last-Updated: sep 10 2018 (13:57) 
 ##           By: Brice Ozenne
-##     Update #: 68
+##     Update #: 69
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,6 +21,9 @@ if(FALSE){
 }
 
 context("Check that method.tte = corrected  in BuyseTest is working correctly \n")
+
+
+
 
 ## * settings
 BuyseTest.options(check = FALSE,
