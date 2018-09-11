@@ -29,10 +29,6 @@ setClass(
       delta.winRatio = "matrix",
       Delta.netChance = "vector",
       Delta.winRatio = "vector",
-      index.neutralT = "vector",
-      index.neutralC = "vector",
-      index.uninfT = "vector",
-      index.uninfC = "vector",
       type = "vector",
       endpoint = "vector",
       level.treatment = "vector",
@@ -67,10 +63,6 @@ methods::setMethod(
                                    delta.winRatio,
                                    Delta.netChance,
                                    Delta.winRatio,
-                                   index.neutralT,
-                                   index.neutralC,
-                                   index.uninfT,
-                                   index.uninfC,
                                    type,
                                    endpoint,
                                    level.strata,
@@ -124,11 +116,6 @@ methods::setMethod(
                  .Object@Delta.netChance <- Delta.netChance
                  .Object@Delta.winRatio <- Delta.winRatio
 
-                 .Object@index.neutralT <- index.neutralT
-                 .Object@index.neutralC <- index.neutralC
-                 .Object@index.uninfT <- index.uninfT
-                 .Object@index.uninfC <- index.uninfC
-                 
                  .Object@type <- type
                  .Object@endpoint <- endpoint
                  .Object@level.strata <- level.strata

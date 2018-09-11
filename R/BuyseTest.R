@@ -26,7 +26,7 @@
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
 #' @param method.tte [character] defines the method used to handle pairs
 #' which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
-#' Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
+#' Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Gehan IPCW"}, \code{"Peron"}, \code{"Peron corrected"}, or \code{"Peron IPCW"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param model.tte [list] optionnal survival models relative to each time to each time to event outcome.
@@ -288,7 +288,6 @@ BuyseTest <- function(formula,
     if (outArgs$trace > 1) {cat("Point estimation ")}
     time <- system.time({
         outPoint <- .BuyseTest(envir = envirBT,
-                               return.index = option$return.index,
                                keep.pairScore = keep.pairScore,
                                method.inference = "none")
     })
@@ -350,10 +349,6 @@ BuyseTest <- function(formula,
         delta.winRatio = outPoint$delta_winRatio,
         Delta.netChance = outPoint$Delta_netChance,
         Delta.winRatio = outPoint$Delta_winRatio,
-        index.neutralT = outPoint$index_neutralT,
-        index.neutralC = outPoint$index_neutralC,
-        index.uninfT = outPoint$index_uninfT,
-        index.uninfC = outPoint$index_uninfC,
         type = type,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
@@ -378,7 +373,6 @@ BuyseTest <- function(formula,
 
 ## * .BuyseTest (code)
 .BuyseTest <- function(envir,
-                       return.index,
                        keep.pairScore,
                        method.inference){
    
@@ -487,16 +481,15 @@ BuyseTest <- function(formula,
     }
 
     ## ** Computation
-    resBT <- GPC_cpp(Treatment = M.Treatment,
-                     Control = M.Control,
+    resBT <- GPC_cpp(Control = M.Control,
+                     Treatment = M.Treatment,
                      threshold = envir$outArgs$threshold,
                      survEndpoint = (type == 3),
-                     delta_Treatment = M.delta.Treatment,
                      delta_Control = M.delta.Control,
+                     delta_Treatment = M.delta.Treatment,
                      D = D,
-                     returnIndex = return.index,
-                     strataT = index.strataT,
                      strataC = index.strataC,
+                     strataT = index.strataT,
                      n_strata = n.strata,
                      n_TTE = D.TTE,
                      Wscheme = envir$outArgs$Wscheme,
@@ -506,6 +499,7 @@ BuyseTest <- function(formula,
                      list_survTimeT = outSurv$survTimeT,
                      list_survJumpC = outSurv$survJumpC,
                      list_survJumpT = outSurv$survJumpT,
+                     list_lastSurv = outSurv$lastSurv,
                      methodTTE = method.tte,
                      correctionTTE = envir$outArgs$correction.tte,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,

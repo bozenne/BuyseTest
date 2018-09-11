@@ -19,7 +19,7 @@ The rest of the formula should indicate the strata variables (if any) and the en
 
 \item{method.tte}{[character] defines the method used to handle pairs
 which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
-Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Peron"}, or \code{"Peron corrected"}.
+Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Gehan IPCW"}, \code{"Peron"}, \code{"Peron corrected"}, or \code{"Peron IPCW"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
 

@@ -5,32 +5,30 @@
 \alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
-  delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme,
+GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
+  delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme,
   index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf,
-  keepScore)
+  list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionTTE,
+  neutralAsUninf, keepScore)
 }
 \arguments{
-\item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.}
-
 \item{Control}{A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.}
+
+\item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.}
 
 \item{threshold}{Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.}
 
 \item{survEndpoint}{Does each endpoint is a time to event. \emph{const LogicalVector&}. Must have length D.}
 
-\item{delta_Treatment}{A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
-
 \item{delta_Control}{A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
+
+\item{delta_Treatment}{A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
 
 \item{D}{The number of endpoints. Strictly positive \emph{const int}.}
 
-\item{returnIndex}{Should the indexes of the neutral or uninformative pairs be returned. \emph{const bool}.}
+\item{strataC}{A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers.}
 
 \item{strataT}{A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers.}
-
-\item{strataC}{A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers.}
 
 \item{n_strata}{The number of strata . Strictly positive \emph{const int}.}
 
@@ -49,6 +47,8 @@ GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment,
 \item{list_survJumpC}{A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps. \emph{List&}.}
 
 \item{list_survJumpT}{A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}.}
+
+\item{list_lastSurv}{A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns). \emph{List&}.}
 
 \item{methodTTE}{The type of method used to compare censored pairs (0 Gehan 1 Peron).}
 

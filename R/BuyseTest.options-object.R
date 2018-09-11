@@ -28,7 +28,6 @@ setClass(
       method.tte = "character",
       n.resampling = "numeric",
       neutral.as.uninf = "logical",
-      return.index = "logical",
       seed = "numeric",
       statistic = "character",
       trace = "numeric"

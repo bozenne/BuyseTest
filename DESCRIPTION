@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 1.4.1
-Date: 2018-09-10
+Version: 1.4.2
+Date: 2018-09-11
 Author: Brice Ozenne[aut, cre], Julien Peron[aut]
 Maintainer: brice ozenne <brice.ozenne@orange.fr>
 Description: Implementation of the Generalized Pairwise Comparisons. This test

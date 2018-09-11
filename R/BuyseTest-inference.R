@@ -40,7 +40,6 @@ inferenceResampling <- function(envir){
                                   args = list(X = 1:n.resampling,
                                               FUN = function(iB){
                                                   .BuyseTest(envir = envir,
-                                                             return.index = FALSE,
                                                              keep.pairScore = FALSE,
                                                              method.inference = envir$outArgs$method.inference
                                                              )
@@ -73,7 +72,6 @@ inferenceResampling <- function(envir){
                                            if(trace>0){utils::setTxtProgressBar(pb, iB)}
 
                                            return(.BuyseTest(envir = envir,
-                                                      return.index = FALSE,
                                                       keep.pairScore = FALSE,
                                                       method.inference = envir$outArgs$method.inference))
                       

@@ -41,7 +41,6 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                method.tte = "Peron",               
                n.resampling = 1000,
                neutral.as.uninf = TRUE,
-               return.index = TRUE,
                seed = 10,
                statistic = "netChance",               
                trace = 2), 

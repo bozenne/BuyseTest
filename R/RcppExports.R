@@ -5,16 +5,15 @@
 #' @description \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts. 
 #' @name GPC_cpp
 #' 
-#' @param Treatment A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.
 #' @param Control A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.
+#' @param Treatment A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.
 #' @param threshold Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.
 #' @param survEndpoint Does each endpoint is a time to event. \emph{const LogicalVector&}. Must have length D.
-#' @param delta_Treatment A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
 #' @param delta_Control A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
+#' @param delta_Treatment A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
 #' @param D The number of endpoints. Strictly positive \emph{const int}.
-#' @param returnIndex Should the indexes of the neutral or uninformative pairs be returned. \emph{const bool}.
-#' @param strataT A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers. 
 #' @param strataC A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers. 
+#' @param strataT A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers. 
 #' @param n_strata The number of strata . Strictly positive \emph{const int}.
 #' @param n_TTE The number of time-to-event endpoints. Positive \emph{const int}.
 #' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have n_TTE lines and D-1 columns.
@@ -24,6 +23,7 @@
 #' @param list_survTimeT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. 
 #' @param list_survJumpC A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps. \emph{List&}.
 #' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}. 
+#' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns). \emph{List&}. 
 #' @param correctionTTE Should the uninformative weight be re-distributed to favorable and unfavorable?
 #' @param methodTTE The type of method used to compare censored pairs (0 Gehan 1 Peron).
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
@@ -33,8 +33,8 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepScore) {
-    .Call(`_BuyseTest_GPC_cpp`, Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepScore)
+GPC_cpp <- function(Control, Treatment, threshold, survEndpoint, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionTTE, neutralAsUninf, keepScore) {
+    .Call(`_BuyseTest_GPC_cpp`, Control, Treatment, threshold, survEndpoint, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionTTE, neutralAsUninf, keepScore)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

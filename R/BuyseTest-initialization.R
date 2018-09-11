@@ -533,7 +533,8 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
     list.survTimeT <- vector(mode = "list", length = D.TTE) # list of matrix of survival in the treatment arm at each observation time
     list.survJumpC <- vector(mode = "list", length = D.TTE)  # list of matrix of survival in the control arm at each jump time
     list.survJumpT <- vector(mode = "list", length = D.TTE)  # list of matrix of survival in the treatment arm at each jump time
-    
+    list.lastSurv <- vector(mode = "list", length = D.TTE)
+
     ## *** fill
     for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
 
@@ -545,13 +546,17 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
             iModelStrata[,".allStrata" := 1]
         }
         setkeyv(iModelStrata, c(treatment,".allStrata"))
-
+        n.strata <- length(unique(iModelStrata$.allStrata))
+        
         ## initialization
         list.survTimeC[[iEndpoint.TTE]] <- vector(mode = "list", length = n.strata)
         list.survTimeT[[iEndpoint.TTE]] <- vector(mode = "list", length = n.strata)
         list.survJumpC[[iEndpoint.TTE]] <- vector(mode = "list", length = n.strata)
         list.survJumpT[[iEndpoint.TTE]] <- vector(mode = "list", length = n.strata)
-        
+
+        list.lastSurv[[iEndpoint.TTE]] <- matrix(NA, ncol = 2, nrow = n.strata,
+                                                 dimnames = list(NULL,c("Control","Treatment")))
+            
         for(iStrata in 1:n.strata){ ## iStrata <- 1
 
             ## **** identify jump times and model
@@ -580,6 +585,7 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                                                   f=0,
                                                   method = "constant")
                     jumpC <- iJump
+                    list.lastSurv[[iEndpoint.TTE]][iStrata,"Control"] <- tail(iAllSurv,1)
                 }else if(iGroup == 1){
                     ## 0 at infinity if last event is a death
                     predSurvT <- stats::approxfun(x = iAllTime[iOrder],
@@ -591,6 +597,7 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                                                   method = "constant")
 
                     jumpT <- iJump
+                    list.lastSurv[[iEndpoint.TTE]][iStrata,"Treatment"] <- tail(iAllSurv,1)
                 }
             }
 
@@ -638,10 +645,11 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
         }
     }
 
-    return(list(survTimeC=list.survTimeC,
-                survTimeT=list.survTimeT,
-                survJumpC=list.survJumpC,
-                survJumpT=list.survJumpT))
+    return(list(survTimeC = list.survTimeC,
+                survTimeT = list.survTimeT,
+                survJumpC = list.survJumpC,
+                survJumpT = list.survJumpT,
+                lastSurv = list.lastSurv))
     
 }
 
