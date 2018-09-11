@@ -1,4 +1,4 @@
-% Created 2018-08-05 søn 23:55
+% Created 2018-09-08 lør 20:02
 % Intended LaTeX compiler: pdflatex
 \documentclass{article}
 
@@ -41,8 +41,6 @@ emphstyle=\color{blue}
 \usepackage{graphicx}
 \usepackage{grffile}
 \usepackage{wrapfig}
-\usepackage{capt-of}
-\usepackage{caption}
 \usepackage{rotating}
 \usepackage{longtable}
 \usepackage{multirow}
@@ -165,7 +163,7 @@ emphstyle=\color{blue}
  pdftitle={Explicit formula for the net benefit},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 26.0.50 (Org mode 9.0.4)},
+ pdfcreator={Emacs 27.0.50 (Org mode 9.0.4)},
  pdflang={English}
  }
 \begin{document}
@@ -176,7 +174,7 @@ emphstyle=\color{blue}
 \clearpage
 
 \section{Parameter of interest}
-\label{sec:orgbfc4ec0}
+\label{sec:org7d731bb}
 
 Let consider two independent real valued random variables \(X\) and \(Y\).
 We are interested in:
@@ -203,10 +201,9 @@ library(survival)
 \clearpage
 
 \section{Binary variable}
-\label{sec:org722bfe9}
-
-\subsection{Theory}
-\label{sec:orgd1e2934}
+\label{sec:org8d07799}
+\subsection{Relationship between \(\Delta\) and the prevalence}
+\label{sec:org908c24e}
 \begin{align*}
 \Prob[Y>X] = \Prob[Y=1,X=0]
 \end{align*}
@@ -224,7 +221,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:org9b00681}
+\label{sec:orgf4c6402}
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -263,10 +260,9 @@ prob2 - prob1
 \clearpage
 
 \section{Continuous variable}
-\label{sec:org55f4baf}
-
-\subsection{Theory}
-\label{sec:org5d3cc18}
+\label{sec:org7d7bd4f}
+\subsection{Relationship between \(\Delta\) and Cohen's d}
+\label{sec:org5abbb60}
 Let's consider two independent normally distributed variables with common variance:
 \begin{itemize}
 \item \(X \sim \Gaus[\mu_X,\sigma^2]\)
@@ -288,7 +284,7 @@ By symmetry
 \end{align*}
 
 \subsection{In R}
-\label{sec:org3b2956d}
+\label{sec:orgd0c6a49}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -331,10 +327,9 @@ d <- (meanY-meanX)/sdXY
 \clearpage
 
 \section{Survival}
-\label{sec:org3f25ff8}
-
-\subsection{Theory}
-\label{sec:org83151e6}
+\label{sec:orgb02f16d}
+\subsection{Relationship between \(\Delta\) and the hazard ratio}
+\label{sec:org121a536}
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 \begin{align*}
@@ -372,8 +367,79 @@ So:
 \Delta = 2\frac{1}{1+HR}-1 = \frac{1-HR}{1+HR}
 \end{align*}
 
+\subsection{Scoring rule in presence of censoring}
+\label{sec:orgd81bf6d}
+Let's consider the following random variables:  
+\begin{itemize}
+\item \(X\) the time to the occurrence of the event of interest in the treatment group.
+\item \(C_X\) the censoring time in the treatment group.
+\item \(X^* = X \wedge C_X\) the observed event time in the treatment group.
+\item \(\varepsilon_X = \Ind[X \leq C_X]\) the event time indicator in the treatment group.
+\item \(Y\) the time to the occurrence of the event of interest in the control group.
+\item \(C_Y\) the censoring time in the control group.
+\item \(Y^* = Y \wedge C_Y\) the observed event time in the control group.
+\item \(\varepsilon_Y = \Ind[Y \leq C_Y]\) the event time indicator in the control group.
+\end{itemize}
+
+We observe one realization \(\left(x^*, y^*, e_X, e_Y \right)\) of the
+random variables \(\left(X^*, Y^*, \varepsilon_X, \varepsilon_Y
+\right)\). We use the short notation \(x \wedge y = min(x,y)\) and \(x \vee y = max(x,y)\).
+
+\subsubsection{Case: \(e_X=0,e_Y=1\)}
+\label{sec:orgadc882c}
+
+\textbf{Probability in favor of the treatment}:
+\begin{align*}
+\Prob[x \geq y + \tau | x \geq x^*, y = y^*] 
+&= \frac{ \Prob[x \geq y^* + \tau, x \geq x^*] }{ \Prob[x \geq x^*]} \\
+&= \frac{ \Prob[x \geq max(y^* + \tau,x^*)] }{\Prob[x \geq x^*]} \\
+&= \frac{ S_X(y^* + \tau \vee x^*)}{S_X(x^*)}
+\end{align*}
+
+In the case where \(x^* < y^* + \tau\), we need an estimate of
+\(S_X(y^* + \tau)\) to compute the probability in favor of the
+treatment. If we can only have an estimate of \(S_X\) up to
+\(x_{max} < y^* + \tau\) then we can use the following inequality:
+\begin{align*}
+S_X(y^* + \tau) &\geq 0 \\
+\Prob[x \geq y + \tau | x \geq x^*, y = y^*] &\geq 0 \\
+\end{align*}
+
+\textbf{Probability in favor of the control}:
+
+\begin{align*}
+\Prob[y \geq x + \tau | x \geq x^*, y = y^*] 
+&= 1 - \frac{ \Prob[x \geq y^* - \tau, x \geq x^*] }{ \Prob[x \geq x^*]} \\
+&= 1 - \frac{ \Prob[x \geq max(y^* - \tau,x^*)] }{\Prob[x \geq x^*]} \\
+&= 1 - \frac{ S_X(y^* - \tau \vee x^*)}{S_X(x^*)}
+\end{align*}
+
+In the case where \(x^* < y^* - \tau\), we need an estimate of
+\(S_X(y^* - \tau)\) to compute the probability in favor of the
+control. If we can only have an estimate of \(S_X\) up to
+\(x_{max} < y^* - \tau\) then we can use the following inequality:
+\begin{align*}
+S_X(x_{max}) &\geq S_X(y^* - \tau) \\
+\Prob[x \geq y - \tau | x \geq x^*, y = y^*] &\geq 1 - \frac{ S_X(x_{max})}{S_X(x^*)} \\
+\end{align*}
+
+\textbf{Probability of being neutral}:
+
+\begin{align*}
+\Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] 
+&= 1-\Prob[x \geq y + \tau | x \geq x^*, y = y^*]-\Prob[y \geq x + \tau | x \geq x^*, y = y^*]  \\
+&= \frac{ S_X(y^* - \tau \vee x^*) - S_X(y^* + \tau \vee x^*)}{S_X(x^*)}
+\end{align*}
+
+If \(x_{max} > y^* - \tau\) then 
+\begin{align*}
+\Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] \geq \frac{ S_X(y^* - \tau) - S_X(x_{max})}{S_X(x^*)}
+\end{align*}
+
+\subsubsection{Data driven estimation of the expected survival in each treatment group}
+\label{sec:org3309535}
 \subsection{In R}
-\label{sec:org45a416c}
+\label{sec:orga125895}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -420,13 +486,13 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 \clearpage
 
 \section{Competing risks}
-\label{sec:orgf534bfe}
+\label{sec:org5c403da}
 
 \subsection{Theory}
-\label{sec:orgd9ead0d}
+\label{sec:orge858b85}
 
 \subsubsection{General case (no censoring)}
-\label{sec:org7646e55}
+\label{sec:orgb460310}
 Let consider: 
 \begin{itemize}
 \item \(X^*_{E}\) the time to the occurrence of the event of interest in the control group.
@@ -486,7 +552,7 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \end{align*}
 
 \subsubsection{General case (censoring, method: Gehan)}
-\label{sec:org4fa1a25}
+\label{sec:org94c6c32}
 In case of censoring we can use an inverse probability weighting
 approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
 indicator of no censoring relative to \(\tilde{X}\) (resp \(\tilde{Y}\)), \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
@@ -518,7 +584,7 @@ consistent estimate of \(\Prob[\delta_c]\) since:
 where we used the law of total expectation (first line) and the independence between the censoring mecanisms.
 
 \subsubsection{Exponential distribution (no censoring)}
-\label{sec:org9ff5994}
+\label{sec:org691d9de}
 
 Now let's assume that:
 \begin{itemize}
@@ -564,10 +630,10 @@ CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 
 \end{align*}
 
 \subsection{In R}
-\label{sec:org7473e8f}
+\label{sec:org8180793}
 
 \subsubsection{BuyseTest (no censoring)}
-\label{sec:org5a9f248}
+\label{sec:orgb33f6bb}
 
 Setting:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -651,7 +717,7 @@ favorable unfavorable     neutral
 \end{verbatim}
 
 \subsubsection{BuyseTest (with censoring)}
-\label{sec:orge63cc38}
+\label{sec:org568d439}
 
 Simulate data:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -706,7 +772,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \end{verbatim}
 
 \subsubsection{Cumulative incidence}
-\label{sec:orgd351c85}
+\label{sec:org7bf5324}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
