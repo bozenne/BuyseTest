@@ -8,7 +8,7 @@
 #' 
 #' \code{initializeArgs}: Normalize the argument 
 #' \itemize{
-#' \item method.tte, neutral.as.uninf, keep.individualScore, n.resampling, seed, cpus, trace: set to default value when not specified.
+#' \item method.tte, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 #' \item formula: call \code{initializeFormula} to extract arguments.
 #' \item type: convert to numeric.
 #' \item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
@@ -39,7 +39,7 @@ initializeArgs <- function(alternative,
                            data,
                            endpoint,
                            formula,
-                           keep.individualScore,
+                           keep.pairScore,
                            method.tte,
                            model.tte,
                            method.inference,
@@ -57,7 +57,7 @@ initializeArgs <- function(alternative,
 
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
-    if(is.null(keep.individualScore)){ keep.individualScore <- option$keep.individualScore }
+    if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
     if(is.null(method.tte)){ method.tte <- option$method.tte }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
@@ -198,7 +198,7 @@ initializeArgs <- function(alternative,
         data = data,
         endpoint = endpoint,
         formula = formula,
-        keep.individualScore = keep.individualScore,
+        keep.pairScore = keep.pairScore,
         keep.survival = option$keep.survival,
         method.tte = method.tte,
         model.tte = model.tte,

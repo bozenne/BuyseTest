@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // GPC_cpp
-List GPC_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control, const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, const std::vector< std::vector< arma::mat > >& list_survTimeC, const std::vector< std::vector< arma::mat > >& list_survTimeT, const std::vector< std::vector< arma::mat > >& list_survJumpC, const std::vector< std::vector< arma::mat > >& list_survJumpT, const int methodTTE, const int correctionTTE, const bool neutralAsUninf, const bool keepComparison);
-RcppExport SEXP _BuyseTest_GPC_cpp(SEXP TreatmentSEXP, SEXP ControlSEXP, SEXP thresholdSEXP, SEXP survEndpointSEXP, SEXP delta_TreatmentSEXP, SEXP delta_ControlSEXP, SEXP DSEXP, SEXP returnIndexSEXP, SEXP strataTSEXP, SEXP strataCSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP WschemeSEXP, SEXP index_survivalM1SEXP, SEXP threshold_TTEM1SEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP methodTTESEXP, SEXP correctionTTESEXP, SEXP neutralAsUninfSEXP, SEXP keepComparisonSEXP) {
+List GPC_cpp(const arma::mat& Treatment, const arma::mat& Control, const NumericVector& threshold, const LogicalVector& survEndpoint, const arma::mat& delta_Treatment, const arma::mat& delta_Control, const int D, const bool returnIndex, const std::vector< arma::uvec >& strataT, const std::vector< arma::uvec >& strataC, const int n_strata, const int n_TTE, const arma::mat& Wscheme, const IntegerVector index_survivalM1, const NumericVector threshold_TTEM1, const std::vector< std::vector< arma::mat > >& list_survTimeC, const std::vector< std::vector< arma::mat > >& list_survTimeT, const std::vector< std::vector< arma::mat > >& list_survJumpC, const std::vector< std::vector< arma::mat > >& list_survJumpT, const int methodTTE, const int correctionTTE, const bool neutralAsUninf, const bool keepScore);
+RcppExport SEXP _BuyseTest_GPC_cpp(SEXP TreatmentSEXP, SEXP ControlSEXP, SEXP thresholdSEXP, SEXP survEndpointSEXP, SEXP delta_TreatmentSEXP, SEXP delta_ControlSEXP, SEXP DSEXP, SEXP returnIndexSEXP, SEXP strataTSEXP, SEXP strataCSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP WschemeSEXP, SEXP index_survivalM1SEXP, SEXP threshold_TTEM1SEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP methodTTESEXP, SEXP correctionTTESEXP, SEXP neutralAsUninfSEXP, SEXP keepScoreSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,27 +34,27 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type methodTTE(methodTTESEXP);
     Rcpp::traits::input_parameter< const int >::type correctionTTE(correctionTTESEXP);
     Rcpp::traits::input_parameter< const bool >::type neutralAsUninf(neutralAsUninfSEXP);
-    Rcpp::traits::input_parameter< const bool >::type keepComparison(keepComparisonSEXP);
-    rcpp_result_gen = Rcpp::wrap(GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepComparison));
+    Rcpp::traits::input_parameter< const bool >::type keepScore(keepScoreSEXP);
+    rcpp_result_gen = Rcpp::wrap(GPC_cpp(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepScore));
     return rcpp_result_gen;
 END_RCPP
 }
-// calcIntegralProba
-inline double calcIntegralProba(const arma::mat& survival, double start);
-RcppExport SEXP _BuyseTest_calcIntegralProba(SEXP survivalSEXP, SEXP startSEXP) {
+// calcIntegralProba_cpp
+double calcIntegralProba_cpp(const arma::mat& survival, double start);
+RcppExport SEXP _BuyseTest_calcIntegralProba_cpp(SEXP survivalSEXP, SEXP startSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type survival(survivalSEXP);
     Rcpp::traits::input_parameter< double >::type start(startSEXP);
-    rcpp_result_gen = Rcpp::wrap(calcIntegralProba(survival, start));
+    rcpp_result_gen = Rcpp::wrap(calcIntegralProba_cpp(survival, start));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 23},
-    {"_BuyseTest_calcIntegralProba", (DL_FUNC) &_BuyseTest_calcIntegralProba, 2},
+    {"_BuyseTest_calcIntegralProba_cpp", (DL_FUNC) &_BuyseTest_calcIntegralProba_cpp, 2},
     {NULL, NULL, 0}
 };
 

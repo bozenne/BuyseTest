@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: sep  7 2018 (13:39) 
+## last-updated: sep 10 2018 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 40
+##     Update #: 42
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -26,7 +26,7 @@ context("Check that the option neutral.as.uninf in BuyseTest is working correctl
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.individualScore = TRUE,
+                  keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 
@@ -44,7 +44,6 @@ n.data <- NROW(dt.data)
 ## same with some NA
 dt.dataNA  <- copy(dt.data)
 dt.dataNA[1,memory := NA]
-
 
 ## * neutral.as.uninf = TRUE (default)
 ## the neutral observations are analysed using the following endpoints

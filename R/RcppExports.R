@@ -27,19 +27,19 @@
 #' @param correctionTTE Should the uninformative weight be re-distributed to favorable and unfavorable?
 #' @param methodTTE The type of method used to compare censored pairs (0 Gehan 1 Peron).
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
-#' @param keepComparison Should the result of each pairwise comparison be kept? \emph{logical}.
+#' @param keepScore Should the result of each pairwise comparison be kept? \emph{logical}.
 #' @keywords function Cpp BuyseTest
 NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepComparison) {
-    .Call(`_BuyseTest_GPC_cpp`, Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepComparison)
+GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepScore) {
+    .Call(`_BuyseTest_GPC_cpp`, Treatment, Control, threshold, survEndpoint, delta_Treatment, delta_Control, D, returnIndex, strataT, strataC, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, methodTTE, correctionTTE, neutralAsUninf, keepScore)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 
 #' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
-#' @name calcIntegralProba
+#' @name calcIntegralProba_cpp
 #' 
 #' @param survival [matrix] Contains the jump times in the first column,
 #' the survival in the other arm at times plus threshold in the second column,
@@ -48,7 +48,7 @@ GPC_cpp <- function(Treatment, Control, threshold, survEndpoint, delta_Treatment
 #'
 #' @keywords function Cpp internal
 #' @export
-calcIntegralProba <- function(survival, start) {
-    .Call(`_BuyseTest_calcIntegralProba`, survival, start)
+calcIntegralProba_cpp <- function(survival, start) {
+    .Call(`_BuyseTest_calcIntegralProba_cpp`, survival, start)
 }
 

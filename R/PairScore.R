@@ -1,11 +1,11 @@
-### tableIndividualScore.R --- 
+### tablePairScore.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: sep  7 2018 (17:31) 
+## Last-Updated: sep 10 2018 (12:18) 
 ##           By: Brice Ozenne
-##     Update #: 66
+##     Update #: 75
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,9 +15,9 @@
 ## 
 ### Code:
 
-## * individualScore2dt
+## * pairScore2dt
 ## Convert output of .BuyseTest (list of vector) into a list of data.table
-individualScore2dt <- function(individualScore,
+pairScore2dt <- function(pairScore,
                                correction.tte,
                                level.treatment,
                                level.strata,
@@ -34,20 +34,19 @@ individualScore2dt <- function(individualScore,
                     "favorable","unfavorable","neutral","uninformative",
                     "weight",
                     "favorable.corrected","unfavorable.corrected","neutral.corrected")
-
-    individualScore2 <- lapply(individualScore, function(iC){ ## iC <- individualScore[[1]]
+    pairScore2 <- lapply(pairScore, function(iC){ ## iC <- pairScore[[1]]
         iM <- data.table::as.data.table(matrix(iC, ncol = 13, byrow = FALSE,
                                                dimnames = list(NULL,name.tempo)))
         iM[, c("strata") := factor(.SD[["strata"]], levels = 0:(n.strata-1), labels = level.strata)] ## indexes start at 1 in R and not at 0 as in C++
         ## recall that indexes start at 1 in R and not at 0 as in C++
         iM[, c("index.C") := indexC[.SD$index.C + 1]] ## restaure position in the original dataset, not the datasets relative to T and C
         iM[, c("index.T") := indexT[.SD$index.T + 1]] ## restaure position in the original dataset, not the datasets relative to T and C
-        iM[, c("indexWithinStrata.T") := .SD$indexWithinStrata.C + 1]
-        iM[, c("indexWithinStrata.C") := .SD$indexWithinStrata.T + 1]
+        iM[, c("indexWithinStrata.T") := .SD$indexWithinStrata.T + 1]
+        iM[, c("indexWithinStrata.C") := .SD$indexWithinStrata.C + 1]
         return(iM[])
     })
-    names(individualScore2) <- paste0(endpoint,"_",threshold)
+    names(pairScore2) <- paste0(endpoint,"_",threshold)
 
 
-    return(individualScore2)
+    return(pairScore2)
 }

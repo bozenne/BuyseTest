@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: sep  7 2018 (17:36) 
+## Last-Updated: sep 10 2018 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 27
+##     Update #: 30
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,7 +26,7 @@ context("Check tableComparison matches the summary of BuyseTest objects")
 ## * Settings
 n.patients <- c(90,100)
 BuyseTest.options(check = FALSE,
-                  keep.individualScore = TRUE,
+                  keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 
@@ -49,7 +49,7 @@ test_that("Full data", {
 
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){
-        iScore <- getIndividualScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
+        iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
                                                                         unfavorable = sum(unfavorable*weight),
                                                                         neutral = sum(neutral*weight),
                                                                         uninformative = sum(uninformative*weight))]
@@ -80,10 +80,10 @@ test_that("Full data", {
 
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){
-        iScore <- getIndividualScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
-                                                                        unfavorable = sum(unfavorable*weight),
-                                                                        neutral = sum(neutral*weight),
-                                                                        uninformative = sum(uninformative*weight))]
+        iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
+                                                                  unfavorable = sum(unfavorable*weight),
+                                                                  neutral = sum(neutral*weight),
+                                                                  uninformative = sum(uninformative*weight))]
         manualScore <- rbind(manualScore,iScore)
     }
 

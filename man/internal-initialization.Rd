@@ -9,7 +9,7 @@
 \title{internal functions for BuyseTest - initialization}
 \usage{
 initializeArgs(alternative, name.call, censoring, cpus, data, endpoint, formula,
-  keep.comparison, method.tte, model.tte, method.inference, n.resampling,
+  keep.pairScore, method.tte, model.tte, method.inference, n.resampling,
   neutral.as.uninf, operator, option, prob.alloc, seed, strata, threshold,
   trace, treatment, type)
 
@@ -27,7 +27,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \details{
 \code{initializeArgs}: Normalize the argument 
 \itemize{
-\item method.tte, neutral.as.uninf, keep.comparison, n.resampling, seed, cpus, trace: set to default value when not specified.
+\item method.tte, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 \item formula: call \code{initializeFormula} to extract arguments.
 \item type: convert to numeric.
 \item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.

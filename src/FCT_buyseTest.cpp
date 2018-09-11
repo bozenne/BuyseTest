@@ -161,32 +161,32 @@ List GPC_cpp(const arma::mat& Treatment,
       
       if(methodTTE == 0){
 		iScore = calcAllPairs_TTEgehan(TreatmentK.col(0), ControlK.col(0), threshold[0],
-											delta_TreatmentK.col(0), delta_ControlK.col(0),
-											correctionTTE,
-											Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-											iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
-											iw, keepScore); 
+									   delta_TreatmentK.col(0), delta_ControlK.col(0),
+									   correctionTTE,
+									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+									   iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
+									   iw, neutralAsUninf, keepScore); 
       }else{
 
 		iScore = calcAllPairs_TTEperon(TreatmentK.col(0), ControlK.col(0), threshold[0],
-											delta_TreatmentK.col(0), delta_ControlK.col(0),
-											list_survTimeC[0][iter_strata], list_survTimeT[0][iter_strata], list_survJumpC[0][iter_strata], list_survJumpT[0][iter_strata],
-											correctionTTE,
-											Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-											iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
-											iw, keepScore);
+									   delta_TreatmentK.col(0), delta_ControlK.col(0),
+									   list_survTimeC[0][iter_strata], list_survTimeT[0][iter_strata], list_survJumpC[0][iter_strata], list_survJumpT[0][iter_strata],
+									   correctionTTE,
+									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+									   iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC, 
+									   iw, neutralAsUninf, keepScore);
       }
       iter_dTTE++; // increment the number of time to event endpoints that have been used
       
     }else { // binary or continuous endpoint
       
       iScore = calcAllPairs_Continuous(TreatmentK.col(0),ControlK.col(0),threshold[0],
-											Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-											iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC,
-											keepScore);
+									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+									   iIndex_neutralT, iIndex_neutralC, iIndex_uninfT, iIndex_uninfC,
+									   neutralAsUninf, keepScore);
       
     }
-    
+
     // **** add to the total number of pairs the number of pairs founded for this endpoint
     n_pairs += Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
     size_neutral = iIndex_neutralT.size(); // update the number of neutral pairs
@@ -210,8 +210,8 @@ List GPC_cpp(const arma::mat& Treatment,
         }
       }
     }
-    
-    // **** update all Scores
+
+	// **** update all Scores
     if(keepScore){
       iNpairs = iScore.n_rows;
       iMat.resize(iNpairs,3);
@@ -236,20 +236,20 @@ List GPC_cpp(const arma::mat& Treatment,
       iter_d++; // increment the index of the endpoints
 	  // Rcout << "** endpoint " << iter_d << " **" << endl;
       Wpairs_sauve = Wpairs; // save the current Wpairs
-      if(neutralAsUninf==false){size_neutral = 0;} // stop the analysis of the neutral pairs
       iw.resize(0); iIndex_w.resize(0);
       
       if(survEndpoint[iter_d]){ // time to event endpoint
 
 		if(methodTTE==0){
 		  iScore = calcSubsetPairs_TTEgehan(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-												 delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
-												 correctionTTE,
-												 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-												 iIndex_neutralT, iIndex_neutralC, size_neutral,
-												 iIndex_uninfT, iIndex_uninfC, size_uninf,
-												 w, iw, iIndex_w,
-												 keepScore);
+											delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
+											correctionTTE,
+											Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d),
+											Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+											iIndex_neutralT, iIndex_neutralC, size_neutral,
+											iIndex_uninfT, iIndex_uninfC, size_uninf,
+											w, iw, iIndex_w,
+											neutralAsUninf, keepScore);
 		}else{
         
 		  if(threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used [no threshold-1]
@@ -268,16 +268,18 @@ List GPC_cpp(const arma::mat& Treatment,
 		  }
 	
           iScore = calcSubsetPairs_TTEperon(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-												 delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
-												 list_survTimeC[iter_dTTE][iter_strata], list_survTimeT[iter_dTTE][iter_strata], list_survJumpC[iter_dTTE][iter_strata], list_survJumpT[iter_dTTE][iter_strata],
-												 correctionTTE,
-												 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-												 iIndex_neutralT, iIndex_neutralC, size_neutral,
-												 iIndex_uninfT, iIndex_uninfC, size_uninf,
-												 w, iThreshold_M1,
-												 iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
-												 iw, iIndex_w,
-												 keepScore);
+											delta_TreatmentK.col(iter_dTTE),delta_ControlK.col(iter_dTTE),
+											list_survTimeC[iter_dTTE][iter_strata], list_survTimeT[iter_dTTE][iter_strata],
+											list_survJumpC[iter_dTTE][iter_strata], list_survJumpT[iter_dTTE][iter_strata],
+											correctionTTE,
+											Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d),
+											Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+											iIndex_neutralT, iIndex_neutralC, size_neutral,
+											iIndex_uninfT, iIndex_uninfC, size_uninf,
+											w, iThreshold_M1,
+											iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
+											iw, iIndex_w,
+											neutralAsUninf, keepScore);
 		}
 
 		iter_dTTE++; // increment the number of time to event endpoints that have been used
@@ -285,14 +287,14 @@ List GPC_cpp(const arma::mat& Treatment,
       }else{ // binary or continuous endpoint
 	
         iScore = calcSubsetPairs_Continuous(TreatmentK.col(iter_d),ControlK.col(iter_d),threshold[iter_d],
-												 Mcount_favorable(iter_strata,iter_d),
-												 Mcount_unfavorable(iter_strata,iter_d),
-												 Mcount_neutral(iter_strata,iter_d),
-												 Mcount_uninf(iter_strata,iter_d), 
-												 iIndex_neutralT, iIndex_neutralC, size_neutral,
-												 iIndex_uninfT, iIndex_uninfC, size_uninf,
-												 w, iIndex_w,
-												 keepScore);
+											Mcount_favorable(iter_strata,iter_d),
+											Mcount_unfavorable(iter_strata,iter_d),
+											Mcount_neutral(iter_strata,iter_d),
+											Mcount_uninf(iter_strata,iter_d), 
+											iIndex_neutralT, iIndex_neutralC, size_neutral,
+											iIndex_uninfT, iIndex_uninfC, size_uninf,
+											w, iIndex_w,
+											neutralAsUninf, keepScore);
 	
       }
       

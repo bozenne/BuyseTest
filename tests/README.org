@@ -23,7 +23,7 @@ Test BuyseTest on tractable examples:
 Check that issues that have been reported are indeed fixed.
 ** test-BuyseTest-resampling
 Check permutation and bootstrap resampling
-** test-BuyseTest-tableComparison
+** test-BuyseTest-PairScore
 Check tableComparison matches the summary of BuyseTest objects
 ** test-initSurvival
 Check the computation of the survival using Kaplan Meier:

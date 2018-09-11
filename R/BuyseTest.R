@@ -38,7 +38,7 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param n.resampling [integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param keep.individualScore [logical] should the result of each pairwise comparison be kept?
+#' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 #' @param seed [integer, >0] the seed to consider for the permutation test.
@@ -48,7 +48,7 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param trace [integer] should the execution of the function be traced ? See details.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param keep.comparison Obsolete. Alias for 'keep.individualScore'.
+#' @param keep.comparison Obsolete. Alias for 'keep.pairScore'.
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
@@ -193,7 +193,7 @@ BuyseTest <- function(formula,
                       method.inference = NULL,
                       n.resampling = NULL,
                       neutral.as.uninf = NULL,
-                      keep.individualScore = NULL,
+                      keep.pairScore = NULL,
                       treatment = NULL,
                       endpoint = NULL,
                       type = NULL,
@@ -213,7 +213,7 @@ BuyseTest <- function(formula,
     ## ** compatibility with previous version
     if(!missing(keep.comparison)){
         stop("Argument \'keep.comparison\' is obsolete. \n",
-             "It has been replaced by the argument \'keep.individualScore\' \n")
+             "It has been replaced by the argument \'keep.pairScore\' \n")
     }
     
     ## ** initialize arguments (all expect data that is just converted to data.table)
@@ -225,7 +225,7 @@ BuyseTest <- function(formula,
                               data = data,
                               endpoint = endpoint,
                               formula = formula,
-                              keep.individualScore = keep.individualScore,
+                              keep.pairScore = keep.pairScore,
                               method.tte = method.tte,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
@@ -240,10 +240,10 @@ BuyseTest <- function(formula,
                               type = type,
                               method.inference = method.inference)
 
-    if(outArgs$keep.individualScore || outArgs$method.inference == "asymptotic"){
-        keep.individualScore <- TRUE
+    if(outArgs$keep.pairScore || outArgs$method.inference == "asymptotic"){
+        keep.pairScore <- TRUE
     }else{
-        keep.individualScore <- FALSE
+        keep.pairScore <- FALSE
     }
 
     ## ** test arguments
@@ -289,16 +289,16 @@ BuyseTest <- function(formula,
     time <- system.time({
         outPoint <- .BuyseTest(envir = envirBT,
                                return.index = option$return.index,
-                               keep.individualScore = keep.individualScore,
+                               keep.pairScore = keep.pairScore,
                                method.inference = "none")
     })
     ## convert from a list of vector (output of C++) to a list of data.table
-    if(keep.individualScore){
+    if(keep.pairScore){
         ## needed for inference
         envirBT$indexT <- which(outArgs$data[[outArgs$treatment]]==1)
         envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==0)
 
-        outPoint$tableIndividualScore <- individualScore2dt(outPoint$tableScore,
+        outPoint$tablePairScore <- pairScore2dt(outPoint$tableScore,
                                                             correction.tte = outArgs$correction.tte,
                                                             level.treatment = outArgs$level.treatment,
                                                             level.strata = outArgs$level.strata,
@@ -368,7 +368,7 @@ BuyseTest <- function(formula,
         DeltaResampling.netChance = outResampling$DeltaResampling.netChance,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
         covariance = outCovariance,
-        tableIndividualScore = if(outArgs$keep.individualScore){outPoint$tableIndividualScore}else{list()},
+        tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
         tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
     )
 
@@ -379,7 +379,7 @@ BuyseTest <- function(formula,
 ## * .BuyseTest (code)
 .BuyseTest <- function(envir,
                        return.index,
-                       keep.individualScore,
+                       keep.pairScore,
                        method.inference){
    
     strata <- envir$outArgs$strata ## for by in data.table otherwise it cant find what it is
@@ -509,7 +509,7 @@ BuyseTest <- function(formula,
                      methodTTE = method.tte,
                      correctionTTE = envir$outArgs$correction.tte,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
-                     keepScore = keep.individualScore
+                     keepScore = keep.pairScore
                      )
     
     ## ** export

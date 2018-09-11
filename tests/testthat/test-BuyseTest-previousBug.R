@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep  7 2018 (17:47) 
+## Last-Updated: sep 10 2018 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 42
+##     Update #: 46
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,7 @@ context("Check that bugs that have been reported are fixed \n")
 
 ## * settings
 BuyseTest.options(check = FALSE,
-                  keep.individualScore = TRUE,
+                  keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
 
@@ -40,12 +40,12 @@ dt.sim <- data.table(
 test_that("number of pairs - argument neutral.as.uninf", {
     BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                       data = dt.sim,
-                      neutral.as.uninf = TRUE)
+                      neutral.as.uninf = TRUE, method.tte = "Gehan")
     BTS.T <- as.data.table(summary(BT.T, print = FALSE, percentage = FALSE)$table)
     
     BT.F <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                       data = dt.sim,
-                      neutral.as.uninf = FALSE)
+                      neutral.as.uninf = FALSE, method.tte = "Gehan")
     BTS.F <- as.data.table(summary(BT.F, print = FALSE, percentage = FALSE)$table)
 
 
@@ -61,8 +61,10 @@ test_that("number of pairs - argument neutral.as.uninf", {
 
     expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
                  BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
+
     expect_equal(BTS.F[endpoint == "timeOS" & strata == "global", n.uninf],
                  BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
+
     expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total],
                  BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf])
 
@@ -70,16 +72,16 @@ test_that("number of pairs - argument neutral.as.uninf", {
     GS <- data.table("endpoint" = c("timeOS", "timeOS", "Mgrade.tox", "Mgrade.tox"), 
                      "threshold" = c(1e-12, 1e-12, 1e-12, 1e-12), 
                      "strata" = c("global", "1", "global", "1"), 
-                     "pc.total" = c(100.00000, 100.00000,  33.33333,  33.33333), 
-                     "pc.favorable" = c(50.00000, 50.00000, 16.66667, 16.66667), 
-                     "pc.unfavorable" = c(16.66667, 16.66667, 11.11111, 11.11111), 
-                     "pc.neutral" = c(11.111111, 11.111111,  5.555556,  5.555556), 
-                     "pc.uninf" = c(22.22222, 22.22222,  0.00000,  0.00000), 
-                     "delta" = c(0.33333333, 0.33333333, 0.05555556, 0.05555556), 
-                     "Delta" = c(0.3333333, NA, 0.3888889, NA), 
+                     "pc.total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
+                     "pc.favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
+                     "pc.unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                     "pc.neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                     "pc.uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
+                     "delta" = c(0.3333333, 0.3333333, 0.1111111, 0.1111111), 
+                     "Delta" = c(0.3333333, NA, 0.4444444, NA), 
                      "CIinf.Delta" = as.numeric(c(NA, NA, NA, NA)), 
                      "CIsup.Delta" = as.numeric(c(NA, NA, NA, NA)), 
-                     "p.value" = as.numeric(c(NA, NA, NA, NA)),
+                     "p.value" = as.numeric(c(NA, NA, NA, NA)), 
                      "n.resampling" = as.numeric(c(NA, NA, NA, NA)))
     ##    butils::object2script(test)
 
@@ -87,6 +89,7 @@ test_that("number of pairs - argument neutral.as.uninf", {
     expect_equal(test, GS, tol = 1e-6)
     ## class(BTS.T[["n.resampling"]])
     ## class(GS[["n.resampling"]])
+
     
 })
 

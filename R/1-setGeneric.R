@@ -16,10 +16,10 @@ setGeneric(name = "getCount",
 )
 
 ## * Selector (for BuyseRes)
-#' @rdname BuyseRes-getIndividualScore
-#' @exportMethod getIndividualScore
-setGeneric(name = "getIndividualScore",
-           def = function(object, ...){standardGeneric("getIndividualScore")}
+#' @rdname BuyseRes-getPairScore
+#' @exportMethod getPairScore
+setGeneric(name = "getPairScore",
+           def = function(object, ...){standardGeneric("getPairScore")}
 )
 
 ## * Selector (for BuyseRes)
