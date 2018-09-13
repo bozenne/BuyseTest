@@ -313,7 +313,8 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Control, const arma::colvec
 	  
       proba_threshold = calcOneProba_TTEperon(Control[iter_C], Treatment[iter_T], 
 					      deltaC[iter_C], deltaT[iter_T], threshold, iter_C, iter_T,
-					      survTimeC, survTimeT, survJumpC, survJumpT);
+					      survTimeC, survTimeT, survJumpC, survJumpT,
+					      lastSurvC, lastSurvT);
       
       /* Rcout << endl; */
       count_favorable += proba_threshold[0];    
@@ -536,11 +537,13 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Control, const arma::colv
 
       // *** Compute probas
       proba_threshold = calcOneProba_TTEperon(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold, iter_C, iter_T,
-					      survTimeC, survTimeT, survJumpC, survJumpT);
+					      survTimeC, survTimeT, survJumpC, survJumpT,
+					      lastSurvC, lastSurvT);
       
       if(test_tauM1){ // useless if pairs from a different outcome
 	proba_thresholdM1 = calcOneProba_TTEperon(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold_M1, iter_C, iter_T, 
-						  survTimeC_M1, survTimeT_M1, survJumpC_M1, survJumpT_M1);
+						  survTimeC_M1, survTimeT_M1, survJumpC_M1, survJumpT_M1,
+						  lastSurvC, lastSurvT);
       }else{
         proba_thresholdM1[0] = 0;
         proba_thresholdM1[1] = 0;      
@@ -599,11 +602,13 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Control, const arma::colv
 
       // *** Compute probas
       proba_threshold = calcOneProba_TTEperon(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold, iter_C, iter_T,
-					      survTimeC, survTimeT, survJumpC, survJumpT);            
+					      survTimeC, survTimeT, survJumpC, survJumpT,
+					      lastSurvC, lastSurvT);            
       
       if(test_tauM1){
 	proba_thresholdM1 = calcOneProba_TTEperon(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold_M1, iter_C, iter_T, 
-						  survTimeC_M1, survTimeT_M1, survJumpC_M1, survJumpT_M1);  
+						  survTimeC_M1, survTimeT_M1, survJumpC_M1, survJumpT_M1,
+						  lastSurvC, lastSurvT);  
       }else{
         proba_thresholdM1[0] = 0;
         proba_thresholdM1[1] = 0;      

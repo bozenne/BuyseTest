@@ -355,7 +355,8 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
 inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const double endpoint_T, const double delta_C, const double delta_T, const double threshold,
 					    const int index_C, const int index_T, 
 					    const arma::mat& survTimeC, const arma::mat& survTimeT,
-					    const arma::mat& survJumpC, const arma::mat& survJumpT){
+					    const arma::mat& survJumpC, const arma::mat& survJumpT,
+					    double lastSurvC, double lastSurvT){
   
   // survTimeC and survTimeT: survival at control/treatment observation times
   //        [0]    time 
@@ -393,147 +394,131 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
       }      
       
     }else{ // deltaC[iter_C]==0
-        
-      if(diff >= threshold){ //
-	if(R_IsNA(survTimeT(index_T,1))==false && R_IsNA(survTimeT(index_T,3))==false){ // (1,0) > tau
-	  // favorable
-	  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2); // 1-[Sc(x_i-taux)/Sc(y_j)]
-	  // unfavorable
-	  proba[1] = survTimeT(index_T,3)/survTimeC(index_C,2); //  [Sc(x_i+taux)/Sc(y_j)]
-	  // neutral
-	  proba[2] = 1 - (proba[0] + proba[1]); //  [Sc(x_i+taux)/Sc(y_j)]
-	  // uniformative
-	  // proba[3] = 0.0;
-	}else{
-	  // proba[0] = 0.0; // favorable
-	  // proba[1] = 0.0; // unfavorable  
-	  // proba[2] = 0.0; // neutral
-	  proba[3] = 1.0; // uniformative
-	}
-		
-      }else if(diff <= -threshold){
-	// proba[0] = 0.0; // favorable
-	proba[1] = 1.0; // unfavorable  
-	// proba[2] = 0.0; // neutral
-	// proba[3] = 0.0; // uniformative
-      }else{ // |diff| < threshold
 
-	if(R_IsNA(survTimeT(index_T,3))==false){
-	  // favorable
-	  // proba[0]=0.0; 
-	  // unfavorable		  
-	  proba[1] = survTimeT(index_T,3)/survTimeC(index_C,2); //  [Sc(x_i+taux)/Sc(y_j)]
-	  // neutral
-	  proba[2] = 1 - (proba[0] + proba[1]); //  1-[Sc(x_i+taux)/Sc(y_j)]
-	  // uniformative
-	  // proba[3] = 0.0;
-	}else {
-	  // proba[0] = 0.0; // favorable
-	  // proba[1] = 0.0; // unfavorable  
-	  // proba[2] = 0.0; // neutral
-	  proba[3] = 1.0; // uniformative
-	}
+      // favorable
+      if(diff <= -threshold){ // 
+	proba[0] = 0.0;
+      }else if(R_IsNA(survTimeT(index_T,1))==false){
+	proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2); // 1-[Sc(x_i-tau)/Sc(y_j)]
+      }else{
+	proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2); // 1-[Sc(max)/Sc(y_j)] (lower bound)
       }
-	  
+
+      // unfavorable
+      if(diff <= -threshold){ // 
+	proba[1] = 1.0;
+      }else if(R_IsNA(survTimeT(index_T,3))==false){
+	proba[1] = survTimeT(index_T,3)/survTimeC(index_C,2); //  [Sc(x_i+tau)/Sc(y_j)]
+      }else{
+	// proba[1] = 0.0 // lower bound
+      }
+
+      // neutral
+      if(diff <= -threshold){
+	// proba[2] = 0.0;
+      }else if(R_IsNA(survTimeT(index_T,3))==false && R_IsNA(survTimeT(index_T,1))==false){
+	proba[2] = (survTimeT(index_T,1) - survTimeT(index_T,3))/survTimeC(index_C,2); // (Sc(x_i-tau) - Sc(x_i+tau))/Sc(y_j)	
+      }else if(R_IsNA(survTimeT(index_T,1))==false){
+	proba[2] = (survTimeT(index_T,1) - lastSurvC)/survTimeC(index_C,2); // (Sc(x_i-tau) - Sc(max))/Sc(y_j)	 (lower bound)
+      }else{
+	// proba[2] = 0.0 // lower bound
+      }
+
+      // uninformative
+      proba[3] = 1 - (proba[0] + proba[1] + proba[2]);
     }
     
   }else{ // deltaT[iter_T]==0
     if(delta_C==1){ 
-    
+
+      // favorable
       if(diff >= threshold){ // 
-	proba[0] = 1.0; // favorable     
-	// proba[1] = 0.0; // unfavorable  
-	// proba[2] = 0.0; // neutral
-	// proba[3] = 0.0; // uniformative
-      }else if(diff <= -threshold){
-	if(R_IsNA(survTimeC(index_C,6))==false && R_IsNA(survTimeC(index_C,4))==false){
-	  // favorable
-	  proba[0] = survTimeC(index_C,6)/survTimeT(index_T,5); // [St(y_j+taux)/St(x_i)]
-	  // unfavorable
-	  proba[1] = 1 - survTimeC(index_C,4)/survTimeT(index_T,5); // 1-[St(y_j-taux)/St(x_i)]
-	  // neutral
-	  proba[2] = 1 - (proba[0] + proba[1]); // [St(y_j-taux)-St(y_j+taux)]/St(x_i)
-	  // uniformative
-	  // proba[3] = 0.0;
-	} else {
-	  // proba[0] = 0.0; // favorable
-	  // proba[1] = 0.0; // unfavorable  
-	  // proba[2] = 0.0; // neutral
-	  proba[3] = 1.0; // uniformative
-	}
+	proba[0] = 1.0;
+      }else if(R_IsNA(survTimeC(index_C,6))==false){
+	proba[0] = survTimeC(index_C,6)/survTimeT(index_T,5); // [St(y_j+tau)/St(x_i)]
       }else{
-	if(R_IsNA(survTimeC(index_C,6))==false){
-	  // favorable
-	  proba[0] = survTimeC(index_C,6)/survTimeT(index_T,5); // [St(y_j+taux)/St(x_i)]   
-	  // unfavorable
-	  // proba[1]=0.0;
-	  // neutral
-	  proba[2] = 1 - (proba[0] + proba[1]); // 1 - St(y_j+taux)/St(x_i)
-	  // uniformative
-	  // proba[3] = 0.0;
-	} else {
-	  // proba[0] = 0.0; // favorable
-	  // proba[1] = 0.0; // unfavorable  
-	  // proba[2] = 0.0; // neutral
-	  proba[3] = 1.0; // uninformative
-	}
+	// proba[0] = 0.0 // lower bound
+      }
 
+      // unfavorable
+      if(diff >= threshold){
+	// proba[1] = 0.0;
+      }else if(R_IsNA(survTimeC(index_C,4))==false){
+	  proba[1] = 1 - survTimeC(index_C,4)/survTimeT(index_T,5); // 1-[St(y_j-tau)/St(x_i)]
+      }else{
+	  proba[1] = 1 - lastSurvT/survTimeT(index_T,5); // 1-[St(max)/St(x_i)] (lower bound)
+      }
 
-      } 
+      // neutral
+      if(diff >= threshold){
+	// proba[2] = 0.0;
+      }else if(R_IsNA(survTimeC(index_C,6))==false && R_IsNA(survTimeC(index_C,4))==false){
+	proba[2] = (survTimeC(index_C,4) - survTimeC(index_C,6))/survTimeT(index_T,5); // (St(y_j-tau) - St(y_j+tau))/St(x_i)	
+      }else if(R_IsNA(survTimeC(index_C,4))==false){
+	proba[2] = (survTimeC(index_C,4) - lastSurvT)/survTimeT(index_T,5); // (St(y_j-tau) - St(max))/St(x_i) (lower bound)
+      }else{
+	// proba[2] = 0.0 // lower bound
+      }
+
+      // uninformative
+      proba[3] = 1 - (proba[0] + proba[1] + proba[2]);
     
     }else{ // delta_C==0
 
       double denom = survTimeT(index_T,5)*survTimeC(index_C,2);
       double intFavorable; 
       double intUnfavorable;
-	  
+
+      // favorable
+      if(diff >= threshold){
+	intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_T-threshold) / denom;  // -intFavorable is already the lower bound
+	
+	if(R_IsNA(survTimeT(index_T,1))==false){
+	  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2) - intFavorable;
+	}else{
+	  proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2) - intFavorable; 
+	}
+
+      }else{
+	intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom; // -intFavorable is already the lower bound
+	  proba[0]= -intFavorable;
+      }
+      
+      // unfavorable
+      if(diff <= -threshold){
+	intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_C-threshold) / denom; // -intUnfavorable is already the lower bound
+	
+	if(R_IsNA(survTimeC(index_C,4))==false){
+	  proba[0] = 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5) - intUnfavorable;
+	}else{
+	  proba[0] = 1.0 - lastSurvT/survTimeT(index_T,5) - intUnfavorable; 
+	}
+
+      }else{
+	intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom; // -intUnfavorable is already the lower bound
+	proba[1]= -intFavorable;
+      }
+      
+      // neutral
       if(diff >= threshold){
 	if(R_IsNA(survTimeT(index_T,1))==false){
-	  intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_T-threshold) / denom;
-	  intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom;
-	  // favorable
-	  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2) - intFavorable;
-	  // unfavorable  
-	  proba[1]= -intUnfavorable;
-	  // neutral  
-	  proba[2]= 1 - (proba[0] + proba[1]);
-	}else{
-	  // proba[0] = 0.0; // favorable
-	  // proba[1] = 0.0; // unfavorable  
-	  // proba[2] = 0.0; // neutral
-	  proba[3] = 1.0; // uninformative
-	}
+	  proba[2] = std::max(survTimeT(index_T,1)/survTimeC(index_C,2) + intFavorable + intUnfavorable - 2*lastSurvC*lastSurvT/denom, 0.0);
+	  }else{
+	  // proba[2] = 0.0; // lower bound
+	  }
       }else if(diff <= -threshold){
 	if(R_IsNA(survTimeC(index_C,4))==false){
-	  intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom;
-	  intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_C-threshold) / denom;
-
-	  // favorable
-	  proba[0]= -intFavorable;
-	  // unfavorable
-	  proba[1]= 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5) - intUnfavorable;
-	  // neutral
-	  proba[2]= 1 - (proba[0] + proba[1]);
-	  // uninformative
-	  // proba[3] = 0.0;
+	  proba[2] = std::max(survTimeC(index_C,4)/survTimeT(index_T,5) + intFavorable + intUnfavorable - 2*lastSurvC*lastSurvT/denom, 0.0);
 	}else{
-	  // proba[0] = 0.0; // favorable
-	  // proba[1] = 0.0; // unfavorable  
-	  // proba[2] = 0.0; // neutral
-	  proba[3] = 1.0; // uninformative
+	  // proba[2] = 0.0; // lower bound
 	}
       }else{
-	intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom;
-	intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom;
-	// favorable
-	proba[0]= -intFavorable;
-	// unfavorable
-	proba[1]= -intUnfavorable;
-	// neutral
-	proba[2]= 1 - (proba[0] + proba[1]);
-	// uninformative
-	// proba[3] = 0.0;
+	proba[2] = std::max(1 + intFavorable + intUnfavorable - 2*lastSurvC*lastSurvT/denom, 0.0);
       }
+      
+      // uninformative
+      proba[3] = 1 - (proba[0] + proba[1] + proba[2]);
+
       // Rcout << "{" << denom << " " << intFavorable << " " << intUnfavorable << "}" << endl;
 	  
     }}
