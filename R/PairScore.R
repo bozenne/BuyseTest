@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: sep 10 2018 (12:18) 
+## Last-Updated: sep 23 2018 (11:51) 
 ##           By: Brice Ozenne
-##     Update #: 75
+##     Update #: 80
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,19 +18,19 @@
 ## * pairScore2dt
 ## Convert output of .BuyseTest (list of vector) into a list of data.table
 pairScore2dt <- function(pairScore,
-                               correction.tte,
-                               level.treatment,
-                               level.strata,
-                               n.strata,
-                               endpoint,
-                               threshold,
-                               indexT,
-                               indexC){
+                         correction.tte,
+                         level.treatment,
+                         level.strata,
+                         n.strata,
+                         endpoint,
+                         threshold,
+                         indexT,
+                         indexC){
     
     ## Rcpp outputs vector: convert to matrix and rename
     name.tempo <- c("strata",
-                    "index.T", "index.C", 
-                    "indexWithinStrata.T", "indexWithinStrata.C", 
+                    "index.C", "index.T", 
+                    "indexWithinStrata.C", "indexWithinStrata.T", 
                     "favorable","unfavorable","neutral","uninformative",
                     "weight",
                     "favorable.corrected","unfavorable.corrected","neutral.corrected")

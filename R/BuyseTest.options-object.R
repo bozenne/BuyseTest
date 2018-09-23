@@ -21,6 +21,7 @@ setClass(
   representation(
       check = "logical",
       conf.level = "numeric",
+      correction.uninf.tte = "logical",
       cpus = "numeric",
       keep.pairScore = "logical",
       keep.survival = "logical",
@@ -33,64 +34,72 @@ setClass(
       trace = "numeric"
   ),
 
-  ### ** Check validity of the object
+### ** Check validity of the object
   validity = function(object){
-    validNumeric(object@conf.level,
-                 name1 = "@conf.level",
-                 min = 0,
-                 max = 1,
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validInteger(object@cpus,
-                 name1 = "@cpus",
-                 min = 1,
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validCharacter(object@method.tte,
-                   name1 = "@method.tte",
-                   valid.values = c("Gehan","Peron"),
+      validLogical(object@check,
+                   name1 = "@check",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
-    validInteger(object@n.resampling,
-                 name1 = "@n.resampling",
-                 min = 0,
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validLogical(object@neutral.as.uninf,
-                 name1 = "@neutral.as.uninf",
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validLogical(object@keep.pairScore,
-                 name1 = "@keep.pairScore",
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validLogical(object@keep.survival,
-                 name1 = "@keep.survival",
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validInteger(object@trace,
-                 name1 = "@trace",
-                 min = 0, max = 2,
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validInteger(object@seed,
-                 name1 = "@seed",
-                 min = 1,
-                 valid.length = 1,
-                 method = "Class BuyseTest.options")
-    validCharacter(object@statistic,
-                   name1 = "@statistic",
-                   valid.values = c("netChance","winRatio"),
+      validNumeric(object@conf.level,
+                   name1 = "@conf.level",
+                   min = 0,
+                   max = 1,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
-    validCharacter(object@method.inference,
-                   name1 = "@resampling",
-                   valid.values = c("bootstrap", "stratified boostrata",
-                                    "permutation", "stratified permutation",
-                                    "asymptotic"),
+      validLogical(object@correction.uninf.tte,
+                   name1 = "@correction.uninf.tte",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
-    return(TRUE)} 
+      validInteger(object@cpus,
+                   name1 = "@cpus",
+                   min = 1,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validLogical(object@keep.pairScore,
+                   name1 = "@keep.pairScore",
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validLogical(object@keep.survival,
+                   name1 = "@keep.survival",
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validCharacter(object@method.inference,
+                     name1 = "@resampling",
+                     valid.values = c("bootstrap", "stratified boostrata",
+                                      "permutation", "stratified permutation",
+                                      "asymptotic"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
+      validCharacter(object@method.tte,
+                     name1 = "@method.tte",
+                     valid.values = c("Gehan","Peron"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
+      validInteger(object@n.resampling,
+                   name1 = "@n.resampling",
+                   min = 0,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validLogical(object@neutral.as.uninf,
+                   name1 = "@neutral.as.uninf",
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validInteger(object@seed,
+                   name1 = "@seed",
+                   min = 1,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validCharacter(object@statistic,
+                     name1 = "@statistic",
+                     valid.values = c("netChance","winRatio"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
+      validInteger(object@trace,
+                   name1 = "@trace",
+                   min = 0, max = 2,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      return(TRUE)} 
 )
 
 #' @title Methods for the class "BuyseTest.options" 

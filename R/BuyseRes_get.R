@@ -233,6 +233,7 @@ setMethod(f = "getPairScore",
 #' \item \code{"survTimeT"}: survival at the event times for the observations of the treatment arm.
 #' \item \code{"survJumpC"}: survival at the jump times for the survival model in the control arm.
 #' \item \code{"survJumpT"}: survival at the time times for the survival model in the treatment arm.
+#' \item \code{"lastSurv"}: survival at the last event time.
 #' }
 #'
 #' @keywords get BuyseRes-method
@@ -260,10 +261,10 @@ setMethod(f = "getSurvival",
               }else{
 
                   if(is.null(type)){
-                      type <- c("survTimeC","survTimeT","survJumpC","survJumpT")
+                      type <- c("survTimeC","survTimeT","survJumpC","survJumpT","lastSurv")
                   }else{
                       validCharacter(type, valid.length = NULL, refuse.duplicates = TRUE,
-                                     valid.values = c("survTimeC","survTimeT","survJumpC","survJumpT"))
+                                     valid.values = c("survTimeC","survTimeT","survJumpC","survJumpT","lastSurv"))
                   }
                   if(!is.null(type)){
                       out <- object@tableSurvival[type]
@@ -290,6 +291,7 @@ setMethod(f = "getSurvival",
                       if("survTimeT" %in% type){ out$survTimeT <- out$survTimeT[endpoint] } 
                       if("survJumpC" %in% type){ out$survJumpC <- out$survJumpC[endpoint] }
                       if("survJumpT" %in% type){ out$survJumpT <- out$survJumpT[endpoint] }
+                      if("lastSurv" %in% type){ out$lastSurv <- out$lastSurv[endpoint] }
                   }
                   
                   if(!is.null(strata)){
@@ -310,11 +312,13 @@ setMethod(f = "getSurvival",
                               if("survTimeT" %in% type){ out$survTimeT[[iEndpoint]] <- out$survTimeT[[iEndpoint]][[1]] }
                               if("survJumpC" %in% type){ out$survJumpC[[iEndpoint]] <- out$survJumpC[[iEndpoint]][[1]] }
                               if("survJumpT" %in% type){ out$survJumpT[[iEndpoint]] <- out$survJumpT[[iEndpoint]][[1]] }
+                              if("lastSurv" %in% type){ out$lastSurv[[iEndpoint]] <- out$lastSurv[[iEndpoint]][1,] }
                           }else{
                               if("survTimeC" %in% type){ out$survTimeC[[iEndpoint]] <- out$survTimeC[[iEndpoint]][strata] }
                               if("survTimeT" %in% type){ out$survTimeT[[iEndpoint]] <- out$survTimeT[[iEndpoint]][strata] }
                               if("survJumpC" %in% type){ out$survJumpC[[iEndpoint]] <- out$survJumpC[[iEndpoint]][strata] }
                               if("survJumpT" %in% type){ out$survJumpT[[iEndpoint]] <- out$survJumpT[[iEndpoint]][strata] }
+                              if("lastSurv" %in% type){ out$lastSurv[[iEndpoint]] <- out$lastSurv[[iEndpoint]][strata,,drop=FALSE] }
                           }
                       }
 
@@ -325,6 +329,7 @@ setMethod(f = "getSurvival",
                       if("survTimeT" %in% type){ out$survTimeT <- out$survTimeT[[1]] }
                       if("survJumpC" %in% type){ out$survJumpC <- out$survJumpC[[1]] }
                       if("survJumpT" %in% type){ out$survJumpT <- out$survJumpT[[1]] }
+                      if("lastSurv" %in% type){ out$lastSurv <- out$lastSurv[[1]] }
                   }
 
                   if(length(type) == 1 && unlist == TRUE){

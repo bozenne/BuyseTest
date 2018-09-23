@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:50) 
+## Last-Updated: sep 23 2018 (11:34) 
 ##           By: Brice Ozenne
-##     Update #: 138
+##     Update #: 142
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -448,9 +448,9 @@ dt.2pairs <- data.table(id = 1:4,
 
 
 ## *** Gehan
-test_that("2 pairs - Gehan",{
+test_that("2 pairs - Gehan - no correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Gehan")
+                    method.tte="Gehan", correction.uninf.tte = FALSE)
   
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),2)
@@ -464,10 +464,53 @@ test_that("2 pairs - Gehan",{
     expect_equal(as.double(BT@Delta.winRatio),0)
 })
 
-## *** Peron
-test_that("2 pairs - Peron",{
+test_that("2 pairs - Gehan - correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Peron")
+                    method.tte="Gehan", correction.uninf.tte = TRUE)
+  
+    expect_equal(as.double(BT@count.favorable),0)
+    expect_equal(as.double(BT@count.unfavorable),4)
+    expect_equal(as.double(BT@count.neutral),0)
+    expect_equal(as.double(BT@count.uninf),0)
+ 
+    expect_equal(as.double(BT@delta.netChance),-1) ## 
+    expect_equal(as.double(BT@Delta.netChance),-1) ##
+    
+    expect_equal(as.double(BT@delta.winRatio),0)
+    expect_equal(as.double(BT@Delta.winRatio),0)
+})
+
+## *** Peron
+test_that("2 pairs - Peron - no correction",{
+    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
+                    method.tte="Peron", correction.uninf.tte = FALSE)
+  
+    ## different survival curve per groups (denoting S survival time and T group)
+    ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
+    ## P[T>=t|T=1,S>=10] = 1 (t=<20), 1/2 (20<t=<32), 0 (t>32)
+
+    ## all pairScores (see getPairScore(BT))
+    ## 10* vs 20 : unfavorable
+    ## 10* vs 32 : unfavorable
+    ## 12 vs 20 : unfavorable
+    ## 12 vs 32 : unfavorable
+
+    expect_equal(as.double(BT@count.favorable),0)
+    expect_equal(as.double(BT@count.unfavorable),4)
+    expect_equal(as.double(BT@count.neutral),0)
+    expect_equal(as.double(BT@count.uninf),0)
+  
+    expect_equal(as.double(BT@delta.netChance),-1)
+    expect_equal(as.double(BT@Delta.netChance),-1)
+
+    expect_equal(as.double(BT@delta.winRatio),0)
+    expect_equal(as.double(BT@Delta.winRatio),0)
+  
+})
+
+test_that("2 pairs - Peron - correction",{
+    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
+                    method.tte="Peron", correction.uninf.tte = TRUE)
   
     ## different survival curve per groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)

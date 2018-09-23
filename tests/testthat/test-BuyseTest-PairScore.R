@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:50) 
+## Last-Updated: sep 23 2018 (11:41) 
 ##           By: Brice Ozenne
-##     Update #: 30
+##     Update #: 31
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -43,16 +43,19 @@ dtRed.sim <- dt.sim[, .SD[1:50], by = "Treatment"]
 
 ## * test against tableComparison (no correction)
 formula <- Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5)
-BT.mixed <- BuyseTest(formula,
-                      data = dt.sim, method.tte = "Peron")
-test_that("Full data", {
+test_that("Full data - no correction", {
 
+    BT.mixed <- BuyseTest(formula, data = dt.sim, method.tte = "Peron", correction.uninf.tte = FALSE)
+
+    summary(BT.mixed, percentage = FALSE)
+    getPairScore(BT.mixed, endpoint = 1)
+    
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){
         iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
-                                                                        unfavorable = sum(unfavorable*weight),
-                                                                        neutral = sum(neutral*weight),
-                                                                        uninformative = sum(uninformative*weight))]
+                                                                  unfavorable = sum(unfavorable*weight),
+                                                                  neutral = sum(neutral*weight),
+                                                                  uninformative = sum(uninformative*weight))]
         manualScore <- rbind(manualScore,iScore)
     }
     expect_equal(as.double(manualScore$favorable),
@@ -63,6 +66,9 @@ test_that("Full data", {
                  as.double(BT.mixed@count.neutral))
     expect_equal(as.double(manualScore$uninformative),
                  as.double(BT.mixed@count.uninf))
+
+    summary(BT.mixed, percentage = FALSE)
+    3133.39     +2361.10+ 3918.03+ 90.95
     
     expect_equal(as.double(cumsum(BT.mixed@count.favorable-BT.mixed@count.unfavorable)/BT.mixed@n.pairs),
                  as.double(BT.mixed@Delta.netChance))

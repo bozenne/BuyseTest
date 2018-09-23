@@ -26,8 +26,12 @@
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
 #' @param method.tte [character] defines the method used to handle pairs
 #' which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
-#' Can be \code{"Gehan"}, \code{"Gehan corrected"}, \code{"Gehan IPCW"}, \code{"Peron"}, \code{"Peron corrected"}, or \code{"Peron IPCW"}.
+#' Can be \code{"Gehan"} or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
+#' Default value read from \code{BuyseTest.options()}.
+#' @param correction.uninf.tte [logical] should a correction be applied to remove the bias
+#' due to the presence of uninformative pairs?
+#' Only relevant when there is one or more time-to-event endpoints and censored observations.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param model.tte [list] optionnal survival models relative to each time to each time to event outcome.
 #' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
@@ -71,7 +75,7 @@
 #' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
 #' 
 #' \bold{method.tte:} Pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method.tte="Gehan"}, Gehan 1965). 
-#' Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions.
+#' Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions (\code{method.tte="Peron"}).
 #' \code{method.tte="Peron"} estimates these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
 #' Probabilities of survival beyond the last observation are set NA, resulting in a non null probability that the pair is informative.
 #' See Peron et al. (2016) for more details. \cr
@@ -189,6 +193,7 @@
 BuyseTest <- function(formula,
                       data,
                       method.tte = NULL,
+                      correction.uninf.tte = NULL,
                       model.tte = NULL,
                       method.inference = NULL,
                       n.resampling = NULL,
@@ -227,6 +232,7 @@ BuyseTest <- function(formula,
                               formula = formula,
                               keep.pairScore = keep.pairScore,
                               method.tte = method.tte,
+                              correction.uninf.tte = correction.uninf.tte,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
                               neutral.as.uninf = neutral.as.uninf,

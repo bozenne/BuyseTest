@@ -39,6 +39,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                keep.survival = FALSE,
                method.inference = "stratified permutation",
                method.tte = "Peron",               
+               correction.uninf.tte = TRUE,               
                n.resampling = 1000,
                neutral.as.uninf = TRUE,
                seed = 10,

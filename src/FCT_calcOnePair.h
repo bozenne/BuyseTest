@@ -8,6 +8,7 @@
 #include <RcppArmadillo.h>
 #include <Rmath.h>
 
+// :cppFile:{FCT_buyseTest.cpp}:end:
 using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
@@ -267,7 +268,6 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
       }
     
     }else{ // delta_C==0 or 2              // (0,0) ]-Inf;+Inf[ : uninformative
-      
       count_uninf+=Wpair;
   
       index_uninfC.push_back(index_C); 
@@ -400,8 +400,10 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
 	proba[0] = 0.0;
       }else if(R_IsNA(survTimeT(index_T,1))==false){
 	proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2); // 1-[Sc(x_i-tau)/Sc(y_j)]
+      Rcout << "xx" << endl;        
       }else{
 	proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2); // 1-[Sc(max)/Sc(y_j)] (lower bound)
+      Rcout << "yy" << endl;        
       }
 
       // unfavorable
@@ -427,7 +429,6 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
       // uninformative
       proba[3] = 1 - (proba[0] + proba[1] + proba[2]);
     }
-    
   }else{ // deltaT[iter_T]==0
     if(delta_C==1){ 
 
@@ -462,7 +463,6 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
 
       // uninformative
       proba[3] = 1 - (proba[0] + proba[1] + proba[2]);
-    
     }else{ // delta_C==0
 
       double denom = survTimeT(index_T,5)*survTimeC(index_C,2);
@@ -474,45 +474,54 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
 	intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_T-threshold) / denom;  // -intFavorable is already the lower bound
 	
 	if(R_IsNA(survTimeT(index_T,1))==false){
+	  Rcout << "a1 " ;
 	  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2) - intFavorable;
 	}else{
+	  Rcout << "a2 " ;
 	  proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2) - intFavorable; 
 	}
 
       }else{
+	Rcout << "a3 " ;
 	intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom; // -intFavorable is already the lower bound
 	  proba[0]= -intFavorable;
       }
       
       // unfavorable
-      if(diff <= -threshold){
+      if(diff <= -threshold){	
 	intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_C-threshold) / denom; // -intUnfavorable is already the lower bound
 	
 	if(R_IsNA(survTimeC(index_C,4))==false){
+	  	  Rcout << "b1 " ;
 	  proba[0] = 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5) - intUnfavorable;
 	}else{
+	  Rcout << "b2 " ;
 	  proba[0] = 1.0 - lastSurvT/survTimeT(index_T,5) - intUnfavorable; 
 	}
 
       }else{
+	  Rcout << "b3 " ;
 	intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom; // -intUnfavorable is already the lower bound
-	proba[1]= -intFavorable;
+	proba[1]= -intUnfavorable;
       }
       
       // neutral
       if(diff >= threshold){
 	if(R_IsNA(survTimeT(index_T,1))==false){
+	  	  Rcout << "c1 " ;
 	  proba[2] = std::max(survTimeT(index_T,1)/survTimeC(index_C,2) + intFavorable + intUnfavorable - 2*lastSurvC*lastSurvT/denom, 0.0);
 	  }else{
 	  // proba[2] = 0.0; // lower bound
 	  }
       }else if(diff <= -threshold){
 	if(R_IsNA(survTimeC(index_C,4))==false){
+	  	  Rcout << "c2 " ;
 	  proba[2] = std::max(survTimeC(index_C,4)/survTimeT(index_T,5) + intFavorable + intUnfavorable - 2*lastSurvC*lastSurvT/denom, 0.0);
 	}else{
 	  // proba[2] = 0.0; // lower bound
 	}
       }else{
+		  Rcout << "c3 " ;
 	proba[2] = std::max(1 + intFavorable + intUnfavorable - 2*lastSurvC*lastSurvT/denom, 0.0);
       }
       
@@ -523,6 +532,7 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
 	  
     }}
 
+  Rcout << endl << proba[0] << " " << proba[1] << " " << proba[2] << " " << proba[3] << endl;
   return(proba);  
 }
 
@@ -564,32 +574,3 @@ double calcIntegralProba_cpp(const arma::mat& survival, double start){
 
   return(integral);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

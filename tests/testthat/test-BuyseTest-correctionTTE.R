@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: sep 10 2018 (13:57) 
+## Last-Updated: sep 13 2018 (23:15) 
 ##           By: Brice Ozenne
-##     Update #: 69
+##     Update #: 71
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,7 +40,7 @@ df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
 test_that("1 TTE endpoint - Gehan (no correction)", {
     Gehan <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df,
-                       method.tte = "Gehan")
+                       method.tte = "Gehan", correction.uninf.tte = FALSE)
 
     expect_equal(as.double(Gehan@count.favorable), c(9,0))
     expect_equal(as.double(Gehan@count.unfavorable), c(2,0))
@@ -61,7 +61,7 @@ test_that("1 TTE endpoint - Gehan (correction  at the pair level)", {
     ## survival first    
     GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
-                        method.tte = "Gehan corrected")
+                        method.tte = "Gehan", correction.uninf.tte = TRUE)
 
     expect_equal(as.double(GehanC@count.favorable), c(12,0))
     expect_equal(as.double(GehanC@count.unfavorable), c(2+2/3,0))
@@ -82,7 +82,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     ## survival first    
     GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
-                        method.tte = "Gehan IPCW")
+                        method.tte = "Gehan", correction.uninf.tte = 3)
 
     factor <- 16/12 ## n.pairs/(n.pairs-n.uninf)
     expect_equal(as.double(GehanC@count.favorable), c(9*factor,0))
@@ -100,7 +100,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     ## survival second
     GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
-                         method.tte = "Gehan IPCW")
+                         method.tte = "Gehan", correction.uninf.tte = 3)
 
     expect_equal(GehanC@count.favorable[1], GehanC2@count.favorable[2])
     expect_equal(GehanC@count.unfavorable[1], GehanC2@count.unfavorable[2])
@@ -120,7 +120,7 @@ if(FALSE){
 test_that("1 TTE endpoint - Peron (no correction)", {
     Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df, 
-                       method.tte = "Peron")
+                       method.tte = "Peron", correction.uninf.tte = FALSE)
 
     expect_equal(as.double(Peron@count.favorable), c(10,0))
     expect_equal(as.double(Peron@count.unfavorable), c(2,0))
@@ -132,7 +132,6 @@ test_that("1 TTE endpoint - Peron (no correction)", {
         
     expect_equal(unname(tail(Peron@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
     expect_equal(unname(tail(Peron@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
-
 })
 
     
@@ -140,7 +139,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     ## survival first
     PeronC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
-                        method.tte = "Peron IPCW")
+                        method.tte = "Peron", correction.uninf.tte = 3)
 
     factor <- 16/13 ## n.pairs/(n.pairs-n.uninf)
     expect_equal(as.double(PeronC@count.favorable), c(10*factor,0))
@@ -157,7 +156,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     ## survival second
     PeronC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
-                         method.tte = "Peron IPCW")
+                         method.tte = "Peron IPCW", correction.uninf.tte = 3)
     expect_equal(PeronC@count.favorable[1], PeronC2@count.favorable[2])
     expect_equal(PeronC@count.unfavorable[1], PeronC2@count.unfavorable[2])
     expect_equal(PeronC@count.neutral[1], PeronC@count.neutral[2])

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:50) 
+## Last-Updated: sep 23 2018 (11:34) 
 ##           By: Brice Ozenne
-##     Update #: 46
+##     Update #: 52
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,57 +38,67 @@ dt.sim <- data.table(
 )
 
 test_that("number of pairs - argument neutral.as.uninf", {
-    BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
-                      data = dt.sim,
-                      neutral.as.uninf = TRUE, method.tte = "Gehan")
-    BTS.T <- as.data.table(summary(BT.T, print = FALSE, percentage = FALSE)$table)
+
+    for(iCorrection in c(FALSE,TRUE)){ ## iCorrection <- TRUE
+        BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
+                          data = dt.sim,
+                          neutral.as.uninf = TRUE, method.tte = "Gehan", correction.uninf.tte = iCorrection)
+        BTS.T <- as.data.table(summary(BT.T, print = FALSE, percentage = FALSE)$table)
+
+        BT.F <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
+                          data = dt.sim,
+                          neutral.as.uninf = FALSE, method.tte = "Gehan", correction.uninf.tte = iCorrection)
+        BTS.F <- as.data.table(summary(BT.F, print = FALSE, percentage = FALSE)$table)
+
+        ## neutral.as.uninf does not impact the results for first endpoint
+        expect_equal(BTS.T[1,],BTS.F[1,])
+
+        ## check consistency of the number of pairs
+        ## neutral.as.uninf = TRUE
+        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
+                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total])
+        expect_equal(BTS.T[endpoint == "timeOS" & strata == "global", n.neutral+n.uninf],
+                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total])
+        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total],
+                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf])
+
+        ## neutral.as.uninf = FALSE
+        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
+                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
+        expect_equal(BTS.F[endpoint == "timeOS" & strata == "global", n.uninf],
+                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
+        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total],
+                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf])
+
+        ## compared to known value
+        if(iCorrection == FALSE){
+        test <- as.data.table(summary(BT.T, print = FALSE)$table)
+        GS <- data.table("endpoint" = c("timeOS", "timeOS", "Mgrade.tox", "Mgrade.tox"), 
+                         "threshold" = c(1e-12, 1e-12, 1e-12, 1e-12), 
+                         "strata" = c("global", "1", "global", "1"), 
+                         "pc.total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
+                         "pc.favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
+                         "pc.unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                         "pc.neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                         "pc.uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
+                         "delta" = c(0.3333333, 0.3333333, 0.1111111, 0.1111111), 
+                         "Delta" = c(0.3333333, NA, 0.4444444, NA), 
+                         "CIinf.Delta" = as.numeric(c(NA, NA, NA, NA)), 
+                         "CIsup.Delta" = as.numeric(c(NA, NA, NA, NA)), 
+                         "p.value" = as.numeric(c(NA, NA, NA, NA)), 
+                         "n.resampling" = as.numeric(c(NA, NA, NA, NA)))
+        ##    butils::object2script(test)
+
+        attr(test,"index") <- NULL
+        expect_equal(test, GS, tol = 1e-6)
+        ## class(BTS.T[["n.resampling"]])
+        ## class(GS[["n.resampling"]])
+        }
+    }
+
+
+
     
-    BT.F <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
-                      data = dt.sim,
-                      neutral.as.uninf = FALSE, method.tte = "Gehan")
-    BTS.F <- as.data.table(summary(BT.F, print = FALSE, percentage = FALSE)$table)
-
-
-    
-    expect_equal(BTS.T[1,],BTS.F[1,])
-
-    expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
-                 BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total])
-    expect_equal(BTS.T[endpoint == "timeOS" & strata == "global", n.neutral+n.uninf],
-                 BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total])
-    expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total],
-                 BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf])
-
-    expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
-                 BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
-
-    expect_equal(BTS.F[endpoint == "timeOS" & strata == "global", n.uninf],
-                 BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
-
-    expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total],
-                 BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf])
-
-    test <- as.data.table(summary(BT.T, print = FALSE)$table)
-    GS <- data.table("endpoint" = c("timeOS", "timeOS", "Mgrade.tox", "Mgrade.tox"), 
-                     "threshold" = c(1e-12, 1e-12, 1e-12, 1e-12), 
-                     "strata" = c("global", "1", "global", "1"), 
-                     "pc.total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
-                     "pc.favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
-                     "pc.unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                     "pc.neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                     "pc.uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
-                     "delta" = c(0.3333333, 0.3333333, 0.1111111, 0.1111111), 
-                     "Delta" = c(0.3333333, NA, 0.4444444, NA), 
-                     "CIinf.Delta" = as.numeric(c(NA, NA, NA, NA)), 
-                     "CIsup.Delta" = as.numeric(c(NA, NA, NA, NA)), 
-                     "p.value" = as.numeric(c(NA, NA, NA, NA)), 
-                     "n.resampling" = as.numeric(c(NA, NA, NA, NA)))
-    ##    butils::object2script(test)
-
-    attr(test,"index") <- NULL
-    expect_equal(test, GS, tol = 1e-6)
-    ## class(BTS.T[["n.resampling"]])
-    ## class(GS[["n.resampling"]])
 
     
 })
@@ -143,19 +153,19 @@ data(veteran,package="survival")
 test_that("ordering of tied event does not affect BuyseTest", {
     ## veteran2[veteran2$time==100,]
     BT.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                        data = veteran, method.inference = "none")
+                        data = veteran, method.tte = "Peron", method.inference = "none")
 
     veteran1 <- veteran[order(veteran$time,veteran$status),c("time","status","trt")]
     ## veteran1[veteran2$time==100,]
     BT1.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                         data = veteran1, method.inference = "none")
+                         data = veteran1, method.tte = "Peron", method.inference = "none")
 
     veteran2 <- veteran[order(veteran$time,-veteran$status),c("time","status","trt")]
     ## ## veteran2[veteran2$time==100,]
     BT2.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                         data = veteran2, method.inference = "none")
+                         data = veteran2, method.tte = "Peron", method.inference = "none")
 
-    expect_equal(as.double(BT.all@Delta.winRatio), 0.8384072, tol = 1e-5)
+    expect_equal(as.double(BT.all@Delta.winRatio), 0.8398288, tol = 1e-5)
     expect_equal(BT.all@Delta.winRatio, BT1.all@Delta.winRatio)
     expect_equal(BT.all@Delta.winRatio, BT2.all@Delta.winRatio)
 })

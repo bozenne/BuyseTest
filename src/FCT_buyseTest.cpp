@@ -200,7 +200,7 @@ List GPC_cpp(const arma::mat& Control,
           Wpairs(iter_neutral,0) = iw[iter_neutral];
           if(Wscheme(0,0)==1){w(iter_neutral) = iw[iter_neutral];}
         }
-        for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){ 
+        for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){
           Wpairs(size_neutral+iter_uninf,0) = iw[size_neutral + iter_uninf];
           if(Wscheme(0,0)==1){w(size_neutral+iter_uninf) = iw[size_neutral + iter_uninf];}
         }
@@ -244,7 +244,7 @@ List GPC_cpp(const arma::mat& Control,
 					    Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 					    iIndex_neutralC, iIndex_neutralT, size_neutral,
 					    iIndex_uninfC, iIndex_uninfT, size_uninf,
-					    w, iw, iIndex_w,
+					    w, iw, iIndex_w, // Wpairs wNeutral index_wNeutral
 					    neutralAsUninf, keepScore);
 	}else{
         
@@ -294,7 +294,7 @@ List GPC_cpp(const arma::mat& Control,
 					    neutralAsUninf, keepScore);
 	
       }
-      
+
       size_neutral = iIndex_neutralT.size(); // update the number of neutral pairs
       size_uninf = iIndex_uninfT.size(); // update the number of uninformative pairs
       

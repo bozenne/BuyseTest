@@ -9,9 +9,9 @@
 \title{internal functions for BuyseTest - initialization}
 \usage{
 initializeArgs(alternative, name.call, censoring, cpus, data, endpoint, formula,
-  keep.pairScore, method.tte, model.tte, method.inference, n.resampling,
-  neutral.as.uninf, operator, option, prob.alloc, seed, strata, threshold,
-  trace, treatment, type)
+  keep.pairScore, method.tte, correction.uninf.tte, model.tte, method.inference,
+  n.resampling, neutral.as.uninf, operator, option, prob.alloc, seed, strata,
+  threshold, trace, treatment, type)
 
 initializeData(data, type, endpoint, operator, strata, treatment)
 

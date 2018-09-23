@@ -41,6 +41,7 @@ initializeArgs <- function(alternative,
                            formula,
                            keep.pairScore,
                            method.tte,
+                           correction.uninf.tte,
                            model.tte,
                            method.inference,
                            n.resampling,
@@ -59,6 +60,7 @@ initializeArgs <- function(alternative,
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
     if(is.null(method.tte)){ method.tte <- option$method.tte }
+    if(is.null(correction.uninf.tte)){ correction.uninf.tte <- option$correction.uninf.tte }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
@@ -137,27 +139,9 @@ initializeArgs <- function(alternative,
     ## WARNING: choices must be lower cases
     ##          remember to update check method.tte (in BuyseTest-check.R)
     method.tte <- tolower(method.tte)
-    correction.tte <- switch(method.tte,
-                             "gehan" = 0,
-                             "gehan corrected" = 1,
-                             "gehan corrected2" = 2,
-                             "gehan ipcw" = 3,
-                             "peron" = 0,
-                             "peron corrected" = 1,
-                             "peron corrected2" = 2,
-                             "peron ipcw" = 3,
-                             NA
-                             )
-
     method.tte <- switch(method.tte,
                          "gehan" = 0,
-                         "gehan corrected" = 0,
-                         "gehan corrected2" = 0,
-                         "gehan ipcw" = 0,
                          "peron" = 1,
-                         "peron corrected" = 1,
-                         "peron corrected2" = 1,
-                         "peron ipcw" = 1,
                          NA
                          )
 
@@ -167,6 +151,10 @@ initializeArgs <- function(alternative,
             message("NOTE : there is no survival endpoint, \'method.tte\' argument is ignored \n")
         }
     }
+
+
+    ## ** correction.uninf.tte
+    correction.tte <- as.numeric(correction.uninf.tte)
 
     ## ## ** model.tte
     if(method.tte > 0){

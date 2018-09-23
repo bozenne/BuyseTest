@@ -148,7 +148,6 @@ setMethod(f = "summary",
               }else{
                   table[index.global,"delta"] <- colSums(object@count.favorable)/colSums(object@count.unfavorable)
               }
-
               table[index.global,"Delta"] <- Delta
              
               for(iStrata in 1:n.strata){
@@ -273,7 +272,6 @@ setMethod(f = "summary",
               if(any(is.nan(table.print$delta))){
                   table.print[is.nan(table.print$delta), "delta"] <- NA
               }
-
               if(any(is.infinite(table.print$Delta))){
                   table.print[is.infinite(table.print$Delta), "Delta"] <- NA
               }
@@ -282,6 +280,9 @@ setMethod(f = "summary",
               }
               
               ## *** convert NA to ""
+              if(any(is.na(table.print$Delta))){
+                  table.print[is.na(table.print$Delta), "Delta"] <- ""
+              }
               if(!is.null(table.print$CIinf.Delta) && any(is.na(table.print$CIinf.Delta))){
                   table.print[is.na(table.print$CIinf.Delta), "CIinf.Delta"] <- ""
               }
