@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: sep 24 2018 (10:30) 
+## Last-Updated: sep 24 2018 (11:08) 
 ##           By: Brice Ozenne
-##     Update #: 93
+##     Update #: 94
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -148,9 +148,9 @@ testArgs <- function(alternative,
                 stop("Binary endpoint cannot have more than 2 levels \n",
                      "endpoint: ",endpoint[iBin],"\n")
             }
-            if(any(is.na(data[[endpoint[iBin]]]))){                
-                warning("BuyseTest : endpoint ",endpoint[iBin]," contains NA \n")
-            }
+            ## if(any(is.na(data[[endpoint[iBin]]]))){                
+                ## warning("BuyseTest : endpoint ",endpoint[iBin]," contains NA \n")
+            ## }
         }
     }
 
@@ -164,9 +164,9 @@ testArgs <- function(alternative,
                          refuse.NA =  FALSE,
                          method = "BuyseTest")
 
-            if(any(is.na(data[[endpoint[iCont]]]))){                
-                warning("BuyseTest : endpoint ",endpoint[iCont]," contains NA \n")
-            }
+            ## if(any(is.na(data[[endpoint[iCont]]]))){                
+                ## warning("BuyseTest : endpoint ",endpoint[iCont]," contains NA \n")
+            ## }
         }
     }
 

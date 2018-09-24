@@ -376,11 +376,11 @@ setMethod(f = "summary",
 
                       cat(" > censored pairs  : ",txt.method.tte,"\n", sep = "")
                   }
-                  if(any(object@count.uninf>0)){
-                      txt.uninf <- switch(object@correction.uninf,
-                                          "0" = "uninformative pairs",
-                                          "1" = "impute expected score based on the other pairs",
-                                          "2" = "inverse probability of censoring weights (IPCW)"
+                  if(!( (object@correction.uninf == 0) && (object@count.uninf==0) )){
+                      txt.uninf <- switch(as.character(object@correction.uninf),
+                                          "0" = "no contribution at the current endpoint, analyzed at later endpoints (if any)",
+                                          "1" = "score equals the averaged score of all informative pairs",
+                                          "2" = "no contribution, their weight is passed to the informative pairs using IPCW"
                                           )
                       cat(" > uninformative pairs: ",txt.uninf,"\n", sep = "")
                   }

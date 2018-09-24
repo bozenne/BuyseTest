@@ -23,9 +23,7 @@ Can be \code{"Gehan"} or \code{"Peron"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{correction.uninf}{[logical] should a correction be applied to remove the bias
-due to the presence of uninformative pairs?
-Only relevant when there is one or more time-to-event endpoints and censored observations.
+\item{correction.uninf}{[logical] should a correction be applied to remove the bias due to the presence of uninformative pairs?
 Default value read from \code{BuyseTest.options()}.}
 
 \item{model.tte}{[list] optionnal survival models relative to each time to each time to event outcome.

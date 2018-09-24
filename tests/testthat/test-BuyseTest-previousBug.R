@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 24 2018 (10:41) 
+## Last-Updated: sep 24 2018 (15:03) 
 ##           By: Brice Ozenne
-##     Update #: 58
+##     Update #: 59
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -55,6 +55,7 @@ test_that("number of pairs - argument neutral.as.uninf", {
 
         ## check consistency of the number of pairs
         ## neutral.as.uninf = TRUE
+        ## summary(BT.T)
         expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
                      BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total])
         expect_equal(BTS.T[endpoint == "timeOS" & strata == "global", n.neutral+n.uninf],
