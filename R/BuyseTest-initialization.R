@@ -41,7 +41,7 @@ initializeArgs <- function(alternative,
                            formula,
                            keep.pairScore,
                            method.tte,
-                           correction.uninf.tte,
+                           correction.uninf,
                            model.tte,
                            method.inference,
                            n.resampling,
@@ -60,7 +60,7 @@ initializeArgs <- function(alternative,
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
     if(is.null(method.tte)){ method.tte <- option$method.tte }
-    if(is.null(correction.uninf.tte)){ correction.uninf.tte <- option$correction.uninf.tte }
+    if(is.null(correction.uninf)){ correction.uninf <- option$correction.uninf }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
@@ -153,8 +153,8 @@ initializeArgs <- function(alternative,
     }
 
 
-    ## ** correction.uninf.tte
-    correction.tte <- as.numeric(correction.uninf.tte)
+    ## ** correction.uninf
+    correction.uninf <- as.numeric(correction.uninf)
 
     ## ## ** model.tte
     if(method.tte > 0){
@@ -179,7 +179,7 @@ initializeArgs <- function(alternative,
         alternative = alternative,
         name.call = name.call,
         censoring = censoring,
-        correction.tte = correction.tte,
+        correction.uninf = correction.uninf,
         cpus = cpus,
         D = length(endpoint),
         D.TTE = sum(type == 3),

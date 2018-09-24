@@ -159,12 +159,14 @@ test_that("BuyseTest - continuous (strata)", {
 ## * Time to event endpoint
 ## ** No strata - same endpoint
 ## for(method in c("Gehan","Peron")){ ## method <- "Peron"
-for(method in c("Gehan")){ ## method <- "Peron"
+for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
 
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
                             data = dt.sim,
-                            method.tte = method)
+                            method.tte = method,
+                            correction.uninf = FALSE
+                            )
         
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
@@ -172,7 +174,8 @@ for(method in c("Gehan")){ ## method <- "Peron"
                          treatment = "Treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
-                         method.tte = method
+                         method.tte = method,
+                         correction.uninf = FALSE
                          )
     
         ## *** test against fixed value
@@ -195,8 +198,8 @@ for(method in c("Gehan")){ ## method <- "Peron"
         }else if(method == "Peron"){
             GS <- list(favorable = c(2443.46245011, 979.48638589, 629.90517919) ,
                        unfavorable = c(1395.18398457, 1113.5745081, 723.5751254) ,
-                       neutral = c(1931, 1294, 789) ,
-                       uninf = c(3230.35356532, 1774.29267133, 925.81236674) ,
+                       neutral = c(5161.35356532, 3068.29267133, 1714.81236674) ,
+                       uninf = c(0, 0, 0) ,
                        netChange = c(0.11647539, 0.1015767, 0.09116893) ,
                        winRatio = c(1.751355, 1.3643995, 1.25384768) )
         }
@@ -216,11 +219,12 @@ for(method in c("Gehan")){ ## method <- "Peron"
 
 ## ** No strata - different endpoints
 ## for(method in c("Gehan","Peron")){ ## method <- "Peron"
-for(method in c("Gehan")){ ## method <- "Peron"
+for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),
-                            data = dt.sim, method.tte = method)
+                            data = dt.sim, method.tte = method,
+                            correction.uninf = FALSE)
 
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime2","eventtime3"),
@@ -228,7 +232,8 @@ for(method in c("Gehan")){ ## method <- "Peron"
                          treatment = "Treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
-                         method.tte = method
+                         method.tte = method,
+                         correction.uninf = FALSE
                          )
     
         ## *** test against fixed value
@@ -249,12 +254,12 @@ for(method in c("Gehan")){ ## method <- "Peron"
             ## butils::object2script(test, digit = 8)
             
         }else if(method == "Peron"){
-            GS <- list(favorable = c(2443.46245011, 1988.35190003, 828.35580754) ,
-                       unfavorable = c(1395.18398457, 1816.30639483, 318.33164813) ,
-                       neutral = c(1931, 378.8988108, 47.91368251) ,
-                       uninf = c(3230.35356532, 977.79645966, 162.09413227) ,
-                       netChange = c(0.11647539, 0.13559155, 0.1922609) ,
-                       winRatio = c(1.751355, 1.37998681, 1.49020832) )
+            GS <- list(favorable = c(2443.46245011, 1988.35190003, 825.36704825) ,
+                       unfavorable = c(1395.18398457, 1845.87475171, 310.74049374) ,
+                       neutral = c(5161.35356532, 1303.03523326, 188.63749106) ,
+                       uninf = c(0, 24.09168032, 2.38188053) ,
+                       netChange = c(0.11647539, 0.13230618, 0.18948691) ,
+                       winRatio = c(1.751355, 1.36739711, 1.48014599) )
         }
         
         expect_equal(test, GS, tolerance = 1e-6, scale = 1)

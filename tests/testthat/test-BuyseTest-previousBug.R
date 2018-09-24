@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 23 2018 (11:34) 
+## Last-Updated: sep 24 2018 (10:41) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 58
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,12 +42,12 @@ test_that("number of pairs - argument neutral.as.uninf", {
     for(iCorrection in c(FALSE,TRUE)){ ## iCorrection <- TRUE
         BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                           data = dt.sim,
-                          neutral.as.uninf = TRUE, method.tte = "Gehan", correction.uninf.tte = iCorrection)
+                          neutral.as.uninf = TRUE, method.tte = "Gehan", correction.uninf = iCorrection)
         BTS.T <- as.data.table(summary(BT.T, print = FALSE, percentage = FALSE)$table)
 
         BT.F <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                           data = dt.sim,
-                          neutral.as.uninf = FALSE, method.tte = "Gehan", correction.uninf.tte = iCorrection)
+                          neutral.as.uninf = FALSE, method.tte = "Gehan", correction.uninf = iCorrection)
         BTS.F <- as.data.table(summary(BT.F, print = FALSE, percentage = FALSE)$table)
 
         ## neutral.as.uninf does not impact the results for first endpoint
@@ -153,19 +153,43 @@ data(veteran,package="survival")
 test_that("ordering of tied event does not affect BuyseTest", {
     ## veteran2[veteran2$time==100,]
     BT.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                        data = veteran, method.tte = "Peron", method.inference = "none")
+                        data = veteran, method.tte = "Peron", method.inference = "none", correction.uninf = FALSE)
 
     veteran1 <- veteran[order(veteran$time,veteran$status),c("time","status","trt")]
     ## veteran1[veteran2$time==100,]
     BT1.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                         data = veteran1, method.tte = "Peron", method.inference = "none")
+                         data = veteran1, method.tte = "Peron", method.inference = "none", correction.uninf = FALSE)
 
     veteran2 <- veteran[order(veteran$time,-veteran$status),c("time","status","trt")]
     ## ## veteran2[veteran2$time==100,]
     BT2.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                         data = veteran2, method.tte = "Peron", method.inference = "none")
+                         data = veteran2, method.tte = "Peron", method.inference = "none", correction.uninf = FALSE)
 
-    expect_equal(as.double(BT.all@Delta.winRatio), 0.8398288, tol = 1e-5)
+    ## effect of the ordering
     expect_equal(BT.all@Delta.winRatio, BT1.all@Delta.winRatio)
     expect_equal(BT.all@Delta.winRatio, BT2.all@Delta.winRatio)
+
+    ## number of pairs
+    expect_equal(BT.all@n.pairs, prod(table(veteran$trt)), tol = 1e-5)
+
+    ## values of the pairs
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["favorable"]]>=0))
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["favorable"]]<=1))
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["unfavorable"]]>=0))
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["unfavorable"]]<=1))
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["neutral"]]>=0))
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["neutral"]]<=1))
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["uninformative"]]>=0))
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[["uninformative"]]<=1))
+
+    expect_true(all(getPairScore(BT.all, endpoint = 1)[,favorable + unfavorable]<=1+1e-12)) ## tolerance
+
+    ## survival
+    ## getSurvival(BT.all, endpoint = 1, strata = 1)$lastSurv: only 0 so no uninformative paris
+    expect_equal(as.double(BT.all@count.uninf), 0.0, tol = 1e-12)
+    
+    ## result
+    expect_equal(as.double(BT.all@Delta.winRatio), 0.8384569, tol = 1e-5)
+    
+
 })

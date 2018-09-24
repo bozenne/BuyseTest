@@ -8,7 +8,7 @@
 GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
   delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme,
   index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionTTE,
+  list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionUninf,
   neutralAsUninf, keepScore)
 }
 \arguments{
@@ -52,7 +52,7 @@ GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
 
 \item{methodTTE}{The type of method used to compare censored pairs (0 Gehan 1 Peron).}
 
-\item{correctionTTE}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
+\item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.}
 

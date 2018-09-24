@@ -8,6 +8,8 @@
   - NEW FEATURE: methods getSurvival to access the survival
     probability used by BuyseTest.
   - NEW FEATURE: getPairScore to access the score of each pair.
+  - NEW FEATURE: argument method.uninf in BuyseTest enables to
+    re-attribute the uninformative scores to favorable/unfavorable/neutral.
 
 ** Internal change
 - improve initSurvival and the computation of the Peron (C++ code)

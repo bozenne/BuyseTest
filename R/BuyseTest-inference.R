@@ -178,8 +178,8 @@ inferenceUstatistic <- function(envir){
         data.table::setnames(iTable, old = col.id, new = c("strata","indexT","indexC"))
 
         ## *** perform correction
-        if(envir$outArgs$correction.tte){
-            stop("Inference U statistic in presence of correction.tte needs to be updated!!!")
+        if(envir$outArgs$correction.uninf){
+            stop("Inference U statistic in presence of correction.uninf needs to be updated!!!")
             ## vec.tempo <- unlist(iTable[,.(favorable = sum(favorable),
             ##                               unfavorable = sum(unfavorable),
             ##                               neutral = sum(neutral),

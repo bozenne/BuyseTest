@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:41) 
+## Last-Updated: sep 24 2018 (10:30) 
 ##           By: Brice Ozenne
-##     Update #: 91
+##     Update #: 93
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@
 testArgs <- function(alternative,
                      name.call,
                      censoring,
-                     correction.tte,
+                     correction.uninf,
                      cpus,
                      data,
                      endpoint,
@@ -217,8 +217,8 @@ testArgs <- function(alternative,
                  valid.length = 1,
                  method = "BuyseTest")
  
-    ## ** correction.tte
-    validInteger(correction.tte,
+    ## ** correction.uninf
+    validInteger(correction.uninf,
                  valid.length = 1, valid.values = 0:3,
                  method = "BuyseTest")
 

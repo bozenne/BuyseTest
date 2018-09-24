@@ -369,17 +369,22 @@ setMethod(f = "summary",
                   
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
                   if(any(object@type == "TimeToEvent")){
-                      txt.method.tte <- switch(object@method.tte$method,
+                      txt.method.tte <- switch(object@method.tte,
                                                "Gehan" = "uninformative pairs",
-                                               "Peron" = "imputation using Kaplan Meier stratified by treatment group"
+                                               "Peron" = "use Kaplan Meier survival curves to compute the score"
                                                ) 
 
                       cat(" > censored pairs  : ",txt.method.tte,"\n", sep = "")
-                      if(object@method.tte$correction){
-                          cat("                     IPW for uninformative pairs\n", sep = "")
-                      }
-                      cat("\n")
                   }
+                  if(any(object@count.uninf>0)){
+                      txt.uninf <- switch(object@correction.uninf,
+                                          "0" = "uninformative pairs",
+                                          "1" = "impute expected score based on the other pairs",
+                                          "2" = "inverse probability of censoring weights (IPCW)"
+                                          )
+                      cat(" > uninformative pairs: ",txt.uninf,"\n", sep = "")
+                  }
+                  
                   cat(" > results\n")
                   print(table.print, row.names = FALSE)
                   if(method.inference %in% c("permutation","stratified permutation")){

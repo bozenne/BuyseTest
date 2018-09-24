@@ -39,6 +39,7 @@ The argument \code{type} can take any of the following values:
 \item \code{"survTimeT"}: survival at the event times for the observations of the treatment arm.
 \item \code{"survJumpC"}: survival at the jump times for the survival model in the control arm.
 \item \code{"survJumpT"}: survival at the time times for the survival model in the treatment arm.
+\item \code{"lastSurv"}: survival at the last event time.
 }
 }
 \keyword{BuyseRes-method}

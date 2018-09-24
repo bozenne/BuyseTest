@@ -4,7 +4,7 @@
 \alias{BuyseTest}
 \title{Generalized Pairwise Comparisons (GPC)}
 \usage{
-BuyseTest(formula, data, method.tte = NULL, correction.uninf.tte = NULL,
+BuyseTest(formula, data, method.tte = NULL, correction.uninf = NULL,
   model.tte = NULL, method.inference = NULL, n.resampling = NULL,
   neutral.as.uninf = NULL, keep.pairScore = NULL, treatment = NULL,
   endpoint = NULL, type = NULL, threshold = NULL, censoring = NULL,
@@ -23,7 +23,7 @@ Can be \code{"Gehan"} or \code{"Peron"}.
 Only relevant when there is one or more time-to-event endpoints.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{correction.uninf.tte}{[logical] should a correction be applied to remove the bias
+\item{correction.uninf}{[logical] should a correction be applied to remove the bias
 due to the presence of uninformative pairs?
 Only relevant when there is one or more time-to-event endpoints and censored observations.
 Default value read from \code{BuyseTest.options()}.}

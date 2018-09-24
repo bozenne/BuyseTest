@@ -29,9 +29,7 @@
 #' Can be \code{"Gehan"} or \code{"Peron"}.
 #' Only relevant when there is one or more time-to-event endpoints.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param correction.uninf.tte [logical] should a correction be applied to remove the bias
-#' due to the presence of uninformative pairs?
-#' Only relevant when there is one or more time-to-event endpoints and censored observations.
+#' @param correction.uninf [logical] should a correction be applied to remove the bias due to the presence of uninformative pairs?
 #' Default value read from \code{BuyseTest.options()}.
 #' @param model.tte [list] optionnal survival models relative to each time to each time to event outcome.
 #' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
@@ -193,7 +191,7 @@
 BuyseTest <- function(formula,
                       data,
                       method.tte = NULL,
-                      correction.uninf.tte = NULL,
+                      correction.uninf = NULL,
                       model.tte = NULL,
                       method.inference = NULL,
                       n.resampling = NULL,
@@ -232,7 +230,7 @@ BuyseTest <- function(formula,
                               formula = formula,
                               keep.pairScore = keep.pairScore,
                               method.tte = method.tte,
-                              correction.uninf.tte = correction.uninf.tte,
+                              correction.uninf = correction.uninf,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
                               neutral.as.uninf = neutral.as.uninf,
@@ -304,14 +302,13 @@ BuyseTest <- function(formula,
         envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==0)
 
         outPoint$tablePairScore <- pairScore2dt(outPoint$tableScore,
-                                                            correction.tte = outArgs$correction.tte,
-                                                            level.treatment = outArgs$level.treatment,
-                                                            level.strata = outArgs$level.strata,
-                                                            n.strata = outArgs$n.strata,
-                                                            endpoint = outArgs$endpoint,
-                                                            threshold = outArgs$threshold,
-                                                            indexT = envirBT$indexT,
-                                                            indexC = envirBT$indexC)
+                                                level.treatment = outArgs$level.treatment,
+                                                level.strata = outArgs$level.strata,
+                                                n.strata = outArgs$n.strata,
+                                                endpoint = outArgs$endpoint,
+                                                threshold = outArgs$threshold,
+                                                indexT = envirBT$indexT,
+                                                indexC = envirBT$indexC)
     }
     
     if (outArgs$trace > 1) {cat("(done) \n")}
@@ -358,7 +355,8 @@ BuyseTest <- function(formula,
         type = type,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
-        method.tte = data.frame(method = method.tte, correction = outArgs$correction.tte, stringsAsFactors = FALSE),
+        method.tte = method.tte,
+        correction.uninf = outArgs$correction.uninf,
         method.inference = outArgs$method.inference,
         strata = outArgs$strata,
         level.strata = outArgs$level.strata,
@@ -507,7 +505,7 @@ BuyseTest <- function(formula,
                      list_survJumpT = outSurv$survJumpT,
                      list_lastSurv = outSurv$lastSurv,
                      methodTTE = method.tte,
-                     correctionTTE = envir$outArgs$correction.tte,
+                     correctionUninf = envir$outArgs$correction.uninf,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = keep.pairScore
                      )

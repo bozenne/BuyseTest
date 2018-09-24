@@ -39,7 +39,7 @@ using namespace arma ;
 //' @param list_survJumpC A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps. \emph{List&}.
 //' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}. 
 //' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns). \emph{List&}. 
-//' @param correctionTTE Should the uninformative weight be re-distributed to favorable and unfavorable?
+//' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 //' @param methodTTE The type of method used to compare censored pairs (0 Gehan 1 Peron).
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
 //' @param keepScore Should the result of each pairwise comparison be kept? \emph{logical}.
@@ -69,7 +69,7 @@ List GPC_cpp(const arma::mat& Control,
 	     const std::vector< std::vector< arma::mat > >& list_survJumpT,
 	     const std::vector< arma::mat >& list_lastSurv,
 	     const int methodTTE,
-	     const int correctionTTE,
+	     const int correctionUninf,
 	     const bool neutralAsUninf,
 	     const bool keepScore){
 
@@ -157,7 +157,7 @@ List GPC_cpp(const arma::mat& Control,
       if(methodTTE == 0){
 	iScore = calcAllPairs_TTEgehan(ControlK.col(0), TreatmentK.col(0), threshold[0],
 				       delta_ControlK.col(0), delta_TreatmentK.col(0), 
-				       correctionTTE,
+				       correctionUninf,
 				       Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 				       iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
 				       iw, neutralAsUninf, keepScore); 
@@ -167,7 +167,7 @@ List GPC_cpp(const arma::mat& Control,
 				       delta_ControlK.col(0), delta_TreatmentK.col(0),
 				       list_survTimeC[0][iter_strata], list_survTimeT[0][iter_strata], list_survJumpC[0][iter_strata], list_survJumpT[0][iter_strata],
 				       list_lastSurv[0](iter_strata,0), list_lastSurv[0](iter_strata,1), 
-				       correctionTTE,
+				       correctionUninf,
 				       Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 				       iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
 				       iw, neutralAsUninf, keepScore);
@@ -195,7 +195,7 @@ List GPC_cpp(const arma::mat& Control,
       w.resize(size_neutral+size_uninf); // temporary vector containing the weight of each remaining pair to be used for the next outcome
       w.fill(1.0);
 	    
-      if((methodTTE>0 || correctionTTE>0) && iter_dTTE>0){ // update the weights for the neutral pairs in Wpairs and w	
+      if((methodTTE>0 || correctionUninf>0) && iter_dTTE>0){ // update the weights for the neutral pairs in Wpairs and w	
 	for(int iter_neutral=0 ; iter_neutral<size_neutral ; iter_neutral++){
           Wpairs(iter_neutral,0) = iw[iter_neutral];
           if(Wscheme(0,0)==1){w(iter_neutral) = iw[iter_neutral];}
@@ -239,7 +239,7 @@ List GPC_cpp(const arma::mat& Control,
 	if(methodTTE==0){
 	  iScore = calcSubsetPairs_TTEgehan(ControlK.col(iter_d), TreatmentK.col(iter_d), threshold[iter_d],
 					    delta_ControlK.col(iter_dTTE), delta_TreatmentK.col(iter_dTTE),
-					    correctionTTE,
+					    correctionUninf,
 					    Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d),
 					    Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 					    iIndex_neutralC, iIndex_neutralT, size_neutral,
@@ -268,7 +268,7 @@ List GPC_cpp(const arma::mat& Control,
 					    list_survTimeC[iter_dTTE][iter_strata], list_survTimeT[iter_dTTE][iter_strata],
 					    list_survJumpC[iter_dTTE][iter_strata], list_survJumpT[iter_dTTE][iter_strata],
 					    list_lastSurv[iter_dTTE](iter_strata,0), list_lastSurv[iter_dTTE](iter_strata,1), 
-					    correctionTTE,
+					    correctionUninf,
 					    Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d),
 					    Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 					    iIndex_neutralC, iIndex_neutralT, size_neutral,
@@ -305,7 +305,7 @@ List GPC_cpp(const arma::mat& Control,
         w.resize(size_neutral+size_uninf); // update the size of w
         w.fill(1.0);
         
-        if((methodTTE>0 || correctionTTE>0) && iter_dTTE>0){
+        if((methodTTE>0 || correctionUninf>0) && iter_dTTE>0){
           tempo_index=iIndex_w; // store the position of the remaining pairs in the previous Wpairs (i.e. Wpairs_sauve)
           for(size_t iter_pair=0; iter_pair<tempo_index.size(); iter_pair++){
             

@@ -278,8 +278,34 @@ If \(x_{max} > y^* - \tau\) then
 \Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] \geq \frac{ S_X(y^* - \tau) - S_X(x_{max})}{S_X(x^*)}
 \end{align*}
 #+END_EXPORT
+otherwise
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] \geq 0
+\end{align*}
+#+END_EXPORT
 
-*** Data driven estimation of the expected survival in each treatment group
+*Probability of being uninformative*: It is computed as the complement
+to 1 of the sum of the probability of being in favor of the treatment,
+in favor of the control, and neutral.
+
+\bigskip
+
+\textsc{Example}:
+
+- when \(x^* > y^* + \tau\), the probability of being favorable is 1
+  so the probability of being uninformative is 0.
+
+- when \(\left|x^* - y^*\right| < \tau\), the probability of being in
+  favor of the control is 0. If we know the survival in the treatment
+  group up to time \(y^*\), then we can only say that the probability
+  of being favorable is bounded below by 0. The probability of being
+  neutral bounded below by \(1-S_T(y^*)/S_T(x^*)\). The probability of
+  being uninformative is then \(S_T(y^*)/S_T(x^*)\). Clearly this
+  probability becomes small when \(S_T(y^*)\) is small. The
+  approximation by the lower bound becomes exact when \(S_T(y^*)\)
+  tends to 0.
+ 
 ** In R
 
 Settings:

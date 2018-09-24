@@ -1,4 +1,4 @@
-% Created 2018-09-08 lør 20:02
+% Created 2018-09-10 ma 14:25
 % Intended LaTeX compiler: pdflatex
 \documentclass{article}
 
@@ -163,7 +163,7 @@ emphstyle=\color{blue}
  pdftitle={Explicit formula for the net benefit},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.0.50 (Org mode 9.0.4)},
+ pdfcreator={Emacs 25.2.1 (Org mode 9.0.4)},
  pdflang={English}
  }
 \begin{document}
@@ -174,7 +174,7 @@ emphstyle=\color{blue}
 \clearpage
 
 \section{Parameter of interest}
-\label{sec:org7d731bb}
+\label{sec:orgbc88c09}
 
 Let consider two independent real valued random variables \(X\) and \(Y\).
 We are interested in:
@@ -201,9 +201,9 @@ library(survival)
 \clearpage
 
 \section{Binary variable}
-\label{sec:org8d07799}
+\label{sec:org0063369}
 \subsection{Relationship between \(\Delta\) and the prevalence}
-\label{sec:org908c24e}
+\label{sec:org676b6db}
 \begin{align*}
 \Prob[Y>X] = \Prob[Y=1,X=0]
 \end{align*}
@@ -221,7 +221,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:orgf4c6402}
+\label{sec:orgfd2b37b}
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -234,7 +234,7 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(tox = rbinom(n, prob = prob1, size = 1), group = "C"),
-	    data.frame(tox = rbinom(n, prob = prob2, size = 1), group = "T"))
+			data.frame(tox = rbinom(n, prob = prob2, size = 1), group = "T"))
 \end{lstlisting}
 
 Buyse test:
@@ -260,9 +260,9 @@ prob2 - prob1
 \clearpage
 
 \section{Continuous variable}
-\label{sec:org7d7bd4f}
+\label{sec:org9558844}
 \subsection{Relationship between \(\Delta\) and Cohen's d}
-\label{sec:org5abbb60}
+\label{sec:orgba210f2}
 Let's consider two independent normally distributed variables with common variance:
 \begin{itemize}
 \item \(X \sim \Gaus[\mu_X,\sigma^2]\)
@@ -284,7 +284,7 @@ By symmetry
 \end{align*}
 
 \subsection{In R}
-\label{sec:orgd0c6a49}
+\label{sec:orga67f207}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -299,7 +299,7 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(tox = rnorm(n, mean = meanX, sd = sdXY), group = "C"),
-	    data.frame(tox = rnorm(n, mean = meanY, sd = sdXY), group = "T"))
+			data.frame(tox = rnorm(n, mean = meanY, sd = sdXY), group = "T"))
 \end{lstlisting}
 
 Buyse test:
@@ -327,9 +327,9 @@ d <- (meanY-meanX)/sdXY
 \clearpage
 
 \section{Survival}
-\label{sec:orgb02f16d}
+\label{sec:org196bc76}
 \subsection{Relationship between \(\Delta\) and the hazard ratio}
-\label{sec:org121a536}
+\label{sec:orgc7c701d}
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 \begin{align*}
@@ -368,7 +368,7 @@ So:
 \end{align*}
 
 \subsection{Scoring rule in presence of censoring}
-\label{sec:orgd81bf6d}
+\label{sec:org784262a}
 Let's consider the following random variables:  
 \begin{itemize}
 \item \(X\) the time to the occurrence of the event of interest in the treatment group.
@@ -386,7 +386,7 @@ random variables \(\left(X^*, Y^*, \varepsilon_X, \varepsilon_Y
 \right)\). We use the short notation \(x \wedge y = min(x,y)\) and \(x \vee y = max(x,y)\).
 
 \subsubsection{Case: \(e_X=0,e_Y=1\)}
-\label{sec:orgadc882c}
+\label{sec:org5adcbd5}
 
 \textbf{Probability in favor of the treatment}:
 \begin{align*}
@@ -431,15 +431,41 @@ S_X(x_{max}) &\geq S_X(y^* - \tau) \\
 &= \frac{ S_X(y^* - \tau \vee x^*) - S_X(y^* + \tau \vee x^*)}{S_X(x^*)}
 \end{align*}
 
+Consider the case \(x^*\)
 If \(x_{max} > y^* - \tau\) then 
 \begin{align*}
 \Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] \geq \frac{ S_X(y^* - \tau) - S_X(x_{max})}{S_X(x^*)}
 \end{align*}
+otherwise
+\begin{align*}
+\Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] \geq 0
+\end{align*}
 
-\subsubsection{Data driven estimation of the expected survival in each treatment group}
-\label{sec:org3309535}
+\textbf{Probability of being uninformative}: It is computed as the complement
+to 1 of the sum of the probability of being in favor of the treatment,
+in favor of the control, and neutral.
+
+\bigskip
+
+\textsc{Example}:
+
+\begin{itemize}
+\item when \(x^* > y^* + \tau\), the probability of being favorable is 1
+so the probability of being uninformative is 0.
+
+\item when \(\left|x^* - y^*\right| < \tau\), the probability of being in
+favor of the control is 0. If we know the survival in the treatment
+group up to time \(y^*\), then we can only say that the probability
+of being favorable is bounded below by 0. The probability of being
+neutral bounded below by \(1-S_T(y^*)/S_T(x^*)\). The probability of
+being uninformative is then \(S_T(y^*)/S_T(x^*)\). Clearly this
+probability becomes small when \(S_T(y^*)\) is small. The
+approximation by the lower bound becomes exact when \(S_T(y^*)\)
+tends to 0.
+\end{itemize}
+
 \subsection{In R}
-\label{sec:orga125895}
+\label{sec:org9dbfd50}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -453,14 +479,14 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(time = rexp(n, rate = alphaX), group = "C", event = 1),
-	    data.frame(time = rexp(n, rate = alphaY), group = "T", event = 1))
+			data.frame(time = rexp(n, rate = alphaY), group = "T", event = 1))
 \end{lstlisting}
 
 Buyse test:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BuyseTest(group ~ tte(time, censoring = event), data = df,
-	  method.inference = "none", trace = 0, method.tte = "Gehan")
+		  method.inference = "none", trace = 0, method.tte = "Gehan")
 \end{lstlisting}
 \begin{verbatim}
 endpoint threshold  delta  Delta
@@ -486,13 +512,13 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 \clearpage
 
 \section{Competing risks}
-\label{sec:org5c403da}
+\label{sec:org113e601}
 
 \subsection{Theory}
-\label{sec:orge858b85}
+\label{sec:org7dfcf8c}
 
 \subsubsection{General case (no censoring)}
-\label{sec:orgb460310}
+\label{sec:orgc65e909}
 Let consider: 
 \begin{itemize}
 \item \(X^*_{E}\) the time to the occurrence of the event of interest in the control group.
@@ -552,7 +578,7 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \end{align*}
 
 \subsubsection{General case (censoring, method: Gehan)}
-\label{sec:org94c6c32}
+\label{sec:orgf241294}
 In case of censoring we can use an inverse probability weighting
 approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
 indicator of no censoring relative to \(\tilde{X}\) (resp \(\tilde{Y}\)), \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
@@ -584,7 +610,7 @@ consistent estimate of \(\Prob[\delta_c]\) since:
 where we used the law of total expectation (first line) and the independence between the censoring mecanisms.
 
 \subsubsection{Exponential distribution (no censoring)}
-\label{sec:org691d9de}
+\label{sec:org97afa5b}
 
 Now let's assume that:
 \begin{itemize}
@@ -630,10 +656,10 @@ CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 
 \end{align*}
 
 \subsection{In R}
-\label{sec:org8180793}
+\label{sec:org991f98c}
 
 \subsubsection{BuyseTest (no censoring)}
-\label{sec:orgb33f6bb}
+\label{sec:org0b682ca}
 
 Setting:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -649,7 +675,7 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), group = "1"),
-	    data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
+			data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
 df$time <- pmin(df$time1,df$time2) ## first event
 df$event <- (df$time2<df$time1)+1 ## type of event
 \end{lstlisting}
@@ -658,8 +684,8 @@ BuyseTest:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
-		  method.inference = "none", method.tte = "Gehan",
-		  trace = 0)
+				  method.inference = "none", method.tte = "Gehan",
+				  trace = 0)
 summary(e.BT, percentage = TRUE)
 \end{lstlisting}
 
@@ -684,7 +710,7 @@ competing risk is observed:
 df$timeXX <- df$time
 df$timeXX[df$event==2] <- max(df$time)+1
 e.BT.bis <- BuyseTest(group ~ cont(timeXX), data = df,
-		  method.inference = "none", trace = 0)
+				  method.inference = "none", trace = 0)
 summary(e.BT.bis, percentage = TRUE)
 \end{lstlisting}
 
@@ -717,7 +743,7 @@ favorable unfavorable     neutral
 \end{verbatim}
 
 \subsubsection{BuyseTest (with censoring)}
-\label{sec:org568d439}
+\label{sec:org4a0a387}
 
 Simulate data:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -730,8 +756,8 @@ BuyseTest (biased):
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BTC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
-		   method.inference = "none", method.tte = "Gehan",
-		   trace = 0)
+				   method.inference = "none", method.tte = "Gehan",
+				   trace = 0)
 summary(e.BTC, percentage = TRUE)
 \end{lstlisting}
 
@@ -752,8 +778,8 @@ BuyseTest (unbiased):
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BTCC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
-		   method.inference = "none", method.tte = "Gehan corrected",
-		   trace = 0)
+				   method.inference = "none", method.tte = "Gehan corrected",
+				   trace = 0)
 summary(e.BTCC, percentage = TRUE)
 \end{lstlisting}
 
@@ -772,7 +798,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \end{verbatim}
 
 \subsubsection{Cumulative incidence}
-\label{sec:org7bf5324}
+\label{sec:org3a7e482}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -802,9 +828,9 @@ Expected vs. calculated:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 cbind(time = vec.times,
-      CSC = e.CSCpred$absRisk[1,],
-      manual = alphaE/(alphaE+alphaCR)*(1-exp(-(alphaE+alphaCR)*(vec.times)))
-      )
+	  CSC = e.CSCpred$absRisk[1,],
+	  manual = alphaE/(alphaE+alphaCR)*(1-exp(-(alphaE+alphaCR)*(vec.times)))
+	  )
 \end{lstlisting}
 
 \begin{verbatim}

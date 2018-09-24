@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: sep 23 2018 (11:51) 
+## Last-Updated: sep 24 2018 (10:31) 
 ##           By: Brice Ozenne
-##     Update #: 80
+##     Update #: 81
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,7 +18,6 @@
 ## * pairScore2dt
 ## Convert output of .BuyseTest (list of vector) into a list of data.table
 pairScore2dt <- function(pairScore,
-                         correction.tte,
                          level.treatment,
                          level.strata,
                          n.strata,

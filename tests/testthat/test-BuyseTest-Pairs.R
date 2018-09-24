@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: sep 23 2018 (11:34) 
+## Last-Updated: sep 24 2018 (10:40) 
 ##           By: Brice Ozenne
-##     Update #: 142
+##     Update #: 145
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -450,7 +450,7 @@ dt.2pairs <- data.table(id = 1:4,
 ## *** Gehan
 test_that("2 pairs - Gehan - no correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Gehan", correction.uninf.tte = FALSE)
+                    method.tte="Gehan", correction.uninf = FALSE)
   
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),2)
@@ -466,7 +466,7 @@ test_that("2 pairs - Gehan - no correction",{
 
 test_that("2 pairs - Gehan - correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Gehan", correction.uninf.tte = TRUE)
+                    method.tte="Gehan", correction.uninf = TRUE)
   
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),4)
@@ -483,7 +483,7 @@ test_that("2 pairs - Gehan - correction",{
 ## *** Peron
 test_that("2 pairs - Peron - no correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Peron", correction.uninf.tte = FALSE)
+                    method.tte="Peron", correction.uninf = FALSE)
   
     ## different survival curve per groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
@@ -510,7 +510,7 @@ test_that("2 pairs - Peron - no correction",{
 
 test_that("2 pairs - Peron - correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    method.tte="Peron", correction.uninf.tte = TRUE)
+                    method.tte="Peron", correction.uninf = TRUE)
   
     ## different survival curve per groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)

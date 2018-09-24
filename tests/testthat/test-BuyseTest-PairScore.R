@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: sep 23 2018 (11:41) 
+## Last-Updated: sep 24 2018 (10:40) 
 ##           By: Brice Ozenne
-##     Update #: 31
+##     Update #: 38
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,18 +38,20 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
                        argsBin = list(p.T = c(0.5,0.75)),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
                        argsTTE = list(rates.T = 1:3, rates.Censor = rep(1,3)))
+dt.sim[eventtime1 >= 1, status1 := 0]
+dt.sim[, time1 := eventtime1]
+dt.sim[eventtime1 >= 1, time1 := 1]
 
-dtRed.sim <- dt.sim[, .SD[1:50], by = "Treatment"]
 
 ## * test against tableComparison (no correction)
-formula <- Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5)
+formula <- Treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
 test_that("Full data - no correction", {
 
-    BT.mixed <- BuyseTest(formula, data = dt.sim, method.tte = "Peron", correction.uninf.tte = FALSE)
+    BT.mixed <- BuyseTest(formula, data = dt.sim, method.tte = "Peron", correction.uninf = FALSE)
 
-    summary(BT.mixed, percentage = FALSE)
-    getPairScore(BT.mixed, endpoint = 1)
-    
+    expect_equal(as.double(BT.mixed@n.pairs),
+                 prod(table(dt.sim$Treatment)))
+
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){
         iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
@@ -67,9 +69,6 @@ test_that("Full data - no correction", {
     expect_equal(as.double(manualScore$uninformative),
                  as.double(BT.mixed@count.uninf))
 
-    summary(BT.mixed, percentage = FALSE)
-    3133.39     +2361.10+ 3918.03+ 90.95
-    
     expect_equal(as.double(cumsum(BT.mixed@count.favorable-BT.mixed@count.unfavorable)/BT.mixed@n.pairs),
                  as.double(BT.mixed@Delta.netChance))
     expect_equal(as.double(cumsum(BT.mixed@count.favorable)/cumsum(BT.mixed@count.unfavorable)),
@@ -77,43 +76,29 @@ test_that("Full data - no correction", {
 })
 
 ## * test against tableComparison (correction)
-if(FALSE){
-formula <- Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5)
-BT.mixed <- BuyseTest(formula,
-                      data = dt.sim, method.tte = "Peron corrected")
+formula <- Treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
 
 test_that("Full data", {
 
+    BT.mixed <- BuyseTest(formula,
+                          data = dt.sim, method.tte = "Peron", correction.uninf = TRUE)
+
+    expect_equal(as.double(BT.mixed@n.pairs),
+                 prod(table(dt.sim$Treatment)))
+
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){
-        iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
-                                                                  unfavorable = sum(unfavorable*weight),
-                                                                  neutral = sum(neutral*weight),
-                                                                  uninformative = sum(uninformative*weight))]
+        iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable.corrected),
+                                                                  unfavorable = sum(unfavorable.corrected),
+                                                                  neutral = sum(neutral.corrected))]
         manualScore <- rbind(manualScore,iScore)
     }
 
-    expect_equal(unname(tail(BT.mixed@Delta.netChance,1)),test[,mean(favorable-unfavorable)])
-    expect_equal(unname(tail(BT.mixed@Delta.winRatio,1)),test[,sum(favorable)/sum(unfavorable)])
+    expect_equal(unname(BT.mixed@Delta.netChance),manualScore[,cumsum(favorable-unfavorable)]/BT.mixed@n.pairs)
+    expect_equal(unname(BT.mixed@Delta.winRatio),manualScore[,cumsum(favorable)/cumsum(unfavorable)])
 })
-}
 
 
-### does not work because of the estimation of the survival
-## test_that("First 50 patients in each arm", {
-    ## BT.mixedRed <- BuyseTest(formula,
-                             ## data = dtRed.sim, method.tte = "Peron")
-    ## summary(BT.mixedRed, percentage = FALSE)
-
-    ## BT.mixedRed@tableComparison[[1]][1:5]
-    
-    ## test <- tableComparison2Delta(BT.mixed@tableComparison,
-                                  ## correct.tte = BT.mixed@method.tte$correction,
-                                  ## maxData.T = which(dt.sim$Treatment==1)[50],
-                                  ## maxData.C = which(dt.sim$Treatment==0)[50])
-    ## expect_equal(BT.mixedRed@Delta.netChance,test[["Delta.netChance"]])
-    ## expect_equal(BT.mixedRed@Delta.winRatio,test[["Delta.winRatio"]])
-## })
 
 ##----------------------------------------------------------------------
 ### test-BuyseTest-tableComparison.R ends here

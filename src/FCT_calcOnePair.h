@@ -14,33 +14,33 @@ using namespace std ;
 using namespace arma ;
 
 inline arma::rowvec calcOnePair_Continuous(const double endpoint_C, const double endpoint_T, const double threshold,
-					   const int index_C, const int index_T, const double Wpair, const int iter_pair, 
-					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					   vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
-					   vector<int>& index_wUninf, vector<int>&  index_wNeutral,
-					   bool neutralAsUninf, bool keepScore);
+										   const int index_C, const int index_T, const double Wpair, const int iter_pair, 
+										   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+										   vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
+										   vector<int>& index_wUninf, vector<int>&  index_wNeutral,
+										   bool neutralAsUninf, bool keepScore);
  
 inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double endpoint_T, const double delta_C, const double delta_T, const double threshold,
-					 const int index_C, const int index_T, const double Wpair, const int iter_pair, 
-					 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					 vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
-					 vector<int>& index_wUninf, vector<int>&  index_wNeutral,
-					 bool neutralAsUninf, bool keepScore);
+										 const int index_C, const int index_T, const double Wpair, const int iter_pair, 
+										 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+										 vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
+										 vector<int>& index_wUninf, vector<int>&  index_wNeutral,
+										 bool neutralAsUninf, bool keepScore);
  
 inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const double endpoint_T, const double delta_C, const double delta_T, const double threshold,
-					    const int index_C, const int index_T, 
-					    const arma::mat& survTimeC, const arma::mat& survTimeT,
-					    const arma::mat& survJumpC, const arma::mat& survJumpT);
+											const int index_C, const int index_T, 
+											const arma::mat& survTimeC, const arma::mat& survTimeT,
+											const arma::mat& survJumpC, const arma::mat& survJumpT);
 
 double calcIntegralProba_cpp(const arma::mat& survival, double start);
 
 // * calcOnePair_Continuous
 inline arma::rowvec calcOnePair_Continuous(const double endpoint_C, const double endpoint_T, const double threshold,
-					   const int index_C, const int index_T, const double Wpair, const int iter_pair, 
-					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					   vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
-					   vector<int>& index_wUninf, vector<int>&  index_wNeutral,
-					   bool neutralAsUninf, bool keepScore){
+										   const int index_C, const int index_T, const double Wpair, const int iter_pair, 
+										   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+										   vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
+										   vector<int>& index_wUninf, vector<int>&  index_wNeutral,
+										   bool neutralAsUninf, bool keepScore){
 
   arma::rowvec iRow;
   
@@ -54,12 +54,12 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_C, const double
     }
     if(keepScore){
       iRow = {(double)index_C, (double)index_T, // indexC, indexT
-	      0, // favorable
-	      0, // unfavorable
-	      0, // neutral
-	      1, // uninformative
-	      Wpair, // weight
-	      0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+			  0, // favorable
+			  0, // unfavorable
+			  0, // neutral
+			  1, // uninformative
+			  Wpair, // weight
+			  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
       };
     }
   }else{    
@@ -68,48 +68,48 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_C, const double
     if(diff >= threshold){ // diff>0 for threshold == 0
       count_favorable+=Wpair;
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		1, // favorable
-		0, // unfavorable
-		0, // neutral
-		0, // uninformative
-		Wpair, // weight
-		Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	};
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				1, // favorable
+				0, // unfavorable
+				0, // neutral
+				0, // uninformative
+				Wpair, // weight
+				Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		};
       }
     }else if(diff <= -threshold){ // diff<0 for threshold == 0
       count_unfavorable+=Wpair;
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		0, // favorable
-		1, // unfavorable
-		0, // neutral
-		0, // uninformative
-		Wpair, // weight
-		0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	}; 
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				0, // favorable
+				1, // unfavorable
+				0, // neutral
+				0, // uninformative
+				Wpair, // weight
+				0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		}; 
       }
 
     }else{
       count_neutral+=Wpair;
 
       if(neutralAsUninf){
-	index_neutralC.push_back(index_C);
-	index_neutralT.push_back(index_T);
-	if(iter_pair>=0){
-	  index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs      
-	}
+		index_neutralC.push_back(index_C);
+		index_neutralT.push_back(index_T);
+		if(iter_pair>=0){
+		  index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs      
+		}
       }
 	  
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		0, // favorable
-		0, // unfavorable
-		1, // neutral
-		0, // uninformative
-		Wpair, // weight
-		0, 0, Wpair  // favorable corrected, unfavorable corrected, neutral corrected
-	};
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				0, // favorable
+				0, // unfavorable
+				1, // neutral
+				0, // uninformative
+				Wpair, // weight
+				0, 0, Wpair  // favorable corrected, unfavorable corrected, neutral corrected
+		};
       }
 
     }
@@ -122,11 +122,11 @@ inline arma::rowvec calcOnePair_Continuous(const double endpoint_C, const double
 
 // * calcOnePair_TTEgehan
 inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double endpoint_T, const double delta_C, const double delta_T, const double threshold,
-					 const int index_C, const int index_T, const double Wpair, const int iter_pair, 
-					 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					 vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
-					 vector<int>& index_wUninf, vector<int>&  index_wNeutral,
-					 bool neutralAsUninf, bool keepScore){
+										 const int index_C, const int index_T, const double Wpair, const int iter_pair, 
+										 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+										 vector<int>& index_neutralC, vector<int>& index_neutralT, vector<int>& index_uninfC, vector<int>& index_uninfT, 
+										 vector<int>& index_wUninf, vector<int>&  index_wNeutral,
+										 bool neutralAsUninf, bool keepScore){
   
   double diff = endpoint_T-endpoint_C; // difference between the endpoints from the treatment and control patients of the pair
   arma::rowvec iRow;
@@ -137,48 +137,48 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
       
       if(diff >= threshold){  // (1,1) >= tau    : favorable
         count_favorable+=Wpair;
-	if(keepScore){
-	  iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		  1, // favorable
-		  0, // unfavorable
-		  0, // neutral
-		  0, // uninformative
-		  Wpair, // weight
-		  Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	  };
+		if(keepScore){
+		  iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				  1, // favorable
+				  0, // unfavorable
+				  0, // neutral
+				  0, // uninformative
+				  Wpair, // weight
+				  Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		  };
         }
       }else if(diff <= -threshold){              // (1,1) <= -tau   : unfavorable
-	count_unfavorable+=Wpair;
-	if(keepScore){
-	  iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		  0, // favorable
-		  1, // unfavorable
-		  0, // neutral 
-		  0, // uninformative
-		  Wpair, // weight
+		count_unfavorable+=Wpair;
+		if(keepScore){
+		  iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				  0, // favorable
+				  1, // unfavorable
+				  0, // neutral 
+				  0, // uninformative
+				  Wpair, // weight
     	          0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	  };
+		  };
         }
       }else{                                  //  (1,1)  ]-tau;tau[ : uninformative
-	count_neutral+=Wpair;
+		count_neutral+=Wpair;
 
-	if(neutralAsUninf){
-	  index_neutralC.push_back(index_C);
-	  index_neutralT.push_back(index_T);
-	  if(iter_pair > 0){
-	    index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs, only stored at the second outcome
-	  }
-	}
+		if(neutralAsUninf){
+		  index_neutralC.push_back(index_C);
+		  index_neutralT.push_back(index_T);
+		  if(iter_pair > 0){
+			index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs, only stored at the second outcome
+		  }
+		}
 		
-	if(keepScore){
-	  iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		  0, // favorable
-		  0, // unfavorable
-		  1, // neutral
-		  0, // uninformative
-		  Wpair, // weight
-		  0, 0, Wpair // favorable corrected, unfavorable corrected, neutral corrected
-	  };
+		if(keepScore){
+		  iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				  0, // favorable
+				  0, // unfavorable
+				  1, // neutral
+				  0, // uninformative
+				  Wpair, // weight
+				  0, 0, Wpair // favorable corrected, unfavorable corrected, neutral corrected
+		  };
         }
 
       }      
@@ -186,48 +186,48 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
     }else if(delta_C==0){
 	
       if(diff <= -threshold){              // (1,0) <= -tau   : unfavorable
-	count_unfavorable+=Wpair;           
-	if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		  0, // favorable
-		  1, // unfavorable
-		  0, // neutral 
-		  0, // uninformative
-		  Wpair, // weight
-		  0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	  };
+		count_unfavorable+=Wpair;           
+		if(keepScore){
+		  iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				  0, // favorable
+				  1, // unfavorable
+				  0, // neutral 
+				  0, // uninformative
+				  Wpair, // weight
+				  0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		  };
         }
       }else{                             //  (1,0)  ]-tau;+Inf[ : uninformative
-	count_uninf+=Wpair;
+		count_uninf+=Wpair;
     
-	index_uninfC.push_back(index_C);
-	index_uninfT.push_back(index_T);
-	if(iter_pair > 0){
-	  index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs ; only stored for the second outcome
-	}
-	if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		  0, // favorable
-		  0, // unfavorable
-		  0, // neutral 
-		  1, // uninformative
-		  Wpair, // weight
-		  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	  };
+		index_uninfC.push_back(index_C);
+		index_uninfT.push_back(index_T);
+		if(iter_pair > 0){
+		  index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs ; only stored for the second outcome
+		}
+		if(keepScore){
+		  iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				  0, // favorable
+				  0, // unfavorable
+				  0, // neutral 
+				  1, // uninformative
+				  Wpair, // weight
+				  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		  };
         }
 
       } 
     }else if(delta_C==2){
       count_unfavorable+=Wpair;           
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		0, // favorable
-		1, // unfavorable
-		0, // neutral 
-		0, // uninformative	
-		Wpair, // weight
-		0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected	  
-	};
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				0, // favorable
+				1, // unfavorable
+				0, // neutral 
+				0, // uninformative	
+				Wpair, // weight
+				0, Wpair, 0 // favorable corrected, unfavorable corrected, neutral corrected	  
+		};
       }      
     }
     
@@ -236,34 +236,34 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
     if(delta_C==1){
     
       if(diff >= threshold){   // (0,1) > tau    : favorable
-	count_favorable+=Wpair;      
-	if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		  1, // favorable
-		  0, // unfavorable
-		  0, // neutral 
-		  0, // uninformative
-		  Wpair, // weight
-		  Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	  };
+		count_favorable+=Wpair;      
+		if(keepScore){
+		  iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				  1, // favorable
+				  0, // unfavorable
+				  0, // neutral 
+				  0, // uninformative
+				  Wpair, // weight
+				  Wpair, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		  };
         }
       }else{                 //  (1,0)  ]-Inf;+tau[ : uninformative
-	count_uninf+=Wpair;
+		count_uninf+=Wpair;
     
-	index_uninfC.push_back(index_C);
-	index_uninfT.push_back(index_T);
-	if(iter_pair > 0){
-	  index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs ; only stored for the second outcome
-	}
-	if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		  0, // favorable
-		  0, // unfavorable
-		  0, // neutral 
-		  1, // uninformative
-		  Wpair, // weight
-		  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	  };
+		index_uninfC.push_back(index_C);
+		index_uninfT.push_back(index_T);
+		if(iter_pair > 0){
+		  index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs ; only stored for the second outcome
+		}
+		if(keepScore){
+		  iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				  0, // favorable
+				  0, // unfavorable
+				  0, // neutral 
+				  1, // uninformative
+				  Wpair, // weight
+				  0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		  };
         }
       }
     
@@ -273,17 +273,17 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
       index_uninfC.push_back(index_C); 
       index_uninfT.push_back(index_T);
       if(iter_pair > 0){
-	index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs  ; only stored for the second outcome
+		index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs  ; only stored for the second outcome
       }
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		0, // favorable
-		0, // unfavorable
-		0, // neutral 
-		1, // uninformative
-		Wpair, // weight
-		0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	};
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				0, // favorable
+				0, // unfavorable
+				0, // neutral 
+				1, // uninformative
+				Wpair, // weight
+				0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		};
       }
     }
     
@@ -292,35 +292,35 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
     if(delta_C==1){
       count_favorable+=Wpair;      
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		1, // favorable
-		0, // unfavorable
-		0, // neutral 
-		0, // uninformative
-		Wpair, // weight
-		Wpair, 0, 0  // favorable corrected, unfavorable corrected, neutral corrected
-	};
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				1, // favorable
+				0, // unfavorable
+				0, // neutral 
+				0, // uninformative
+				Wpair, // weight
+				Wpair, 0, 0  // favorable corrected, unfavorable corrected, neutral corrected
+		};
       }
     }else if(delta_C==2){
 
       count_neutral+=Wpair;
 
       if(neutralAsUninf){
-	index_neutralC.push_back(index_C);
-	index_neutralT.push_back(index_T);
-	if(iter_pair > 0){
-	  index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs  ; only stored for the second outcome   
-	}
+		index_neutralC.push_back(index_C);
+		index_neutralT.push_back(index_T);
+		if(iter_pair > 0){
+		  index_wNeutral.push_back(iter_pair); // index of the pair relative to Wpairs  ; only stored for the second outcome   
+		}
       }
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		0, // favorable
-		0, // unfavorable
-		1, // neutral 
-		0, // uninformative
-		Wpair, // weight
-		0, 0, Wpair // favorable corrected, unfavorable corrected, neutral corrected
-	};
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				0, // favorable
+				0, // unfavorable
+				1, // neutral 
+				0, // uninformative
+				Wpair, // weight
+				0, 0, Wpair // favorable corrected, unfavorable corrected, neutral corrected
+		};
       }
 
     }else if(delta_C==0){
@@ -329,17 +329,17 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
       index_uninfC.push_back(index_C); 
       index_uninfT.push_back(index_T);
       if(iter_pair > 0){
-	index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs  ; only stored for the second outcome
+		index_wUninf.push_back(iter_pair); // index of the pair relative to Wpairs  ; only stored for the second outcome
       }
       if(keepScore){
-      iRow = {(double)index_C, (double)index_T, // indexC, indexT
-		0, // favorable
-		0, // unfavorable
-		0, // neutral 
-		1, // uninformative
-		Wpair, // weight
-		0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
-	};
+		iRow = {(double)index_C, (double)index_T, // indexC, indexT
+				0, // favorable
+				0, // unfavorable
+				0, // neutral 
+				1, // uninformative
+				Wpair, // weight
+				0, 0, 0 // favorable corrected, unfavorable corrected, neutral corrected
+		};
        	// (indexT, indexC, favorable, unfavorable, neutral, uninformative, weight for IPWC)
       }
     }
@@ -353,10 +353,10 @@ inline arma::rowvec calcOnePair_TTEgehan(const double endpoint_C, const double e
 
 // * calcOneProba_TTEperon
 inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const double endpoint_T, const double delta_C, const double delta_T, const double threshold,
-					    const int index_C, const int index_T, 
-					    const arma::mat& survTimeC, const arma::mat& survTimeT,
-					    const arma::mat& survJumpC, const arma::mat& survJumpT,
-					    double lastSurvC, double lastSurvT){
+											const int index_C, const int index_T, 
+											const arma::mat& survTimeC, const arma::mat& survTimeT,
+											const arma::mat& survJumpC, const arma::mat& survJumpT,
+											double lastSurvC, double lastSurvT){
   
   // survTimeC and survTimeT: survival at control/treatment observation times
   //        [0]    time 
@@ -380,21 +380,21 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
     if(delta_C==1){
       
       if(diff >= threshold){ 
-	proba[0] = 1.0; // favorable
-	// proba[1] = 0.0; // unfavorable  
-	// proba[2] = 0.0; // neutral
-	// proba[3] = 0.0; // uniformative
+		proba[0] = 1.0; // favorable
+		// proba[1] = 0.0; // unfavorable  
+		// proba[2] = 0.0; // neutral
+		// proba[3] = 0.0; // uniformative
       
       }else if(diff <= -threshold){ 
-	// proba[0] = 0.0; // favorable
-	proba[1] = 1.0; // unfavorable 
-	// proba[2] = 0.0; // neutral      
-	// proba[3] = 0.0; // uniformative
+		// proba[0] = 0.0; // favorable
+		proba[1] = 1.0; // unfavorable 
+		// proba[2] = 0.0; // neutral      
+		// proba[3] = 0.0; // uniformative
       }else{ 
-	// proba[0] = 0.0; // favorable
-	// proba[1] = 0.0; // unfavorable  
-	proba[2] = 1.0; // neutral
-	// proba[3] = 0.0; // uniformative
+		// proba[0] = 0.0; // favorable
+		// proba[1] = 0.0; // unfavorable  
+		proba[2] = 1.0; // neutral
+		// proba[3] = 0.0; // uniformative
       }      
 
       upperFavorable = proba[0];
@@ -404,28 +404,28 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
 
       // favorable
       if(diff > threshold){ 
-	if(R_IsNA(survTimeT(index_T,1))==false){
-	  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2); // 1-[Sc(x_i-tau)/Sc(y_j)]
-	  upperFavorable = proba[0];
-	}else{
-	  proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2); // 1-[Sc(max)/Sc(y_j)] (lower bound)
-	  upperFavorable = 1.0;  // (upper bound)
-	}	
+		if(R_IsNA(survTimeT(index_T,1))==false){
+		  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2); // 1-[Sc(x_i-tau)/Sc(y_j)]
+		  upperFavorable = proba[0];
+		}else{
+		  proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2); // 1-[Sc(max)/Sc(y_j)] (lower bound)
+		  upperFavorable = 1.0;  // (upper bound)
+		}	
       }else {
-	// proba[0] = 0.0;
-	upperFavorable = proba[0];
+		// proba[0] = 0.0;
+		upperFavorable = proba[0];
       }
 
       // unfavorable
       if(diff <= -threshold){ // 
-	proba[1] = 1.0;
-	upperUnfavorable = proba[1];
+		proba[1] = 1.0;
+		upperUnfavorable = proba[1];
       }else if(R_IsNA(survTimeT(index_T,3))==false){
-	proba[1] = survTimeT(index_T,3)/survTimeC(index_C,2); //  [Sc(x_i+tau)/Sc(y_j)]
-	upperUnfavorable = proba[1];
+		proba[1] = survTimeT(index_T,3)/survTimeC(index_C,2); //  [Sc(x_i+tau)/Sc(y_j)]
+		upperUnfavorable = proba[1];
       }else {
-	// proba[1] = 0.0 // (lower bound)
-	upperUnfavorable = lastSurvC/survTimeC(index_C,2); // (upper bound)
+		// proba[1] = 0.0 // (lower bound)
+		upperUnfavorable = lastSurvC/survTimeC(index_C,2); // (upper bound)
       }
 
     }
@@ -434,28 +434,28 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
 
       // favorable
       if(diff >= threshold){ // 
-	proba[0] = 1.0;
-	upperFavorable = proba[0];
+		proba[0] = 1.0;
+		upperFavorable = proba[0];
       }else if(R_IsNA(survTimeC(index_C,6))==false){
-	proba[0] = survTimeC(index_C,6)/survTimeT(index_T,5); // [St(y_j+tau)/St(x_i)]
-	upperFavorable = proba[0];
+		proba[0] = survTimeC(index_C,6)/survTimeT(index_T,5); // [St(y_j+tau)/St(x_i)]
+		upperFavorable = proba[0];
       }else{
-	// proba[0] = 0.0 // lower bound
-	upperFavorable = lastSurvT/survTimeT(index_T,5); // upper bound
+		// proba[0] = 0.0 // lower bound
+		upperFavorable = lastSurvT/survTimeT(index_T,5); // upper bound
       }
 
       // unfavorable
       if(diff <= -threshold){
-       if(R_IsNA(survTimeC(index_C,4))==false){
-	 proba[1] = 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5); // 1-[St(y_j-tau)/St(x_i)]
-	 upperUnfavorable = proba[1];
-       }else{
-	 proba[1] = 1.0 - lastSurvT/survTimeT(index_T,5); // 1-[St(max)/St(x_i)] (lower bound)
-	 upperUnfavorable = 1.0; // (upper bound)
-       }
+		if(R_IsNA(survTimeC(index_C,4))==false){
+		  proba[1] = 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5); // 1-[St(y_j-tau)/St(x_i)]
+		  upperUnfavorable = proba[1];
+		}else{
+		  proba[1] = 1.0 - lastSurvT/survTimeT(index_T,5); // 1-[St(max)/St(x_i)] (lower bound)
+		  upperUnfavorable = 1.0; // (upper bound)
+		}
       }else{
-	// proba[1] = 0.0;
-	upperUnfavorable = proba[1];
+		// proba[1] = 0.0;
+		upperUnfavorable = proba[1];
       }
       
     }else{ // delta_C==0
@@ -464,40 +464,41 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
       double intFavorable; 
       double intUnfavorable;
 
-      // favorable
+	  // favorable
       if(diff >= threshold){
-	intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_T-threshold) / denom;  // -intFavorable is already the lower bound
+		intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_T-threshold) / denom;  // -intFavorable is already the lower bound
 	
-	if(R_IsNA(survTimeT(index_T,1))==false){
-	  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2) - intFavorable; // (lower bound)
-	  upperFavorable = proba[0] + lastSurvC*lastSurvT/denom; // (upper bound)
-	}else{
-	  proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2) - intFavorable; // (lower bound)
-	  upperFavorable = 1.0 - intFavorable + lastSurvC*lastSurvT/denom; // (upper bound)
-	}
+		if(R_IsNA(survTimeT(index_T,1))==false){
+		  proba[0] = 1.0 - survTimeT(index_T,1)/survTimeC(index_C,2) - intFavorable; // (lower bound)
+		  upperFavorable = proba[0] + lastSurvC*lastSurvT/denom; // (upper bound)
+		}else{
+		  proba[0] = 1.0 - lastSurvC/survTimeC(index_C,2) - intFavorable; // (lower bound)
+		  upperFavorable = 1.0 - intFavorable + lastSurvC*lastSurvT/denom; // (upper bound)
+		}
 
       }else{
-	intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom; // -intFavorable is already the lower bound
-	proba[0] = -intFavorable; // (lower bound)
-	upperFavorable = proba[0] + lastSurvC*lastSurvT/denom; // (upper bound)
+		intFavorable = calcIntegralProba_cpp(survJumpC, endpoint_C) / denom; // -intFavorable is already the lower bound
+
+		proba[0] = -intFavorable; // (lower bound)
+		upperFavorable = proba[0] + lastSurvC*lastSurvT/denom; // (upper bound)
       }
       
       // unfavorable
       if(diff <= -threshold){	
-	intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_C-threshold) / denom; // -intUnfavorable is already the lower bound
+		intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_C-threshold) / denom; // -intUnfavorable is already the lower bound
 	
-	if(R_IsNA(survTimeC(index_C,4))==false){
-	  proba[1] = 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5) - intUnfavorable; // (lower bound)
-	  upperUnfavorable = proba[1] + lastSurvC*lastSurvT/denom;  // (upper bound)
-	}else{
-	  proba[1] = 1.0 - lastSurvT/survTimeT(index_T,5) - intUnfavorable; // (lower bound)
-	  upperUnfavorable = 1.0 - intUnfavorable  + lastSurvC*lastSurvT/denom;  // (upper bound)
-	}
+		if(R_IsNA(survTimeC(index_C,4))==false){
+		  proba[1] = 1.0 - survTimeC(index_C,4)/survTimeT(index_T,5) - intUnfavorable; // (lower bound)
+		  upperUnfavorable = proba[1] + lastSurvC*lastSurvT/denom;  // (upper bound)
+		}else{
+		  proba[1] = 1.0 - lastSurvT/survTimeT(index_T,5) - intUnfavorable; // (lower bound)
+		  upperUnfavorable = 1.0 - intUnfavorable  + lastSurvC*lastSurvT/denom;  // (upper bound)
+		}
 
       }else{
-	intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom; // -intUnfavorable is already the lower bound
-	proba[1]= -intUnfavorable; // (lower bound)
-	upperUnfavorable = proba[1] + lastSurvC*lastSurvT/denom;  // (upper bound)
+		intUnfavorable = calcIntegralProba_cpp(survJumpT, endpoint_T) / denom; // -intUnfavorable is already the lower bound
+		proba[1]= -intUnfavorable; // (lower bound)
+		upperUnfavorable = proba[1] + lastSurvC*lastSurvT/denom;  // (upper bound)
       }
       
     }}
@@ -507,7 +508,7 @@ inline vector<double> calcOneProba_TTEperon(const double endpoint_C, const doubl
   proba[2] = std::max(1 - upperFavorable - upperUnfavorable, 0.0);
 
   // uninformative
-  proba[3] = 1 - (proba[0] + proba[1] + proba[2]);
+  proba[3] = std::max(1 - (proba[0] + proba[1] + proba[2]), 0.0);
 
   // ** export
   // Rcout << endl << proba[0] << " " << proba[1] << " " << proba[2] << " " << proba[3] << endl;
@@ -543,7 +544,7 @@ double calcIntegralProba_cpp(const arma::mat& survival, double start){
 
       if(R_IsNA(survival(iter_time,1))){break;}
 	  
-      if(survival(iter_time,0) >= start){
+      if(survival(iter_time,0) > start){ // strict
         integral += survival(iter_time,1)*survival(iter_time,2);
       }
 
