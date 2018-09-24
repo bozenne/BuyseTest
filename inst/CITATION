@@ -1,24 +1,48 @@
-author <- "Julien Peron, Marc Buyse, Brice Ozenne, Laurent Roche, Pascal Roy"
-year <- 2016
-journal <- "Statistical Methods in Medical Research"
-title <- "An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring"
-volume <- "27"
-number <- "4"
-pages <- "1230-1239"
-note <- "http://dx.doi.org/10.1038/bjc.2015.55"
-textver <- paste(author, " (", year, "). ", title, ". ", journal, " ", volume, " (", number ,"), pp. ", pages, ". ", note, sep="")
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
+vers <- paste("R package version", meta$Version)
 
-citHeader("To cite 'BuyseTest' in publications use:")
+citHeader(paste("To cite the 'BuyseTest' package in publications use the citation from ",year,".\n
+                 To cite the statistical method used by BuyseTes 'BuyseTest' package, use the citation from:
+        (2010) when using BuyseTest binary/continous endpoint or time to event endpoints with method.tte=\"Gehan\",
+        (2016) when using BuyseTest with time to event endpoint with method.tte=\"Peron\".",sep=""))
+
+
+
+citEntry(entry="Manual",
+         title = "BuyseTest: Implementation of the Generalized Pairwise Comparisons",
+         author = personList(as.person("Brice Ozenne"),
+                             as.person("Julien Peron")),
+         year = year,
+         note = vers,
+
+         textVersion =
+         paste("Brice Ozenne and Julien Peron (",
+               year,
+               "). BuyseTest: Implementation of the Generalized Pairwise Comparisons. ",
+               vers, ".", sep=""))
+
 
 citEntry(entry="Article",
-         title = title,
-         author = author,
-         year = year,
-         volume=volume,
-         number=number,
-         pages=pages,
- 	       journal = journal,
-	       note = note,
-         textVersion = textver)
+         title = "Generalized pairwise comparisons of prioritized outcomes in the two-sample problem",
+         author = "Marc Buyse",
+         year = "2010",
+         volume = "29",
+         number = "30",
+         pages = "3245--3257",
+         journal = "Statistics in medicine",
+         doi = "https://doi.org/10.1002/sim.3923",
+         textVersion = "Buyse, M. (2010), Generalized pairwise comparisons of prioritized outcomes in the two-sample problem. Statistics in medicine, 29: 3245-3257. doi:10.1002/sim.3923")
+
+citEntry(entry="Article",
+         title = "An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring",
+         author = "P{\'e}ron, Julien and Buyse, Marc and Ozenne, Brice and Roche, Laurent and Roy, Pascal",
+         year = "2018",
+         volume = "27",
+         number = "4",
+         pages = "1230--1239",
+         journal = "Statistical methods in medical research",
+         doi = "https://doi.org/10.1177/0962280216658320",
+         textVersion = "Peron, M. et al. (2018), An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring. Statistical methods in medical research, 27: 1230-1239. https://doi.org/10.1177/0962280216658320")
+
          
          

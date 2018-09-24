@@ -41,49 +41,74 @@ install_github("bozenne/BuyseTest")
 
 * Citation
 To cite this package in a publications please use:
-#+BEGIN_QUOTE
-Marc Buyse, Generalized pairwise comparisons of prioritized outcomes in the two-sample problem,
-29-30:3245-3257, Statistics in Medicine. http://dx.doi.org/10.1002/sim.3923
-#+END_QUOTE
-In bibtex format:
-#+BEGIN_SRC bibtex
-@article {Buyse2010gpc,
-author = {Buyse, Marc},
-title = {Generalized pairwise comparisons of prioritized outcomes in the two-sample problem},
-journal = {Statistics in Medicine},
-volume = {29},
-number = {30},
-issn = {1097-0258},
-url = {http://dx.doi.org/10.1002/sim.3923},
-doi = {10.1002/sim.3923},
-pages = {3245--3257},
-year = {2010}
-}
-#+END_SRC bibtex
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+citation("BuyseTest")
+#+END_SRC
 
-When applying GPC to time to event outcomes (argument =method= equal
-to =Peron=, or =Peto=, or =Efron=), the software still use the
-procedure of (Buyse et al., 2010) but deals with censoring using the
-method proposed in:
-#+BEGIN_QUOTE
-Julien Péron, Marc Buyse, Brice Ozenne, Laurent Roche, Pascal Roy. An
-extension of generalized pairwise comparisons for prioritized outcomes
-in the presence of censoring.  2016. Statistical Methods in Medical
-Research. http://dx.doi.org/10.1177/0962280216658320
-#+END_QUOTE
-In bibtex format:
-#+BEGIN_SRC bibtex
-@article{peron2016extension,
-author = {Julien Péron and Marc Buyse and Brice Ozenne and Laurent Roche and Pascal Roy},
-title = {An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring},
-journal = {Statistical Methods in Medical Research},
-year = {2016},
-volume = {27},
-number = {4},
-doi = {10.1177/0962280216658320},
-URL = {http://dx.doi.org/10.1177/0962280216658320},
-eprint = {http://dx.doi.org/10.1177/0962280216658320}
-#+END_SRC bibtex
+#+RESULTS:
+#+begin_example
+
+To cite the 'BuyseTest' package in publications use the citation from
+2018.
+
+To cite the statistical method used by BuyseTes 'BuyseTest' package,
+use the citation from: (2010) when using BuyseTest binary/continous
+endpoint or time to event endpoints with method.tte="Gehan", (2016)
+when using BuyseTest with time to event endpoint with
+method.tte="Peron".
+
+  Brice Ozenne and Julien Peron (2018). BuyseTest: Implementation of
+  the Generalized Pairwise Comparisons. R package version 1.4.2.
+
+  Buyse, M. (2010), Generalized pairwise comparisons of prioritized
+  outcomes in the two-sample problem. Statistics in medicine, 29:
+  3245-3257. doi:10.1002/sim.3923
+
+  Peron, M. et al. (2018), An extension of generalized pairwise
+  comparisons for prioritized outcomes in the presence of censoring.
+  Statistical methods in medical research, 27: 1230-1239.
+  https://doi.org/10.1177/0962280216658320
+
+To see these entries in BibTeX format, use 'print(<citation>,
+bibtex=TRUE)', 'toBibtex(.)', or set
+'options(citation.bibtex.max=999)'.
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+toBibtex(citation("BuyseTest"))
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+@Manual{,
+  title = {BuyseTest: Implementation of the Generalized Pairwise Comparisons},
+  author = {Brice Ozenne and Julien Peron},
+  year = {2018},
+  note = {R package version 1.4.2},
+}
+
+@Article{,
+  title = {Generalized pairwise comparisons of prioritized outcomes in the two-sample problem},
+  author = {Marc Buyse},
+  year = {2010},
+  volume = {29},
+  number = {30},
+  pages = {3245--3257},
+  journal = {Statistics in medicine},
+  doi = {https://doi.org/10.1002/sim.3923},
+}
+
+@Article{,
+  title = {An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring},
+  author = {{P{'e}ron} and {Julien} and {Buyse} and {Marc} and {Ozenne} and {Brice} and {Roche} and {Laurent} and {Roy} and {Pascal}},
+  year = {2018},
+  volume = {27},
+  number = {4},
+  pages = {1230--1239},
+  journal = {Statistical methods in medical research},
+  doi = {https://doi.org/10.1177/0962280216658320},
+}
+#+end_example
 
 * Functionalities
 
