@@ -253,7 +253,7 @@ arma::mat calcSubsetPairs_Continuous( const arma::colvec& Control, const arma::c
 
   // ** export 
   index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end()); // index_wNeutral is returned by reference
-  
+
   return score;
   
 }
@@ -792,7 +792,7 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 
 	int n_neutralT = index_neutralT.size();
 	int n_uninfT = index_uninfT.size();
-	int newSize = n_neutralT + n_uninfT;
+	int newSize = n_uninfT + n_neutralT; // too long
 	vector<int> indexNew_neutralC(newSize);
 	vector<int> indexNew_neutralT(newSize);
 	vector<double> wNeutralNew;
@@ -803,13 +803,14 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 	if(updateIndex){
 	  indexNew_wNeutral.resize(newSize);
 	}
-	
+
+	int iPair = 0;
 	int iNeutral = 0;
 	int iUninf = 0;
 
-
-	for(int iPair=0 ; iPair < newSize ; iPair++){
-	  if(iUninf >= n_uninfT || (iNeutral < n_neutralT && index_neutralT[iNeutral]<index_uninfT[iUninf])){
+	while(iUninf < n_uninfT || iNeutral < n_neutralT){
+	  
+	  if(iUninf >= n_uninfT || (iNeutral < n_neutralT && index_neutralT[iNeutral]<index_uninfT[iUninf]) || (iNeutral < n_neutralT && index_neutralT[iNeutral]==index_uninfT[iUninf] && index_neutralC[iNeutral]<index_uninfC[iUninf])){
 		// current pair is neutral
 		indexNew_neutralC[iPair] = index_neutralC[iNeutral];
 		indexNew_neutralT[iPair] = index_neutralT[iNeutral];
@@ -821,10 +822,10 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 		}
 		iNeutral ++;
 		
-	  }else if(iUninf < n_uninfT && iNeutral < n_neutralT && index_neutralT[iNeutral]==index_uninfT[iUninf]){
+	  }else if(iUninf < n_uninfT && iNeutral < n_neutralT && index_neutralT[iNeutral]==index_uninfT[iUninf] && index_neutralC[iNeutral]==index_uninfC[iUninf]){
 		// current pair is both neutral and uninformative: increase the weight
-		indexNew_neutralC[iPair] = index_uninfC[iNeutral];
-		indexNew_neutralT[iPair] = index_uninfT[iNeutral];
+		indexNew_neutralC[iPair] = index_neutralC[iNeutral];
+		indexNew_neutralT[iPair] = index_neutralT[iNeutral];
 		if(updateW){
 		  wNeutralNew[iPair] = wNeutral[iNeutral] + factorNeutral * wUninf[iUninf];
 		}
@@ -846,9 +847,17 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 		}
 		iUninf ++;
       }
-
+	  
+	  iPair ++;
     }
 
+	if(iPair < newSize){
+	  indexNew_neutralC.erase(indexNew_neutralC.begin() + iPair, indexNew_neutralC.end());
+	  indexNew_neutralT.erase(indexNew_neutralT.begin() + iPair, indexNew_neutralT.end());
+	  wNeutralNew.erase(wNeutralNew.begin() + iPair, wNeutralNew.end());
+	  indexNew_wNeutral.erase(indexNew_wNeutral.begin() + iPair, indexNew_wNeutral.end());
+	}
+	
 	// update index
 	index_neutralC = indexNew_neutralC;
 	index_neutralT = indexNew_neutralT;
@@ -859,7 +868,7 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 	  index_wNeutral = indexNew_wNeutral;
 	}
   }
-
+	
   // remove uninformative pairs and associated weights
   index_uninfT.resize(0);
   index_uninfC.resize(0);
@@ -870,7 +879,6 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 	index_wUninf.resize(0);
   }
   
-    
   // update keep scores
   if(keepScore){
 	score.col(7) = score.col(2) + factorFavorable * score.col(5);

@@ -33,7 +33,7 @@ When using resampling methods,
 an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.
 }
 \description{
-Computes confidence intervals for net chance statistic or the win ratio statisitc.
+Computes confidence intervals for net chance statistic or the win ratio statistic.
 }
 \details{
 When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.

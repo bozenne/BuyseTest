@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: sep  6 2018 (14:06) 
+## Last-Updated: sep 24 2018 (15:09) 
 ##           By: Brice Ozenne
-##     Update #: 142
+##     Update #: 143
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,7 +22,7 @@
 #' @aliases confing confint,BuyseRes-method
 #' @include BuyseRes-object.R BuyseRes-summary.R
 #' 
-#' @description Computes confidence intervals for net chance statistic or the win ratio statisitc.
+#' @description Computes confidence intervals for net chance statistic or the win ratio statistic.
 #' 
 #' @param object an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}
 #' @param statistic [character] the statistic summarizing the pairwise comparison:

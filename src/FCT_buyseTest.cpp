@@ -189,7 +189,8 @@ List GPC_cpp(const arma::mat& Control,
     size_neutral = iIndex_neutralT.size(); // update the number of neutral pairs
     size_uninf = iIndex_uninfT.size(); // update the number of uninformative pairs
     
-    // **** update Wpairs
+	  // Rcout << "update Wpairs" << endl;
+	  // **** update Wpairs
     if(D>1){ // if there is more than one endpoint
       Wpairs.resize(size_neutral+size_uninf,1); // temporary matrix containing the weigth of each remaining pair for each outcome
       Wpairs.fill(1.0);
@@ -208,6 +209,7 @@ List GPC_cpp(const arma::mat& Control,
       }
     }
 
+	// Rcout << "update Scores" << endl;
     // **** update all Scores
     if(keepScore){
       iNpairs = iScore.n_rows;
@@ -299,7 +301,8 @@ List GPC_cpp(const arma::mat& Control,
 
       size_neutral = iIndex_neutralT.size(); // update the number of neutral pairs
       size_uninf = iIndex_uninfT.size(); // update the number of uninformative pairs
-      
+
+	  // Rcout << "update Wpairs" << endl;
       // **** update Wpairs
       if(D>iter_d+1){
         Wpairs.resize(size_neutral+size_uninf,iter_dTTE); // update the size of Wpairs
@@ -329,7 +332,8 @@ List GPC_cpp(const arma::mat& Control,
       }
 
       // **** update all Scores
-      if(keepScore){
+	  // Rcout << "update Scores" << endl;
+	if(keepScore){
 	iNpairs = iScore.n_rows;
 	iMat.resize(iNpairs,3);
 

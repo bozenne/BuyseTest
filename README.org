@@ -696,7 +696,7 @@ c("favorable" = -calcIntegralProba_cpp(outSurv$survJumpC, start = 100)/denom,
 :   favorable unfavorable 
 :   0.5058685   0.3770426
 
-** Corrections
+** Bias correction in presence of missing values / censored 
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This is likely to bias the estimate of
@@ -829,15 +829,6 @@ summary(BT)
 
 #+RESULTS:
 #+begin_example
-Settings (point estimation) 
-   > treatment groups: Control = C and Treatment = T
-   > 1 endpoint: 
-       priority endpoint  type          operator            threshold censoring
-       1        eventtime time to event higher is favorable 1         status   
-   > management of neutral pairs: re-analyzed using endpoints of lower priority (if any) 
-   > management of censored survival pairs: uninformative pairs 
-
-Point estimation (done)
         Generalized pairwise comparison with 1 prioritized endpoint
 
  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
@@ -858,11 +849,11 @@ iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninformative")]
 #+END_SRC
 
 #+RESULTS:
-:    favorable unfavorable neutral uninformative strata index.T index.C weight favorable.corrected unfavorable.corrected neutral.corrected
-: 1:         0           0       1             0      1     501       1      1            0.000000             0.0000000         1.0000000
-: 2:         0           0       0             1      1     501       2      1            0.371118             0.1234396         0.5054424
-: 3:         0           1       0             0      1     501      10      1            0.000000             1.0000000         0.0000000
-: 4:         1           0       0             0      1     504       1      1            1.000000             0.0000000         0.0000000
+:    favorable unfavorable neutral uninformative strata index.C index.T weight favorable.corrected unfavorable.corrected neutral.corrected
+: 1:         0           0       1             0      1       1     501      1            0.000000             0.0000000         1.0000000
+: 2:         0           0       0             1      1       2     501      1            0.371118             0.1234396         0.5054424
+: 3:         0           1       0             0      1      10     501      1            0.000000             1.0000000         0.0000000
+: 4:         1           0       0             0      1       1     504      1            1.000000             0.0000000         0.0000000
 
 we can see that the corrected probability have not changed for the
 informative pairs, but for the non-informative they have been set to:
@@ -891,14 +882,17 @@ $check
 $conf.level
 [1] 0.95
 
+$correction.uninf
+[1] FALSE
+
 $cpus
 [1] 1
 
-$keep.comparison
+$keep.pairScore
 [1] FALSE
 
 $keep.survival
-[1] FALSE
+[1] TRUE
 
 $method.inference
 [1] "stratified permutation"
@@ -910,9 +904,6 @@ $n.resampling
 [1] 1000
 
 $neutral.as.uninf
-[1] TRUE
-
-$return.index
 [1] TRUE
 
 $seed
@@ -961,11 +952,11 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] BuyseTest_1.4.1   data.table_1.11.4 Rcpp_0.12.17      prodlim_1.6.1    
+[1] BuyseTest_1.4.2   data.table_1.11.4 Rcpp_0.12.17      prodlim_1.6.1    
 
 loaded via a namespace (and not attached):
- [1] compiler_3.4.0  Matrix_1.2-9    parallel_3.4.0  tools_3.4.0     survival_2.41-3 pbapply_1.3-3   splines_3.4.0   grid_3.4.0      lava_1.6.1     
-[10] stats4_3.4.0    lattice_0.20-35
+ [1] lattice_0.20-35    grid_3.4.0         R6_2.2.1           stats4_3.4.0       magrittr_1.5       KernSmooth_2.23-15 rlang_0.2.0        testthat_2.0.0    
+ [9] Matrix_1.2-9       lava_1.6.1         splines_3.4.0      tools_3.4.0        survival_2.41-3    parallel_3.4.0     compiler_3.4.0
 #+end_example
 
 
