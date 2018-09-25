@@ -1057,6 +1057,3 @@ loaded via a namespace (and not attached):
 
 ** Image
 #+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
-#+LATEX_HEADER: \RequirePackage{capt-of} % 
-#+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
-

@@ -1,4 +1,4 @@
-% Created 2018-09-25 ti 17:25
+% Created 2018-09-25 ti 19:13
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -72,11 +72,6 @@ emphstyle=\color{blue}
 \RequirePackage{xspace} %
 \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} %
 \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
-\RequirePackage{capt-of} %
-\RequirePackage{caption} % newlines in graphics
-%
-%%%% additional latex commands %%%%
-%
 \author{Brice Ozenne}
 \date{\today}
 \title{Overview of the package BuyseTest}
@@ -131,7 +126,7 @@ bugs. To get the current version of the package use
 \clearpage
 
 \section{Example data}
-\label{sec:org3ac4a90}
+\label{sec:org88f7604}
 For this overview we will used the \texttt{veteran} dataset from the
 \textbf{survival} package:
 \begin{verbatim}
@@ -149,7 +144,7 @@ See \texttt{?veteran} for a presentation of the database.
 \clearpage
 
 \section{Perforing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org75276d2}
+\label{sec:orgfd46800}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -206,7 +201,7 @@ function to be silent (i.e. no display in the terminal). We can check
 that the two approaches are equivalent:
 
 \subsection{Displaying the results}
-\label{sec:orgade7e7e}
+\label{sec:org88f5380}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \begin{verbatim}
@@ -256,7 +251,7 @@ permutation test) in the stratified analysis, we do not get confidence
 intervals or p.values when calling the \texttt{summary} method.
 
 \subsection{Using multiple endpoints}
-\label{sec:orgd37dc5a}
+\label{sec:org53f85b9}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, just add
 another endpoint at then end of the formula:
@@ -265,7 +260,7 @@ endpoint, here \texttt{time}) to right (least important endpoint, here
 \texttt{karno}).
 
 \subsection{What if smaller is better?}
-\label{sec:org440f0fa}
+\label{sec:org6626d18}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -285,7 +280,7 @@ Error in (function (alternative, name.call, censoring, correction.uninf,  :
 
 
 \subsection{Stratified GPC}
-\label{sec:orgcc04a17}
+\label{sec:org2e9d7dd}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -330,7 +325,7 @@ empirical proportion of pairs for each strata.
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:orga37a098}
+\label{sec:org25b60c3}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -373,7 +368,7 @@ endpoint threshold total favorable unfavorable neutral uninf delta Delta
 So in this case no pair is analyzed at second priority.
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org65b6aba}
+\label{sec:org8881f16}
 
 P-values can be estimated via a permutation test:
 \begin{verbatim}
@@ -419,7 +414,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org3efe782}
+\label{sec:orgddf5a30}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -428,7 +423,7 @@ what the sofware is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:org118816e}
+\label{sec:org37016c4}
 The net chance of better outcome or the win ratio statistics can be
 expressed as a sum of a score over all pairs of patients. The argument
 \texttt{keep.pairScore} enables to export the score relative to each pair in
@@ -498,7 +493,7 @@ More examples and explaination can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:orgd1154c8}
+\label{sec:org5bd5691}
 When using \texttt{method.tte} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -530,7 +525,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:orgcd016dc}
+\label{sec:org2bf55c4}
 
 Let's look at pair 91:
 \begin{verbatim}
@@ -592,7 +587,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org73d7281}
+\label{sec:org80e7035}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -642,7 +637,7 @@ favorable unfavorable
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org14ba1f2}
+\label{sec:orgdc78252}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -683,7 +678,7 @@ eventtime         1 0.1363 0.1363
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:org763a308}
+\label{sec:orge56a1fe}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -730,7 +725,7 @@ their contribution multiplied by:
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:org924fb23}
+\label{sec:org993e7db}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -772,7 +767,7 @@ informative pairs, but for the non-informative they have been set to:
 
 \clearpage
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:org466c8cc}
+\label{sec:org5ad1450}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -814,7 +809,7 @@ package (\url{https://github.com/kkholst/lava})
 
 \clearpage
 \section{Modifying default options}
-\label{sec:org2e87ac9}
+\label{sec:org8601cb4}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -828,7 +823,7 @@ To restore the original default options do:
 \clearpage
 
 \section{Information about the R session used for this document}
-\label{sec:org56ac0e5}
+\label{sec:org690f439}
 
 \begin{verbatim}
 R version 3.4.0 (2017-04-21)
