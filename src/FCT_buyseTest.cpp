@@ -87,7 +87,7 @@ List GPC_cpp(const arma::mat& Control,
   arma::mat Mcount_unfavorable(n_strata,D,fill::zeros); // store the total weight of unfavorable pairs by outcome for each strata
   arma::mat Mcount_neutral(n_strata,D,fill::zeros); // store the total weight of neutral pairs by outcome for each strata
   arma::mat Mcount_uninf(n_strata,D,fill::zeros); // store the total weight of uninf pairs by outcome for each strata
-  double n_pairs=0; // number of pairs sumed over the strats
+  vector<double> n_pairs(n_strata); // number of pairs sumed over the strats
   
   // *** for a given stata [input]
   arma::uvec index_strataT; // position of a patients belonging to a given strata in the treatment arm
@@ -185,7 +185,7 @@ List GPC_cpp(const arma::mat& Control,
     }
 
     // **** add to the total number of pairs the number of pairs founded for this endpoint
-    n_pairs += Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
+    n_pairs[iter_strata] = Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
     size_neutral = iIndex_neutralT.size(); // update the number of neutral pairs
     size_uninf = iIndex_uninfT.size(); // update the number of uninformative pairs
     

@@ -8,15 +8,14 @@
 \alias{getPairScore,BuyseRes-method}
 \title{Extract the Score of Each Pair}
 \usage{
-getPairScore(object, ...)
+getPairScore(object, endpoint = NULL, strata = NULL,
+  rm.withinStrata = TRUE, rm.weight = FALSE, unlist = TRUE, trace = 1)
 
 \S4method{getPairScore}{BuyseRes}(object, endpoint = NULL, strata = NULL,
   rm.withinStrata = TRUE, rm.weight = FALSE, unlist = TRUE, trace = 1)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
-
-\item{...}{not used. For compatibility with the generic method.}
 
 \item{endpoint}{[integer/character vector] the endpoint for which the scores should be output.}
 
@@ -31,6 +30,8 @@ within each treatment group be removed?}
 
 \item{trace}{[logical] should a message be printed to explain what happened
 when the function returned \code{NULL}?}
+
+\item{...}{not used. For compatibility with the generic method.}
 }
 \description{
 Extract the score of each pair.

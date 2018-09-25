@@ -8,15 +8,14 @@
 \alias{getSurvival,BuyseRes-method}
 \title{Extract the Survival and Survival Jumps}
 \usage{
-getSurvival(object, ...)
+getSurvival(object, type = NULL, endpoint = NULL, strata = NULL,
+  unlist = TRUE, trace = TRUE)
 
 \S4method{getSurvival}{BuyseRes}(object, type = NULL, endpoint = NULL,
   strata = NULL, unlist = TRUE, trace = TRUE)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
-
-\item{...}{not used. For compatibility with the generic method.}
 
 \item{type}{[character vector] the type of survival to be output. See details.}
 
@@ -28,6 +27,8 @@ getSurvival(object, ...)
 
 \item{trace}{[logical] should a message be printed to explain what happened
 when the function returned \code{NULL}.}
+
+\item{...}{not used. For compatibility with the generic method.}
 }
 \description{
 Extract the survival and survival jumps.

@@ -132,9 +132,9 @@ setMethod(f = "getCount",
 #' @rdname BuyseRes-getPairScore
 setMethod(f = "getPairScore",
           signature = "BuyseRes",
-          definition = function(object, endpoint = NULL, strata = NULL,
-                                rm.withinStrata = TRUE, rm.weight = FALSE,
-                                unlist = TRUE, trace = 1){
+          definition = function(object, endpoint, strata,
+                                rm.withinStrata, rm.weight,
+                                unlist, trace){
 
               if(length(object@tablePairScore)==0){
                   if(trace){
@@ -242,7 +242,7 @@ setMethod(f = "getPairScore",
 #' @rdname BuyseRes-getSurvival
 setMethod(f = "getSurvival",
           signature = "BuyseRes",
-          definition = function(object, type = NULL, endpoint = NULL, strata = NULL, unlist = TRUE, trace = TRUE){
+          definition = function(object, type, endpoint, strata, unlist, trace){
               
               if(length(object@tableSurvival)==0){
                   

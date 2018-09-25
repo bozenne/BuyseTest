@@ -19,12 +19,18 @@ setGeneric(name = "getCount",
 #' @rdname BuyseRes-getPairScore
 #' @exportMethod getPairScore
 setGeneric(name = "getPairScore",
-           def = function(object, ...){standardGeneric("getPairScore")}
-)
+           def = function(object, endpoint = NULL, strata = NULL,
+                          rm.withinStrata = TRUE, rm.weight = FALSE,
+                          unlist = TRUE, trace = 1){
+               standardGeneric("getPairScore")
+           }
+           )
 
 ## * Selector (for BuyseRes)
 #' @rdname BuyseRes-getSurvival
 #' @exportMethod getSurvival
 setGeneric(name = "getSurvival",
-           def = function(object, ...){standardGeneric("getSurvival")}
+           def = function(object, type = NULL, endpoint = NULL, strata = NULL, unlist = TRUE, trace = TRUE){
+               standardGeneric("getSurvival")
+           }
 )

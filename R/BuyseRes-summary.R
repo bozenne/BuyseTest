@@ -144,7 +144,7 @@ setMethod(f = "summary",
               table[index.global,"strata"] <- "global"
 
               if(statistic=="netChance"){ ##
-                  table[index.global,"delta"] <- colSums(delta)
+                  table[index.global,"delta"] <- (colSums(object@count.favorable)-colSums(object@count.unfavorable))/sum(object@n.pairs)
               }else{
                   table[index.global,"delta"] <- colSums(object@count.favorable)/colSums(object@count.unfavorable)
               }

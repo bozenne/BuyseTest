@@ -87,7 +87,7 @@ test_that("BuyseTest - binary (strata)", {
     expect_equal(dt.tableS[,n.uninf], c(0, 0, 0, 0))
 
     ## *** test summary statistic
-    expect_equal(dt.tableS[,delta], c(0.1266667, 0.0422222, 0.0422222, 0.0422222), tol = 1e-6)
+    expect_equal(dt.tableS[,delta], c(0.1266667, 0.1266667, 0.1266667, 0.1266667), tol = 1e-6)
     expect_equal(dt.tableS[,Delta], c(0.1266667, NA, NA, NA), tol = 1e-6)
 })
 
@@ -151,7 +151,7 @@ test_that("BuyseTest - continuous (strata)", {
     expect_equal(dt.tableS[,n.uninf], c(0, 0, 0, 0, 0, 0, 0, 0))
 
     ## *** test summary statistic
-    expect_equal(dt.tableS[,delta], c(-0.1253333, -0.0417778, -0.0417778, -0.0417778, -0.0084444, -0.0028148, -0.0028148, -0.0028148), tol = 1e-6)
+    expect_equal(dt.tableS[,delta], c(-0.1253333, -0.1253333, -0.1253333, -0.1253333, -0.0084444, -0.0084444, -0.0084444, -0.0084444), tol = 1e-6)
     expect_equal(dt.tableS[,Delta], c(-0.1253333, NA, NA, NA, -0.1337778, NA, NA, NA), tol = 1e-6)
 })
 
