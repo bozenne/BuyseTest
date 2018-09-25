@@ -20,6 +20,8 @@ Description: Implementation of the Generalized Pairwise Comparisons. This test
     examined In the case of time-to-event endpoint, four methods to handle censored
     observations are available in this package (Gehan, Peto, Efron, and Peron).
 License: GPL-3
+URL: https://github.com/bozenne/BuyseTest
+BugReports: https://github.com/bozenne/BuyseTest/issues
 Depends:
     R (>= 2.10),
     prodlim,
@@ -35,13 +37,16 @@ Imports:
     stats4,
     utils
 Suggests:
-    pbapply,
+    knitr,
+	pbapply,
     survival,
     testthat
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
+VignetteBuilder: knitr
+NeedsCompilation: yes
 RoxygenNote: 6.0.1
-Collate: 
+Collate:
     '0-onLoad.R'
     '1-setGeneric.R'
     'BuyseRes-object.R'

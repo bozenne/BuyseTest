@@ -1,5 +1,9 @@
 .travis.yml
 README.org
+vignettes/*.org
+vignettes/*.pdf
+vignettes/*.soc
+vignettes/*.tex
 ^.*\.Rproj$
 ^\.Rproj\.user$
 Projet
