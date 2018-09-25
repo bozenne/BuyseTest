@@ -1,6 +1,7 @@
 #+TITLE: Overview of the package BuyseTest
 #+Author: Brice Ozenne
-
+#+LaTeX_HEADER: %\VignetteIndexEntry{Overview-BuyseTest}
+#+LaTeX_HEADER: %\VignetteEngine{knitr::knitr}
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
 options(width = 90)
 #+END_SRC
