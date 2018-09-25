@@ -4,6 +4,7 @@ vignettes/*.org
 vignettes/*.pdf
 vignettes/*.soc
 vignettes/*.tex
+vignettes/change.sty
 ^.*\.Rproj$
 ^\.Rproj\.user$
 Projet

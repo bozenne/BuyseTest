@@ -30,7 +30,7 @@ citEntry(entry="Article",
          number = "30",
          pages = "3245--3257",
          journal = "Statistics in medicine",
-         doi = "https://doi.org/10.1002/sim.3923",
+         doi = "10.1002/sim.3923",
          textVersion = "Buyse, M. (2010), Generalized pairwise comparisons of prioritized outcomes in the two-sample problem. Statistics in medicine, 29: 3245-3257. doi:10.1002/sim.3923")
 
 citEntry(entry="Article",
@@ -41,7 +41,7 @@ citEntry(entry="Article",
          number = "4",
          pages = "1230--1239",
          journal = "Statistical methods in medical research",
-         doi = "https://doi.org/10.1177/0962280216658320",
+         doi = "10.1177/0962280216658320",
          textVersion = "Peron, M. et al. (2018), An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring. Statistical methods in medical research, 27: 1230-1239. https://doi.org/10.1177/0962280216658320")
 
          

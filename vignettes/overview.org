@@ -1050,6 +1050,7 @@ loaded via a namespace (and not attached):
 
 ** List
 #+LaTeX_HEADER: \usepackage{enumitem}
+
 ** Notations
 #+LATEX_HEADER: \RequirePackage{xspace} % 
 #+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
@@ -1059,7 +1060,3 @@ loaded via a namespace (and not attached):
 #+LATEX_HEADER: \RequirePackage{capt-of} % 
 #+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
 
-** Latex command
-#+LaTeX_HEADER: %
-#+LaTeX_HEADER: %%%% additional latex commands %%%%
-#+LaTeX_HEADER: %
