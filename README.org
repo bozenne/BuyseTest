@@ -111,4 +111,4 @@ toBibtex(citation("BuyseTest"))
 #+end_example
 
 * Functionalities
-See the vignette "Overview of the package BuyseTest" in =./vignettes/overview.org=
+See the vignette "Overview of the package BuyseTest" in [[./vignettes/overview.pdf]]
