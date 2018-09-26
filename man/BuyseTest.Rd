@@ -124,8 +124,8 @@ BuyseTest.options(method.inference = "none") # no permutation test
 df.data <- simBuyseTest(1e2, n.strata = 2)
 
                                        # display 
-if(require(survival)){
-   resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
+if(require(prodlim)){
+   resKM_tempo <- prodlim(Hist(eventtime,status)~Treatment, data = df.data)
    plot(resKM_tempo)
 }
 

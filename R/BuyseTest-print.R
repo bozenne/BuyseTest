@@ -72,38 +72,61 @@ printGeneral <- function(censoring,
     }
     
     ## ** Display
-    cat("Settings (point estimation) \n")
-    cat("   > treatment groups: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
-    cat("   > ",D," endpoint",if(D>1){"s"},": \n", sep = "")
+    cat("Settings \n")
+    cat("   - treatment groups: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
+    cat("   - ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
     if(n.strata>1){
         txt.variable <- switch(as.character(length(strata)),
                                "0" = " variable",
                                "variables")        
-        cat("   > ", n.strata, " strata with levels: ",paste(level.strata, collapse = " ") , "\n", sep = "")
+        cat("   - ", n.strata, " strata with levels: ",paste(level.strata, collapse = " ") , "\n", sep = "")
         cat("                ",txt.variable,": ",paste(strata, collapse = " ")," \n", sep = "")
     }
-    cat("   > management of neutral pairs: ")
+    cat("   - management of neutral pairs: ")
     if(neutral.as.uninf){
         cat("re-analyzed using endpoints of lower priority (if any) \n")
     }else{
         cat("ignore endpoints of lower priority \n")
     }
     if(any(type==3)){
-        cat("   > management of censored survival pairs: ")
+        cat("   - management of censored survival pairs: ")
         switch(as.character(method.tte),
                "0" = cat("uninformative pairs \n"),
                "1" = cat("use Kaplan Meier survival curves to compute the score \n")
                ) 
         if (method.tte %in% c("1","2","3") && D.TTE>1) {
             
-            cat("   > weights of the pairs relatively to the enpoints: \n")
+            cat("   - weights of the pairs relatively to the enpoints: \n")
             print(Wscheme)
             
-            cat("   > intervals thresholds for survival endpoints: \n")    
+            cat("   - intervals thresholds for survival endpoints: \n")    
             print(threshold.display)
         }
     }
-    cat("\n")
+
+    return(NULL)
 }
 
+## * Function printInference
+#' @rdname internal-print
+printInference <- function(method.inference, n.resampling, cpus, seed, ...){
+
+    txt.type <- switch(method.inference,
+                       "asymptotic" = "moments of the U-statistic",
+                       "bootstrap" = paste0("non parametric bootstrap with ",n.resampling," samples"),
+                       "stratified bootstrap" = paste0("stratified non-parametric bootstrap with ",n.resampling," samples"),
+                       "permutation" = paste0("permutation test with ", n.resampling, " permutations"),
+                       "stratified permutation" = paste0("stratified permutation test with ", n.resampling, " permutations"))
+
+    cat("Estimation of the asymptotic distribution \n",
+        "   - method: ",txt.type,"\n", sep = "")
+    if(method.inference != "asymptotic"){
+        cat("   - cpus  : ",cpus,"\n", sep = "")
+        if (!is.null(seed)) {
+            cat("   - seeds : ",paste(seq(seed,seed + cpus - 1), collapse = " "),"\n", sep = "")       
+        }
+    }
+
+    return(NULL)
+}

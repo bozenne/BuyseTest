@@ -10,21 +10,6 @@ inferenceResampling <- function(envir){
     seed <- envir$outArgs$seed
     trace <- envir$outArgs$trace
 
-    ## ** display
-    if (trace > 1) {
-        txt.type <- switch(envir$outArgs$method.inference,
-                           "bootstrap" = "Bootstrap resampling",
-                           "stratified bootstrap" = "Stratified bootstrap resampling",
-                           "permutation" = "Permutation test",
-                           "stratified permutation" = "Stratified permutation test")
-
-            cat(txt.type, " (",cpus," cpu",if (cpus > 1) {"s"}, sep = "")
-            if (!is.null(seed)) {
-                cat(", seed", if (cpus > 1) {"s"}, " ",paste(seq(seed,seed + cpus - 1), collapse = " "), sep = "")       
-            }
-            cat(")\n")         
-        }
-    
     ## ** computation
     if (cpus == 1) { ## *** sequential permutation test
            
@@ -114,19 +99,14 @@ inferenceResampling <- function(envir){
 
 
 ## * Inference U-statistic
-inferenceUstatistic <- function(envir){
-
-    warning("In development - do not trust the results \n")
-    favorable <- unfavorable <- neutral <- uninformative <- . <- NULL ## [:forCRANcheck:] data.table
+inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorable,
+                                n.pairs, n.C, n.T,                                
+                                correction.uninf){
     
-    trace <- envir$outArgs$trace
-
-    if (trace > 1) {cat("Moments of the U-statistic")}
-        
     ## ** extract informations
-    endpoint <- names(envir$outPoint$tablePairScore)
+    endpoint <- names(tablePairScore)
     D <- length(endpoint)
-    col.id <- names(envir$outPoint$tablePairScore[[1]])[1:3]
+    col.id <- names(tablePairScore[[1]])[1:3]
     keep.col <- c(col.id,"favorable","unfavorable","neutral","uninformative")
     
     ## ** fct
@@ -174,11 +154,11 @@ inferenceUstatistic <- function(envir){
     
     for(iE in 1:D){ ## iE <- 1
 
-        iTable <- data.table::copy(envir$outPoint$tablePairScore[[iE]][,.SD,.SDcols = keep.col])
+        iTable <- data.table::copy(tablePairScore[[iE]][,.SD,.SDcols = keep.col])
         data.table::setnames(iTable, old = col.id, new = c("strata","indexT","indexC"))
 
         ## *** perform correction
-        if(envir$outArgs$correction.uninf){
+        if(correction.uninf){
             stop("Inference U statistic in presence of correction.uninf needs to be updated!!!")
             ## vec.tempo <- unlist(iTable[,.(favorable = sum(favorable),
             ##                               unfavorable = sum(unfavorable),
@@ -193,11 +173,10 @@ inferenceUstatistic <- function(envir){
         }
 
         ## *** compute sufficient statistics
-        browser()
-        ls.count_T <- iTable[,.(list = .(myFct_T(favorable, unfavorable))), by = c("strata","indexT") ][["list"]]
+        ls.count_T <- iTable[,.(list = .(myFct_T(.SD$favorable, .SD$unfavorable))), by = c("strata","indexT") ][["list"]]
         M.sufficient[iE,1:4] <- colSums(do.call(rbind,ls.count_T))
     
-        ls.count_C <- iTable[,.(list = .(myFct_C(favorable, unfavorable))), by = c("strata","indexC") ][["list"]]
+        ls.count_C <- iTable[,.(list = .(myFct_C(.SD$favorable, .SD$unfavorable))), by = c("strata","indexC") ][["list"]]
         M.sufficient[iE,5:8] <- colSums(do.call(rbind,ls.count_C))
         
     }
@@ -205,10 +184,10 @@ inferenceUstatistic <- function(envir){
     ## ** compute sigma for each endpoint
 
     ## *** P[X1>Y1 & X1>Y1']
-    p1.favorable <- cumsum(envir$outPoint$count_favorable)/envir$outPoint$n_pairs
+    p1.favorable <- cumsum(count.favorable)/n.pairs
     
     ## *** P[X1<Y1 & X1<Y1']
-    p1.unfavorable <- cumsum(envir$outPoint$count_unfavorable)/envir$outPoint$n_pairs
+    p1.unfavorable <- cumsum(count.unfavorable)/n.pairs
     
     ## *** P[X1>Y1 & X1>Y1']
     p2.favorableT <- cumsum(M.sufficient[,"sum.favorableT"])/cumsum(M.sufficient[,"n.pairT"])
@@ -222,6 +201,10 @@ inferenceUstatistic <- function(envir){
     p2.mixedT <- cumsum(M.sufficient[,"sum.mixedT"])/cumsum(M.sufficient[,"n.pairT"])
     p2.mixedC <- cumsum(M.sufficient[,"sum.mixedC"])/cumsum(M.sufficient[,"n.pairC"])
 
+    ## cat("\n")
+    ## cat("Treatment: fav.",p2.favorableT," unfav.",p2.unfavorableT," mixed",p2.mixedT,"\n")
+    ## cat("Treatment: fav.",p2.favorableC," unfav.",p2.unfavorableC," mixed",p2.mixedC,"\n")
+    
     ## *** compute xi
     xi_10_11 <- p2.favorableT - p1.favorable^2
     xi_01_11 <- p2.favorableC - p1.favorable^2
@@ -229,18 +212,22 @@ inferenceUstatistic <- function(envir){
     xi_10_22 <- p2.unfavorableT - p1.unfavorable^2
     xi_01_22 <- p2.unfavorableC - p1.unfavorable^2
     
-    xi_10_12 <- p2.mixedT - p1.favorable*p1.unfavorable ## not a mistake to have C here - see formula
+    xi_10_12 <- p2.mixedT - p1.favorable*p1.unfavorable
     xi_01_12 <- p2.mixedC - p1.favorable*p1.unfavorable
 
     ## ** compute sigma
-    n <- length(envir$indexT)
-    m <- length(envir$indexC)
+    n <- n.T
+    m <- n.C
     N <- n+m
 
+    ## asymptotic variance i.e. sqrt(n+m)(Uhat - U) \sim N(0,Sigma)
     M.cov <- cbind(favorable = N/m * xi_10_11 + N/n *xi_01_11,
                    unfavorable = N/m * xi_10_22 + N/n *xi_01_22,
-                   covariance = N/m * xi_10_12 + N/n *xi_01_12)
-    if (trace > 1) {cat(" (done) \n")}
+                   covariance = N/m * xi_10_12 + N/n * xi_01_12)
 
-    return(M.cov)
+    if(M.cov[1,"favorable"]+M.cov[1,"unfavorable"]-2*M.cov[1,"covariance"]<=0){
+        warning("Non positive definite covariance matrix")
+    }
+    ## scaled asymptotic variance i.e. (Uhat - U) \sim N(0,Sigma/(n+m))
+    return(M.cov/(n+m))
 }

@@ -107,8 +107,8 @@
 #' df.data <- simBuyseTest(1e2, n.strata = 2)
 #'
 #'                                        # display 
-#' if(require(survival)){
-#'    resKM_tempo <- survfit(Surv(eventtime,status)~Treatment, data = df.data)
+#' if(require(prodlim)){
+#'    resKM_tempo <- prodlim(Hist(eventtime,status)~Treatment, data = df.data)
 #'    plot(resKM_tempo)
 #' }
 #'
@@ -263,6 +263,7 @@ BuyseTest <- function(formula,
                                                                                                                        operator = outArgs$operator,
                                                                                                                        strata = outArgs$strata,
                                                                                                                        treatment = outArgs$treatment)
+    
     ## ** create weights matrix for survival endpoints
     if(outArgs$D.TTE>0 && outArgs$D>1){
         ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
@@ -279,7 +280,9 @@ BuyseTest <- function(formula,
 
     ## ** Display
     if (outArgs$trace > 1) {
-        outPrint <- do.call(printGeneral, args = outArgs)
+        cat("\n         Generalized Pairwise Comparisons\n\n")
+        do.call(printGeneral, args = outArgs)
+        cat("\n")
     }
 
     ## ** define environment
@@ -289,12 +292,16 @@ BuyseTest <- function(formula,
     envirBT$initializeSurvival_Peron <- initializeSurvival_Peron
     
     ## ** Point estimation
-    if (outArgs$trace > 1) {cat("Point estimation ")}
-    time <- system.time({
-        outPoint <- .BuyseTest(envir = envirBT,
-                               keep.pairScore = keep.pairScore,
-                               method.inference = "none")
-    })
+    if (outArgs$trace > 1) {
+        cat("Point estimation")
+    }
+    outPoint <- .BuyseTest(envir = envirBT,
+                           keep.pairScore = keep.pairScore,
+                           method.inference = "none")
+    if (outArgs$trace > 1) {
+        cat("\n\n")
+    }
+    
     ## convert from a list of vector (output of C++) to a list of data.table
     if(keep.pairScore){
         ## needed for inference
@@ -311,24 +318,31 @@ BuyseTest <- function(formula,
                                                 indexC = envirBT$indexC)
     }
     
-    if (outArgs$trace > 1) {cat("(done) \n")}
-    
-    ## ** Permutation test
-    if (outArgs$method.inference %in% c("permutation","bootstrap","stratified permutation", "stratified bootstrap")) {
-          
-        ## ** run
-        outResampling <- inferenceResampling(envirBT)
-        outCovariance <- matrix(nrow = 0, ncol = 0)
+    ## ** Inference
+    if (outArgs$method.inference!="none") {
+        if(outArgs$trace > 1){
+            do.call(printInference, args = outArgs)
+        }
+
+        if(outArgs$method.inference %in% c("asymptotic")){
+            outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore,
+                                                 count.favorable = outPoint$count_favorable, count.unfavorable = outPoint$count_unfavorable,
+                                                 n.pairs = outPoint$n_pairs, n.C = length(envirBT$indexC), n.T = length(envirBT$indexC),                                
+                                                 correction.uninf = outArgs$correction.uninf)
+
+            outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
+                                  deltaResampling.winRatio = array(dim=c(0,0,0)),
+                                  DeltaResampling.netChance = matrix(NA, nrow = 0, ncol = 0),
+                                  DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+                                  n.resampling = as.double(NA))
+        }else{
+            outResampling <- inferenceResampling(envirBT)
+            outCovariance <- matrix(nrow = 0, ncol = 0)
+        }
+        if(outArgs$trace > 1){
+            cat("\n")
+        }
         
-    }else if(outArgs$method.inference %in% c("asymptotic")){
-
-        outCovariance <- inferenceUstatistic(envirBT)
-
-        outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
-                              deltaResampling.winRatio = array(dim=c(0,0,0)),
-                              DeltaResampling.netChance = matrix(NA, nrow = 0, ncol = 0),
-                              DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
-                              n.resampling = as.double(NA))
     }else{
         outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
                               deltaResampling.winRatio = array(dim=c(0,0,0)),
@@ -339,6 +353,9 @@ BuyseTest <- function(formula,
     }
     
     ## ** Gather results into a BuyseRes object
+    if(outArgs$trace > 1){
+        cat("Gather the results in a BuyseRes object \n")
+    }
     method.tte <- c("Gehan","Peron")[outArgs$method.tte+1]
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
 
@@ -370,6 +387,9 @@ BuyseTest <- function(formula,
         tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
         tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
     )
+    if(outArgs$trace > 1){
+        cat("\n")
+    }
 
     ## ** export
     return(BuyseRes.object)

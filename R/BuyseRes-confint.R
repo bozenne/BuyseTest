@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: sep 24 2018 (15:09) 
+## Last-Updated: sep 26 2018 (15:56) 
 ##           By: Brice Ozenne
-##     Update #: 143
+##     Update #: 160
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,7 +73,7 @@ setMethod(f = "confint",
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netChance","winRatio"),
+                             valid.values = c("netchance","winratio"),
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
@@ -127,6 +127,7 @@ setMethod(f = "confint",
               ## ** compute the confidence intervals
               outConfint <- do.call(method.confint, args = list(Delta = Delta,
                                                                 Delta.permutation = Delta.permutation,
+                                                                statistic = statistic,
                                                                 covariance = covariance,
                                                                 alternative = alternative,
                                                                 null = null,
@@ -258,15 +259,13 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
                   
 
 ## * confint_Ustatistic (called by confint)
-confint_Ustatistic <- function(Delta, covariance,
+confint_Ustatistic <- function(Delta, covariance, statistic,
                                null, alternative, alpha,
                                endpoint, ...){
 
-    warning("In development - do not trust the results \n")
-    
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
-                       dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- Delta
@@ -276,20 +275,25 @@ confint_Ustatistic <- function(Delta, covariance,
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
 
         ## *** standard error
-        iSE <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2*covariance[iE,"covariance"])
+        if(statistic == "netChance"){
+            outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])
+        }else if(statistic == "winRatio"){
+            stop("to be done \n")
+        }
         
-        ## *** confidence interval
+        ## *** confidence interval        
         outTable[iE,c("lower.ci","upper.ci")] <- switch(alternative,
-                                                        "two.sided" = Delta[iE] + stats::qnorm(c(alpha/2,1 - alpha/2)) * iSE,
-                                                        "less" = c(Delta[iE] + stats::qnorm(alpha) * iSE, Inf),
-                                                        "greater" = c(-Inf,Delta[iE] + stats::qnorm(1-alpha) * iSE)
+                                                        "two.sided" = Delta[iE] + stats::qnorm(c(alpha/2,1 - alpha/2)) * outTable[iE,"se"],
+                                                        "less" = c(Delta[iE] + stats::qnorm(alpha) * outTable[iE,"se"], Inf),
+                                                        "greater" = c(-Inf,Delta[iE] + stats::qnorm(1-alpha) * outTable[iE,"se"])
                                                         )
 
         ## *** p.value
+        statistic.value <- Delta[iE]/outTable[iE,"se"]
         outTable[iE,"p.value"] <- switch(alternative,
-                                         "two.sided" = 2*(1-stats::pnorm(abs(Delta[iE]/iSE - null))), ## 2*(1-pnorm(1.96))
-                                         "less" = stats::pnorm(Delta[iE]/iSE - null), ## pnorm(1.96)
-                                         "greater" = 1-stats::pnorm(Delta[iE]/iSE - null)
+                                         "two.sided" = 2*(1-stats::pnorm(abs(statistic.value - null))), ## 2*(1-pnorm(1.96))
+                                         "less" = stats::pnorm(statistic.value - null), ## pnorm(1.96)
+                                         "greater" = 1-stats::pnorm(statistic.value - null)
                                          )
     }
 

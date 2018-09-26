@@ -2,7 +2,7 @@ Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
 Version: 1.5.0
-Date: 2018-09-25
+Date: 2018-09-26
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.ozenne@orange.fr", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "aut")
@@ -48,7 +48,7 @@ SystemRequirements: C++11
 VignetteBuilder: knitr
 NeedsCompilation: yes
 RoxygenNote: 6.0.1
-Collate:
+Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
     'BuyseRes-object.R'
@@ -68,6 +68,7 @@ Collate:
     'RcppExports.R'
     'constStrata.R'
     'discreteRoot.R'
+    'evalBuyseTest.R'
     'seBuyseTest.R'
     'simBuyseTest.R'
     'valid.R'
