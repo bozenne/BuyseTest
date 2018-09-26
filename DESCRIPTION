@@ -1,10 +1,12 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 1.4.2
+Version: 1.5.0
 Date: 2018-09-25
-Author: Brice Ozenne[aut, cre], Julien Peron[aut]
-Maintainer: brice ozenne <brice.ozenne@orange.fr>
+Authors@R: c(
+    person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.ozenne@orange.fr", comment = c(ORCID = "0000-0001-9694-2956")),
+    person("Julien", "Peron", role = "aut")
+	)
 Description: Implementation of the Generalized Pairwise Comparisons. This test
     enables to compare two groups of observations in randomized trials(e.g treated
     vs. control patients) on several prioritized outcomes. Pairwise comparisons
