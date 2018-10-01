@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  1 2018 (17:10) 
+## Last-Updated: okt  1 2018 (17:16) 
 ##           By: Brice Ozenne
-##     Update #: 162
+##     Update #: 168
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,6 +30,8 @@
 #' whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
+#' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
+#' Otherwise they are computed without any transformation.
 #' @param method.boot [character] the method used to compute the boostrap confidence intervals and p-values.
 #' Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
 #' \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.
@@ -63,7 +65,8 @@ setMethod(f = "confint",
                                 statistic = BuyseTest.options()$statistic,
                                 conf.level = 0.95,
                                 alternative = "two.sided",
-                                method.boot = "percentile"){
+                                method.boot = "percentile",
+                                transformation = TRUE){
 
               ## ** normalize and check arguments
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
@@ -97,6 +100,11 @@ setMethod(f = "confint",
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
+              validLogical(transformation,
+                           name1 = "transformation",
+                           valid.length = 1,
+                           method = "confint[BuyseRes]")
+              
               ## ** extract information
               method.inference <- object@method.inference
               if(is.na(conf.level)){
@@ -132,7 +140,8 @@ setMethod(f = "confint",
                                                                 alternative = alternative,
                                                                 null = null,
                                                                 alpha = alpha,
-                                                                endpoint = endpoint))
+                                                                endpoint = endpoint,
+                                                                transformation = transformation))
 
               ## ** number of permutations
               if(method.inference %in%  c("permutation","stratified permutation","bootstrap","stratified bootstrap")){
@@ -261,7 +270,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
 ## * confint_Ustatistic (called by confint)
 confint_Ustatistic <- function(Delta, covariance, statistic,
                                null, alternative, alpha,
-                               endpoint, ...){
+                               endpoint, transformation, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
@@ -275,6 +284,7 @@ confint_Ustatistic <- function(Delta, covariance, statistic,
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
 
         ## *** standard error
+        browser()
         if(statistic == "netChance"){
             ## on the original scale
             outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])

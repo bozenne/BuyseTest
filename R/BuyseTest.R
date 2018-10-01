@@ -328,7 +328,7 @@ BuyseTest <- function(formula,
             outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore,
                                                  count.favorable = outPoint$count_favorable, count.unfavorable = outPoint$count_unfavorable,
                                                  n.pairs = outPoint$n_pairs, n.C = length(envirBT$indexC), n.T = length(envirBT$indexC),                                
-                                                 correction.uninf = outArgs$correction.uninf)
+                                                 n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
 
             outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
                                   deltaResampling.winRatio = array(dim=c(0,0,0)),
