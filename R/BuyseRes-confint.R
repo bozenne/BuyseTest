@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: sep 26 2018 (15:56) 
+## Last-Updated: okt  1 2018 (17:10) 
 ##           By: Brice Ozenne
-##     Update #: 160
+##     Update #: 162
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,7 +73,7 @@ setMethod(f = "confint",
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netchance","winratio"),
+                             valid.values = c("netChance","winRatio"),
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
@@ -276,9 +276,13 @@ confint_Ustatistic <- function(Delta, covariance, statistic,
 
         ## *** standard error
         if(statistic == "netChance"){
+            ## on the original scale
             outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])
+            ## on the logit scale
         }else if(statistic == "winRatio"){
+            ## one the original scale
             stop("to be done \n")
+            ## one the log scale
         }
         
         ## *** confidence interval        

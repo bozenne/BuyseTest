@@ -102,6 +102,7 @@ inferenceResampling <- function(envir){
 inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorable,
                                 n.pairs, n.C, n.T,                                
                                 correction.uninf){
+    . <- NULL ## for CRAN test
     
     ## ** extract informations
     endpoint <- names(tablePairScore)

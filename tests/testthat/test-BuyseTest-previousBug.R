@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 24 2018 (15:03) 
+## Last-Updated: okt  1 2018 (17:04) 
 ##           By: Brice Ozenne
-##     Update #: 59
+##     Update #: 68
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -122,29 +122,6 @@ BT_tau0 <- BuyseTest(data=data,
                      method.inference = "none",
                      cpus=1)
 
-## * Joris: jeudi 31 mai 2018
-## Beware of a bug in this new CRAN version (1.3.2)
-## pvalues computed through bootstrap and stratified bootstrap seem to be reversed, while associated confidence intervals are correct
-if(FALSE){
-    dt <- data.table(
-        ttt = rep(c(0,0,0,0,0,1,1,1,1,1),10),
-        y1 = rep(c(1,2,3,4,5,0,3,4,5,6),10),
-        strat = rep(1:5,each=20)
-    )
-
-    BT.boot <- BuyseTest(data = dt, formula = ttt ~ cont(y1, threshold=1),
-                         method.inference = "bootstrap",
-                         n.resampling = 500)
-
-    summary(BT.boot)
-
-    BT.perm <- BuyseTest(data = dt, formula = ttt ~ cont(y1, threshold=1),
-                         method.inference = "permutation",
-                         n.resampling = 500)
-    summary(BT.perm)
-}
-
-
 ## * Brice: 09/06/18 6:51 (Tied event with tte endpoint)
 ## when computing the integral for peron with double censoring
 ## the ordering of the data modified the ouput
@@ -194,3 +171,4 @@ test_that("ordering of tied event does not affect BuyseTest", {
     
 
 })
+

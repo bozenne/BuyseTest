@@ -1031,6 +1031,7 @@ loaded via a namespace (and not attached):
 #+OPTIONS:   title:t author:t toc:nil todo:nil
 #+OPTIONS:   H:3 num:t 
 #+OPTIONS:   TeX:t LaTeX:t
+#+PROPERTY: tangle yes
 
 ** Code
 #+PROPERTY: header-args :session *R*

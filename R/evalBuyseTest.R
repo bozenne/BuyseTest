@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: sep 26 2018 (15:55) 
+## Last-Updated: okt  1 2018 (17:11) 
 ##           By: Brice Ozenne
-##     Update #: 109
+##     Update #: 110
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@
 #' @param sample.size the various sample sizes at which the simulation should be perform.
 #' Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} are specified.
 #' @param sample.sizeC the various sample sizes in the control group.
-#' @param sample.sizeC the various sample sizes in the treatment group.
+#' @param sample.sizeT the various sample sizes in the treatment group.
 #' @param n.rep the number of simulations.
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.

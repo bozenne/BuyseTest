@@ -50,28 +50,28 @@ using namespace arma ;
 //' @export
 // [[Rcpp::export]]
 List GPC_cpp(const arma::mat& Control,
-	     const arma::mat& Treatment,
-	     const NumericVector& threshold,
-	     const LogicalVector& survEndpoint,
-	     const arma::mat& delta_Control,
+			 const arma::mat& Treatment,
+			 const NumericVector& threshold,
+			 const LogicalVector& survEndpoint,
+			 const arma::mat& delta_Control,
              const arma::mat& delta_Treatment,
-	     const int D,
-	     const std::vector< arma::uvec >& strataC,
-	     const std::vector< arma::uvec >& strataT,
-	     const int n_strata,
-	     const int n_TTE, 
+			 const int D,
+			 const std::vector< arma::uvec >& strataC,
+			 const std::vector< arma::uvec >& strataT,
+			 const int n_strata,
+			 const int n_TTE, 
              const arma::mat& Wscheme,
-	     const IntegerVector index_survivalM1,
-	     const NumericVector threshold_TTEM1, 
-	     const std::vector< std::vector< arma::mat > >& list_survTimeC,
+			 const IntegerVector index_survivalM1,
+			 const NumericVector threshold_TTEM1, 
+			 const std::vector< std::vector< arma::mat > >& list_survTimeC,
              const std::vector< std::vector< arma::mat > >& list_survTimeT,
              const std::vector< std::vector< arma::mat > >& list_survJumpC,
-	     const std::vector< std::vector< arma::mat > >& list_survJumpT,
-	     const std::vector< arma::mat >& list_lastSurv,
-	     const int methodTTE,
-	     const int correctionUninf,
-	     const bool neutralAsUninf,
-	     const bool keepScore){
+			 const std::vector< std::vector< arma::mat > >& list_survJumpT,
+			 const std::vector< arma::mat >& list_lastSurv,
+			 const int methodTTE,
+			 const int correctionUninf,
+			 const bool neutralAsUninf,
+			 const bool keepScore){
 
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -129,6 +129,7 @@ List GPC_cpp(const arma::mat& Control,
   arma::mat iScore;
   arma::mat iMat;
   int iNpairs;
+  bool iMoreEndpoint;
       
   // ** loop over strata
   for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
@@ -151,16 +152,17 @@ List GPC_cpp(const arma::mat& Control,
     // *** first endpoint
     // Rcout << "** endpoint 0 **" << endl;
     iIndex_neutralT.resize(0); iIndex_neutralC.resize(0); iIndex_uninfT.resize(0); iIndex_uninfC.resize(0); iw.resize(0);
-    
+    iMoreEndpoint = (D>1);
+	
     if(survEndpoint[0]){ // time to event endpoint
       
       if(methodTTE == 0){
-	iScore = calcAllPairs_TTEgehan(ControlK.col(0), TreatmentK.col(0), threshold[0],
-								   delta_ControlK.col(0), delta_TreatmentK.col(0), 
-								   correctionUninf,
-								   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-								   iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
-								   iw, neutralAsUninf, keepScore); 
+		iScore = calcAllPairs_TTEgehan(ControlK.col(0), TreatmentK.col(0), threshold[0],
+									   delta_ControlK.col(0), delta_TreatmentK.col(0), 
+									   correctionUninf,
+									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+									   iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
+									   iw, neutralAsUninf, keepScore, iMoreEndpoint); 
       }else{
 
 		iScore = calcAllPairs_TTEperon(ControlK.col(0), TreatmentK.col(0), threshold[0],
@@ -170,7 +172,7 @@ List GPC_cpp(const arma::mat& Control,
 									   correctionUninf,
 									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 									   iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
-									   iw, neutralAsUninf, keepScore);
+									   iw, neutralAsUninf, keepScore, iMoreEndpoint);
       }
       iter_dTTE++; // increment the number of time to event endpoints that have been used
       
@@ -180,7 +182,7 @@ List GPC_cpp(const arma::mat& Control,
 									   correctionUninf,
 									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 									   iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
-									   neutralAsUninf, keepScore);
+									   neutralAsUninf, keepScore, iMoreEndpoint);
       
     }
 
@@ -236,7 +238,8 @@ List GPC_cpp(const arma::mat& Control,
       // Rcout << "** endpoint " << iter_d << " **" << endl;
       Wpairs_sauve = Wpairs; // save the current Wpairs
       iw.resize(0); iIndex_w.resize(0);
-      
+      iMoreEndpoint = (D>(iter_d+1));
+	
       if(survEndpoint[iter_d]){ // time to event endpoint
 
 		if(methodTTE==0){
@@ -248,7 +251,7 @@ List GPC_cpp(const arma::mat& Control,
 											iIndex_neutralC, iIndex_neutralT, size_neutral,
 											iIndex_uninfC, iIndex_uninfT, size_uninf,
 											w, iw, iIndex_w, // Wpairs wNeutral index_wNeutral
-											neutralAsUninf, keepScore);
+											neutralAsUninf, keepScore, iMoreEndpoint);
 		}else{
         
 		  if(threshold_TTEM1[iter_dTTE]<0){ // first time the endpoint is used [no threshold-1]
@@ -279,7 +282,7 @@ List GPC_cpp(const arma::mat& Control,
 											w, iThreshold_M1,
 											iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
 											iw, iIndex_w,
-											neutralAsUninf, keepScore);
+											neutralAsUninf, keepScore, iMoreEndpoint);
 		}
 
 		iter_dTTE++; // increment the number of time to event endpoints that have been used
@@ -295,7 +298,7 @@ List GPC_cpp(const arma::mat& Control,
 											iIndex_neutralC, iIndex_neutralT, size_neutral,
 											iIndex_uninfC, iIndex_uninfT, size_uninf,
 											w, iIndex_w,
-											neutralAsUninf, keepScore);
+											neutralAsUninf, keepScore, iMoreEndpoint);
 	
       }
 

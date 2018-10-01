@@ -113,7 +113,7 @@
 #' }
 #'
 #' #### one time to event endpoint ####
-#' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data)
+#' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data= df.data)
 #' 
 #' summary(BT) # net chance in favor of treatment
 #' summary(BT, percentage = FALSE)  
