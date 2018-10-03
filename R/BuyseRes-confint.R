@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  1 2018 (17:16) 
+## Last-Updated: okt  3 2018 (23:19) 
 ##           By: Brice Ozenne
-##     Update #: 168
+##     Update #: 183
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -111,6 +111,9 @@ setMethod(f = "confint",
                   method.inference <- "none"
               }
 
+              count.favorable <- slot(object, name = paste0("count.favorable"))
+              count.unfavorable <- slot(object, name = paste0("count.unfavorable"))
+              n.pairs <- slot(object, name = paste0("n.pairs"))
               Delta <- slot(object, name = paste0("Delta.",statistic))
               Delta.permutation <- slot(object, name = paste0("DeltaResampling.",statistic))
               covariance <- object@covariance
@@ -135,6 +138,8 @@ setMethod(f = "confint",
               ## ** compute the confidence intervals
               outConfint <- do.call(method.confint, args = list(Delta = Delta,
                                                                 Delta.permutation = Delta.permutation,
+                                                                pc.favorable = count.favorable / n.pairs,
+                                                                pc.unfavorable = count.unfavorable / n.pairs,
                                                                 statistic = statistic,
                                                                 covariance = covariance,
                                                                 alternative = alternative,
@@ -268,7 +273,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
                   
 
 ## * confint_Ustatistic (called by confint)
-confint_Ustatistic <- function(Delta, covariance, statistic,
+confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, statistic,
                                null, alternative, alpha,
                                endpoint, transformation, ...){
 
@@ -284,30 +289,48 @@ confint_Ustatistic <- function(Delta, covariance, statistic,
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
 
         ## *** standard error
-        browser()
         if(statistic == "netChance"){
-            ## on the original scale
             outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])
+            
+            if(transformation){ ## atanh transform (also called fisher transform)
+                iSE <- outTable[iE,"se"] / (1+Delta[iE]^2)
+                iDelta <-  atanh(Delta[iE])
+                backtransform <- tanh
+            }else{ ## on the original scale
+                iSE <- outTable[iE,"se"]
+                iDelta <- Delta[iE]
+                backtransform <- function(x){x}
+            }
+            
             ## on the logit scale
         }else if(statistic == "winRatio"){
-            ## one the original scale
-            stop("to be done \n")
-            ## one the log scale
+            
+            outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"]/pc.unfavorable[iE]^2 + covariance[iE,"unfavorable"]*Delta[iE]^2/pc.unfavorable[iE]^2 - 2 * covariance[iE,"covariance"]*Delta[iE]/pc.unfavorable[iE]^2)
+
+            if(transformation){ ## log transform
+                iSE <- outTable[iE,"se"] / Delta[iE]
+                iDelta <-  log(Delta[iE])
+                backtransform <- exp
+            }else{ ## on the original scale
+                iSE <- outTable[iE,"se"]
+                iDelta <- Delta[iE]
+                backtransform <- function(x){x}
+            }
+
         }
         
-        ## *** confidence interval        
-        outTable[iE,c("lower.ci","upper.ci")] <- switch(alternative,
-                                                        "two.sided" = Delta[iE] + stats::qnorm(c(alpha/2,1 - alpha/2)) * outTable[iE,"se"],
-                                                        "less" = c(Delta[iE] + stats::qnorm(alpha) * outTable[iE,"se"], Inf),
-                                                        "greater" = c(-Inf,Delta[iE] + stats::qnorm(1-alpha) * outTable[iE,"se"])
-                                                        )
-
+        ## *** confidence interval
+        outTable[iE,c("lower.ci","upper.ci")] <- backtransform(switch(alternative,
+                                                                      "two.sided" = iDelta + stats::qnorm(c(alpha/2,1 - alpha/2)) * iSE,
+                                                                      "less" = c(iDelta + stats::qnorm(alpha) * iSE, Inf),
+                                                                      "greater" = c(-Inf,iDelta + stats::qnorm(1-alpha) * iSE)
+                                                                      ))
+        
         ## *** p.value
-        statistic.value <- Delta[iE]/outTable[iE,"se"]
         outTable[iE,"p.value"] <- switch(alternative,
-                                         "two.sided" = 2*(1-stats::pnorm(abs(statistic.value - null))), ## 2*(1-pnorm(1.96))
-                                         "less" = stats::pnorm(statistic.value - null), ## pnorm(1.96)
-                                         "greater" = 1-stats::pnorm(statistic.value - null)
+                                         "two.sided" = 2*(1-stats::pnorm(abs(iDelta/iSE - null))), ## 2*(1-pnorm(1.96))
+                                         "less" = stats::pnorm(iDelta/iSE - null), ## pnorm(1.96)
+                                         "greater" = 1-stats::pnorm(iDelta/iSE - null)
                                          )
     }
 
