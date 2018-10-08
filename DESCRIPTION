@@ -1,26 +1,23 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 1.5.1
-Date: 2018-10-01
+Version: 1.5.2
+Date: 2018-10-08
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.ozenne@orange.fr", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "aut")
 	)
-Description: Implementation of the Generalized Pairwise Comparisons. This test
-    enables to compare two groups of observations in randomized trials(e.g treated
-    vs. control patients) on several prioritized outcomes. Pairwise comparisons
-    require consideration of all possible pairs of individuals, one taken from the
-    treatment group and the other taken from the control group. The outcomes of the
-    two individuals forming a pair are compared. Thresholds of minimal clinically
-    significant differences can be defined. It is possible to analyze simultaneously
-    several outcomes by prioritizing the variables that capture them. The highest
-    priority is assigned to the variable considered the most clinically relevant.
-    A natural way of handling uninformative or neutral pairs is to consider the
-    outcomes in descending order of priority: whenever a pair is uninformative or
-    neutral for an outcome of higher priority, the outcomes of lower priority are
-    examined In the case of time-to-event endpoint, four methods to handle censored
-    observations are available in this package (Gehan, Peto, Efron, and Peron).
+Description:  Implementation of the Generalized Pairwise Comparisons. This
+    test compares two groups of observations (intervention vs. control
+    group) regarding several prioritized endpoints. The net benefit
+    and win ratio statistics can then be estimated and corresponding
+    confidence intervals and p-values can be estimated using
+    resampling methods. The sofware enables the use of thresholds of
+    minimal important difference as well as stratification. Censored
+    observations can be handled using complete case analysis, inverse
+    probability of censoring weights, or, in the case of right
+    censoring, using the empirical survival curves in each group to
+    estimating the expected score of the censored pairs.
 License: GPL-3
 URL: https://github.com/bozenne/BuyseTest
 BugReports: https://github.com/bozenne/BuyseTest/issues
@@ -39,13 +36,13 @@ Imports:
     stats4,
     utils
 Suggests:
-    knitr,
-	pbapply,
+    pbapply,
+    R.rsp,
     survival,
     testthat
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
-VignetteBuilder: knitr
+VignetteBuilder: R.rsp
 NeedsCompilation: yes
 RoxygenNote: 6.0.1
 Collate: 

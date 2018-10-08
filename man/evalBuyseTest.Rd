@@ -18,6 +18,8 @@ Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} a
 
 \item{sample.sizeC}{the various sample sizes in the control group.}
 
+\item{sample.sizeT}{the various sample sizes in the treatment group.}
+
 \item{n.rep}{the number of simulations.}
 
 \item{cpus}{[integer, >0] the number of CPU to use.
@@ -34,8 +36,6 @@ Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
 \item{trace}{[integer] should the execution of the function be traced?}
 
 \item{...}{parameters from \code{BuyseTest}.}
-
-\item{sample.sizeC}{the various sample sizes in the treatment group.}
 }
 \description{
 Performs a simulation studies for several sample sizes.
@@ -50,8 +50,9 @@ simFCT <- function(n.C, n.T){
 return(out)
 }
 
+\dontrun{
 evalBuyseTest(sim = simFCT, sample.size = c(10,100), n.rep = 2,
               formula = T ~ cont(Y), method.inference = "asymptotic", trace = 4)
-
+}
 
 }

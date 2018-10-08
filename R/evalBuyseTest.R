@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt  1 2018 (17:11) 
+## Last-Updated: okt  8 2018 (23:07) 
 ##           By: Brice Ozenne
-##     Update #: 110
+##     Update #: 114
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,9 +52,10 @@
 ##' return(out)
 ##' }
 ##'
+##' \dontrun{
 ##' evalBuyseTest(sim = simFCT, sample.size = c(10,100), n.rep = 2,
 ##'               formula = T ~ cont(Y), method.inference = "asymptotic", trace = 4)
-##'
+##' }
 ##' 
 
 ## * evalBuyseTest (code)
@@ -221,8 +222,10 @@ evalBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = 
                                                      count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
                                                      count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
                                                      n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
-                                                     n.C = envir$sample.sizeC[iSample], n.T = envir$sample.sizeT[iSample],                                
-                                                     correction.uninf = FALSE)
+                                                     n.C = envir$sample.sizeC[iSample], n.T = envir$sample.sizeT[iSample],
+                                                     n.strata = envir$outArgs$n.strata,
+                                                     n.endpoint = length(envir$outArgs$endpoint),
+                                                     endpoint = envir$outArgs$endpoint)
 
                 outCI <- confint_Ustatistic(Delta = iOut[iSample,"netChance"], covariance = outCovariance, statistic = "netChance",
                                             null = 0, alternative = alternative, alpha = alpha,

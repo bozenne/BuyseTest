@@ -9,7 +9,8 @@
 \usage{
 \S4method{confint}{BuyseRes}(object,
   statistic = BuyseTest.options()$statistic, conf.level = 0.95,
-  alternative = "two.sided", method.boot = "percentile")
+  alternative = "two.sided", method.boot = "percentile",
+  transformation = TRUE)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
@@ -25,6 +26,9 @@ whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2
 \item{method.boot}{[character] the method used to compute the boostrap confidence intervals and p-values.
 Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
 \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.}
+
+\item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
+Otherwise they are computed without any transformation.}
 }
 \value{
 A matrix containing a column for the estimated statstic (over all strata),

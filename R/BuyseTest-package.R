@@ -2,8 +2,25 @@
 #' @title BuyseTest package: Generalized Pairwise Comparisons
 #' @name BuyseTest-package
 #' 
-#' @description Implementation of the Generalized Pairwise Comparisons.
-#' \code{\link{BuyseTest}} is the main function of the package. See its documentation for more details or the reference below for a complete description of the method and some examples of application.
+#' @description Implementation of the Generalized Pairwise Comparisons. 
+#' \code{\link{BuyseTest}} is the main function of the package. See the vignette of an overview of the functionalities of the package.
+#' Run \code{citation("BuyseTest")} in R for how to cite this package in scientific publications.
+#' See the section below for examples of application in clinical studies.
+#'
+#' @details The Generalized Pairwise Comparisons form all possible pairs of observations,
+#' one observation being taken from the intervention group and the other is taken from the control group,
+#' and compare the value of their endpoints.
+#'
+#' If the difference in endpoint value between the two observations of the pair is greater than the threshold of clinical relevance, the pair
+#' is classified as favorable (i.e. win). If the difference is lower than minus the threshold of clinical relevance the pair is classified as unfavorable (i.e. loss).
+#' Otherwise the pair is classified as neutral. In presence of censoring, it might not be possible to compare the difference to the threshold. In such cases the pair
+#' is classified as uninformative.
+#' 
+#' Simultaneously analysis of several endpoints is performed by prioritizing the endpoints, assigning the highest priority to the endpoint considered the most clinically relevant.
+#' The endpoint with highest priority is analyzed first, and neutral and uninformative pair are analyzed regarding endpoint of lower priority.
+#' 
+#' @references Examples of application in clinical studies: \cr 
+#' J. Peron, P Roy, K Ding, W R Parulekar, L Roche, M Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalised pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 #' 
 #' @useDynLib BuyseTest, .registration=TRUE
 #' @import data.table
@@ -15,14 +32,6 @@
 #' @importFrom stats4 summary
 #' @importFrom prodlim prodlim Hist
 #' @importFrom utils capture.output tail
-#' @references 
-#' Methodological references: \cr
-#' Marc Buyse (2010) \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257. \cr
-#' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. Statistical Methods in Medical Research. \cr
-#' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{The Net Chance of a Longer Survival as a Patient-Oriented Measure of Treatment Benefit in Randomized Clinical Trials}. \emph{JAMA Oncology} 2(7):901-5. \cr
-#'
-#' Examples of application: \cr 
-#' J. Peron, P Roy, K Ding, W R Parulekar, L Roche, M Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalised pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 NULL
 
 

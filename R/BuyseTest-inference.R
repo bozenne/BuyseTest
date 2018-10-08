@@ -119,16 +119,16 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
     if(n.endpoint>1){
 
         ##
-        n.TCstrata <- tablePairScore[[1]][,length(unique(.SD$indexWithinStrata.C)),by = "strata"][[2]]
+        n.TCstrata <- tablePairScore[[1]][,length(unique(.SD$indexWithinStrata.C)), by = "strata"][[2]]
 
         for(iE in 2:n.endpoint){ ## iE <- 2
             iTable <- tablePairScore[[iE]][,.SD,.SDcols = keep.col]
             setnames(iTable, old = old.col, new = new.col)
-            iTable[, indexTable := (indexWithinStrata.T-1) * n.TCstrata[.GRP] + indexWithinStrata.C, by="strata"]
+            iTable[, c("indexTable") := (.SD$indexWithinStrata.T-1) * n.TCstrata[.GRP] + .SD$indexWithinStrata.C, by="strata"]
 
             ls.table[[iE]] <- data.table::copy(ls.table[[iE-1]])
-            ls.table[[iE]][iTable$indexTable, favorable := favorable + iTable$favorable]
-            ls.table[[iE]][iTable$indexTable, unfavorable := unfavorable + iTable$unfavorable]
+            ls.table[[iE]][iTable$indexTable, c("favorable") := .SD$favorable + iTable$favorable]
+            ls.table[[iE]][iTable$indexTable, c("unfavorable") := .SD$unfavorable + iTable$unfavorable]
         }
     }
     ## ls.table[[1]][, mean(favorable)-mean(unfavorable)]
@@ -169,10 +169,10 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
             ## P[1(X_i,Y_j)1(X_i,Y_k)] = 1/nm(m-1) sum_i sum_j 1(X_i,Y_j) sum_k neq j 1(X_i,Y_j)
             ##                         = 1/nm(m-1) sum_i sum_j 1(X_i,Y_j) ( sum_k 1(X_i,Y_k) - 1(X_i,Y_j) )
             ## here we compute sum_k 1(X_i,Y_k) and m-1
-            iTable <- ls.table[[iE]][strata == iStrata]
+            iTable <- ls.table[[iE]][ls.table[[iE]]$strata == iStrata]
             
-            sumPair.T <- iTable[, .(favorable = sum(favorable), unfavorable = sum(unfavorable)), by = "indexWithinStrata.T"]
-            sumPair.C <- iTable[strata == iStrata, .(favorable = sum(favorable), unfavorable = sum(unfavorable)), by = "indexWithinStrata.C"]
+            sumPair.T <- iTable[, .(favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.T"]
+            sumPair.C <- iTable[, .(favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.C"]
 
             iTable[, c("sumFavorable.T") := sumPair.T$favorable[.SD$indexWithinStrata.T]]
             iTable[, c("sumUnfavorable.T") := sumPair.T$unfavorable[.SD$indexWithinStrata.T]]
@@ -187,28 +187,28 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
             ## 1/iN.strata =  nm
             if(iN.setT > 0){
                 ## E[ 1(X_i>Y_j) 1(X_i>Y_k) ]
-                strataSum.favorableT[iStrata,iE] <- iTable[,sum((sumFavorable.T  - favorable) * favorable) / (iN.strata*iN.setT)]
+                strataSum.favorableT[iStrata,iE] <- iTable[,sum((.SD$sumFavorable.T  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setT)]
                 ## E[ 1(X_i<Y_j) 1(X_i<Y_k) ]
-                strataSum.unfavorableT[iStrata,iE] <- iTable[,sum((sumUnfavorable.T  - unfavorable) * unfavorable) / (iN.strata*iN.setT)]
+                strataSum.unfavorableT[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.T  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setT)]
                 ## E[ 1(X_i>Y_j) 1(X_i<Y_k) ]
-                strataSum.mixedT[iStrata,iE] <- iTable[,sum((sumUnfavorable.T  - unfavorable) * favorable) / (iN.strata*iN.setT)]
+                strataSum.mixedT[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.T  - .SD$unfavorable) * .SD$favorable) / (iN.strata*iN.setT)]
                 ## strataSum.mixedT[iStrata,iE] <- iTable[,sum((sumFavorable.T  - favorable) * unfavorable) / (iN.strata*iN.setT)]
             }
             if(iN.setC > 0){
                 ## E[ 1(X_i>Y_j) 1(X_k>Y_j) ]
-                strataSum.favorableC[iStrata,iE] <- iTable[,sum((sumFavorable.C  - favorable) * favorable) / (iN.strata*iN.setC)]
+                strataSum.favorableC[iStrata,iE] <- iTable[,sum((.SD$sumFavorable.C  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setC)]
                 ## E[ 1(X_i<Y_j) 1(X_k<Y_j) ]
-                strataSum.unfavorableC[iStrata,iE] <- iTable[,sum((sumUnfavorable.C  - unfavorable) * unfavorable) / (iN.strata*iN.setC)]
+                strataSum.unfavorableC[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.C  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setC)]
                 ## E[ 1(X_i>Y_j) 1(X_k<Y_j) ]
-                strataSum.mixedC[iStrata,iE] <- iTable[,sum((sumUnfavorable.C  - unfavorable) * favorable) / (iN.strata*iN.setC)]
+                strataSum.mixedC[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.C  - .SD$unfavorable) * .SD$favorable) / (iN.strata*iN.setC)]
                 ## strataSum.mixedC[iStrata,iE] <- iTable[,sum((sumFavorable.C  - favorable) * unfavorable) / (iN.strata*iN.setC)]
             }
 
             ## iid decomposition
-            dt.iid.T <- iTable[,.(favorable = sum((sumFavorable.T  - favorable) * favorable) / (iN.strata*iN.setT),
-                                  unfavorable = sum((sumUnfavorable.T  - unfavorable) * unfavorable) / (iN.strata*iN.setT)),by = "index.T"]
-            dt.iid.C <- iTable[,.(favorable = sum((sumFavorable.C  - favorable) * favorable) / (iN.strata*iN.setC),
-                                  unfavorable = sum((sumUnfavorable.C  - unfavorable) * unfavorable) / (iN.strata*iN.setC)),by = "index.C"]
+            dt.iid.T <- iTable[,.(favorable = sum((.SD$sumFavorable.T  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setT),
+                                  unfavorable = sum((.SD$sumUnfavorable.T  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setT)),by = "index.T"]
+            dt.iid.C <- iTable[,.(favorable = sum((.SD$sumFavorable.C  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setC),
+                                  unfavorable = sum((.SD$sumUnfavorable.C  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setC)),by = "index.C"]
 
             centering.tempo <- mean(c(dt.iid.T$favorable, dt.iid.C$favorable))
             M.iid.favorable[dt.iid.T$index.T,iE] <- dt.iid.T$favorable - centering.tempo

@@ -17,16 +17,16 @@ The rest of the formula should indicate the strata variables (if any) and the en
 
 \item{data}{[data.frame] dataset.}
 
-\item{method.tte}{[character] defines the method used to handle pairs
-which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations (see details).
-Can be \code{"Gehan"} or \code{"Peron"}.
-Only relevant when there is one or more time-to-event endpoints.
+\item{method.tte}{[character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
+Can be \code{"Gehan"} or \code{"Peron"}. \code{"Gehan"} only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral.
+\code{"Peron"} uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified (see Peron et al. for more details).
 Default value read from \code{BuyseTest.options()}.}
 
-\item{correction.uninf}{[logical] should a correction be applied to remove the bias due to the presence of uninformative pairs?
+\item{correction.uninf}{[integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
+0 indicates no correction, 1 impute the average score of the informative pair, and 2 perfoms inverse probability of censoring weights.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{model.tte}{[list] optionnal survival models relative to each time to each time to event outcome.
+\item{model.tte}{[list] optionnal survival models relative to each time to each time to event endpoint.
 Models must \code{prodlim} objects and stratified on the treatment and strata variable.}
 
 \item{method.inference}{[character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
@@ -49,7 +49,7 @@ Disregarded if the argument \code{formula} is defined.}
 
 \item{type}{[character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.}
 
-\item{threshold}{[numeric vector] critical values used to compare the pairs.
+\item{threshold}{[numeric vector] critical values used to compare the pairs (threshold of minimial important difference).
 There must be one threshold for each endpoint variable.
 Disregarded if the argument \code{formula} is defined.}
 
@@ -84,7 +84,7 @@ Default value read from \code{BuyseTest.options()}.}
 An \R object of class \code{\linkS4class{BuyseRes}}.
 }
 \description{
-Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event outcomes.
+Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event endpoints.
 }
 \details{
 \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
@@ -103,18 +103,15 @@ A large number of permutations (e.g. \code{n.resampling=10000}) are needed to ob
 \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus.
 The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
 
-\bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal outcome.\cr
+\bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint.\cr
 Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
 
-\bold{method.tte:} Pairs which can not be decidedly classified as favorable, unfavorable, or neutral because of censored observations can be classified uninformative (\code{method.tte="Gehan"}, Gehan 1965). 
-Another solution is to estimate the probability for such pair to be classified as favorable, unfavorable, or neutral based on the survival functions (\code{method.tte="Peron"}).
-\code{method.tte="Peron"} estimates these probabilities using separate Kaplan-Meier estimators of the survival functions for the two groups of patients. 
-Probabilities of survival beyond the last observation are set NA, resulting in a non null probability that the pair is informative.
-See Peron et al. (2016) for more details. \cr
-Due to the presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated. 
-\code{method.tte="Gehan corrected"} and \code{method.tte="Peron corrected"} aim at correcting this bias
-by multiplying the contribution of each pair by the inverse of the total number of pairs minus the number of uninformative pairs
-and setting the number of uninformative pairs to 0.
+\bold{method.tte:} the \code{method.tte="Peron"} is recommanded in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
+
+\bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
+Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
+Imputing the average score of the informative pairs (\code{correction.uninf=1}) gives equivalent results at the first endpoint but better behaves at latter endpoints.
+Note that both corrections will convert the whole proportion of uninformative pairs of a given endpoint into favorable, unfavorable, or neutral pairs.
 }
 \examples{
 # reset the default value of the number of permuation sample
