@@ -7,9 +7,9 @@
 \title{Summary Method for Class "BuyseRes"}
 \usage{
 \S4method{summary}{BuyseRes}(object, print = TRUE, percentage = TRUE,
-  statistic = NULL, conf.level = NULL, alternative = NULL,
-  method.boot = "percentile", strata = if (length(object@level.strata)
-  == 1) {     "global" } else {     NULL }, digit = c(2, 4))
+  statistic = NULL, conf.level = NULL, strata = if
+  (length(object@level.strata) == 1) {     "global" } else {     NULL },
+  digit = c(2, 4), ...)
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}
@@ -26,18 +26,11 @@ Default value read from \code{BuyseTest.options()}.}
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
-Default value read from \code{BuyseTest.options()}.}
-
-\item{method.boot}{[character] the method used to compute the boostrap confidence intervals and p-values.
-Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
-\code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.}
-
 \item{strata}{[character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.}
 
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
 
-\item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
+\item{...}{arguments to be passed to \code{confint}}
 }
 \description{
 Summarize the results from the \code{\link{BuyseTest}} function.
