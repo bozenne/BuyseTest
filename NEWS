@@ -1,5 +1,14 @@
 # -*- mode: org -*-
 
+* Version 1.5
+** User visble changes
+  - Argument statistic now takes values netBenefit or winRatio
+    (instead of netChance or winRatio).
+  - NEW FEATURE: standard errors/p.values/confidence intervals can now
+    be computed without resampling setting the option method.tte to asymptotic
+  - NEW FEATURE: a function powerBuyseTest has been added to perform
+    simulation studies with BuyseTest (e.g. compute power, coverage or bias).
+
 * Version 1.4
 ** User visble changes - BuyseTest function
   - NEW FEATURE: Instead of estimating the survival curves on the data
