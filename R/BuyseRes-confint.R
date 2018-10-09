@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  9 2018 (09:57) 
+## Last-Updated: okt  9 2018 (11:06) 
 ##           By: Brice Ozenne
-##     Update #: 200
+##     Update #: 205
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -292,7 +292,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
 
 ## * confint_Ustatistic (called by confint)
 confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, statistic,
-                               null, alternative, alpha,
+                               alternative, alpha,
                                endpoint, transformation, ...){
 
     n.endpoint <- length(endpoint)
@@ -314,10 +314,12 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
                 iSE <- outTable[iE,"se"] / (1+Delta[iE]^2)
                 iDelta <-  atanh(Delta[iE])
                 backtransform <- tanh
+                null <- atanh(0)
             }else{ ## on the original scale
                 iSE <- outTable[iE,"se"]
                 iDelta <- Delta[iE]
                 backtransform <- function(x){x}
+                null <- 0
             }
             
             ## on the logit scale
@@ -329,10 +331,12 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
                 iSE <- outTable[iE,"se"] / Delta[iE]
                 iDelta <-  log(Delta[iE])
                 backtransform <- exp
+                null <- log(1)
             }else{ ## on the original scale
                 iSE <- outTable[iE,"se"]
                 iDelta <- Delta[iE]
                 backtransform <- function(x){x}
+                null <- 1
             }
 
         }
@@ -346,9 +350,9 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
         
         ## *** p.value
         outTable[iE,"p.value"] <- switch(alternative,
-                                         "two.sided" = 2*(1-stats::pnorm(abs(iDelta/iSE - null))), ## 2*(1-pnorm(1.96))
-                                         "less" = stats::pnorm(iDelta/iSE - null), ## pnorm(1.96)
-                                         "greater" = 1-stats::pnorm(iDelta/iSE - null)
+                                         "two.sided" = 2*(1-stats::pnorm(abs((iDelta-null)/iSE))), ## 2*(1-pnorm(1.96))
+                                         "less" = stats::pnorm((iDelta-null)/iSE), ## pnorm(1.96)
+                                         "greater" = 1-stats::pnorm((iDelta-null)/iSE)
                                          )
     }
 

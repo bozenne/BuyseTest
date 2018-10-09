@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt  9 2018 (10:03) 
+## Last-Updated: okt  9 2018 (11:07) 
 ##           By: Brice Ozenne
-##     Update #: 156
+##     Update #: 157
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -259,7 +259,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                 pc.favorable = MresSample[,"favorable"]/MresSample[,"npairs"],
                                                 pc.unfavorable =  MresSample[,"unfavorable"]/MresSample[,"npairs"],
                                                 covariance = outCovariance$Sigma, statistic = iStatistic,
-                                                null = 0, alternative = alternative, alpha = alpha,
+                                                alternative = alternative, alpha = alpha,
                                                 endpoint = envir$outArgs$endpoint, transformation = transformation)
                 
                     iOut[iSample,paste0(iStatistic,".se")] <- outCI[1,"se"]

@@ -1,4 +1,4 @@
-% Created 2018-10-08 man 23:10
+% Created 2018-10-09 ti 10:45
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -85,7 +85,7 @@ emphstyle=\color{blue}
  pdftitle={Overview of the package BuyseTest},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.0.50 (Org mode 9.0.4)},
+ pdfcreator={Emacs 25.2.1 (Org mode 9.0.4)},
  pdflang={English}
  }
 \begin{document}
@@ -128,7 +128,7 @@ utils::packageVersion("BuyseTest")
 \end{lstlisting}
 
 \begin{verbatim}
-[1] '1.4.2'
+[1] '1.5.2'
 \end{verbatim}
 
 \vfill
@@ -137,7 +137,7 @@ utils::packageVersion("BuyseTest")
 \clearpage
 
 \section{Example data}
-\label{sec:org695a454}
+\label{sec:orgdbf5aa0}
 For this overview we will used the \texttt{veteran} dataset from the
 \textbf{survival} package:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -161,7 +161,7 @@ See \texttt{?veteran} for a presentation of the database.
 \clearpage
 
 \section{Perforing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:orga91b4aa}
+\label{sec:org57c486a}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -191,24 +191,28 @@ execution of \texttt{BuyseTest} much faster.}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT <- BuyseTest(data = veteran, 
-		endpoint = "time", 
-		type = "timeToEvent", 
-		treatment = "trt", 
-		censoring = "status", 
-		threshold = 20,
-		method.inference = "none")
+				endpoint = "time", 
+				type = "timeToEvent", 
+				treatment = "trt", 
+				censoring = "status", 
+				threshold = 20,
+				method.inference = "none")
 \end{lstlisting}
 
 \begin{verbatim}
-Settings (point estimation) 
-   > treatment groups: Control = 1 and Treatment = 2
-   > 1 endpoint: 
+         Generalized Pairwise Comparisons
+
+Settings 
+   - treatment groups: Control = 1 and Treatment = 2
+   - 1 endpoint: 
        priority endpoint type          operator            threshold censoring
        1        time     time to event higher is favorable 20        status   
-   > management of neutral pairs: re-analyzed using endpoints of lower priority (if any) 
-   > management of censored survival pairs: use Kaplan Meier survival curves to compute the score 
+   - management of neutral pairs: re-analyzed using endpoints of lower priority (if any) 
+   - management of censored survival pairs: use Kaplan Meier survival curves to compute the score 
 
-Point estimation (done)
+Point estimation
+
+Gather the results in a BuyseRes object
 \end{verbatim}
 
 \clearpage
@@ -227,7 +231,7 @@ type:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
-		  data = veteran, trace = 0, method.inference = "none")
+				  data = veteran, trace = 0, method.inference = "none")
 \end{lstlisting}
 
 Here we set in addition the argument \texttt{trace} to 0 to force the
@@ -239,7 +243,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:orgf2fec6d}
+\label{sec:org6ce5eab}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -250,7 +254,7 @@ summary(BT)
 \begin{verbatim}
        Generalized pairwise comparison with 1 prioritized endpoint
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > censored pairs  : use Kaplan Meier survival curves to compute the score
@@ -270,7 +274,7 @@ summary(BT, percentage = FALSE)
 \begin{verbatim}
        Generalized pairwise comparison with 1 prioritized endpoint
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > censored pairs  : use Kaplan Meier survival curves to compute the score
@@ -279,9 +283,9 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
     time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
 \end{verbatim}
 
-By default \texttt{summary} displays results relative to the statistic "net
-chance of a better outcome". To get results for the win ratio set the
-argument \texttt{statistic} to "winRatio":
+By default \texttt{summary} displays results relative to the net benefit. To
+get results for the win ratio set the argument \texttt{statistic} to
+"winRatio":
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 summary(BT, statistic = "winRatio")
@@ -304,14 +308,14 @@ permutation test) in the stratified analysis, we do not get confidence
 intervals or p.values when calling the \texttt{summary} method.
 
 \subsection{Using multiple endpoints}
-\label{sec:org27f8899}
+\label{sec:org4a9e80b}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, just add
 another endpoint at then end of the formula:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.multi <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status",) + cont(karno, threshold = 0),
-		      data = veteran, method.inference = "none", trace = 0)
+					  data = veteran, method.inference = "none", trace = 0)
 \end{lstlisting}
 
 The hierarchie of the endpoint is defined from left (most important
@@ -319,14 +323,14 @@ endpoint, here \texttt{time}) to right (least important endpoint, here
 \texttt{karno}).
 
 \subsection{What if smaller is better?}
-\label{sec:org341264b}
+\label{sec:org41d9352}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BTinv <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "<0"),
-		   data = veteran, method.inference = "none", trace = 0)
+				   data = veteran, method.inference = "none", trace = 0)
 BTinv
 \end{lstlisting}
 
@@ -342,7 +346,7 @@ different operators:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 try(BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "<0") + tte(time, 10, "status", ">0"),
-	      data = veteran, method.inference = "none", trace = 0))
+			  data = veteran, method.inference = "none", trace = 0))
 \end{lstlisting}
 
 \begin{verbatim}
@@ -352,7 +356,7 @@ Error in (function (alternative, name.call, censoring, correction.uninf,  :
 
 
 \subsection{Stratified GPC}
-\label{sec:orgc77170d}
+\label{sec:org2774ee8}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -366,7 +370,7 @@ adding a single variable in the right hand side of the formula:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0) + celltype,
-		 data = veteran, trace = 0, method.inference = "none")
+				 data = veteran, trace = 0, method.inference = "none")
 \end{lstlisting}
 
 The fact the it is not wrapped by \texttt{bin}, \texttt{cont} or \texttt{tte} indicates
@@ -381,7 +385,7 @@ summary(BT2)
 \begin{verbatim}
        Generalized pairwise comparison with 2 prioritized endpoints and 4 strata
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > censored pairs  : use Kaplan Meier survival curves to compute the score
@@ -408,16 +412,16 @@ empirical proportion of pairs for each strata.
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:orge79b45e}
+\label{sec:org2595da2}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 dt.sim <- data.table(Id = 1:2,
-		     treatment = c("Yes","No"),
-		     tumor = c("Yes","Yes"),
-		     size = c(15,20))
+					 treatment = c("Yes","No"),
+					 tumor = c("Yes","Yes"),
+					 size = c(15,20))
 dt.sim
 \end{lstlisting}
 
@@ -432,14 +436,14 @@ second endpoint:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.pair <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
-		     trace = 0, method.inference = "none")
+					 trace = 0, method.inference = "none")
 summary(BT.pair)
 \end{lstlisting}
 
 \begin{verbatim}
        Generalized pairwise comparison with 2 prioritized endpoints
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: No (control) vs. Yes (treatment) 
 > results
@@ -455,14 +459,14 @@ when a pair is classified as neutral:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.pair2 <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
-		     trace = 0, method.inference = "none", neutral.as.uninf = FALSE)
+					 trace = 0, method.inference = "none", neutral.as.uninf = FALSE)
 summary(BT.pair2)
 \end{lstlisting}
 
 \begin{verbatim}
        Generalized pairwise comparison with 2 prioritized endpoints
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: No (control) vs. Yes (treatment) 
 > results
@@ -474,21 +478,21 @@ endpoint threshold total favorable unfavorable neutral uninf delta Delta
 So in this case no pair is analyzed at second priority.
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:orgd91977b}
+\label{sec:orgd20190c}
 
 P-values can be estimated via a permutation test:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
-		     data = veteran, trace = 0, method.inference = "permutation",
-		     n.resampling = 10) 
+					 data = veteran, trace = 0, method.inference = "permutation",
+					 n.resampling = 10) 
 summary(BT.perm)
 \end{lstlisting}
 
 \begin{verbatim}
         Generalized pairwise comparison with 1 prioritized endpoint
 
- > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > permutation test: 10 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
@@ -512,15 +516,15 @@ the argument \texttt{method.inference} to \texttt{"bootstrap"} when calling
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
-		     data = veteran, trace = 0, method.inference = "bootstrap",
-		     n.resampling = 10) 
+					 data = veteran, trace = 0, method.inference = "bootstrap",
+					 n.resampling = 10) 
 summary(BT.boot)
 \end{lstlisting}
 
 \begin{verbatim}
        Generalized pairwise comparison with 1 prioritized endpoint
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > bootstrap resampling: 10 samples, confidence level 0.95 
 > treatment groups: 1 (control) vs. 2 (treatment) 
@@ -536,7 +540,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org6c6c829}
+\label{sec:org275c1f0}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -545,17 +549,17 @@ what the sofware is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orgc3893d0}
-The net chance of better outcome or the win ratio statistics can be
-expressed as a sum of a score over all pairs of patients. The argument
-\texttt{keep.pairScore} enables to export the score relative to each pair in
-the output of BuyseTest:
+\label{sec:org6b7b343}
+The net benefit or the win ratio statistics can be expressed as a sum
+of a score over all pairs of patients. The argument \texttt{keep.pairScore}
+enables to export the score relative to each pair in the output of
+BuyseTest:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 form <- trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno)
 BT.keep <- BuyseTest(form,
-		     data = veteran, keep.pairScore = TRUE, 
-		     trace = 0, method.inference = "none")
+					 data = veteran, keep.pairScore = TRUE, 
+					 trace = 0, method.inference = "none")
 \end{lstlisting}
 
 The method \texttt{getPairScore} can then be used to extract the contribution
@@ -643,7 +647,7 @@ More examples and explaination can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:orgb4e1cc7}
+\label{sec:orge55fc53}
 When using \texttt{method.tte} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -653,8 +657,8 @@ output of BuyseTest:
 \begin{lstlisting}
 BuyseTest.options(keep.survival = TRUE)
 BT.keep2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
-		      data = veteran, keep.pairScore = TRUE, method.tte = "Peron",
-		      trace = 0, method.inference = "none")
+					  data = veteran, keep.pairScore = TRUE, method.tte = "Peron",
+					  trace = 0, method.inference = "none")
 \end{lstlisting}
 
 The method \texttt{getSurvival} can then be used to extract these survival
@@ -689,7 +693,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org982d9ef}
+\label{sec:org55a6faa}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -790,7 +794,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:orgc888d6c}
+\label{sec:org7c02ba3}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -862,7 +866,7 @@ favorable unfavorable
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org56a88b1}
+\label{sec:orgaf42943}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -876,7 +880,7 @@ following dataset:
 \begin{lstlisting}
 set.seed(10)
 dt <- simBuyseTest(5e2, latent = TRUE, argsCont = NULL,
-		   argsTTE = list(rates.T = 2, rates.C = 1, rates.Censoring = 3))
+				   argsTTE = list(rates.T = 2, rates.C = 1, rates.Censoring = 3))
 dt[, status1 := 1]
 head(dt)
 \end{lstlisting}
@@ -906,8 +910,8 @@ We would like to be able to recover the net benefit estimated with the uncensore
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BuyseTest(Treatment ~ tte(eventtimeUncensored, status1, threshold = 1),
-	  data = dt,
-	  method.tte = "Gehan", method.inference = "none", trace = 0)
+		  data = dt,
+		  method.tte = "Gehan", method.inference = "none", trace = 0)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -919,8 +923,8 @@ using the censored survival times:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
-	  data = dt,
-	  method.tte = "Gehan", method.inference = "none", trace = 0)
+		  data = dt,
+		  method.tte = "Gehan", method.inference = "none", trace = 0)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -931,7 +935,7 @@ eventtime         1 0.1363 0.1363
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:org2f5649f}
+\label{sec:orgb448a48}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -940,15 +944,15 @@ estimate much closer to the true net benefit:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT <- BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
-		data = dt, keep.pairScore = TRUE, trace = 0,
-		method.tte = "Gehan", method.inference = "none", correction.uninf = 2)
+				data = dt, keep.pairScore = TRUE, trace = 0,
+				method.tte = "Gehan", method.inference = "none", correction.uninf = 2)
 summary(BT)
 \end{lstlisting}
 
 \begin{verbatim}
        Generalized pairwise comparison with 1 prioritized endpoint
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: C (control) vs. T (treatment) 
 > censored pairs  : uninformative pairs
@@ -1001,7 +1005,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:org0cf9c6f}
+\label{sec:orgbfd8443}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1009,15 +1013,15 @@ probability observed on the sample:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT <- BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
-		data = dt, keep.pairScore = TRUE, trace = 0,
-		method.tte = "Gehan", method.inference = "none", correction.uninf = TRUE)
+				data = dt, keep.pairScore = TRUE, trace = 0,
+				method.tte = "Gehan", method.inference = "none", correction.uninf = TRUE)
 summary(BT)
 \end{lstlisting}
 
 \begin{verbatim}
        Generalized pairwise comparison with 1 prioritized endpoint
 
-> statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+> statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: C (control) vs. T (treatment) 
 > censored pairs  : uninformative pairs
@@ -1053,8 +1057,8 @@ informative pairs, but for the non-informative they have been set to:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 iScore[, .(favorable = weighted.mean(favorable, w = 1-uninformative), 
-	   unfavorable = weighted.mean(unfavorable, w = 1-uninformative), 
-	   neutral = weighted.mean(neutral, w = 1-uninformative))]
+		   unfavorable = weighted.mean(unfavorable, w = 1-uninformative), 
+		   neutral = weighted.mean(neutral, w = 1-uninformative))]
 \end{lstlisting}
 
 \begin{verbatim}
@@ -1064,7 +1068,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninformative),
 
 \clearpage
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orgeab0850}
+\label{sec:org701c54f}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1097,10 +1101,10 @@ arm and 10 in the control arm all with variance 1:
 \begin{lstlisting}
 set.seed(10)
 argsCont <- list(mu.T = c(5,5), mu.C = c(10,10), 
-		 sigma.T = c(1,1), sigma.C = c(1,1),
-		 name = c("tumorSize","score"))
+				 sigma.T = c(1,1), sigma.C = c(1,1),
+				 name = c("tumorSize","score"))
 dt <- simBuyseTest(n.T = 5, n.C = 5,
-		   argsCont = argsCont)
+				   argsCont = argsCont)
 dt
 \end{lstlisting}
 
@@ -1123,7 +1127,7 @@ package (\url{https://github.com/kkholst/lava})
 
 \clearpage
 \section{Modifying default options}
-\label{sec:org16f4434}
+\label{sec:orga32506c}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1152,7 +1156,7 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 \section{Information about the R session used for this document}
-\label{sec:orgab0742e}
+\label{sec:org9f20988}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1160,7 +1164,7 @@ sessionInfo()
 \end{lstlisting}
 
 \begin{verbatim}
-R version 3.4.0 (2017-04-21)
+R version 3.5.1 (2018-07-02)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 7 x64 (build 7601) Service Pack 1
 
@@ -1175,12 +1179,24 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] BuyseTest_1.4.2   data.table_1.11.4 Rcpp_0.12.17      prodlim_1.6.1    
+ [1] BuyseTest_1.5.2     testthat_2.0.0      data.table_1.11.8   Rcpp_0.12.19       
+ [5] prodlim_2018.04.18  spelling_1.2        roxygen2_6.1.0.9000 butils.base_1.1    
+ [9] XML_3.98-1.16       selectr_0.4-1       devtools_1.13.6    
 
 loaded via a namespace (and not attached):
- [1] lattice_0.20-35    grid_3.4.0         R6_2.2.1           stats4_3.4.0      
- [5] magrittr_1.5       KernSmooth_2.23-15 rlang_0.2.0        testthat_2.0.0    
- [9] Matrix_1.2-9       lava_1.6.1         splines_3.4.0      tools_3.4.0       
-[13] survival_2.41-3    parallel_3.4.0     compiler_3.4.0
+ [1] compiler_3.5.1            pipeR_0.6.1.3             iterators_1.0.10         
+ [4] base64enc_0.1-3           tools_3.5.1               digest_0.6.17            
+ [7] pkgbuild_1.0.1            pkgload_1.0.0             memoise_1.1.0            
+[10] lattice_0.20-35           rlang_0.2.2               foreach_1.4.4            
+[13] Matrix_1.2-14             commonmark_1.6            parallel_3.5.1           
+[16] RcppArmadillo_0.9.100.5.0 withr_2.1.2               httr_1.3.1               
+[19] stringr_1.3.1             xml2_1.2.0                desc_1.2.0               
+[22] stats4_3.5.1              rprojroot_1.3-2           grid_3.5.1               
+[25] R6_2.2.2                  processx_3.2.0            survival_2.42-6          
+[28] lava_1.6.3                purrr_0.2.5               callr_3.0.0              
+[31] magrittr_1.5              codetools_0.2-15          splines_3.5.1            
+[34] ps_1.1.0                  backports_1.1.2           assertthat_0.2.0         
+[37] rvest_0.3.2               KernSmooth_2.23-15        stringi_1.2.4            
+[40] doParallel_1.0.14         crayon_1.3.4              zoo_1.8-4
 \end{verbatim}
 \end{document}

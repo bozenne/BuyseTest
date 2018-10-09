@@ -16,14 +16,9 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
-#' Default value read from \code{BuyseTest.options()}.
-#' @param method.boot [character] the method used to compute the boostrap confidence intervals and p-values.
-#' Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
-#' \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.
 #' @param strata [character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.
 #' @param digit [integer vector] the number of digit to use for printing the counts and the delta.  
-#' @param ... arguments to be passed from the generic method to the class specific method [not relevant to the user]
+#' @param ... arguments to be passed to \code{confint}
 #'
 #' @details 
 #' When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
@@ -61,11 +56,10 @@
 #' @exportMethod summary
 setMethod(f = "summary",
           signature = "BuyseRes",
-          definition = function(object, print = TRUE, percentage = TRUE,
-                                statistic = NULL, conf.level = NULL, alternative = NULL,
-                                method.boot = "percentile",
+          definition = function(object, print = TRUE, percentage = TRUE, statistic = NULL,
+                                conf.level = NULL,
                                 strata = if(length(object@level.strata)==1){"global"}else{NULL},                                
-                                digit = c(2,4)){
+                                digit = c(2,4), ...){
 
               ## ** normalize and check arguments
               option <- BuyseTest.options()
@@ -74,9 +68,6 @@ setMethod(f = "summary",
               }
               if(is.null(conf.level)){
                   conf.level <- option$conf.level
-              }
-              if(is.null(alternative)){
-                  alternative <- option$alternative
               }
               
               validLogical(print,
@@ -131,11 +122,7 @@ setMethod(f = "summary",
               alpha <- 1-conf.level
 
               ## ** compute confidence intervals and p-values
-              outConfint <- confint(object,
-                                    method.boot = method.boot,
-                                    statistic = statistic,
-                                    conf.level = conf.level,
-                                    alternative = alternative)
+              outConfint <- confint(object, conf.level = conf.level, statistic = statistic, ...)
           
               ## ** generate summary table
               ## *** prepare
