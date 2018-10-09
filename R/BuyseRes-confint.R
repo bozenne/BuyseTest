@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  3 2018 (23:19) 
+## Last-Updated: okt  9 2018 (08:21) 
 ##           By: Brice Ozenne
-##     Update #: 183
+##     Update #: 188
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,10 +28,14 @@
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
 #' \code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)),
 #' whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
+#' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param method.boot [character] the method used to compute the boostrap confidence intervals and p-values.
 #' Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
 #' \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.
@@ -62,12 +66,26 @@
 setMethod(f = "confint",
           signature = "BuyseRes",
           definition = function(object,
-                                statistic = BuyseTest.options()$statistic,
-                                conf.level = 0.95,
-                                alternative = "two.sided",
+                                statistic = NULL,
+                                conf.level = NULL,
+                                alternative = NULL,
                                 method.boot = "percentile",
-                                transformation = TRUE){
+                                transformation = NULL){
 
+              option <- BuyseTest.options()
+              if(is.null(statistic)){
+                  statistic <- option$statistic
+              }
+              if(is.null(transformation)){
+                  transformation <- option$transformation
+              }
+              if(is.null(conf.level)){
+                  conf.level <- option$conf.level
+              }
+              if(is.null(alternative)){
+                  alternative <- option$alternative
+              }
+              
               ## ** normalize and check arguments
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netchance" = "netChance",

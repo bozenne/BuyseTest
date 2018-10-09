@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt  8 2018 (23:07) 
+## Last-Updated: okt  9 2018 (08:24) 
 ##           By: Brice Ozenne
-##     Update #: 114
+##     Update #: 133
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,9 +35,14 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
+#' Default value read from \code{BuyseTest.options()}.
 #' @param seed [integer, >0] the seed to consider for the simulation study.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param trace [integer] should the execution of the function be traced?
+#' @param transformation [logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
+#' Otherwise they are computed without any transformation.
+#' Default value read from \code{BuyseTest.options()}.
 #' @param ... parameters from \code{BuyseTest}.
 #' 
 
@@ -52,22 +57,29 @@
 ##' return(out)
 ##' }
 ##'
-##' \dontrun{
-##' evalBuyseTest(sim = simFCT, sample.size = c(10,100), n.rep = 2,
+##' evalBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
 ##'               formula = T ~ cont(Y), method.inference = "asymptotic", trace = 4)
-##' }
 ##' 
 
 ## * evalBuyseTest (code)
 ##' @rdname evalBuyseTest
 ##' @export
 evalBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL, n.rep, cpus = 1,                          
-                          alternative = "two.sided", seed = NULL, conf.level = 0.95, trace = 1, ...){
+                          alternative = NULL, seed = 10, conf.level = NULL, transformation = NULL, trace = 1, ...){
 
     name.call <- names(match.call())
     option <- BuyseTest.options()
     alpha <- 1 - conf.level
-        
+    if(is.null(transformation)){
+        transformation <- option$transformation
+    }
+    if(is.null(conf.level)){
+        conf.level <- option$conf.level
+    }
+    if(is.null(alternative)){
+        alternative <- option$alternative
+    }
+    
     if("keep.pairScore" %in% name.call){
         stop("\'keep.pairScore\' is not an argument of evalBuyseTest \n")
     }
@@ -186,6 +198,7 @@ evalBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = 
         ## *** put results into a data.table
         envir$indexT <- which(envir$outArgs$data[[envir$outArgs$treatment]]==1)
         envir$indexC <- which(envir$outArgs$data[[envir$outArgs$treatment]]==0)
+        ## outPoint$tableScore[[1]]
 
         tablePairScore <- pairScore2dt(outPoint$tableScore,
                                        level.treatment = envir$outArgs$level.treatment,
@@ -193,8 +206,8 @@ evalBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = 
                                        n.strata = envir$outArgs$n.strata,
                                        endpoint = envir$outArgs$endpoint,
                                        threshold = envir$outArgs$threshold,
-                                       indexT = envir$envir$indexT,
-                                       indexC = envir$envir$indexC)
+                                       indexT = envir$indexT,
+                                       indexC = envir$indexC)
 
         for(iSample in 1:n.sample.size){ ## iSample <- 1
             iOut[iSample,"simulation"] <- i
@@ -222,14 +235,15 @@ evalBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = 
                                                      count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
                                                      count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
                                                      n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
-                                                     n.C = envir$sample.sizeC[iSample], n.T = envir$sample.sizeT[iSample],
+                                                     n.C = envir$sample.sizeC[iSample],
+                                                     n.T = envir$sample.sizeT[iSample],
                                                      n.strata = envir$outArgs$n.strata,
                                                      n.endpoint = length(envir$outArgs$endpoint),
                                                      endpoint = envir$outArgs$endpoint)
 
-                outCI <- confint_Ustatistic(Delta = iOut[iSample,"netChance"], covariance = outCovariance, statistic = "netChance",
+                outCI <- confint_Ustatistic(Delta = iOut[iSample,"netChance"], covariance = outCovariance$Sigma, statistic = "netChance",
                                             null = 0, alternative = alternative, alpha = alpha,
-                                            endpoint = envir$outArgs$endpoint)
+                                            endpoint = envir$outArgs$endpoint, transformation = transformation)
                 iOut[iSample,"netChance.se"] <- outCI[1,"se"]
                 iOut[iSample,"netChance.lower"] <- outCI[1,"lower.ci"]
                 iOut[iSample,"netChance.upper"] <- outCI[1,"upper.ci"]
@@ -292,7 +306,6 @@ evalBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = 
 
         parallel::stopCluster(cl)
         if(trace>0){close(pb)}
-        browser()
     }
 
     ## ** export

@@ -5,8 +5,8 @@
 \title{Performing simulation studies with BuyseTest}
 \usage{
 evalBuyseTest(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL,
-  n.rep, cpus = 1, alternative = "two.sided", seed = NULL,
-  conf.level = 0.95, trace = 1, ...)
+  n.rep, cpus = 1, alternative = NULL, seed = 10, conf.level = NULL,
+  transformation = NULL, trace = 1, ...)
 }
 \arguments{
 \item{sim}{[function] take two arguments:
@@ -27,11 +27,17 @@ Only the permutation test can use parallel computation.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{alternative}{[character] the alternative hypothesis.
-Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
+Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
+Default value read from \code{BuyseTest.options()}.}
 
 \item{seed}{[integer, >0] the seed to consider for the simulation study.}
 
-\item{conf.level}{[numeric] confidence level for the confidence intervals.}
+\item{conf.level}{[numeric] confidence level for the confidence intervals.
+Default value read from \code{BuyseTest.options()}.}
+
+\item{transformation}{[logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
+Otherwise they are computed without any transformation.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{trace}{[integer] should the execution of the function be traced?}
 
@@ -50,9 +56,7 @@ simFCT <- function(n.C, n.T){
 return(out)
 }
 
-\dontrun{
-evalBuyseTest(sim = simFCT, sample.size = c(10,100), n.rep = 2,
+evalBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
               formula = T ~ cont(Y), method.inference = "asymptotic", trace = 4)
-}
 
 }

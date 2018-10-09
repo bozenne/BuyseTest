@@ -32,6 +32,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
   if (reinitialise == TRUE) {
     assign(".BuyseTest-options", 
            new("BuyseTest.options",
+               alternative = "two.sided",
                check = TRUE,
                conf.level = 0.95,
                cpus = 1,
@@ -42,8 +43,8 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                correction.uninf = FALSE,               
                n.resampling = 1000,
                neutral.as.uninf = TRUE,
-               seed = 10,
                statistic = "netChance",               
+               transformation = FALSE,               
                trace = 2), 
            envir = BuyseTest.env)
     

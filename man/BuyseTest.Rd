@@ -8,8 +8,8 @@ BuyseTest(formula, data, method.tte = NULL, correction.uninf = NULL,
   model.tte = NULL, method.inference = NULL, n.resampling = NULL,
   neutral.as.uninf = NULL, keep.pairScore = NULL, treatment = NULL,
   endpoint = NULL, type = NULL, threshold = NULL, censoring = NULL,
-  operator = NULL, strata = NULL, alternative = "two.sided",
-  seed = NULL, cpus = NULL, trace = NULL, keep.comparison)
+  operator = NULL, strata = NULL, alternative = NULL, seed = 10,
+  cpus = NULL, trace = NULL, keep.comparison)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
@@ -66,10 +66,11 @@ Disregarded if the argument \code{formula} is defined.}
 Disregarded if the argument \code{formula} is defined.}
 
 \item{alternative}{[character] the alternative hypothesis.
-Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.}
+Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{seed}{[integer, >0] the seed to consider for the permutation test.
-Default value read from \code{BuyseTest.options()}.}
+If \code{NULL} no seed is set.}
 
 \item{cpus}{[integer, >0] the number of CPU to use.
 Only the permutation test can use parallel computation.

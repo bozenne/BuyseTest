@@ -42,9 +42,10 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
 #' @param alternative [character] the alternative hypothesis.
-#' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
-#' @param seed [integer, >0] the seed to consider for the permutation test.
+#' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param seed [integer, >0] the seed to consider for the permutation test.
+#' If \code{NULL} no seed is set.
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
 #' Default value read from \code{BuyseTest.options()}.
@@ -201,8 +202,8 @@ BuyseTest <- function(formula,
                       censoring = NULL,
                       operator = NULL,
                       strata = NULL, 
-                      alternative = "two.sided", 
-                      seed = NULL,
+                      alternative = NULL, 
+                      seed = 10,
                       cpus = NULL,
                       trace = NULL,
                       keep.comparison){

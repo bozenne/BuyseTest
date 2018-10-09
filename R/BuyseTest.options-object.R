@@ -19,6 +19,7 @@ setClass(
   Class = "BuyseTest.options",
   
   representation(
+      alternative = "character",
       check = "logical",
       conf.level = "numeric",
       correction.uninf = "logical",
@@ -29,13 +30,18 @@ setClass(
       method.tte = "character",
       n.resampling = "numeric",
       neutral.as.uninf = "logical",
-      seed = "numeric",
       statistic = "character",
-      trace = "numeric"
+      trace = "numeric",
+      transformation = "logical"
   ),
 
 ### ** Check validity of the object
   validity = function(object){
+      validCharacter(object@alternative,
+                     name1 = "@alternative",
+                     valid.values = c("two.sided","greater","less"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
       validLogical(object@check,
                    name1 = "@check",
                    valid.length = 1,
@@ -84,11 +90,6 @@ setClass(
                    name1 = "@neutral.as.uninf",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
-      validInteger(object@seed,
-                   name1 = "@seed",
-                   min = 1,
-                   valid.length = 1,
-                   method = "Class BuyseTest.options")
       validCharacter(object@statistic,
                      name1 = "@statistic",
                      valid.values = c("netChance","winRatio"),
@@ -97,6 +98,10 @@ setClass(
       validInteger(object@trace,
                    name1 = "@trace",
                    min = 0, max = 2,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validLogical(object@transformation,
+                   name1 = "@transformation",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       return(TRUE)} 

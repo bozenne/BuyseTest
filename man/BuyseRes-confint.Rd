@@ -7,28 +7,30 @@
 \alias{confint,BuyseRes-method}
 \title{Confidence Intervals for Model Parameters}
 \usage{
-\S4method{confint}{BuyseRes}(object,
-  statistic = BuyseTest.options()$statistic, conf.level = 0.95,
-  alternative = "two.sided", method.boot = "percentile",
-  transformation = TRUE)
+\S4method{confint}{BuyseRes}(object, statistic = NULL, conf.level = NULL,
+  alternative = NULL, method.boot = "percentile", transformation = NULL)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
 
 \item{statistic}{[character] the statistic summarizing the pairwise comparison:
 \code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)),
-whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).}
+whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
+Default value read from \code{BuyseTest.options()}.}
 
-\item{conf.level}{[numeric] confidence level for the confidence intervals.}
+\item{conf.level}{[numeric] confidence level for the confidence intervals.
+Default value read from \code{BuyseTest.options()}.}
 
-\item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.}
+\item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{method.boot}{[character] the method used to compute the boostrap confidence intervals and p-values.
 Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
 \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.}
 
 \item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
-Otherwise they are computed without any transformation.}
+Otherwise they are computed without any transformation.
+Default value read from \code{BuyseTest.options()}.}
 }
 \value{
 A matrix containing a column for the estimated statstic (over all strata),

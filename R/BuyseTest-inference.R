@@ -98,7 +98,7 @@ inferenceResampling <- function(envir){
 }
 
 
-## * Inference U-statistic
+## * inference U-statistic
 inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorable,
                                 n.pairs, n.C, n.T, n.strata, n.endpoint, endpoint){
     . <- NULL ## for CRAN test
@@ -117,7 +117,6 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
     setnames(ls.table[[1]], old = old.col, new = new.col)
     
     if(n.endpoint>1){
-
         ##
         n.TCstrata <- tablePairScore[[1]][,length(unique(.SD$indexWithinStrata.C)), by = "strata"][[2]]
 
@@ -265,7 +264,7 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
                    covariance = 1/m * xi_10_12 + 1/n * xi_01_12)
     ## crossprod(cbind(M.iid.favorable,M.iid.unfavorable))
 
-    if((M.cov[1,"favorable"] + M.cov[1,"unfavorable"] - 2 * M.cov[1,"covariance"]) <= 0){
+    if(any((M.cov[,"favorable"] + M.cov[,"unfavorable"] - 2 * M.cov[,"covariance"]) <= 0)){
         warning("Non positive definite covariance matrix")
     }
 
