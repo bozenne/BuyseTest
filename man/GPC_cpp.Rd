@@ -2,14 +2,13 @@
 % Please edit documentation in R/RcppExports.R
 \name{GPC_cpp}
 \alias{GPC_cpp}
-\alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
 GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
   delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme,
   index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionUninf,
-  neutralAsUninf, keepScore)
+  list_survJumpC, list_survJumpT, list_lastSurv, methodTTE,
+  correctionUninf, neutralAsUninf, keepScore)
 }
 \arguments{
 \item{Control}{A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.}

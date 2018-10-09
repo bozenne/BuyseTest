@@ -7,14 +7,15 @@
 \alias{confint,BuyseRes-method}
 \title{Confidence Intervals for Model Parameters}
 \usage{
-\S4method{confint}{BuyseRes}(object, statistic = NULL, conf.level = NULL,
-  alternative = NULL, method.boot = "percentile", transformation = NULL)
+\S4method{confint}{BuyseRes}(object, statistic = NULL,
+  conf.level = NULL, alternative = NULL, method.boot = "percentile",
+  transformation = NULL)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
 
 \item{statistic}{[character] the statistic summarizing the pairwise comparison:
-\code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)),
+\code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
 whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
 Default value read from \code{BuyseTest.options()}.}
 
@@ -39,7 +40,7 @@ When using resampling methods,
 an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.
 }
 \description{
-Computes confidence intervals for net chance statistic or the win ratio statistic.
+Computes confidence intervals for net benefit statistic or the win ratio statistic.
 }
 \details{
 When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.

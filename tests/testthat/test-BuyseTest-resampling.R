@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: sep 23 2018 (11:33) 
+## last-updated: okt  9 2018 (10:22) 
 ##           By: Brice Ozenne
-##     Update #: 81
+##     Update #: 82
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -67,24 +67,24 @@ test_that("permutation", {
     ##                            c   2.62      0.50        0.61    1.51  0.00 -0.0012     NA                          
     ## NOTE: confidence intervals computed under the null hypothesis
     
-    p.value <- c(mean(abs(BT.perm@Delta.netChance[1]) < abs(BT.perm@DeltaResampling.netChance[1,])),
-                 mean(abs(BT.perm@Delta.netChance[2]) < abs(BT.perm@DeltaResampling.netChance[2,])))
+    p.value <- c(mean(abs(BT.perm@Delta.netBenefit[1]) < abs(BT.perm@DeltaResampling.netBenefit[1,])),
+                 mean(abs(BT.perm@Delta.netBenefit[2]) < abs(BT.perm@DeltaResampling.netBenefit[2,])))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
     ## ** summary (greater)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT.perm@Delta.netChance[1] < BT.perm@DeltaResampling.netChance[1,]),
-                 mean(BT.perm@Delta.netChance[2] < BT.perm@DeltaResampling.netChance[2,]))
+    p.value <- c(mean(BT.perm@Delta.netBenefit[1] < BT.perm@DeltaResampling.netBenefit[1,]),
+                 mean(BT.perm@Delta.netBenefit[2] < BT.perm@DeltaResampling.netBenefit[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
     ## ** summary (less)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "less")
     
-    p.value <- c(mean(BT.perm@Delta.netChance[1] > BT.perm@DeltaResampling.netChance[1,]),
-                 mean(BT.perm@Delta.netChance[2] > BT.perm@DeltaResampling.netChance[2,]))
+    p.value <- c(mean(BT.perm@Delta.netBenefit[1] > BT.perm@DeltaResampling.netBenefit[1,]),
+                 mean(BT.perm@Delta.netBenefit[2] > BT.perm@DeltaResampling.netBenefit[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
     
@@ -99,12 +99,12 @@ test_that("permutation", {
                               data = dt.perm, method.tte = method,
                               method.inference = "none")
 
-        expect_equal(as.double(iBT.perm@delta.netChance),
-                     as.double(BT.perm@deltaResampling.netChance[,,iResample]))
+        expect_equal(as.double(iBT.perm@delta.netBenefit),
+                     as.double(BT.perm@deltaResampling.netBenefit[,,iResample]))
         expect_equal(as.double(iBT.perm@delta.winRatio),
                      as.double(BT.perm@deltaResampling.winRatio[,,iResample]))
-        expect_equal(as.double(iBT.perm@Delta.netChance),
-                     as.double(BT.perm@DeltaResampling.netChance[,iResample]))
+        expect_equal(as.double(iBT.perm@Delta.netBenefit),
+                     as.double(BT.perm@DeltaResampling.netBenefit[,iResample]))
         expect_equal(as.double(iBT.perm@Delta.winRatio),
                      as.double(BT.perm@DeltaResampling.winRatio[,iResample]))
     }
@@ -149,24 +149,24 @@ test_that("stratified permutation", {
  ##                           b   0.00      0.00        0.00       0   0.0  0.000                               
  ##                           c   2.20      2.20        0.00       0   0.0  0.022
 
-    p.value <- c(mean(abs(BT.perm@Delta.netChance[1]) < abs(BT.perm@DeltaResampling.netChance[1,])),
-                 mean(abs(BT.perm@Delta.netChance[2]) < abs(BT.perm@DeltaResampling.netChance[2,])))
+    p.value <- c(mean(abs(BT.perm@Delta.netBenefit[1]) < abs(BT.perm@DeltaResampling.netBenefit[1,])),
+                 mean(abs(BT.perm@Delta.netBenefit[2]) < abs(BT.perm@DeltaResampling.netBenefit[2,])))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
     ## ** summary (greater)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT.perm@Delta.netChance[1] < BT.perm@DeltaResampling.netChance[1,]),
-                 mean(BT.perm@Delta.netChance[2] < BT.perm@DeltaResampling.netChance[2,]))
+    p.value <- c(mean(BT.perm@Delta.netBenefit[1] < BT.perm@DeltaResampling.netBenefit[1,]),
+                 mean(BT.perm@Delta.netBenefit[2] < BT.perm@DeltaResampling.netBenefit[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
        ## ** summary (less)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "less")
     
-    p.value <- c(mean(BT.perm@Delta.netChance[1] > BT.perm@DeltaResampling.netChance[1,]),
-                 mean(BT.perm@Delta.netChance[2] > BT.perm@DeltaResampling.netChance[2,]))
+    p.value <- c(mean(BT.perm@Delta.netBenefit[1] > BT.perm@DeltaResampling.netBenefit[1,]),
+                 mean(BT.perm@Delta.netBenefit[2] > BT.perm@DeltaResampling.netBenefit[2,]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
     
@@ -180,12 +180,12 @@ test_that("stratified permutation", {
                              data = dt.perm, method.tte = method,
                              method.inference = "none")
 
-        expect_equal(as.double(iBT.perm@delta.netChance),
-                     as.double(BT.perm@deltaResampling.netChance[,,iResample]))
+        expect_equal(as.double(iBT.perm@delta.netBenefit),
+                     as.double(BT.perm@deltaResampling.netBenefit[,,iResample]))
         expect_equal(as.double(iBT.perm@delta.winRatio),
                      as.double(BT.perm@deltaResampling.winRatio[,,iResample]))
-        expect_equal(as.double(iBT.perm@Delta.netChance),
-                     as.double(BT.perm@DeltaResampling.netChance[,iResample]))
+        expect_equal(as.double(iBT.perm@Delta.netBenefit),
+                     as.double(BT.perm@DeltaResampling.netBenefit[,iResample]))
         expect_equal(as.double(iBT.perm@Delta.winRatio),
                      as.double(BT.perm@DeltaResampling.winRatio[,iResample]))
     }
@@ -220,7 +220,7 @@ test_that("Bootstrap", {
     BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
                          data = dt.sim, method.tte = method, seed = 10, 
                          method.inference = "bootstrap", n.resampling = 20)
-    tol.boot <- 1.1/NCOL(BT.boot@DeltaResampling.netChance)  ## ok to have a difference of 1 unit
+    tol.boot <- 1.1/NCOL(BT.boot@DeltaResampling.netBenefit)  ## ok to have a difference of 1 unit
     
     ## ** summary (two.sided)
     outSummary <- summary(BT.boot, print = FALSE, alternative = "two.sided")
@@ -254,12 +254,12 @@ test_that("Bootstrap", {
                               data = dt.boot, method.tte = method,
                               method.inference = "none")
 
-        expect_equal(as.double(iBT.boot@delta.netChance),
-                     as.double(BT.boot@deltaResampling.netChance[,,iResample]))
+        expect_equal(as.double(iBT.boot@delta.netBenefit),
+                     as.double(BT.boot@deltaResampling.netBenefit[,,iResample]))
         expect_equal(as.double(iBT.boot@delta.winRatio),
                      as.double(BT.boot@deltaResampling.winRatio[,,iResample]))
-        expect_equal(as.double(iBT.boot@Delta.netChance),
-                     as.double(BT.boot@DeltaResampling.netChance[,iResample]))
+        expect_equal(as.double(iBT.boot@Delta.netBenefit),
+                     as.double(BT.boot@DeltaResampling.netBenefit[,iResample]))
         expect_equal(as.double(iBT.boot@Delta.winRatio),
                      as.double(BT.boot@DeltaResampling.winRatio[,iResample]))
     }
@@ -307,12 +307,12 @@ test_that("Stratified bootstrap", {
                              data = dt.boot, method.tte = method,
                              method.inference = "none")
 
-        expect_equal(as.double(BT.boot@delta.netChance),
-                     as.double(BT@deltaResampling.netChance[,,iResample]))
+        expect_equal(as.double(BT.boot@delta.netBenefit),
+                     as.double(BT@deltaResampling.netBenefit[,,iResample]))
         expect_equal(as.double(BT.boot@delta.winRatio),
                      as.double(BT@deltaResampling.winRatio[,,iResample]))
-        expect_equal(as.double(BT.boot@Delta.netChance),
-                     as.double(BT@DeltaResampling.netChance[,iResample]))
+        expect_equal(as.double(BT.boot@Delta.netBenefit),
+                     as.double(BT@DeltaResampling.netBenefit[,iResample]))
         expect_equal(as.double(BT.boot@Delta.winRatio),
                      as.double(BT@DeltaResampling.winRatio[,iResample]))
     }

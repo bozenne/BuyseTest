@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: sep 24 2018 (10:40) 
+## Last-Updated: okt  9 2018 (10:22) 
 ##           By: Brice Ozenne
-##     Update #: 145
+##     Update #: 146
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -152,8 +152,8 @@ test_that("check unfavorable - 2 Binary",{
     expect_equal(as.double(BT@count.neutral),c(25,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
 
-    expect_equal(as.double(BT@delta.netChance),c(0,-1))
-    expect_equal(as.double(BT@Delta.netChance),c(0,-1))
+    expect_equal(as.double(BT@delta.netBenefit),c(0,-1))
+    expect_equal(as.double(BT@Delta.netBenefit),c(0,-1))
 
     expect_equal(as.double(BT@delta.winRatio),c(NaN,0))
     expect_equal(as.double(BT@Delta.winRatio),c(NaN,0))
@@ -173,8 +173,8 @@ test_that("check mixed - 2 Binary",{
     expect_equal(as.double(BT@count.neutral),c(4,2))
     expect_equal(as.double(BT@count.uninf),c(0,0))
 
-    expect_equal(as.double(BT@delta.netChance),c(0,0))
-    expect_equal(as.double(BT@Delta.netChance),c(0,0))
+    expect_equal(as.double(BT@delta.netBenefit),c(0,0))
+    expect_equal(as.double(BT@Delta.netBenefit),c(0,0))
 
     expect_equal(as.double(BT@delta.winRatio),c(NaN,1))
     expect_equal(as.double(BT@Delta.winRatio),c(NaN,1))
@@ -457,8 +457,8 @@ test_that("2 pairs - Gehan - no correction",{
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),2)
  
-    expect_equal(as.double(BT@delta.netChance),-1/2) ## 
-    expect_equal(as.double(BT@Delta.netChance),-1/2) ##
+    expect_equal(as.double(BT@delta.netBenefit),-1/2) ## 
+    expect_equal(as.double(BT@Delta.netBenefit),-1/2) ##
     
     expect_equal(as.double(BT@delta.winRatio),0)
     expect_equal(as.double(BT@Delta.winRatio),0)
@@ -473,8 +473,8 @@ test_that("2 pairs - Gehan - correction",{
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
  
-    expect_equal(as.double(BT@delta.netChance),-1) ## 
-    expect_equal(as.double(BT@Delta.netChance),-1) ##
+    expect_equal(as.double(BT@delta.netBenefit),-1) ## 
+    expect_equal(as.double(BT@Delta.netBenefit),-1) ##
     
     expect_equal(as.double(BT@delta.winRatio),0)
     expect_equal(as.double(BT@Delta.winRatio),0)
@@ -500,8 +500,8 @@ test_that("2 pairs - Peron - no correction",{
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
   
-    expect_equal(as.double(BT@delta.netChance),-1)
-    expect_equal(as.double(BT@Delta.netChance),-1)
+    expect_equal(as.double(BT@delta.netBenefit),-1)
+    expect_equal(as.double(BT@Delta.netBenefit),-1)
 
     expect_equal(as.double(BT@delta.winRatio),0)
     expect_equal(as.double(BT@Delta.winRatio),0)
@@ -527,8 +527,8 @@ test_that("2 pairs - Peron - correction",{
     expect_equal(as.double(BT@count.neutral),0)
     expect_equal(as.double(BT@count.uninf),0)
   
-    expect_equal(as.double(BT@delta.netChance),-1)
-    expect_equal(as.double(BT@Delta.netChance),-1)
+    expect_equal(as.double(BT@delta.netBenefit),-1)
+    expect_equal(as.double(BT@Delta.netBenefit),-1)
 
     expect_equal(as.double(BT@delta.winRatio),0)
     expect_equal(as.double(BT@Delta.winRatio),0)

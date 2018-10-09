@@ -4,7 +4,6 @@
 \name{getCount}
 \alias{getCount}
 \alias{BuyseRes-getCount}
-\alias{getCount}
 \alias{getCount,BuyseRes-method}
 \title{Extract the Number of Favorable, Unfavorable, Neutral, Uninformative pairs}
 \usage{

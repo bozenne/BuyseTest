@@ -130,7 +130,7 @@ if(require(prodlim)){
 #### one time to event endpoint ####
 BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data= df.data)
 
-summary(BT) # net chance in favor of treatment
+summary(BT) # net benefit
 summary(BT, percentage = FALSE)  
 summary(BT, statistic = "winRatio") # win Ratio
 
@@ -143,7 +143,7 @@ summary(BT, statistic = "winRatio") # win Ratio
     BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e1, trace = 0)
 }
-summary(BT, statistic = "netChance") ## default
+summary(BT, statistic = "netBenefit") ## default
 summary(BT, statistic = "winRatio") 
 
 ## parallel boostrap

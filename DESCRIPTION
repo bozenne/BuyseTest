@@ -7,7 +7,7 @@ Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.ozenne@orange.fr", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "aut")
 	)
-Description:  Implementation of the Generalized Pairwise Comparisons. This
+Description: Implementation of the Generalized Pairwise Comparisons. This
     test compares two groups of observations (intervention vs. control
     group) regarding several prioritized endpoints. The net benefit
     and win ratio statistics can then be estimated and corresponding
@@ -44,7 +44,7 @@ LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
 VignetteBuilder: R.rsp
 NeedsCompilation: yes
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0.9000
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
@@ -53,6 +53,9 @@ Collate:
     'BuyseRes-confint.R'
     'BuyseRes_get.R'
     'BuyseRes_show.R'
+    'BuyseSim-object.R'
+    'BuyseSim-summary.R'
+    'BuyseSim_show.R'
     'BuyseTest-check.R'
     'BuyseTest-inference.R'
     'BuyseTest-initialization.R'
@@ -65,7 +68,7 @@ Collate:
     'RcppExports.R'
     'constStrata.R'
     'discreteRoot.R'
-    'evalBuyseTest.R'
+    'powerBuyseTest.R'
     'seBuyseTest.R'
     'simBuyseTest.R'
     'valid.R'

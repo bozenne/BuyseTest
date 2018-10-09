@@ -113,7 +113,7 @@
 #' #### one time to event endpoint ####
 #' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data= df.data)
 #' 
-#' summary(BT) # net chance in favor of treatment
+#' summary(BT) # net benefit
 #' summary(BT, percentage = FALSE)  
 #' summary(BT, statistic = "winRatio") # win Ratio
 #' 
@@ -126,7 +126,7 @@
 #'     BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
 #'                     method.inference = "permutation", n.resampling = 1e1, trace = 0)
 #' }
-#' summary(BT, statistic = "netChance") ## default
+#' summary(BT, statistic = "netBenefit") ## default
 #' summary(BT, statistic = "winRatio") 
 #' 
 #' ## parallel boostrap
@@ -328,9 +328,9 @@ BuyseTest <- function(formula,
                                                  n.pairs = outPoint$n_pairs, n.C = length(envirBT$indexC), n.T = length(envirBT$indexC),                                
                                                  n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)$Sigma
 
-            outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
+            outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
                                   deltaResampling.winRatio = array(dim=c(0,0,0)),
-                                  DeltaResampling.netChance = matrix(NA, nrow = 0, ncol = 0),
+                                  DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
                                   DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
                                   n.resampling = as.double(NA))
         }else{
@@ -342,9 +342,9 @@ BuyseTest <- function(formula,
         }
         
     }else{
-        outResampling <- list(deltaResampling.netChance = array(dim=c(0,0,0)),
+        outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
                               deltaResampling.winRatio = array(dim=c(0,0,0)),
-                              DeltaResampling.netChance = matrix(NA, nrow = 0, ncol = 0),
+                              DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
                               DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
                               n.resampling = as.double(NA))
         outCovariance <- matrix(nrow = 0, ncol = 0)
@@ -363,9 +363,9 @@ BuyseTest <- function(formula,
         count.neutral = outPoint$count_neutral,    
         count.uninf = outPoint$count_uninf,
         n.pairs = outPoint$n_pairs,
-        delta.netChance = outPoint$delta_netChance,
+        delta.netBenefit = outPoint$delta_netBenefit,
         delta.winRatio = outPoint$delta_winRatio,
-        Delta.netChance = outPoint$Delta_netChance,
+        Delta.netBenefit = outPoint$Delta_netBenefit,
         Delta.winRatio = outPoint$Delta_winRatio,
         type = type,
         endpoint = outArgs$endpoint,
@@ -377,9 +377,9 @@ BuyseTest <- function(formula,
         level.strata = outArgs$level.strata,
         threshold = outArgs$threshold,
         n.resampling = outArgs$n.resampling,
-        deltaResampling.netChance = outResampling$deltaResampling.netChance,
+        deltaResampling.netBenefit = outResampling$deltaResampling.netBenefit,
         deltaResampling.winRatio = outResampling$deltaResampling.winRatio,
-        DeltaResampling.netChance = outResampling$DeltaResampling.netChance,
+        DeltaResampling.netBenefit = outResampling$DeltaResampling.netBenefit,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
         covariance = outCovariance,
         tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
@@ -535,10 +535,10 @@ BuyseTest <- function(formula,
         }
         return(resBT)
     }else{
-        Mout <- cbind(rbind(resBT$delta_netChance, resBT$Delta_netChance),
+        Mout <- cbind(rbind(resBT$delta_netBenefit, resBT$Delta_netBenefit),
                       rbind(resBT$delta_winRatio, resBT$Delta_winRatio))
         dimnames(Mout) <- list(c(paste0("delta.",1:n.strata),"Delta"),
-                               c(paste0("netChance.",1:D),paste0("winRatio.",1:D))
+                               c(paste0("netBenefit.",1:D),paste0("winRatio.",1:D))
                                )
         return(Mout)
     }

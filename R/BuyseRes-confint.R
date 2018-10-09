@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  9 2018 (08:21) 
+## Last-Updated: okt  9 2018 (09:57) 
 ##           By: Brice Ozenne
-##     Update #: 188
+##     Update #: 200
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,11 +22,11 @@
 #' @aliases confing confint,BuyseRes-method
 #' @include BuyseRes-object.R BuyseRes-summary.R
 #' 
-#' @description Computes confidence intervals for net chance statistic or the win ratio statistic.
+#' @description Computes confidence intervals for net benefit statistic or the win ratio statistic.
 #' 
 #' @param object an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
-#' \code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)),
+#' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
 #' whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
@@ -88,13 +88,13 @@ setMethod(f = "confint",
               
               ## ** normalize and check arguments
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
-                                  "netchance" = "netChance",
+                                  "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
                                   statistic)
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netChance","winRatio"),
+                             valid.values = c("netBenefit","winRatio"),
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
@@ -140,7 +140,7 @@ setMethod(f = "confint",
               
               ## ** null hypothesis
               null <- switch(statistic,
-                             "netChance" = 0,
+                             "netBenefit" = 0,
                              "winRatio" = 1)
 
 
@@ -307,7 +307,7 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
 
         ## *** standard error
-        if(statistic == "netChance"){
+        if(statistic == "netBenefit"){
             outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])
             
             if(transformation){ ## atanh transform (also called fisher transform)
@@ -336,7 +336,7 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
             }
 
         }
-        
+
         ## *** confidence interval
         outTable[iE,c("lower.ci","upper.ci")] <- backtransform(switch(alternative,
                                                                       "two.sided" = iDelta + stats::qnorm(c(alpha/2,1 - alpha/2)) * iSE,

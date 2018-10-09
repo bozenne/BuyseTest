@@ -92,7 +92,7 @@ setClass(
                    method = "Class BuyseTest.options")
       validCharacter(object@statistic,
                      name1 = "@statistic",
-                     valid.values = c("netChance","winRatio"),
+                     valid.values = c("netBenefit","winRatio"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
       validInteger(object@trace,

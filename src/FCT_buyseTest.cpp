@@ -359,10 +359,10 @@ List GPC_cpp(const arma::mat& Control,
   }
   
   // ** proportion in favor of treatment 
-  arma::mat delta_netChance(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
-  vector<double> Delta_netChance(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
+  arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
+  vector<double> Delta_netBenefit(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
   
-  calcStatistic(delta_netChance, delta_winRatio, Delta_netChance, Delta_winRatio,
+  calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
                 Mcount_favorable, Mcount_unfavorable, 
                 D, n_strata, n_pairs);
 
@@ -372,9 +372,9 @@ List GPC_cpp(const arma::mat& Control,
 		      Named("count_unfavorable")  = Mcount_unfavorable,
 		      Named("count_neutral")  = Mcount_neutral,           
 		      Named("count_uninf")  = Mcount_uninf,           
-		      Named("delta_netChance")  = delta_netChance,
+		      Named("delta_netBenefit")  = delta_netBenefit,
 		      Named("delta_winRatio")  = delta_winRatio,
-		      Named("Delta_netChance")  = Delta_netChance,
+		      Named("Delta_netBenefit")  = Delta_netBenefit,
 		      Named("Delta_winRatio")  = Delta_winRatio,
 		      Named("n_pairs")  = n_pairs,
 		      Named("tableScore")  = lsScore

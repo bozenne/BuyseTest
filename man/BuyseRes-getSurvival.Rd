@@ -4,7 +4,6 @@
 \name{getSurvival}
 \alias{getSurvival}
 \alias{BuyseRes-getSurvival}
-\alias{getSurvival}
 \alias{getSurvival,BuyseRes-method}
 \title{Extract the Survival and Survival Jumps}
 \usage{

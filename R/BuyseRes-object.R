@@ -25,9 +25,9 @@ setClass(
       count.neutral = "matrix",
       count.uninf = "matrix",
       n.pairs = "numeric",
-      delta.netChance = "matrix",
+      delta.netBenefit = "matrix",
       delta.winRatio = "matrix",
-      Delta.netChance = "vector",
+      Delta.netBenefit = "vector",
       Delta.winRatio = "vector",
       type = "vector",
       endpoint = "vector",
@@ -39,9 +39,9 @@ setClass(
       strata = "vector",
       threshold = "numeric",
       n.resampling = "numeric",
-      deltaResampling.netChance = "array",
+      deltaResampling.netBenefit = "array",
       deltaResampling.winRatio = "array",
-      DeltaResampling.netChance = "matrix",
+      DeltaResampling.netBenefit = "matrix",
       DeltaResampling.winRatio = "matrix",
       covariance = "matrix",
       tablePairScore = "list",
@@ -60,9 +60,9 @@ methods::setMethod(
                                    count.neutral,
                                    count.uninf,
                                    n.pairs,
-                                   delta.netChance,
+                                   delta.netBenefit,
                                    delta.winRatio,
-                                   Delta.netChance,
+                                   Delta.netBenefit,
                                    Delta.winRatio,
                                    type,
                                    endpoint,
@@ -74,9 +74,9 @@ methods::setMethod(
                                    strata,
                                    threshold,
                                    n.resampling,
-                                   deltaResampling.netChance,
+                                   deltaResampling.netBenefit,
                                    deltaResampling.winRatio,
-                                   DeltaResampling.netChance,
+                                   DeltaResampling.netBenefit,
                                    DeltaResampling.winRatio,
                                    covariance,
                                    tablePairScore,
@@ -92,9 +92,9 @@ methods::setMethod(
                  dimnames(count.uninf) <- list(level.strata, name.endpoint)
 
                  ## ** delta/Delta
-                 dimnames(delta.netChance) <- list(level.strata, name.endpoint)
+                 dimnames(delta.netBenefit) <- list(level.strata, name.endpoint)
                  dimnames(delta.winRatio) <- list(level.strata, name.endpoint)
-                 names(Delta.netChance) <- name.endpoint
+                 names(Delta.netBenefit) <- name.endpoint
                  names(Delta.winRatio) <- name.endpoint
                  
                  ## ** endpoint
@@ -113,9 +113,9 @@ methods::setMethod(
                  .Object@count.uninf <- count.uninf
                  .Object@n.pairs <- n.pairs
                  
-                 .Object@delta.netChance <- delta.netChance
+                 .Object@delta.netBenefit <- delta.netBenefit
                  .Object@delta.winRatio <- delta.winRatio
-                 .Object@Delta.netChance <- Delta.netChance
+                 .Object@Delta.netBenefit <- Delta.netBenefit
                  .Object@Delta.winRatio <- Delta.winRatio
 
                  .Object@type <- type
@@ -130,9 +130,9 @@ methods::setMethod(
                  
                  .Object@n.resampling <- n.resampling
 
-                 .Object@deltaResampling.netChance <- deltaResampling.netChance
+                 .Object@deltaResampling.netBenefit <- deltaResampling.netBenefit
                  .Object@deltaResampling.winRatio <- deltaResampling.winRatio
-                 .Object@DeltaResampling.netChance <- DeltaResampling.netChance
+                 .Object@DeltaResampling.netBenefit <- DeltaResampling.netBenefit
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
 
                  .Object@covariance <- covariance

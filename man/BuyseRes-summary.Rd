@@ -3,15 +3,13 @@
 \docType{methods}
 \name{BuyseRes-summary}
 \alias{BuyseRes-summary}
-\alias{summary}
 \alias{summary,BuyseRes-method}
 \title{Summary Method for Class "BuyseRes"}
 \usage{
 \S4method{summary}{BuyseRes}(object, print = TRUE, percentage = TRUE,
-  statistic = BuyseTest.options()$statistic, conf.level = 0.95,
-  alternative = "two.sided", method.boot = "percentile", strata = if
-  (length(object@level.strata) == 1) {     "global" } else {     NULL },
-  digit = c(2, 4))
+  statistic = NULL, conf.level = NULL, alternative = NULL,
+  method.boot = "percentile", strata = if (length(object@level.strata)
+  == 1) {     "global" } else {     NULL }, digit = c(2, 4))
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}
@@ -21,12 +19,15 @@
 \item{percentage}{[logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.}
 
 \item{statistic}{[character] the statistic summarizing the pairwise comparison:
-\code{"netChance"} displays the net chance in favor of treatment, as described in Buyse (2010) and Peron et al. (2016)),
-whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).}
+\code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
+whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
+Default value read from \code{BuyseTest.options()}.}
 
-\item{conf.level}{[numeric] confidence level for the confidence intervals.}
+\item{conf.level}{[numeric] confidence level for the confidence intervals.
+Default value read from \code{BuyseTest.options()}.}
 
-\item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.}
+\item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{method.boot}{[character] the method used to compute the boostrap confidence intervals and p-values.
 Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or

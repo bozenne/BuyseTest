@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: sep 24 2018 (16:00) 
+## Last-Updated: okt  9 2018 (10:22) 
 ##           By: Brice Ozenne
-##     Update #: 39
+##     Update #: 40
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,7 +70,7 @@ test_that("Full data - no correction", {
                  as.double(BT.mixed@count.uninf))
 
     expect_equal(as.double(cumsum(BT.mixed@count.favorable-BT.mixed@count.unfavorable)/BT.mixed@n.pairs),
-                 as.double(BT.mixed@Delta.netChance))
+                 as.double(BT.mixed@Delta.netBenefit))
     expect_equal(as.double(cumsum(BT.mixed@count.favorable)/cumsum(BT.mixed@count.unfavorable)),
                  as.double(BT.mixed@Delta.winRatio))
 })
@@ -94,7 +94,7 @@ test_that("Full data", {
         manualScore <- rbind(manualScore,iScore)
     }
 
-    expect_equal(unname(BT.mixed@Delta.netChance),manualScore[,cumsum(favorable-unfavorable)]/BT.mixed@n.pairs)
+    expect_equal(unname(BT.mixed@Delta.netBenefit),manualScore[,cumsum(favorable-unfavorable)]/BT.mixed@n.pairs)
     expect_equal(unname(BT.mixed@Delta.winRatio),manualScore[,cumsum(favorable)/cumsum(unfavorable)])
 })
 

@@ -8,8 +8,8 @@
 \alias{initializeSurvival_Peron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
-initializeArgs(alternative, name.call, censoring, cpus = NULL, data, endpoint,
-  formula, keep.pairScore = NULL, method.tte = NULL,
+initializeArgs(alternative, name.call, censoring, cpus = NULL, data,
+  endpoint, formula, keep.pairScore = NULL, method.tte = NULL,
   correction.uninf = NULL, model.tte, method.inference = NULL,
   n.resampling = NULL, neutral.as.uninf = NULL, operator, option,
   seed = NULL, strata, threshold, trace = NULL, treatment, type)
@@ -18,9 +18,9 @@ initializeData(data, type, endpoint, operator, strata, treatment)
 
 initializeFormula(x)
 
-initializeSurvival_Peron(data, dataT, dataC, model.tte, n.T, n.C, treatment,
-  level.treatment, endpoint, censoring, D.TTE, type, strata, threshold,
-  index.strataT, index.strataC, n.strata)
+initializeSurvival_Peron(data, dataT, dataC, model.tte, n.T, n.C,
+  treatment, level.treatment, endpoint, censoring, D.TTE, type, strata,
+  threshold, index.strataT, index.strataC, n.strata)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

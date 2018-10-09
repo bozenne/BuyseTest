@@ -14,7 +14,7 @@ using namespace std ;
 using namespace arma ;
 
 // * calcStatistic
-void calcStatistic(arma::mat& delta_netChance, arma::mat& delta_winRatio, vector<double>& Delta_netChance, vector<double>& Delta_winRatio,
+void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, vector<double>& Delta_netBenefit, vector<double>& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
                    const int& D, const int& n_strata, const vector<double>& n_pairs){
   
@@ -31,7 +31,7 @@ void calcStatistic(arma::mat& delta_netChance, arma::mat& delta_winRatio, vector
     
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
 	   // proportion in favor of treatment equals number of favorable pairs minus unfavorable pairs divided by the number of pair in the strata
-      delta_netChance(iter_strata,iter_d) = (Mcount_favorable(iter_strata,iter_d)-Mcount_unfavorable(iter_strata,iter_d))/(double)(n_pairs[iter_strata]);
+      delta_netBenefit(iter_strata,iter_d) = (Mcount_favorable(iter_strata,iter_d)-Mcount_unfavorable(iter_strata,iter_d))/(double)(n_pairs[iter_strata]);
 	  // win ratio equals number of favorable pairs divided by the number of favorable plus unfavorable pairs  
       delta_winRatio(iter_strata,iter_d) = Mcount_favorable(iter_strata,iter_d)/(double)(Mcount_unfavorable(iter_strata,iter_d));
 
@@ -41,7 +41,7 @@ void calcStatistic(arma::mat& delta_netChance, arma::mat& delta_winRatio, vector
     }
     
     Delta_winRatio[iter_d] = strata_favorable/(double)(strata_unfavorable);
-    Delta_netChance[iter_d] = (strata_favorable-strata_unfavorable)/(double)(ntot_pair);
+    Delta_netBenefit[iter_d] = (strata_favorable-strata_unfavorable)/(double)(ntot_pair);
   }
   
   return ;

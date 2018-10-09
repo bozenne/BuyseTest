@@ -76,19 +76,19 @@ inferenceResampling <- function(envir){
     dim.delta <- c(n.strata, D, n.resampling)
     dimnames.delta <- list(level.strata, endpoint, as.character(1:n.resampling))
 
-    out <- list(deltaResampling.netChance = array(NA, dim = dim.delta, dimnames = dimnames.delta),
+    out <- list(deltaResampling.netBenefit = array(NA, dim = dim.delta, dimnames = dimnames.delta),
                 deltaResampling.winRatio = array(NA, dim = dim.delta, dimnames = dimnames.delta),
-                DeltaResampling.netChance = matrix(NA, nrow = D, ncol = n.resampling,
+                DeltaResampling.netBenefit = matrix(NA, nrow = D, ncol = n.resampling,
                                                    dimnames = list(endpoint, as.character(1:n.resampling))),
                 DeltaResampling.winRatio = matrix(NA, nrow = D, ncol = n.resampling,
                                                   dimnames = list(endpoint, as.character(1:n.resampling)))
                 )
 
     for(iR in test.resampling){
-        out$deltaResampling.netChance[,,iR] <- ls.permutation[[iR]][paste0("delta.",1:n.strata),paste0("netChance.",1:D)]
+        out$deltaResampling.netBenefit[,,iR] <- ls.permutation[[iR]][paste0("delta.",1:n.strata),paste0("netBenefit.",1:D)]
         out$deltaResampling.winRatio[,,iR] <- ls.permutation[[iR]][paste0("delta.",1:n.strata),paste0("winRatio.",1:D)]
 
-        out$DeltaResampling.netChance[,iR] <- ls.permutation[[iR]][paste0("Delta"),paste0("netChance.",1:D)]
+        out$DeltaResampling.netBenefit[,iR] <- ls.permutation[[iR]][paste0("Delta"),paste0("netBenefit.",1:D)]
         out$DeltaResampling.winRatio[,iR] <- ls.permutation[[iR]][paste0("Delta"),paste0("winRatio.",1:D)]
 
     }

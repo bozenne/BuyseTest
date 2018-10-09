@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:50) 
+## Last-Updated: okt  9 2018 (10:22) 
 ##           By: Brice Ozenne
-##     Update #: 7
+##     Update #: 8
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -54,10 +54,10 @@ test_that("tte = 2 is equivalent to continuous with infty when cause=2", {
                           method.inference = "none", trace = 0)
     ## summary(e.BT.bis)
     
-    expect_equal(as.double(e.BT@Delta.netChance),
-                 as.double(e.BT.bis@Delta.netChance))
-    expect_equal(as.double(e.BT@delta.netChance),
-                 as.double(e.BT.bis@delta.netChance))
+    expect_equal(as.double(e.BT@Delta.netBenefit),
+                 as.double(e.BT.bis@Delta.netBenefit))
+    expect_equal(as.double(e.BT@delta.netBenefit),
+                 as.double(e.BT.bis@delta.netBenefit))
     
 })
 ######################################################################

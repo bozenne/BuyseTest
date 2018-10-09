@@ -4,7 +4,6 @@
 \alias{validFCTs}
 \alias{validCharacter}
 \alias{validClass}
-\alias{validClass}
 \alias{validDimension}
 \alias{validInteger}
 \alias{validLogical}
@@ -13,8 +12,8 @@
 \alias{validPath}
 \title{Check Arguments of a function.}
 \usage{
-validCharacter(value1, name1 = as.character(substitute(value1)), valid.length,
-  valid.values = "character", refuse.NULL = TRUE,
+validCharacter(value1, name1 = as.character(substitute(value1)),
+  valid.length, valid.values = "character", refuse.NULL = TRUE,
   refuse.duplicates = FALSE, method = NULL, addPP = TRUE)
 
 validClass(value1, name1 = as.character(substitute(value1)), valid.class,
@@ -25,26 +24,28 @@ validDimension(value1, value2 = NULL,
   name2 = as.character(substitute(value2)), valid.dimension = NULL,
   type = c("NROW", "NCOL"), method = NULL, addPP = TRUE)
 
-validInteger(value1, name1 = as.character(substitute(value1)), valid.length,
-  valid.values = NULL, min = NULL, max = NULL, refuse.NA = TRUE,
-  refuse.NULL = TRUE, refuse.duplicates = FALSE, method = NULL,
-  addPP = TRUE)
+validInteger(value1, name1 = as.character(substitute(value1)),
+  valid.length, valid.values = NULL, min = NULL, max = NULL,
+  refuse.NA = TRUE, refuse.NULL = TRUE, refuse.duplicates = FALSE,
+  method = NULL, addPP = TRUE)
 
-validLogical(value1, name1 = as.character(substitute(value1)), valid.length,
-  refuse.NULL = TRUE, refuse.NA = TRUE, method = NULL, addPP = TRUE)
+validLogical(value1, name1 = as.character(substitute(value1)),
+  valid.length, refuse.NULL = TRUE, refuse.NA = TRUE, method = NULL,
+  addPP = TRUE)
 
 validNames(value1, name1 = as.character(substitute(value1)),
   refuse.NULL = TRUE, valid.length = NULL, valid.values = NULL,
   required.values = NULL, refuse.values = NULL, method = NULL,
   addPP = TRUE)
 
-validNumeric(value1, name1 = as.character(substitute(value1)), valid.length,
-  valid.values = NULL, min = NULL, max = NULL, refuse.NA = TRUE,
-  refuse.NULL = TRUE, refuse.duplicates = FALSE, method = NULL,
-  addPP = TRUE)
+validNumeric(value1, name1 = as.character(substitute(value1)),
+  valid.length, valid.values = NULL, min = NULL, max = NULL,
+  refuse.NA = TRUE, refuse.NULL = TRUE, refuse.duplicates = FALSE,
+  method = NULL, addPP = TRUE)
 
 validPath(value1, name1 = as.character(substitute(value1)), type,
-  method = NULL, addPP = TRUE, extension = NULL, check.fsep = FALSE)
+  method = NULL, addPP = TRUE, extension = NULL,
+  check.fsep = FALSE)
 }
 \arguments{
 \item{value1}{the value of the (first) argument to be checked}
@@ -95,7 +96,5 @@ An invisible \code{TRUE} or an error message.
 \description{
 Check the validity of the arguments in functions.
 }
-\concept{
-check
-}
+\concept{check}
 \keyword{internal}

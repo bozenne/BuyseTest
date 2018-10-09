@@ -3,7 +3,6 @@
 \docType{methods}
 \name{BuyseRes-show}
 \alias{BuyseRes-show}
-\alias{show}
 \alias{show,BuyseRes-method}
 \title{Show Method for Class "BuyseRes"}
 \usage{

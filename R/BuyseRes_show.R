@@ -2,7 +2,7 @@
 #' @docType methods
 #' @name BuyseRes-show
 #' @title Show Method for Class "BuyseRes"
-#' @aliases show show,BuyseRes-method
+#' @aliases show,BuyseRes-method
 #' @include BuyseRes-object.R BuyseRes-summary.R
 #' 
 #' @description Display the main results stored in a \code{\link{BuyseRes}} object.

@@ -4,15 +4,16 @@
 \name{getPairScore}
 \alias{getPairScore}
 \alias{BuyseRes-getPairScore}
-\alias{getPairScore}
 \alias{getPairScore,BuyseRes-method}
 \title{Extract the Score of Each Pair}
 \usage{
 getPairScore(object, endpoint = NULL, strata = NULL,
-  rm.withinStrata = TRUE, rm.weight = FALSE, unlist = TRUE, trace = 1)
+  rm.withinStrata = TRUE, rm.weight = FALSE, unlist = TRUE,
+  trace = 1)
 
-\S4method{getPairScore}{BuyseRes}(object, endpoint = NULL, strata = NULL,
-  rm.withinStrata = TRUE, rm.weight = FALSE, unlist = TRUE, trace = 1)
+\S4method{getPairScore}{BuyseRes}(object, endpoint = NULL,
+  strata = NULL, rm.withinStrata = TRUE, rm.weight = FALSE,
+  unlist = TRUE, trace = 1)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}

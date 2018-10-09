@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: sep 24 2018 (11:00) 
+## Last-Updated: okt  9 2018 (10:22) 
 ##           By: Brice Ozenne
-##     Update #: 78
+##     Update #: 79
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -53,7 +53,7 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
     iiScore <- do.call(rbind, iScore)
     iiScoreS <- iiScore[,.(n = n[1], favorable = sum(favorable), unfavorable = sum(unfavorable)),by = "endpoint"]
         
-    expect_equal(as.double(Gehan@Delta.netChance),iiScoreS[,cumsum(favorable-unfavorable)/n])
+    expect_equal(as.double(Gehan@Delta.netBenefit),iiScoreS[,cumsum(favorable-unfavorable)/n])
     expect_equal(as.double(Gehan@Delta.winRatio),iiScoreS[,cumsum(favorable)/cumsum(unfavorable)])
 })
 
@@ -73,7 +73,7 @@ test_that("1 TTE endpoint - Gehan (correction at the pair level)", {
     expect_equal(iScore[, unfavorable + uninformative * sum(unfavorable)/sum(favorable + unfavorable + neutral)], iScore[["unfavorable.corrected"]])
     expect_equal(iScore[, neutral + uninformative * sum(neutral)/sum(favorable + unfavorable + neutral)], iScore[["neutral.corrected"]])
     
-    expect_equal(as.double(GehanC@Delta.netChance)[1],iScore[,sum(favorable.corrected-unfavorable.corrected)/.N])
+    expect_equal(as.double(GehanC@Delta.netBenefit)[1],iScore[,sum(favorable.corrected-unfavorable.corrected)/.N])
     expect_equal(as.double(GehanC@Delta.winRatio)[1],iScore[,sum(favorable.corrected)/sum(unfavorable.corrected)])
 
 })
@@ -94,7 +94,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable),
                          factor = .N/sum(favorable+unfavorable+neutral))]
 
-    expect_equal(as.double(GehanC@Delta.netChance[1]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
+    expect_equal(as.double(GehanC@Delta.netBenefit[1]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
     expect_equal(as.double(GehanC@Delta.winRatio[1]),iScoreS[,sum(favorable*factor)/sum(unfavorable*factor)])
 
     ## survival second
@@ -111,7 +111,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable),
                            factor = .N/sum(favorable+unfavorable+neutral))]
 
-    expect_equal(as.double(GehanC2@Delta.netChance[2]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
+    expect_equal(as.double(GehanC2@Delta.netBenefit[2]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
     expect_equal(as.double(GehanC2@Delta.winRatio[2]),iScoreS[,sum(favorable*factor)/cumsum(unfavorable*factor)])
 })
 
@@ -130,7 +130,7 @@ test_that("1 TTE endpoint - Peron (no correction)", {
     iScore <- copy(getPairScore(Peron, endpoint = 1, strata = 1))
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable))]
 
-    expect_equal(as.double(Peron@Delta.netChance[1]),iScoreS[,sum(favorable-unfavorable)/n])
+    expect_equal(as.double(Peron@Delta.netBenefit[1]),iScoreS[,sum(favorable-unfavorable)/n])
     expect_equal(as.double(Peron@Delta.winRatio[1]),iScoreS[,sum(favorable)/cumsum(unfavorable)])
 })
 
@@ -152,7 +152,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable), 
                          factor = .N/sum(favorable+unfavorable+neutral))]
 
-    expect_equal(as.double(PeronC@Delta.netChance[1]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
+    expect_equal(as.double(PeronC@Delta.netBenefit[1]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
     expect_equal(as.double(PeronC@Delta.winRatio[1]),iScoreS[,sum(favorable*factor)/cumsum(unfavorable*factor)])
 
     ## survival second
@@ -169,7 +169,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable), 
                          factor = .N/sum(favorable+unfavorable+neutral))]
 
-    expect_equal(as.double(PeronC2@Delta.netChance[1]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
+    expect_equal(as.double(PeronC2@Delta.netBenefit[1]),iScoreS[,sum(favorable*factor-unfavorable*factor)/n])
     expect_equal(as.double(PeronC2@Delta.winRatio[1]),iScoreS[,sum(favorable*factor)/cumsum(unfavorable*factor)])
 })
 
