@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  9 2018 (11:06) 
+## Last-Updated: okt  9 2018 (13:33) 
 ##           By: Brice Ozenne
-##     Update #: 205
+##     Update #: 206
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,7 +52,7 @@
 #' are estimated outside of the interval of definition of the statistic (e.g. outside [-1,1] for the proportion in favor of treatment).
 #'
 #'
-#' @return A matrix containing a column for the estimated statstic (over all strata),
+#' @return A matrix containing a column for the estimated statistic (over all strata),
 #' the lower bound and upper bound of the confidence intervals, and the associated p-values.
 #' When using resampling methods,
 #' an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.

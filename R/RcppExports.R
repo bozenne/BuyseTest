@@ -2,7 +2,7 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @title C++ function performing the pairwise comparison over several endpoints. 
-#' @description \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts. 
+#' @description \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results. 
 #' @name GPC_cpp
 #' 
 #' @param Control A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.

@@ -11,7 +11,7 @@
 #' @param n.C [integer, >0] number of patients in the control arm
 #' @param format [character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.
 #' @param argsBin [list] arguments to be passed to \code{simBuyseTest_bin}. They specify the distribution parameters of the binary endpoints.
-#' @param argsCont [list] arguments to be passed to \code{simBuyseTest_continous}. They specify the distribution parameters of the continuous endpoints.
+#' @param argsCont [list] arguments to be passed to \code{simBuyseTest_continuous}. They specify the distribution parameters of the continuous endpoints.
 #' @param argsTTE [list]  arguments to be passed to \code{simBuyseTest_TTE}. They specify the distribution parameters of the time to event endpoints.
 #' @param n.strata [integer, >0] number of strata. \code{NULL} indicates no strata.
 #' @param names.strata [character vector] name of the strata variables. Must have same length as \code{n.strata}.
@@ -33,7 +33,7 @@
 #'     \item\code{mu.C} same as \code{mu.C} but for the control group. \cr
 #'     \item\code{sigma.T} standard deviation of the values of each endpoint (continuous endpoint, treatment group). \cr 
 #'     \item\code{sigma.C} same as \code{sigma.T} but for the control group. \cr
-#'     \item\code{name} names of the continous variables.
+#'     \item\code{name} names of the continuous variables.
 #'     }
 #' 
 #' Arguments in the list \code{argsTTE}:
@@ -62,7 +62,7 @@
 #' args <- list(p.T = c(3:5/10))
 #' simBuyseTest(n, argsBin = args, argsCont = NULL, argsTTE = NULL)
 #' 
-#' #### only continous endpoints ####
+#' #### only continuous endpoints ####
 #' args <- list(mu.T = c(3:5/10), sigma.T = rep(1,3))
 #' simBuyseTest(n, argsBin = NULL, argsCont = args, argsTTE = NULL)
 #' 

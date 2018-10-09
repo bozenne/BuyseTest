@@ -8,11 +8,11 @@ Authors@R: c(
     person("Julien", "Peron", role = "aut")
 	)
 Description: Implementation of the Generalized Pairwise Comparisons (GPS). GPC
-    test compares two groups of observations (intervention vs. control
+    compare two groups of observations (intervention vs. control
     group) regarding several prioritized endpoints. The net benefit
     and win ratio statistics can then be estimated and corresponding
     confidence intervals and p-values can be estimated using
-    resampling methods or the asymptotic U-statistic theory. The sofware enables the use of thresholds of
+    resampling methods or the asymptotic U-statistic theory. The software enables the use of thresholds of
     minimal important difference as well as stratification. Censored observations
 	can be handled using Gehan's modification of the Wilcoxon statistic, inverse
     probability of censoring weights, or, in the case of right

@@ -20,7 +20,7 @@
 #' The endpoint with highest priority is analyzed first, and neutral and uninformative pair are analyzed regarding endpoint of lower priority.
 #' 
 #' @references Examples of application in clinical studies: \cr 
-#' J. Peron, P Roy, K Ding, W R Parulekar, L Roche, M Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalised pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
+#' J. Peron, P Roy, K Ding, W R Parulekar, L Roche, M Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalized pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 #' 
 #' @useDynLib BuyseTest, .registration=TRUE
 #' @import data.table

@@ -14,7 +14,7 @@
 #' @param operator [character vector] the sign defining a favorable endpoint:
 #' ">0" indicates that higher values are favorable while "<0" indicates the opposite.
 #' Disregarded if the argument \code{formula} is defined.
-#' @param threshold [numeric vector] critical values used to compare the pairs (threshold of minimial important difference).
+#' @param threshold [numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
 #' There must be one threshold for each endpoint variable.
 #' Disregarded if the argument \code{formula} is defined.
 #' @param strata [numeric vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
@@ -29,7 +29,7 @@
 #' \code{"Peron"} uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified (see Peron et al. for more details).
 #' Default value read from \code{BuyseTest.options()}.
 #' @param correction.uninf [integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
-#' 0 indicates no correction, 1 impute the average score of the informative pair, and 2 perfoms inverse probability of censoring weights.
+#' 0 indicates no correction, 1 impute the average score of the informative pair, and 2 performs inverse probability of censoring weights.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param model.tte [list] optional survival models relative to each time to each time to event endpoint.
 #' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
@@ -37,7 +37,7 @@
 #' or a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
 #' or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
 #' be used to compute p-values and confidence intervals.
-#' @param neutral.as.uninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
+#' @param neutral.as.uninf [logical] should paired classified as neutral be re-analyzed using endpoints of lower priority.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param n.resampling [integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
@@ -72,9 +72,9 @@
 #' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
 #' 
 #' \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint.\cr
-#' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
+#' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analyzed on the endpoint with priority \code{l-1}.
 #' 
-#' \bold{method.tte:} the \code{method.tte="Peron"} is recommanded in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
+#' \bold{method.tte:} the \code{method.tte="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
 #' 
 #' \bold{method.inference:} the \code{method.inference="asymptotic"} estimate the distribution of the net benefit or win ratio statistics
 #' based on the asymptotic theory of the U-statistics (see formula 2.2 in Bebu et al. 2016)

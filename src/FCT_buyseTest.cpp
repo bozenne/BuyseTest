@@ -17,7 +17,7 @@ using namespace arma ;
 
 // * Documentation GPC_cpp
 //' @title C++ function performing the pairwise comparison over several endpoints. 
-//' @description \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts. 
+//' @description \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results. 
 //' @name GPC_cpp
 //' 
 //' @param Control A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.

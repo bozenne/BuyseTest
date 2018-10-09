@@ -34,7 +34,7 @@ library(BuyseTest)
 \bigskip
 
 The *BuyseTest* package is under active development. Newer package
-versions may include additional functionnalities and fix previous
+versions may include additional functionalities and fix previous
 bugs. To get the current version of the package use
 =utils::packageVersion=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -70,7 +70,7 @@ See =?veteran= for a presentation of the database.
 
 \clearpage
 
-* Perforing generalized pairwise comparisons (GPC) using the =BuyseTest= function
+* Performing generalized pairwise comparisons (GPC) using the =BuyseTest= function
 
 To perform generalized pairwise comparisons, the =BuyseTest= function needs:
 - an where the data are stored \hfill - argument =data=
@@ -79,7 +79,7 @@ To perform generalized pairwise comparisons, the =BuyseTest= function needs:
 - the variable defining the two treatment groups \hfill - argument
   =treatment=
 The =BuyseTest= function has many optional arguments to specify for example:
-- the threshold associated to each endpoint (default\(=10^{-12}\))  \hfill - argument =threhsold=
+- the threshold associated to each endpoint (default\(=10^{-12}\))  \hfill - argument =threshold=
 - the censoring associated to each endpoint (for time to event endpoint) \hfill - argument =censoring=
 - how to compute the distribution of the statistic of interest \hfill - argument =method.inference=
 
@@ -218,7 +218,7 @@ BT.multi <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status",) + c
 
 #+RESULTS:
 
-The hierarchie of the endpoint is defined from left (most important
+The hierarchy of the endpoint is defined from left (most important
 endpoint, here =time=) to right (least important endpoint, here
 =karno=).
 
@@ -396,7 +396,7 @@ The argument =n.resampling= indicates the permutation that will be
 performed. We set it to 10 to save computation time but to obtain
 reliable p-value/confidence intervals, =n.resampling= should be at
 least 1000. The validity of the confidence intervals obtained via a
-permutation test is questionnable and we recommand instead to use a
+permutation test is questionable and we recommend instead to use a
 bootstrap approach for estimating confidence intervals. To do so, set
 the argument =method.inference= to ="bootstrap"= when calling
 =BuyseTest=:
@@ -431,7 +431,7 @@ summary(BT.boot)
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
 as to "manually" compute this score. This can give further inside on
-what the sofware is actually doing and what is the contribution of
+what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 ** Extracting the contribution of each pair to the statistic
@@ -523,7 +523,7 @@ BT.keep
 :      time        20 -0.0877 -0.0877
 :     karno     1e-12 -0.0133 -0.1009
 
-More examples and explaination can be found in the documentation of
+More examples and explanation can be found in the documentation of
 the method =getPairScore=.
 
 ** Extracting the survival probabilities
