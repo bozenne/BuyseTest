@@ -49,7 +49,7 @@ The maximal output (i.e. with all columns) contains for each endpoint, a data.ta
 \item \code{"unfavorable"}: the probability that the endpoint is worse in the treatment arm vs. in the control arm.
 \item \code{"neutral"}: the probability that the endpoint is no different in the treatment arm vs. in the control arm.
 \item \code{"uninformative"}: the weight of the pair that cannot be attributed to favorable/unfavorable/neutral.
-\item \code{"weight"}: the residual weight of the pair to be analysed at the current outcome. Each pair starts with a weight of 1.
+\item \code{"weight"}: the residual weight of the pair to be analyzed at the current outcome. Each pair starts with a weight of 1.
 \item \code{"favorable.corrected"}: same as \code{"favorable"}  after weighting.
 \item \code{"unfavorable.corrected"}: same as \code{"favorable"} after weighting.
 \item \code{"neutral.corrected"}: same as \code{"favorable"} after weighting.

@@ -58,7 +58,7 @@ GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
 \item{keepScore}{Should the result of each pairwise comparison be kept? \emph{logical}.}
 }
 \description{
-\code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the resuts.
+\code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results.
 }
 \keyword{BuyseTest}
 \keyword{Cpp}

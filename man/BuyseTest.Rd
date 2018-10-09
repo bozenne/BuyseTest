@@ -23,20 +23,21 @@ Can be \code{"Gehan"} or \code{"Peron"}. \code{"Gehan"} only scores pairs that c
 Default value read from \code{BuyseTest.options()}.}
 
 \item{correction.uninf}{[integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
-0 indicates no correction, 1 impute the average score of the informative pair, and 2 perfoms inverse probability of censoring weights.
+0 indicates no correction, 1 impute the average score of the informative pair, and 2 performs inverse probability of censoring weights.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{model.tte}{[list] optionnal survival models relative to each time to each time to event endpoint.
+\item{model.tte}{[list] optional survival models relative to each time to each time to event endpoint.
 Models must \code{prodlim} objects and stratified on the treatment and strata variable.}
 
-\item{method.inference}{[character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
+\item{method.inference}{[character] should the asymptotic theory (\code{"asymptotic"}),
+or a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
 or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
 be used to compute p-values and confidence intervals.}
 
 \item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
+\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analyzed using endpoints of lower priority.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{keep.pairScore}{[logical] should the result of each pairwise comparison be kept?}
@@ -49,7 +50,7 @@ Disregarded if the argument \code{formula} is defined.}
 
 \item{type}{[character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.}
 
-\item{threshold}{[numeric vector] critical values used to compare the pairs (threshold of minimial important difference).
+\item{threshold}{[numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
 There must be one threshold for each endpoint variable.
 Disregarded if the argument \code{formula} is defined.}
 
@@ -105,9 +106,12 @@ A large number of permutations (e.g. \code{n.resampling=10000}) are needed to ob
 The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
 
 \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint.\cr
-Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
+Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analyzed on the endpoint with priority \code{l-1}.
 
-\bold{method.tte:} the \code{method.tte="Peron"} is recommanded in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
+\bold{method.tte:} the \code{method.tte="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
+
+\bold{method.inference:} the \code{method.inference="asymptotic"} estimate the distribution of the net benefit or win ratio statistics
+based on the asymptotic theory of the U-statistics (see formula 2.2 in Bebu et al. 2016)
 
 \bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
 Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
@@ -201,9 +205,10 @@ if(require(survival)){
 }
 }
 \references{
-Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239  \cr 
 D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. Statistical Methods in Medical Research. \cr
+I. Bebu, J. M. Lachin. \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
+Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
 Efron B (1967). \bold{The two sample problem with censored data}. \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} 4:831-583 \cr
 Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 }

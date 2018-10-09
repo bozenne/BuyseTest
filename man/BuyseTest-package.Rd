@@ -8,7 +8,7 @@
 Implementation of the Generalized Pairwise Comparisons. 
 \code{\link{BuyseTest}} is the main function of the package. See the vignette of an overview of the functionalities of the package.
 Run \code{citation("BuyseTest")} in R for how to cite this package in scientific publications.
-See the section below for examples of application in clinical studies.
+See the section reference below for examples of application in clinical studies.
 }
 \details{
 The Generalized Pairwise Comparisons form all possible pairs of observations,
@@ -25,5 +25,5 @@ The endpoint with highest priority is analyzed first, and neutral and uninformat
 }
 \references{
 Examples of application in clinical studies: \cr 
-J. Peron, P Roy, K Ding, W R Parulekar, L Roche, M Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalised pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
+J. Peron, P Roy, K Ding, W R Parulekar, L Roche, M Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalized pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 }

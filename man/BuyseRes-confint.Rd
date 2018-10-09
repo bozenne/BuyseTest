@@ -34,7 +34,7 @@ Otherwise they are computed without any transformation.
 Default value read from \code{BuyseTest.options()}.}
 }
 \value{
-A matrix containing a column for the estimated statstic (over all strata),
+A matrix containing a column for the estimated statistic (over all strata),
 the lower bound and upper bound of the confidence intervals, and the associated p-values.
 When using resampling methods,
 an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.

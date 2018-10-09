@@ -16,7 +16,7 @@ simBuyseTest(n.T, n.C = NULL, argsBin = list(), argsCont = list(),
 
 \item{argsBin}{[list] arguments to be passed to \code{simBuyseTest_bin}. They specify the distribution parameters of the binary endpoints.}
 
-\item{argsCont}{[list] arguments to be passed to \code{simBuyseTest_continous}. They specify the distribution parameters of the continuous endpoints.}
+\item{argsCont}{[list] arguments to be passed to \code{simBuyseTest_continuous}. They specify the distribution parameters of the continuous endpoints.}
 
 \item{argsTTE}{[list]  arguments to be passed to \code{simBuyseTest_TTE}. They specify the distribution parameters of the time to event endpoints.}
 
@@ -48,7 +48,7 @@ Arguments in the list \code{argsCont}:
     \item\code{mu.C} same as \code{mu.C} but for the control group. \cr
     \item\code{sigma.T} standard deviation of the values of each endpoint (continuous endpoint, treatment group). \cr 
     \item\code{sigma.C} same as \code{sigma.T} but for the control group. \cr
-    \item\code{name} names of the continous variables.
+    \item\code{name} names of the continuous variables.
     }
 
 Arguments in the list \code{argsTTE}:
@@ -77,7 +77,7 @@ simBuyseTest(1e3, n.strata = c(2,4), names.strata = c("Gender","AgeCategory"))
 args <- list(p.T = c(3:5/10))
 simBuyseTest(n, argsBin = args, argsCont = NULL, argsTTE = NULL)
 
-#### only continous endpoints ####
+#### only continuous endpoints ####
 args <- list(mu.T = c(3:5/10), sigma.T = rep(1,3))
 simBuyseTest(n, argsBin = NULL, argsCont = args, argsTTE = NULL)
 
