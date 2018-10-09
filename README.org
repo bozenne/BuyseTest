@@ -9,22 +9,39 @@
 
 *BuyseTest* is a package for the R software
 (https://www.r-project.org/) implementing generalized pairwise
-comparisons (GPC). This enables to compare two groups of observations
-in randomized trials(e.g treated vs. control patients) on several
-prioritized outcomes. Pairwise comparisons require consideration of
-all possible pairs of individuals, one taken from the treatment group
-and the other taken from the control group. The outcomes of the two
-individuals forming a pair are compared. Thresholds of minimal
-clinically significant differences can be defined. It is possible to
-analyse simultaneously several outcomes by prioritizing the variables
-that capture them. The highest priority is assigned to the variable
-considered the most clinically relevant.  A natural way of handling
-uninformative or neutral pairs is to consider the outcomes in
-descending order of priority: whenever a pair is uninformative or
-neutral for an outcome of higher priority, the outcomes of lower
-priority are examined In the case of time-to-event endpoint, four
-methods to handle censored observations are available in this package
-(Gehan, Peto, Efron, and Peron).
+comparisons (GPC). GPC enable to compare two groups of observations
+(intervention vs. control group) regarding several prioritized
+endpoints. The net benefit and win ratio statistics can then be
+estimated and corresponding confidence intervals and p-values can be
+estimated using resampling methods or the asymptotic U-statistic
+theory. The sofware enables the use of thresholds of minimal important
+difference as well as stratification. Censored observations can be
+handled using Gehan's modification of the Wilcoxon statistic, inverse
+probability of censoring weights, or, in the case of right censoring,
+using the empirical survival curves in each group to estimating the
+expected score of the censored pairs.
+
+\bigskip
+
+The Generalized Pairwise Comparisons form all possible pairs of
+observations, one observation being taken from the intervention group
+and the other is taken from the control group, and compare the value
+of their endpoints.
+
+If the difference in endpoint value between the two observations of
+the pair is greater than the threshold of clinical relevance, the pair
+is classified as favorable (i.e. win). If the difference is lower than
+minus the threshold of clinical relevance the pair is classified as
+unfavorable (i.e. loss).  Otherwise the pair is classified as
+neutral. In presence of censoring, it might not be possible to compare
+the difference to the threshold. In such cases the pair is classified
+as uninformative.
+ 
+Simultaneously analysis of several endpoints is performed by
+prioritizing the endpoints, assigning the highest priority to the
+endpoint considered the most clinically relevant.  The endpoint with
+highest priority is analyzed first, and neutral and uninformative pair
+are analyzed regarding endpoint of lower priority.
 
 * Installation
 

@@ -31,9 +31,10 @@
 #' @param correction.uninf [integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
 #' 0 indicates no correction, 1 impute the average score of the informative pair, and 2 perfoms inverse probability of censoring weights.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param model.tte [list] optionnal survival models relative to each time to each time to event endpoint.
+#' @param model.tte [list] optional survival models relative to each time to each time to event endpoint.
 #' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
-#' @param method.inference [character] should a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
+#' @param method.inference [character] should the asymptotic theory (\code{"asymptotic"}),
+#' or a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
 #' or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
 #' be used to compute p-values and confidence intervals.
 #' @param neutral.as.uninf [logical] should paired classified as neutral be re-analysed using endpoints of lower priority.
@@ -74,6 +75,9 @@
 #' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analysed on the endpoint with priority \code{l-1}.
 #' 
 #' \bold{method.tte:} the \code{method.tte="Peron"} is recommanded in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
+#' 
+#' \bold{method.inference:} the \code{method.inference="asymptotic"} estimate the distribution of the net benefit or win ratio statistics
+#' based on the asymptotic theory of the U-statistics (see formula 2.2 in Bebu et al. 2016)
 #'
 #' \bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
 #' Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
@@ -82,10 +86,12 @@
 #' 
 #' @return An \R object of class \code{\linkS4class{BuyseRes}}.
 #' 
-#' @references 
-#' Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+#' @references
+#' 
+#' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239  \cr 
 #' D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-#' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2016). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. Statistical Methods in Medical Research. \cr
+#' I. Bebu, J. M. Lachin. \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
+#' Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
 #' Efron B (1967). \bold{The two sample problem with censored data}. \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} 4:831-583 \cr
 #' Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 #'

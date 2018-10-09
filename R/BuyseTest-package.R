@@ -5,7 +5,7 @@
 #' @description Implementation of the Generalized Pairwise Comparisons. 
 #' \code{\link{BuyseTest}} is the main function of the package. See the vignette of an overview of the functionalities of the package.
 #' Run \code{citation("BuyseTest")} in R for how to cite this package in scientific publications.
-#' See the section below for examples of application in clinical studies.
+#' See the section reference below for examples of application in clinical studies.
 #'
 #' @details The Generalized Pairwise Comparisons form all possible pairs of observations,
 #' one observation being taken from the intervention group and the other is taken from the control group,
