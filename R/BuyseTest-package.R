@@ -23,8 +23,6 @@
 #' J. Peron, P. Roy, K. Ding, W. R. Parulekar, L. Roche, M. Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalized pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 #' J. Peron, P. Roy, T. Conroy, F. Desseigne, M. Ychou, S. Gourgou-Bourgade, T. Stanbury, L. Roche, B. Ozenne, M. Buyse (2016). \bold{An assessment of the benefit-risk balance of FOLFORINOX in metastatic pancreatic adenocarcinoma}. \emph{Oncotarget} 7:82953-60, 2016. \cr
 #'
-#' \cr 
-#' 
 #' Comparison between the net benefit and alternative measures of treatment effect: \cr 
 #' J. Peron, P. Roy, B. Ozenne, L. Roche, M. Buyse (2016). \bold{The net chance of a longer survival as a patient-oriented measure of benefit in randomized clinical trials}. \emph{JAMA Oncology} 2:901-5. \cr
 #' E. D. Saad , J. R. Zalcberg, J. Peron, E. Coart, T. Burzykowski, M. Buyse (2018). \bold{Understanding and communicating measures of treatment effect on survival: can we do better?}. \emph{J Natl Cancer Inst}.

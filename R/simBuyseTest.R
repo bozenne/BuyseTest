@@ -81,7 +81,8 @@ simBuyseTest <- function(n.T, n.C = NULL,
                          argsBin = list(), argsCont = list(), argsTTE = list(),
                          n.strata = NULL, names.strata = NULL, format = "data.table",
                          latent = FALSE){
-  
+
+    option <- BuyseTest.options()
     if(is.null(names.strata) && !is.null(n.strata)){
         if(length(n.strata)==1){
             names.strata <- "strata"
@@ -92,50 +93,55 @@ simBuyseTest <- function(n.T, n.C = NULL,
   
     ## ** check arguments
     if(is.null(n.C)){n.C <- n.T}
-    validNumeric(n.C,
-                 min = 0,
-                 valid.length = 1,
-                 method = "simBuyseTest")
-    validNumeric(n.T,
-                 min = 0,
-                 valid.length = 1,
-                 method = "simBuyseTest")
-    validInteger(n.strata,
-                 valid.length = NULL,
-                 refuse.NULL = FALSE,
-                 min = 1,
-                 method = "simBuyseTest")
-    validCharacter(format,
-                   valid.length = 1,
-                   valid.values = c("data.table","data.frame","matrix"),
-                   method = "simBuyseTest")
-  
+
+    if(option$check){
+        validNumeric(n.C,
+                     min = 0,
+                     valid.length = 1,
+                     method = "simBuyseTest")
+        validNumeric(n.T,
+                     min = 0,
+                     valid.length = 1,
+                     method = "simBuyseTest")
+        validInteger(n.strata,
+                     valid.length = NULL,
+                     refuse.NULL = FALSE,
+                     min = 1,
+                     method = "simBuyseTest")
+        validCharacter(format,
+                       valid.length = 1,
+                       valid.values = c("data.table","data.frame","matrix"),
+                       method = "simBuyseTest")
+    }
+    
     ## ** build the generative model
     mT.lvm <- lvm()
     mC.lvm <- lvm()
     if(!is.null(argsBin)){
-        newLVM <- do.call("simBuyseTest_bin", args = c(list(modelT = mT.lvm, modelC = mC.lvm), argsBin))
+        newLVM <- do.call("simBuyseTest_bin", args = c(list(modelT = mT.lvm, modelC = mC.lvm, check = option$check), argsBin))
         mT.lvm <- newLVM$modelT
         mC.lvm <- newLVM$modelC
     }
     if(!is.null(argsCont)){
-        newLVM <- do.call("simBuyseTest_cont", args = c(list(modelT = mT.lvm, modelC = mC.lvm), argsCont))
+        newLVM <- do.call("simBuyseTest_cont", args = c(list(modelT = mT.lvm, modelC = mC.lvm, check = option$check), argsCont))
         mT.lvm <- newLVM$modelT
         mC.lvm <- newLVM$modelC
     }
     if(!is.null(argsTTE)){
-        newLVM <- do.call("simBuyseTest_TTE", args = c(list(modelT = mT.lvm, modelC = mC.lvm), argsTTE))
+        newLVM <- do.call("simBuyseTest_TTE", args = c(list(modelT = mT.lvm, modelC = mC.lvm, check = option$check), argsTTE))
         mT.lvm <- newLVM$modelT
         mC.lvm <- newLVM$modelC
     }
   
     ## ** add strata variable to the generative model
     if(!is.null(n.strata)){
-        validCharacter(names.strata,
-                       valid.length = length(n.strata),
-                       refuse.NULL = TRUE,
-                       method = "simBuyseTest")
-    
+        if(option$check){
+            validCharacter(names.strata,
+                           valid.length = length(n.strata),
+                           refuse.NULL = TRUE,
+                           method = "simBuyseTest")
+        }
+        
         for(iterS in 1:length(n.strata)){
             if(any(names.strata[iterS] %in% lava::vars(mT.lvm))){
                 stop("simBuyseTest: variable already in the LVM \n",
@@ -158,7 +164,7 @@ simBuyseTest <- function(n.T, n.C = NULL,
 }
 
 ## * Function simBuyseTest_bin
-simBuyseTest_bin <- function(modelT, modelC, p.T = 0.5, p.C = NULL, name = NULL){
+simBuyseTest_bin <- function(modelT, modelC, p.T = 0.5, p.C = NULL, name = NULL, check){
 
   ## ** initialisation
   n.endpoints <- length(p.T)
@@ -167,21 +173,23 @@ simBuyseTest_bin <- function(modelT, modelC, p.T = 0.5, p.C = NULL, name = NULL)
   }
   if(is.null(p.C)){p.C <- p.T}
   
-  ## ** tests
-  validNumeric(p.T,
-               min = 0,
-               max = 1,
-               valid.length = NULL,
-               method = "simBuyseTest")
-  validNumeric(p.C,
-               min = 0,
-               max = 1,
-               valid.length = n.endpoints,
-               method = "simBuyseTest")
-  validCharacter(name,
-                 valid.length = n.endpoints,
-                 method = "simBuyseTest")
-  
+    ## ** tests
+    if(check){
+        validNumeric(p.T,
+                     min = 0,
+                     max = 1,
+                     valid.length = NULL,
+                     method = "simBuyseTest")
+        validNumeric(p.C,
+                     min = 0,
+                     max = 1,
+                     valid.length = n.endpoints,
+                     method = "simBuyseTest")
+        validCharacter(name,
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")
+    }
+    
     ## ** model
     for(iterE in 1:n.endpoints){
         if(any(name[iterE] %in% lava::vars(modelT))){
@@ -205,7 +213,8 @@ simBuyseTest_cont <- function(modelT,
                               sigma.T = 1,
                               mu.C = NULL,
                               sigma.C = NULL,
-                              name = NULL){
+                              name = NULL,
+                              check){
     
     ## ** initialisation
     n.endpoints <- length(mu.T)
@@ -216,23 +225,25 @@ simBuyseTest_cont <- function(modelT,
     if(is.null(sigma.C)){sigma.C <- sigma.T}
     
     ## ** tests
-    validNumeric(mu.T,
-                 valid.length = NULL,
-                 method = "simBuyseTest")
-    validNumeric(sigma.T,
-                 valid.length = n.endpoints,
-                 min = 0,
-                 method = "simBuyseTest")
-    validNumeric(mu.C,
-                 valid.length = n.endpoints,
-                 method = "simBuyseTest")
-    validNumeric(sigma.C,
-                 valid.length = n.endpoints,
-                 min = 0,
-                 method = "simBuyseTest")
-    validCharacter(name,
-                   valid.length = n.endpoints,
-                   method = "simBuyseTest")
+    if(check){
+        validNumeric(mu.T,
+                     valid.length = NULL,
+                     method = "simBuyseTest")
+        validNumeric(sigma.T,
+                     valid.length = n.endpoints,
+                     min = 0,
+                     method = "simBuyseTest")
+        validNumeric(mu.C,
+                     valid.length = n.endpoints,
+                     method = "simBuyseTest")
+        validNumeric(sigma.C,
+                     valid.length = n.endpoints,
+                     min = 0,
+                     method = "simBuyseTest")
+        validCharacter(name,
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")
+    }
     
     ## ** model
     for(iterE in 1:n.endpoints){
@@ -261,7 +272,8 @@ simBuyseTest_TTE <- function(modelT,
                              rates.Censoring = 1,
                              sigma.C = NULL, 
                              name = NULL,
-                             nameCensoring = NULL){
+                             nameCensoring = NULL,
+                             check){
     
     ## ** initialisation
     n.endpoints <- length(rates.T)
@@ -277,23 +289,25 @@ simBuyseTest_TTE <- function(modelT,
     nameC <- paste0(name,"Censoring")
     
     ## ** tests
-    validNumeric(rates.T,
-                 valid.length = NULL,
-                 method = "simBuyseTest")
-    validNumeric(rates.C,
-                 valid.length = n.endpoints,
-                 min = 0,
-                 method = "simBuyseTest")
-    validNumeric(rates.Censoring,
-                 valid.length = n.endpoints,
-                 min = 0,
-                 method = "simBuyseTest")
-    validCharacter(name,
-                   valid.length = n.endpoints,
-                   method = "simBuyseTest")
-    validCharacter(nameCensoring,
-                   valid.length = n.endpoints,
-                   method = "simBuyseTest")  
+    if(check){
+        validNumeric(rates.T,
+                     valid.length = NULL,
+                     method = "simBuyseTest")
+        validNumeric(rates.C,
+                     valid.length = n.endpoints,
+                     min = 0,
+                     method = "simBuyseTest")
+        validNumeric(rates.Censoring,
+                     valid.length = n.endpoints,
+                     min = 0,
+                     method = "simBuyseTest")
+        validCharacter(name,
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")
+        validCharacter(nameCensoring,
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")  
+    }
     
     ## ** model
     for(iterE in 1:n.endpoints){

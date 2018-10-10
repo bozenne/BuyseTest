@@ -21,12 +21,13 @@
 setMethod(f = "show",
           signature = "BuyseSim",
           definition = function(object){
-            outSummary <- summary(object, print = FALSE)
-
-            table.print <- outSummary
+              outSummary <- summary(object, print = FALSE)
+              outSummary <- lapply(outSummary, function(iT){
+                  iT[,c("rep.estimate","rep.se") := NULL]
+              })
               
-            print(table.print, row.names = FALSE)
+              print(outSummary)
            
-            return(invisible(NULL))
+              return(invisible(NULL))
           }
           )

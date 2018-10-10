@@ -240,9 +240,10 @@ initializeData <- function(data, type, endpoint, operator, strata, treatment){
         }
     }
 
-    ## ** treatment
+    ## ** convert treatment to binary indicator
     level.treatment <- levels(as.factor(data[[treatment]]))
-    data[ , c(treatment) := as.numeric(as.character(factor(.SD[[1]], levels = level.treatment, labels = 0:1))), .SDcols = treatment]
+    trt2bin <- setNames(0:1,level.treatment)
+    data[ , c(treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = treatment]
 
     ## ** strata
     if(is.null(strata)){

@@ -447,7 +447,7 @@ BuyseTest <- function(formula,
     }
     
     ## ** Initialize data    
-
+    
     ## *** data: split the data according to the two levels
     indexT <- which(data[[treatment]] == 1)
     dataT <- data[indexT]

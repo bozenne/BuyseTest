@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt  9 2018 (11:07) 
+## Last-Updated: okt 10 2018 (13:33) 
 ##           By: Brice Ozenne
-##     Update #: 157
+##     Update #: 189
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,6 +50,11 @@
 ##' @rdname powerBuyseTest
 ##' @examples
 ##'
+##' ## using simBuyseTest
+##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
+##'               formula = Treatment ~ tte(eventtime, censoring = status), method.inference = "asymptotic", trace = 4)
+##'
+##' ## using user defined simulation function
 ##' simFCT <- function(n.C, n.T){
 ##'     out <- data.table(Y=rnorm(n.C+n.T),
 ##'                       T=c(rep(1,n.C),rep(0,n.T))
@@ -67,6 +72,8 @@
 powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL, n.rep, cpus = 1,                          
                           alternative = NULL, seed = 10, conf.level = NULL, transformation = NULL, trace = 1, ...){
 
+    call <- match.call()$sim
+    
     ## ** normalize and check arguments
     name.call <- names(match.call())
     option <- BuyseTest.options()
@@ -112,7 +119,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, alternative = alternative,
-                              data = NULL, keep.pairScore = TRUE, ...)
+                              data = NULL, model.tte = NULL, keep.pairScore = TRUE, ...)
 
     if(any(outArgs$operator!=">0")){
         stop("Cannot use argument \'operator\' with powerBuyseTest \n")
@@ -170,14 +177,13 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         
     }
     ## ** define environment
-    name.copy <- c("initializeSurvival_Peron", "initializeData", ".BuyseTest", "sim",
+    name.copy <- c("initializeSurvival_Peron", "initializeData", ".BuyseTest", "call", "sim",
                    "outArgs", "sample.sizeTmax", "sample.sizeCmax", "n.sample.size",
                    "sample.size", "sample.sizeC", "sample.sizeT", "n.rep", "alternative", "seed")
     envirBT <- new.env()
     for(iObject in name.copy){ ## iObject <- name.copy[1]
         envirBT[[iObject]] <- eval(parse(text = iObject))
     }
-    names(envirBT)
 
     ## ** warper
     warper <- function(i, envir){
@@ -187,7 +193,10 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value")))
 
         ## *** Simulate data
-        envir$outArgs$data <- envir$sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
+        envir$outArgs$data <- do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax))
+        ## envir$outArgs$data <- envir$sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
+        trt2bin <- setNames(0:1,outArgs$level.treatment)
+        envir$outArgs$data[, c(envir$outArgs$treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = envir$outArgs$treatment]
         envir$outArgs$n.obs <- NROW(envir$outArgs$data)
         envir$outArgs$n.obsStrata <- envir$outArgs$n.obs
 
@@ -310,7 +319,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","initializeSurvival_Peron","pairScore2dt","inferenceUstatistic","confint_Ustatistic")
+        toExport <- c(".BuyseTest","initializeSurvival_Peron","pairScore2dt","inferenceUstatistic","confint_Ustatistic", "validNumeric")
 
         i <- NULL ## [:forCRANcheck:] foreach        
         ls.simulation <- foreach::`%dopar%`(

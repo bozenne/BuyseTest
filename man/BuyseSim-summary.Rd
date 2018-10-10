@@ -7,7 +7,7 @@
 \title{Summary Method for Class "BuyseSim"}
 \usage{
 \S4method{summary}{BuyseSim}(object, print = TRUE, statistic = NULL,
-  digit = 4)
+  legend = TRUE, digit = 4)
 }
 \arguments{
 \item{object}{output of \code{\link{powerBuyseTest}}}
@@ -17,6 +17,8 @@
 \item{statistic}{[character] the statistic summarizing the pairwise comparison:
 \code{"netBenefit"} displays the net benefit
 whereas \code{"winRatio"} displays the win ratio.}
+
+\item{legend}{[logical] should explainations about the content of each column be displayed?}
 
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
 

@@ -50,6 +50,11 @@ Returns estimates, standard errors, confidence intervals and p.values.
 }
 \examples{
 
+## using simBuyseTest
+powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
+              formula = Treatment ~ tte(eventtime, censoring = status), method.inference = "asymptotic", trace = 4)
+
+## using user defined simulation function
 simFCT <- function(n.C, n.T){
     out <- data.table(Y=rnorm(n.C+n.T),
                       T=c(rep(1,n.C),rep(0,n.T))

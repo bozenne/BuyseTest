@@ -2,7 +2,7 @@ Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
 Version: 1.5.2
-Date: 2018-10-09
+Date: 2018-10-10
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.ozenne@orange.fr", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "aut")
@@ -19,6 +19,7 @@ Description: Implementation of the Generalized Pairwise Comparisons (GPS). GPC
     censoring, using the empirical survival curves in each group to
     estimating the expected score of the censored pairs.
 License: GPL-3
+Encoding: UTF-8
 URL: https://github.com/bozenne/BuyseTest
 BugReports: https://github.com/bozenne/BuyseTest/issues
 Depends:
