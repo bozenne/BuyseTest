@@ -77,7 +77,8 @@
 #' \bold{method.tte:} the \code{method.tte="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
 #' 
 #' \bold{method.inference:} the \code{method.inference="asymptotic"} estimate the distribution of the net benefit or win ratio statistics
-#' based on the asymptotic theory of the U-statistics (see formula 2.2 in Bebu et al. 2016)
+#' based on the asymptotic theory of the U-statistics (see formula 2.2 in Bebu et al. 2016).
+#' Its current implementation is not valid in small sample or when using \code{method.tte="Peron"}, or  \code{correction.uninf=1}, or \code{correction.uninf=2}.
 #'
 #' \bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
 #' Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
@@ -118,7 +119,7 @@
 #'
 #' #### one time to event endpoint ####
 #' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data= df.data)
-#' 
+#' confint(BT)
 #' summary(BT) # net benefit
 #' summary(BT, percentage = FALSE)  
 #' summary(BT, statistic = "winRatio") # win Ratio
@@ -329,6 +330,16 @@ BuyseTest <- function(formula,
         }
 
         if(outArgs$method.inference %in% c("asymptotic")){
+
+            if(outArgs$method.tte > 0){
+                warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
+                        "Standard errors / confidence intervals / p-values should not be trusted \n")
+            }
+            if(outArgs$correction.uninf > 0){
+                warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
+                        "Standard errors / confidence intervals / p-values should not be trusted \n")
+            }
+            
             outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore,
                                                  count.favorable = outPoint$count_favorable, count.unfavorable = outPoint$count_unfavorable,
                                                  n.pairs = outPoint$n_pairs, n.C = length(envirBT$indexC), n.T = length(envirBT$indexC),                                

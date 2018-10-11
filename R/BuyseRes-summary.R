@@ -106,6 +106,19 @@ setMethod(f = "summary",
                            valid.length = 2,
                            method = "summary[BuyseRes]")
 
+              ## ** safety
+              if(object@method.tte == "Peron"){
+                  warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
+                          "Standard errors / confidence intervals / p-values will not be displayed \n")
+                  conf.level <- NA
+                  
+              }
+              if(object@correction.uninf > 0){
+                  warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
+                          "Standard errors / confidence intervals / p-values will not be displayed \n")
+                  conf.level <- NA
+              }
+
               ## ** load info from object
               endpoint <- object@endpoint
               n.endpoint <- length(endpoint)

@@ -111,7 +111,8 @@ Uninformative pairs correspond to pairs for which the censoring prevent from cla
 \bold{method.tte:} the \code{method.tte="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
 
 \bold{method.inference:} the \code{method.inference="asymptotic"} estimate the distribution of the net benefit or win ratio statistics
-based on the asymptotic theory of the U-statistics (see formula 2.2 in Bebu et al. 2016)
+based on the asymptotic theory of the U-statistics (see formula 2.2 in Bebu et al. 2016).
+Its current implementation is not valid in small sample or when using \code{method.tte="Peron"}, or  \code{correction.uninf=1}, or \code{correction.uninf=2}.
 
 \bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
 Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  9 2018 (13:33) 
+## Last-Updated: okt 11 2018 (09:12) 
 ##           By: Brice Ozenne
-##     Update #: 206
+##     Update #: 208
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -137,7 +137,16 @@ setMethod(f = "confint",
               covariance <- object@covariance
               endpoint <- object@endpoint
               alpha <- 1-conf.level
-              
+
+              if(object@method.tte == "Peron"){
+                  warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
+                          "Standard errors / confidence intervals / p-values should not be trusted \n")
+              }
+              if(object@correction.uninf > 0){
+                  warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
+                          "Standard errors / confidence intervals / p-values should not be trusted \n")
+              }
+
               ## ** null hypothesis
               null <- switch(statistic,
                              "netBenefit" = 0,
