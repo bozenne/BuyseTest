@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 10 2018 (13:33) 
+## Last-Updated: okt 11 2018 (12:13) 
 ##           By: Brice Ozenne
-##     Update #: 189
+##     Update #: 190
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,7 +52,8 @@
 ##'
 ##' ## using simBuyseTest
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
-##'               formula = Treatment ~ tte(eventtime, censoring = status), method.inference = "asymptotic", trace = 4)
+##'               formula = Treatment ~ tte(eventtime, censoring = status),
+##'               method.inference = "asymptotic", trace = 4)
 ##'
 ##' ## using user defined simulation function
 ##' simFCT <- function(n.C, n.T){

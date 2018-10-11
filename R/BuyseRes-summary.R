@@ -106,19 +106,6 @@ setMethod(f = "summary",
                            valid.length = 2,
                            method = "summary[BuyseRes]")
 
-              ## ** safety
-              if(object@method.tte == "Peron"){
-                  warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
-                          "Standard errors / confidence intervals / p-values will not be displayed \n")
-                  conf.level <- NA
-                  
-              }
-              if(object@correction.uninf > 0){
-                  warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
-                          "Standard errors / confidence intervals / p-values will not be displayed \n")
-                  conf.level <- NA
-              }
-
               ## ** load info from object
               endpoint <- object@endpoint
               n.endpoint <- length(endpoint)
@@ -132,8 +119,21 @@ setMethod(f = "summary",
               }else{
                   method.inference <- "none"
               }
-              alpha <- 1-conf.level
 
+              ## safety
+              if(method.inference == "asymptotic"){
+                  if(object@method.tte == "Peron"){
+                      warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
+                              "Standard errors / confidence intervals / p-values will not be displayed \n")
+                      conf.level <- NA
+                  }else if(object@correction.uninf > 0){
+                      warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
+                              "Standard errors / confidence intervals / p-values will not be displayed \n")
+                      conf.level <- NA
+                  }
+              }
+              alpha <- 1-conf.level
+              
               ## ** compute confidence intervals and p-values
               outConfint <- confint(object, conf.level = conf.level, statistic = statistic, ...)
           

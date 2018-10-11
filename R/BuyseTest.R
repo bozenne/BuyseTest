@@ -119,7 +119,7 @@
 #'
 #' #### one time to event endpoint ####
 #' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data= df.data)
-#' confint(BT)
+#'
 #' summary(BT) # net benefit
 #' summary(BT, percentage = FALSE)  
 #' summary(BT, statistic = "winRatio") # win Ratio
