@@ -304,11 +304,11 @@ buildWscheme <- function(endpoint, D.TTE, D,
 
         for(iEndpoint in indexDuplicated.endpoint.TTE){    ## iEndpoint <- indexDuplicated.endpoint.TTE[1]
             iEndpoint2 <- index.endpoint.TTE[iEndpoint] ## position of the current endpoint relative to all endpoint
-            iEndpoint2.M1 <- tail(which(endpoint[1:(iEndpoint2-1)] == endpoint[iEndpoint2]),1)  ## position of the previous endpoint relative to all endpoints
-            iEndpoint.M1 <- tail(which(endpoint.TTE[1:(iEndpoint-1)] == endpoint.TTE[iEndpoint]),1) ## position of the previous endpoint relative to the time to event endpoints
+            iEndpoint2.M1 <- which(endpoint[1:(iEndpoint2-1)] == endpoint[iEndpoint2])  ## position of the previous endpoint relative to all endpoints
+            iEndpoint.M1 <- which(endpoint.TTE[1:(iEndpoint-1)] == endpoint.TTE[iEndpoint]) ## position of the previous endpoint relative to the time to event endpoints
 
-            index.survivalM1[iEndpoint] <- iEndpoint.M1 - 1 ## C++ index
-            threshold.M1[iEndpoint] <- threshold[iEndpoint2.M1]
+            index.survivalM1[iEndpoint] <- tail(iEndpoint.M1,1) - 1 ## C++ index
+            threshold.M1[iEndpoint] <- threshold[tail(iEndpoint2.M1,1)]
             Wscheme[iEndpoint2.M1,iEndpoint2] <- 0 # potential weights
       
         }

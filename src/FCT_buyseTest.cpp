@@ -131,13 +131,11 @@ List GPC_cpp(const arma::mat& Control,
   // others
   int iter_d; // the index of the endpoints
   int iter_dTTE; // number of time to event endpoints that have been used
-  int iter_oldpair; // index of the remaining pair [local use when updating iMweights]
-    
+  uvec iUvec(1);
+  
   int size_neutral; // number of neutral pairs (temporary)
   int size_uninf; // number of uninformative pairs (temporary)
 
-  vector<int> tempo_index;  // temporary index vector used to convert the index SEXP into vector<int>
-  
   // *** keep track of each comparison
   vector<arma::mat> lsScore(D);
   arma::mat iScore;
@@ -214,7 +212,6 @@ List GPC_cpp(const arma::mat& Control,
 	// only relevant if there is one more endpoint and the weights may differ from 1
     if(D>1 && (methodTTE>0 || correctionUninf>0)){ 
       matWeight.resize(size_neutral+size_uninf,1); 
-
 	  // set the value of the weights to the one computed and stored in iWeight
 	  for(int iter_neutral=0 ; iter_neutral<size_neutral ; iter_neutral++){
 		matWeight(iter_neutral,0) = iWeight[iter_neutral];
@@ -263,7 +260,7 @@ List GPC_cpp(const arma::mat& Control,
 		  if(Wscheme(iter_endpoint,iter_d)==1){iCumWeight_M1 %= matWeight.col(iter_endpoint);}
 		}
 	  }
-		
+
 	  // **** computes scores
       if(survEndpoint[iter_d]){ // time to event endpoint
 
@@ -334,21 +331,14 @@ List GPC_cpp(const arma::mat& Control,
       if(D>iter_d+1 && (methodTTE>0 || correctionUninf>0)){
         matWeight.resize(size_neutral+size_uninf,iter_d+1); // update the size of iMweight
 
-		tempo_index=iIndexWeight_pair; // store the position of the remaining pairs in the previous iMweight (i.e. iMweight_M1)
-		  
-		for(size_t iter_pair=0; iter_pair<tempo_index.size(); iter_pair++){
-			
-		  iter_oldpair = tempo_index[iter_pair]; // position of the pair in iMweight_M1
-			
-		  for(int iter_endpointTTE=0 ; iter_endpointTTE<iter_dTTE ; iter_endpointTTE++){                        
-			if(iter_endpointTTE==(iter_dTTE-1) && survEndpoint[iter_d]){ // for the last endpoint (first test) add the new weights in case of survival endpoint (second test)
-			  matWeight(iter_pair,iter_endpointTTE) = iWeight[iter_pair];
-			}else{ // transfert the existing weights to the new matrix
-			  matWeight(iter_pair,iter_endpointTTE) = matWeight_M1(iter_oldpair,iter_endpointTTE); // store iMweight_M1 in the iMweight restrected to the remaining pairs
-			  // only if Wscheme is one in the column of the new endpoint and the line of the previous endpoint.            
-			}
-		  }
-		} 
+		for(int iter_endpoint=0 ; iter_endpoint<(iter_d-1) ; iter_endpoint++){
+		  // store iMweight_M1 in the iMweight restrected to the remaining pairs
+ 		  // matWeight.col(iter_endpoint) = (matWeight_M1.col(iter_endpoint)).(conv_to<uvec>::from(iIndexWeight_pair));
+		  iUvec(0) = iter_endpoint; 
+ 		  matWeight.col(iter_endpoint) = matWeight_M1.submat(iUvec, conv_to<uvec>::from(iIndexWeight_pair)); 
+		  // matWeight.col(iter_endpoint) = matWeight_M1.col(iter_endpoint); 
+		}
+		matWeight.col(iter_d) = conv_to<colvec>::from(iWeight);		 
 	  }
 
       // **** update all Scores

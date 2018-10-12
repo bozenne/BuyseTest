@@ -134,7 +134,7 @@ arma::mat calcAllPairs_Continuous( const arma::colvec& Control, const arma::colv
   // ** correction for uninformative pairs
   // correction possible: if there are uninformative paris
   //                      if there are informative pairs
-    if(count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
+  if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
     if(correctionUninf == 1){
       vector<int> index_wNeutral(0);
       vector<int> index_wUninf(0);
@@ -158,7 +158,10 @@ arma::mat calcAllPairs_Continuous( const arma::colvec& Control, const arma::colv
 	  // wNeutral, wUninf
 	  // are updated by reference
     }
-	}
+  }else{
+	wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end()); // wNeutral is returned by reference
+	// NOTE: no index_wNeutral to update since it is the first outcome
+  }
 	
 	// ** export
 	return score;
@@ -184,7 +187,7 @@ arma::mat calcSubsetPairs_Continuous( const arma::colvec& Control, const arma::c
   vector<int> indexNew_uninfC(0); // index of the uninformative pairs of the control arm
   // vector<int> index_wNeutral(0); // index of the neutral and uninformative pairs relative to Wpairs
   vector<int> index_wUninf(0); // index of the neutral and uninformative pairs relative to Wpairs
-    //vector<double> wNeutral(0);  // weigth of the neutral pairs 
+  //vector<double> wNeutral(0);  // weigth of the neutral pairs 
   vector<double> wUninf(0);  // weigth of the uninformative pairs
 
   arma::rowvec iRow; // temporary store results
@@ -252,7 +255,7 @@ arma::mat calcSubsetPairs_Continuous( const arma::colvec& Control, const arma::c
   // ** correction for uninformative pairs
   // correction possible: if there are uninformative paris
   //                      if there are informative pairs
-  if(count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
+  if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
 
 	if(correctionUninf == 1){
 
@@ -277,11 +280,12 @@ arma::mat calcSubsetPairs_Continuous( const arma::colvec& Control, const arma::c
 	  // index_wNeutral, index_wUninf
 	  // are updated by reference
     }
+  }else{
+	wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end()); // wNeutral is returned by reference
+	index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end()); // index_wNeutral is returned by reference
   }
 
   // ** export 
-  index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end()); // index_wNeutral is returned by reference
-
   return score;
   
 }
@@ -341,7 +345,7 @@ arma::mat calcAllPairs_TTEgehan(const arma::colvec& Control, const arma::colvec&
   // ** correction for uninformative pairs
   // correction possible: if there are uninformative paris
   //                      if there are informative pairs
-  if(count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
+  if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
     if(correctionUninf == 1){
       vector<int> index_wNeutral(0);
       vector<int> index_wUninf(0);
@@ -367,11 +371,12 @@ arma::mat calcAllPairs_TTEgehan(const arma::colvec& Control, const arma::colvec&
 	  // index_wNeutral, index_wUninf
 	  // are updated by reference
     }
-  }  
+  }else{
+	wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end()); // wNeutral is returned by reference
+   // NOTE: no index_wNeutral to update since it is the first outcome
+  }
   
   // ** export
-  // NOTE: no index_wNeutral to update since it is the first outcome
-  wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
   return score;
 }
 
@@ -458,7 +463,7 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Control, const arma::colvec
   // correction possible: if there are uninformative paris
   //                      if there are informative pairs
   // Rcout << "correction: " << correctionUninf << " | uninf=" << count_uninf << endl;
-  if(count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
+  if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
 	
     if(correctionUninf == 1){
 	  vector<int> index_wNeutral(0);
@@ -477,11 +482,12 @@ arma::mat calcAllPairs_TTEperon( const arma::colvec& Control, const arma::colvec
 					wNeutral, wUninf,
 					neutralAsUninf && moreEndpoint, keepScore, score);
 	}
+  }else{
+	wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end()); // wNeutral is returned by reference
+	// NOTE: no index_wNeutral to update since it is the first outcome
   }
   
   // ** export
-  // NOTE: no index_wNeutral to update since it is the first outcome
-  wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
   return score;
 }
 
@@ -571,7 +577,7 @@ arma::mat calcSubsetPairs_TTEgehan(const arma::colvec& Control, const arma::colv
   // ** correction for uninformative pairs
   // correction possible: if there are uninformative paris
   //                      if there are informative pairs
-  if(count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
+  if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
     if(correctionUninf == 1){
       correctionPairs(count_favorable, count_unfavorable, count_neutral, count_uninf,
 					  index_uninfC, index_uninfT, 
@@ -586,12 +592,12 @@ arma::mat calcSubsetPairs_TTEgehan(const arma::colvec& Control, const arma::colv
 					wNeutral, wUninf,
 					neutralAsUninf && moreEndpoint, keepScore, score);
     }
+  }else{
+	index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
+	wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
   }
 
   // ** export  
-  index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
-  wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
-  
   return score;
 }
 
@@ -784,7 +790,7 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Control, const arma::colv
   // ** correction for uninformative pairs
   // correction possible: if there are uninformative paris
   //                      if there are informative pairs
-  if(count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
+  if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
 	if(correctionUninf == 1){
 	  correctionPairs(count_favorable, count_unfavorable, count_neutral, count_uninf,
 					  index_uninfC, index_uninfT,
@@ -799,11 +805,12 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Control, const arma::colv
 					wNeutral, wUninf,
 					neutralAsUninf && moreEndpoint, keepScore, score);
 	}
+  }else{
+	index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
+	wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
   }
   
   // ** export
-  index_wNeutral.insert(index_wNeutral.end(),index_wUninf.begin(),index_wUninf.end());
-  wNeutral.insert(wNeutral.end(),wUninf.begin(),wUninf.end());
 
   return score;
 }

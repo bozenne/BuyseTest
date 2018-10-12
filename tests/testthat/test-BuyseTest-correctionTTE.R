@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt  9 2018 (10:22) 
+## Last-Updated: okt 12 2018 (14:56) 
 ##           By: Brice Ozenne
-##     Update #: 79
+##     Update #: 81
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,9 +21,6 @@ if(FALSE){
 }
 
 context("Check that method.tte = corrected  in BuyseTest is working correctly \n")
-
-
-
 
 ## * settings
 BuyseTest.options(check = FALSE,
@@ -176,3 +173,50 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
 
 ##----------------------------------------------------------------------
 ### test-BuyseTest-correctionTTE.R ends here
+
+## * 2 endpoints
+## ** categorical variables
+
+## simulate data
+n <- 10
+set.seed(10)
+dt <- data.table(trt = c(rep(0,n/2),rep(1,n/2)),
+                 Y1 = 1,
+                 C = (1:n) %in% sample.int(n, n/2, replace = FALSE))
+dt[C==FALSE, Y1c := Y1]
+dt[,Y2 := as.numeric(NA)]
+dt[trt==0, Y2 := as.numeric(C)]
+dt[trt==1, Y2 := as.numeric(1-C)]
+
+table(dt$trt,dt$Y1,dt$Y2)
+
+test_that("2 TTE endpoint - IPW induces bias when censoring is correlated with 2nd endpoint", {
+    BT.all <- BuyseTest(trt ~ cont(Y1, threshold = 1) + bin(Y2), data = dt,
+                        correction.uninf = 0, method.inference = "none")
+    expect_equal(as.double(BT.all@count.favorable), c(0,4))
+    expect_equal(as.double(BT.all@count.unfavorable), c(0,4))
+    expect_equal(as.double(BT.all@count.neutral), c(25,17))
+    expect_equal(as.double(BT.all@count.uninf), c(0,0))
+
+    BT.uninf <- BuyseTest(trt ~ cont(Y1c, threshold = 1) + bin(Y2), data = dt,
+                          correction.uninf = 0, method.inference = "none")
+    expect_equal(as.double(BT.uninf@count.favorable), c(0,4))
+    expect_equal(as.double(BT.uninf@count.unfavorable), c(0,4))
+    expect_equal(as.double(BT.uninf@count.neutral), c(4,17))
+    expect_equal(as.double(BT.uninf@count.uninf), c(21,0))
+
+    BT.ipw <- BuyseTest(trt ~ cont(Y1c, threshold = 1) + bin(Y2), data = dt,
+                        correction.uninf = 2, method.inference = "none")
+    expect_equal(as.double(BT.ipw@count.favorable), c(0,25))
+    expect_equal(as.double(BT.ipw@count.unfavorable), c(0,0))
+    expect_equal(as.double(BT.ipw@count.neutral), c(25,0))
+    expect_equal(as.double(BT.ipw@count.uninf), c(0,0))
+
+    BT.esp <- BuyseTest(trt ~ cont(Y1c, threshold = 1) + bin(Y2), data = dt,
+                        correction.uninf = 1, method.inference = "none", keep.pairScore = TRUE)
+    expect_equal(as.double(BT.esp@count.favorable), as.double(BT.all@count.favorable))
+    expect_equal(as.double(BT.esp@count.unfavorable), as.double(BT.all@count.unfavorable))
+    expect_equal(as.double(BT.esp@count.neutral), as.double(BT.all@count.neutral))
+    expect_equal(as.double(BT.esp@count.uninf), as.double(BT.all@count.uninf))
+
+})

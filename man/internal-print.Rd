@@ -7,8 +7,9 @@
 \title{internal functions for BuyseTest - display}
 \usage{
 printGeneral(censoring, D, D.TTE, data, endpoint, level.strata,
-  level.treatment, method.tte, neutral.as.uninf, operator, strata,
-  threshold, threshold.TTEM1, treatment, type, Wscheme, ...)
+  level.treatment, method.tte, neutral.as.uninf, correction.uninf,
+  operator, strata, threshold, threshold.TTEM1, treatment, type, Wscheme,
+  ...)
 
 printInference(method.inference, n.resampling, cpus, seed, ...)
 }
