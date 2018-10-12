@@ -283,37 +283,41 @@ initializeData <- function(data, type, endpoint, operator, strata, treatment){
 }
 
 ## * buildWscheme
-buildWscheme <- function(endpoint, D.TTE, D,
+buildWscheme <- function(method.tte, endpoint, D.TTE, D,
                          type, threshold){
 
-    Wscheme <- matrix(0,nrow=D,ncol=D) # design matrix indicating to combine the weights obtained at differents endpoints
-    rownames(Wscheme) <- paste("weigth of ",endpoint,"(",threshold,")",sep="")
-    colnames(Wscheme) <- paste("for ",endpoint,"(",threshold,")",sep="")
-    Wscheme[upper.tri(Wscheme)] <- 1 ## only previous endpoint can contribute to the current weights
-    Wscheme[lower.tri(Wscheme)] <- NA ## do not look at future endpoint 
-        
-    index.survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
-    threshold.M1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used or it is not a tte endpoint)
-
     ## take care of repeated survival endpoints
-    if(D.TTE>1){
+    if(method.tte>0 && D.TTE>1){
 
         index.endpoint.TTE <- which(type == 3)
         endpoint.TTE <- endpoint[index.endpoint.TTE]
+        threshold.TTE <- threshold.TTE[index.endpoint.TTE]
+
+        Wscheme <- matrix(0,nrow=D.TTE,ncol=D.TTE) # design matrix indicating to combine the weights obtained at differents endpoints
+        rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold.TTE,")",sep="")
+        colnames(Wscheme) <- paste("for ",endpoint.TTE,"(",threshold.TTE,")",sep="")
+        Wscheme[upper.tri(Wscheme)] <- 1 ## only previous endpoint can contribute to the current weights
+        Wscheme[lower.tri(Wscheme)] <- NA ## do not look at future endpoint 
+        
+        index.survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
+        threshold.M1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used or it is not a tte endpoint)
+  
         indexDuplicated.endpoint.TTE <- which(duplicated(endpoint.TTE))
 
         for(iEndpoint in indexDuplicated.endpoint.TTE){    ## iEndpoint <- indexDuplicated.endpoint.TTE[1]
-            iEndpoint2 <- index.endpoint.TTE[iEndpoint] ## position of the current endpoint relative to all endpoint
-            iEndpoint2.M1 <- which(endpoint[1:(iEndpoint2-1)] == endpoint[iEndpoint2])  ## position of the previous endpoint relative to all endpoints
             iEndpoint.M1 <- which(endpoint.TTE[1:(iEndpoint-1)] == endpoint.TTE[iEndpoint]) ## position of the previous endpoint relative to the time to event endpoints
 
             index.survivalM1[iEndpoint] <- tail(iEndpoint.M1,1) - 1 ## C++ index
             threshold.M1[iEndpoint] <- threshold[tail(iEndpoint2.M1,1)]
-            Wscheme[iEndpoint2.M1,iEndpoint2] <- 0 # potential weights
+            Wscheme[iEndpoint.M1,iEndpoint] <- 0 # potential weights
       
         }
+    }else{
+        Wscheme <- matrix(nrow = 0, ncol = 0)
+        index.survivalM1 <- numeric(0)
+        threshold.M1 <- numeric(0)
     }
-
+    
     ## export
     return(list(Wscheme = Wscheme,
                 index.survivalM1 = index.survivalM1,

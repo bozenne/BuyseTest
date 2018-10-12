@@ -651,7 +651,7 @@ arma::mat calcSubsetPairs_TTEperon(const arma::colvec& Control, const arma::colv
       iter_T = index_neutralT[iter_pairs]; // index of the treatment patient of the pair in the Treatment matrix
       iter_C = index_neutralC[iter_pairs]; // index of the control patient of the pair in the Control matrix
 
-      // *** Compute probas
+      // *** Compute proba
       proba_threshold = calcOneProba_TTEperon(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold, iter_C, iter_T,
 											  survTimeC, survTimeT, survJumpC, survJumpT,
 											  lastSurvC, lastSurvT);

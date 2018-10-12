@@ -109,6 +109,7 @@
 #' BuyseTest.options(method.inference = "none") # no permutation test
 #'
 #' #### simulate some data ####
+#' set.seed(10)
 #' df.data <- simBuyseTest(1e2, n.strata = 2)
 #'
 #'                                        # display 
@@ -271,12 +272,12 @@ BuyseTest <- function(formula,
     
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    outArgs[c("Wscheme","index.survivalM1","threshold.TTEM1")] <- buildWscheme(endpoint = outArgs$endpoint,
+    outArgs[c("Wscheme","index.survivalM1","threshold.TTEM1")] <- buildWscheme(method.tte = outArgs$method.tte,
+                                                                               endpoint = outArgs$endpoint,
                                                                                D = outArgs$D,
                                                                                D.TTE = outArgs$D.TTE,
                                                                                type = outArgs$type,
                                                                                threshold = outArgs$threshold)
-
     ## ** Display
     if (outArgs$trace > 1) {
         cat("\n         Generalized Pairwise Comparisons\n\n")

@@ -83,10 +83,10 @@ List GPC_cpp(const arma::mat& Control,
   /// ** initialization
   
   // *** final results
-  arma::mat Mcount_favorable(n_strata,D,fill::zeros); // store the total weight of favorable pairs by outcome for each strata
-  arma::mat Mcount_unfavorable(n_strata,D,fill::zeros); // store the total weight of unfavorable pairs by outcome for each strata
-  arma::mat Mcount_neutral(n_strata,D,fill::zeros); // store the total weight of neutral pairs by outcome for each strata
-  arma::mat Mcount_uninf(n_strata,D,fill::zeros); // store the total weight of uninf pairs by outcome for each strata
+  arma::mat Mcount_favorable(n_strata,D,fill::zeros); // store the total weight of favorable pairs by endpoint for each strata
+  arma::mat Mcount_unfavorable(n_strata,D,fill::zeros); // store the total weight of unfavorable pairs by endpoint for each strata
+  arma::mat Mcount_neutral(n_strata,D,fill::zeros); // store the total weight of neutral pairs by endpoint for each strata
+  arma::mat Mcount_uninf(n_strata,D,fill::zeros); // store the total weight of uninf pairs by endpoint for each strata
   vector<double> n_pairs(n_strata); // number of pairs sumed over the strats
   
   // *** for a given stata [input]
@@ -117,9 +117,10 @@ List GPC_cpp(const arma::mat& Control,
   vector<int> iIndex_uninfT; // in the treatment arm
 
   // weights of the neutral / uninformative pairs
-  arma::mat matWeight;  // for all endpoint up to the current endpoint 
-  arma::mat matWeight_M1; // for all endpoint up to the previous endpoint
-  vector<double> iWeight; // only for the current endpoint
+  arma::mat matWeightPeron;  // for all endpoint up to the current endpoint 
+  arma::mat matWeightPeron_M1; // for all endpoint up to the previous endpoint
+  vector<double> iWeightPeron; // only for the current endpoint
+  arma::vec iWeightCorrection; // only for the current endpoint
 
   // index of the pairs corresponding to the new weights (iWeight) in the weight vector of the previous endpoint (iCumWeight_M1)
   vector<int> iIndexWeight_pair; 
@@ -142,7 +143,7 @@ List GPC_cpp(const arma::mat& Control,
   arma::mat iMat;
   int iNpairs;
   bool iMoreEndpoint;
-      
+
   // ** loop over strata
   for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
     
@@ -163,7 +164,7 @@ List GPC_cpp(const arma::mat& Control,
     
     // *** first endpoint
     // Rcout << "** endpoint 0 **" << endl;
-    iIndex_neutralT.resize(0); iIndex_neutralC.resize(0); iIndex_uninfT.resize(0); iIndex_uninfC.resize(0); iWeight.resize(0);
+    iIndex_neutralT.resize(0); iIndex_neutralC.resize(0); iIndex_uninfT.resize(0); iIndex_uninfC.resize(0); iWeightPeron.resize(0); iWeightCorrection.resize(0);
     iMoreEndpoint = (D>1);
 	
     if(survEndpoint[0]){ // time to event endpoint
@@ -174,7 +175,7 @@ List GPC_cpp(const arma::mat& Control,
 									   correctionUninf,
 									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 									   iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
-									   iWeight,
+									   iWeightCorrection,
 									   neutralAsUninf, keepScore, iMoreEndpoint); 
       }else{
 
@@ -185,7 +186,7 @@ List GPC_cpp(const arma::mat& Control,
 									   correctionUninf,
 									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 									   iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
-									   iWeight,
+									   iWeightCorrection, iWeightPeron,
 									   neutralAsUninf, keepScore, iMoreEndpoint);
       }
       iter_dTTE++; // increment the number of time to event endpoints that have been used
@@ -196,7 +197,7 @@ List GPC_cpp(const arma::mat& Control,
 									   correctionUninf,
 									   Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 									   iIndex_neutralC, iIndex_neutralT, iIndex_uninfC, iIndex_uninfT, 
-									   iWeight,
+									   iWeightCorrection,
 									   neutralAsUninf, keepScore, iMoreEndpoint);
       
     }
@@ -210,14 +211,14 @@ List GPC_cpp(const arma::mat& Control,
 	
 	// **** update weights associated to the remaing pairs
 	// only relevant if there is one more endpoint and the weights may differ from 1
-    if(D>1 && (methodTTE>0 || correctionUninf>0)){ 
-      matWeight.resize(size_neutral+size_uninf,1); 
+    if(D>1 && methodTTE>0){ 
+      matWeightPeron.resize(size_neutral+size_uninf,1); 
 	  // set the value of the weights to the one computed and stored in iWeight
 	  for(int iter_neutral=0 ; iter_neutral<size_neutral ; iter_neutral++){
-		matWeight(iter_neutral,0) = iWeight[iter_neutral];
+		matWeightPeron(iter_neutral,0) = iWeightPeron[iter_neutral];
 	  }
 	  for(int iter_uninf=0 ; iter_uninf<size_uninf ; iter_uninf++){
-		matWeight(size_neutral+iter_uninf,0) = iWeight[size_neutral + iter_uninf];
+		matWeightPeron(size_neutral+iter_uninf,0) = iWeightPeron[size_neutral + iter_uninf];
 	  }
     }
 
@@ -245,21 +246,26 @@ List GPC_cpp(const arma::mat& Control,
 
       // while there are remaining endpoints and remaining neutral or uniformative pairs
       iter_d++; // increment the index of the endpoints
-      // Rcout << "** endpoint " << iter_d << " **" << endl;
+      Rcout << "** endpoint " << iter_d << " **" << endl;
 	  matWeight_M1 = matWeight; // save the current iMweight
       iWeight.resize(0); iIndexWeight_pair.resize(0);
       iMoreEndpoint = (D>(iter_d+1));
 
 	  // **** compute the current weights of the pairs
+      Rcout << ">cumweight " << endl;
 	  // initialize iCumWeight_M1
 	  iCumWeight_M1.resize(size_neutral+size_uninf);
 	  iCumWeight_M1.fill(1.0);
 
-	  if(methodTTE>0 || correctionUninf>0){
+	  if(methodTTE>0){
 	  	for(int iter_endpoint=0 ; iter_endpoint<iter_d ; iter_endpoint++){
 		  if(Wscheme(iter_endpoint,iter_d)==1){iCumWeight_M1 %= matWeight.col(iter_endpoint);}
 		}
 	  }
+	  matWeight.print("matWeight:");
+	  Rcout << size_neutral+size_uninf << endl;
+	  Rcout << sum(iCumWeight_M1) << endl;
+      Rcout << ">score " << endl;
 
 	  // **** computes scores
       if(survEndpoint[iter_d]){ // time to event endpoint
@@ -327,17 +333,21 @@ List GPC_cpp(const arma::mat& Control,
 
 	  // Rcout << "update weights" << endl;
       // **** update weights associated to the remaing pairs
+      Rcout << ">weight " << endl;
 	  // only relevant if there is one more endpoint and the weights may differ from 1
-      if(D>iter_d+1 && (methodTTE>0 || correctionUninf>0)){
+      if(D>iter_d+1 && methodTTE>0){
         matWeight.resize(size_neutral+size_uninf,iter_d+1); // update the size of iMweight
 
 		for(int iter_endpoint=0 ; iter_endpoint<(iter_d-1) ; iter_endpoint++){
 		  // store iMweight_M1 in the iMweight restrected to the remaining pairs
  		  // matWeight.col(iter_endpoint) = (matWeight_M1.col(iter_endpoint)).(conv_to<uvec>::from(iIndexWeight_pair));
+		  Rcout << iter_endpoint <<  " " << matWeight_M1.n_rows << ";" << matWeight_M1.n_cols << " "<< iIndexWeight_pair[0] << ";" << iIndexWeight_pair[iIndexWeight_pair.size()-1]<< endl;
+		  
 		  iUvec(0) = iter_endpoint; 
  		  matWeight.col(iter_endpoint) = matWeight_M1.submat(iUvec, conv_to<uvec>::from(iIndexWeight_pair)); 
 		  // matWeight.col(iter_endpoint) = matWeight_M1.col(iter_endpoint); 
 		}
+        Rcout << ">end " << endl;
 		matWeight.col(iter_d) = conv_to<colvec>::from(iWeight);		 
 	  }
 
