@@ -285,49 +285,41 @@ initializeData <- function(data, type, endpoint, operator, strata, treatment){
 ## * buildWscheme
 buildWscheme <- function(endpoint, D.TTE, D,
                          type, threshold){
-    
-    endpoint.TTE <- endpoint[type==3]
-      
-    Wscheme <- matrix(NA,nrow=D.TTE,ncol=D-1) # design matrix indicating to combine the weights obtained at differents TTE endpoints
-    rownames(Wscheme) <- paste("weigth of ",endpoint.TTE,"(",threshold[type==3],")",sep="")
-    colnames(Wscheme) <- paste("for ",endpoint[-1],"(",threshold[-1],")",sep="")
-    
+
+    Wscheme <- matrix(0,nrow=D,ncol=D) # design matrix indicating to combine the weights obtained at differents endpoints
+    rownames(Wscheme) <- paste("weigth of ",endpoint,"(",threshold,")",sep="")
+    colnames(Wscheme) <- paste("for ",endpoint,"(",threshold,")",sep="")
+    Wscheme[upper.tri(Wscheme)] <- 1 ## only previous endpoint can contribute to the current weights
+    Wscheme[lower.tri(Wscheme)] <- NA ## do not look at future endpoint 
+        
     index.survivalM1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
-    threshold.TTEM1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used)
-    iEndpoint.TTE <- if(type[1]==3){1}else{0} #  index.survivalM1 and threshold.TTEM1 are -1 even if the first endoint is a survival endpoint
-    
-        for(iEndpoint in 2:D){   
+    threshold.M1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used or it is not a tte endpoint)
+
+    ## take care of repeated survival endpoints
+    if(D.TTE>1){
+
+        index.endpoint.TTE <- which(type == 3)
+        endpoint.TTE <- endpoint[index.endpoint.TTE]
+        indexDuplicated.endpoint.TTE <- which(duplicated(endpoint.TTE))
+
+        for(iEndpoint in indexDuplicated.endpoint.TTE){    ## iEndpoint <- indexDuplicated.endpoint.TTE[1]
+            iEndpoint2 <- index.endpoint.TTE[iEndpoint] ## position of the current endpoint relative to all endpoint
+            iEndpoint2.M1 <- tail(which(endpoint[1:(iEndpoint2-1)] == endpoint[iEndpoint2]),1)  ## position of the previous endpoint relative to all endpoints
+            iEndpoint.M1 <- tail(which(endpoint.TTE[1:(iEndpoint-1)] == endpoint.TTE[iEndpoint]),1) ## position of the previous endpoint relative to the time to event endpoints
+
+            index.survivalM1[iEndpoint] <- iEndpoint.M1 - 1 ## C++ index
+            threshold.M1[iEndpoint] <- threshold[iEndpoint2.M1]
+            Wscheme[iEndpoint2.M1,iEndpoint2] <- 0 # potential weights
       
-            if(type[iEndpoint]==3){ 
-                iEndpoint.TTE <- iEndpoint.TTE + 1
-            }
-      
-            ## select valid rows
-            index.rowTTE <- which(paste(endpoint.TTE,threshold[type==3],sep="_") %in% paste(endpoint,threshold,sep="_")[1:(iEndpoint-1)])
-            if(length(index.rowTTE)==0){next} # not yet TTE endpoints (no valid rows)
-            Wscheme[index.rowTTE,iEndpoint-1] <- 0 # potential weights
-      
-            ## keep only the last repeated endpoints
-            index.rowTTE <- sapply(unique(endpoint.TTE[index.rowTTE]),
-                                   function(x){utils::tail(index.rowTTE[endpoint.TTE[index.rowTTE]==x],1)})
-      
-            ## if survival endpoint remove similar endpoints
-            if(endpoint[iEndpoint] %in% endpoint.TTE[index.rowTTE]){
-                index.survivalM1[iEndpoint.TTE] <- index.rowTTE[endpoint.TTE[index.rowTTE]==endpoint[iEndpoint]]-1
-                threshold.TTEM1[iEndpoint.TTE] <- threshold[type==3][index.survivalM1[iEndpoint.TTE]+1]
-                index.rowTTE <- setdiff(index.rowTTE,index.survivalM1[iEndpoint.TTE]+1)
-            }
-      
-            ## update Wscheme
-            if(length(index.rowTTE)>0){
-                Wscheme[index.rowTTE,iEndpoint-1] <- 1
-            }
         }
-    
+    }
+
+    ## export
     return(list(Wscheme = Wscheme,
                 index.survivalM1 = index.survivalM1,
-                threshold.TTEM1 = threshold.TTEM1)
+                threshold.M1 = threshold.M1)
            )
+
 }
 
 ## * initializeFormula

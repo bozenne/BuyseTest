@@ -6,7 +6,7 @@
 \usage{
 GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
   delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme,
-  index_survivalM1, threshold_TTEM1, list_survTimeC, list_survTimeT,
+  index_survivalM1, threshold_M1, list_survTimeC, list_survTimeT,
   list_survJumpC, list_survJumpT, list_lastSurv, methodTTE,
   correctionUninf, neutralAsUninf, keepScore)
 }
@@ -33,11 +33,11 @@ GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
 
 \item{n_TTE}{The number of time-to-event endpoints. Positive \emph{const int}.}
 
-\item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have n_TTE lines and D-1 columns.}
+\item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have D lines and D columns.}
 
 \item{index_survivalM1}{The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.}
 
-\item{threshold_TTEM1}{The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.}
+\item{threshold_M1}{The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.}
 
 \item{list_survTimeC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}.}
 

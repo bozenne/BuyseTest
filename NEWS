@@ -9,6 +9,9 @@
   - NEW FEATURE: a function powerBuyseTest has been added to perform
     simulation studies with BuyseTest (e.g. compute power, coverage or bias).
 
+** Internal change
+  - improve the management of the weights of the pairs from one endpoint to another.
+
 * Version 1.4
 ** User visble changes - BuyseTest function
   - NEW FEATURE: Instead of estimating the survival curves on the data

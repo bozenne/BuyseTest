@@ -270,18 +270,12 @@ BuyseTest <- function(formula,
                                                                                                                        treatment = outArgs$treatment)
     
     ## ** create weights matrix for survival endpoints
-    if(outArgs$D.TTE>0 && outArgs$D>1){
-        ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-        outArgs[c("Wscheme","index.survivalM1","threshold.TTEM1")] <- buildWscheme(endpoint = outArgs$endpoint,
-                                                                                   D = outArgs$D,
-                                                                                   D.TTE = outArgs$D.TTE,
-                                                                                   type = outArgs$type,
-                                                                                   threshold = outArgs$threshold)
-    }else{ #  factice arguments. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        outArgs$Wscheme <- matrix(nrow=0,ncol=0)
-        outArgs$index.survivalM1 <- numeric(0)
-        outArgs$threshold.TTEM1 <- numeric(0)
-    }
+    ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
+    outArgs[c("Wscheme","index.survivalM1","threshold.TTEM1")] <- buildWscheme(endpoint = outArgs$endpoint,
+                                                                               D = outArgs$D,
+                                                                               D.TTE = outArgs$D.TTE,
+                                                                               type = outArgs$type,
+                                                                               threshold = outArgs$threshold)
 
     ## ** Display
     if (outArgs$trace > 1) {
@@ -441,7 +435,7 @@ BuyseTest <- function(formula,
             data <- data.table::copy(envir$outArgs$data)
             data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE)], .SDcols = treatment, by = strata]
         }else if(method.inference == "stratified bootstrap"){
-            ## randomly pick observations within each
+            ## randomly pick observations within each strata
             data <- envir$outArgs$data[,.SD[sample.int(.N, size = .N, replace = TRUE)], by = strata]
         }
     }
@@ -533,7 +527,7 @@ BuyseTest <- function(formula,
                      n_TTE = D.TTE,
                      Wscheme = envir$outArgs$Wscheme,
                      index_survivalM1 = envir$outArgs$index.survivalM1,
-                     threshold_TTEM1 = envir$outArgs$threshold.TTEM1,
+                     threshold_M1 = envir$outArgs$threshold.TTEM1,
                      list_survTimeC = outSurv$survTimeC,
                      list_survTimeT = outSurv$survTimeT,
                      list_survJumpC = outSurv$survJumpC,

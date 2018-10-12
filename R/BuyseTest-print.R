@@ -55,19 +55,15 @@ printGeneral <- function(censoring,
     }
     
     ## threshold
-    if(any(type==3)){
-        if (length(threshold.TTEM1) > 0) {
-            threshold.TTEM1.display <- threshold.TTEM1
-            threshold.TTEM1.display[threshold.TTEM1.display < 0] <- +Inf
-        }else{
-            threshold.TTEM1.display <- +Inf
-        }
+    if(D.TTE>0){
+        threshold.TTEM1.display <- threshold.TTEM1
+        threshold.TTEM1.display[threshold.TTEM1.display < 0] <- +Inf
         
         threshold.display <- rbind(sapply(1:D.TTE,
                                           function(x){paste(c("[",round(threshold[type == 3][x],4),
                                                               " ; ",round(threshold.TTEM1.display[x],4),
                                                               "] "), collapse = "")}))
-        colnames(threshold.display) <- endpoint[type == 3]      
+        colnames(threshold.display) <- paste0(endpoint[type == 3], "(",threshold[type==3],")")
         rownames(threshold.display) <- "threshold interval"
     }
     
@@ -89,18 +85,20 @@ printGeneral <- function(censoring,
     }else{
         cat("ignore endpoints of lower priority \n")
     }
-    if(any(type==3)){
+    if(D.TTE>0){
         cat("   - management of censored survival pairs: ")
         switch(as.character(method.tte),
                "0" = cat("uninformative pairs \n"),
                "1" = cat("use Kaplan Meier survival curves to compute the score \n")
-               ) 
-        if (method.tte %in% c("1","2","3") && D.TTE>1) {
+               )
+    }
+    if (method.tte =="1" || correction.uninf ) {
             
-            cat("   - weights of the pairs relatively to the enpoints: \n")
+            cat("   - Current contribution of a pair based on the weights computed at previous enpoints: \n")
             print(Wscheme)
-            
-            cat("   - intervals thresholds for survival endpoints: \n")    
+
+        if(D.TTE>0){
+            cat("   - thresholds for survival endpoints: \n")    
             print(threshold.display)
         }
     }
