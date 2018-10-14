@@ -86,7 +86,7 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
   bool updateIndexNeutral = moreEndpoint && neutralAsUninf;
   bool updateIndexUninf = moreEndpoint;
     
-  vector<double> iScore(4); // temporary store results
+  std::vector<double> iScore(4); // temporary store results
   arma::mat matPairScore; // score of all pairs
   if(keepScore){
     matPairScore.resize(n_pair, 11); // store results from all scores
@@ -103,9 +103,9 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
 
       // score
       if(method == 1){
-	iScore = calcOnePair_Continuous(Control[iter_C], Treatment[iter_T], threshold, 1.0);
+	iScore = calcOnePair_Continuous(Control[iter_C], Treatment[iter_T], threshold);
       }else if(method == 2){
-	iScore = calcOnePair_TTEgehan(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold, 1.0);
+	iScore = calcOnePair_TTEgehan(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold);
       }else if(method == 3){
 	iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
 				       deltaC[iter_C], deltaT[iter_T], threshold,
@@ -136,12 +136,13 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
 					      iScore[2], // neutral
 					      iScore[3], // uninformative
 					      1.0, // weight
-					      0.0, 0.0, 0.0, 0.0 // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
+					      iScore[0], iScore[1], iScore[2], iScore[3] // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
 	  });
 	iter_pair++;
       }
       
     }
+    R_CheckUserInterrupt();
   }
 
   // ** correction for uninformative pairs
@@ -222,8 +223,8 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
   vector<double> wUninf(0); // weight of the uninformative pairs
   wUninf.reserve(n_pair);
   
-  vector<double> iScore(4); // temporary store results
-  vector<double> iScoreM1(4); // temporary store results
+  std::vector<double> iScore(4); // temporary store results
+  std::vector<double> iScoreM1(4); // temporary store results
   arma::mat matPairScore; // score of all pairs
   if(keepScore){
     matPairScore.resize(n_pair, 11); // store results from all scores
@@ -237,25 +238,26 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
   bool updateIndexUninf = moreEndpoint;
   bool test_tauM1 = survTimeT_M1.n_cols>1;
   double zeroPlus = pow(10.0,-12.0);
-  
+
   // ** loop over the neutral pairs
   for(int iter_pair=0; iter_pair<n_pair ; iter_pair++){
-
+    // Rcout << iter_pair << "/" << n_pair << " " << nNeutral_pairs_M1 << endl;
+    
     // find index of the pair
     if(iter_pair<nNeutral_pairs_M1){
       iter_T = index_neutralT_M1[iter_pair];
       iter_C = index_neutralC_M1[iter_pair];
     }else{
-      iter_T = index_uninfT_M1[iter_pair];
-      iter_C = index_uninfC_M1[iter_pair];
+      iter_T = index_uninfT_M1[iter_pair - nNeutral_pairs_M1];
+      iter_C = index_uninfC_M1[iter_pair - nNeutral_pairs_M1];
     }
 
     // score
     if(method == 1){
-      iScore = calcOnePair_Continuous(Control[iter_C], Treatment[iter_T], threshold, cumWeight_M1(iter_pair));
+      iScore = calcOnePair_Continuous(Control[iter_C], Treatment[iter_T], threshold);
       std::fill(iScoreM1.begin(), iScoreM1.end(), 0.0);
     }else if(method == 2){
-      iScore = calcOnePair_TTEgehan(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold, cumWeight_M1(iter_pair));
+      iScore = calcOnePair_TTEgehan(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold);
       std::fill(iScoreM1.begin(), iScoreM1.end(), 0.0);
     }else if(method == 3){
       iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
@@ -269,10 +271,11 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
 					 survTimeC_M1.row(iter_C), survTimeT_M1.row(iter_T),
 					 survJumpC_M1, survJumpT_M1, lastSurvC, lastSurvT);
       }else{
-      std::fill(iScoreM1.begin(), iScoreM1.end(), 0.0);
+	std::fill(iScoreM1.begin(), iScoreM1.end(), 0.0);
       }
-    }	
 
+    }	
+    
     // store
     weight_favorable = (iScore[0] - iScoreM1[0]) * cumWeight_M1(iter_pair);
     weight_unfavorable = (iScore[1] - iScoreM1[1]) * cumWeight_M1(iter_pair);
@@ -306,15 +309,15 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
 					    weight_favorable, weight_unfavorable, weight_neutral, weight_uninformative // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
 	});
     }      
-      
+    R_CheckUserInterrupt();  
   }
 
   // ** correction for uninformative pairs
   // correction possible: if there are uninformative paris
   //                      if there are informative pairs
   if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
-      bool updateWeight = neutralAsUninf && moreEndpoint;
-      bool updateIndex = moreEndpoint;
+    bool updateWeight = neutralAsUninf && moreEndpoint;
+    bool updateIndex = moreEndpoint;
 
     if(correctionUninf == 1){
 
@@ -447,10 +450,10 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
   
   // update keep scores
   if(keepScore){
-    matPairScore.col(7) = matPairScore.col(4) + factorNeutral * matPairScore.col(5);
-    matPairScore.col(8) = matPairScore.col(2) + factorFavorable * matPairScore.col(5);
-    matPairScore.col(9) = matPairScore.col(3) + factorUnfavorable * matPairScore.col(5);
-    matPairScore.col(10) = matPairScore.col(4) + factorNeutral * matPairScore.col(5);
+    matPairScore.col(7) = matPairScore.col(7) + factorFavorable * matPairScore.col(10);
+    matPairScore.col(8) = matPairScore.col(8) + factorUnfavorable * matPairScore.col(10);
+    matPairScore.col(9) = matPairScore.col(9) + factorNeutral * matPairScore.col(10);
+    (matPairScore.col(10)).fill(0.0);
   }
 }
 
@@ -489,9 +492,9 @@ void correctionIPW(double& count_favorable, double& count_unfavorable, double& c
   
   // update keep scores
   if(keepScore){
-    matPairScore.col(7) = matPairScore.col(2) * factor;
-    matPairScore.col(8) = matPairScore.col(3) * factor;
-    matPairScore.col(9) = matPairScore.col(4) * factor;
-    matPairScore.col(10) = 0.0;
+    matPairScore.col(7) = matPairScore.col(7) * factor;
+    matPairScore.col(8) = matPairScore.col(8) * factor;
+    matPairScore.col(9) = matPairScore.col(9) * factor;
+    (matPairScore.col(10)).fill(0.0);
   }
 }

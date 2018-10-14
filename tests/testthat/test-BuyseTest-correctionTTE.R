@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt 12 2018 (14:56) 
+## Last-Updated: okt 14 2018 (23:20) 
 ##           By: Brice Ozenne
-##     Update #: 81
+##     Update #: 83
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -59,7 +59,8 @@ test_that("1 TTE endpoint - Gehan (correction at the pair level)", {
     GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                         data = df, 
                         method.tte = "Gehan", correction.uninf = TRUE)
-
+    ## getPairScore(GehanC)
+    
     expect_equal(as.double(GehanC@count.favorable), c(12,0))
     expect_equal(as.double(GehanC@count.unfavorable), c(2+2/3,0))
     expect_equal(as.double(GehanC@count.neutral), c(1 + 1/3,1 + 1/3))

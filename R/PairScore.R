@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: sep 24 2018 (10:31) 
+## Last-Updated: okt 14 2018 (16:54) 
 ##           By: Brice Ozenne
-##     Update #: 81
+##     Update #: 83
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,9 +32,9 @@ pairScore2dt <- function(pairScore,
                     "indexWithinStrata.C", "indexWithinStrata.T", 
                     "favorable","unfavorable","neutral","uninformative",
                     "weight",
-                    "favorable.corrected","unfavorable.corrected","neutral.corrected")
+                    "favorable.corrected","unfavorable.corrected","neutral.corrected","uninformative.corrected")
     pairScore2 <- lapply(pairScore, function(iC){ ## iC <- pairScore[[1]]
-        iM <- data.table::as.data.table(matrix(iC, ncol = 13, byrow = FALSE,
+        iM <- data.table::as.data.table(matrix(iC, ncol = 14, byrow = FALSE,
                                                dimnames = list(NULL,name.tempo)))
         iM[, c("strata") := factor(.SD[["strata"]], levels = 0:(n.strata-1), labels = level.strata)] ## indexes start at 1 in R and not at 0 as in C++
         ## recall that indexes start at 1 in R and not at 0 as in C++

@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: okt 12 2018 (14:46) 
+## last-updated: okt 14 2018 (22:35) 
 ##           By: Brice Ozenne
-##     Update #: 43
+##     Update #: 44
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working

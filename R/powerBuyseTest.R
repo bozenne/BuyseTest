@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 11 2018 (12:13) 
+## Last-Updated: okt 14 2018 (21:43) 
 ##           By: Brice Ozenne
-##     Update #: 190
+##     Update #: 192
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -145,15 +145,15 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## ** create weights matrix for survival endpoints
     if(outArgs$D.TTE>0 && outArgs$D>1){
         ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-        outArgs[c("Wscheme","index.survivalM1","threshold.TTEM1")] <- buildWscheme(endpoint = outArgs$endpoint,
+        outArgs[c("Wscheme","index.survival_M1","threshold.TTE_M1")] <- buildWscheme(endpoint = outArgs$endpoint,
                                                                                    D = outArgs$D,
                                                                                    D.TTE = outArgs$D.TTE,
                                                                                    type = outArgs$type,
                                                                                    threshold = outArgs$threshold)
     }else{ #  factice arguments. Will be sent to the C++ arguments to fill the argument but not used by the function.
         outArgs$Wscheme <- matrix(nrow=0,ncol=0)
-        outArgs$index.survivalM1 <- numeric(0)
-        outArgs$threshold.TTEM1 <- numeric(0)
+        outArgs$index.survival_M1 <- numeric(0)
+        outArgs$threshold.TTE_M1 <- numeric(0)
     }
 
     ## ** Display

@@ -273,11 +273,11 @@ BuyseTest <- function(formula,
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     outArgs[c("Wscheme","index.survival_M1","threshold.TTE_M1")] <- buildWscheme(method.tte = outArgs$method.tte,
-                                                                                endpoint = outArgs$endpoint,
-                                                                                D = outArgs$D,
-                                                                                D.TTE = outArgs$D.TTE,
-                                                                                type = outArgs$type,
-                                                                                threshold = outArgs$threshold)
+                                                                                 endpoint = outArgs$endpoint,
+                                                                                 D = outArgs$D,
+                                                                                 D.TTE = outArgs$D.TTE,
+                                                                                 type = outArgs$type,
+                                                                                 threshold = outArgs$threshold)
     ## ** Display
     if (outArgs$trace > 1) {
         cat("\n         Generalized Pairwise Comparisons\n\n")
@@ -518,7 +518,7 @@ BuyseTest <- function(formula,
     resBT <- GPC_cpp(Control = M.Control,
                      Treatment = M.Treatment,
                      threshold = envir$outArgs$threshold,
-                     survEndpoint = (type == 3),
+                     method = envir$outArgs$method.score,
                      delta_Control = M.delta.Control,
                      delta_Treatment = M.delta.Treatment,
                      D = D,
@@ -534,7 +534,6 @@ BuyseTest <- function(formula,
                      list_survJumpC = outSurv$survJumpC,
                      list_survJumpT = outSurv$survJumpT,
                      list_lastSurv = outSurv$lastSurv,
-                     methodTTE = method.tte,
                      correctionUninf = envir$outArgs$correction.uninf,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = keep.pairScore

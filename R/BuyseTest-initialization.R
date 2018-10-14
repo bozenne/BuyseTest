@@ -173,6 +173,12 @@ initializeArgs <- function(alternative,
         cpus <- parallel::detectCores() # this function detect the number of CPU cores 
     }
 
+    ## ** method.score
+    ## 1 binary continuous
+    ## 2 tte Gehan
+    ## 3 tte Peron
+    method.score <- 1 + (type==3)*(1+method.tte)
+
     ## ** export
     return(list(
         alternative = alternative,
@@ -190,6 +196,7 @@ initializeArgs <- function(alternative,
         method.tte = method.tte,
         model.tte = model.tte,
         method.inference = method.inference,
+        method.score = method.score,
         n.resampling = n.resampling,
         neutral.as.uninf = neutral.as.uninf,
         operator = operator,

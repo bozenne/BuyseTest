@@ -20,7 +20,7 @@ printGeneral <- function(censoring,
                          operator,
                          strata,
                          threshold,
-                         threshold.TTEM1,
+                         threshold.TTE_M1,
                          treatment,
                          type,
                          Wscheme,
@@ -57,12 +57,12 @@ printGeneral <- function(censoring,
     
     ## threshold
     if(D.TTE>0){
-        threshold.TTEM1.display <- threshold.TTEM1
-        threshold.TTEM1.display[threshold.TTEM1.display < 0] <- +Inf
+        threshold.TTE_M1.display <- threshold.TTE_M1
+        threshold.TTE_M1.display[threshold.TTE_M1.display < 0] <- +Inf
         
         threshold.display <- rbind(sapply(1:D.TTE,
                                           function(x){paste(c("[",round(threshold[type == 3][x],4),
-                                                              " ; ",round(threshold.TTEM1.display[x],4),
+                                                              " ; ",round(threshold.TTE_M1.display[x],4),
                                                               "] "), collapse = "")}))
         colnames(threshold.display) <- paste0(endpoint[type == 3], "(",threshold[type==3],")")
         rownames(threshold.display) <- "threshold interval"

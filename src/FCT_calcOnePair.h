@@ -13,9 +13,9 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
-inline vector<double> calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold, double weight);
+inline vector<double> calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold);
  
-inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold, double weight);
+inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold);
  
 inline vector<double> calcOneScore_TTEperon(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
 					    arma::rowvec survTimeC, arma::rowvec survTimeT,
@@ -25,35 +25,35 @@ inline vector<double> calcOneScore_TTEperon(double endpoint_C, double endpoint_T
 double calcIntegralScore_cpp(const arma::mat& survival, double start);
 
 // * calcOnePair_Continuous
-inline vector<double> calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold, double weight){
+inline vector<double> calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold){
 
   // ** initialize
   std::vector<double> score(4,0.0);
 
   // ** score
   if(R_IsNA(endpoint_T) || R_IsNA(endpoint_C)){ // missing data: uninformative
-    score[0] = weight;
+    score[3] = 1.0;
   }else{    
     double diff = endpoint_T - endpoint_C;
     
     if(diff >= threshold){ // favorable
-      score[1] = weight;
+      score[0] = 1.0;
     }else if(diff <= -threshold){ // unfavorable
-      score[2] = weight;
+      score[1] = 1.0;
     }else{ // neutral
-      score[3] = weight;
+      score[2] = 1.0;
     }
     
   }
 
   // ** export
-  // Rcout << endl << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << endl;
+  // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << endl;
   return(score);
   
 }
 
 // * calcOnePair_TTEgehan
-inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold, double weight){
+inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold){
   
   // ** initialize
   std::vector<double> score(4,0.0);
@@ -65,23 +65,23 @@ inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T,
     if(delta_C==1){ // (treatment event, control event)
       
       if(diff >= threshold){         // >= tau    : favorable
-        score[0] = weight;
+        score[0] = 1.0;
       }else if(diff <= -threshold){ // <= -tau    : unfavorable
-	score[1] = weight;
+	score[1] = 1.0;
       }else{                        // ]-tau;tau[ : neutral
-	score[2] = weight;
+	score[2] = 1.0;
       }
       
     }else if(delta_C==0){ // (treatment event, control censored)
 	
       if(diff <= -threshold){ // <= -tau   : unfavorable
-	score[1] = weight;
+	score[1] = 1.0;
       }else{                  // otherwise : uninformative
-	score[3] = weight;
+	score[3] = 1.0;
       }
       
     }else if(delta_C==2){ // (treatment event, control competing risk)
-      score[1] = weight; //  unfavorable
+      score[1] = 1.0; //  unfavorable
     }
     
   }else if(delta_T==0){
@@ -89,29 +89,29 @@ inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T,
     if(delta_C==1){ // (treatment censored, control event)
     
       if(diff >= threshold){ // > tau    : favorable
-	score[0] = weight;
+	score[0] = 1.0;
       }else{                 // otherwise: uninformative
-	score[3] = weight;
+	score[3] = 1.0;
       }
     
     }else{ // (treatment censored, control censored/competing risk): uninformative
-	score[3] = weight;
+	score[3] = 1.0;
     }
     
   }else if(delta_T==2){ 
 
     if(delta_C==1){ // (treatment competing risk, control event): favorable
-	score[0] = weight;
+	score[0] = 1.0;
     }else if(delta_C==2){ // (treatment competing risk, control competing risk): neutral
-	score[2] = weight;
+	score[2] = 1.0;
     }else if(delta_C==0){ // (treatment competing risk, control censored): uninformative
-	score[3] = weight;
+	score[3] = 1.0;
     }
     
   }
 
   // ** export
-  // Rcout << endl << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << endl;
+  // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << endl;
   return(score);
   
 }

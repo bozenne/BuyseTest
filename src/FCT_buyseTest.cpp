@@ -171,12 +171,12 @@ List GPC_cpp(const arma::mat& Control,
     index_strataC = strataC[iter_strata];
     
     // *** affect the endpoints corresponding to each strata (conversion from SEXP to uvec object is necessary for .rows)
-    TreatmentK = Treatment.rows(index_strataT); // select the rows in the treatment matrix corresponding to the indexes contained in strata
     ControlK = Control.rows(index_strataC); // select the rows in the control matrix corresponding to the indexes contained in strata
+    TreatmentK = Treatment.rows(index_strataT); // select the rows in the treatment matrix corresponding to the indexes contained in strata
     
     if(n_TTE>0){
-      delta_TreatmentK = delta_Treatment.rows(index_strataT); // select the rows in the treatment status matrix corresponding to the indexes contained in strata
       delta_ControlK = delta_Control.rows(index_strataC); // select the rows in the control status matrix corresponding to the indexes contained in strata          
+      delta_TreatmentK = delta_Treatment.rows(index_strataT); // select the rows in the treatment status matrix corresponding to the indexes contained in strata
     }
     
     // *** first endpoint
@@ -199,6 +199,7 @@ List GPC_cpp(const arma::mat& Control,
       iSurvJumpT = list_survJumpT[0][iter_strata];
       iLastSurvC = list_lastSurv[0](iter_strata,0);
       iLastSurvT = list_lastSurv[0](iter_strata,1);
+      iter_dTTE++;
     }else{
       iSurvTimeC = arma::mat(0,0);
       iSurvTimeT = arma::mat(0,0);
@@ -208,6 +209,7 @@ List GPC_cpp(const arma::mat& Control,
       iLastSurvT = NA_REAL;
     }
 
+    // Rcout << "score" << endl;
     iScore = calcAllPairs(ControlK.col(0), TreatmentK.col(0), threshold[0],
 			  iDelta_ControlK, iDelta_TreatmentK,
 			  iSurvTimeC, iSurvTimeT, iSurvJumpC, iSurvJumpT,
@@ -224,9 +226,9 @@ List GPC_cpp(const arma::mat& Control,
   // **** add to the total number of pairs the number of pairs founded for this endpoint
   n_pairs[iter_strata] = Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
     
-  // Rcout << "update weights" << endl;
 	
   // **** update weights associated to the remaing pairs
+  // Rcout << "update weights" << endl;
   // only relevant if there is one more endpoint
   if(D > 1){ 
     matWeight.resize(iWeight.size(),1);
@@ -257,7 +259,7 @@ List GPC_cpp(const arma::mat& Control,
 
     // while there are remaining endpoints and remaining neutral or uniformative pairs
     iter_d++; // increment the index of the endpoints
-    Rcout << "** endpoint " << iter_d << " **" << endl;
+    // Rcout << "** endpoint " << iter_d << " **" << endl;
 
     // **** copy from previous step
     matWeight_M1 = matWeight; 
@@ -267,37 +269,38 @@ List GPC_cpp(const arma::mat& Control,
     iIndex_uninfT_M1 = iIndex_uninfT;
     
     // **** compute the current weights of the pairs
-    Rcout << "> cumweight " << endl;
+    // Rcout << "> cumweight " << endl;
     // initialize iCumWeight_M1
     iCumWeight_M1.resize(matWeight.n_rows);
     iCumWeight_M1.fill(1.0);
     for(int iter_endpoint=0 ; iter_endpoint<iter_d ; iter_endpoint++){
       if(Wscheme(iter_endpoint,iter_d)==1){iCumWeight_M1 %= matWeight.col(iter_endpoint);}
     }
-    matWeight.print("matWeight:");
-    Rcout << sum(iCumWeight_M1) << endl;
-    Rcout << ">score " << endl;
+    // matWeight.print("matWeight:");
+    // Rcout << sum(iCumWeight_M1) << endl;
 
     // **** computes scores
     iIndex_neutralT.resize(0); iIndex_neutralC.resize(0); iIndex_uninfT.resize(0); iIndex_uninfC.resize(0); iWeight.resize(0); iIndexWeight_pair.resize(0);
     iMoreEndpoint = (D>(iter_d+1));
 	
+    // Rcout << "> score " << endl;
     if(method[iter_d]>1){ // time to event endpoint
-      iDelta_ControlK = delta_ControlK.col(iter_d);
-      iDelta_TreatmentK = delta_TreatmentK.col(iter_d);
+      iDelta_ControlK = delta_ControlK.col(iter_dTTE);
+      iDelta_TreatmentK = delta_TreatmentK.col(iter_dTTE);
     }else{ // binary/continuous endpoint
       iDelta_ControlK.resize(0);
       iDelta_TreatmentK.resize(0);
     }
 
     if(method[iter_d]==3){ // time to event endpoint with Peron's scoring rule
-      iSurvTimeC = list_survTimeC[iter_d][iter_strata];
-      iSurvTimeT = list_survTimeT[iter_d][iter_strata];
-      iSurvJumpC = list_survJumpC[iter_d][iter_strata];
-      iSurvJumpT = list_survJumpT[iter_d][iter_strata];
-      iLastSurvC = list_lastSurv[iter_d](iter_strata,0);
-      iLastSurvT = list_lastSurv[iter_d](iter_strata,1);
-      iThresholdM1 = threshold_M1[iter_d];
+      iSurvTimeC = list_survTimeC[iter_dTTE][iter_strata];
+      iSurvTimeT = list_survTimeT[iter_dTTE][iter_strata];
+      iSurvJumpC = list_survJumpC[iter_dTTE][iter_strata];
+      iSurvJumpT = list_survJumpT[iter_dTTE][iter_strata];
+      iLastSurvC = list_lastSurv[iter_dTTE](iter_strata,0);
+      iLastSurvT = list_lastSurv[iter_dTTE](iter_strata,1);
+      iThresholdM1 = threshold_M1[iter_dTTE];
+      iter_dTTE++;
     }else{
       iSurvTimeC = arma::mat(0,0);
       iSurvTimeT = arma::mat(0,0);
@@ -321,15 +324,14 @@ List GPC_cpp(const arma::mat& Control,
 			     iCumWeight_M1, iThresholdM1,
 			     iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
 			     method[iter_d], correctionUninf,	
-			     Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+			     Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 			     iIndex_neutralC, iIndex_neutralT,
 			     iIndex_uninfC, iIndex_uninfT, 
 			     iWeight, iIndexWeight_pair,
 			     neutralAsUninf, keepScore, iMoreEndpoint);
 
-      // Rcout << "update weights" << endl;
       // **** update weights associated to the remaing pairs
-      Rcout << ">weight " << endl;
+      // Rcout << ">weight " << endl;
       // only relevant if there is one more endpoint and the weights may differ from 1
       if(D>iter_d+1){
 	// store iMweight_M1 in the iMweight restrected to the remaining pairs

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt 12 2018 (15:14) 
+## Last-Updated: okt 14 2018 (21:42) 
 ##           By: Brice Ozenne
-##     Update #: 72
+##     Update #: 73
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,27 +73,27 @@ test_that("number of pairs - argument neutral.as.uninf", {
 
         ## compared to known value
         if(iCorrection == FALSE){
-        test <- as.data.table(summary(BT.T, print = FALSE)$table)
-        GS <- data.table("endpoint" = c("timeOS", "timeOS", "Mgrade.tox", "Mgrade.tox"), 
-                         "threshold" = c(1e-12, 1e-12, 1e-12, 1e-12), 
-                         "strata" = c("global", "1", "global", "1"), 
-                         "pc.total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
-                         "pc.favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
-                         "pc.unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                         "pc.neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                         "pc.uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
-                         "delta" = c(0.3333333, 0.3333333, 0.1111111, 0.1111111), 
-                         "Delta" = c(0.3333333, NA, 0.4444444, NA), 
-                         "CIinf.Delta" = as.numeric(c(NA, NA, NA, NA)), 
-                         "CIsup.Delta" = as.numeric(c(NA, NA, NA, NA)), 
-                         "p.value" = as.numeric(c(NA, NA, NA, NA)), 
-                         "n.resampling" = as.numeric(c(NA, NA, NA, NA)))
-        ##    butils::object2script(test)
+            test <- as.data.table(summary(BT.T, print = FALSE)$table)
+            GS <- data.table("endpoint" = c("timeOS", "timeOS", "Mgrade.tox", "Mgrade.tox"), 
+                             "threshold" = c(1e-12, 1e-12, 1e-12, 1e-12), 
+                             "strata" = c("global", "1", "global", "1"), 
+                             "pc.total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
+                             "pc.favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
+                             "pc.unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                             "pc.neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                             "pc.uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
+                             "delta" = c(0.3333333, 0.3333333, 0.1111111, 0.1111111), 
+                             "Delta" = c(0.3333333, NA, 0.4444444, NA), 
+                             "CIinf.Delta" = as.numeric(c(NA, NA, NA, NA)), 
+                             "CIsup.Delta" = as.numeric(c(NA, NA, NA, NA)), 
+                             "p.value" = as.numeric(c(NA, NA, NA, NA)), 
+                             "n.resampling" = as.numeric(c(NA, NA, NA, NA)))
+            ##    butils::object2script(test)
 
-        attr(test,"index") <- NULL
-        expect_equal(test, GS, tol = 1e-6)
-        ## class(BTS.T[["n.resampling"]])
-        ## class(GS[["n.resampling"]])
+            attr(test,"index") <- NULL
+            expect_equal(test, GS, tol = 1e-6)
+            ## class(BTS.T[["n.resampling"]])
+            ## class(GS[["n.resampling"]])
         }
     }
 
