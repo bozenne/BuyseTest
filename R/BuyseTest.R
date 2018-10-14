@@ -272,12 +272,12 @@ BuyseTest <- function(formula,
     
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    outArgs[c("Wscheme","index.survivalM1","threshold.TTEM1")] <- buildWscheme(method.tte = outArgs$method.tte,
-                                                                               endpoint = outArgs$endpoint,
-                                                                               D = outArgs$D,
-                                                                               D.TTE = outArgs$D.TTE,
-                                                                               type = outArgs$type,
-                                                                               threshold = outArgs$threshold)
+    outArgs[c("Wscheme","index.survival_M1","threshold.TTE_M1")] <- buildWscheme(method.tte = outArgs$method.tte,
+                                                                                endpoint = outArgs$endpoint,
+                                                                                D = outArgs$D,
+                                                                                D.TTE = outArgs$D.TTE,
+                                                                                type = outArgs$type,
+                                                                                threshold = outArgs$threshold)
     ## ** Display
     if (outArgs$trace > 1) {
         cat("\n         Generalized Pairwise Comparisons\n\n")
@@ -527,8 +527,8 @@ BuyseTest <- function(formula,
                      n_strata = n.strata,
                      n_TTE = D.TTE,
                      Wscheme = envir$outArgs$Wscheme,
-                     index_survivalM1 = envir$outArgs$index.survivalM1,
-                     threshold_M1 = envir$outArgs$threshold.TTEM1,
+                     index_survival_M1 = envir$outArgs$index.survival_M1,
+                     threshold_M1 = envir$outArgs$threshold.TTE_M1,
                      list_survTimeC = outSurv$survTimeC,
                      list_survTimeT = outSurv$survTimeT,
                      list_survJumpC = outSurv$survJumpC,

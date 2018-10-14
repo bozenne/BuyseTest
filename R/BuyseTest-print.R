@@ -93,12 +93,15 @@ printGeneral <- function(censoring,
                "1" = cat("use Kaplan Meier survival curves to compute the score \n")
                )
     }
-    if (method.tte =="1" && D.TTE > 1 ) {            
-            cat("   - Current contribution of a pair based on the weights computed at previous enpoints: \n")
-            print(Wscheme)
+    if ( (method.tte == "1" || correction.uninf) && D > 1) {            
+        cat("   - Current contribution of a pair based on the weights computed at previous enpoints: \n")
+        print(Wscheme)
+    }
 
-            cat("   - thresholds for survival endpoints: \n")    
-            print(threshold.display)
+    
+    if ( method.tte == "1" && D.TTE > 1) {            
+        cat("   - thresholds for survival endpoints: \n")    
+        print(threshold.display)
     }
 
     return(NULL)
