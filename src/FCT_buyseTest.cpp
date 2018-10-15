@@ -49,27 +49,27 @@ using namespace arma ;
 //' @export
 // [[Rcpp::export]]
 List GPC_cpp(const arma::mat& Control,
-			 const arma::mat& Treatment,
-			 const NumericVector& threshold,
-			 const IntegerVector& method,
-			 const arma::mat& delta_Control,
+	     const arma::mat& Treatment,
+	     const NumericVector& threshold,
+	     const IntegerVector& method,
+	     const arma::mat& delta_Control,
              const arma::mat& delta_Treatment,
-			 const int D,
-			 const std::vector< arma::uvec >& strataC,
-			 const std::vector< arma::uvec >& strataT,
-			 const int n_strata,
-			 const int n_TTE, 
+	     const int D,
+	     const std::vector< arma::uvec >& strataC,
+	     const std::vector< arma::uvec >& strataT,
+	     const int n_strata,
+	     const int n_TTE, 
              const arma::mat& Wscheme,
-			 const IntegerVector index_survival_M1,
-			 const NumericVector threshold_M1, 
-			 const std::vector< std::vector< arma::mat > >& list_survTimeC,
+	     const IntegerVector index_survival_M1,
+	     const NumericVector threshold_M1, 
+	     const std::vector< std::vector< arma::mat > >& list_survTimeC,
              const std::vector< std::vector< arma::mat > >& list_survTimeT,
              const std::vector< std::vector< arma::mat > >& list_survJumpC,
-			 const std::vector< std::vector< arma::mat > >& list_survJumpT,
-			 const std::vector< arma::mat >& list_lastSurv,
-			 const int correctionUninf,
-			 const bool neutralAsUninf,
-			 const bool keepScore){
+	     const std::vector< std::vector< arma::mat > >& list_survJumpT,
+	     const std::vector< arma::mat >& list_lastSurv,
+	     const int correctionUninf,
+	     const bool neutralAsUninf,
+	     const bool keepScore){
 
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -178,40 +178,26 @@ List GPC_cpp(const arma::mat& Control,
     // Rcout << endl << "** endpoint 0 **" << endl;
     iMoreEndpoint = (D>1);
 	
-    if(method[0]>1){ // time to event endpoint
-      iDelta_ControlK = delta_ControlK.col(0);
-      iDelta_TreatmentK = delta_TreatmentK.col(0);
-    }else{ // binary/continuous endpoint
-      iDelta_ControlK.resize(0);
-      iDelta_TreatmentK.resize(0);
-    }
+    iDelta_ControlK = delta_ControlK.col(0);
+    iDelta_TreatmentK = delta_TreatmentK.col(0);
 
-    if(method[0]==3){ // time to event endpoint with Peron's scoring rule
-      iSurvTimeC = list_survTimeC[0][iter_strata];
-      iSurvTimeT = list_survTimeT[0][iter_strata];
-      iSurvJumpC = list_survJumpC[0][iter_strata];
-      iSurvJumpT = list_survJumpT[0][iter_strata];
-      iLastSurvC = list_lastSurv[0](iter_strata,0);
-      iLastSurvT = list_lastSurv[0](iter_strata,1);
-    }else{
-      iSurvTimeC = arma::mat(0,0);
-      iSurvTimeT = arma::mat(0,0);
-      iSurvJumpC = arma::mat(0,0);
-      iSurvJumpT = arma::mat(0,0);
-      iLastSurvC = NA_REAL;
-      iLastSurvT = NA_REAL;
-    }
+    iSurvTimeC = list_survTimeC[0][iter_strata];
+    iSurvTimeT = list_survTimeT[0][iter_strata];
+    iSurvJumpC = list_survJumpC[0][iter_strata];
+    iSurvJumpT = list_survJumpT[0][iter_strata];
+    iLastSurvC = list_lastSurv[0](iter_strata,0);
+    iLastSurvT = list_lastSurv[0](iter_strata,1);
 
     // Rcout << "score" << endl;
     iScore = calcAllPairs(ControlK.col(0), TreatmentK.col(0), threshold[0],
-						  iDelta_ControlK, iDelta_TreatmentK,
-						  iSurvTimeC, iSurvTimeT, iSurvJumpC, iSurvJumpT,
-						  iLastSurvC, iLastSurvT, 
-						  method[0], correctionUninf,	
-						  Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-						  iIndex_control, iIndex_treatment,
-						  iWeight,
-						  neutralAsUninf, keepScore, iMoreEndpoint);
+			  iDelta_ControlK, iDelta_TreatmentK,
+			  iSurvTimeC, iSurvTimeT, iSurvJumpC, iSurvJumpT,
+			  iLastSurvC, iLastSurvT, 
+			  method[0], correctionUninf,	
+			  Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+			  iIndex_control, iIndex_treatment,
+			  iWeight,
+			  neutralAsUninf, keepScore, iMoreEndpoint);
 
 	if(method[0]>1){ // time to event endpoint
 	  iter_dTTE++;

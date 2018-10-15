@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: sep 24 2018 (11:08) 
+## Last-Updated: okt 15 2018 (23:02) 
 ##           By: Brice Ozenne
-##     Update #: 94
+##     Update #: 107
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -53,7 +53,16 @@ testArgs <- function(alternative,
     }else{
         data <- data.table::copy(data)
     }
-
+    if("..rowIndex.." %in% names(data)){
+        stop("BuyseTest: Argument \'data\' must not contain a column \"..rowIndex..\" \n")
+    }
+    if("..NA.." %in% names(data)){
+        stop("BuyseTest: Argument \'data\' must not contain a column \"..NA..\" \n")
+    }
+    if("..strata.." %in% names(data)){
+        stop("BuyseTest: Argument \'data\' must not contain a column \"..strata..\" \n")
+    }
+    
     ## ** extract usefull quantities
     argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
 
@@ -80,30 +89,28 @@ testArgs <- function(alternative,
                    method = "BuyseTest")
 
     ## ** censoring
-    if(D.TTE==0){
-        if(!is.null(censoring)){
-            stop("BuyseTest : \'censoring\' must be NULL when there are no TTE endpoints \n",
-                 "propose value : ",paste(censoring,collapse=" "),"\n")
-        }
-        
-    }else{
-        
-        
-        if(length(censoring) != D.TTE){
-            stop("BuyseTest : \'censoring\' does not match \'endpoint\' size \n",
-                 "length(censoring) : ",length(censoring),"\n",
-                 "length(endpoint) : ",D,"\n")
+    if(length(censoring) != D){
+        stop("BuyseTest: \'censoring\' does not match \'endpoint\' size \n",
+             "length(censoring) : ",length(censoring),"\n",
+             "length(endpoint) : ",D,"\n")
             
-        }
-
-        if(any(is.na(censoring)) ){
-            stop("BuyseTest : wrong specification of \'censoring\' \n",
-                 "\'censoring\' must indicate a variable in data for TTE endpoints \n",
-                 "TTE endoints : ",paste(endpoint[type==3],collapse=" "),"\n",
-                 "proposed \'censoring\' for these endoints : ",paste(censoring,collapse=" "),"\n")
-        }
-        
     }
+    if(any(is.na(censoring))){
+        stop("BuyseTest: \'censoring\' must not contain NA \n")
+    }
+    if(any(censoring[type==3] == "..NA..") ){
+        stop("BuyseTest: wrong specification of \'censoring\' \n",
+             "\'censoring\' must indicate a variable in data for TTE endpoints \n",
+             "TTE endoints : ",paste(endpoint[type==3],collapse=" "),"\n",
+             "proposed \'censoring\' for these endoints : ",paste(censoring[type==3],collapse=" "),"\n")
+    }
+    if(any(censoring[type!=3] !="..NA..") ){
+        stop("BuyseTest: wrong specification of \'censoring\' \n",
+             "\'censoring\' must be \"..NA..\" for binary or continuous endpoints \n",
+             "endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
+             "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n")
+    }
+        
 
     ## ** cpus
     if(cpus>1){
@@ -149,7 +156,7 @@ testArgs <- function(alternative,
                      "endpoint: ",endpoint[iBin],"\n")
             }
             ## if(any(is.na(data[[endpoint[iBin]]]))){                
-                ## warning("BuyseTest : endpoint ",endpoint[iBin]," contains NA \n")
+                ## warning("BuyseTest: endpoint ",endpoint[iBin]," contains NA \n")
             ## }
         }
     }
@@ -165,17 +172,18 @@ testArgs <- function(alternative,
                          method = "BuyseTest")
 
             ## if(any(is.na(data[[endpoint[iCont]]]))){                
-                ## warning("BuyseTest : endpoint ",endpoint[iCont]," contains NA \n")
+                ## warning("BuyseTest: endpoint ",endpoint[iCont]," contains NA \n")
             ## }
         }
     }
 
     ## *** time to event endpoint
     index.TTE <- which(type==3)
+    censoring.TTE <- censoring[type==3]
     if(length(index.TTE)>0){
         validNames(data,
                    name1 = "data",
-                   required.values = censoring,
+                   required.values = censoring.TTE,
                    valid.length = NULL,
                    refuse.NULL = FALSE,
                    method = "BuyseTest")
@@ -191,8 +199,8 @@ testArgs <- function(alternative,
                          valid.length = NULL,
                          refuse.NA = TRUE,
                          method = "BuyseTest")
-            validNumeric(unique(data[[censoring[which(index.TTE == iTTE)]]]),
-                         name1 = censoring[which(index.TTE == iTTE)],
+            validNumeric(unique(data[[censoring.TTE[which(index.TTE == iTTE)]]]),
+                         name1 = censoring.TTE[which(index.TTE == iTTE)],
                          valid.values = valid.values.censoring,
                          valid.length = NULL,
                          method = "BuyseTest")
@@ -208,7 +216,7 @@ testArgs <- function(alternative,
     ## ** formula
     if(!is.null(formula) && any(name.call %in% argnames)){
         txt <- paste(name.call[name.call %in% argnames], collapse = "\' \'")
-        warning("BuyseTest : argument",if(length(txt)>1){"s"}," \'",txt,"\' ha",if(length(txt)>1){"ve"}else{"s"}," been ignored \n",
+        warning("BuyseTest: argument",if(length(txt)>1){"s"}," \'",txt,"\' ha",if(length(txt)>1){"ve"}else{"s"}," been ignored \n",
                 "when specified, only argument \'formula\' is used \n")
     }
 
@@ -270,16 +278,11 @@ testArgs <- function(alternative,
 
        
         if(length(level.strata) != length(levels(strataC)) || any(level.strata != levels(strataC))){
-            stop("BuyseTest : wrong specification of \'strata\' \n",
+            stop("BuyseTest: wrong specification of \'strata\' \n",
                  "different levels between Control and Treatment \n",
                  "levels(strataT) : ",paste(levels(strataT),collapse=" "),"\n",
                  "levels(strataC) : ",paste(levels(strataC),collapse=" "),"\n")
         }
-
-        if(".allStrata" %in% names(data)){
-            stop("BuyseTest : argument \'data\' should not contain a column \".allStrata\" \n")
-        }
-    
     }
 
     ## ** threshold
@@ -292,7 +295,7 @@ testArgs <- function(alternative,
 
     ## check threshold at 1/2 for binary endpoints
     if(any(threshold[type==1]!=1/2)){
-        stop("BuyseTest : wrong specification of \'threshold\' \n",
+        stop("BuyseTest: wrong specification of \'threshold\' \n",
              "\'threshold\' must be 1/2 for binary endpoints (or equivalently NA) \n",
              "proposed \'threshold\' : ",paste(threshold[type==1],collapse=" "),"\n",
              "binary endpoint(s) : ",paste(endpoint[type==1],collapse=" "),"\n")
@@ -309,7 +312,7 @@ testArgs <- function(alternative,
     })
     
     if(any(vec.test>0)){   
-        stop("BuyseTest : wrong specification of \'endpoint\' or \'threshold\' \n",
+        stop("BuyseTest: wrong specification of \'endpoint\' or \'threshold\' \n",
              "endpoints must be used with strictly decreasing threshold when re-used with lower priority \n",
              "problematic endpoints: \"",paste0(names(vec.test)[vec.test>0], collapse = "\" \""),"\"\n")        
     }

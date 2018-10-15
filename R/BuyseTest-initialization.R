@@ -109,13 +109,14 @@ initializeArgs <- function(alternative,
 
     ## ** censoring
     if(D.TTE==0){
-        if(!is.null(censoring) && all(is.na(censoring))){
-            censoring <- NULL
-        }
-    }else if(length(censoring) == D){
-        censoring <- censoring[type==3] # from now, censoring contains for each time to event endpoint the name of variable indicating censoring (0) or event (1)
+        censoring <- rep("..NA..", D)
+    }else if(length(censoring) == D.TTE){
+        censoring.save <- censoring
+        censoring <- rep("..NA..", D)
+        censoring[type==3] <- censoring.save 
     }
-
+    ## from now, censoring contains for each endpoint the name of variable indicating censoring (0) or event (1) or NA
+    
     ## ** threshold
     if(is.null(threshold)){
         threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
@@ -254,30 +255,24 @@ initializeData <- function(data, type, endpoint, operator, strata, treatment){
 
     ## ** strata
     if(is.null(strata)){
+        data[ , c("..strata..") := 1]
         level.strata <- "1"
-        allstrata <- NULL
     }else {
-        ## data[ , c(".allStrata") := paste0(strata[1],"=",.SD[[strata[1]]])]
-        ## if(n.strata>1){
-            ## for(iStrata in 2:n.strata){ ## add var=value
-                ## data[ , c(".allStrata") := paste0(.SD$.allStrata,".",paste0(strata[iStrata],"=",.SD[[strata[iStrata]]]))]
-            ## }
-        ## }
-        ## data[ , c(".allStrata") := as.factor(.SD$.allStrata)]
-
-        data[ , c(".allStrata") := interaction(.SD, drop = TRUE, lex.order = FALSE, sep = "."), .SDcols = strata]
-        level.strata <- levels(data[[".allStrata"]])        
-        data[ , c(".allStrata") := as.numeric(.SD$.allStrata)] # convert to numeric
-        allstrata <- ".allStrata"
+        data[ , c("..strata..") := interaction(.SD, drop = TRUE, lex.order = FALSE, sep = "."), .SDcols = strata]
+        level.strata <- levels(data[["..strata.."]])        
+        data[ , c("..strata..") := as.numeric(.SD[["..strata.."]])] # convert to numeric
     }
+    allstrata <- "..strata.."
+
+    ## ** row number
+    data[,c("..rowIndex..") := 1:.N]
+
+    ## ** NA column for fake censoring 
+    data[,c("..NA..") := 1]
 
     ## ** n.obs
     n.obs <- data[,.N]
-    if(!is.null(strata)){
-        n.obsStrata <- data[,.N,by = allstrata][,setNames(.SD[[1]],.SD[[2]]),.SD = c("N",allstrata)]
-    }else{
-        n.obsStrata <- setNames(n.obs,level.strata)
-    }
+    n.obsStrata <- data[,.N,by = allstrata][,setNames(.SD[[1]],.SD[[2]]),.SD = c("N",allstrata)]
     
     ## ** export
     return(list(data = data,
@@ -371,13 +366,13 @@ initializeFormula <- function(x){
     vec.x.endpoint <- vec.x.rhs[index.endpoint]
     n.endpoint <- length(vec.x.endpoint)
     if(length(n.endpoint)==0){
-        stop("initFormula: x must contains endpoints \n",
+        stop("initFormula: x must contain endpoints \n",
              "nothing of the form type(endpoint,threshold,censoring) found in the formula \n")
     }
 
     ## ** extract endpoints and additional arguments 
     threshold <- rep(NA, n.endpoint)
-    censoring <- rep(NA, n.endpoint)
+    censoring <- rep("..NA..", n.endpoint)
     endpoint <- rep(NA, n.endpoint)
     operator <- rep(">0", n.endpoint)
     validArgs <- c("endpoint","threshold","censoring","operator")
@@ -466,9 +461,8 @@ initializeFormula <- function(x){
 
 ## * initializeSurvival
 #' @rdname internal-initialization
-initializeSurvival_Peron <- function(data, dataT, dataC,
+initializeSurvival_Peron <- function(data,
                                      model.tte,
-                                     n.T, n.C,
                                      treatment,
                                      level.treatment,
                                      endpoint,
@@ -477,25 +471,20 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                                      type,
                                      strata,
                                      threshold,
-                                     index.strataT,
-                                     index.strataC,
                                      n.strata){
 
     threshold.TTE <- threshold[type==3]
     endpoint.TTE <- endpoint[type==3]
-
-    ## ** conversion to R index
-    index.strataT <- lapply(index.strataT,function(x){x+1})
-    index.strataC <- lapply(index.strataC,function(x){x+1})
+    censoring.TTE <- censoring[type==3]
     
     ## ** estimate survival
     if(is.null(model.tte)){
         model.tte <- vector(length = D.TTE, mode = "list")
         names(model.tte) <- endpoint.TTE
 
-        txt.modelTTE <- paste0("prodlim::Hist(",endpoint.TTE,",",censoring,") ~ ",treatment)
+        txt.modelTTE <- paste0("prodlim::Hist(",endpoint.TTE,",",censoring.TTE,") ~ ",treatment)
         if(!is.null(strata)){
-            txt.modelTTE <- paste0(txt.modelTTE," + .allStrata")
+            txt.modelTTE <- paste0(txt.modelTTE," + ..strata..")
         }
         
         for(iEndpoint.TTE in 1:D.TTE){ ## iEndpoint.TTE <- 1
@@ -530,10 +519,10 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                                    stop = model.tte[[iEndpoint.TTE]]$first.strata + model.tte[[iEndpoint.TTE]]$size.strata - 1)
 
         if(is.null(strata)){
-            iModelStrata[,".allStrata" := 1]
+            iModelStrata[,"..strata.." := "1"]
         }
-        setkeyv(iModelStrata, c(treatment,".allStrata"))
-        n.strata <- length(unique(iModelStrata$.allStrata))
+        setkeyv(iModelStrata, c(treatment,"..strata.."))
+        n.strata <- length(unique(iModelStrata[["..strata.."]]))
         
         ## initialization
         list.survTimeC[[iEndpoint.TTE]] <- vector(mode = "list", length = n.strata)
@@ -599,14 +588,14 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
             
             ## **** survival at observation time (+/- threshold)
             list.survTimeC[[iEndpoint.TTE]][[iStrata]] <- matrix(NA,
-                                                                 nrow = length(index.strataC[[iStrata]]), ncol = length(colnames.obs),
+                                                                 nrow = length(iStart), ncol = length(colnames.obs),
                                                                  dimnames = list(NULL, colnames.obs))
             list.survTimeT[[iEndpoint.TTE]][[iStrata]] <- matrix(NA,
-                                                                 nrow = length(index.strataT[[iStrata]]), ncol = length(colnames.obs),
+                                                                 nrow = length(iStop), ncol = length(colnames.obs),
                                                                  dimnames = list(NULL, colnames.obs))
 
-            iControl.time <- dataC[index.strataC[[iStrata]],.SD[[endpoint.TTE[iEndpoint.TTE]]]]
-            iTreatment.time <- dataT[index.strataT[[iStrata]],.SD[[endpoint.TTE[iEndpoint.TTE]]]]
+            iControl.time <- data[list(0,iStrata),.SD[[endpoint.TTE[iEndpoint.TTE]]]]
+            iTreatment.time <- data[list(1,iStrata),.SD[[endpoint.TTE[iEndpoint.TTE]]]]
             list.survTimeC[[iEndpoint.TTE]][[iStrata]][,"time"] <- iControl.time
             list.survTimeT[[iEndpoint.TTE]][[iStrata]][,"time"] <- iTreatment.time
 

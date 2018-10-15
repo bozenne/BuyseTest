@@ -46,7 +46,7 @@ printGeneral <- function(censoring,
     df.endpoint$type <- c("binary","continuous","time to event")[type]
     df.endpoint$operator <- c("lower is favorable","higher is favorable")[1 + (operator == ">0")]
     df.endpoint$threshold[type!=1] <- threshold[type!=1]
-    df.endpoint$censoring[type==3] <- censoring
+    df.endpoint$censoring[type==3] <- censoring[type==3]
 
     df.endpoint[is.na(df.endpoint)] <- ""
     ## add white space

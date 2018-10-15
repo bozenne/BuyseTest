@@ -325,7 +325,7 @@ validNames <- function(value1,
         
         if(!is.null(required.values) && any(required.values %in% value1 == FALSE)){
             
-            stop(method, "\'", name1, "\' must contains specific names \n",
+            stop(method, "\'", name1, "\' must contain specific names \n",
                  "missing names : \"",paste(required.values[required.values %in% value1 == FALSE], collapse = "\" \""),"\" \n", 
                  "possible names : \"", paste(value1, collapse = "\" \""), "\"\n")  
             

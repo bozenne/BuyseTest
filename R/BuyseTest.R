@@ -439,67 +439,46 @@ BuyseTest <- function(formula,
             data <- envir$outArgs$data[,.SD[sample.int(.N, size = .N, replace = TRUE)], by = strata]
         }
     }
-
+    setkeyv(data, cols = c(treatment,"..strata.."))
+    
     ## ** Check valid resampling
-    if(is.null(strata)){
-        n.groups <- length(unique(data[[treatment]]))
-    }else{
-        n.groups <- sum(data[,.N, by = c(".allStrata",treatment)][["N"]]>0)
-    }
+    n.groups <- sum(data[,.N, by = c("..strata..",treatment)][["N"]]>0)
     if (n.groups != 2*n.strata) { ## failure of the resampling
         ##        return(matrix(NA, nrow = n.strata + 1, ncol = 2*D))
         return(NULL)
     }
     
-    ## ** Initialize data    
-    
-    ## *** data: split the data according to the two levels
-    indexT <- which(data[[treatment]] == 1)
-    dataT <- data[indexT]
-    dataC <- data[setdiff(1:.N,indexT)]
-    
-    ## *** data: extract endpoint 
-    M.Treatment <- as.matrix(dataT[,endpoint,with=FALSE]) # matrix of endpoints for the treatment arm 
-    M.Control <- as.matrix(dataC[,endpoint,with=FALSE]) # matrix of endpoints for the control arm
+    ## ** split data
+    ls.Treatment <- vector(mode = "list", length = n.strata)
+    ls.Control <- vector(mode = "list", length = n.strata)
+    ls.delta.Treatment <- vector(mode = "list", length = n.strata)
+    ls.delta.Control <- vector(mode = "list", length = n.strata)
 
-    ## *** strata
-    if(!is.null(strata)){
-        ## For each strata, the index of the patients belonging to each strata, by treatment arm
-        ## Index begins at 0. This is compulsory for C++.
-        index.strataT <- lapply(1:n.strata,function(iS){
-            which(dataT[[".allStrata"]] == iS) - 1
-        })
-        index.strataC <- lapply(1:n.strata,function(iS){
-            which(dataC[[".allStrata"]] == iS) - 1
-        })
-        
-    }else{ # if there is no strata variable the same strata is used for all patient
-        ## For each strata, the index of the patients belonging to each strata, by treatment arm
-        ## Index begins at 0. This is compulsory for C++.
-        index.strataT <- list(0:(NROW(dataT)-1))
-        index.strataC <- list(0:(NROW(dataC)-1))
+    for(iStrata in 1:n.strata){ ## iStrata <- 1
+        ls.Control[[iStrata]] <- as.matrix(data[.(0,iStrata),.SD,.SDcols = endpoint])
+        ls.delta.Control[[iStrata]] <- as.matrix(data[.(0,iStrata),.SD,.SDcols = censoring])
+
+        ls.Treatment[[iStrata]] <- as.matrix(data[.(1,iStrata),.SD,.SDcols = endpoint])
+        ls.delta.Treatment[[iStrata]] <- as.matrix(data[.(1,iStrata),.SD,.SDcols = censoring])
     }
-
-    ## *** data: censoring
-    if(!is.null(censoring)){
-        M.delta.Treatment <- as.matrix(dataT[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-        M.delta.Control <- as.matrix(dataC[,censoring,with=FALSE]) # matrix of censoring variables for the treatment arm : censored (0) event time (1)
-    }else{ # if the is no time to event variables
-        M.delta.Treatment <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        M.delta.Control <- matrix(nrow=0,ncol=0) # factice censoring matrix. Will be sent to the C++ arguments to fill the argument but not used by the function.
-    }
-
+    browser()
+    
     ## *** Update survival
     if(method.tte == 0){ ## Gehan
-        outSurv <- list(survTimeC = list(list(matrix())),
-                        survTimeT = list(list(matrix())),
-                        survJumpC = list(list(matrix())),
-                        survJumpT = list(list(matrix()))
+        template <- lapply(1:D, function(iE){
+            lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})
+        })
+
+        outSurv <- list(survTimeC = template,
+                        survTimeT = template,
+                        survJumpC = template,
+                        survJumpT = template,
+                        lastSurv = lapply(1:D, function(iS){matrix(nrow=n.strata,ncol=2)})
                         )        
+
     }else{ ## Peron
-        outSurv <- initializeSurvival_Peron(data =  data, dataT = dataT, dataC = dataC,
+        outSurv <- initializeSurvival_Peron(data =  data,
                                             model.tte = envir$outArgs$model.tte,
-                                            n.T = NROW(M.Treatment), n.C = NROW(M.Control),
                                             treatment = treatment,
                                             level.treatment = envir$outArgs$level.treatment,
                                             endpoint = endpoint,
@@ -508,8 +487,6 @@ BuyseTest <- function(formula,
                                             type = type,
                                             strata = strata,
                                             threshold = envir$outArgs$threshold,
-                                            index.strataT = index.strataT,
-                                            index.strataC = index.strataC,
                                             n.strata = n.strata)
     }
 
