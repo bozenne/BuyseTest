@@ -1,5 +1,9 @@
 # -*- mode: org -*-
 
+* Version 1.6
+** Internal change
+  - simplify C++ code.
+
 * Version 1.5
 ** User visble changes
   - Argument statistic now takes values netBenefit or winRatio

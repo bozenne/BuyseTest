@@ -235,7 +235,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                          method.tte = method,
                          correction.uninf = FALSE
                          )
-    
+
         ## *** test against fixed value
         test <- list(favorable = as.double(BT.tte@count.favorable),
                      unfavorable = as.double(BT.tte@count.unfavorable),

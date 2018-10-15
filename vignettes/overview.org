@@ -42,12 +42,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: Loading required package: prodlim
-: Loading required package: Rcpp
-: Loading required package: data.table
-: data.table 1.11.8  Latest news: r-datatable.com
-: BuyseTest version 1.5.3
-: [1] '1.5.3'
+: [1] '1.6'
 
 \vfill
 
@@ -117,16 +112,10 @@ BT <- BuyseTest(data = veteran,
 Settings 
    - treatment groups: Control = 1 and Treatment = 2
    - 1 endpoint: 
-       priority endpoint type          operator            threshold censoring
-       1        time     time to event higher is favorable 20        status   
+       priority endpoint type           operator             threshold censoring
+       1        time     time to event  higher is favorable  20        status   
    - management of neutral pairs: re-analyzed using endpoints of lower priority (if any) 
    - management of censored survival pairs: use Kaplan Meier survival curves to compute the score 
-   - Current contribution of a pair based on the weights computed at previous enpoints: 
-                   for time(20)
-weigth of time(20)            0
-   - thresholds for survival endpoints: 
-                   time(20)     
-threshold interval "[20 ; Inf] "
 
 Point estimation
 
@@ -167,15 +156,18 @@ summary(BT)
 #+END_SRC 
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: 1 (control) vs. 2 (treatment) 
-:  > censored pairs  : use Kaplan Meier survival curves to compute the score
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-:      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
+#+end_example
 
  To display the number of pairs instead of the percentage of pairs
 that are favorable/unfavorable/neutral/uniformative, set the argument
@@ -185,15 +177,18 @@ summary(BT, percentage = FALSE)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: 1 (control) vs. 2 (treatment) 
-:  > censored pairs  : use Kaplan Meier survival curves to compute the score
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-:      time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
+#+end_example
 
 By default =summary= displays results relative to the net benefit. To
 get results for the win ratio set the argument =statistic= to
@@ -203,15 +198,18 @@ summary(BT, statistic = "winRatio")
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
-: 
-:  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 1 
-:  > treatment groups: 1 (control) vs. 2 (treatment) 
-:  > censored pairs  : use Kaplan Meier survival curves to compute the score
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
-:      time        20   100     37.78       46.54   15.68     0 0.8117 0.8117
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : win ratio (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 1 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
+     time        20   100     37.78       46.54   15.68     0 0.8117 0.8117
+#+end_example
 
 Since we have set the argument =n.permutation= to 0 (i.e. no
 permutation test) in the stratified analysis, we do not get confidence
@@ -395,6 +393,7 @@ summary(BT.perm)
  > permutation test: 10 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
@@ -427,6 +426,7 @@ summary(BT.boot)
  > bootstrap resampling: 10 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
@@ -480,18 +480,18 @@ getPairScore(BT.keep, endpoint = 1)
 4690:      1      67     137         0           1       0             0      1
 4691:      1      68     137         0           1       0             0      1
 4692:      1      69     137         0           1       0             0      1
-      favorable.corrected unfavorable.corrected neutral.corrected
-   1:                   1                     0                 0
-   2:                   1                     0                 0
-   3:                   1                     0                 0
-   4:                   1                     0                 0
-   5:                   1                     0                 0
-  ---                                                            
-4688:                   0                     1                 0
-4689:                   0                     1                 0
-4690:                   0                     1                 0
-4691:                   0                     1                 0
-4692:                   0                     1                 0
+      favorable.corrected unfavorable.corrected neutral.corrected uninformative.corrected
+   1:                   1                     0                 0                       0
+   2:                   1                     0                 0                       0
+   3:                   1                     0                 0                       0
+   4:                   1                     0                 0                       0
+   5:                   1                     0                 0                       0
+  ---                                                                                    
+4688:                   0                     1                 0                       0
+4689:                   0                     1                 0                       0
+4690:                   0                     1                 0                       0
+4691:                   0                     1                 0                       0
+4692:                   0                     1                 0                       0
 #+end_example
 
 Each line corresponds to different comparison between a pair from the
@@ -596,8 +596,8 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[91]
 : 1:      1      22      71                  22                   2         0   0.6950827
 :      neutral uninformative weight favorable.corrected unfavorable.corrected
 : 1: 0.3049173             0      1                   0             0.6950827
-:    neutral.corrected
-: 1:         0.3049173
+:    neutral.corrected uninformative.corrected
+: 1:         0.3049173                       0
 
 In the dataset this corresponds to:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -675,7 +675,7 @@ Sc132/Sc97
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
 integral. This integral can be computed using the function
-=calcIntegralProba\_cpp= that takes as argument a matrix containing the
+=calcIntegralScore\_cpp= that takes as argument a matrix containing the
 survival and the jumps in survival, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 head(outSurv$survJumpT)
@@ -701,8 +701,8 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[148]
 : 1:      1      10      72                  10                   3 0.5058685   0.3770426
 :      neutral uninformative weight favorable.corrected unfavorable.corrected
 : 1: 0.1170889             0      1           0.5058685             0.3770426
-:    neutral.corrected
-: 1:         0.1170889
+:    neutral.corrected uninformative.corrected
+: 1:         0.1170889                       0
 
 which corresponds to the observations:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -725,8 +725,8 @@ p_{UF} &= -\frac{1}{S_T(x)S_C(y)}\int_{t>x} S_C(t+\tau) dS_T(t)
 where \(x=87\) and \(y=100\). We obtain:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 denom <- as.double(outSurv$survTimeT[3,"SurvivalT_0"] * outSurv$survTimeC[10,"SurvivalC_0"])
-c("favorable" = -calcIntegralProba_cpp(outSurv$survJumpC, start = 100)/denom,
-  "unfavorable" = -calcIntegralProba_cpp(outSurv$survJumpT, start = 87)/denom)
+c("favorable" = -calcIntegralScore_cpp(outSurv$survJumpC, start = 100)/denom,
+  "unfavorable" = -calcIntegralScore_cpp(outSurv$survJumpT, start = 87)/denom)
 #+END_SRC
 
 #+RESULTS:
@@ -845,11 +845,11 @@ iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninformative")]
 2:         0           0       0             1      1       2     501      1
 3:         0           1       0             0      1      10     501      1
 4:         1           0       0             0      1       1     504      1
-   favorable.corrected unfavorable.corrected neutral.corrected
-1:             0.00000               0.00000           1.81657
-2:             0.00000               0.00000           0.00000
-3:             0.00000               1.81657           0.00000
-4:             1.81657               0.00000           0.00000
+   favorable.corrected unfavorable.corrected neutral.corrected uninformative.corrected
+1:             0.00000               0.00000           1.81657                       0
+2:             0.00000               0.00000           0.00000                       0
+3:             0.00000               1.81657           0.00000                       0
+4:             1.81657               0.00000           0.00000                       0
 #+end_example
 
 We can see that the favorable/unfavorable/neutral pairs have seen
@@ -903,11 +903,11 @@ iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninformative")]
 2:         0           0       0             1      1       2     501      1
 3:         0           1       0             0      1      10     501      1
 4:         1           0       0             0      1       1     504      1
-   favorable.corrected unfavorable.corrected neutral.corrected
-1:            0.000000             0.0000000         1.0000000
-2:            0.371118             0.1234396         0.5054424
-3:            0.000000             1.0000000         0.0000000
-4:            1.000000             0.0000000         0.0000000
+   favorable.corrected unfavorable.corrected neutral.corrected uninformative.corrected
+1:            0.000000             0.0000000         1.0000000                       0
+2:            0.371118             0.1234396         0.5054424                       0
+3:            0.000000             1.0000000         0.0000000                       0
+4:            1.000000             0.0000000         0.0000000                       0
 #+end_example
 
 we can see that the corrected probability have not changed for the
@@ -1033,7 +1033,7 @@ tpsBin
 
 #+RESULTS:
 :    user  system elapsed 
-:    1.52    0.18  235.70
+:    1.19    0.19  245.34
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
@@ -1045,17 +1045,17 @@ summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 
  > statistic   : net benefit
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000      0.010100     0.22040 0.19981          0.116
-2:  50  50         1000   1000      0.001020     0.09914 0.09800          0.058
-3: 100 100         1000   1000      0.000430     0.06920 0.07001          0.053
-4: 250 250         1000   1000     -0.000728     0.04304 0.04455          0.051
+1:  10  10         1000   1000     -0.002500     0.22400 0.19932          0.120
+2:  50  50         1000   1000      0.001760     0.10156 0.09796          0.067
+3: 100 100         1000   1000      0.000010     0.06903 0.07000          0.049
+4: 250 250         1000   1000      0.001116     0.04426 0.04454          0.048
 
  > statistic   : win ratio
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10          999    999         1.645      1.8826  1.4717        0.08509
-2:  50  50         1000   1000         1.088      0.4467  0.4355        0.05000
-3: 100 100         1000   1000         1.042      0.2950  0.2946        0.05300
-4: 250 250         1000   1000         1.012      0.1754  0.1810        0.05100
+1:  10  10          997    997         1.621      2.2588  1.4631        0.07344
+2:  50  50         1000   1000         1.099      0.4940  0.4403        0.05900
+3: 100 100         1000   1000         1.040      0.2998  0.2942        0.04900
+4: 250 250         1000   1000         1.020      0.1828  0.1825        0.04800
 #+end_example
 
 ** Continuous endpoint
@@ -1131,6 +1131,33 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 sessionInfo()
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
+[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] BuyseTest_1.6      data.table_1.11.8  Rcpp_0.12.19       prodlim_2018.04.18
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-15   lattice_0.20-35    foreach_1.4.4      grid_3.5.1        
+ [5] R6_2.2.2           stats4_3.5.1       magrittr_1.5       KernSmooth_2.23-15
+ [9] rlang_0.2.2        doParallel_1.0.14  testthat_2.0.0     Matrix_1.2-14     
+[13] lava_1.6.3         splines_3.5.1      iterators_1.0.10   tools_3.5.1       
+[17] survival_2.42-6    parallel_3.5.1     compiler_3.5.1
+#+end_example
 
 
 

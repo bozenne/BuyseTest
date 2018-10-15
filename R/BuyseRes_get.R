@@ -138,8 +138,8 @@ setMethod(f = "getPairScore",
 
               if(length(object@tablePairScore)==0){
                   if(trace){
-                      cat("Survival was not exported from the object \n",
-                          "Consider setting the argument \'keep.survival\' to \"TRUE\" in BuyseTest.options \n", sep = "")
+                      cat("pairScore was not exported from the object \n",
+                          "Consider setting the argument \'keep.pairScore\' to \"TRUE\" in BuyseTest.options \n", sep = "")
                   }
                   return(invisible(NULL))
               }else{
@@ -243,16 +243,16 @@ setMethod(f = "getPairScore",
 setMethod(f = "getSurvival",
           signature = "BuyseRes",
           definition = function(object, type, endpoint, strata, unlist, trace){
-              
+
               if(length(object@tableSurvival)==0){
                   
                   if(trace>0){
                       if(all(tolower(object@type)!="timetoevent")){
                           add.txt <- "No endpoint of type time to event \n"
-                      }else if(tolower(object@method.tte$method)!="peron"){
+                      }else if(tolower(object@method.tte)!="peron"){
                           add.txt <- "Consider setting the argument \'method.tte\' to \"Peron\" when calling BuyseTest \n"
                       }else{
-                          add.txt <- "Consider setting the argument \'keep.survival\' to \"TRUE\" in BuyseTest.options \n"
+                          add.txt <- "Consider setting the argument \'keep.survival\' to TRUE in BuyseTest.options \n"
                       }
                       cat("Survival was not exported from the object \n",
                           add.txt, sep = "")    

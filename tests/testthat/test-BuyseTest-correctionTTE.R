@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt 15 2018 (08:53) 
+## Last-Updated: okt 15 2018 (16:56) 
 ##           By: Brice Ozenne
-##     Update #: 85
+##     Update #: 87
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -115,6 +115,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
 
 ## ** Peron
 test_that("1 TTE endpoint - Peron (no correction)", {
+
     Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
                        data = df, 
                        method.tte = "Peron", correction.uninf = FALSE)

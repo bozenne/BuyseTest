@@ -607,6 +607,8 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
 
             iControl.time <- dataC[index.strataC[[iStrata]],.SD[[endpoint.TTE[iEndpoint.TTE]]]]
             iTreatment.time <- dataT[index.strataT[[iStrata]],.SD[[endpoint.TTE[iEndpoint.TTE]]]]
+            list.survTimeC[[iEndpoint.TTE]][[iStrata]][,"time"] <- iControl.time
+            list.survTimeT[[iEndpoint.TTE]][[iStrata]][,"time"] <- iTreatment.time
 
             for(iGroup in 0:1){ ## iGroup <- 0
 
@@ -617,12 +619,11 @@ initializeSurvival_Peron <- function(data, dataT, dataC,
                     iPredSurv <- predSurvT
                     iCol <- c("SurvivalT-threshold","SurvivalT_0","SurvivalT+threshold")
                 }
-                list.survTimeC[[iEndpoint.TTE]][[iStrata]][,"time"] <- iControl.time
+                
                 list.survTimeC[[iEndpoint.TTE]][[iStrata]][,iCol[1]] <- iPredSurv(iControl.time - threshold.TTE[iEndpoint.TTE]) # survival at t - tau
                 list.survTimeC[[iEndpoint.TTE]][[iStrata]][,iCol[2]] <- iPredSurv(iControl.time) # survival at t
                 list.survTimeC[[iEndpoint.TTE]][[iStrata]][,iCol[3]] <- iPredSurv(iControl.time + threshold.TTE[iEndpoint.TTE]) # survival at t + tau
 
-                list.survTimeT[[iEndpoint.TTE]][[iStrata]][,"time"] <- iTreatment.time
                 list.survTimeT[[iEndpoint.TTE]][[iStrata]][,iCol[1]] <- iPredSurv(iTreatment.time - threshold.TTE[iEndpoint.TTE]) # survival at t - tau
                 list.survTimeT[[iEndpoint.TTE]][[iStrata]][,iCol[2]] <- iPredSurv(iTreatment.time) # survival at t
                 list.survTimeT[[iEndpoint.TTE]][[iStrata]][,iCol[3]] <- iPredSurv(iTreatment.time + threshold.TTE[iEndpoint.TTE]) # survival at t + tau

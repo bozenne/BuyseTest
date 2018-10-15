@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt 14 2018 (21:42) 
+## Last-Updated: okt 15 2018 (09:34) 
 ##           By: Brice Ozenne
-##     Update #: 73
+##     Update #: 74
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -182,7 +182,8 @@ type <- rep(3, D)
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 3 times the same endpoint",{
-    Wtest <- BuyseTest:::buildWscheme(endpoint = endpoint,
+    Wtest <- BuyseTest:::buildWscheme(method.tte = 1,
+                                      endpoint = endpoint,
                                       D.TTE = D.TTE,
                                       D = D,
                                       type = type,
@@ -193,8 +194,8 @@ test_that("Wscheme: 3 times the same endpoint",{
                                 nrow = 3, ncol = 3,
                                 dimnames = list(c("weigth of time(3)", "weigth of time(2)", "weigth of time(1)"),
                                                 c("for time(3)", "for time(2)", "for time(1)")) ),
-               index.survivalM1 = c(-1, 0, 1),
-               threshold.M1 = c(-1, 3, 2) )
+               index.survival_M1 = c(-1, 0, 1),
+               threshold_M1 = c(-1, 3, 2) )
 
     expect_equal(Wtest, GS)
 })
@@ -206,7 +207,8 @@ type <- rep(3, D)
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 6 tte endpoint",{
-    Wtest <- BuyseTest:::buildWscheme(endpoint = endpoint,
+    Wtest <- BuyseTest:::buildWscheme(method.tte = 1,
+                                      endpoint = endpoint,
                                       D.TTE = D.TTE,
                                       D = D,
                                       type = type,
@@ -218,10 +220,9 @@ test_that("Wscheme: 6 tte endpoint",{
                                 ncol = 6, 
                                 dimnames = list(c("weigth of time(6)", "weigth of time1(5)", "weigth of time(4)", "weigth of time(3)", "weigth of time2(2)", "weigth of time1(1)"),
                                                 c("for time(6)", "for time1(5)", "for time(4)", "for time(3)", "for time2(2)", "for time1(1)")) 
-                                ) 
-              ,
-               index.survivalM1 = c(-1, -1, 0, 2, -1, 1) ,
-               threshold.M1 = c(-1, -1, 6, 4, -1, 5) )
+                                ),
+               index.survival_M1 = c(-1, -1, 0, 2, -1, 1) ,
+               threshold_M1 = c(-1, -1, 6, 4, -1, 5) )
 
     expect_equal(Wtest, GS)
 })
@@ -233,7 +234,8 @@ type <- 1+(endpoint=="time")*2
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 6 mixed endpoint",{
-    Wtest <- BuyseTest:::buildWscheme(endpoint = endpoint,
+    Wtest <- BuyseTest:::buildWscheme(method.tte = 1,
+                                      endpoint = endpoint,
                                       D.TTE = D.TTE,
                                       D = D,
                                       type = type,
@@ -246,8 +248,8 @@ test_that("Wscheme: 6 mixed endpoint",{
                                 dimnames = list(c("weigth of time(6)", "weigth of bin(5)", "weigth of bin(4)", "weigth of time(3)", "weigth of bin(2)", "weigth of time(1)"),
                                                 c("for time(6)", "for bin(5)", "for bin(4)", "for time(3)", "for bin(2)", "for time(1)")) 
                                 ),
-               index.survivalM1 = c(-1, 0, 1),
-               threshold.M1 = c(-1, 6, 3) )
+               index.survival_M1 = c(-1, 0, 1),
+               threshold_M1 = c(-1, 6, 3) )
 
     expect_equal(Wtest, GS)
 })

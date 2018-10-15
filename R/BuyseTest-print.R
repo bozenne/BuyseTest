@@ -49,6 +49,12 @@ printGeneral <- function(censoring,
     df.endpoint$censoring[type==3] <- censoring
 
     df.endpoint[is.na(df.endpoint)] <- ""
+    ## add white space
+    df.endpoint$endpoint <- paste0(df.endpoint$endpoint," ")
+    df.endpoint$type <- paste0(df.endpoint$type," ")
+    df.endpoint$operator <- paste0(df.endpoint$operator," ")
+    df.endpoint$threshold <- paste0(df.endpoint$threshold," ")
+
     if(all(type!=3)){
         df.endpoint$censoring <- NULL
         if(all(type!=2)){

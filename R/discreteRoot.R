@@ -3,13 +3,13 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: sep 25 2018 (15:30) 
+## Last-Updated: okt 15 2018 (15:17) 
 ##           By: Brice Ozenne
-##     Update #: 230
+##     Update #: 239
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
-## Copied from riskRegression 07/09/18 11:29 
+## 
 ### Change Log:
 ##----------------------------------------------------------------------
 ## 
@@ -32,6 +32,34 @@
 #' f <- function(x){abs(vec[x]-1)}
 #' discreteRoot(function(x){x},grid = seq(-20,10,1))
 #' 
+#' ### find level of the confidence interval
+#' library(nlme)
+#' fm1 <- gls(follicles ~ sin(2*pi*Time) + cos(2*pi*Time), data = Ovary,
+#'                correlation = corAR1(form = ~ 1 | Mare))
+#'
+#' fctIC1 <- function(x){    
+#'    IC.tempo <- intervals(fm1, level = 1-x)
+#'    return( IC.tempo[["coef"]][1,"upper"])
+#' }
+#' fctIC2 <- function(x){    
+#'    IC.tempo <- intervals(fm1, level = 1-x)
+#'    return( IC.tempo[["coef"]][2,"upper"])
+#' }
+#' fctIC3 <- function(x){    
+#'    IC.tempo <- intervals(fm1, level = 1-x)
+#'    return( IC.tempo[["coef"]][3,"upper"])
+#' }
+#'
+#' summary(fm1)$tTable
+#' discreteRoot(fctIC2,grid = seq(1/1000,1,0.001), increasing = FALSE)$par
+#' discreteRoot(fctIC3,grid = seq(1/1000,1,0.001), increasing = FALSE)$par
+#'
+#' ## negative coefficient
+#' fctIC <- function(x){    
+#'    IC.tempo <- intervals(fm1, level = x)
+#'    return( IC.tempo[["coef"]][3,"upper"])
+#' }
+#' discreteRoot(fctIC,grid = seq(0,1-1/1000,0.001))$par
 
 ## * discreteRoot
 #' @rdname dicreteRoot
@@ -119,7 +147,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
                 value = value,
                 ## grid = setNames(value.grid,grid),
                 counts = iter,
-                cv = !ncv,
+                cv = ncv,
                 message = NULL))
 }
 
@@ -238,23 +266,30 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
         increasing = increasing,
         check = FALSE)
 
-        ##
-        if(resSearch$cv == FALSE || is.na(resSearch$value) || length(resSearch$value)==0 || abs(resSearch$value)>10/n.boot){
+        ## check change sign
+        sign.before <- sign(FUN.ci(x = x.boot,
+                                   p.value = max(0,resSearch$par-1/n.boot),
+                                   alternative = alternative,
+                                   sign.estimate = sign.statistic)-null)
 
+        sign.after <- sign(FUN.ci(x = x.boot,
+                                  p.value = min(1,resSearch$par+1/n.boot),
+                                  alternative = alternative,
+                                  sign.estimate = sign.statistic)-null)
+
+        ##
+        if(is.na(resSearch$value) || length(resSearch$value)==0 || resSearch$par<0 || resSearch$par>1 || sign.before==sign.after){
             warning("incorrect convergence of the algorithm finding the critical quantile \n",
                     "p-value may not be reliable \n")
 
-            ## allCI <- lapply(grid, FUN.ci, x = x.boot,
-            ##                 alternative = alternative,
-            ##                 sign.estimate = sign.statistic)
-            ## M.allCI <- do.call(rbind,allCI)
-            ## colnames(M.allCI) <- c("lower","upper")
-            ## matplot(M.allCI)
         }
         p.value <- resSearch$par
     }
-  
-  return(p.value)
+
+    if(p.value %in% c(0,1)){
+        message("Estimated p-value of ",p.value," - consider increasing the number of boostrap samples \n")
+    }
+    return(p.value)
 }
 
 ## * quantileCI
@@ -264,7 +299,7 @@ quantileCI <- function(x, alternative, p.value, sign.estimate, ...){
                     "less" = 1-p.value,
                     "greater" = p.value)
 
-    return(stats::quantile(x, probs = probs)[1])
+    return(quantile(x, probs = probs)[1])
 }
 
 
