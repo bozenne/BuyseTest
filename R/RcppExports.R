@@ -8,7 +8,7 @@
 #' @param Control A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.
 #' @param Treatment A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.
 #' @param threshold Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.
-#' @param survEndpoint Does each endpoint is a time to event. \emph{const LogicalVector&}. Must have length D.
+#' @param method The index of the method used to score the pairs. \emph{const IntegerVector&}. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.
 #' @param delta_Control A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
 #' @param delta_Treatment A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
 #' @param D The number of endpoints. Strictly positive \emph{const int}.
@@ -17,7 +17,7 @@
 #' @param n_strata The number of strata . Strictly positive \emph{const int}.
 #' @param n_TTE The number of time-to-event endpoints. Positive \emph{const int}.
 #' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have D lines and D columns.
-#' @param index_survivalM1 The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.
+#' @param index_survival_M1 The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.
 #' @param threshold_M1 The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.
 #' @param list_survTimeC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}.
 #' @param list_survTimeT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}. 
@@ -25,7 +25,6 @@
 #' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}. 
 #' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns). \emph{List&}. 
 #' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
-#' @param methodTTE The type of method used to compare censored pairs (0 Gehan 1 Peron).
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
 #' @param keepScore Should the result of each pairwise comparison be kept? \emph{logical}.
 #' @keywords function Cpp BuyseTest
@@ -33,13 +32,13 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(Control, Treatment, threshold, survEndpoint, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionUninf, neutralAsUninf, keepScore) {
-    .Call(`_BuyseTest_GPC_cpp`, Control, Treatment, threshold, survEndpoint, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survivalM1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, methodTTE, correctionUninf, neutralAsUninf, keepScore)
+GPC_cpp <- function(Control, Treatment, threshold, method, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore) {
+    .Call(`_BuyseTest_GPC_cpp`, Control, Treatment, threshold, method, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 
 #' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
-#' @name calcIntegralProba_cpp
+#' @name calcIntegralScore_cpp
 #' 
 #' @param survival [matrix] Contains the jump times in the first column,
 #' the survival in the other arm at times plus threshold in the second column,
@@ -48,7 +47,7 @@ GPC_cpp <- function(Control, Treatment, threshold, survEndpoint, delta_Control, 
 #'
 #' @keywords function Cpp internal
 #' @export
-calcIntegralProba_cpp <- function(survival, start) {
-    .Call(`_BuyseTest_calcIntegralProba_cpp`, survival, start)
+calcIntegralScore_cpp <- function(survival, start) {
+    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start)
 }
 

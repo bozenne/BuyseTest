@@ -77,7 +77,8 @@ If \code{NULL} no seed is set.}
 Only the permutation test can use parallel computation.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{trace}{[integer] should the execution of the function be traced ? See details.
+\item{trace}{[integer] should the execution of the function be traced ? \code{0} remains silent
+and \code{1}-\code{3} correspond to a more and more verbose output in the console.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{keep.comparison}{Obsolete. Alias for 'keep.pairScore'.}
@@ -99,8 +100,6 @@ code{"TTE"} (time-to-event endpoint).
 
 \bold{n.resampling:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
 A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
-
-\bold{trace:} \code{2} reports all messages, \code{1} reports only the percentage of advancement of the permutation test, and \code{0} remains silent.
 
 \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus.
 The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
@@ -124,6 +123,7 @@ Note that both corrections will convert the whole proportion of uninformative pa
 BuyseTest.options(method.inference = "none") # no permutation test
 
 #### simulate some data ####
+set.seed(10)
 df.data <- simBuyseTest(1e2, n.strata = 2)
 
                                        # display 

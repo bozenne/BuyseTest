@@ -4,11 +4,11 @@
 \alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
+GPC_cpp(Control, Treatment, threshold, method, delta_Control,
   delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme,
-  index_survivalM1, threshold_M1, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, methodTTE,
-  correctionUninf, neutralAsUninf, keepScore)
+  index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT,
+  list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf,
+  neutralAsUninf, keepScore)
 }
 \arguments{
 \item{Control}{A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.}
@@ -17,7 +17,7 @@ GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
 
 \item{threshold}{Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.}
 
-\item{survEndpoint}{Does each endpoint is a time to event. \emph{const LogicalVector&}. Must have length D.}
+\item{method}{The index of the method used to score the pairs. \emph{const IntegerVector&}. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.}
 
 \item{delta_Control}{A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
 
@@ -35,7 +35,7 @@ GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
 
 \item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have D lines and D columns.}
 
-\item{index_survivalM1}{The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.}
+\item{index_survival_M1}{The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.}
 
 \item{threshold_M1}{The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.}
 
@@ -48,8 +48,6 @@ GPC_cpp(Control, Treatment, threshold, survEndpoint, delta_Control,
 \item{list_survJumpT}{A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}.}
 
 \item{list_lastSurv}{A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns). \emph{List&}.}
-
-\item{methodTTE}{The type of method used to compare censored pairs (0 Gehan 1 Peron).}
 
 \item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 

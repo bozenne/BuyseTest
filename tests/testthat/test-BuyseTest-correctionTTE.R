@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt 14 2018 (23:20) 
+## Last-Updated: okt 15 2018 (08:53) 
 ##           By: Brice Ozenne
-##     Update #: 83
+##     Update #: 85
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -171,10 +171,6 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     expect_equal(as.double(PeronC2@Delta.winRatio[1]),iScoreS[,sum(favorable*factor)/cumsum(unfavorable*factor)])
 })
 
-
-##----------------------------------------------------------------------
-### test-BuyseTest-correctionTTE.R ends here
-
 ## * 2 endpoints
 ## ** categorical variables
 
@@ -189,7 +185,7 @@ dt[,Y2 := as.numeric(NA)]
 dt[trt==0, Y2 := as.numeric(C)]
 dt[trt==1, Y2 := as.numeric(1-C)]
 
-table(dt$trt,dt$Y1,dt$Y2)
+## table(dt$trt,dt$Y1,dt$Y2)
 
 test_that("2 TTE endpoint - IPW induces bias when censoring is correlated with 2nd endpoint", {
     BT.all <- BuyseTest(trt ~ cont(Y1, threshold = 1) + bin(Y2), data = dt,
@@ -221,3 +217,6 @@ test_that("2 TTE endpoint - IPW induces bias when censoring is correlated with 2
     expect_equal(as.double(BT.esp@count.uninf), as.double(BT.all@count.uninf))
 
 })
+
+##----------------------------------------------------------------------
+### test-BuyseTest-correctionTTE.R ends here
