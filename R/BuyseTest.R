@@ -277,6 +277,19 @@ BuyseTest <- function(formula,
                                                                                  D.TTE = outArgs$D.TTE,
                                                                                  type = outArgs$type,
                                                                                  threshold = outArgs$threshold)
+
+    ## ** initialize survival
+    template <- lapply(1:outArgs$D, function(iE){
+        lapply(1:outArgs$n.strata, function(iS){matrix(nrow=0,ncol=0)})
+    })
+
+    outArgs$outSurv <- list(survTimeC = template,
+                            survTimeT = template,
+                            survJumpC = template,
+                            survJumpT = template,
+                            lastSurv = lapply(1:outArgs$D, function(iS){matrix(nrow=outArgs$n.strata,ncol=2)})
+                            )
+    
     ## ** Display
     if (outArgs$trace > 1) {
         cat("\n         Generalized Pairwise Comparisons\n\n")
@@ -453,31 +466,25 @@ BuyseTest <- function(formula,
     ls.Control <- vector(mode = "list", length = n.strata)
     ls.delta.Treatment <- vector(mode = "list", length = n.strata)
     ls.delta.Control <- vector(mode = "list", length = n.strata)
+    ls.indexT <- vector(mode = "list", length = n.strata)
+    ls.indexC <- vector(mode = "list", length = n.strata)
 
     for(iStrata in 1:n.strata){ ## iStrata <- 1
-        ls.Control[[iStrata]] <- as.matrix(data[.(0,iStrata),.SD,.SDcols = endpoint])
-        ls.delta.Control[[iStrata]] <- as.matrix(data[.(0,iStrata),.SD,.SDcols = censoring])
+        ls.indexC[[iStrata]] <- data[.(0,iStrata),.SD[["..rowIndex.."]]]
+        ls.Control[[iStrata]] <- as.matrix(data[ls.indexC[[iStrata]],.SD,.SDcols = endpoint])
+        ls.delta.Control[[iStrata]] <- as.matrix(data[ls.indexC[[iStrata]],.SD,.SDcols = censoring])
 
-        ls.Treatment[[iStrata]] <- as.matrix(data[.(1,iStrata),.SD,.SDcols = endpoint])
-        ls.delta.Treatment[[iStrata]] <- as.matrix(data[.(1,iStrata),.SD,.SDcols = censoring])
+        ls.indexT[[iStrata]] <- data[.(1,iStrata),.SD[["..rowIndex.."]]]
+        ls.Treatment[[iStrata]] <- as.matrix(data[ls.indexT[[iStrata]],.SD,.SDcols = endpoint])
+        ls.delta.Treatment[[iStrata]] <- as.matrix(data[ls.indexT[[iStrata]],.SD,.SDcols = censoring])
     }
-    browser()
     
     ## *** Update survival
     if(method.tte == 0){ ## Gehan
-        template <- lapply(1:D, function(iE){
-            lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})
-        })
-
-        outSurv <- list(survTimeC = template,
-                        survTimeT = template,
-                        survJumpC = template,
-                        survJumpT = template,
-                        lastSurv = lapply(1:D, function(iS){matrix(nrow=n.strata,ncol=2)})
-                        )        
+        outSurv <- envir$outArgs$outSurv
 
     }else{ ## Peron
-        outSurv <- initializeSurvival_Peron(data =  data,
+        outSurv <- initializeSurvival_Peron(data =  data, ls.indexC, ls.indexT,
                                             model.tte = envir$outArgs$model.tte,
                                             treatment = treatment,
                                             level.treatment = envir$outArgs$level.treatment,
@@ -487,19 +494,18 @@ BuyseTest <- function(formula,
                                             type = type,
                                             strata = strata,
                                             threshold = envir$outArgs$threshold,
-                                            n.strata = n.strata)
+                                            n.strata = n.strata,
+                                            out = envir$outArgs$outSurv)
     }
 
     ## ** Computation
-    resBT <- GPC_cpp(Control = M.Control,
-                     Treatment = M.Treatment,
+    resBT <- GPC_cpp(Control = ls.Control,
+                     Treatment = ls.Treatment,
                      threshold = envir$outArgs$threshold,
                      method = envir$outArgs$method.score,
-                     delta_Control = M.delta.Control,
-                     delta_Treatment = M.delta.Treatment,
+                     delta_Control = ls.delta.Control,
+                     delta_Treatment = ls.delta.Treatment,
                      D = D,
-                     strataC = index.strataC,
-                     strataT = index.strataT,
                      n_strata = n.strata,
                      n_TTE = D.TTE,
                      Wscheme = envir$outArgs$Wscheme,
@@ -512,7 +518,9 @@ BuyseTest <- function(formula,
                      list_lastSurv = outSurv$lastSurv,
                      correctionUninf = envir$outArgs$correction.uninf,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
-                     keepScore = keep.pairScore
+                     keepScore = keep.pairScore,
+                     indexC = ls.indexC,
+                     indexT = ls.indexT                     
                      )
     
     ## ** export

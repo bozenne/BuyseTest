@@ -48,15 +48,13 @@ using namespace arma ;
 //' @name GPC_cpp
 //' @export
 // [[Rcpp::export]]
-List GPC_cpp(const arma::mat& Control,
-	     const arma::mat& Treatment,
+List GPC_cpp(const std::vector< arma::mat >& Control,
+	     const std::vector< arma::mat >& Treatment,
 	     const NumericVector& threshold,
 	     const IntegerVector& method,
-	     const arma::mat& delta_Control,
-             const arma::mat& delta_Treatment,
+	     const std::vector< arma::mat >& delta_Control,
+             const std::vector< arma::mat >& delta_Treatment,
 	     const int D,
-	     const std::vector< arma::uvec >& strataC,
-	     const std::vector< arma::uvec >& strataT,
 	     const int n_strata,
 	     const int n_TTE, 
              const arma::mat& Wscheme,
@@ -69,7 +67,9 @@ List GPC_cpp(const arma::mat& Control,
 	     const std::vector< arma::mat >& list_lastSurv,
 	     const int correctionUninf,
 	     const bool neutralAsUninf,
-	     const bool keepScore){
+	     const bool keepScore,
+	     const std::vector< vector<int> >& indexC,
+             const std::vector< vector<int> >& indexT){
 
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -88,42 +88,17 @@ List GPC_cpp(const arma::mat& Control,
   vector<double> n_pairs(n_strata); // number of pairs sumed over the strats
   
   // *** for a given stata [input]
-  // position of a patients belonging to a given strata
-  arma::uvec index_strataC; // in the control arm
-  arma::uvec index_strataT; // in the treatment arm
-
-  // Endpoint(s) restricted to strata k
-  arma::mat ControlK; // in the control arm
-  arma::mat TreatmentK; // in the treatment arm
-
-  // Right-censoring status for TTE endpoint restricted to strata k
-  arma::mat delta_ControlK ; // in the control arm
-  arma::mat delta_TreatmentK ; // in the treatment arm
-
   // weights of the neutral / uninformative pairs
   arma::mat matWeight;  // for all endpoint up to the current endpoint 
   arma::mat matWeight_M1; // for all endpoint up to the previous endpoint
   
   // *** for a given strata/endpoint
-  // Right-censoring status for TTE endpoint restricted to strata k for a given endpoint
-  arma::colvec iDelta_ControlK ; // in the control arm
-  arma::colvec iDelta_TreatmentK ; // in the treatment arm
+  // Right-censoring status for TTE endpoint restricted to strata k for a previous endpoint
+  arma::mat iSurvTimeC_M1; // at times corresponding to event in the control group
+  arma::mat iSurvTimeT_M1; // at times corresponding to event in the treatment group
+  arma::mat iSurvJumpC_M1; // at jump times for the survival in the control group
+  arma::mat iSurvJumpT_M1; // at jump times for the survival in the treatment group
 
-  // Survival values restricted to strata k
-  arma::mat iSurvTimeC; // at times corresponding to event in the control group [current endpoint]
-  arma::mat iSurvTimeT; // at times corresponding to event in the treatment group [current endpoint]
-  arma::mat iSurvJumpC; // at jump times for the survival in the control group [current endpoint]
-  arma::mat iSurvJumpT; // at jump times for the survival in the treatment group [current endpoint]
-
-  arma::mat iSurvTimeC_M1; // at times corresponding to event in the control group [previous endpoint]
-  arma::mat iSurvTimeT_M1; // at times corresponding to event in the treatment group [previous endpoint]
-  arma::mat iSurvJumpC_M1; // at jump times for the survival in the control group [previous endpoint]
-  arma::mat iSurvJumpT_M1; // at jump times for the survival in the treatment group [previous endpoint]
-
-  // last survival
-  double iLastSurvC;
-  double iLastSurvT;
-  
   // index of the pairs
   vector<int> iIndex_control; // in the control arm [current endpoint]
   vector<int> iIndex_treatment;  // in the treatment arm [current endpoint]
@@ -148,6 +123,8 @@ List GPC_cpp(const arma::mat& Control,
   int iter_d; // the index of the endpoints
   int iter_dTTE; // number of time to event endpoints that have been used
   uvec iUvec;
+  int iIndexC;
+  int iIndexT;
   
   // *** keep track of each comparison
   vector<arma::mat> lsScore(D);
@@ -162,37 +139,15 @@ List GPC_cpp(const arma::mat& Control,
     iter_d = 0;
     iter_dTTE = 0;
     
-    index_strataT = strataT[iter_strata];
-    index_strataC = strataC[iter_strata];
-    
-    // *** affect the endpoints corresponding to each strata (conversion from SEXP to uvec object is necessary for .rows)
-    ControlK = Control.rows(index_strataC); // select the rows in the control matrix corresponding to the indexes contained in strata
-    TreatmentK = Treatment.rows(index_strataT); // select the rows in the treatment matrix corresponding to the indexes contained in strata
-    
-    if(n_TTE>0){
-      delta_ControlK = delta_Control.rows(index_strataC); // select the rows in the control status matrix corresponding to the indexes contained in strata          
-      delta_TreatmentK = delta_Treatment.rows(index_strataT); // select the rows in the treatment status matrix corresponding to the indexes contained in strata
-    }
-    
     // *** first endpoint
     // Rcout << endl << "** endpoint 0 **" << endl;
     iMoreEndpoint = (D>1);
 	
-    iDelta_ControlK = delta_ControlK.col(0);
-    iDelta_TreatmentK = delta_TreatmentK.col(0);
-
-    iSurvTimeC = list_survTimeC[0][iter_strata];
-    iSurvTimeT = list_survTimeT[0][iter_strata];
-    iSurvJumpC = list_survJumpC[0][iter_strata];
-    iSurvJumpT = list_survJumpT[0][iter_strata];
-    iLastSurvC = list_lastSurv[0](iter_strata,0);
-    iLastSurvT = list_lastSurv[0](iter_strata,1);
-
     // Rcout << "score" << endl;
-    iScore = calcAllPairs(ControlK.col(0), TreatmentK.col(0), threshold[0],
-			  iDelta_ControlK, iDelta_TreatmentK,
-			  iSurvTimeC, iSurvTimeT, iSurvJumpC, iSurvJumpT,
-			  iLastSurvC, iLastSurvT, 
+    iScore = calcAllPairs(Control[iter_strata].col(0), Treatment[iter_strata].col(0), threshold[0],
+			  delta_Control[iter_strata].col(0), delta_Treatment[iter_strata].col(0),
+			  list_survTimeC[0][iter_strata], list_survTimeT[0][iter_strata], list_survJumpC[0][iter_strata], list_survJumpT[0][iter_strata],
+			  list_lastSurv[0](iter_strata,0), list_lastSurv[0](iter_strata,1), 
 			  method[0], correctionUninf,	
 			  Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
 			  iIndex_control, iIndex_treatment,
@@ -224,9 +179,11 @@ List GPC_cpp(const arma::mat& Control,
 	  iMat.resize(iNpairs,3);
 	  // add original index
 	  for(int iPair=0 ; iPair < iNpairs ; iPair ++){
-		iMat.row(iPair) = rowvec({(double)iter_strata,
-			  (double)index_strataC(iScore(iPair,0)),
-			  (double)index_strataT(iScore(iPair,1))});
+	    iIndexC = iScore(iPair,0);
+	    iIndexT = iScore(iPair,1);
+	    iMat.row(iPair) = rowvec({(double)iter_strata,
+				      (double)indexC[iter_strata][iIndexC],
+				      (double)indexT[iter_strata][iIndexT]});
 	  }
 	  // merge with current table and store
 	  if(iter_strata==0){
@@ -266,33 +223,8 @@ List GPC_cpp(const arma::mat& Control,
 	
 	  // Rcout << "> score " << endl;
 	  // Rcout << method[iter_d] << endl;
-	  // delta_ControlK.print("C");
-	  // delta_TreatmentK.print("T");
-	  if(method[iter_d]>1){ // time to event endpoint
-		iDelta_ControlK = delta_ControlK.col(iter_dTTE);
-		iDelta_TreatmentK = delta_TreatmentK.col(iter_dTTE);
-	  }else{ // binary/continuous endpoint
-		iDelta_ControlK.resize(0);
-		iDelta_TreatmentK.resize(0);
-	  }
-
-	  if(method[iter_d]==3){ // time to event endpoint with Peron's scoring rule
-		iSurvTimeC = list_survTimeC[iter_dTTE][iter_strata];
-		iSurvTimeT = list_survTimeT[iter_dTTE][iter_strata];
-		iSurvJumpC = list_survJumpC[iter_dTTE][iter_strata];
-		iSurvJumpT = list_survJumpT[iter_dTTE][iter_strata];
-		iLastSurvC = list_lastSurv[iter_dTTE](iter_strata,0);
-		iLastSurvT = list_lastSurv[iter_dTTE](iter_strata,1);
-	  }else{
-		iSurvTimeC = arma::mat(0,0);
-		iSurvTimeT = arma::mat(0,0);
-		iSurvJumpC = arma::mat(0,0);
-		iSurvJumpT = arma::mat(0,0);
-		iLastSurvC = NA_REAL;
-		iLastSurvT = NA_REAL;
-	  }
-
 	  if(method[iter_d]==3 && index_survival_M1[iter_dTTE]>=0){
+	    // survival endpoint already analyzed with Peron
 		iSurvTimeC_M1 = list_survTimeC[index_survival_M1[iter_dTTE]][iter_strata];
 		iSurvTimeT_M1 = list_survTimeT[index_survival_M1[iter_dTTE]][iter_strata];
 		iSurvJumpC_M1 = list_survJumpC[index_survival_M1[iter_dTTE]][iter_strata];
@@ -306,18 +238,18 @@ List GPC_cpp(const arma::mat& Control,
 		iThreshold_M1 = NA_REAL;
 	  }
 
-	  iScore = calcSubsetPairs(ControlK.col(iter_d), TreatmentK.col(iter_d), threshold[iter_d],
-							   iDelta_ControlK, iDelta_TreatmentK,
-							   iSurvTimeC, iSurvTimeT, iSurvJumpC, iSurvJumpT,
-							   iLastSurvC, iLastSurvT,
-							   iIndex_control_M1, iIndex_treatment_M1,
-							   iCumWeight_M1, iThreshold_M1,
-							   iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
-							   method[iter_d], correctionUninf,	
-							   Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-							   iIndex_control, iIndex_treatment,
-							   iWeight, iIndexWeight_pair,
-							   neutralAsUninf, keepScore, iMoreEndpoint);
+	      iScore = calcSubsetPairs(Control[iter_strata].col(iter_d), Treatment[iter_strata].col(iter_d), threshold[iter_d],
+				       delta_Control[iter_strata].col(iter_d), delta_Treatment[iter_strata].col(iter_d),
+				       list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+				       list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
+				       iIndex_control_M1, iIndex_treatment_M1,
+				       iCumWeight_M1, iThreshold_M1,
+				       iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
+				       method[iter_d], correctionUninf,	
+				       Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+				       iIndex_control, iIndex_treatment,
+				       iWeight, iIndexWeight_pair,
+				       neutralAsUninf, keepScore, iMoreEndpoint);
 
 	  if(method[iter_d]>1){ // time to event endpoint
 		iter_dTTE++;
@@ -350,9 +282,11 @@ List GPC_cpp(const arma::mat& Control,
 
 		// add original index
 		for(int iPair=0 ; iPair < iNpairs ; iPair ++){
+		  iIndexC = iScore(iPair,0);
+		  iIndexT = iScore(iPair,1);
 		  iMat.row(iPair) = rowvec({(double)iter_strata,
-				(double)index_strataC(iScore(iPair,0)),
-				(double)index_strataT(iScore(iPair,1))});
+					    (double)indexC[iter_strata][iIndexC],
+					    (double)indexT[iter_strata][iIndexT]});
 		}
      
 		// merge with current table and store
@@ -362,7 +296,7 @@ List GPC_cpp(const arma::mat& Control,
 		  lsScore[iter_d] = arma::join_cols(lsScore[iter_d], arma::join_rows(iMat,iScore));
 		}
       }
-    } // end endpoint
+	} // end endpoint
 
   }
   
@@ -376,17 +310,17 @@ List GPC_cpp(const arma::mat& Control,
 
   // ** export
   return(List::create(
-					  Named("count_favorable")  = Mcount_favorable,
-					  Named("count_unfavorable")  = Mcount_unfavorable,
-					  Named("count_neutral")  = Mcount_neutral,           
-					  Named("count_uninf")  = Mcount_uninf,           
-					  Named("delta_netBenefit")  = delta_netBenefit,
-					  Named("delta_winRatio")  = delta_winRatio,
-					  Named("Delta_netBenefit")  = Delta_netBenefit,
-					  Named("Delta_winRatio")  = Delta_winRatio,
-					  Named("n_pairs")  = n_pairs,
-					  Named("tableScore")  = lsScore
-					  ));
+		      Named("count_favorable")  = Mcount_favorable,
+		      Named("count_unfavorable")  = Mcount_unfavorable,
+		      Named("count_neutral")  = Mcount_neutral,           
+		      Named("count_uninf")  = Mcount_uninf,           
+		      Named("delta_netBenefit")  = delta_netBenefit,
+		      Named("delta_winRatio")  = delta_winRatio,
+		      Named("Delta_netBenefit")  = Delta_netBenefit,
+		      Named("Delta_winRatio")  = Delta_winRatio,
+		      Named("n_pairs")  = n_pairs,
+		      Named("tableScore")  = lsScore
+		      ));
   
 }
 
