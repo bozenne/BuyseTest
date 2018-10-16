@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: okt 16 2018 (17:40) 
+## Last-Updated: okt 17 2018 (00:14) 
 ##           By: Brice Ozenne
-##     Update #: 109
+##     Update #: 116
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -129,9 +129,17 @@ testArgs <- function(alternative,
 
     ## ## ** model.tte
     if(!is.null(model.tte)){
-        if(!is.list(model.tte) || length(model.tte) != D.TTE){
-            stop("BuyseTest: argument \'model.tte\' must be a list containing ",D.TTE," elements \n",
-                 "(one for each time to event model) \n")
+        endpoint.UTTE <- unique(endpoint[type==3])
+        D.UTTE <- length(endpoint.UTTE)
+        if(!is.list(model.tte) || length(model.tte) != D.UTTE){
+            stop("BuyseTest: argument \'model.tte\' must be a list containing ",D.UTTE," elements \n",
+                 "(one for each unique time to event endpoint) \n")
+        }
+
+        if(is.null(model.tte) || any(names(model.tte) != endpoint.UTTE)){
+            stop("BuyseTest: argument \'model.tte\' must be a named list \n",
+                 "valid sequence of names: \"",paste0(endpoint.UTTE, collapse = "\" \""),"\" \n",
+                 "proposed names: \"",paste0(names(model.tte), collapse = "\" \""),"\" \n")
         }
 
         vec.class  <- sapply(model.tte, function(iTTE){inherits(iTTE, "prodlim")})

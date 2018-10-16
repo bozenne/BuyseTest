@@ -521,11 +521,25 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
         txt.modelUTTE <- paste0("prodlim::Hist(",endpoint.UTTE,",",censoring.UTTE,") ~ ",treatment," + ..strata..")
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.UTTE <- 1
             model.tte[[iEndpoint.UTTE]] <- prodlim::prodlim(as.formula(txt.modelUTTE[iEndpoint.UTTE]),
-                                                           data = data)
+                                                            data = data)
         }
-    }else{ ## convert treatment to numeric
+    }else{ 
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
+            ## convert treatment to numeric
             model.tte[[iEndpoint.UTTE]]$X[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.UTTE]]$X[[treatment]], levels = level.treatment))-1
+            p <- NCOL(model.tte[[iEndpoint.UTTE]]$X)
+
+            ## create ..strata..
+            if(p==1){
+                model.tte[[iEndpoint.UTTE]]$X <- cbind(model.tte[[iEndpoint.UTTE]]$X,
+                                                       "..strata.." = 1)
+            }else{
+                col.strata <- setdiff(1:p,which(colnames(model.tte[[iEndpoint.UTTE]]$X)==treatment))
+                value.strata <- apply(model.tte[[iEndpoint.UTTE]]$X[,col.strata],1,paste0,collapse="")
+                model.tte[[iEndpoint.UTTE]]$X <- cbind(model.tte[[iEndpoint.UTTE]]$X,
+                                                       "..strata.." = as.numeric(as.factor(value.strata)))
+
+            }
         }
     }
   
@@ -552,9 +566,11 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
             iNcontrol <- length(ls.indexC[[iStrata]]+1)
             iNtreatment <- length(ls.indexT[[iStrata]]+1)
 
-            indexX.strata <- which(model.tte[[iEndpoint.UTTE]]$X[["..strata.."]]==iStrata)
-            indexX.strataC <- intersect(indexX.C,indexX.strata)
-            indexX.strataT <- intersect(indexX.T,indexX.strata)
+            if("..strata.." %in% colnames(model.tte[[iEndpoint.UTTE]]$X)){
+                indexX.strata <- which(model.tte[[iEndpoint.UTTE]]$X[["..strata.."]]==iStrata)
+                indexX.strataC <- intersect(indexX.C,indexX.strata)
+                indexX.strataT <- intersect(indexX.T,indexX.strata)
+            }
 
             iIndex.startC <- model.tte[[iEndpoint.UTTE]]$first.strata[indexX.strataC]
             iIndex.startT <- model.tte[[iEndpoint.UTTE]]$first.strata[indexX.strataT]
@@ -588,6 +604,15 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
             iTimeC <- data[ls.indexC[[iStrata]]+1,.SD[[iEndpoint.UTTE.name]]]
             iTimeT <- data[ls.indexT[[iStrata]]+1,.SD[[iEndpoint.UTTE.name]]]
 
+            ## independent of the threshold i.e. of the priority
+            ## avoid repeated calculation when the same endpoint is used several times with different thresholds
+            iDSurvivalC.jumpC <- iPredSurvC(iJumpC) - iPredSurvC(iJumpC - zeroPlus)
+            iDSurvivalT.jumpT <- iPredSurvT(iJumpT) - iPredSurvT(iJumpT - zeroPlus)
+            iSurvivalC.timeC <- iPredSurvC(iTimeC)
+            iSurvivalC.timeT <- iPredSurvC(iTimeT)
+            iSurvivalT.timeC <- iPredSurvT(iTimeC)
+            iSurvivalT.timeT <- iPredSurvT(iTimeT)
+            
             for(iEndpoint in iIndex.associatedEndpoint){ ## iEndpoint <- 1
                 iThreshold <- threshold[iEndpoint]
 
@@ -597,34 +622,33 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
                 ## **** survival at jump times
                 out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(time = iJumpC,
                                                                survival = iPredSurvT(iJumpC + iThreshold),
-                                                               dSurvival = iPredSurvC(iJumpC) - iPredSurvC(iJumpC - zeroPlus))
+                                                               dSurvival = iDSurvivalC.jumpC)
             
                 out$survJumpT[[iEndpoint]][[iStrata]] <- cbind(time = iJumpT,
                                                                survival = iPredSurvC(iJumpT + iThreshold),
-                                                               dSurvival = iPredSurvT(iJumpT) - iPredSurvT(iJumpT - zeroPlus))
+                                                               dSurvival = iDSurvivalT.jumpT)
 
                 ## **** survival at observation time (+/- threshold)
                 out$survTimeC[[iEndpoint]][[iStrata]] <- cbind("time" = iTimeC,
                                                                "SurvivalC-threshold" = iPredSurvC(iTimeC - iThreshold),
-                                                               "SurvivalC_0" = iPredSurvC(iTimeC),
+                                                               "SurvivalC_0" = iSurvivalC.timeC,
                                                                "SurvivalC+threshold" = iPredSurvC(iTimeC + iThreshold),
                                                                "SurvivalT-threshold" = iPredSurvT(iTimeC - iThreshold),
-                                                               "SurvivalT_0" = iPredSurvT(iTimeC),
+                                                               "SurvivalT_0" = iSurvivalT.timeC,
                                                                "SurvivalT+threshold" = iPredSurvT(iTimeC + iThreshold)
                                                                )
 
                 out$survTimeT[[iEndpoint]][[iStrata]] <- cbind("time" = iTimeT,
                                                                "SurvivalC-threshold" = iPredSurvC(iTimeT - iThreshold),
-                                                               "SurvivalC_0" = iPredSurvC(iTimeT),
+                                                               "SurvivalC_0" = iSurvivalC.timeT,
                                                                "SurvivalC+threshold" = iPredSurvC(iTimeT + iThreshold),
                                                                "SurvivalT-threshold" = iPredSurvT(iTimeT - iThreshold),
-                                                               "SurvivalT_0" = iPredSurvT(iTimeT),
+                                                               "SurvivalT_0" = iSurvivalT.timeT,
                                                                "SurvivalT+threshold" = iPredSurvT(iTimeT + iThreshold)
                                                                )
             }
         }
     }
-    
     ## export
     return(out)
     

@@ -490,7 +490,6 @@ BuyseTest <- function(formula,
                                             out = envir$outArgs$outSurv)
     }
 
-    
     ## ** Computation
     resBT <- GPC_cpp(endpoint = M.endpoint,
                      censoring = M.censoring,
