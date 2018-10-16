@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt 15 2018 (09:34) 
+## Last-Updated: okt 16 2018 (18:47) 
 ##           By: Brice Ozenne
-##     Update #: 74
+##     Update #: 76
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -175,6 +175,9 @@ test_that("ordering of tied event does not affect BuyseTest", {
 
 ## * Brice: 10/12/18 3:02 (Wscheme)
 
+BuyseTest_buildWscheme <- BuyseTest:::buildWscheme
+## BuyseTest_buildWscheme <- buildWscheme
+
 endpoint <- c("time","time","time")
 threshold <- c(3:1)
 D <- length(endpoint)
@@ -182,12 +185,13 @@ type <- rep(3, D)
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 3 times the same endpoint",{
-    Wtest <- BuyseTest:::buildWscheme(method.tte = 1,
-                                      endpoint = endpoint,
-                                      D.TTE = D.TTE,
-                                      D = D,
-                                      type = type,
-                                      threshold = threshold)
+    Wtest <- BuyseTest_buildWscheme(method.tte = 1,
+                                    endpoint = endpoint,
+                                    D.TTE = D.TTE,
+                                    D = D,
+                                    type = type,
+                                    n.strata = 1,
+                                    threshold = threshold)
 
     ## butils::object2script(Wtest)
     GS <- list(Wscheme = matrix(c(0, NA, NA, 0, 0, NA, 0, 0, 0),
@@ -197,7 +201,7 @@ test_that("Wscheme: 3 times the same endpoint",{
                index.survival_M1 = c(-1, 0, 1),
                threshold_M1 = c(-1, 3, 2) )
 
-    expect_equal(Wtest, GS)
+    expect_equal(Wtest[c("Wscheme","index.survival_M1","threshold_M1")], GS)
 })
 
 endpoint <- c("time","time1","time","time","time2","time1")
@@ -207,12 +211,13 @@ type <- rep(3, D)
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 6 tte endpoint",{
-    Wtest <- BuyseTest:::buildWscheme(method.tte = 1,
-                                      endpoint = endpoint,
-                                      D.TTE = D.TTE,
-                                      D = D,
-                                      type = type,
-                                      threshold = threshold)
+    Wtest <- BuyseTest_buildWscheme(method.tte = 1,
+                                    endpoint = endpoint,
+                                    D.TTE = D.TTE,
+                                    D = D,
+                                    type = type,
+                                    n.strata = 1,
+                                    threshold = threshold)
 
     ## butils::object2script(Wtest)
     GS <- list(Wscheme = matrix(c(0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, 0, 1, 0, NA, NA, NA, 0, 1, 0, 0, NA, NA, 1, 1, 1, 1, 0, NA, 1, 0, 1, 1, 1, 0), 
@@ -224,7 +229,7 @@ test_that("Wscheme: 6 tte endpoint",{
                index.survival_M1 = c(-1, -1, 0, 2, -1, 1) ,
                threshold_M1 = c(-1, -1, 6, 4, -1, 5) )
 
-    expect_equal(Wtest, GS)
+    expect_equal(Wtest[c("Wscheme","index.survival_M1","threshold_M1")], GS)
 })
 
 endpoint <- c("time","bin","bin","time","bin","time")
@@ -234,12 +239,13 @@ type <- 1+(endpoint=="time")*2
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 6 mixed endpoint",{
-    Wtest <- BuyseTest:::buildWscheme(method.tte = 1,
-                                      endpoint = endpoint,
-                                      D.TTE = D.TTE,
-                                      D = D,
-                                      type = type,
-                                      threshold = threshold)
+    Wtest <- BuyseTest_buildWscheme(method.tte = 1,
+                                    endpoint = endpoint,
+                                    D.TTE = D.TTE,
+                                    D = D,
+                                    type = type,
+                                    n.strata = 1,
+                                    threshold = threshold)
 
     ## butils::object2script(Wtest)
     GS <- list(Wscheme = matrix(c(0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, 0, 1, 1, 0, NA, NA, 1, 1, 1, 1, 0, NA, 0, 1, 1, 0, 1, 0), 
@@ -248,8 +254,8 @@ test_that("Wscheme: 6 mixed endpoint",{
                                 dimnames = list(c("weigth of time(6)", "weigth of bin(5)", "weigth of bin(4)", "weigth of time(3)", "weigth of bin(2)", "weigth of time(1)"),
                                                 c("for time(6)", "for bin(5)", "for bin(4)", "for time(3)", "for bin(2)", "for time(1)")) 
                                 ),
-               index.survival_M1 = c(-1, 0, 1),
+               index.survival_M1 = c(-1, 0, 3),
                threshold_M1 = c(-1, 6, 3) )
 
-    expect_equal(Wtest, GS)
+    expect_equal(Wtest[c("Wscheme","index.survival_M1","threshold_M1")], GS)
 })

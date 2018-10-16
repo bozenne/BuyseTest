@@ -13,9 +13,9 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
-inline vector<double> calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold);
+inline vector<double> calcOnePair_Continuous(double diff, double threshold);
  
-inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold);
+inline vector<double> calcOnePair_TTEgehan(double diff, double delta_C, double delta_T, double threshold);
  
 inline vector<double> calcOneScore_TTEperon(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
 											arma::rowvec survTimeC, arma::rowvec survTimeT,
@@ -25,16 +25,15 @@ inline vector<double> calcOneScore_TTEperon(double endpoint_C, double endpoint_T
 double calcIntegralScore_cpp(const arma::mat& survival, double start);
 
 // * calcOnePair_Continuous
-inline vector<double> calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold){
+inline vector<double> calcOnePair_Continuous(double diff, double threshold){
 
   // ** initialize
   std::vector<double> score(4,0.0);
 
   // ** score
-  if(R_IsNA(endpoint_T) || R_IsNA(endpoint_C)){ // missing data: uninformative
+  if(R_IsNA(diff)){ // missing data: uninformative
     score[3] = 1.0;
   }else{    
-    double diff = endpoint_T - endpoint_C;
     
     if(diff >= threshold){ // favorable
       score[0] = 1.0;
@@ -53,11 +52,10 @@ inline vector<double> calcOnePair_Continuous(double endpoint_C, double endpoint_
 }
 
 // * calcOnePair_TTEgehan
-inline vector<double> calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold){
+inline vector<double> calcOnePair_TTEgehan(double diff, double delta_C, double delta_T, double threshold){
   
   // ** initialize
   std::vector<double> score(4,0.0);
-  double diff = endpoint_T - endpoint_C; 
   // Rcout << diff << " " << delta_T << " " << delta_C << " " << threshold << endl;
 
   // ** score
@@ -135,7 +133,7 @@ inline vector<double> calcOneScore_TTEperon(double endpoint_C, double endpoint_T
     
   
   // ** initialize
-  double diff = endpoint_T - endpoint_C;
+  double diff = endpoint_T-endpoint_C;
   vector<double> score(4,0.0); // [0] favorable, [1] unfavorable, [2] test neutral [3] test uniformative
   double upperFavorable;
   double upperUnfavorable;

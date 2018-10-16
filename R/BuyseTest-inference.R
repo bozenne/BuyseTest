@@ -11,7 +11,7 @@ inferenceResampling <- function(envir){
     trace <- envir$outArgs$trace
 
     ## ** computation
-    if (cpus == 1) { ## *** sequential permutation test
+    if (cpus == 1) { ## *** sequential resampling test
            
         if (!is.null(seed)) {set.seed(seed)} # set the seed
 
@@ -21,7 +21,7 @@ inferenceResampling <- function(envir){
         }else{
             method.loop <- lapply
         }
-        ls.permutation <- do.call(method.loop,
+        ls.resampling <- do.call(method.loop,
                                   args = list(X = 1:n.resampling,
                                               FUN = function(iB){
                                                   .BuyseTest(envir = envir,
@@ -30,7 +30,7 @@ inferenceResampling <- function(envir){
                                                              )
                                               })
                                   )
-    }else { ## *** parallel permutation test
+    }else { ## *** parallel resampling test
 
         ## define cluster
         if(trace>0){
@@ -50,7 +50,7 @@ inferenceResampling <- function(envir){
         toExport <- c(".BuyseTest","initializeSurvival_Peron")
 
         iB <- NULL ## [:forCRANcheck:] foreach        
-        ls.permutation <- foreach::`%dopar%`(
+        ls.resampling <- foreach::`%dopar%`(
                                        foreach::foreach(iB=1:n.resampling,
                                                         .export = toExport),                                            
                                        {                                           
@@ -67,7 +67,7 @@ inferenceResampling <- function(envir){
     }
 
     ## ** post treatment
-    test.resampling <- which(unlist(lapply(ls.permutation,is.null)) == FALSE)
+    test.resampling <- which(unlist(lapply(ls.resampling,is.null)) == FALSE)
     if(length(test.resampling) != n.resampling){
         n.failure <- n.resampling - length(test.resampling) 
         warning("The resampling procedure failed for ",n.failure," samples (",round(100*n.failure/n.resampling,2),"%)")
@@ -85,11 +85,11 @@ inferenceResampling <- function(envir){
                 )
 
     for(iR in test.resampling){
-        out$deltaResampling.netBenefit[,,iR] <- ls.permutation[[iR]][paste0("delta.",1:n.strata),paste0("netBenefit.",1:D)]
-        out$deltaResampling.winRatio[,,iR] <- ls.permutation[[iR]][paste0("delta.",1:n.strata),paste0("winRatio.",1:D)]
+        out$deltaResampling.netBenefit[,,iR] <- ls.resampling[[iR]]$delta_netBenefit
+        out$deltaResampling.winRatio[,,iR] <- ls.resampling[[iR]]$delta_winRatio
 
-        out$DeltaResampling.netBenefit[,iR] <- ls.permutation[[iR]][paste0("Delta"),paste0("netBenefit.",1:D)]
-        out$DeltaResampling.winRatio[,iR] <- ls.permutation[[iR]][paste0("Delta"),paste0("winRatio.",1:D)]
+        out$DeltaResampling.netBenefit[,iR] <- ls.resampling[[iR]]$Delta_netBenefit
+        out$DeltaResampling.winRatio[,iR] <- ls.resampling[[iR]]$Delta_winRatio
 
     }
 

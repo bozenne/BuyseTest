@@ -142,7 +142,7 @@ dataStrata <- rbind(cbind(data, strata = 1),
 
 ## ** tests
 outBT <- BuyseTest(treatment ~ tte(time,censoring = status) + strata,
-                     data = dataStrata)
+                   data = dataStrata)
 outSurv <- getSurvival(outBT, endpoint = 1, unlist = TRUE)
 
 for(iStrata in 1:2){ ## iStrata <- 1

@@ -64,9 +64,9 @@ void mergeVectors(const vector<int>& index_neutralC, const vector<int>& index_ne
 
 // * calcAllPairs
 // perform pairwise comparisons over all possible pairs for a continuous endpoints
-arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatment, double threshold,
-					   const arma::colvec& deltaC, const arma::colvec& deltaT, 
-					   const arma::mat& survTimeC, const arma::mat& survTimeT, const arma::mat& survJumpC, const arma::mat& survJumpT,
+arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
+					   arma::colvec deltaC, arma::colvec deltaT, 
+					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 					   double lastSurvC, double lastSurvT, 
 					   int method, int correctionUninf,
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
@@ -121,32 +121,40 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
 
       // score
       if(method == 1){
-		iScore = calcOnePair_Continuous(Control[iter_C], Treatment[iter_T], threshold);
+	  	iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
       }else if(method == 2){
-		iScore = calcOnePair_TTEgehan(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold);
+	  	iScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
       }else if(method == 3){
-		iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
-									   deltaC[iter_C], deltaT[iter_T], threshold,
-									   survTimeC.row(iter_C), survTimeT.row(iter_T),
-									   survJumpC, survJumpT, lastSurvC, lastSurvT);      
+	  	iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
+	  								   deltaC[iter_C], deltaT[iter_T], threshold,
+	  								   survTimeC.row(iter_C), survTimeT.row(iter_T),
+	  								   survJumpC, survJumpT, lastSurvC, lastSurvT);      
       }	
 
       // store results
-      count_favorable += iScore[0];
+	  if(iScore[0] > zeroPlus){
+	  count_favorable += iScore[0];
+	  }
+	  if(iScore[1] > zeroPlus){
       count_unfavorable += iScore[1];
-      count_neutral += iScore[2];
-      count_uninf += iScore[3];
-	
-      if( updateIndexNeutral && (iScore[2] > zeroPlus) ){
-		index_neutralC.push_back(iter_C);     
-		index_neutralT.push_back(iter_T);
-        wNeutral.push_back(iScore[2]);
-      }
-      if( updateIndexUninf && (iScore[3] > zeroPlus) ){
-		index_uninfC.push_back(iter_C);     
-		index_uninfT.push_back(iter_T);
-        wUninf.push_back(iScore[3]); 
-      }
+	  }
+	  if(iScore[2] > zeroPlus){
+		count_neutral += iScore[2];
+		if(updateIndexNeutral){
+		  index_neutralC.push_back(iter_C);     
+		  index_neutralT.push_back(iter_T);
+		  wNeutral.push_back(iScore[2]);
+		}
+	  }
+	  if(iScore[3] > zeroPlus){
+		count_uninf += iScore[3];
+		if(updateIndexUninf){
+		  index_uninfC.push_back(iter_C);     
+		  index_uninfT.push_back(iter_T);
+		  wUninf.push_back(iScore[3]); 
+		}
+	  }	
+
       if(keepScore){
         matPairScore.row(iter_pair) = rowvec({(double)iter_C, (double)iter_T, // indexC, indexT
 			  iScore[0], // favorable
@@ -209,9 +217,9 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
 
 // * calcSubsetPairs
 // perform pairwise comparisons over the neutral and uniformative pairs for a given endpoint 
-arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treatment, double threshold, 
-						  const arma::colvec& deltaC, const arma::colvec& deltaT, 
-						  const arma::mat& survTimeC, const arma::mat& survTimeT, const arma::mat& survJumpC, const arma::mat& survJumpT,
+arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double threshold, 
+						  arma::colvec deltaC, arma::colvec deltaT, 
+						  arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 						  double lastSurvC, double lastSurvT, 
 						  const vector<int>& index_control_M1, const vector<int>& index_treatment_M1,
 						  const arma::vec& cumWeight_M1, const double threshold_M1,
@@ -280,10 +288,10 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
 
     // score
     if(method == 1){
-      iScore = calcOnePair_Continuous(Control[iter_C], Treatment[iter_T], threshold);
+      iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
       std::fill(iScoreM1.begin(), iScoreM1.end(), 0.0);
     }else if(method == 2){
-      iScore = calcOnePair_TTEgehan(Control[iter_C], Treatment[iter_T], deltaC[iter_C], deltaT[iter_T], threshold);
+      iScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
       std::fill(iScoreM1.begin(), iScoreM1.end(), 0.0);
     }else if(method == 3){
       iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
@@ -308,23 +316,32 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
     weight_neutral = iScore[2] * cumWeight_M1(iter_pair); 
     weight_uninformative = iScore[3] * cumWeight_M1(iter_pair);
 
-    count_favorable += weight_favorable;
-    count_unfavorable += weight_unfavorable;
-    count_neutral += weight_neutral;
-    count_uninf += weight_uninformative;
+	if(weight_favorable > zeroPlus){
+	  count_favorable += weight_favorable;
+	}
+    if(weight_unfavorable > zeroPlus){
+	  count_unfavorable += weight_unfavorable;
+	}
+    if(weight_neutral > zeroPlus){
+	  count_neutral += weight_neutral;
+	  if(updateIndexNeutral){
+		index_neutralC.push_back(iter_C); // index of the pair relative to Control         
+		index_neutralT.push_back(iter_T); // index of the pair relative to Treatment
+		index_wNeutral.push_back(iter_pair); // index of the pair relative to cumWeight_M1
+		wNeutral.push_back(iScore[2]); // not weight_neutral since the product is done in BuyseTest.cpp
+	  }
+	}
+    if(weight_unfavorable > zeroPlus){
+	  count_uninf += weight_uninformative;
+	  if(updateIndexUninf){
+		index_uninfC.push_back(iter_C); // index of the pair relative to Control    
+		index_uninfT.push_back(iter_T); // index of the pair relative to Treatment
+		index_wUninf.push_back(iter_pair); // index of the pair relative to cumWeight_M1
+		wUninf.push_back(iScore[3]); // not weight_uninformative since the product is done in BuyseTest.cpp
+	  }
+	}
 
-    if(updateIndexNeutral && iScore[2] > zeroPlus){
-      index_neutralC.push_back(iter_C); // index of the pair relative to Control         
-      index_neutralT.push_back(iter_T); // index of the pair relative to Treatment
-      index_wNeutral.push_back(iter_pair); // index of the pair relative to cumWeight_M1
-      wNeutral.push_back(iScore[2]); // not weight_neutral since the product is done in BuyseTest.cpp
-    }
-    if(updateIndexUninf && iScore[3] > zeroPlus){
-      index_uninfC.push_back(iter_C); // index of the pair relative to Control    
-      index_uninfT.push_back(iter_T); // index of the pair relative to Treatment
-      index_wUninf.push_back(iter_pair); // index of the pair relative to cumWeight_M1
-      wUninf.push_back(iScore[3]); // not weight_uninformative since the product is done in BuyseTest.cpp
-    }
+    
 
     if(keepScore){
       matPairScore.row(iter_pair) = rowvec({(double)iter_C, (double)iter_T, // indexC, indexT

@@ -325,7 +325,7 @@ for(method in c("Gehan")){ ## method <- "Peron"
 
         BT2 <- BuyseTest(data=dt.sim,
                          endpoint=c("eventtime1","score1","toxicity1","eventtime1","score1"),
-                         censoring=c("status1",NA,NA,"status1",NA),
+                         censoring=c("status1","..NA..","..NA..","status1","..NA.."),
                          treatment="Treatment",
                          type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                          threshold=c(0.5,1,NA,0.25,0.5),

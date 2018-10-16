@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt 15 2018 (16:56) 
+## Last-Updated: okt 16 2018 (18:57) 
 ##           By: Brice Ozenne
-##     Update #: 87
+##     Update #: 89
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -99,7 +99,9 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
                          method.tte = "Gehan", correction.uninf = 2)
-
+    getPairScore(GehanC2)
+    summary(GehanC2, percentage = FALSE)
+    
     expect_equal(GehanC@count.favorable[1], GehanC2@count.favorable[2])
     expect_equal(GehanC@count.unfavorable[1], GehanC2@count.unfavorable[2])
     expect_equal(GehanC@count.neutral[1], GehanC@count.neutral[2])

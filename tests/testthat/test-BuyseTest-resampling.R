@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: okt  9 2018 (10:22) 
+## last-updated: okt 16 2018 (17:47) 
 ##           By: Brice Ozenne
-##     Update #: 82
+##     Update #: 84
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -221,7 +221,9 @@ test_that("Bootstrap", {
                          data = dt.sim, method.tte = method, seed = 10, 
                          method.inference = "bootstrap", n.resampling = 20)
     tol.boot <- 1.1/NCOL(BT.boot@DeltaResampling.netBenefit)  ## ok to have a difference of 1 unit
-    
+
+    ## method <- "Peron"
+    ## BT.boot@deltaResampling.netBenefit
     ## ** summary (two.sided)
     outSummary <- summary(BT.boot, print = FALSE, alternative = "two.sided")
     ## summary(BT.boot)

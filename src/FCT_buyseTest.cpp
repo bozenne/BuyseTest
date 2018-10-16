@@ -20,15 +20,13 @@ using namespace arma ;
 //' @description \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results. 
 //' @name GPC_cpp
 //' 
-//' @param Control A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.
-//' @param Treatment A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.
+//' @param endpoint A matrix containing the values of each endpoint (in columns) for each observation (in rows). \emph{const arma::mat&}.
+//' @param censoring A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows). \emph{const arma::mat&}.
+//' @param indexC A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers. 
+//' @param indexT A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers. 
 //' @param threshold Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.
 //' @param method The index of the method used to score the pairs. \emph{const IntegerVector&}. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.
-//' @param delta_Control A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
-//' @param delta_Treatment A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.
 //' @param D The number of endpoints. Strictly positive \emph{const int}.
-//' @param strataC A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers. 
-//' @param strataT A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers. 
 //' @param n_strata The number of strata . Strictly positive \emph{const int}.
 //' @param n_TTE The number of time-to-event endpoints. Positive \emph{const int}.
 //' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have D lines and D columns.
@@ -42,6 +40,7 @@ using namespace arma ;
 //' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
 //' @param keepScore Should the result of each pairwise comparison be kept? \emph{logical}.
+//' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length? \emph{logical}.
 //' @keywords function Cpp BuyseTest
 
 // * Function GPC_cpp
@@ -175,7 +174,7 @@ List GPC_cpp(const arma::mat& endpoint,
 	if(keepScore){
 	  iNpairs = iScore.n_rows;
 	  iMat.resize(iNpairs,3);
-	  iMat.col(0) = iter_strata;
+	  iMat.col(0).fill(iter_strata);
 	  for(int iPair=0; iPair < iNpairs; iPair++){
 		iMat(iPair,1) = indexC[iter_strata](iScore(iPair,0));
 		iMat(iPair,2) = indexT[iter_strata](iScore(iPair,1));
@@ -233,7 +232,7 @@ List GPC_cpp(const arma::mat& endpoint,
 		iSurvJumpT_M1 = arma::mat(0,0);
 		iThreshold_M1 = NA_REAL;
 	  }
-	  	
+	  
 	  iScore = calcSubsetPairs(endpoint.submat(indexC[iter_strata],iUvec), endpoint.submat(indexT[iter_strata],iUvec), threshold[iter_d],
 							   censoring.submat(indexC[iter_strata],iUvec), censoring.submat(indexT[iter_strata],iUvec),
 							   list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
@@ -276,7 +275,7 @@ List GPC_cpp(const arma::mat& endpoint,
       if(keepScore){
 		iNpairs = iScore.n_rows;
 		iMat.resize(iNpairs,3);
-		iMat.col(0) = iter_strata;
+		iMat.col(0).fill(iter_strata);
 		for(int iPair=0; iPair < iNpairs; iPair++){
 		  iMat(iPair,1) = indexC[iter_strata](iScore(iPair,0));
 		  iMat(iPair,2) = indexT[iter_strata](iScore(iPair,1));

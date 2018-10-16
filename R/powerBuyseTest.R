@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 16 2018 (11:37) 
+## Last-Updated: okt 16 2018 (18:44) 
 ##           By: Brice Ozenne
-##     Update #: 197
+##     Update #: 213
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -141,20 +141,16 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     outArgs$n.strata <- 1
     outArgs$level.strata <- "1"
     outArgs$allstrata <- NULL
-
+        
     ## ** create weights matrix for survival endpoints
-    if(outArgs$D.TTE>0 && outArgs$D>1){
-        ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-        outArgs[c("Wscheme","index.survival_M1","threshold.TTE_M1")] <- buildWscheme(endpoint = outArgs$endpoint,
-                                                                                   D = outArgs$D,
-                                                                                   D.TTE = outArgs$D.TTE,
-                                                                                   type = outArgs$type,
-                                                                                   threshold = outArgs$threshold)
-    }else{ #  factice arguments. Will be sent to the C++ arguments to fill the argument but not used by the function.
-        outArgs$Wscheme <- matrix(nrow=0,ncol=0)
-        outArgs$index.survival_M1 <- numeric(0)
-        outArgs$threshold.TTE_M1 <- numeric(0)
-    }
+    ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
+    outArgs[c("Wscheme","index.survival_M1","threshold.TTE_M1","outSurv")] <- buildWscheme(method.tte = outArgs$method.tte,
+                                                                                           endpoint = outArgs$endpoint,
+                                                                                           D = outArgs$D,
+                                                                                           D.TTE = outArgs$D.TTE,
+                                                                                           n.strata = outArgs$n.strata,
+                                                                                           type = outArgs$type,
+                                                                                           threshold = outArgs$threshold)
 
     ## ** Display
     if (trace > 1) {
@@ -205,22 +201,19 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         ## convert treatment to binary indicator
         envir$outArgs$data[, c(envir$outArgs$treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = envir$outArgs$treatment]
 
-        ## strata
-        envir$outArgs$data[, c("..strata..") := 1]
-
-        ## row number
-        envir$outArgs$data[,c("..rowIndex..") := 0:(.N-1)]
-
         ## NA column for fake censoring 
         envir$outArgs$data[,c("..NA..") := as.numeric(NA)]
 
+        ## rowIndex
+        envir$outArgs$data[,c("..rowIndex..") := 1:.N]
+
         ## ** export
-        keep.col <- c(treatment,"..strata..","..rowIndex..")
-        if(envir$outArgs$method.tte==1){keep.col <- c(keep.col,envir$outArgs$endpoint[type == 3], envir$outArgs$censoring[type == 3])}
-        
-        envir$outArgs$data <- envir$outArgs$data[,.SD,.SDcols = keep.col]
+        keep.col <- c(envir$outArgs$treatment,"..rowIndex..")
+        if(envir$outArgs$method.tte==1){keep.col <- c(keep.col,envir$outArgs$endpoint[envir$outArgs$type == 3], envir$outArgs$censoring[envir$outArgs$type == 3])}
+
         envir$outArgs$M.endpoint <- as.matrix(envir$outArgs$data[, .SD, .SDcols = envir$outArgs$endpoint])
         envir$outArgs$M.censoring <- as.matrix(envir$outArgs$data[, .SD, .SDcols = envir$outArgs$censoring])
+        envir$outArgs$data <- envir$outArgs$data[,.SD,.SDcols = keep.col]
         envir$outArgs$n.obs <- NROW(envir$outArgs$data)
         envir$outArgs$n.obsStrata <- envir$outArgs$n.obs
         
