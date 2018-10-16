@@ -285,7 +285,9 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
 
     return(list(data = data[,.SD,.SDcols = keep.col],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = endpoint]),
-                M.censoring = as.matrix(data[, .SD, .SDcols = censoring]),                
+                M.censoring = as.matrix(data[, .SD, .SDcols = censoring]),
+                ## index.C = which(data[[treatment]] == 0),
+                ## index.T = which(data[[treatment]] == 1),
                 level.treatment = level.treatment,
                 level.strata = level.strata,
                 n.strata = length(level.strata),

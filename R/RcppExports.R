@@ -25,13 +25,15 @@
 #' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.
 #' @param keepScore Should the result of each pairwise comparison be kept? \emph{logical}.
+#' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length? \emph{logical}.
+#' @param returnOnlyDelta Should only the net benefit and win ratio be output? \emph{logical}.
 #' @keywords function Cpp BuyseTest
 NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve)
+GPC_cpp <- function(endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve, returnOnlyDelta) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve, returnOnlyDelta)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

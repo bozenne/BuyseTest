@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: okt 16 2018 (16:55) 
+## Last-Updated: okt 16 2018 (20:34) 
 ##           By: Brice Ozenne
-##     Update #: 42
+##     Update #: 44
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -57,7 +57,7 @@ test_that("Full data - no correction", {
         iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable*weight),
                                                                   unfavorable = sum(unfavorable*weight),
                                                                   neutral = sum(neutral*weight),
-                                                                  uninformative = sum(uninformative*weight))]
+                                                                  uninf = sum(uninf*weight))]
         manualScore <- rbind(manualScore,iScore)
     }
     expect_equal(as.double(manualScore$favorable),
@@ -66,7 +66,7 @@ test_that("Full data - no correction", {
                  as.double(BT.mixed@count.unfavorable))
     expect_equal(as.double(manualScore$neutral),
                  as.double(BT.mixed@count.neutral))
-    expect_equal(as.double(manualScore$uninformative),
+    expect_equal(as.double(manualScore$uninf),
                  as.double(BT.mixed@count.uninf))
 
     expect_equal(as.double(cumsum(BT.mixed@count.favorable-BT.mixed@count.unfavorable)/BT.mixed@n.pairs),
@@ -88,9 +88,9 @@ test_that("Full data", {
 
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){
-        iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorable.corrected),
-                                                                  unfavorable = sum(unfavorable.corrected),
-                                                                  neutral = sum(neutral.corrected))]
+        iScore <- getPairScore(BT.mixed, endpoint = iEndpoint)[,.(favorable = sum(favorableC),
+                                                                  unfavorable = sum(unfavorableC),
+                                                                  neutral = sum(neutralC))]
         manualScore <- rbind(manualScore,iScore)
     }
 

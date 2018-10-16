@@ -107,8 +107,8 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
     n.endpoint <- length(endpoint)
 
     ## ** merge tables
-    keep.col <- c("strata","index.C","index.T","indexWithinStrata.C", "indexWithinStrata.T","favorable.corrected","unfavorable.corrected")
-    old.col <- c("favorable.corrected","unfavorable.corrected")
+    keep.col <- c("strata","index.C","index.T","indexWithinStrata.C", "indexWithinStrata.T","favorableC","unfavorableC")
+    old.col <- c("favorableC","unfavorableC")
     new.col <- c("favorable","unfavorable")
 
     ## first endpoint

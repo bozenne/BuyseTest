@@ -315,10 +315,12 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     weight_unfavorable = (iScore[1] - iScoreM1[1]) * cumWeight_M1(iter_pair);
     weight_neutral = iScore[2] * cumWeight_M1(iter_pair); 
     weight_uninformative = iScore[3] * cumWeight_M1(iter_pair);
-
-	if(weight_favorable > zeroPlus){
-	  count_favorable += weight_favorable;
-	}
+    // Rcout << cumWeight_M1(iter_pair) << ") " << weight_favorable << " " << weight_unfavorable << " "<< weight_neutral << " " << weight_uninformative << endl;
+    // Rcout << "...) " << iScore[0] << " " << iScore[1] << " "<< iScore[2] << " " << iScore[3] << endl;
+    
+    if(weight_favorable > zeroPlus){
+      count_favorable += weight_favorable;
+    }
     if(weight_unfavorable > zeroPlus){
 	  count_unfavorable += weight_unfavorable;
 	}
@@ -331,7 +333,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 		wNeutral.push_back(iScore[2]); // not weight_neutral since the product is done in BuyseTest.cpp
 	  }
 	}
-    if(weight_unfavorable > zeroPlus){
+    if(weight_uninformative > zeroPlus){
 	  count_uninf += weight_uninformative;
 	  if(updateIndexUninf){
 		index_uninfC.push_back(iter_C); // index of the pair relative to Control    
@@ -361,39 +363,39 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
   // ** merge neutral and uninformative pairs + correction
   bool firstEndpoint = false;
   // Rcout << "start merge " << endl;
-  
+      
   if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
-	// correction possible: if there are uninformative paris and if there are informative pairs
+    // correction possible: if there are uninformative paris and if there are informative pairs
 
     if(correctionUninf == 1){
 
       correctionPairs(count_favorable, count_unfavorable, count_neutral, count_uninf,
-					  index_uninfC, index_uninfT, 
-					  index_neutralC, index_neutralT, 
-					  wNeutral, index_wNeutral, wUninf, index_wUninf,
-					  index_control, index_treatment, weight, index_weight,
-					  firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
+		      index_uninfC, index_uninfT, 
+		      index_neutralC, index_neutralT, 
+		      wNeutral, index_wNeutral, wUninf, index_wUninf,
+		      index_control, index_treatment, weight, index_weight,
+		      firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
       // updated by reference
 
     }else if(correctionUninf == 2){
       correctionIPW(count_favorable, count_unfavorable, count_neutral, count_uninf,
-					index_neutralC, index_neutralT,
-					wNeutral, index_wNeutral,
-					index_control, index_treatment, weight, index_weight,
-					firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
+		    index_neutralC, index_neutralT,
+		    wNeutral, index_wNeutral,
+		    index_control, index_treatment, weight, index_weight,
+		    firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
       // updated by reference      
     }
   }else{
 
-	if(moreEndpoint){
-	  noCorrection(index_uninfC, index_uninfT, 
-				   index_neutralC, index_neutralT,
-				   wNeutral, index_wNeutral, wUninf, index_wUninf,
-				   index_control, index_treatment, weight, index_weight,
-				   method, firstEndpoint, neutralAsUninf);
-	}
-	// Rcout << " | " << index_control.size() << " " << index_treatment.size() << " " << weight.size() << " " << index_weight.size() << endl;
-   }
+    if(moreEndpoint){
+      noCorrection(index_uninfC, index_uninfT, 
+		   index_neutralC, index_neutralT,
+		   wNeutral, index_wNeutral, wUninf, index_wUninf,
+		   index_control, index_treatment, weight, index_weight,
+		   method, firstEndpoint, neutralAsUninf);
+    }
+    // Rcout << " | " << index_control.size() << " " << index_treatment.size() << " " << weight.size() << " " << index_weight.size() << endl;
+  }
   // Rcout << "end merge " << endl;
 
   // ** export 
@@ -529,13 +531,12 @@ void correctionIPW(double& count_favorable, double& count_unfavorable, double& c
 
   // compute factor
   double factor = (count_favorable + count_unfavorable + count_neutral + count_uninf)/(count_favorable + count_unfavorable + count_neutral);
-    
   // update global score
   count_favorable *= factor;    
   count_unfavorable *= factor;    
   count_neutral *= factor;   
   count_uninf = 0;
-    
+  
   // new index/weights
   if(moreEndpoint && neutralAsUninf){
     int size = wNeutral.size();

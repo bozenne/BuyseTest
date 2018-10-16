@@ -7,7 +7,8 @@
 GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
   n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1,
   list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT,
-  list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve)
+  list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve,
+  returnOnlyDelta)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows). \emph{const arma::mat&}.}
@@ -49,6 +50,10 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.}
 
 \item{keepScore}{Should the result of each pairwise comparison be kept? \emph{logical}.}
+
+\item{reserve}{Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length? \emph{logical}.}
+
+\item{returnOnlyDelta}{Should only the net benefit and win ratio be output? \emph{logical}.}
 }
 \description{
 \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results.

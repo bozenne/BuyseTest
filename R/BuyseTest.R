@@ -262,14 +262,15 @@ BuyseTest <- function(formula,
 
     ## ** initialization data
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    outArgs[c("data","M.endpoint","M.censoring","level.treatment","level.strata","n.strata","n.obs","n.obsStrata")] <- initializeData(data = outArgs$data,
-                                                                                                                                      type = outArgs$type,
-                                                                                                                                      method.tte = outArgs$method.tte,
-                                                                                                                                      endpoint = outArgs$endpoint,
-                                                                                                                                      censoring = outArgs$censoring,
-                                                                                                                                      operator = outArgs$operator,
-                                                                                                                                      strata = outArgs$strata,
-                                                                                                                                      treatment = outArgs$treatment)
+    out.name <- c("data","M.endpoint","M.censoring","level.treatment","level.strata","n.strata","n.obs","n.obsStrata")
+    outArgs[out.name] <- initializeData(data = outArgs$data,
+                                        type = outArgs$type,
+                                        method.tte = outArgs$method.tte,
+                                        endpoint = outArgs$endpoint,
+                                        censoring = outArgs$censoring,
+                                        operator = outArgs$operator,
+                                        strata = outArgs$strata,
+                                        treatment = outArgs$treatment)
     
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
@@ -309,17 +310,12 @@ BuyseTest <- function(formula,
     ## convert from a list of vector (output of C++) to a list of data.table
     if(keep.pairScore){
         ## needed for inference
-        envirBT$indexT <- which(outArgs$data[[outArgs$treatment]]==1)
-        envirBT$indexC <- which(outArgs$data[[outArgs$treatment]]==0)
-
         outPoint$tablePairScore <- pairScore2dt(outPoint$tableScore,
                                                 level.treatment = outArgs$level.treatment,
                                                 level.strata = outArgs$level.strata,
                                                 n.strata = outArgs$n.strata,
                                                 endpoint = outArgs$endpoint,
-                                                threshold = outArgs$threshold,
-                                                indexT = envirBT$indexT,
-                                                indexC = envirBT$indexC)
+                                                threshold = outArgs$threshold)
     }
     
     ## ** Inference
@@ -441,8 +437,11 @@ BuyseTest <- function(formula,
         }else if(method.inference == "stratified bootstrap"){
             ## randomly pick observations within each strata
             data <- envir$outArgs$data[,.SD[sample.int(.N, replace = TRUE)], by = "..strata.."]
-        }        
+        }
+
     }
+    M.censoring <- envir$outArgs$M.censoring[data[["..rowIndex.."]],,drop=FALSE]
+    M.endpoint <- envir$outArgs$M.endpoint[data[["..rowIndex.."]],,drop=FALSE]
     
     ## ** split data
     if(n.strata==1){        
@@ -492,8 +491,8 @@ BuyseTest <- function(formula,
     }
 
     ## ** Computation
-    resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint[data[["..rowIndex.."]],,drop=FALSE],
-                     censoring = envir$outArgs$M.censoring[data[["..rowIndex.."]],,drop=FALSE],
+    resBT <- GPC_cpp(endpoint = M.endpoint,
+                     censoring = M.censoring,
                      indexC = ls.indexC,
                      indexT = ls.indexT,                     
                      threshold = envir$outArgs$threshold,
@@ -512,7 +511,8 @@ BuyseTest <- function(formula,
                      correctionUninf = envir$outArgs$correction.uninf,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = keep.pairScore,
-                     reserve = TRUE
+                     reserve = TRUE,
+                     returnOnlyDelta = (method.inference!="none")
                      )
 
     ## ** export

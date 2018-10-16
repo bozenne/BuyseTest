@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 16 2018 (18:44) 
+## Last-Updated: okt 16 2018 (20:39) 
 ##           By: Brice Ozenne
-##     Update #: 213
+##     Update #: 216
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -223,18 +223,12 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                method.inference = "none")
 
         ## *** put results into a data.table
-        envir$indexT <- which(envir$outArgs$data[[envir$outArgs$treatment]]==1)
-        envir$indexC <- which(envir$outArgs$data[[envir$outArgs$treatment]]==0)
-        ## outPoint$tableScore[[1]]
-
         tablePairScore <- pairScore2dt(outPoint$tableScore,
                                        level.treatment = envir$outArgs$level.treatment,
                                        level.strata = envir$outArgs$level.strata,
                                        n.strata = envir$outArgs$n.strata,
                                        endpoint = envir$outArgs$endpoint,
-                                       threshold = envir$outArgs$threshold,
-                                       indexT = envir$indexT,
-                                       indexC = envir$indexC)
+                                       threshold = envir$outArgs$threshold)
 
         for(iSample in 1:n.sample.size){ ## iSample <- 1
             iOut[iSample,"simulation"] <- i

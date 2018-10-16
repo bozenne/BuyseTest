@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt 16 2018 (18:57) 
+## Last-Updated: okt 16 2018 (20:33) 
 ##           By: Brice Ozenne
-##     Update #: 89
+##     Update #: 92
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -67,12 +67,12 @@ test_that("1 TTE endpoint - Gehan (correction at the pair level)", {
     expect_equal(as.double(GehanC@count.uninf), c(0,0))
 
     iScore <- copy(getPairScore(GehanC, endpoint = 1, strata = 1))
-    expect_equal(iScore[, favorable + uninformative * sum(favorable)/sum(favorable + unfavorable + neutral)], iScore[["favorable.corrected"]])
-    expect_equal(iScore[, unfavorable + uninformative * sum(unfavorable)/sum(favorable + unfavorable + neutral)], iScore[["unfavorable.corrected"]])
-    expect_equal(iScore[, neutral + uninformative * sum(neutral)/sum(favorable + unfavorable + neutral)], iScore[["neutral.corrected"]])
+    expect_equal(iScore[, favorable + uninf * sum(favorable)/sum(favorable + unfavorable + neutral)], iScore[["favorableC"]])
+    expect_equal(iScore[, unfavorable + uninf * sum(unfavorable)/sum(favorable + unfavorable + neutral)], iScore[["unfavorableC"]])
+    expect_equal(iScore[, neutral + uninf * sum(neutral)/sum(favorable + unfavorable + neutral)], iScore[["neutralC"]])
     
-    expect_equal(as.double(GehanC@Delta.netBenefit)[1],iScore[,sum(favorable.corrected-unfavorable.corrected)/.N])
-    expect_equal(as.double(GehanC@Delta.winRatio)[1],iScore[,sum(favorable.corrected)/sum(unfavorable.corrected)])
+    expect_equal(as.double(GehanC@Delta.netBenefit)[1],iScore[,sum(favorableC-unfavorableC)/.N])
+    expect_equal(as.double(GehanC@Delta.winRatio)[1],iScore[,sum(favorableC)/sum(unfavorableC)])
 
 })
 
@@ -99,8 +99,6 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
                          data = df, 
                          method.tte = "Gehan", correction.uninf = 2)
-    getPairScore(GehanC2)
-    summary(GehanC2, percentage = FALSE)
     
     expect_equal(GehanC@count.favorable[1], GehanC2@count.favorable[2])
     expect_equal(GehanC@count.unfavorable[1], GehanC2@count.unfavorable[2])
