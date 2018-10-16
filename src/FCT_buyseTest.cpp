@@ -48,28 +48,27 @@ using namespace arma ;
 //' @name GPC_cpp
 //' @export
 // [[Rcpp::export]]
-List GPC_cpp(const std::vector< arma::mat >& Control,
-	     const std::vector< arma::mat >& Treatment,
-	     const NumericVector& threshold,
-	     const IntegerVector& method,
-	     const std::vector< arma::mat >& delta_Control,
-             const std::vector< arma::mat >& delta_Treatment,
-	     const int D,
-	     const int n_strata,
-	     const int n_TTE, 
+List GPC_cpp(const arma::mat& endpoint,
+			 const arma::mat& censoring,
+			 const std::vector< arma::uvec >& indexC,
+             const std::vector< arma::uvec >& indexT,
+			 const NumericVector& threshold,
+			 const IntegerVector& method,
+			 unsigned int D,
+			 int n_strata,
+			 int n_TTE, 
              const arma::mat& Wscheme,
-	     const IntegerVector index_survival_M1,
-	     const NumericVector threshold_M1, 
-	     const std::vector< std::vector< arma::mat > >& list_survTimeC,
+			 const IntegerVector& index_survival_M1,
+			 const NumericVector& threshold_M1, 
+			 const std::vector< std::vector< arma::mat > >& list_survTimeC,
              const std::vector< std::vector< arma::mat > >& list_survTimeT,
              const std::vector< std::vector< arma::mat > >& list_survJumpC,
-	     const std::vector< std::vector< arma::mat > >& list_survJumpT,
-	     const std::vector< arma::mat >& list_lastSurv,
-	     const int correctionUninf,
-	     const bool neutralAsUninf,
-	     const bool keepScore,
-	     const std::vector< vector<int> >& indexC,
-             const std::vector< vector<int> >& indexT){
+			 const std::vector< std::vector< arma::mat > >& list_survJumpT,
+			 const std::vector< arma::mat >& list_lastSurv,
+			 int correctionUninf,
+			 bool neutralAsUninf,
+			 bool keepScore,
+			 bool reserve){
 
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -93,12 +92,6 @@ List GPC_cpp(const std::vector< arma::mat >& Control,
   arma::mat matWeight_M1; // for all endpoint up to the previous endpoint
   
   // *** for a given strata/endpoint
-  // Right-censoring status for TTE endpoint restricted to strata k for a previous endpoint
-  arma::mat iSurvTimeC_M1; // at times corresponding to event in the control group
-  arma::mat iSurvTimeT_M1; // at times corresponding to event in the treatment group
-  arma::mat iSurvJumpC_M1; // at jump times for the survival in the control group
-  arma::mat iSurvJumpT_M1; // at jump times for the survival in the treatment group
-
   // index of the pairs
   vector<int> iIndex_control; // in the control arm [current endpoint]
   vector<int> iIndex_treatment;  // in the treatment arm [current endpoint]
@@ -116,22 +109,26 @@ List GPC_cpp(const std::vector< arma::mat >& Control,
   arma::vec iCumWeight_M1;
   // NOTE: it is a special product because weights related to previous survival endpoint are ignored
 
+  // Right-censoring status for TTE endpoint restricted to strata k for a previous endpoint
+  arma::mat iSurvTimeC_M1; // at times corresponding to event in the control group
+  arma::mat iSurvTimeT_M1; // at times corresponding to event in the treatment group
+  arma::mat iSurvJumpC_M1; // at jump times for the survival in the control group
+  arma::mat iSurvJumpT_M1; // at jump times for the survival in the treatment group
+
   // threshold
   double iThreshold_M1;
   
   // *** others
-  int iter_d; // the index of the endpoints
-  int iter_dTTE; // number of time to event endpoints that have been used
-  uvec iUvec;
-  int iIndexC;
-  int iIndexT;
+  unsigned int iter_d; // the index of the endpoints
+  unsigned int iter_dTTE; // number of time to event endpoints that have been used
+  bool iMoreEndpoint;
+  arma::uvec iUvec;
   
   // *** keep track of each comparison
   vector<arma::mat> lsScore(D);
   arma::mat iScore;
   arma::mat iMat;
   int iNpairs;
-  bool iMoreEndpoint;
 
   // ** loop over strata
   for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
@@ -142,31 +139,32 @@ List GPC_cpp(const std::vector< arma::mat >& Control,
     // *** first endpoint
     // Rcout << endl << "** endpoint 0 **" << endl;
     iMoreEndpoint = (D>1);
+	iUvec = arma::uvec({0});
 	
     // Rcout << "score" << endl;
-    iScore = calcAllPairs(Control[iter_strata].col(0), Treatment[iter_strata].col(0), threshold[0],
-			  delta_Control[iter_strata].col(0), delta_Treatment[iter_strata].col(0),
-			  list_survTimeC[0][iter_strata], list_survTimeT[0][iter_strata], list_survJumpC[0][iter_strata], list_survJumpT[0][iter_strata],
-			  list_lastSurv[0](iter_strata,0), list_lastSurv[0](iter_strata,1), 
-			  method[0], correctionUninf,	
-			  Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
-			  iIndex_control, iIndex_treatment,
-			  iWeight,
-			  neutralAsUninf, keepScore, iMoreEndpoint);
-
+    iScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec), endpoint.submat(indexT[iter_strata],iUvec), threshold[0],
+						  censoring.submat(indexC[iter_strata],iUvec), censoring.submat(indexT[iter_strata],iUvec),
+						  list_survTimeC[0][iter_strata], list_survTimeT[0][iter_strata], list_survJumpC[0][iter_strata], list_survJumpT[0][iter_strata],
+						  list_lastSurv[0](iter_strata,0), list_lastSurv[0](iter_strata,1), 
+						  method[0], correctionUninf,	
+						  Mcount_favorable(iter_strata,0), Mcount_unfavorable(iter_strata,0), Mcount_neutral(iter_strata,0), Mcount_uninf(iter_strata,0), 
+						  iIndex_control, iIndex_treatment,
+						  iWeight,
+						  neutralAsUninf, keepScore, iMoreEndpoint, reserve);
+	R_CheckUserInterrupt();
+	
 	if(method[0]>1){ // time to event endpoint
 	  iter_dTTE++;
 	}
 	
 	// **** add to the total number of pairs the number of pairs founded for this endpoint
 	n_pairs[iter_strata] = Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
-    
-	
+    	
 	// **** update weights associated to the remaing pairs
 	// Rcout << "> update matWeights" << endl;
 	// only relevant if there is one more endpoint
 	iSize_weight = iWeight.size();
-	if(iMoreEndpoint && (iSize_weight>0) ){ 
+	if(iMoreEndpoint && (iSize_weight>0) ){
 	  matWeight.resize(iSize_weight,1);
 	  matWeight.col(0) = iWeight;
 	  iWeight.resize(0);
@@ -177,13 +175,10 @@ List GPC_cpp(const std::vector< arma::mat >& Control,
 	if(keepScore){
 	  iNpairs = iScore.n_rows;
 	  iMat.resize(iNpairs,3);
-	  // add original index
-	  for(int iPair=0 ; iPair < iNpairs ; iPair ++){
-	    iIndexC = iScore(iPair,0);
-	    iIndexT = iScore(iPair,1);
-	    iMat.row(iPair) = rowvec({(double)iter_strata,
-				      (double)indexC[iter_strata][iIndexC],
-				      (double)indexT[iter_strata][iIndexT]});
+	  iMat.col(0) = iter_strata;
+	  for(int iPair=0; iPair < iNpairs; iPair++){
+		iMat(iPair,1) = indexC[iter_strata](iScore(iPair,0));
+		iMat(iPair,2) = indexT[iter_strata](iScore(iPair,1));
 	  }
 	  // merge with current table and store
 	  if(iter_strata==0){
@@ -213,13 +208,14 @@ List GPC_cpp(const std::vector< arma::mat >& Control,
 	  // initialize iCumWeight_M1
 	  iCumWeight_M1.resize(matWeight.n_rows);
 	  iCumWeight_M1.fill(1.0);
-	  for(int iter_endpoint=0 ; iter_endpoint<iter_d ; iter_endpoint++){
+	  for(unsigned int iter_endpoint=0 ; iter_endpoint<iter_d ; iter_endpoint++){
 		if(Wscheme(iter_endpoint,iter_d)==1){iCumWeight_M1 %= matWeight.col(iter_endpoint);}
 	  }
 	  // Rcout << "total weight M1 = " << sum(iCumWeight_M1) << endl;
 
 	  // **** computes scores
 	  iMoreEndpoint = (D>(iter_d+1));
+	  iUvec = arma::uvec({iter_d});
 	
 	  // Rcout << "> score " << endl;
 	  // Rcout << method[iter_d] << endl;
@@ -237,20 +233,21 @@ List GPC_cpp(const std::vector< arma::mat >& Control,
 		iSurvJumpT_M1 = arma::mat(0,0);
 		iThreshold_M1 = NA_REAL;
 	  }
-
-	      iScore = calcSubsetPairs(Control[iter_strata].col(iter_d), Treatment[iter_strata].col(iter_d), threshold[iter_d],
-				       delta_Control[iter_strata].col(iter_d), delta_Treatment[iter_strata].col(iter_d),
-				       list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-				       list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
-				       iIndex_control_M1, iIndex_treatment_M1,
-				       iCumWeight_M1, iThreshold_M1,
-				       iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
-				       method[iter_d], correctionUninf,	
-				       Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-				       iIndex_control, iIndex_treatment,
-				       iWeight, iIndexWeight_pair,
-				       neutralAsUninf, keepScore, iMoreEndpoint);
-
+	  	
+	  iScore = calcSubsetPairs(endpoint.submat(indexC[iter_strata],iUvec), endpoint.submat(indexT[iter_strata],iUvec), threshold[iter_d],
+							   censoring.submat(indexC[iter_strata],iUvec), censoring.submat(indexT[iter_strata],iUvec),
+							   list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+							   list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
+							   iIndex_control_M1, iIndex_treatment_M1,
+							   iCumWeight_M1, iThreshold_M1,
+							   iSurvTimeC_M1, iSurvTimeT_M1, iSurvJumpC_M1, iSurvJumpT_M1,
+							   method[iter_d], correctionUninf,	
+							   Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+							   iIndex_control, iIndex_treatment,
+							   iWeight, iIndexWeight_pair,
+							   neutralAsUninf, keepScore, iMoreEndpoint, reserve);
+	  R_CheckUserInterrupt();
+	  
 	  if(method[iter_d]>1){ // time to event endpoint
 		iter_dTTE++;
 	  }
@@ -279,16 +276,11 @@ List GPC_cpp(const std::vector< arma::mat >& Control,
       if(keepScore){
 		iNpairs = iScore.n_rows;
 		iMat.resize(iNpairs,3);
-
-		// add original index
-		for(int iPair=0 ; iPair < iNpairs ; iPair ++){
-		  iIndexC = iScore(iPair,0);
-		  iIndexT = iScore(iPair,1);
-		  iMat.row(iPair) = rowvec({(double)iter_strata,
-					    (double)indexC[iter_strata][iIndexC],
-					    (double)indexT[iter_strata][iIndexT]});
+		iMat.col(0) = iter_strata;
+		for(int iPair=0; iPair < iNpairs; iPair++){
+		  iMat(iPair,1) = indexC[iter_strata](iScore(iPair,0));
+		  iMat(iPair,2) = indexT[iter_strata](iScore(iPair,1));
 		}
-     
 		// merge with current table and store
 		if(iter_strata==0){
 		  lsScore[iter_d] = arma::join_rows(iMat,iScore);

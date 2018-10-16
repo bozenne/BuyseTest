@@ -4,30 +4,17 @@
 \alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-GPC_cpp(Control, Treatment, threshold, method, delta_Control,
-  delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme,
-  index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf,
-  neutralAsUninf, keepScore)
+GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
+  n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1,
+  list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT,
+  list_lastSurv, correctionUninf, neutralAsUninf, keepScore)
 }
 \arguments{
-\item{Control}{A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.}
-
-\item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.}
-
 \item{threshold}{Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.}
 
 \item{method}{The index of the method used to score the pairs. \emph{const IntegerVector&}. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.}
 
-\item{delta_Control}{A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
-
-\item{delta_Treatment}{A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
-
 \item{D}{The number of endpoints. Strictly positive \emph{const int}.}
-
-\item{strataC}{A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers.}
-
-\item{strataT}{A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers.}
 
 \item{n_strata}{The number of strata . Strictly positive \emph{const int}.}
 
@@ -54,6 +41,18 @@ GPC_cpp(Control, Treatment, threshold, method, delta_Control,
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.}
 
 \item{keepScore}{Should the result of each pairwise comparison be kept? \emph{logical}.}
+
+\item{Control}{A matrix containing the values of each endpoint (in columns) for the control group (in rows). \emph{const arma::mat&}.}
+
+\item{Treatment}{A matrix containing the values of each endpoint (in columns) for the treatment group (in rows). \emph{const arma::mat&}.}
+
+\item{delta_Control}{A matrix containing the nature of observations in the control group (in rows) (0 censoring, 1 event) for each TTE endpoint (in columns) . \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
+
+\item{delta_Treatment}{A matrix containing in the type of event (0 censoring, 1 event) for each TTE endpoint (in columns) and treatment observations (in rows). \emph{const arma::mat&} containing binary integers. Must have n_TTE columns. Ignored if n_TTE equals 0.}
+
+\item{strataC}{A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers.}
+
+\item{strataT}{A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers.}
 }
 \description{
 \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results.

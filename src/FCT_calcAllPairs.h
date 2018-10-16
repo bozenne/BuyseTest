@@ -72,7 +72,7 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 					   vector<int>& index_control, vector<int>& index_treatment, 
 					   arma::vec& weight,
-					   bool neutralAsUninf, bool keepScore, bool moreEndpoint){
+					   bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reserve){
 
   // ** initialize
   int n_Treatment = Treatment.size(); // number of patients from the treatment arm
@@ -89,28 +89,26 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
   vector<int> index_uninfT(0); // index of the uninformative pairs relative to Treatment
   vector<double> wNeutral(0); // weight of the neutral pairs
   vector<double> wUninf(0); // weight of the uninformative pairs
-  
-  if(wNeutral.max_size() < (n_pair/10.0)){
-	if(updateIndexNeutral){
-    index_neutralC.reserve(n_pair);
-    index_neutralT.reserve(n_pair);
-    wNeutral.reserve(n_pair);
-	}
 
-	if(updateIndexUninf){
-    index_uninfC.reserve(n_pair);
-    index_uninfT.reserve(n_pair);
-    wUninf.reserve(n_pair);
-	}
+  // if(wNeutral.max_size() < (n_pair/10.0)){
+  if(updateIndexNeutral && reserve){
+	index_neutralC.reserve(n_pair);
+	index_neutralT.reserve(n_pair);
+	wNeutral.reserve(n_pair);
   }
+
+  if(updateIndexUninf && reserve){
+	index_uninfC.reserve(n_pair);
+	index_uninfT.reserve(n_pair);
+	wUninf.reserve(n_pair);
+  }
+  // }
 
   // score    
   std::vector<double> iScore(4); // temporary store results
   arma::mat matPairScore; // score of all pairs
   if(keepScore){
     matPairScore.resize(n_pair, 11); // store results from all scores
-  }else{
-    matPairScore.resize(0, 0); 
   }
 
   // other
@@ -161,9 +159,10 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
 		iter_pair++;
       }
       
-    }
-    R_CheckUserInterrupt();
+    }    
   }
+  
+  R_CheckUserInterrupt();
   
   // ** merge neutral and uninformative pairs + correction
   bool firstEndpoint = true;
@@ -175,7 +174,6 @@ arma::mat calcAllPairs(const arma::colvec& Control, const arma::colvec& Treatmen
 
   if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
 	// correction possible: if there are uninformative paris and if there are informative pairs
-
 	if(correctionUninf == 1){
 	  correctionPairs(count_favorable, count_unfavorable, count_neutral, count_uninf,
 					  index_uninfC, index_uninfT, 
@@ -222,7 +220,7 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
 						  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 					      vector<int>& index_control, vector<int>& index_treatment, 
 						  arma::vec& weight, arma::uvec& index_weight,
-						  bool neutralAsUninf, bool keepScore, bool moreEndpoint){
+						  bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reserve){
 
   // ** initialize
   int iter_T,iter_C; // index of the treatment / control patient of the pair in the treatment / control arm
@@ -236,7 +234,7 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
   vector<int> index_neutralT(0); // index of the neutral pairs relative to Treatment
   vector<int> index_wNeutral(0); // index of the neutral pairs relative to Wpairs
   vector<double> wNeutral(0); // weight of the neutral pairs
-  if(updateIndexNeutral){
+  if(updateIndexNeutral && reserve){
 	index_neutralC.reserve(n_pair);
 	index_neutralT.reserve(n_pair);
 	index_wNeutral.reserve(n_pair);
@@ -248,7 +246,7 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
   vector<int> index_uninfT(0); // index of the uninformative pairs relative to Treatment
   vector<int> index_wUninf(0); // index of the uninformative pairs relative to Wpairs
   vector<double> wUninf(0); // weight of the uninformative pairs
-  if(updateIndexUninf){
+  if(updateIndexUninf && reserve){
 	index_uninfC.reserve(n_pair);
 	index_uninfT.reserve(n_pair);
 	index_wUninf.reserve(n_pair);
@@ -339,10 +337,9 @@ arma::mat calcSubsetPairs(const arma::colvec& Control, const arma::colvec& Treat
 			});
     }
 
-	if(iter_pair % 1000 == 0){
-	  R_CheckUserInterrupt();
-	}
   }
+
+  R_CheckUserInterrupt();
 
   // ** merge neutral and uninformative pairs + correction
   bool firstEndpoint = false;
@@ -407,7 +404,6 @@ void noCorrection(vector<int>& index_uninfC, vector<int>& index_uninfT,
 	index_weight.resize(0);
 	
   }else{
-	
   	if(neutralAsUninf==false){
 	  index_control = index_uninfC;
 	  index_treatment = index_uninfT;

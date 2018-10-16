@@ -262,12 +262,13 @@ BuyseTest <- function(formula,
 
     ## ** initialization data
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    outArgs[c("data","level.treatment","level.strata","n.strata","n.obs","n.obsStrata","allstrata")] <- initializeData(data = outArgs$data,
-                                                                                                                       type = outArgs$type,
-                                                                                                                       endpoint = outArgs$endpoint,
-                                                                                                                       operator = outArgs$operator,
-                                                                                                                       strata = outArgs$strata,
-                                                                                                                       treatment = outArgs$treatment)
+    outArgs[c("data","M.endpoint","M.censoring","level.treatment","level.strata","n.strata","n.obs","n.obsStrata","allstrata")] <- initializeData(data = outArgs$data,
+                                                                                                                                                       type = outArgs$type,
+                                                                                                                                                       endpoint = outArgs$endpoint,
+                                                                                                                                                       censoring = outArgs$censoring,
+                                                                                                                                                       operator = outArgs$operator,
+                                                                                                                                                       strata = outArgs$strata,
+                                                                                                                                                       treatment = outArgs$treatment)
     
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
@@ -310,6 +311,7 @@ BuyseTest <- function(formula,
     outPoint <- .BuyseTest(envir = envirBT,
                            keep.pairScore = keep.pairScore,
                            method.inference = "none")
+    
     if (outArgs$trace > 1) {
         cat("\n\n")
     }
@@ -431,60 +433,45 @@ BuyseTest <- function(formula,
     type <- envir$outArgs$type ## to simplify code
     D.TTE <- envir$outArgs$D.TTE ## to simplify code
     D <- envir$outArgs$D ## to simplify code
-    
+
     ## ** Resampling
     if(method.inference == "none"){
         data <- envir$outArgs$data
     }else {
         if(method.inference == "permutation"){
-            ## permute the treatment variable over all strata
             data <- data.table::copy(envir$outArgs$data)
-            data[[treatment]] <- data[[treatment]][sample.int(envir$outArgs$n.obs, replace = FALSE)]
+            data[ ,c(treatment) := .SD[[treatment]][sample.int(envir$outArgs$n.obs, replace = FALSE)] ]
         }else if(method.inference == "bootstrap"){
             ## randomly pick observations over all strata
             data <- envir$outArgs$data[sample.int(envir$outArgs$n.obs, replace = TRUE)]    
         }else if(method.inference == "stratified permutation"){
             ## permute the treatment variable within each strata
             data <- data.table::copy(envir$outArgs$data)
-            data[, c(treatment) := .SD[[1]][sample.int(.N, size = .N, replace = FALSE)], .SDcols = treatment, by = strata]
+            data[, c(treatment) := .SD[[treatment]][sample.int(.N, replace = FALSE)], by = strata]
         }else if(method.inference == "stratified bootstrap"){
             ## randomly pick observations within each strata
-            data <- envir$outArgs$data[,.SD[sample.int(.N, size = .N, replace = TRUE)], by = strata]
+            data <- envir$outArgs$data[,.SD[sample.int(.N, replace = TRUE)], by = strata]
         }
-    }
-    setkeyv(data, cols = c(treatment,"..strata.."))
-    
-    ## ** Check valid resampling
-    n.groups <- sum(data[,.N, by = c("..strata..",treatment)][["N"]]>0)
-    if (n.groups != 2*n.strata) { ## failure of the resampling
-        ##        return(matrix(NA, nrow = n.strata + 1, ncol = 2*D))
-        return(NULL)
+
+        ## Check valid resampling
+        n.groups <- sum(data[,.N, by = c("..strata..",treatment)][["N"]]>0)
+        if (n.groups != 2*n.strata) { ## failure of the resampling
+            ##        return(matrix(NA, nrow = n.strata + 1, ncol = 2*D))
+            return(NULL)
+        }
     }
     
     ## ** split data
-    ls.Treatment <- vector(mode = "list", length = n.strata)
-    ls.Control <- vector(mode = "list", length = n.strata)
-    ls.delta.Treatment <- vector(mode = "list", length = n.strata)
-    ls.delta.Control <- vector(mode = "list", length = n.strata)
-    ls.indexT <- vector(mode = "list", length = n.strata)
-    ls.indexC <- vector(mode = "list", length = n.strata)
+    tempo <- data[,.("index" = .(.SD[["..rowIndex.."]])), by = c(treatment,"..strata..")]
+    ls.indexC <- tempo[tempo[[treatment]]==0]$index
+    ls.indexT <- tempo[tempo[[treatment]]==1]$index
 
-    for(iStrata in 1:n.strata){ ## iStrata <- 1
-        ls.indexC[[iStrata]] <- data[.(0,iStrata),.SD[["..rowIndex.."]]]
-        ls.Control[[iStrata]] <- as.matrix(data[ls.indexC[[iStrata]],.SD,.SDcols = endpoint])
-        ls.delta.Control[[iStrata]] <- as.matrix(data[ls.indexC[[iStrata]],.SD,.SDcols = censoring])
-
-        ls.indexT[[iStrata]] <- data[.(1,iStrata),.SD[["..rowIndex.."]]]
-        ls.Treatment[[iStrata]] <- as.matrix(data[ls.indexT[[iStrata]],.SD,.SDcols = endpoint])
-        ls.delta.Treatment[[iStrata]] <- as.matrix(data[ls.indexT[[iStrata]],.SD,.SDcols = censoring])
-    }
-    
     ## *** Update survival
     if(method.tte == 0){ ## Gehan
         outSurv <- envir$outArgs$outSurv
 
     }else{ ## Peron
-        outSurv <- initializeSurvival_Peron(data =  data, ls.indexC, ls.indexT,
+        outSurv <- initializeSurvival_Peron(data = data, ls.indexC, ls.indexT,
                                             model.tte = envir$outArgs$model.tte,
                                             treatment = treatment,
                                             level.treatment = envir$outArgs$level.treatment,
@@ -499,12 +486,12 @@ BuyseTest <- function(formula,
     }
 
     ## ** Computation
-    resBT <- GPC_cpp(Control = ls.Control,
-                     Treatment = ls.Treatment,
+    resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
+                     censoring = envir$outArgs$M.censoring,
+                     indexC = ls.indexC,
+                     indexT = ls.indexT,                     
                      threshold = envir$outArgs$threshold,
                      method = envir$outArgs$method.score,
-                     delta_Control = ls.delta.Control,
-                     delta_Treatment = ls.delta.Treatment,
                      D = D,
                      n_strata = n.strata,
                      n_TTE = D.TTE,
@@ -519,8 +506,7 @@ BuyseTest <- function(formula,
                      correctionUninf = envir$outArgs$correction.uninf,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = keep.pairScore,
-                     indexC = ls.indexC,
-                     indexT = ls.indexT                     
+                     reserve = TRUE
                      )
     
     ## ** export

@@ -32,8 +32,8 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(Control, Treatment, threshold, method, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore) {
-    .Call(`_BuyseTest_GPC_cpp`, Control, Treatment, threshold, method, delta_Control, delta_Treatment, D, strataC, strataT, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore)
+GPC_cpp <- function(endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, Wscheme, index_survival_M1, threshold_M1, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

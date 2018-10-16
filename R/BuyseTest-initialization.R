@@ -212,7 +212,7 @@ initializeArgs <- function(alternative,
 
 ## * initializeData
 #' @rdname internal-initialization
-initializeData <- function(data, type, endpoint, operator, strata, treatment){
+initializeData <- function(data, type, endpoint, censoring, operator, strata, treatment){
 
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
@@ -265,7 +265,7 @@ initializeData <- function(data, type, endpoint, operator, strata, treatment){
     allstrata <- "..strata.."
 
     ## ** row number
-    data[,c("..rowIndex..") := 1:.N]
+    data[,c("..rowIndex..") := 0:(.N-1)]
 
     ## ** NA column for fake censoring 
     data[,c("..NA..") := as.numeric(NA)]
@@ -273,9 +273,13 @@ initializeData <- function(data, type, endpoint, operator, strata, treatment){
     ## ** n.obs
     n.obs <- data[,.N]
     n.obsStrata <- data[,.N,by = allstrata][,setNames(.SD[[1]],.SD[[2]]),.SD = c("N",allstrata)]
-    
+
     ## ** export
-    return(list(data = data,
+    keep.col <- c(treatment,"..strata..","..rowIndex..", endpoint[type == 3], censoring[type == 3])
+
+    return(list(data = data[,.SD,.SDcols = keep.col],
+                M.endpoint = as.matrix(data[, .SD, .SDcols = endpoint]),
+                M.censoring = as.matrix(data[, .SD, .SDcols = censoring]),                
                 level.treatment = level.treatment,
                 level.strata = level.strata,
                 n.strata = length(level.strata),
@@ -569,8 +573,8 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
                                                            dSurvival = predSurvT(jumpT) - predSurvT(jumpT-1e-10))
             
             ## **** survival at observation time (+/- threshold)
-            iControl.time <- data[ls.indexC[[iStrata]],.SD[[endpoint.TTE[iEndpoint]]]]
-            iTreatment.time <- data[ls.indexT[[iStrata]],.SD[[endpoint.TTE[iEndpoint]]]]
+            iControl.time <- data[ls.indexC[[iStrata]]+1,.SD[[endpoint.TTE[iEndpoint]]]]
+            iTreatment.time <- data[ls.indexT[[iStrata]]+1,.SD[[endpoint.TTE[iEndpoint]]]]
 
             out$survTimeC[[iEndpoint]][[iStrata]] <- matrix(NA,
                                                             nrow = length(iControl.time), ncol = length(colnames.obs),

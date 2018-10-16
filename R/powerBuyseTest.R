@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 14 2018 (21:43) 
+## Last-Updated: okt 16 2018 (11:37) 
 ##           By: Brice Ozenne
-##     Update #: 192
+##     Update #: 197
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -196,11 +196,34 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         ## *** Simulate data
         envir$outArgs$data <- do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax))
         ## envir$outArgs$data <- envir$sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
+        ## *** Initialize data
         trt2bin <- setNames(0:1,outArgs$level.treatment)
+
+        ## convert character/factor to numeric for binary endpoints
+        ## to be done
+        
+        ## convert treatment to binary indicator
         envir$outArgs$data[, c(envir$outArgs$treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = envir$outArgs$treatment]
+
+        ## strata
+        envir$outArgs$data[, c("..strata..") := 1]
+
+        ## row number
+        envir$outArgs$data[,c("..rowIndex..") := 0:(.N-1)]
+
+        ## NA column for fake censoring 
+        envir$outArgs$data[,c("..NA..") := as.numeric(NA)]
+
+        ## ** export
+        keep.col <- c(treatment,"..strata..","..rowIndex..")
+        if(envir$outArgs$method.tte==1){keep.col <- c(keep.col,envir$outArgs$endpoint[type == 3], envir$outArgs$censoring[type == 3])}
+        
+        envir$outArgs$data <- envir$outArgs$data[,.SD,.SDcols = keep.col]
+        envir$outArgs$M.endpoint <- as.matrix(envir$outArgs$data[, .SD, .SDcols = envir$outArgs$endpoint])
+        envir$outArgs$M.censoring <- as.matrix(envir$outArgs$data[, .SD, .SDcols = envir$outArgs$censoring])
         envir$outArgs$n.obs <- NROW(envir$outArgs$data)
         envir$outArgs$n.obsStrata <- envir$outArgs$n.obs
-
+        
         ## *** Point estimate
         outPoint <- .BuyseTest(envir = envir,
                                keep.pairScore = TRUE,
