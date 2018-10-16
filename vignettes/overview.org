@@ -42,7 +42,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '1.6'
+: [1] ‘1.6’
 
 \vfill
 
@@ -156,18 +156,15 @@ summary(BT)
 #+END_SRC 
 
 #+RESULTS:
-#+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
-
- > statistic       : net benefit (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 0 
- > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : use Kaplan Meier survival curves to compute the score
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
- > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
-#+end_example
+:         Generalized pairwise comparison with 1 prioritized endpoint
+: 
+:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 1 (control) vs. 2 (treatment) 
+:  > censored pairs  : use Kaplan Meier survival curves to compute the score
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+:      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
 
  To display the number of pairs instead of the percentage of pairs
 that are favorable/unfavorable/neutral/uniformative, set the argument
@@ -177,18 +174,15 @@ summary(BT, percentage = FALSE)
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
-
- > statistic       : net benefit (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 0 
- > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : use Kaplan Meier survival curves to compute the score
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
- > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
-#+end_example
+:         Generalized pairwise comparison with 1 prioritized endpoint
+: 
+:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 1 (control) vs. 2 (treatment) 
+:  > censored pairs  : use Kaplan Meier survival curves to compute the score
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+:      time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
 
 By default =summary= displays results relative to the net benefit. To
 get results for the win ratio set the argument =statistic= to
@@ -198,18 +192,15 @@ summary(BT, statistic = "winRatio")
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
-
- > statistic       : win ratio (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 1 
- > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : use Kaplan Meier survival curves to compute the score
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
- > results
- endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
-     time        20   100     37.78       46.54   15.68     0 0.8117 0.8117
-#+end_example
+:         Generalized pairwise comparison with 1 prioritized endpoint
+: 
+:  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 1 
+:  > treatment groups: 1 (control) vs. 2 (treatment) 
+:  > censored pairs  : use Kaplan Meier survival curves to compute the score
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
+:      time        20   100     37.78       46.54   15.68     0 0.8117 0.8117
 
 Since we have set the argument =n.permutation= to 0 (i.e. no
 permutation test) in the stratified analysis, we do not get confidence
@@ -341,15 +332,20 @@ summary(BT.pair)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 2 prioritized endpoints
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: No (control) vs. Yes (treatment) 
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
-:     tumor       0.5   100         0           0     100     0     0     0
-:      size     1e-12   100       100           0       0     0     1     1
+#+begin_example
+Warning message:
+In `[.data.table`(data, , `:=`(c("..rowIndex.."), 1:.N)) :
+  Invalid .internal.selfref detected and fixed by taking a (shallow) copy of the data.table so that := can add this new column by reference. At an earlier point, this data.table has been copied by R (or was created manually using structure() or similar). Avoid key<-, names<- and attr<- which in R currently (and oddly) may copy the whole data.table. Use set* syntax instead to avoid copying: ?set, ?setnames and ?setattr. If this message doesn't help, please report your use case to the data.table issue tracker so the root cause can be fixed or this message improved.
+        Generalized pairwise comparison with 2 prioritized endpoints
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: No (control) vs. Yes (treatment) 
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf delta Delta
+    tumor       0.5   100         0           0     100     0     0     0
+     size     1e-12   100       100           0       0     0     1     1
+#+end_example
 
 the outcome of the comparison is neutral for the first priority, but
 favorable for the second priority. If we set the argument
@@ -362,15 +358,20 @@ summary(BT.pair2)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 2 prioritized endpoints
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: No (control) vs. Yes (treatment) 
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
-:     tumor       0.5   100         0           0     100     0     0     0
-:      size     1e-12     0         0           0       0     0     0     0
+#+begin_example
+Warning message:
+In `[.data.table`(data, , `:=`(c("..rowIndex.."), 1:.N)) :
+  Invalid .internal.selfref detected and fixed by taking a (shallow) copy of the data.table so that := can add this new column by reference. At an earlier point, this data.table has been copied by R (or was created manually using structure() or similar). Avoid key<-, names<- and attr<- which in R currently (and oddly) may copy the whole data.table. Use set* syntax instead to avoid copying: ?set, ?setnames and ?setattr. If this message doesn't help, please report your use case to the data.table issue tracker so the root cause can be fixed or this message improved.
+        Generalized pairwise comparison with 2 prioritized endpoints
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: No (control) vs. Yes (treatment) 
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf delta Delta
+    tumor       0.5   100         0           0     100     0     0     0
+     size     1e-12     0         0           0       0     0     0     0
+#+end_example
 
 So in this case no pair is analyzed at second priority.
 
@@ -393,7 +394,6 @@ summary(BT.perm)
  > permutation test: 10 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
@@ -426,7 +426,6 @@ summary(BT.boot)
  > bootstrap resampling: 10 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
@@ -468,30 +467,30 @@ getPairScore(BT.keep, endpoint = 1)
 
 #+RESULTS:
 #+begin_example
-      strata index.1 index.2 favorable unfavorable neutral uninformative weight
-   1:      1       1      70         1           0       0             0      1
-   2:      1       2      70         1           0       0             0      1
-   3:      1       3      70         1           0       0             0      1
-   4:      1       4      70         1           0       0             0      1
-   5:      1       5      70         1           0       0             0      1
-  ---                                                                          
-4688:      1      65     137         0           1       0             0      1
-4689:      1      66     137         0           1       0             0      1
-4690:      1      67     137         0           1       0             0      1
-4691:      1      68     137         0           1       0             0      1
-4692:      1      69     137         0           1       0             0      1
-      favorable.corrected unfavorable.corrected neutral.corrected uninformative.corrected
-   1:                   1                     0                 0                       0
-   2:                   1                     0                 0                       0
-   3:                   1                     0                 0                       0
-   4:                   1                     0                 0                       0
-   5:                   1                     0                 0                       0
-  ---                                                                                    
-4688:                   0                     1                 0                       0
-4689:                   0                     1                 0                       0
-4690:                   0                     1                 0                       0
-4691:                   0                     1                 0                       0
-4692:                   0                     1                 0                       0
+      strata index.1 index.2 favorable unfavorable neutral uninf weight favorableC
+   1:      1       1      70         1           0       0     0      1          1
+   2:      1       2      70         1           0       0     0      1          1
+   3:      1       3      70         1           0       0     0      1          1
+   4:      1       4      70         1           0       0     0      1          1
+   5:      1       5      70         1           0       0     0      1          1
+  ---                                                                             
+4688:      1      65     137         0           1       0     0      1          0
+4689:      1      66     137         0           1       0     0      1          0
+4690:      1      67     137         0           1       0     0      1          0
+4691:      1      68     137         0           1       0     0      1          0
+4692:      1      69     137         0           1       0     0      1          0
+      unfavorableC neutralC uninfC
+   1:            0        0      0
+   2:            0        0      0
+   3:            0        0      0
+   4:            0        0      0
+   5:            0        0      0
+  ---                             
+4688:            1        0      0
+4689:            1        0      0
+4690:            1        0      0
+4691:            1        0      0
+4692:            1        0      0
 #+end_example
 
 Each line corresponds to different comparison between a pair from the
@@ -580,8 +579,7 @@ List of 5
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
   .. ..$ : chr [1:3] "time" "survival" "dSurvival"
- $ lastSurv : Named num [1:2] 0 0
-  ..- attr(*, "names")= chr [1:2] "Control" "Treatment"
+ $ lastSurv : num [1:2] 0 0
 #+end_example
 
 *** Computation of the score with only one censored event
@@ -594,10 +592,8 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[91]
 #+RESULTS:
 :    strata index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable
 : 1:      1      22      71                  22                   2         0   0.6950827
-:      neutral uninformative weight favorable.corrected unfavorable.corrected
-: 1: 0.3049173             0      1                   0             0.6950827
-:    neutral.corrected uninformative.corrected
-: 1:         0.3049173                       0
+:      neutral uninf weight favorableC unfavorableC  neutralC uninfC
+: 1: 0.3049173     0      1          0    0.6950827 0.3049173      0
 
 In the dataset this corresponds to:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -699,10 +695,8 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[148]
 #+RESULTS:
 :    strata index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable
 : 1:      1      10      72                  10                   3 0.5058685   0.3770426
-:      neutral uninformative weight favorable.corrected unfavorable.corrected
-: 1: 0.1170889             0      1           0.5058685             0.3770426
-:    neutral.corrected uninformative.corrected
-: 1:         0.1170889                       0
+:      neutral uninf weight favorableC unfavorableC  neutralC uninfC
+: 1: 0.1170889     0      1  0.5058685    0.3770426 0.1170889      0
 
 which corresponds to the observations:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -840,16 +834,32 @@ iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninformative")]
 
 #+RESULTS:
 #+begin_example
-   favorable unfavorable neutral uninformative strata index.C index.T weight
-1:         0           0       1             0      1       1     501      1
-2:         0           0       0             1      1       2     501      1
-3:         0           1       0             0      1      10     501      1
-4:         1           0       0             0      1       1     504      1
-   favorable.corrected unfavorable.corrected neutral.corrected uninformative.corrected
-1:             0.00000               0.00000           1.81657                       0
-2:             0.00000               0.00000           0.00000                       0
-3:             0.00000               1.81657           0.00000                       0
-4:             1.81657               0.00000           0.00000                       0
+Error in eval(bysub, x, parent.frame()) : 
+  objet 'uninformative' introuvable
+1: powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2, 
+       formula = Treatment ~ tte(eventtime, censoring = status), 
+       method.inference = "asymptotic", trace = 4)
+2: do.call(method.loop, args = list(X = 1:n.rep, FUN = function(X) {
+       return(warper(i = X, envir = envirBT))
+   })) at powerBuyseTest.R#310
+3: (function (X, FUN, ..., cl = NULL) 
+   {
+       FUN <- match.fun(FUN)
+       if (!is.vector(X) || is.object(X)) 
+           X <- as.list(X)
+    ...
+4: lapply(X[Split[[i]]], FUN, ...)
+5: FUN(X[[i]], ...)
+6: warper(i = X, envir = envirBT) at powerBuyseTest.R#313
+7: inferenceUstatistic(tableSample, count.favorable = matrix(MresSample[, 
+       "favorable"], nrow = 1), count.unfavorable = matrix(MresSample[, 
+       "unfavorable"], nrow = 1), n.pairs = envir$sample.sizeC[iSample] * 
+       envir$sample.sizeT[iSample], n.C = envir$sample.sizeC[iSample], 
+       n.T = envir$sample.sizeT[iSample], n.strata = envir$outArgs$n.strata, 
+    ... at powerBuyseTest.R#267
+8: tablePairScore[[1]][, .SD, .SDcols = keep.col] at BuyseTest-inference.R#116
+9: `[.data.table`(tablePairScore[[1]], , .SD, .SDcols = keep.col) at BuyseTest-inference.R#116
+10: stop("Some items of .SDcols are not column names (or are NA)")
 #+end_example
 
 We can see that the favorable/unfavorable/neutral pairs have seen
@@ -897,18 +907,14 @@ iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninformative")]
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-   favorable unfavorable neutral uninformative strata index.C index.T weight
-1:         0           0       1             0      1       1     501      1
-2:         0           0       0             1      1       2     501      1
-3:         0           1       0             0      1      10     501      1
-4:         1           0       0             0      1       1     504      1
-   favorable.corrected unfavorable.corrected neutral.corrected uninformative.corrected
-1:            0.000000             0.0000000         1.0000000                       0
-2:            0.371118             0.1234396         0.5054424                       0
-3:            0.000000             1.0000000         0.0000000                       0
-4:            1.000000             0.0000000         0.0000000                       0
-#+end_example
+: Error in eval(bysub, x, parent.frame()) : 
+:   objet 'uninformative' introuvable
+: 1: iScore[, .SD[1], by = c("favorable", "unfavorable", "neutral", 
+:        "uninformative")]
+: 2: `[.data.table`(iScore, , .SD[1], by = c("favorable", "unfavorable", 
+:        "neutral", "uninformative"))
+: 3: eval(bysub, x, parent.frame())
+: 4: eval(bysub, x, parent.frame())
 
 we can see that the corrected probability have not changed for the
 informative pairs, but for the non-informative they have been set to:
@@ -919,8 +925,14 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninformative),
 #+END_SRC
 
 #+RESULTS:
-:    favorable unfavorable   neutral
-: 1:  0.371118   0.1234396 0.5054424
+: Error in weighted.mean.default(favorable, w = 1 - uninformative) : 
+:   objet 'uninformative' introuvable
+: 1: iScore[, .SD[1], by = c("favorable", "unfavorable", "neutral", 
+:        "uninformative")]
+: 2: `[.data.table`(iScore, , .SD[1], by = c("favorable", "unfavorable", 
+:        "neutral", "uninformative"))
+: 3: eval(bysub, x, parent.frame())
+: 4: eval(bysub, x, parent.frame())
 
 \clearpage
 * Simulating data using =simBuyseTest=
@@ -1032,8 +1044,8 @@ tpsBin
 #+END_SRC
 
 #+RESULTS:
-:    user  system elapsed 
-:    1.19    0.19  245.34
+: utilisateur     système      écoulé 
+:       0.882       0.150     359.050
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
@@ -1045,17 +1057,17 @@ summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 
  > statistic   : net benefit
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000     -0.002500     0.22400 0.19932          0.120
-2:  50  50         1000   1000      0.001760     0.10156 0.09796          0.067
-3: 100 100         1000   1000      0.000010     0.06903 0.07000          0.049
-4: 250 250         1000   1000      0.001116     0.04426 0.04454          0.048
+1:  10  10         1000   1000      0.009000     0.23128 0.19946          0.136
+2:  50  50         1000   1000      0.002960     0.10010 0.09795          0.059
+3: 100 100         1000   1000     -0.000320     0.07148 0.07001          0.058
+4: 250 250         1000   1000      0.000116     0.04421 0.04454          0.047
 
  > statistic   : win ratio
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10          997    997         1.621      2.2588  1.4631        0.07344
-2:  50  50         1000   1000         1.099      0.4940  0.4403        0.05900
-3: 100 100         1000   1000         1.040      0.2998  0.2942        0.04900
-4: 250 250         1000   1000         1.020      0.1828  0.1825        0.04800
+1:  10  10          999    999         1.792      2.5160  1.6193        0.09529
+2:  50  50         1000   1000         1.100      0.4736  0.4406        0.05900
+3: 100 100         1000   1000         1.041      0.3040  0.2944        0.05800
+4: 250 250         1000   1000         1.016      0.1831  0.1818        0.04700
 #+end_example
 
 ** Continuous endpoint
@@ -1072,13 +1084,38 @@ tpsCont <- system.time(
 )
 #+END_SRC
 
+#+RESULTS:
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 tpsCont
 #+END_SRC
 
+#+RESULTS:
+: utilisateur     système      écoulé 
+:       1.172       0.217     437.153
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eCont.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+
+ > statistic   : net benefit
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000      0.003200     0.26476 0.22887          0.154
+2:  50  50         1000   1000      0.003960     0.11893 0.11304          0.088
+3: 100 100         1000   1000      0.001225     0.08362 0.08080          0.072
+4: 250 250         1000   1000      0.001442     0.05124 0.05143          0.053
+
+ > statistic   : win ratio
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000         1.188      0.7760  0.5938          0.070
+2:  50  50         1000   1000         1.037      0.2515  0.2380          0.058
+3: 100 100         1000   1000         1.017      0.1722  0.1655          0.061
+4: 250 250         1000   1000         1.008      0.1036  0.1040          0.048
+#+end_example
 
 ** Time to event endpoint (Gehan method)
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -1095,13 +1132,38 @@ tpsGehan <- system.time(
 )
 #+END_SRC
 
+#+RESULTS:
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 tpsGehan
 #+END_SRC
 
+#+RESULTS:
+: utilisateur     système      écoulé 
+:       1.369       0.199     477.120
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eGehan.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+
+ > statistic   : net benefit
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000    999    -0.0004700     0.15699 0.12808         0.1304
+2:  50  50         1000   1000    -0.0001364     0.06853 0.06497         0.0680
+3: 100 100         1000   1000    -0.0000684     0.04643 0.04654         0.0480
+4: 250 250         1000   1000     0.0007478     0.02898 0.02969         0.0410
+
+ > statistic   : win ratio
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10          969    960         1.758      2.7763  1.3263          0.125
+2:  50  50         1000   1000         1.109      0.5302  0.4519          0.054
+3: 100 100         1000   1000         1.042      0.2994  0.2959          0.044
+4: 250 250         1000   1000         1.020      0.1795  0.1827          0.041
+#+end_example
 
 ** Time to event endpoint (Peron method)
 #+BEGIN_SRC R :exports code :results output :session *R* :cache no
@@ -1118,13 +1180,38 @@ tpsPeron <- system.time(
 )
 #+END_SRC
 
+#+RESULTS:
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 tpsPeron
 #+END_SRC
 
+#+RESULTS:
+: utilisateur     système      écoulé 
+:       1.161       0.229     482.821
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(ePeron.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 #+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+
+ > statistic   : net benefit
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000     -0.017681     0.20758 0.17780          0.159
+2:  50  50         1000   1000     -0.003233     0.11382 0.08818          0.144
+3: 100 100         1000   1000     -0.002893     0.09407 0.06290          0.195
+4: 250 250         1000   1000     -0.001917     0.08100 0.04007          0.334
+
+ > statistic   : win ratio
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000         1.060      0.4818 0.40423          0.111
+2:  50  50         1000   1000         1.021      0.2449 0.18721          0.127
+3: 100 100         1000   1000         1.013      0.1993 0.13183          0.188
+4: 250 250         1000   1000         1.010      0.1705 0.08355          0.330
+#+end_example
 
 * Information about the R session used for this document
 
@@ -1135,28 +1222,43 @@ sessionInfo()
 #+RESULTS:
 #+begin_example
 R version 3.5.1 (2018-07-02)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 7 x64 (build 7601) Service Pack 1
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 16.04.5 LTS
 
 Matrix products: default
+BLAS: /usr/lib/libblas/libblas.so.3.6.0
+LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
-[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.1252    
+ [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8       
+ [4] LC_COLLATE=fr_FR.UTF-8     LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8   
+ [7] LC_PAPER=da_DK.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] BuyseTest_1.6      data.table_1.11.8  Rcpp_0.12.19       prodlim_2018.04.18
+[1] BuyseTest_1.6      testthat_2.0.0     data.table_1.11.8  Rcpp_0.12.19      
+[5] prodlim_2018.04.18 butils.base_1.1    XML_3.98-1.16      selectr_0.4-1     
+[9] devtools_1.13.6   
 
 loaded via a namespace (and not attached):
- [1] codetools_0.2-15   lattice_0.20-35    foreach_1.4.4      grid_3.5.1        
- [5] R6_2.2.2           stats4_3.5.1       magrittr_1.5       KernSmooth_2.23-15
- [9] rlang_0.2.2        doParallel_1.0.14  testthat_2.0.0     Matrix_1.2-14     
-[13] lava_1.6.3         splines_3.5.1      iterators_1.0.10   tools_3.5.1       
-[17] survival_2.42-6    parallel_3.5.1     compiler_3.5.1
+ [1] compiler_3.5.1            pipeR_0.6.1.3             iterators_1.0.10         
+ [4] base64enc_0.1-3           tools_3.5.1               digest_0.6.17            
+ [7] pkgbuild_1.0.1            pkgload_1.0.0             memoise_1.1.0            
+[10] lattice_0.20-35           rlang_0.2.2               foreach_1.4.4            
+[13] Matrix_1.2-14             cli_1.0.1                 commonmark_1.6           
+[16] parallel_3.5.1            RcppArmadillo_0.9.100.5.0 withr_2.1.2              
+[19] httr_1.3.1                stringr_1.3.1             roxygen2_6.1.0.9000      
+[22] xml2_1.2.0                desc_1.2.0                stats4_3.5.1             
+[25] rprojroot_1.3-2           grid_3.5.1                R6_2.3.0                 
+[28] processx_3.2.0            pbapply_1.3-4             survival_2.42-6          
+[31] lava_1.6.3                purrr_0.2.5               callr_3.0.0              
+[34] magrittr_1.5              codetools_0.2-15          splines_3.5.1            
+[37] backports_1.1.2           ps_1.1.0                  assertthat_0.2.0         
+[40] rvest_0.3.2               KernSmooth_2.23-15        stringi_1.2.4            
+[43] doParallel_1.0.14         crayon_1.3.4              zoo_1.8-4
 #+end_example
 
 
