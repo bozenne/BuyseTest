@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 16 2018 (20:39) 
+## Last-Updated: okt 16 2018 (21:17) 
 ##           By: Brice Ozenne
-##     Update #: 216
+##     Update #: 217
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -193,12 +193,12 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         envir$outArgs$data <- do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax))
         ## envir$outArgs$data <- envir$sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
         ## *** Initialize data
-        trt2bin <- setNames(0:1,outArgs$level.treatment)
 
         ## convert character/factor to numeric for binary endpoints
         ## to be done
         
         ## convert treatment to binary indicator
+        trt2bin <- setNames(0:1,outArgs$level.treatment)
         envir$outArgs$data[, c(envir$outArgs$treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = envir$outArgs$treatment]
 
         ## NA column for fake censoring 
