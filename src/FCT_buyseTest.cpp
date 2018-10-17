@@ -200,7 +200,7 @@ List GPC_cpp(const arma::mat& endpoint,
       matWeight_M1 = matWeight; 
       iIndex_control_M1 = iIndex_control;
       iIndex_treatment_M1 = iIndex_treatment;
-      iIndex_control.resize(0); iIndex_treatment_M1.resize(0);
+      iIndex_control.resize(0); iIndex_treatment.resize(0);
 	  
       // **** compute the current weights of the pairs
       // Rcout << "> compute cumweight " << endl;

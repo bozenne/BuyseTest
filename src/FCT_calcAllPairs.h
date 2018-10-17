@@ -278,6 +278,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 
   // matWeight.print("matWeight:");
 
+  
   // ** loop over the neutral pairs
   for(int iter_pair=0; iter_pair<n_pair ; iter_pair++){
     // Rcout << iter_pair << "/" << n_pair << " ";
