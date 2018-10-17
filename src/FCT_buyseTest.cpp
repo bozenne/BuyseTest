@@ -170,7 +170,7 @@ List GPC_cpp(const arma::mat& endpoint,
       matWeight.col(0) = iWeight;
       iWeight.resize(0);
     }
-
+ 
     // Rcout << "> update lsScore" << endl;
     // **** update all Scores
     if(keepScore){

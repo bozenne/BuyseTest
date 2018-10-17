@@ -1,4 +1,4 @@
-% Created 2018-10-17 on 10:40
+% Created 2018-10-17 on 10:46
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -137,7 +137,7 @@ utils::packageVersion("BuyseTest")
 \clearpage
 
 \section{Example data}
-\label{sec:org8af5be2}
+\label{sec:org42e6a9e}
 For this overview we will used the \texttt{veteran} dataset from the
 \textbf{survival} package:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -161,7 +161,7 @@ See \texttt{?veteran} for a presentation of the database.
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:orga5f978b}
+\label{sec:orgaa4998b}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -243,7 +243,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org7114448}
+\label{sec:orgaa69fca}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -308,7 +308,7 @@ permutation test) in the stratified analysis, we do not get confidence
 intervals or p.values when calling the \texttt{summary} method.
 
 \subsection{Using multiple endpoints}
-\label{sec:orgf7105c0}
+\label{sec:orgd48c4a5}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, just add
 another endpoint at then end of the formula:
@@ -323,7 +323,7 @@ endpoint, here \texttt{time}) to right (least important endpoint, here
 \texttt{karno}).
 
 \subsection{What if smaller is better?}
-\label{sec:orgd67592d}
+\label{sec:orge398c9f}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -356,7 +356,7 @@ Error in (function (alternative, name.call, censoring, correction.uninf,  :
 
 
 \subsection{Stratified GPC}
-\label{sec:orgd45a7e9}
+\label{sec:orgc34dfb9}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -412,7 +412,7 @@ empirical proportion of pairs for each strata.
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:orgb10f278}
+\label{sec:orgb8c5a6a}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -484,7 +484,7 @@ In `[.data.table`(data, , `:=`(c("..rowIndex.."), 1:.N)) :
 So in this case no pair is analyzed at second priority.
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org82359c1}
+\label{sec:org63a96dc}
 
 P-values can be estimated via a permutation test:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -546,7 +546,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org57299bb}
+\label{sec:org9a21195}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -555,7 +555,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orga689daa}
+\label{sec:org97033f8}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -653,7 +653,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org3229874}
+\label{sec:org4eb5c87}
 When using \texttt{method.tte} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -698,7 +698,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org409cf5c}
+\label{sec:orgf2fcbe8}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -797,7 +797,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:orgc195d46}
+\label{sec:org7778859}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -867,7 +867,7 @@ favorable unfavorable
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org23a4fd1}
+\label{sec:orgaef6b4e}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -936,7 +936,7 @@ eventtime         1 0.1363 0.1363
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:org67f7ab4}
+\label{sec:org5207020}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -976,15 +976,17 @@ To get a synthetic view, we only look at the unique
 favorable/unfavorable/neutral/uniformative results:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninf")]
+iScore[,.SD[1], 
+	   .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
+	   by = c("favorable","unfavorable","neutral","uninf")]
 \end{lstlisting}
 
 \begin{verbatim}
-   favorable unfavorable neutral uninf strata index.C index.T weight favorableC unfavorableC neutralC uninfC
-1:         0           0       1     0      1       1     501      1    0.00000      0.00000  1.81657      0
-2:         0           0       0     1      1       2     501      1    0.00000      0.00000  0.00000      0
-3:         0           1       0     0      1      10     501      1    0.00000      1.81657  0.00000      0
-4:         1           0       0     0      1       1     504      1    1.81657      0.00000  0.00000      0
+   favorable unfavorable neutral uninf favorableC unfavorableC neutralC uninfC
+1:         0           0       1     0    0.00000      0.00000  1.81657      0
+2:         0           0       0     1    0.00000      0.00000  0.00000      0
+3:         0           1       0     0    0.00000      1.81657  0.00000      0
+4:         1           0       0     0    1.81657      0.00000  0.00000      0
 \end{verbatim}
 
 We can see that the favorable/unfavorable/neutral pairs have seen
@@ -1001,7 +1003,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:orgab3de70}
+\label{sec:org709160f}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1032,15 +1034,17 @@ Looking at the scores of the pairs:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 iScore <- getPairScore(BT, endpoint = 1)
-iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninf")]
+iScore[,.SD[1], 
+	   .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
+	   by = c("favorable","unfavorable","neutral","uninf")]
 \end{lstlisting}
 
 \begin{verbatim}
-   favorable unfavorable neutral uninf strata index.C index.T weight favorableC unfavorableC  neutralC uninfC
-1:         0           0       1     0      1       1     501      1   0.000000    0.0000000 1.0000000      0
-2:         0           0       0     1      1       2     501      1   0.371118    0.1234396 0.5054424      0
-3:         0           1       0     0      1      10     501      1   0.000000    1.0000000 0.0000000      0
-4:         1           0       0     0      1       1     504      1   1.000000    0.0000000 0.0000000      0
+   favorable unfavorable neutral uninf favorableC unfavorableC  neutralC uninfC
+1:         0           0       1     0   0.000000    0.0000000 1.0000000      0
+2:         0           0       0     1   0.371118    0.1234396 0.5054424      0
+3:         0           1       0     0   0.000000    1.0000000 0.0000000      0
+4:         1           0       0     0   1.000000    0.0000000 0.0000000      0
 \end{verbatim}
 
 we can see that the corrected probability have not changed for the
@@ -1059,7 +1063,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 
 \clearpage
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orge9b6af3}
+\label{sec:org584bc6d}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1118,7 +1122,7 @@ package (\url{https://github.com/kkholst/lava})
 
 \clearpage
 \section{Modifying default options}
-\label{sec:orgc1f2e97}
+\label{sec:orgf674e92}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1147,7 +1151,7 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 \section{Information about the R session used for this document}
-\label{sec:org21a07f6}
+\label{sec:org572a36f}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}

@@ -1,8 +1,6 @@
-http://gallery.rcpp.org/articles/using-rcppprogress/
 
-* TODO faire la fonction de calcul de puissance
-* TODO asymptotic standard error for the net Chance (U statistic)
-* TODO fonction sensibilite 2D
+* TODO for Peron avoid duplicate calculation of pFavorable and pUnfavorable
+* TODO only use weights when method = Peron or correction = TRUE
 * TODO Article JSS
 
 

@@ -829,15 +829,17 @@ iScore <- getPairScore(BT, endpoint = 1)
 To get a synthetic view, we only look at the unique
 favorable/unfavorable/neutral/uniformative results:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninf")]
+iScore[,.SD[1], 
+       .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
+       by = c("favorable","unfavorable","neutral","uninf")]
 #+END_SRC
 
 #+RESULTS:
-:    favorable unfavorable neutral uninf strata index.C index.T weight favorableC unfavorableC neutralC uninfC
-: 1:         0           0       1     0      1       1     501      1    0.00000      0.00000  1.81657      0
-: 2:         0           0       0     1      1       2     501      1    0.00000      0.00000  0.00000      0
-: 3:         0           1       0     0      1      10     501      1    0.00000      1.81657  0.00000      0
-: 4:         1           0       0     0      1       1     504      1    1.81657      0.00000  0.00000      0
+:    favorable unfavorable neutral uninf favorableC unfavorableC neutralC uninfC
+: 1:         0           0       1     0    0.00000      0.00000  1.81657      0
+: 2:         0           0       0     1    0.00000      0.00000  0.00000      0
+: 3:         0           1       0     0    0.00000      1.81657  0.00000      0
+: 4:         1           0       0     0    1.81657      0.00000  0.00000      0
 
 We can see that the favorable/unfavorable/neutral pairs have seen
 their contribution multiplied by:
@@ -880,15 +882,17 @@ summary(BT)
 Looking at the scores of the pairs:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 iScore <- getPairScore(BT, endpoint = 1)
-iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninf")]
+iScore[,.SD[1], 
+       .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
+       by = c("favorable","unfavorable","neutral","uninf")]
 #+END_SRC
 
 #+RESULTS:
-:    favorable unfavorable neutral uninf strata index.C index.T weight favorableC unfavorableC  neutralC uninfC
-: 1:         0           0       1     0      1       1     501      1   0.000000    0.0000000 1.0000000      0
-: 2:         0           0       0     1      1       2     501      1   0.371118    0.1234396 0.5054424      0
-: 3:         0           1       0     0      1      10     501      1   0.000000    1.0000000 0.0000000      0
-: 4:         1           0       0     0      1       1     504      1   1.000000    0.0000000 0.0000000      0
+:    favorable unfavorable neutral uninf favorableC unfavorableC  neutralC uninfC
+: 1:         0           0       1     0   0.000000    0.0000000 1.0000000      0
+: 2:         0           0       0     1   0.371118    0.1234396 0.5054424      0
+: 3:         0           1       0     0   0.000000    1.0000000 0.0000000      0
+: 4:         1           0       0     0   1.000000    0.0000000 0.0000000      0
 
 we can see that the corrected probability have not changed for the
 informative pairs, but for the non-informative they have been set to:
