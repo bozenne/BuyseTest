@@ -829,38 +829,15 @@ iScore <- getPairScore(BT, endpoint = 1)
 To get a synthetic view, we only look at the unique
 favorable/unfavorable/neutral/uniformative results:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninformative")]
+iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninf")]
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Error in eval(bysub, x, parent.frame()) : 
-  objet 'uninformative' introuvable
-1: powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2, 
-       formula = Treatment ~ tte(eventtime, censoring = status), 
-       method.inference = "asymptotic", trace = 4)
-2: do.call(method.loop, args = list(X = 1:n.rep, FUN = function(X) {
-       return(warper(i = X, envir = envirBT))
-   })) at powerBuyseTest.R#310
-3: (function (X, FUN, ..., cl = NULL) 
-   {
-       FUN <- match.fun(FUN)
-       if (!is.vector(X) || is.object(X)) 
-           X <- as.list(X)
-    ...
-4: lapply(X[Split[[i]]], FUN, ...)
-5: FUN(X[[i]], ...)
-6: warper(i = X, envir = envirBT) at powerBuyseTest.R#313
-7: inferenceUstatistic(tableSample, count.favorable = matrix(MresSample[, 
-       "favorable"], nrow = 1), count.unfavorable = matrix(MresSample[, 
-       "unfavorable"], nrow = 1), n.pairs = envir$sample.sizeC[iSample] * 
-       envir$sample.sizeT[iSample], n.C = envir$sample.sizeC[iSample], 
-       n.T = envir$sample.sizeT[iSample], n.strata = envir$outArgs$n.strata, 
-    ... at powerBuyseTest.R#267
-8: tablePairScore[[1]][, .SD, .SDcols = keep.col] at BuyseTest-inference.R#116
-9: `[.data.table`(tablePairScore[[1]], , .SD, .SDcols = keep.col) at BuyseTest-inference.R#116
-10: stop("Some items of .SDcols are not column names (or are NA)")
-#+end_example
+:    favorable unfavorable neutral uninf strata index.C index.T weight favorableC unfavorableC neutralC uninfC
+: 1:         0           0       1     0      1       1     501      1    0.00000      0.00000  1.81657      0
+: 2:         0           0       0     1      1       2     501      1    0.00000      0.00000  0.00000      0
+: 3:         0           1       0     0      1      10     501      1    0.00000      1.81657  0.00000      0
+: 4:         1           0       0     0      1       1     504      1    1.81657      0.00000  0.00000      0
 
 We can see that the favorable/unfavorable/neutral pairs have seen
 their contribution multiplied by:
@@ -903,36 +880,27 @@ summary(BT)
 Looking at the scores of the pairs:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 iScore <- getPairScore(BT, endpoint = 1)
-iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninformative")]
+iScore[,.SD[1], by = c("favorable","unfavorable","neutral","uninf")]
 #+END_SRC
 
 #+RESULTS:
-: Error in eval(bysub, x, parent.frame()) : 
-:   objet 'uninformative' introuvable
-: 1: iScore[, .SD[1], by = c("favorable", "unfavorable", "neutral", 
-:        "uninformative")]
-: 2: `[.data.table`(iScore, , .SD[1], by = c("favorable", "unfavorable", 
-:        "neutral", "uninformative"))
-: 3: eval(bysub, x, parent.frame())
-: 4: eval(bysub, x, parent.frame())
+:    favorable unfavorable neutral uninf strata index.C index.T weight favorableC unfavorableC  neutralC uninfC
+: 1:         0           0       1     0      1       1     501      1   0.000000    0.0000000 1.0000000      0
+: 2:         0           0       0     1      1       2     501      1   0.371118    0.1234396 0.5054424      0
+: 3:         0           1       0     0      1      10     501      1   0.000000    1.0000000 0.0000000      0
+: 4:         1           0       0     0      1       1     504      1   1.000000    0.0000000 0.0000000      0
 
 we can see that the corrected probability have not changed for the
 informative pairs, but for the non-informative they have been set to:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-iScore[, .(favorable = weighted.mean(favorable, w = 1-uninformative), 
-           unfavorable = weighted.mean(unfavorable, w = 1-uninformative), 
-           neutral = weighted.mean(neutral, w = 1-uninformative))]
+iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf), 
+           unfavorable = weighted.mean(unfavorable, w = 1-uninf), 
+           neutral = weighted.mean(neutral, w = 1-uninf))]
 #+END_SRC
 
 #+RESULTS:
-: Error in weighted.mean.default(favorable, w = 1 - uninformative) : 
-:   objet 'uninformative' introuvable
-: 1: iScore[, .SD[1], by = c("favorable", "unfavorable", "neutral", 
-:        "uninformative")]
-: 2: `[.data.table`(iScore, , .SD[1], by = c("favorable", "unfavorable", 
-:        "neutral", "uninformative"))
-: 3: eval(bysub, x, parent.frame())
-: 4: eval(bysub, x, parent.frame())
+:    favorable unfavorable   neutral
+: 1:  0.371118   0.1234396 0.5054424
 
 \clearpage
 * Simulating data using =simBuyseTest=
