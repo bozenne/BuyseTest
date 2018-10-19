@@ -10,49 +10,51 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
   correctionUninf, neutralAsUninf, keepScore, reserve, returnOnlyDelta)
 }
 \arguments{
-\item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows). \emph{const arma::mat&}.}
+\item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
 
-\item{censoring}{A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows). \emph{const arma::mat&}.}
+\item{censoring}{A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows).}
 
-\item{indexC}{A list containing the indexes of control observations belonging for each strata. \emph{List&}  of vector containing positive integers.}
+\item{indexC}{A list containing the indexes of control observations belonging for each strata.}
 
-\item{indexT}{A list containing the indexes of treatment observations belonging for each strata. \emph{List&} of vector containing positive integers.}
+\item{indexT}{A list containing the indexes of treatment observations belonging for each strata.}
 
-\item{threshold}{Store the thresholds associated to each endpoint. \emph{const NumericVector&}. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.}
+\item{threshold}{Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.}
 
-\item{method}{The index of the method used to score the pairs. \emph{const IntegerVector&}. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.}
+\item{method}{The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.}
 
-\item{D}{The number of endpoints. Strictly positive \emph{const int}.}
+\item{D}{The number of endpoints.}
 
-\item{n_strata}{The number of strata . Strictly positive \emph{const int}.}
+\item{n_strata}{The number of strata.}
 
-\item{n_TTE}{The number of time-to-event endpoints. Positive \emph{const int}.}
+\item{n_TTE}{The number of time-to-event endpoints.}
 
-\item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. \emph{const arma::mat&}. Must have D lines and D columns.}
+\item{n_UTTE}{The number of unique time-to-event endpoints.}
 
-\item{list_survTimeC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows). \emph{List&}.}
+\item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. Must have D lines and D columns.}
 
-\item{list_survTimeT}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows). \emph{List&}.}
+\item{index_UTTE}{The position, among all the unique tte endpoints, of the TTE endpoints. Equals -1 for non tte endpoints. Must have length n_TTE.}
 
-\item{list_survJumpC}{A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps. \emph{List&}.}
+\item{reanalyzed}{Will this endpoint be re-analyzed latter with a different threshold.}
 
-\item{list_survJumpT}{A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps. \emph{List&}.}
+\item{list_survTimeC}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows).}
 
-\item{list_lastSurv}{A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns). \emph{List&}.}
+\item{list_survTimeT}{A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows).}
+
+\item{list_survJumpC}{A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps.}
+
+\item{list_survJumpT}{A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps.}
+
+\item{list_lastSurv}{A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).}
 
 \item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 
-\item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?  \emph{logical}.}
+\item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?}
 
-\item{keepScore}{Should the result of each pairwise comparison be kept? \emph{logical}.}
+\item{keepScore}{Should the result of each pairwise comparison be kept?}
 
-\item{reserve}{Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length? \emph{logical}.}
+\item{reserve}{Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?}
 
-\item{returnOnlyDelta}{Should only the net benefit and win ratio be output? \emph{logical}.}
-
-\item{index_survival_M1}{The position, among all the survival endpoints, of the last same endpoint (computed with a different threshold). If it is the first time that the TTE endpoint is used it is set to -1. \emph{const IntegerVector}. Must have length n_TTE.}
-
-\item{threshold_M1}{The previous latest threshold of each TTE endpoint. When it is the first time that the TTE endpoint is used it is set to -1. \emph{const NumericVector}. Must have length n_TTE.}
+\item{returnOnlyDelta}{Should only the net benefit and win ratio be output?.}
 }
 \description{
 \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results.
