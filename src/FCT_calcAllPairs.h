@@ -178,10 +178,14 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 			  iScore[3], // uninformative
 			  1.0, // weight
 			  iScore[0], iScore[1], iScore[2], iScore[3] // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
-			  });
-		iter_pair++;
+			  });		
       }
-      
+
+	  if(iter_pair % 65536 == 0){
+		R_CheckUserInterrupt();
+	  }
+
+	  iter_pair++;
     }    
   }
   
@@ -382,6 +386,10 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 			weight_favorable, weight_unfavorable, weight_neutral, weight_uninformative // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
 			});
     }
+
+	if(iter_pair % 65536 == 0){
+	  R_CheckUserInterrupt();
+	}
 
   }
 
