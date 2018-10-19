@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt 19 2018 (12:23) 
+## Last-Updated: okt 19 2018 (13:22) 
 ##           By: Brice Ozenne
-##     Update #: 77
+##     Update #: 79
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -173,7 +173,71 @@ test_that("ordering of tied event does not affect BuyseTest", {
 })
 
 
-## * Brice: 10/12/18 3:02 (Wscheme)
+## * Brice: 26/09/18 x:xx (Multiple thresholds in Julien's simulations)
+
+HR1 <- 0.65
+TpsFin <- 60 #values for Taux.Censure 
+HazC <- 0.1
+
+set.seed(10)
+HazT <- 0.1*(HR1)
+n.Treatment <- 100
+n.Control <- 100
+n <- n.Treatment+n.Control
+group <- c(rep(1, n.Treatment),rep(0, n.Control))
+
+TimeEvent.Ctr <- rexp(n.Control,HazC)
+TimeEvent.Tr <- rexp(n.Control,HazT)
+
+TimeEvent<-c(TimeEvent.Tr,TimeEvent.Ctr)
+Time.Cens<-runif(n,0,TpsFin)
+Time<-pmin(Time.Cens,TimeEvent)
+Event<-Time==TimeEvent
+Event<-as.numeric(Event)
+
+tab<-data.frame(group,Time,Event)
+
+test_that("Multiple thresholds",{
+    BuyseresPer <- BuyseTest(data=tab,
+                             endpoint=c("Time","Time","Time","Time","Time","Time","Time","Time","Time","Time","Time","Time","Time","Time","Time"),
+                             treatment="group",
+                             type=c("TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE","TTE"),
+                             censoring=c("Event","Event","Event","Event","Event","Event","Event","Event","Event","Event","Event","Event","Event","Event","Event"),
+                             threshold=c(42,39,36,33,30,27,24,21,18,15,12,9,6,3,0),
+                             n.resampling=500,
+                             trace=0,
+                             method.tte="Peron",
+                             correction.uninf=F,
+                             method.inference="none")
+
+    resS <- as.data.table(summary(BuyseresPer, print = FALSE)$table)
+
+    ## pairs are correctly transfered from one endpoint to another
+    expect_equal(resS[strata == "global" & threshold > tail(threshold,1), pc.neutral +  pc.uninf],
+                 resS[strata == "global" & threshold < threshold[1], pc.total], tol = 1e-2)
+
+    ## butils::object2script(as.double(BuyseresPer@count.favorable), digit = 2)
+    GS <- c(260.64, 35.93, 37.33, 147.32, 272.14, 263.6, 235.7, 213.21, 390.29, 408.73, 514.7, 514.34, 744.78, 865.21, 1095.26)
+    expect_equal(as.double(BuyseresPer@count.favorable), GS, tol = 1e-1)
+    ## butils::object2script(as.double(BuyseresPer@count.unfavorable), digit = 2)
+    GS <- c(0, 0, 6.97, 25.66, 43.89, 34.8, 46.38, 105.42, 199.85, 338.55, 407.72, 521.83, 548.02, 782.94, 938.8)
+    expect_equal(as.double(BuyseresPer@count.unfavorable), GS, tol = 1e-1)
+    ## butils::object2script(as.double(BuyseresPer@count.neutral), digit = 2)
+    GS <- c(9617.63, 9611.09, 9596.16, 9448.36, 9149.12, 8863.32, 8581.24, 8262.61, 7676.67, 6933.58, 6011.17, 4975, 3682.21, 2034.06, 0)
+    expect_equal(as.double(BuyseresPer@count.neutral), GS, tol = 1e-1)
+    ## butils::object2script(as.double(BuyseresPer@count.uninf), digit = 2)
+    GS <- c(121.73, 92.35, 62.96, 37.78, 20.99, 8.4, 8.4, 8.4, 4.2, 0, 0, 0, 0, 0, 0)
+    expect_equal(as.double(BuyseresPer@count.uninf), GS, tol = 1e-1)
+    ## butils::object2script(as.double(BuyseresPer@delta.netBenefit), digit = 5)
+    GS <- c(0.02606, 0.00359, 0.00304, 0.01217, 0.02282, 0.02288, 0.01893, 0.01078, 0.01904, 0.00702, 0.0107, -0.00075, 0.01968, 0.00823, 0.01565)
+    expect_equal(as.double(BuyseresPer@delta.netBenefit), GS, tol = 1e-3)
+    ## butils::object2script(as.double(BuyseresPer@delta.winRatio), digit = 5)
+    GS <- c(Inf, Inf, 5.35344, 5.74093, 6.19986, 7.57457, 5.08161, 2.02241, 1.95291, 1.2073, 1.2624, 0.98564, 1.35904, 1.10508, 1.16666)
+    expect_equal(as.double(BuyseresPer@delta.winRatio), GS, tol = 1e-3)
+})
+
+
+## * Brice: 12/10/18 3:02 (Wscheme)
 
 BuyseTest_buildWscheme <- BuyseTest:::buildWscheme
 ## BuyseTest_buildWscheme <- buildWscheme
@@ -265,3 +329,4 @@ test_that("Wscheme: 6 mixed endpoint",{
 
     expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
 })
+
