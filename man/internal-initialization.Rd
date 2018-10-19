@@ -15,13 +15,13 @@ initializeArgs(alternative, name.call, censoring, cpus = NULL, data,
   seed = NULL, strata, threshold, trace = NULL, treatment, type)
 
 initializeData(data, type, endpoint, method.tte, censoring, operator,
-  strata, treatment)
+  strata, treatment, copy)
 
 initializeFormula(x)
 
-initializeSurvival_Peron(data, ls.indexC, ls.indexT, model.tte, treatment,
-  level.treatment, endpoint, endpoint.UTTE, censoring, D.TTE, D.UTTE, type,
-  strata, threshold, n.strata, out)
+initializeSurvival_Peron(data, model.tte, treatment, level.treatment,
+  endpoint, endpoint.UTTE, censoring, D.TTE, D.UTTE, type, strata,
+  threshold, n.strata, out)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

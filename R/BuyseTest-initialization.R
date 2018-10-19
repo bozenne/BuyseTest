@@ -212,15 +212,13 @@ initializeArgs <- function(alternative,
 
 ## * initializeData
 #' @rdname internal-initialization
-initializeData <- function(data, type, endpoint, method.tte, censoring, operator, strata, treatment){
+initializeData <- function(data, type, endpoint, method.tte, censoring, operator, strata, treatment, copy){
 
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
-    }else{
+    }else if(copy){
         data <- data.table::copy(data)
     }
-    n.strata <- length(strata)
-    keep.col <- c("..rowIndex..",treatment)
                   
     ## ** convert character/factor to numeric for binary endpoints
     name.bin <- endpoint[which(type %in% 1)]
@@ -232,7 +230,7 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
                 data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
             }
         }
-    }    
+    }
 
     ## ** operator
     operator.endpoint <- setNames(operator, endpoint)[!duplicated(endpoint)]
@@ -249,11 +247,6 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
         }
     }
 
-    ## ** convert treatment to binary indicator
-    level.treatment <- levels(as.factor(data[[treatment]]))
-    trt2bin <- setNames(0:1,level.treatment)
-    data[ , c(treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = treatment]
-
     ## ** n.obs
     n.obs <- data[,.N]
 
@@ -262,37 +255,52 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
         data[ , c("..strata..") := interaction(.SD, drop = TRUE, lex.order = FALSE, sep = "."), .SDcols = strata]
         level.strata <- levels(data[["..strata.."]])        
         data[ , c("..strata..") := as.numeric(.SD[["..strata.."]])] # convert to numeric
-        keep.col <- c(keep.col,"..strata..")
-
+        data.table::setkeyv(data, cols = c("..strata..", treatment)) ## important to first sort by strata when doing the resampling
+        
         n.obsStrata <- data[,.N, by = "..strata.."][,setNames(.SD[[1]],.SD[[2]]),.SD = c("N","..strata..")]
     }else{
+        data.table::setkeyv(data, cols = treatment)
+        
+        data[ , c("..strata..") := 1]
         n.obsStrata <- n.obs
         level.strata <- 1
     }
 
+    n.strata <- length(level.strata)
+
+    ## ** convert treatment to binary indicator
+    level.treatment <- levels(as.factor(data[[treatment]]))
+    trt2bin <- setNames(0:1,level.treatment)
+    data[ , c(treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = treatment]
+
     ## ** rowIndex
     data[,c("..rowIndex..") := 1:.N]
 
-    ## ** censoring
+    ## ** unique censoring
+    Ucensoring <- unique(censoring)
     if(any(censoring == "..NA..")){
         data[,c("..NA..") := as.numeric(NA)]
     }
-    
-    ## ** export    
-    if(method.tte==1){
-        keep.col <- c(keep.col, endpoint[type == 3], censoring[type == 3])
-    }
 
-    return(list(data = data[,.SD,.SDcols = keep.col],
-                M.endpoint = as.matrix(data[, .SD, .SDcols = endpoint]),
-                M.censoring = as.matrix(data[, .SD, .SDcols = censoring]),
-                ## index.C = which(data[[treatment]] == 0),
-                ## index.T = which(data[[treatment]] == 1),
+    ## ** unique endpoint
+    Uendpoint <- unique(endpoint)
+
+    ## ** export
+    return(list(data = data[,.SD,.SDcols =  c(treatment,"..strata..")],
+                M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
+                M.censoring = as.matrix(data[, .SD, .SDcols = Ucensoring]),
+                index.C = which(data[[treatment]] == 0),
+                index.T = which(data[[treatment]] == 1),
+                index.strata = tapply(data[["..rowIndex.."]], data[["..strata.."]], list),
+                index.endpoint = match(endpoint, Uendpoint) - 1,
+                index.censoring = match(censoring, Ucensoring) - 1,
                 level.treatment = level.treatment,
                 level.strata = level.strata,
-                n.strata = length(level.strata),
+                n.strata = n.strata,
                 n.obs = n.obs,
-                n.obsStrata = n.obsStrata))
+                n.obsStrata = n.obsStrata,
+                cumn.obsStrata = cumsum(c(0,n.obsStrata))[1:n.strata]
+                ))
 }
 
 ## * buildWscheme
@@ -479,7 +487,7 @@ initializeFormula <- function(x){
 
 ## * initializeSurvival
 #' @rdname internal-initialization
-initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
+initializeSurvival_Peron <- function(data,
                                      model.tte,
                                      treatment,
                                      level.treatment,
@@ -496,9 +504,22 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
 
     . <- NULL ## for CRAN check
         
-    if(is.null(strata)){
-        data[,"..strata.." := 1]
-    }
+    ## ** prepare
+    if(n.strata == 1){
+        ls.indexC <- list(which(data[[treatment]]==0))
+        ls.indexT <- list(which(data[[treatment]]==1))
+    }else{
+        indexC <- which(data[[treatment]]==0)
+        indexT <- which(data[[treatment]]==1)
+        ls.indexC <- vector(mode = "list", length = n.strata)
+        ls.indexT <- vector(mode = "list", length = n.strata)
+        for(iStrata in 1:n.strata){
+            iIndex.strata <- which(data[["..strata.."]]==iStrata)
+            ls.indexC[[iStrata]] <- intersect(indexC,iIndex.strata)
+            ls.indexT[[iStrata]] <- intersect(indexT,iIndex.strata)
+        }
+    }            
+    
     zeroPlus <- 1e-12
 
     ## ** unique tte endpoints
@@ -507,13 +528,14 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
     
     index.endpoint.UTTE <- which(!duplicated(endpoint.TTE))
     censoring.UTTE <- censoring.TTE[index.endpoint.UTTE]
-    
+
     ## ** estimate survival
     if(is.null(model.tte)){
         model.tte <- vector(length = D.UTTE, mode = "list")
         names(model.tte) <- endpoint.UTTE
 
         txt.modelUTTE <- paste0("prodlim::Hist(",endpoint.UTTE,",",censoring.UTTE,") ~ ",treatment," + ..strata..")
+
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.UTTE <- 1
             model.tte[[iEndpoint.UTTE]] <- prodlim::prodlim(as.formula(txt.modelUTTE[iEndpoint.UTTE]),
                                                             data = data)
@@ -596,8 +618,8 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
                                            method = "constant")
 
 
-            iTimeC <- data[ls.indexC[[iStrata]]+1,.SD[[iEndpoint.UTTE.name]]]
-            iTimeT <- data[ls.indexT[[iStrata]]+1,.SD[[iEndpoint.UTTE.name]]]
+            iTimeC <- data[ls.indexC[[iStrata]],.SD[[iEndpoint.UTTE.name]]]
+            iTimeT <- data[ls.indexT[[iStrata]],.SD[[iEndpoint.UTTE.name]]]
 
             ## independent of the threshold i.e. of the priority
             ## avoid repeated calculation when the same endpoint is used several times with different thresholds

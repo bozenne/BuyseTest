@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 19 2018 (12:16) 
+## Last-Updated: okt 19 2018 (16:45) 
 ##           By: Brice Ozenne
-##     Update #: 220
+##     Update #: 231
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -190,34 +190,21 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                "netBenefit","netBenefit.se","netBenefit.lower","netBenefit.upper","netBenefit.p.value",
                                                "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value")))
 
-        ## *** Simulate data
-        envir$outArgs$data <- do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax))
-        ## envir$outArgs$data <- envir$sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
         ## *** Initialize data
+        out.name <- c("data","M.endpoint","M.censoring",
+                      "index.C","index.T","index.strata",
+                      "index.endpoint","index.censoring","level.treatment","level.strata",
+                      "n.strata","n.obs","n.obsStrata","cumn.obsStrata")
+        envir$outArgs[out.name] <- initializeData(data = do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax)),
+                                                  type = envir$outArgs$type,
+                                                  endpoint = envir$outArgs$endpoint,
+                                                  method.tte = envir$outArgs$method.tte,
+                                                  censoring = envir$outArgs$censoring,
+                                                  operator = envir$outArgs$operator,
+                                                  strata = envir$outArgs$strata,
+                                                  treatment = envir$outArgs$treatment,
+                                                  copy = FALSE)
 
-        ## convert character/factor to numeric for binary endpoints
-        ## to be done
-        
-        ## convert treatment to binary indicator
-        trt2bin <- setNames(0:1,outArgs$level.treatment)
-        envir$outArgs$data[, c(envir$outArgs$treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = envir$outArgs$treatment]
-
-        ## NA column for fake censoring 
-        envir$outArgs$data[,c("..NA..") := as.numeric(NA)]
-
-        ## rowIndex
-        envir$outArgs$data[,c("..rowIndex..") := 1:.N]
-
-        ## ** export
-        keep.col <- c(envir$outArgs$treatment,"..rowIndex..")
-        if(envir$outArgs$method.tte==1){keep.col <- c(keep.col,envir$outArgs$endpoint[envir$outArgs$type == 3], envir$outArgs$censoring[envir$outArgs$type == 3])}
-
-        envir$outArgs$M.endpoint <- as.matrix(envir$outArgs$data[, .SD, .SDcols = envir$outArgs$endpoint])
-        envir$outArgs$M.censoring <- as.matrix(envir$outArgs$data[, .SD, .SDcols = envir$outArgs$censoring])
-        envir$outArgs$data <- envir$outArgs$data[,.SD,.SDcols = keep.col]
-        envir$outArgs$n.obs <- NROW(envir$outArgs$data)
-        envir$outArgs$n.obsStrata <- envir$outArgs$n.obs
-        
         ## *** Point estimate
         outPoint <- .BuyseTest(envir = envir,
                                keep.pairScore = TRUE,

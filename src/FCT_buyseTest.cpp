@@ -31,6 +31,8 @@ using namespace arma ;
 //' @param n_TTE The number of time-to-event endpoints. 
 //' @param n_UTTE The number of unique time-to-event endpoints.
 //' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. Must have D lines and D columns.
+//' @param index_endpoint The position of the endpoint at each priority in the argument endpoint. Must have length D. 
+//' @param index_censoring The position of the censoring at each priority in the argument censoring. Must have length D. 
 //' @param index_UTTE The position, among all the unique tte endpoints, of the TTE endpoints. Equals -1 for non tte endpoints. Must have length n_TTE. 
 //' @param reanalyzed Will this endpoint be re-analyzed latter with a different threshold.
 //' @param list_survTimeC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows).
@@ -60,6 +62,8 @@ List GPC_cpp(arma::mat endpoint,
 			 unsigned int n_TTE, 
 			 int n_UTTE, 
 			 arma::mat Wscheme,
+			 std::vector<int> index_endpoint, 
+			 std::vector<int> index_censoring, 
 			 std::vector<int> index_UTTE, 
 			 std::vector<bool> reanalyzed, 
 			 std::vector< std::vector< arma::mat > > list_survTimeC,
@@ -148,8 +152,8 @@ List GPC_cpp(arma::mat endpoint,
 	  iMethod = method[iter_d];
 	  iReanalyzed = reanalyzed[iter_d];
 	  iIndex_UTTE = index_UTTE[iter_d];
-	  iUvec_endpoint[0] = iter_d;
-	  iUvec_censoring[0] = iter_d;
+	  iUvec_endpoint[0] = index_endpoint[iter_d];
+	  iUvec_censoring[0] = index_censoring[iter_d];
 
 	  // **** compute the current weights of the pairs
 	  if(iter_d > 0){

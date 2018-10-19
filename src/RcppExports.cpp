@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // GPC_cpp
-List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > indexT, std::vector< double > threshold, std::vector< int > method, unsigned int D, unsigned int n_strata, unsigned int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, int correctionUninf, bool neutralAsUninf, bool keepScore, bool reserve, bool returnOnlyDelta);
-RcppExport SEXP _BuyseTest_GPC_cpp(SEXP endpointSEXP, SEXP censoringSEXP, SEXP indexCSEXP, SEXP indexTSEXP, SEXP thresholdSEXP, SEXP methodSEXP, SEXP DSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP n_UTTESEXP, SEXP WschemeSEXP, SEXP index_UTTESEXP, SEXP reanalyzedSEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP list_lastSurvSEXP, SEXP correctionUninfSEXP, SEXP neutralAsUninfSEXP, SEXP keepScoreSEXP, SEXP reserveSEXP, SEXP returnOnlyDeltaSEXP) {
+List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > indexT, std::vector< double > threshold, std::vector< int > method, unsigned int D, unsigned int n_strata, unsigned int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_endpoint, std::vector<int> index_censoring, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, int correctionUninf, bool neutralAsUninf, bool keepScore, bool reserve, bool returnOnlyDelta);
+RcppExport SEXP _BuyseTest_GPC_cpp(SEXP endpointSEXP, SEXP censoringSEXP, SEXP indexCSEXP, SEXP indexTSEXP, SEXP thresholdSEXP, SEXP methodSEXP, SEXP DSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP n_UTTESEXP, SEXP WschemeSEXP, SEXP index_endpointSEXP, SEXP index_censoringSEXP, SEXP index_UTTESEXP, SEXP reanalyzedSEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP list_lastSurvSEXP, SEXP correctionUninfSEXP, SEXP neutralAsUninfSEXP, SEXP keepScoreSEXP, SEXP reserveSEXP, SEXP returnOnlyDeltaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,6 +23,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type n_TTE(n_TTESEXP);
     Rcpp::traits::input_parameter< int >::type n_UTTE(n_UTTESEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Wscheme(WschemeSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type index_endpoint(index_endpointSEXP);
+    Rcpp::traits::input_parameter< std::vector<int> >::type index_censoring(index_censoringSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type index_UTTE(index_UTTESEXP);
     Rcpp::traits::input_parameter< std::vector<bool> >::type reanalyzed(reanalyzedSEXP);
     Rcpp::traits::input_parameter< std::vector< std::vector< arma::mat > > >::type list_survTimeC(list_survTimeCSEXP);
@@ -35,7 +37,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type keepScore(keepScoreSEXP);
     Rcpp::traits::input_parameter< bool >::type reserve(reserveSEXP);
     Rcpp::traits::input_parameter< bool >::type returnOnlyDelta(returnOnlyDeltaSEXP);
-    rcpp_result_gen = Rcpp::wrap(GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve, returnOnlyDelta));
+    rcpp_result_gen = Rcpp::wrap(GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf, keepScore, reserve, returnOnlyDelta));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -53,7 +55,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 23},
+    {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 25},
     {"_BuyseTest_calcIntegralScore_cpp", (DL_FUNC) &_BuyseTest_calcIntegralScore_cpp, 2},
     {NULL, NULL, 0}
 };

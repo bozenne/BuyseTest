@@ -5,9 +5,10 @@
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
 GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
-  n_strata, n_TTE, n_UTTE, Wscheme, index_UTTE, reanalyzed, list_survTimeC,
-  list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv,
-  correctionUninf, neutralAsUninf, keepScore, reserve, returnOnlyDelta)
+  n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring,
+  index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC,
+  list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf,
+  keepScore, reserve, returnOnlyDelta)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
@@ -31,6 +32,10 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
 \item{n_UTTE}{The number of unique time-to-event endpoints.}
 
 \item{Wscheme}{The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. Must have D lines and D columns.}
+
+\item{index_endpoint}{The position of the endpoint at each priority in the argument endpoint. Must have length D.}
+
+\item{index_censoring}{The position of the censoring at each priority in the argument censoring. Must have length D.}
 
 \item{index_UTTE}{The position, among all the unique tte endpoints, of the TTE endpoints. Equals -1 for non tte endpoints. Must have length n_TTE.}
 
