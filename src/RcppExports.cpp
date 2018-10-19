@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // GPC_cpp
-List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > indexT, std::vector< double > threshold, std::vector< int > method, unsigned int D, int n_strata, int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, int correctionUninf, bool neutralAsUninf, bool keepScore, bool reserve, bool returnOnlyDelta);
+List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > indexT, std::vector< double > threshold, std::vector< int > method, unsigned int D, unsigned int n_strata, unsigned int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, int correctionUninf, bool neutralAsUninf, bool keepScore, bool reserve, bool returnOnlyDelta);
 RcppExport SEXP _BuyseTest_GPC_cpp(SEXP endpointSEXP, SEXP censoringSEXP, SEXP indexCSEXP, SEXP indexTSEXP, SEXP thresholdSEXP, SEXP methodSEXP, SEXP DSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP n_UTTESEXP, SEXP WschemeSEXP, SEXP index_UTTESEXP, SEXP reanalyzedSEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP list_lastSurvSEXP, SEXP correctionUninfSEXP, SEXP neutralAsUninfSEXP, SEXP keepScoreSEXP, SEXP reserveSEXP, SEXP returnOnlyDeltaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -19,8 +19,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector< double > >::type threshold(thresholdSEXP);
     Rcpp::traits::input_parameter< std::vector< int > >::type method(methodSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type D(DSEXP);
-    Rcpp::traits::input_parameter< int >::type n_strata(n_strataSEXP);
-    Rcpp::traits::input_parameter< int >::type n_TTE(n_TTESEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_strata(n_strataSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type n_TTE(n_TTESEXP);
     Rcpp::traits::input_parameter< int >::type n_UTTE(n_UTTESEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Wscheme(WschemeSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type index_UTTE(index_UTTESEXP);
