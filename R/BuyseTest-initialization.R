@@ -305,25 +305,16 @@ buildWscheme <- function(method.tte, endpoint, D.TTE, D, n.strata,
     Wscheme[upper.tri(Wscheme)] <- 1 ## only previous endpoint can contribute to the current weights
     Wscheme[lower.tri(Wscheme)] <- NA ## do not look at future endpoint 
         
-    index.survival_M1 <- rep(-1,D.TTE) # index of previous TTE endpoint (-1 if no previous TTE endpoint i.e. endpoint has not already been used)
-    threshold_M1 <- rep(-1,D.TTE) # previous threshold (-1 if no previous threshold i.e. endpoint has not already been used or it is not a tte endpoint)
-
     ## take care of repeated survival endpoints
     if(D.TTE>1 && method.tte > 0){
 
-        index.endpoint.TTE <- which(type == 3)
-        endpoint.TTE <- endpoint[index.endpoint.TTE]
-        indexDuplicated.endpoint.TTE <- which(duplicated(endpoint.TTE))
+        index.TTE <- which(type == 3)
+        indexDuplicated.TTE <- which(duplicated(endpoint[index.TTE]))
 
-        for(iEndpoint in indexDuplicated.endpoint.TTE){    ## iEndpoint <- indexDuplicated.endpoint.TTE[1]
-            iEndpoint2 <- index.endpoint.TTE[iEndpoint] ## position of the current endpoint relative to all endpoint
-            iEndpoint2_M1 <- which(endpoint[1:(iEndpoint2-1)] == endpoint[iEndpoint2])  ## position of the previous endpoint relative to all endpoints
-            ## iEndpoint_M1 <- which(endpoint.TTE[1:(iEndpoint-1)] == endpoint.TTE[iEndpoint]) ## position of the previous endpoint relative to the time to event endpoints
-
-            index.survival_M1[iEndpoint] <- tail(iEndpoint2_M1,1) - 1 ## C++ index
-            threshold_M1[iEndpoint] <- threshold[tail(iEndpoint2_M1,1)]
-            Wscheme[iEndpoint2_M1,iEndpoint2] <- 0 # potential weights
-      
+        for(iEndpoint in indexDuplicated.TTE){    ## iEndpoint <- indexDuplicated.endpoint.TTE[1]
+            iEndpoint2 <- index.TTE[iEndpoint] ## position of the current endpoint relative to all endpoint
+            iEndpoint2_M1 <- which(endpoint[1:(iEndpoint2-1)] == endpoint[iEndpoint2])  ## position of the previous endpoint(s) relative to all endpoints
+            Wscheme[iEndpoint2_M1,iEndpoint2] <- 0
         }
     }
 
@@ -332,10 +323,15 @@ buildWscheme <- function(method.tte, endpoint, D.TTE, D, n.strata,
         lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})
     })
 
+    ## unique tte endpoint
+    endpoint.UTTE <- unique(endpoint[type==3])
+    
     ## export
     return(list(Wscheme = Wscheme,
-                index.survival_M1 = index.survival_M1,
-                threshold_M1 = threshold_M1,
+                endpoint.UTTE = endpoint.UTTE,
+                index.UTTE = match(endpoint, endpoint.UTTE, nomatch = 0) - 1,
+                D.UTTE = length(endpoint.UTTE),
+                reanalyzed = rev(duplicated(rev(endpoint))),
                 outSurv = list(survTimeC = skeleton,
                                survTimeT = skeleton,
                                survJumpC = skeleton,
@@ -485,12 +481,13 @@ initializeFormula <- function(x){
 #' @rdname internal-initialization
 initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
                                      model.tte,
-                                     index.survival_M1,
                                      treatment,
                                      level.treatment,
                                      endpoint,
+                                     endpoint.UTTE,
                                      censoring,
                                      D.TTE,
+                                     D.UTTE,
                                      type,
                                      strata,
                                      threshold,
@@ -509,9 +506,7 @@ initializeSurvival_Peron <- function(data, ls.indexC, ls.indexT,
     censoring.TTE <- censoring[type==3]
     
     index.endpoint.UTTE <- which(!duplicated(endpoint.TTE))
-    endpoint.UTTE <- endpoint.TTE[index.endpoint.UTTE]
     censoring.UTTE <- censoring.TTE[index.endpoint.UTTE]
-    D.UTTE <- length(index.endpoint.UTTE)
     
     ## ** estimate survival
     if(is.null(model.tte)){

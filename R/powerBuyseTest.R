@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 16 2018 (21:17) 
+## Last-Updated: okt 19 2018 (12:16) 
 ##           By: Brice Ozenne
-##     Update #: 217
+##     Update #: 220
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -144,13 +144,14 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    outArgs[c("Wscheme","index.survival_M1","threshold.TTE_M1","outSurv")] <- buildWscheme(method.tte = outArgs$method.tte,
-                                                                                           endpoint = outArgs$endpoint,
-                                                                                           D = outArgs$D,
-                                                                                           D.TTE = outArgs$D.TTE,
-                                                                                           n.strata = outArgs$n.strata,
-                                                                                           type = outArgs$type,
-                                                                                           threshold = outArgs$threshold)
+    out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed","outSurv")
+    outArgs[out.name] <- buildWscheme(method.tte = outArgs$method.tte,
+                                      endpoint = outArgs$endpoint,
+                                      D = outArgs$D,
+                                      D.TTE = outArgs$D.TTE,
+                                      n.strata = outArgs$n.strata,
+                                      type = outArgs$type,
+                                      threshold = outArgs$threshold)
 
     ## ** Display
     if (trace > 1) {

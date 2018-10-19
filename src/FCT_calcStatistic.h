@@ -14,9 +14,9 @@ using namespace std ;
 using namespace arma ;
 
 // * calcStatistic
-void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, vector<double>& Delta_netBenefit, vector<double>& Delta_winRatio,
+void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::vector< double >& Delta_netBenefit, std::vector< double >& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
-                   const int& D, const int& n_strata, const vector<double>& n_pairs){
+                   const int& D, const int& n_strata, const std::vector< double >& n_pairs){
   
 
   // total number of pairs

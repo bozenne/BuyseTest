@@ -20,7 +20,6 @@ printGeneral <- function(censoring,
                          operator,
                          strata,
                          threshold,
-                         threshold.TTE_M1,
                          trace,
                          treatment,
                          type,
@@ -62,19 +61,6 @@ printGeneral <- function(censoring,
         }
     }
     
-    ## threshold
-    if(D.TTE>0){
-        threshold.TTE_M1.display <- threshold.TTE_M1
-        threshold.TTE_M1.display[threshold.TTE_M1.display < 0] <- +Inf
-        
-        threshold.display <- rbind(sapply(1:D.TTE,
-                                          function(x){paste(c("[",round(threshold[type == 3][x],4),
-                                                              " ; ",round(threshold.TTE_M1.display[x],4),
-                                                              "] "), collapse = "")}))
-        colnames(threshold.display) <- paste0(endpoint[type == 3], "(",threshold[type==3],")")
-        rownames(threshold.display) <- "threshold interval"
-    }
-    
     ## ** Display
     cat("Settings \n")
     cat("   - treatment groups: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
@@ -100,18 +86,12 @@ printGeneral <- function(censoring,
                "1" = cat("use Kaplan Meier survival curves to compute the score \n")
                )
     }
-    if(trace>2){
-        if ( (method.tte == "1" || correction.uninf) && D > 1) {            
-            cat("   - Current contribution of a pair based on the weights computed at previous enpoints: \n")
-            print(Wscheme)
-        }
-
-    
-        if ( method.tte == "1" && D.TTE > 1) {            
-            cat("   - thresholds for survival endpoints: \n")    
-            print(threshold.display)
-        }
-    }
+    ## if(trace>2){
+    ##     if ( (method.tte == "3" || correction.uninf) && D > 1) {            
+    ##         cat("   - Current contribution of a pair based on the weights computed at previous enpoints: \n")
+    ##         print(Wscheme)
+    ##     }
+    ## }
 
     return(NULL)
 }

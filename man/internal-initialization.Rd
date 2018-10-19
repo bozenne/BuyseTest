@@ -19,9 +19,9 @@ initializeData(data, type, endpoint, method.tte, censoring, operator,
 
 initializeFormula(x)
 
-initializeSurvival_Peron(data, ls.indexC, ls.indexT, model.tte,
-  index.survival_M1, treatment, level.treatment, endpoint, censoring,
-  D.TTE, type, strata, threshold, n.strata, out)
+initializeSurvival_Peron(data, ls.indexC, ls.indexT, model.tte, treatment,
+  level.treatment, endpoint, endpoint.UTTE, censoring, D.TTE, D.UTTE, type,
+  strata, threshold, n.strata, out)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

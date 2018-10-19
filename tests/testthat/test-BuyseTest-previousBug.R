@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt 16 2018 (18:47) 
+## Last-Updated: okt 19 2018 (12:23) 
 ##           By: Brice Ozenne
-##     Update #: 76
+##     Update #: 77
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -193,15 +193,17 @@ test_that("Wscheme: 3 times the same endpoint",{
                                     n.strata = 1,
                                     threshold = threshold)
 
-    ## butils::object2script(Wtest)
+    ## butils::object2script(Wtest$Wscheme)
     GS <- list(Wscheme = matrix(c(0, NA, NA, 0, 0, NA, 0, 0, 0),
                                 nrow = 3, ncol = 3,
                                 dimnames = list(c("weigth of time(3)", "weigth of time(2)", "weigth of time(1)"),
                                                 c("for time(3)", "for time(2)", "for time(1)")) ),
-               index.survival_M1 = c(-1, 0, 1),
-               threshold_M1 = c(-1, 3, 2) )
+               endpoint.UTTE = "time",
+               index.UTTE = c(0,0,0),
+               D.UTTE = 1,
+               reanalyzed = c(TRUE, TRUE, FALSE) )
 
-    expect_equal(Wtest[c("Wscheme","index.survival_M1","threshold_M1")], GS)
+    expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
 })
 
 endpoint <- c("time","time1","time","time","time2","time1")
@@ -226,10 +228,12 @@ test_that("Wscheme: 6 tte endpoint",{
                                 dimnames = list(c("weigth of time(6)", "weigth of time1(5)", "weigth of time(4)", "weigth of time(3)", "weigth of time2(2)", "weigth of time1(1)"),
                                                 c("for time(6)", "for time1(5)", "for time(4)", "for time(3)", "for time2(2)", "for time1(1)")) 
                                 ),
-               index.survival_M1 = c(-1, -1, 0, 2, -1, 1) ,
-               threshold_M1 = c(-1, -1, 6, 4, -1, 5) )
+               endpoint.UTTE = c("time","time1","time2"),
+               index.UTTE = c(0,1,0,0,2,1),
+               D.UTTE = 3,
+               reanalyzed = c(TRUE, TRUE, TRUE, FALSE, FALSE, FALSE) )
 
-    expect_equal(Wtest[c("Wscheme","index.survival_M1","threshold_M1")], GS)
+    expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
 })
 
 endpoint <- c("time","bin","bin","time","bin","time")
@@ -254,8 +258,10 @@ test_that("Wscheme: 6 mixed endpoint",{
                                 dimnames = list(c("weigth of time(6)", "weigth of bin(5)", "weigth of bin(4)", "weigth of time(3)", "weigth of bin(2)", "weigth of time(1)"),
                                                 c("for time(6)", "for bin(5)", "for bin(4)", "for time(3)", "for bin(2)", "for time(1)")) 
                                 ),
-               index.survival_M1 = c(-1, 0, 3),
-               threshold_M1 = c(-1, 6, 3) )
+               endpoint.UTTE = "time",
+               index.UTTE = c(0,-1,-1,0,-1,0),
+               D.UTTE = 1,
+               reanalyzed = c(TRUE, TRUE, TRUE, TRUE, FALSE, FALSE) )
 
-    expect_equal(Wtest[c("Wscheme","index.survival_M1","threshold_M1")], GS)
+    expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
 })

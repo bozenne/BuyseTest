@@ -8,8 +8,7 @@
 \usage{
 printGeneral(censoring, D, D.TTE, data, endpoint, level.strata,
   level.treatment, method.tte, neutral.as.uninf, correction.uninf,
-  operator, strata, threshold, threshold.TTE_M1, trace, treatment, type,
-  Wscheme, ...)
+  operator, strata, threshold, trace, treatment, type, Wscheme, ...)
 
 printInference(method.inference, n.resampling, cpus, seed, ...)
 }

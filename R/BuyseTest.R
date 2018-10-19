@@ -274,13 +274,14 @@ BuyseTest <- function(formula,
     
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    outArgs[c("Wscheme","index.survival_M1","threshold.TTE_M1","outSurv")] <- buildWscheme(method.tte = outArgs$method.tte,
-                                                                                           endpoint = outArgs$endpoint,
-                                                                                           D = outArgs$D,
-                                                                                           D.TTE = outArgs$D.TTE,
-                                                                                           n.strata = outArgs$n.strata,
-                                                                                           type = outArgs$type,
-                                                                                           threshold = outArgs$threshold)
+    out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed","outSurv")
+    outArgs[out.name] <- buildWscheme(method.tte = outArgs$method.tte,
+                                      endpoint = outArgs$endpoint,
+                                      D = outArgs$D,
+                                      D.TTE = outArgs$D.TTE,
+                                      n.strata = outArgs$n.strata,
+                                      type = outArgs$type,
+                                      threshold = outArgs$threshold)
     
     ## ** Display
     if (outArgs$trace > 1) {
@@ -477,12 +478,13 @@ BuyseTest <- function(formula,
     }else{ ## Peron
         outSurv <- initializeSurvival_Peron(data = data, ls.indexC = ls.indexC, ls.indexT = ls.indexT,
                                             model.tte = envir$outArgs$model.tte,
-                                            index.survival_M1 = envir$outArgs$index.survival_M1,
                                             treatment = treatment,
                                             level.treatment = envir$outArgs$level.treatment,
                                             endpoint = endpoint,
+                                            endpoint.UTTE = envir$outArgs$endpoint.UTTE,
                                             censoring = censoring,
                                             D.TTE = D.TTE,
+                                            D.UTTE = envir$outArgs$D.UTTE,
                                             type = type,
                                             threshold = envir$outArgs$threshold,
                                             n.strata = n.strata,
@@ -500,9 +502,10 @@ BuyseTest <- function(formula,
                      D = D,
                      n_strata = n.strata,
                      n_TTE = D.TTE,
+                     n_UTTE = envir$outArgs$D.UTTE,
                      Wscheme = envir$outArgs$Wscheme,
-                     index_survival_M1 = envir$outArgs$index.survival_M1,
-                     threshold_M1 = envir$outArgs$threshold.TTE_M1,
+                     index_UTTE = envir$outArgs$index.UTTE,
+                     reanalyzed = envir$outArgs$reanalyzed,
                      list_survTimeC = outSurv$survTimeC,
                      list_survTimeT = outSurv$survTimeT,
                      list_survJumpC = outSurv$survJumpC,
