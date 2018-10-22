@@ -50,7 +50,7 @@ GPC_cpp <- function(endpoint, censoring, indexC, indexT, threshold, method, D, n
 #'
 #' @keywords function Cpp internal
 #' @export
-calcIntegralScore_cpp <- function(survival, start) {
-    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start)
+calcIntegralScore_cpp <- function(survival, start, lastSurv, lastdSurv) {
+    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start, lastSurv, lastdSurv)
 }
 
