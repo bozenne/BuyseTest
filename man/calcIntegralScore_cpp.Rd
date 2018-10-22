@@ -4,7 +4,7 @@
 \alias{calcIntegralScore_cpp}
 \title{C++ Function Computing the Integral Terms for the Peron Method.}
 \usage{
-calcIntegralScore_cpp(survival, start)
+calcIntegralScore_cpp(survival, start, lastSurv, lastdSurv)
 }
 \arguments{
 \item{survival}{[matrix] Contains the jump times in the first column,

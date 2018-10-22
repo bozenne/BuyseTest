@@ -296,6 +296,8 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 //' the survival in the other arm at times plus threshold in the second column,
 //' and the jump in survival in the third column.
 //' @param start [numeric] Time at which to start the integral.
+//' @param lastSurv [numeric,>0] last survival value for the survival function in the second column.
+//' @param lastdSurv [numeric,>0] last survival value for the survival function in the third column.
 //'
 //' @keywords function Cpp internal
 //' @export
