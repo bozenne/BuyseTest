@@ -42,7 +42,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘1.6’
+: [1] '1.6.2'
 
 \vfill
 
@@ -286,9 +286,9 @@ summary(BT2)
  > censored pairs  : use Kaplan Meier survival curves to compute the score
  > results
  endpoint threshold    strata  total favorable unfavorable neutral uninf   delta   Delta
-     time        20    global 100.00     36.06       45.77   17.50  0.68 -0.0971 -0.0971
+     time        20    global 100.00     36.06       45.77   17.33  0.85 -0.0971 -0.0971
                      squamous  25.38     14.33        8.77    2.28  0.00  0.2193        
-                    smallcell  45.69     12.69       20.88   11.44  0.68 -0.1792        
+                    smallcell  45.69     12.69       20.88   11.27  0.85 -0.1792        
                         adeno  13.71      4.74        6.15    2.81  0.00 -0.1034        
                         large  15.23      4.30        9.97    0.96  0.00 -0.3722        
     karno     1e-12    global  18.17      6.72        8.07    3.38  0.00 -0.0135 -0.1106
@@ -332,20 +332,15 @@ summary(BT.pair)
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Warning message:
-In `[.data.table`(data, , `:=`(c("..rowIndex.."), 1:.N)) :
-  Invalid .internal.selfref detected and fixed by taking a (shallow) copy of the data.table so that := can add this new column by reference. At an earlier point, this data.table has been copied by R (or was created manually using structure() or similar). Avoid key<-, names<- and attr<- which in R currently (and oddly) may copy the whole data.table. Use set* syntax instead to avoid copying: ?set, ?setnames and ?setattr. If this message doesn't help, please report your use case to the data.table issue tracker so the root cause can be fixed or this message improved.
-        Generalized pairwise comparison with 2 prioritized endpoints
-
- > statistic       : net benefit (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 0 
- > treatment groups: No (control) vs. Yes (treatment) 
- > results
- endpoint threshold total favorable unfavorable neutral uninf delta Delta
-    tumor       0.5   100         0           0     100     0     0     0
-     size     1e-12   100       100           0       0     0     1     1
-#+end_example
+:         Generalized pairwise comparison with 2 prioritized endpoints
+: 
+:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 0 (control) vs. 1 (treatment) 
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
+:     tumor       0.5   100         0           0     100     0     0     0
+:      size     1e-12   100       100           0       0     0     1     1
 
 the outcome of the comparison is neutral for the first priority, but
 favorable for the second priority. If we set the argument
@@ -358,20 +353,15 @@ summary(BT.pair2)
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Warning message:
-In `[.data.table`(data, , `:=`(c("..rowIndex.."), 1:.N)) :
-  Invalid .internal.selfref detected and fixed by taking a (shallow) copy of the data.table so that := can add this new column by reference. At an earlier point, this data.table has been copied by R (or was created manually using structure() or similar). Avoid key<-, names<- and attr<- which in R currently (and oddly) may copy the whole data.table. Use set* syntax instead to avoid copying: ?set, ?setnames and ?setattr. If this message doesn't help, please report your use case to the data.table issue tracker so the root cause can be fixed or this message improved.
-        Generalized pairwise comparison with 2 prioritized endpoints
-
- > statistic       : net benefit (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 0 
- > treatment groups: No (control) vs. Yes (treatment) 
- > results
- endpoint threshold total favorable unfavorable neutral uninf delta Delta
-    tumor       0.5   100         0           0     100     0     0     0
-     size     1e-12     0         0           0       0     0     0     0
-#+end_example
+:         Generalized pairwise comparison with 2 prioritized endpoints
+: 
+:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 0 (control) vs. 1 (treatment) 
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
+:     tumor       0.5   100         0           0     100     0     0     0
+:      size     1e-12     0         0           0       0     0     0     0
 
 So in this case no pair is analyzed at second priority.
 
@@ -381,7 +371,7 @@ P-values can be estimated via a permutation test:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
                      data = veteran, trace = 0, method.inference = "permutation",
-                     n.resampling = 10) 
+                     n.resampling = 25) 
 summary(BT.perm)
 #+END_SRC
 
@@ -391,14 +381,14 @@ summary(BT.perm)
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > permutation test: 10 samples, confidence level 0.95 
+ > permutation test: 25 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
   CI [2.5 ; 97.5] p.value 
- [-0.2412;0.1946]     0.4 
+ [-0.3245;0.1381]    0.32 
 NOTE: confidence intervals computed under the null hypothesis
 #+end_example
 
@@ -413,7 +403,7 @@ the argument =method.inference= to ="bootstrap"= when calling
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
                      data = veteran, trace = 0, method.inference = "bootstrap",
-                     n.resampling = 10) 
+                     n.resampling = 25) 
 summary(BT.boot)
 #+END_SRC
 
@@ -423,14 +413,14 @@ summary(BT.boot)
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > bootstrap resampling: 10 samples, confidence level 0.95 
+ > bootstrap resampling: 25 samples, confidence level 0.95 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
   CI [2.5 ; 97.5] p.value 
- [-0.1794;0.0302]     0.5
+ [-0.1802;0.0248]     0.2
 #+end_example
 
 
@@ -719,13 +709,20 @@ p_{UF} &= -\frac{1}{S_T(x)S_C(y)}\int_{t>x} S_C(t+\tau) dS_T(t)
 where \(x=87\) and \(y=100\). We obtain:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 denom <- as.double(outSurv$survTimeT[3,"SurvivalT_0"] * outSurv$survTimeC[10,"SurvivalC_0"])
-c("favorable" = -calcIntegralScore_cpp(outSurv$survJumpC, start = 100)/denom,
-  "unfavorable" = -calcIntegralScore_cpp(outSurv$survJumpT, start = 87)/denom)
+M <- cbind("favorable" = -calcIntegralScore_cpp(outSurv$survJumpC, start = 100, 
+                                                lastSurv = outSurv$lastSurv[2],
+                                                lastdSurv = outSurv$lastSurv[1])/denom,
+           "unfavorable" = -calcIntegralScore_cpp(outSurv$survJumpT, start = 87, 
+                                                  lastSurv = outSurv$lastSurv[1],
+                                                  lastdSurv = outSurv$lastSurv[2])/denom)
+rownames(M) <- c("lowerBound","upperBound")
+M
 #+END_SRC
 
 #+RESULTS:
-:   favorable unfavorable 
-:   0.5058685   0.3770426
+:            favorable unfavorable
+: lowerBound 0.5058685   0.3770426
+: upperBound 0.5058685   0.3770426
 
 \clearpage
 
@@ -907,6 +904,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 : 1:  0.371118   0.1234396 0.5054424
 
 \clearpage
+
 * Simulating data using =simBuyseTest=
 You can simulate data with the =simBuyseTest= function. For instance
 the following code simulates data for 5 individuals in the treatment
@@ -1194,43 +1192,39 @@ sessionInfo()
 #+RESULTS:
 #+begin_example
 R version 3.5.1 (2018-07-02)
-Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 16.04.5 LTS
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
 
 Matrix products: default
-BLAS: /usr/lib/libblas/libblas.so.3.6.0
-LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
- [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8       
- [4] LC_COLLATE=fr_FR.UTF-8     LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8   
- [7] LC_PAPER=da_DK.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
-[10] LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
+[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods  
+[9] base     
 
 other attached packages:
-[1] BuyseTest_1.6      testthat_2.0.0     data.table_1.11.8  Rcpp_0.12.19      
-[5] prodlim_2018.04.18 butils.base_1.1    XML_3.98-1.16      selectr_0.4-1     
-[9] devtools_1.13.6   
+ [1] lava_1.6.3          doParallel_1.0.14   iterators_1.0.10    foreach_1.4.4      
+ [5] BuyseTest_1.6.2     testthat_2.0.0      data.table_1.11.8   Rcpp_0.12.19       
+ [9] prodlim_2018.04.18  spelling_1.2        roxygen2_6.1.0.9000 butils.base_1.1    
+[13] XML_3.98-1.16       selectr_0.4-1       devtools_1.13.6    
 
 loaded via a namespace (and not attached):
- [1] compiler_3.5.1            pipeR_0.6.1.3             iterators_1.0.10         
- [4] base64enc_0.1-3           tools_3.5.1               digest_0.6.17            
- [7] pkgbuild_1.0.1            pkgload_1.0.0             memoise_1.1.0            
-[10] lattice_0.20-35           rlang_0.2.2               foreach_1.4.4            
-[13] Matrix_1.2-14             cli_1.0.1                 commonmark_1.6           
-[16] parallel_3.5.1            RcppArmadillo_0.9.100.5.0 withr_2.1.2              
-[19] httr_1.3.1                stringr_1.3.1             roxygen2_6.1.0.9000      
-[22] xml2_1.2.0                desc_1.2.0                stats4_3.5.1             
-[25] rprojroot_1.3-2           grid_3.5.1                R6_2.3.0                 
-[28] processx_3.2.0            pbapply_1.3-4             survival_2.42-6          
-[31] lava_1.6.3                purrr_0.2.5               callr_3.0.0              
-[34] magrittr_1.5              codetools_0.2-15          splines_3.5.1            
-[37] backports_1.1.2           ps_1.1.0                  assertthat_0.2.0         
-[40] rvest_0.3.2               KernSmooth_2.23-15        stringi_1.2.4            
-[43] doParallel_1.0.14         crayon_1.3.4              zoo_1.8-4
+ [1] compiler_3.5.1            pipeR_0.6.1.3             base64enc_0.1-3          
+ [4] tools_3.5.1               digest_0.6.17             pkgbuild_1.0.1           
+ [7] pkgload_1.0.0             memoise_1.1.0             lattice_0.20-35          
+[10] rlang_0.2.2               Matrix_1.2-14             commonmark_1.6           
+[13] RcppArmadillo_0.9.100.5.0 withr_2.1.2               httr_1.3.1               
+[16] stringr_1.3.1             xml2_1.2.0                desc_1.2.0               
+[19] rprojroot_1.3-2           grid_3.5.1                R6_2.3.0                 
+[22] processx_3.2.0            survival_2.42-6           purrr_0.2.5              
+[25] callr_3.0.0               magrittr_1.5              codetools_0.2-15         
+[28] splines_3.5.1             ps_1.1.0                  backports_1.1.2          
+[31] assertthat_0.2.0          rvest_0.3.2               KernSmooth_2.23-15       
+[34] stringi_1.2.4             crayon_1.3.4              zoo_1.8-4
 #+end_example
 
 

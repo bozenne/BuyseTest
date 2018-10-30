@@ -219,15 +219,16 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
     }else if(copy){
         data <- data.table::copy(data)
     }
-                  
+
     ## ** convert character/factor to numeric for binary endpoints
     name.bin <- endpoint[which(type %in% 1)]
     if(length(name.bin)>0){
         data.class <- sapply(data,class)
-        
-        for(iBin in name.bin){
-            if(data.class[iBin] %in% c("numeric","integer") == FALSE){
-                data[[iBin]] <- as.numeric(as.factor(data[[iBin]])) - 1
+        test.num <- (data.class %in% c("numeric","integer"))
+        if(any(test.num==FALSE)){
+            endpoint.char <- names(data.class)[test.num==FALSE]
+            for(iE in endpoint.char){
+                data[, c(iE) := as.double(as.factor(.SD[[1]]))-1.0, .SDcols = iE]
             }
         }
     }
@@ -251,7 +252,7 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
     n.obs <- data[,.N]
 
     ## ** strata
-    if(!is.null(strata)){
+    if(!is.null(strata)){        
         data[ , c("..strata..") := interaction(.SD, drop = TRUE, lex.order = FALSE, sep = "."), .SDcols = strata]
         level.strata <- levels(data[["..strata.."]])        
         data[ , c("..strata..") := as.numeric(.SD[["..strata.."]])] # convert to numeric

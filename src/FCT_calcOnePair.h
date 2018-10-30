@@ -138,15 +138,15 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
   double upperFavorable;
   double upperUnfavorable;
 
-  // ** deal with ties
+  // ** deal with null survival
   // according to the survival the observation will die immediatly after the observation time.
   // so we treat it as if was an event
-  // if(delta_C==0 && (survTimeC(2) == 0) ){
-	// delta_C = 1;
-  // }
-  // if(delta_T==0 && (survTimeT(5) == 0) ){
-	// delta_T = 1;
-  // }
+  if(delta_C==0 && (survTimeC(2) == 0) ){
+	delta_C = 1;
+  }
+  if(delta_T==0 && (survTimeT(5) == 0) ){
+	delta_T = 1;
+  }
   	
   /* Rcout << " (" << delta_T << ";" << delta_C << ")"; */
   // ** compute favorable and unfavorable
@@ -253,6 +253,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		intFavorable = calcIntegralScore_cpp(survJumpC, endpoint_C, lastSurvT, lastSurvC); // -intFavorable is already the lower bound
 		score[0] = -intFavorable[0] / denom; // (lower bound)
 		upperFavorable = -intFavorable[1] / denom; // (upper bound)
+		// Rcout << intFavorable[0] << " " << intFavorable[1] << " " << lastSurvC*lastSurvT << "/" << denom << endl;
       }
       
       // unfavorable
@@ -260,17 +261,20 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		intUnfavorable = calcIntegralScore_cpp(survJumpT, endpoint_C-threshold, lastSurvC, lastSurvT); // -intUnfavorable is already the lower bound
 	
 		if(R_IsNA(survTimeC(4))==false){
-		  score[1] = 1.0 - survTimeT(4)/survTimeC(5) - intUnfavorable[0] / denom; // (lower bound)
-		  upperUnfavorable = 1.0 - survTimeT(4)/survTimeC(5) - intUnfavorable[1] / denom; // (upper bound)
+		  score[1] = 1.0 - survTimeC(4)/survTimeT(5) - intUnfavorable[0] / denom; // (lower bound)
+		  upperUnfavorable = 1.0 - survTimeC(4)/survTimeT(5) - intUnfavorable[1] / denom; // (upper bound)
+		  // Rcout << intUnfavorable[0] << " " << intUnfavorable[1] << " " << survTimeC(4)/survTimeT(5) << "/" << denom << endl;
 		}else{
-		  score[1] = 1.0 - lastSurvT/survTimeC(5) - intUnfavorable[0] / denom; // (lower bound)
+		  score[1] = 1.0 - lastSurvT/survTimeT(5) - intUnfavorable[0] / denom; // (lower bound)
 		  upperUnfavorable = 1.0 - intUnfavorable[1] / denom; // (upper bound)
 		}
+		
 
       }else{
 		intUnfavorable = calcIntegralScore_cpp(survJumpT, endpoint_T, lastSurvC, lastSurvT); // -intUnfavorable is already the lower bound
 		score[1]= -intUnfavorable[0] / denom; // (lower bound)
 		upperUnfavorable = -intUnfavorable[1] / denom;  // (upper bound)
+		// Rcout << intUnfavorable[0] << " " << intUnfavorable[1] << " " << lastSurvC*lastSurvT << "/" << denom << endl;
       }
       
     }}

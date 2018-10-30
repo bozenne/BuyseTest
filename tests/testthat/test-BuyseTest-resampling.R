@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: okt 19 2018 (17:55) 
+## last-updated: okt 30 2018 (16:19) 
 ##           By: Brice Ozenne
-##     Update #: 92
+##     Update #: 93
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -23,7 +23,7 @@ if(FALSE){
 
 
 ## * settings
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,                  
                   trace = 0)
 n.patients <- 100

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt 16 2018 (21:41) 
+## Last-Updated: okt 30 2018 (16:28) 
 ##           By: Brice Ozenne
-##     Update #: 93
+##     Update #: 96
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ if(FALSE){
 context("Check that method.tte = corrected  in BuyseTest is working correctly \n")
 
 ## * settings
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
@@ -123,8 +123,8 @@ test_that("1 TTE endpoint - Peron (no correction)", {
     ## summary(Peron, percentage = FALSE)
     expect_equal(as.double(Peron@count.favorable), c(10,0))
     expect_equal(as.double(Peron@count.unfavorable), c(2,0))
-    expect_equal(as.double(Peron@count.neutral), c(3,4))
-    expect_equal(as.double(Peron@count.uninf), c(1,0))
+    expect_equal(as.double(Peron@count.neutral), c(1,4))
+    expect_equal(as.double(Peron@count.uninf), c(3,0))
 
     iScore <- copy(getPairScore(Peron, endpoint = 1, strata = 1))
     iScoreS <- iScore[,.(n = .N, favorable = sum(favorable), unfavorable = sum(unfavorable))]

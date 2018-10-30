@@ -275,7 +275,7 @@ BuyseTest <- function(formula,
                                         strata = outArgs$strata,
                                         treatment = outArgs$treatment,
                                         copy = TRUE)
-    
+
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed","outSurv")
@@ -374,6 +374,19 @@ BuyseTest <- function(formula,
     method.tte <- c("Gehan","Peron")[outArgs$method.tte+1]
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
 
+    if(option$check){
+        vec.nPair <- sapply(1:length(outArgs$level.strata), function(iStrata){            
+            iN.C <- length(intersect(outArgs$index.C, outArgs$index.strata[[iStrata]]))
+            iN.T <- length(intersect(outArgs$index.T, outArgs$index.strata[[iStrata]]))
+            return(iN.C*iN.T)
+        })
+        if(any(abs(outPoint$n_pairs - vec.nPair) > 0.01)){
+            warning("Incorrect estimation of the number of pairs \n",
+                    "Something probably went wrong - contact the package maintainer\n")
+        }
+    }
+    
+ 
     BuyseRes.object <- BuyseRes(
         count.favorable = outPoint$count_favorable,      
         count.unfavorable = outPoint$count_unfavorable,

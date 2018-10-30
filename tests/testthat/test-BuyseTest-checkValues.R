@@ -7,7 +7,7 @@ context("Check BuyseTest without strata")
 
 ## * Settings
 n.patients <- c(90,100)
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
@@ -256,8 +256,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
         }else if(method == "Peron"){
             GS <- list(favorable = c(2443.46245011, 1988.35190003, 825.36704825) ,
                        unfavorable = c(1395.18398457, 1845.87475171, 310.74049374) ,
-                       neutral = c(5161.35356532, 1303.03523326, 188.63749106) ,
-                       uninf = c(0, 24.09168032, 2.38188053) ,
+                       neutral = c(5161.35356532, 1000.31578572, 118.00747754) ,
+                       uninf = c(0, 326.81112786, 73.01189405) ,
                        netChange = c(0.11647539, 0.13230618, 0.18948691) ,
                        winRatio = c(1.751355, 1.36739711, 1.48014599) )
         }
