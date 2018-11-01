@@ -339,10 +339,10 @@ BuyseTest <- function(formula,
                 warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
                         "Standard errors / confidence intervals / p-values should not be trusted \n")
             }
-            
+
             outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore,
                                                  count.favorable = outPoint$count_favorable, count.unfavorable = outPoint$count_unfavorable,
-                                                 n.pairs = outPoint$n_pairs, n.C = length(envirBT$indexC), n.T = length(envirBT$indexC),                                
+                                                 n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                
                                                  n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)$Sigma
 
             outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
