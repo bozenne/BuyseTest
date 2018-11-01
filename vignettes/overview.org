@@ -1017,7 +1017,7 @@ tpsBin
 
 #+RESULTS:
 : utilisateur     système      écoulé 
-:       0.882       0.150     359.050
+:       1.109       0.173     346.161
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
@@ -1029,17 +1029,17 @@ summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 
  > statistic   : net benefit
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000      0.009000     0.23128 0.19946          0.136
-2:  50  50         1000   1000      0.002960     0.10010 0.09795          0.059
-3: 100 100         1000   1000     -0.000320     0.07148 0.07001          0.058
-4: 250 250         1000   1000      0.000116     0.04421 0.04454          0.047
+1:  10  10         1000   1000     -0.003900     0.22739 0.19954          0.136
+2:  50  50         1000   1000     -0.001120     0.10328 0.09791          0.074
+3: 100 100         1000   1000     -0.000200     0.07318 0.06998          0.059
+4: 250 250         1000   1000     -0.000548     0.04596 0.04454          0.054
 
  > statistic   : win ratio
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10          999    999         1.792      2.5160  1.6193        0.09529
-2:  50  50         1000   1000         1.100      0.4736  0.4406        0.05900
-3: 100 100         1000   1000         1.041      0.3040  0.2944        0.05800
-4: 250 250         1000   1000         1.016      0.1831  0.1818        0.04700
+1:  10  10         1000   1000         1.695      2.5257  1.5242        0.09869
+2:  50  50         1000   1000         1.087      0.4744  0.4354        0.07000
+3: 100 100         1000   1000         1.043      0.3086  0.2952        0.05900
+4: 250 250         1000   1000         1.015      0.1895  0.1816        0.05400
 #+end_example
 
 ** Continuous endpoint
@@ -1064,7 +1064,7 @@ tpsCont
 
 #+RESULTS:
 : utilisateur     système      écoulé 
-:       1.172       0.217     437.153
+:       1.010       0.231     384.328
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eCont.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
@@ -1076,17 +1076,17 @@ summary(eCont.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 
  > statistic   : net benefit
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000      0.003200     0.26476 0.22887          0.154
-2:  50  50         1000   1000      0.003960     0.11893 0.11304          0.088
-3: 100 100         1000   1000      0.001225     0.08362 0.08080          0.072
-4: 250 250         1000   1000      0.001442     0.05124 0.05143          0.053
+1:  10  10         1000    999     -0.013880     0.26691 0.22852         0.1912
+2:  50  50         1000   1000     -0.003754     0.11854 0.11310         0.0900
+3: 100 100         1000   1000     -0.001770     0.08325 0.08081         0.0700
+4: 250 250         1000   1000     -0.001730     0.05096 0.05143         0.0640
 
  > statistic   : win ratio
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000         1.188      0.7760  0.5938          0.070
-2:  50  50         1000   1000         1.037      0.2515  0.2380          0.058
-3: 100 100         1000   1000         1.017      0.1722  0.1655          0.061
-4: 250 250         1000   1000         1.008      0.1036  0.1040          0.048
+1:  10  10         1000    999         1.245      3.1829  0.5734        0.07407
+2:  50  50         1000   1000         1.022      0.2524  0.2346        0.06500
+3: 100 100         1000   1000         1.011      0.1707  0.1645        0.05400
+4: 250 250         1000   1000         1.002      0.1030  0.1033        0.06200
 #+end_example
 
 ** Time to event endpoint (Gehan method)
@@ -1112,7 +1112,7 @@ tpsGehan
 
 #+RESULTS:
 : utilisateur     système      écoulé 
-:       1.369       0.199     477.120
+:       0.925       0.172     432.784
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eGehan.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
@@ -1124,17 +1124,17 @@ summary(eGehan.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 
  > statistic   : net benefit
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000    999    -0.0004700     0.15699 0.12808         0.1304
-2:  50  50         1000   1000    -0.0001364     0.06853 0.06497         0.0680
-3: 100 100         1000   1000    -0.0000684     0.04643 0.04654         0.0480
-4: 250 250         1000   1000     0.0007478     0.02898 0.02969         0.0410
+1:  10  10         1000   1000     0.0014100     0.15275 0.12904         0.1361
+2:  50  50         1000   1000    -0.0007812     0.06861 0.06516         0.0650
+3: 100 100         1000   1000     0.0017620     0.04725 0.04653         0.0610
+4: 250 250         1000   1000    -0.0001887     0.02930 0.02966         0.0520
 
  > statistic   : win ratio
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10          969    960         1.758      2.7763  1.3263          0.125
-2:  50  50         1000   1000         1.109      0.5302  0.4519          0.054
-3: 100 100         1000   1000         1.042      0.2994  0.2959          0.044
-4: 250 250         1000   1000         1.020      0.1795  0.1827          0.041
+1:  10  10          966    960         1.819      3.6536  1.3108         0.1277
+2:  50  50         1000   1000         1.097      0.5073  0.4437         0.0540
+3: 100 100         1000   1000         1.055      0.3097  0.3004         0.0560
+4: 250 250         1000   1000         1.015      0.1836  0.1818         0.0520
 #+end_example
 
 ** Time to event endpoint (Peron method)
@@ -1160,7 +1160,7 @@ tpsPeron
 
 #+RESULTS:
 : utilisateur     système      écoulé 
-:       1.161       0.229     482.821
+:       0.980       0.207     434.307
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(ePeron.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
@@ -1172,17 +1172,17 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 
  > statistic   : net benefit
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000     -0.017681     0.20758 0.17780          0.159
-2:  50  50         1000   1000     -0.003233     0.11382 0.08818          0.144
-3: 100 100         1000   1000     -0.002893     0.09407 0.06290          0.195
-4: 250 250         1000   1000     -0.001917     0.08100 0.04007          0.334
+1:  10  10         1000   1000      0.010881     0.20780 0.17861          0.168
+2:  50  50         1000   1000      0.005112     0.11430 0.08785          0.163
+3: 100 100         1000   1000      0.004685     0.09345 0.06282          0.207
+4: 250 250         1000   1000      0.004270     0.07989 0.04002          0.332
 
  > statistic   : win ratio
    n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000         1.060      0.4818 0.40423          0.111
-2:  50  50         1000   1000         1.021      0.2449 0.18721          0.127
-3: 100 100         1000   1000         1.013      0.1993 0.13183          0.188
-4: 250 250         1000   1000         1.010      0.1705 0.08355          0.330
+1:  10  10         1000   1000         1.128      0.5147 0.43279          0.100
+2:  50  50         1000   1000         1.039      0.2492 0.18977          0.146
+3: 100 100         1000   1000         1.029      0.2019 0.13369          0.187
+4: 250 250         1000   1000         1.023      0.1686 0.08445          0.331
 #+end_example
 
 * Information about the R session used for this document
@@ -1211,26 +1211,14 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] BuyseTest_1.6      testthat_2.0.0     data.table_1.11.8  Rcpp_0.12.19      
-[5] prodlim_2018.04.18 butils.base_1.1    XML_3.98-1.16      selectr_0.4-1     
-[9] devtools_1.13.6   
+[1] BuyseTest_1.6      data.table_1.11.8  Rcpp_0.12.19       prodlim_2018.04.18
 
 loaded via a namespace (and not attached):
- [1] compiler_3.5.1            pipeR_0.6.1.3             iterators_1.0.10         
- [4] base64enc_0.1-3           tools_3.5.1               digest_0.6.17            
- [7] pkgbuild_1.0.1            pkgload_1.0.0             memoise_1.1.0            
-[10] lattice_0.20-35           rlang_0.2.2               foreach_1.4.4            
-[13] Matrix_1.2-14             cli_1.0.1                 commonmark_1.6           
-[16] parallel_3.5.1            RcppArmadillo_0.9.100.5.0 withr_2.1.2              
-[19] httr_1.3.1                stringr_1.3.1             roxygen2_6.1.0.9000      
-[22] xml2_1.2.0                desc_1.2.0                stats4_3.5.1             
-[25] rprojroot_1.3-2           grid_3.5.1                R6_2.3.0                 
-[28] processx_3.2.0            pbapply_1.3-4             survival_2.42-6          
-[31] lava_1.6.3                purrr_0.2.5               callr_3.0.0              
-[34] magrittr_1.5              codetools_0.2-15          splines_3.5.1            
-[37] backports_1.1.2           ps_1.1.0                  assertthat_0.2.0         
-[40] rvest_0.3.2               KernSmooth_2.23-15        stringi_1.2.4            
-[43] doParallel_1.0.14         crayon_1.3.4              zoo_1.8-4
+ [1] codetools_0.2-15   lattice_0.20-35    foreach_1.4.4      grid_3.5.1        
+ [5] R6_2.3.0           stats4_3.5.1       magrittr_1.5       KernSmooth_2.23-15
+ [9] rlang_0.2.2        doParallel_1.0.14  testthat_2.0.0     Matrix_1.2-14     
+[13] lava_1.6.3         splines_3.5.1      iterators_1.0.10   tools_3.5.1       
+[17] survival_2.42-6    parallel_3.5.1     compiler_3.5.1
 #+end_example
 
 
