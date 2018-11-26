@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: okt  9 2018 (10:22) 
+## Last-Updated: okt 30 2018 (16:21) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ if(FALSE){
 context("Check that BuyseTest with competing risks \n")
 
 ## * settings
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)

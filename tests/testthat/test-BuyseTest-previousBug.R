@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt 19 2018 (13:22) 
+## Last-Updated: okt 30 2018 (16:37) 
 ##           By: Brice Ozenne
-##     Update #: 79
+##     Update #: 84
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ context("Check that bugs that have been reported are fixed \n")
 
 
 ## * settings
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
@@ -149,6 +149,8 @@ test_that("ordering of tied event does not affect BuyseTest", {
 
     ## number of pairs
     expect_equal(BT.all@n.pairs, prod(table(veteran$trt)), tol = 1e-5)
+    expect_equal(BT1.all@n.pairs, prod(table(veteran$trt)), tol = 1e-5)
+    expect_equal(BT2.all@n.pairs, prod(table(veteran$trt)), tol = 1e-5)
 
     ## values of the pairs
     expect_true(all(getPairScore(BT.all, endpoint = 1)[["favorable"]]>=0))
@@ -330,3 +332,17 @@ test_that("Wscheme: 6 mixed endpoint",{
     expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
 })
 
+
+## * Brice: 30/10/18 4:36 Neutral pairs with 0 threshold
+df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
+                 "event" = c(1, 1, 1, 0, 1, 0, 0, 1),
+                 "group" = c(0, 0, 0, 0, 1, 1, 1, 1),
+                 "score" = 1)
+
+test_that("1 TTE endpoint - Gehan (no correction)", {
+    Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 0),
+                       data = df, 
+                       method.tte = "Peron", correction.uninf = FALSE)
+
+    expect_equal(as.double(Peron@count.neutral),0) ## should not be any neutral pair with a threshold of 0
+})

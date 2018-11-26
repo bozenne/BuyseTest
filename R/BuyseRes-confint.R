@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt 11 2018 (12:19) 
+## Last-Updated: nov  1 2018 (10:18) 
 ##           By: Brice Ozenne
-##     Update #: 210
+##     Update #: 221
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -133,7 +133,7 @@ setMethod(f = "confint",
               count.unfavorable <- slot(object, name = paste0("count.unfavorable"))
               n.pairs <- slot(object, name = paste0("n.pairs"))
               Delta <- slot(object, name = paste0("Delta.",statistic))
-              Delta.permutation <- slot(object, name = paste0("DeltaResampling.",statistic))
+              Delta.resampling <- slot(object, name = paste0("DeltaResampling.",statistic))
               covariance <- object@covariance
               endpoint <- object@endpoint
               alpha <- 1-conf.level
@@ -165,7 +165,7 @@ setMethod(f = "confint",
 
               ## ** compute the confidence intervals
               outConfint <- do.call(method.confint, args = list(Delta = Delta,
-                                                                Delta.permutation = Delta.permutation,
+                                                                Delta.resampling = Delta.resampling,
                                                                 pc.favorable = count.favorable / n.pairs,
                                                                 pc.unfavorable = count.unfavorable / n.pairs,
                                                                 statistic = statistic,
@@ -178,7 +178,7 @@ setMethod(f = "confint",
 
               ## ** number of permutations
               if(method.inference %in%  c("permutation","stratified permutation","bootstrap","stratified bootstrap")){
-                  attr(outConfint, "n.resampling")  <- rowSums(!is.na(Delta.permutation))
+                  attr(outConfint, "n.resampling")  <- rowSums(!is.na(Delta.resampling))
               }else{
                   attr(outConfint, "n.resampling")  <- setNames(rep(as.numeric(NA), length(endpoint)), endpoint)
               }
@@ -189,13 +189,13 @@ setMethod(f = "confint",
           })
 
 ## * confint_permutation (called by confint)
-confint_permutation <- function(Delta, Delta.permutation,
+confint_permutation <- function(Delta, Delta.resampling,
                                 null, alternative, alpha,
                                 endpoint, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
-                       dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- Delta
@@ -203,20 +203,23 @@ confint_permutation <- function(Delta, Delta.permutation,
     ## ** computations
     for(iE in 1:n.endpoint){
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
+
+        ## *** standard error
+        outTable[iE,"se"] <- stats::sd(Delta.resampling[iE,], na.rm = TRUE)
         
         ## *** confidence interval
         qDelta_H0 <- switch(alternative,
-                            "two.sided" = stats::quantile(Delta.permutation[iE,], probs = c(alpha/2,1 - alpha/2),na.rm = TRUE),
-                            "less" = c(stats::quantile(Delta.permutation[iE,], probs = alpha,na.rm = TRUE), Inf),
-                            "greater" = c(-Inf,stats::quantile(Delta.permutation[iE,], probs = 1 - alpha,na.rm = TRUE))
+                            "two.sided" = stats::quantile(Delta.resampling[iE,], probs = c(alpha/2,1 - alpha/2),na.rm = TRUE),
+                            "less" = c(stats::quantile(Delta.resampling[iE,], probs = alpha,na.rm = TRUE), Inf),
+                            "greater" = c(-Inf,stats::quantile(Delta.resampling[iE,], probs = 1 - alpha,na.rm = TRUE))
                             )
         outTable[iE,c("lower.ci","upper.ci")] <- Delta[iE] + (qDelta_H0 - null)
 
         ## *** p.value
         outTable[iE,"p.value"] <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-                                         "two.sided" = mean(abs(Delta[iE] - null) < abs(Delta.permutation[iE,] - null)),
-                                         "less" = mean((Delta[iE] - null) > (Delta.permutation[iE,] - null)),
-                                         "greater" = mean((Delta[iE] - null) < (Delta.permutation[iE,] - null))
+                                         "two.sided" = mean(abs(Delta[iE] - null) < abs(Delta.resampling[iE,] - null)),
+                                         "less" = mean((Delta[iE] - null) > (Delta.resampling[iE,] - null)),
+                                         "greater" = mean((Delta[iE] - null) < (Delta.resampling[iE,] - null))
                                          )
     
     }
@@ -226,13 +229,13 @@ confint_permutation <- function(Delta, Delta.permutation,
 }
 
 ## * confint_percentileBootstrap (called by confint)
-confint_percentileBootstrap <- function(Delta, Delta.permutation,
+confint_percentileBootstrap <- function(Delta, Delta.resampling,
                                         null, alternative, alpha,
                                         endpoint, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
-                       dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- Delta
@@ -241,17 +244,20 @@ confint_percentileBootstrap <- function(Delta, Delta.permutation,
     for(iE in 1:n.endpoint){
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
 
+        ## *** standard error
+        outTable[iE,"se"] <- stats::sd(Delta.resampling[iE,], na.rm = TRUE)
+
         ## *** confidence interval
         outTable[iE,c("lower.ci","upper.ci")] <- switch(alternative,
-                                                        "two.sided" = stats::quantile(Delta.permutation[iE,], probs = c(alpha/2,1 - alpha/2),na.rm = TRUE),
-                                                        "less" = c(stats::quantile(Delta.permutation[iE,], probs = alpha,na.rm = TRUE), Inf),
-                                                        "greater" = c(-Inf,stats::quantile(Delta.permutation[iE,], probs = 1 - alpha,na.rm = TRUE))
+                                                        "two.sided" = stats::quantile(Delta.resampling[iE,], probs = c(alpha/2,1 - alpha/2),na.rm = TRUE),
+                                                        "less" = c(stats::quantile(Delta.resampling[iE,], probs = alpha,na.rm = TRUE), Inf),
+                                                        "greater" = c(-Inf,stats::quantile(Delta.resampling[iE,], probs = 1 - alpha,na.rm = TRUE))
                                                         )
         ## *** p.values
-        outTable[iE, "p.value"] <- boot2pvalue(Delta.permutation[iE,], null = null, estimate = Delta[iE],
+        outTable[iE, "p.value"] <- boot2pvalue(Delta.resampling[iE,], null = null, estimate = Delta[iE],
                                                alternative = alternative, FUN.ci = quantileCI)
-        ## quantileCI(Delta.permutation[iE,], alternative = "two.sided", p.value = 0.64, sign.estimate = 1)
-        ## quantileCI(Delta.permutation[iE,], alternative = "two.sided", p.value = 0.66, sign.estimate = 1)
+        ## quantileCI(Delta.resampling[iE,], alternative = "two.sided", p.value = 0.64, sign.estimate = 1)
+        ## quantileCI(Delta.resampling[iE,], alternative = "two.sided", p.value = 0.66, sign.estimate = 1)
 
     }
 
@@ -261,13 +267,13 @@ confint_percentileBootstrap <- function(Delta, Delta.permutation,
 
 
 ## * confint_gaussianBootstrap (called by confint)
-confint_gaussianBootstrap <- function(Delta, Delta.permutation,
+confint_gaussianBootstrap <- function(Delta, Delta.resampling,
                                       null, alternative, alpha,
                                       endpoint, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 4,
-                       dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- Delta
@@ -277,7 +283,8 @@ confint_gaussianBootstrap <- function(Delta, Delta.permutation,
         if(is.infinite(Delta[iE]) || is.na(Delta[iE])){next} ## do not compute CI or p-value when the estimate has not been identified
         
         ## *** standard error
-        iSE <- stats::sd(Delta.permutation[iE,], na.rm = TRUE)
+        iSE <- stats::sd(Delta.resampling[iE,], na.rm = TRUE)
+        outTable[iE,"se"] <- iSE
         
         ## *** confidence interval
         outTable[iE,c("lower.ci","upper.ci")] <- switch(alternative,

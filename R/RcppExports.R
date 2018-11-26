@@ -47,10 +47,12 @@ GPC_cpp <- function(endpoint, censoring, indexC, indexT, threshold, method, D, n
 #' the survival in the other arm at times plus threshold in the second column,
 #' and the jump in survival in the third column.
 #' @param start [numeric] Time at which to start the integral.
+#' @param lastSurv [numeric,>0] last survival value for the survival function in the second column.
+#' @param lastdSurv [numeric,>0] last survival value for the survival function in the third column.
 #'
 #' @keywords function Cpp internal
 #' @export
-calcIntegralScore_cpp <- function(survival, start) {
-    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start)
+calcIntegralScore_cpp <- function(survival, start, lastSurv, lastdSurv) {
+    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start, lastSurv, lastdSurv)
 }
 

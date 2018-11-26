@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: okt 14 2018 (21:21) 
+## Last-Updated: okt 30 2018 (16:33) 
 ##           By: Brice Ozenne
-##     Update #: 147
+##     Update #: 151
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ if(FALSE){
 context("Check BuyseTest on simple examples")
 
 ## * settings
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)
@@ -533,6 +533,35 @@ test_that("2 pairs - Peron - correction",{
     expect_equal(as.double(BT@delta.winRatio),0)
     expect_equal(as.double(BT@Delta.winRatio),0)
   
+})
+
+## ** Predictible events
+## all events in the group 1 will happen at time 10
+## all events in the group 0 will happen before time 2
+## so only in favor of group 1
+M.all <- rbind(c(time = 1, status = 1, trt = 0), 
+               c(time = 1, status = 1, trt = 0), 
+               c(time = 1, status = 1, trt = 0),
+               c(time = 1, status = 0, trt = 0), ## obs 1 pair 1
+               c(time = 2, status = 1, trt = 0),
+               c(time = 2, status = 1, trt = 0),
+               c(time = 1, status = 0, trt = 1),  ## obs 2 pair 1
+               c(time = 10, status = 1, trt = 1))
+df.all <- as.data.frame(M.all)
+
+## plot(prodlim(Hist(time, status) ~ trt, data = df.all))
+
+test_that("Peron - predictible events",{
+    df.all$trt <- abs(df.all$trt)
+    BT <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = status), data = df.all,
+                    method.tte="Peron", correction.uninf = FALSE)
+    expect_equal(as.double(BT@Delta.netBenefit),1)
+
+    df.all$trt <- -abs(df.all$trt)
+    BT <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = status), data = df.all,
+                    method.tte="Peron", correction.uninf = FALSE)
+    expect_equal(as.double(BT@Delta.netBenefit),-1)
+
 })
 
 ##----------------------------------------------------------------------

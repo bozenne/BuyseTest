@@ -4,7 +4,7 @@
 \alias{calcIntegralScore_cpp}
 \title{C++ Function Computing the Integral Terms for the Peron Method.}
 \usage{
-calcIntegralScore_cpp(survival, start)
+calcIntegralScore_cpp(survival, start, lastSurv, lastdSurv)
 }
 \arguments{
 \item{survival}{[matrix] Contains the jump times in the first column,
@@ -12,6 +12,10 @@ the survival in the other arm at times plus threshold in the second column,
 and the jump in survival in the third column.}
 
 \item{start}{[numeric] Time at which to start the integral.}
+
+\item{lastSurv}{[numeric,>0] last survival value for the survival function in the second column.}
+
+\item{lastdSurv}{[numeric,>0] last survival value for the survival function in the third column.}
 }
 \description{
 Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: sep 10 2018 (10:50) 
+## Last-Updated: okt 30 2018 (16:21) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,7 +24,7 @@ context("Check that the option operator in BuyseTest is working correctly \n")
 
 
 ## * settings
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
                   trace = 0)

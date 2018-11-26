@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: okt 16 2018 (23:00) 
+## Last-Updated: okt 30 2018 (16:21) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 46
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,7 @@ context("Check tableComparison matches the summary of BuyseTest objects")
 
 ## * Settings
 n.patients <- c(90,100)
-BuyseTest.options(check = FALSE,
+BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   keep.survival = TRUE,
                   method.inference = "none",
