@@ -1,6 +1,3 @@
-
-* TODO for Peron avoid duplicate calculation of pFavorable and pUnfavorable
-* TODO only use weights when method = Peron or correction = TRUE
 * TODO Article JSS
 
 

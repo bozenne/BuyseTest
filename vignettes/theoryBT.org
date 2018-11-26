@@ -1,18 +1,16 @@
-#+TITLE: Explicit formula for the net benefit
-#+Author: Brice Ozenne, Julien Péron
+#+TITLE: Theory supporting the net benefit and Peron's scoring rules
+#+Author: Brice Ozenne
+#+LaTeX_HEADER: %\VignetteIndexEntry{theory}
+#+LaTeX_HEADER: %\VignetteEngine{R.rsp::tex}
+#+LaTeX_HEADER: %\VignetteKeyword{R}
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+options(width = 90)
+#+END_SRC
 
-
-\clearpage
-
-* Parameter of interest
-
-Let consider two independent real valued random variables \(X\) and \(Y\).
-We are interested in:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Delta = \Prob[Y>X] - \Prob[X>Y]
-\end{align*}
-#+END_EXPORT
+This document describe the relationship between the net benefit and
+traditional parameter of interest (e.g. hazard ratio). It also present
+how Peron's scoring rules for the survival and competing setting were
+derived.
 
 \bigskip
 
@@ -30,31 +28,60 @@ library(riskRegression)
 library(survival)
 #+END_SRC
 
+\tableofcontents
+
+\clearpage
+
+* Parameter of interest
+
+Let consider two independent real valued (univariate) random variables
+\(X\) and \(Y\). Informally \(X\) refer to the outcome in the
+treatment group while \(Y\) refer to the outcome in the treatment
+group. For a given threshold \(\tau \in \Real^{+*}\), the net benefit
+can be expressed as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_\tau = \Prob[X \geq Y+\tau] - \Prob[Y \geq Y+\tau]
+\end{align*}
+#+END_EXPORT
+To relate the net benefit to known quantities we will also consider
+the case of an infinitesimal threshold \(\tau\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_+ = \Prob[X > Y] - \Prob[Y > X]
+\end{align*}
+#+END_EXPORT
+In any case, \(X\) and \(Y\) play a symetric role, in the sense that
+given a formula for \(\Prob[X \geq Y+\tau]\) (or \(\Prob[X >
+Y+\tau]\)), we can substitute \(X\) to \(Y\) and \(Y\) to \(X\) to
+obtain the formula for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y >
+X+\tau]\)).
+
 \clearpage
 
 * Binary variable
-** Relationship between \(\Delta\) and the prevalence
+** Relationship between \(\Delta_+\) and the prevalence
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[Y>X] = \Prob[Y=1,X=0]
+\Prob[X>Y] = \Prob[X=1,Y=0]
 \end{align*}
 #+END_EXPORT
-Using the independence between \(Y\) and \(X\):
+Using the independence between \(X\) and \(Y\):
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[Y>X] = \Prob[Y=1]\Prob[X=0] = \Prob[Y=1](1-\Prob[X=1]) = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
+\Prob[X>Y] = \Prob[X=1]\Prob[Y=0] = \Prob[X=1](1-\Prob[Y=1]) = \Prob[X=1] - \Prob[X=1]\Prob[Y=1]
 \end{align*}
 #+END_EXPORT
 By symmetry:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[X>Y] = \Prob[X=1] - \Prob[Y=1]\Prob[X=1]
+\Prob[Y>X] = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
 \end{align*}
 #+END_EXPORT
 So 
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Delta = \Prob[Y=1] - \Prob[X=0]
+\Delta_+ = \Prob[X=1] - \Prob[Y=1]
 \end{align*}
 #+END_EXPORT
 
@@ -99,17 +126,19 @@ prob2 - prob1
 Let's consider two independent normally distributed variables with common variance:
 - \(X \sim \Gaus[\mu_X,\sigma^2]\) 
 - \(Y \sim \Gaus[\mu_Y,\sigma^2]\) 
-Denoting \(d = \frac{\mu_Y-\mu_X}{\sigma}\): 
-- \(X^* \sim \Gaus[0,1]\) 
-- \(Y^* \sim \Gaus[d,1]\) 
+Considering \(Z \sim \Gaus[d,2]\) with \(d = \frac{\mu_X-\mu_Y}{\sigma}\), we express:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[Y>X] &= \Esp \left[ \Ind[Y>X] \right] = \Esp\left[ \Ind[Y*>X*] \right] = \Esp\left[ \Ind[Z>0] \right]
+\Prob[X>Y] &= \Prob[\sigma (Y-X) >0] = \Prob[Z>0] = \Phi(\frac{d}{\sqrt{2}})
 \end{align*}
 #+END_EXPORT
-where \(Z \sim \Gaus[d,2]\) so \(\Prob[Y>X] = \Phi(\frac{d}{\sqrt{2}})\)
-
 By symmetry
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y>X] &= \Prob[Z<0] = 1-\Phi(\frac{d}{\sqrt{2}})
+\end{align*}
+#+END_EXPORT
+So
 #+BEGIN_EXPORT latex
 \begin{align*}
 \Delta = 2*\Phi(\frac{d}{\sqrt{2}})-1
@@ -162,7 +191,7 @@ For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\lambda(t) &=  \left. \frac{\Prob[t\leq T \leq t+h|T\geq t]}{h}\right|_{h \rightarrow 0^+} \\
+\lambda(t) &=  \left. \frac{\Prob[t\leq T \leq t+h \big| T\geq t]}{h}\right|_{h \rightarrow 0^+} \\
 &= \left. \frac{\Prob[t\leq T \leq t+h]}{\Prob[T\geq t]h}\right|_{h \rightarrow 0^+} \\
 &= \frac{f(t)}{1-F(t)}
 \end{align*}
@@ -171,9 +200,9 @@ probability density function \(f(x)\) we define the hazard by:
 \bigskip
 
 Let now consider two times to events following an exponential distribution:
-- \(X \sim Exp(\alpha_1)\). The corresponding hazard function is \(\lambda(t)=\alpha_1\).
-- \(Y \sim Exp(\alpha_2)\). The corresponding hazard function is \(\lambda(t)=\alpha_2\).
-So the hazad ratio is \(HR = \frac{\lambda_2}{\lambda_1}\). Note that if we use a cox model we will have:
+- \(X \sim Exp(\alpha_X)\). The corresponding hazard function is \(\lambda(t)=\alpha_X\).
+- \(Y \sim Exp(\alpha_Y)\). The corresponding hazard function is \(\lambda(t)=\alpha_Y\).
+So the hazad ratio is \(HR = \frac{\alpha_X}{\alpha_Y}\). Note that if we use a Cox model we will have:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \lambda(t) = \lambda_0(t) \exp(\beta \Ind[group])
@@ -185,71 +214,243 @@ where \(\exp(\beta)\) is the hazard ratio.
 
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[Y>X] &= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x)  \int_x^{\infty} \alpha_2 \exp(-\alpha_2 y) dy dx \\
-&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x)  [ \exp(-\alpha_2 y) ]_{\infty}^{x} dx \\
-&= \int_{0}^{\infty}\alpha_1 \exp(-\alpha_1 x) \exp(-\alpha_2 x) dx \\
-&= \frac{\alpha_1}{\alpha_1+\alpha_2} [\exp(-(\alpha_1+\alpha_2) x)]_{\infty}^{0} \\
-&= \frac{\alpha_1}{\alpha_1+\alpha_2}\\
-&= \frac{1}{1+HR}\\
+\Prob[X>Y] &= \int_{0}^{\infty} \Prob[x>Y] d\Prob[x>X] \\
+ &= \int_{0}^{\infty} \left(\int_0^{x} \alpha_Y \exp(-\alpha_Y y) dy\right) \left( \alpha_X \exp(-\alpha_X x) dx \right) \\
+ &= \int_{0}^{\infty} \left[-\exp(-\alpha_Y y) \right]_0^{x} \left( \alpha_X \exp(-\alpha_X x) dx \right) \\
+ &= \int_{0}^{\infty} \left(1-\exp(-\alpha_Y x) \right) \left( \alpha_X \exp(-\alpha_X x) dx \right) \\
+ &=  \int_{0}^{\infty} \alpha_X \left(\exp(-\alpha_X x)-\exp(-(\alpha_X+\alpha_Y) x)\right)  dx \\
+ &=  \left[\exp(-\alpha_X x)- \frac{\alpha_X}{\alpha_X+\alpha_Y} \exp(-(\alpha_X+\alpha_Y) x)\right]_{0}^{\infty} \\
+ &=  1 - \frac{\alpha_X}{\alpha_X+\alpha_Y} = \frac{\alpha_Y}{\alpha_X+\alpha_Y}\\
+ &=  \frac{1}{1+HR}
+\end{align*}
+#+END_EXPORT
+So \(\Prob[Y>X] = \frac{\alpha_X}{\alpha_Y+\alpha_X} = 1-\frac{1}{1+HR} \) and:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_+ = 2\frac{1}{1+HR}-1 = \frac{1-HR}{1+HR}
 \end{align*}
 #+END_EXPORT
 
-So:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Delta = 2\frac{1}{1+HR}-1 = \frac{1-HR}{1+HR}
-\end{align*}
-#+END_EXPORT
+\clearpage
 
 ** Scoring rule in presence of censoring
 Let's consider the following random variables:  
-- \(X\) the time to the occurrence of the event of interest in the treatment group.
-- \(C_X\) the censoring time in the treatment group.
-- \(X^* = X \wedge C_X\) the observed event time in the treatment group.
-- \(\varepsilon_X = \Ind[X \leq C_X]\) the event time indicator in the treatment group.
-- \(Y\) the time to the occurrence of the event of interest in the control group.
-- \(C_Y\) the censoring time in the control group.
-- \(Y^* = Y \wedge C_Y\) the observed event time in the control group.
-- \(\varepsilon_Y = \Ind[Y \leq C_Y]\) the event time indicator in the control group.
+- \(X\) the time to the occurrence of the event in the treatment group.
+- \(\Xobs\) the censored event time in the treatment group,
+  i.e. \(\Xobs = X \wedge C_X\) where \(C_X\) denotes the censoring time in the treatment group.
+- \(\CensT = \Ind[X \leq C_X]\) the event time indicator in the treatment group.
+- \(Y\) the time to the occurrence of the event in the treatment group.
+- \(\Yobs\) the censored event time in the control group,
+  i.e. \(\Yobs = X \wedge C_Y\) where \(C_Y\) denotes the censoring time in the control group.
+- \(\CensC = \Ind[Y \leq C_Y]\) the event time indicator in the control group.
 
-We observe one realization \(\left(x^*, y^*, e_X, e_Y \right)\) of the
-random variables \(\left(X^*, Y^*, \varepsilon_X, \varepsilon_Y
-\right)\). We use the short notation \(x \wedge y = min(x,y)\) and \(x \vee y = max(x,y)\).
+We observe one realization \(\left(\xobs, \yobs, \censT, \censC
+\right)\) of the random variables \(\left(\Xobs, \Yobs, \censT, \censC
+\right)\). We use the short notation \(x \wedge y = \min(x,y)\) and
+\(x \vee y = \max(x,y)\). We assume to know the expected survival in
+each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
-*** Case: \(e_X=0,e_Y=1\)
+*** Case: \(\SurvT=0,\SurvC=1\)
 
-*Probability in favor of the treatment*:
+\noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[x \geq y + \tau | x \geq x^*, y = y^*] 
-&= \frac{ \Prob[x \geq y^* + \tau, x \geq x^*] }{ \Prob[x \geq x^*]} \\
-&= \frac{ \Prob[x \geq max(y^* + \tau,x^*)] }{\Prob[x \geq x^*]} \\
-&= \frac{ S_X(y^* + \tau \vee x^*)}{S_X(x^*)}
+\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \Prob[X \geq \yobs + \tau \big| X>\xobs]  \\
+&= \frac{\Prob[X \geq \yobs + \tau, X>\xobs]}{\Prob[X>\xobs]}  \\
+&= \left\{ \begin{array}{ll}
+           1 \text{ if } \xobs \geq \yobs + \tau\\
+           \frac{\SurvT[(\yobs + \tau)_-]}{\SurvT[\xobs]}  \text{ if } \xobs < \yobs + \tau \\
+           \end{array} \right.
 \end{align*}
 #+END_EXPORT
 
-In the case where \(x^* < y^* + \tau\), we need an estimate of
-\(S_X(y^* + \tau)\) to compute the probability in favor of the
-treatment. If we can only have an estimate of \(S_X\) up to
-\(x_{max} < y^* + \tau\) then we can use the following inequality:
+\noindent \textcolor{darkred}{Probability in favor of the control}:
 #+BEGIN_EXPORT latex
 \begin{align*}
-S_X(y^* + \tau) &\geq 0 \\
-\Prob[x \geq y + \tau | x \geq x^*, y = y^*] &\geq 0 \\
+\Prob[Y \geq X + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \Prob[\yobs \geq X + \tau \big| X>\xobs]  \\
+&= 1-\Prob[\yobs < X + \tau \big| X>\xobs]  \\
+&= 1-\frac{\Prob[X>\max\left(\xobs,\yobs - \tau\right)]}{\Prob[X>\xobs]}  \\
+&= \left\{ \begin{array}{ll}
+           0 \text{ if } \xobs \geq \yobs - \tau\\
+           1-\frac{\SurvT[\yobs - \tau]}{\SurvT[\xobs]} \text{ if } \xobs < \yobs - \tau \\
+           \end{array} \right.
 \end{align*}
 #+END_EXPORT
 
-*Probability in favor of the control*:
 
+*** Case: \(\SurvT=1,\SurvC=0\)
+By symmetry we have: @@latex:\\@@
+\noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[y \geq x + \tau | x \geq x^*, y = y^*] 
-&= 1 - \frac{ \Prob[x \geq y^* - \tau, x \geq x^*] }{ \Prob[x \geq x^*]} \\
-&= 1 - \frac{ \Prob[x \geq max(y^* - \tau,x^*)] }{\Prob[x \geq x^*]} \\
-&= 1 - \frac{ S_X(y^* - \tau \vee x^*)}{S_X(x^*)}
+\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \left\{ \begin{array}{ll}
+           0 \text{ if } \yobs \geq \xobs - \tau\\
+           1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]} \text{ if } \yobs < \xobs - \tau\\
+           \end{array} \right.
 \end{align*}
 #+END_EXPORT
 
+\noindent \textcolor{darkred}{Probability in favor of the control}:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y \geq X + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \Prob[\yobs \geq X + \tau \big| X>\xobs]  \\
+&= \left\{ \begin{array}{ll}
+           1 \text{ if } \yobs \geq \xobs + \tau\\
+           \frac{\SurvC[(\xobs + \tau)_-]}{\SurvC[\yobs]} \text{ if } \yobs < \xobs - \tau\\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+
+
+
+*** Case: \(\SurvT=0,\SurvC=0\)
+
+\noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \Prob[X \geq Y + \tau \big| X>\xobs,  Y>\yobs]  \\
+&= \Prob[ \left( X \geq Y + \tau  \right) \cap \left( \xobs \geq Y + \tau  \right) \big| X>\xobs,  Y>\yobs]  
++ \Prob[ \left( X \geq Y + \tau  \right) \cap \left( \xobs < Y + \tau  \right) \big| X>\xobs,  Y>\yobs]  \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
++ \frac{
+\Prob[ \left( X \geq Y + \tau  \right) \cap \left( \xobs < Y + \tau  \right) \cap \left( X>\xobs \right) \cap  \left(Y>\yobs \right)]
+}{
+\Prob[\left( X>\xobs \right) \cap  \left(Y>\yobs \right)]
+}  \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
++ \frac{
+\Prob[ \left( X \geq Y + \tau  \right) \cap  \left(Y> \max(\yobs, \xobs-\tau) \right)]
+}{
+\Prob[\left( X>\xobs \right) \cap  \left(Y>\yobs \right)]
+}  
+\end{align*}
+#+END_EXPORT
+where we have used that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\left( X \geq Y + \tau \right) \cap \left( \xobs < Y + \tau \right) \implies X > \xobs
+\end{align*}
+#+END_EXPORT
+Since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[A>B] &= \int_{-\infty}^{+\infty}\Prob[A>t] d \Prob[B \leq t] \\
+\Prob[(A>B) \cap (B>b)] &= \int_{b}^{+\infty}\Prob[A>t] d \Prob[B \leq t] \\
+&= - \int_{b}^{+\infty}\Prob[A>t] d \Prob[B > t]
+\end{align*}
+#+END_EXPORT 
+we obtain:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
+- \frac{
+\int_{\max(\yobs, \xobs-\tau)^+}^{\infty} \Prob[\left( X \geq t + \tau  \right)] d \Prob[Y > t]
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
+- \frac{
+\int_{\max(\yobs, \xobs-\tau)^+}^{\infty} \SurvT(t+\tau) d \SurvC(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \\
+\end{align*}
+#+END_EXPORT
+So using the results of the case \(\SurvT=1,\SurvC=0\) we obtain:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \left\{ \begin{array}{ll}
+           - \frac{
+\int_{\yobs^+}^{\infty} \SurvT(t+\tau) d \SurvC(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \text{ if } \yobs \geq \xobs - \tau\\
+           1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]} - \frac{
+\int_{(\xobs-\tau)^+}^{\infty} \SurvT(t+\tau) d \SurvC(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+} \text{ if } \yobs < \xobs - \tau\\ \\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+\noindent \textcolor{darkred}{Probability in favor of the control}:
+By symmetry we have: @@latex:\\@@
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[Y \geq X + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \left\{ \begin{array}{ll}
+           - \frac{
+\int_{\xobs^+}^{\infty} \SurvC(t+\tau) d \SurvT(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \text{ if } \xobs \geq \yobs - \tau\\
+           1-\frac{\SurvT[\yobs - \tau]}{\SurvT[\xobs]} - \frac{
+\int_{(\yobs-\tau)^+}^{\infty} \SurvC(t+\tau) d \SurvT(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+} \text{ if } \xobs < \yobs - \tau\\ \\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+ 
+*** Synthesis
+#+BEGIN_EXPORT latex
+\textcolor{darkgreen}{Probability in favor of the treatment}: \(\Prob[X \geq Y+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
+\begin{table}[!h]
+	\centering
+	\setlength{\extrarowheight}{6mm}
+	\begin{tabular}{l@{}l@{}l|lll}
+		(&$\censT$, & $\censC$) & $\xobs \leq \yobs - \tau$ & $ |\xobs - \yobs| < \tau$ & $\xobs \geq \yobs + \tau$ \\ \hline 
+		(&1,&1) & \(0\) & \(0\) & \(1\) \\
+		(&1,&0) & \(0\) & \(0\) & $1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]}$ \\
+		(&0,&1) & $\frac{\SurvT[(\yobs+\tau)_{-}]}{\SurvT[\xobs]}$ & $\frac{\SurvT[(\yobs+\tau)_{-}]}{\SurvT[\xobs]}$ & \(1\) \\
+		(&0,&0) & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[t+\tau] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[t+\tau] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \( 1 - \frac{\SurvC[\xobs-\tau]}{\SurvC[\yobs]} - \frac{\int_{t>\xobs-\tau}^{\infty} \SurvT[t+\tau] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+\\ \hline
+	\end{tabular}
+\end{table}
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\textcolor{darkred}{Probability in favor of the control}: \(\Prob[Y \geq X+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
+
+\begin{table}[!h]
+	\centering
+	\setlength{\extrarowheight}{6mm}
+	\begin{tabular}{l@{}l@{}l|lll}
+		(&$\censT$, & $\censC$) & $\xobs \leq \yobs - \tau$ & $ |\xobs - \yobs| < \tau$ & $\xobs \geq \yobs + \tau$ \\ \hline 
+		(&1,&1) & \(1\) & \(0\) & \(0\) \\
+		(&1,&0) & \(1\) & $\frac{\SurvC[(\xobs + \tau)_{-}]}{\SurvC[\yobs]}$ & $\frac{\SurvC[(\xobs + \tau)_{-}]}{\SurvC[\yobs]}$ \\
+		(&0,&1) & $1 - \frac{\SurvT[\yobs-\tau]}{\SurvT[\xobs]}$ & \(0\) & \(0\) \\
+		(&0,&0) & \( 1 - \frac{\SurvT[\yobs-\tau]}{\SurvT[\xobs]} - \frac{\int_{t>\yobs-\tau}^{\infty} \SurvC[t+\tau] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[t+\tau] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[t+\tau] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+\\ \hline
+	\end{tabular}
+\end{table}
+
+\hfill 
+
+\textcolor{darkblue}{Probability neutral to the treatment}:  \(\Prob[|X-Y| < \tau  \big| \xobs,\yobs,\theta,\eta,S_T,S_C]\)
+
+\begin{align*}
+ = 1-\Prob[X \geq Y+\tau  \big|\xobs,\yobs,\theta,\eta,S_T,S_C]-\Prob[Y \geq X+\tau  \big| \xobs,\yobs,\theta,\eta,S_T,S_C]
+\end{align*}
+#+END_EXPORT
+
+** Partially known survival curve                                 :noexport:
 In the case where \(x^* < y^* - \tau\), we need an estimate of
 \(S_X(y^* - \tau)\) to compute the probability in favor of the
 control. If we can only have an estimate of \(S_X\) up to
@@ -305,7 +506,7 @@ in favor of the control, and neutral.
   probability becomes small when \(S_T(y^*)\) is small. The
   approximation by the lower bound becomes exact when \(S_T(y^*)\)
   tends to 0.
- 
+
 ** In R
 
 Settings:
@@ -417,40 +618,7 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \end{align*}
 #+END_EXPORT
 
-*** General case (censoring, method: Gehan)
-In case of censoring we can use an inverse probability weighting
-approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
-indicator of no censoring relative to \(\tilde{X}\) (resp \(\tilde{Y}\)), \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
-censored event time. We can use inverse probability weighting to
-compute the net benefit:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Delta^{IPW} &= \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}])\\
-&= \left\{
-                \begin{array}{ll}
-                  \frac{1}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[Y>X]-\Ind[Y<X])\text{, if no censoring}\\
-                  0\text{, if censoring}
-                \end{array}
-              \right.
-\end{align*}
-#+END_EXPORT
-
-This is equivalent to weight the informative pairs (i.e. favorable,
-unfavorable and neutral) by the inverse of the complement of the
-probability of being uninformative. This is what is done by the
-argument =correction.tte= of =BuyseTest=. This works whenever the
-censoring mechanism is independent of the event times and we have a
-consistent estimate of \(\Prob[\delta_c]\) since:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Esp[\Delta^{IPW}] &= \Esp\left[ \Esp\left[ \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}]) \Bigg| \tilde{X}, \tilde{Y} \right] \right]\\
-&= \Esp\left[\Esp\left[\frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Bigg| \tilde{X}, \tilde{Y} \right]\right] \Esp\left[\Ind[Y>X]-\Ind[Y<X]\right]\\
-&= \frac{\Esp\left[\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}} \right]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta
-= \frac{\Esp[\delta_{c,\tilde{X}}]\Esp[\delta_{c,\tilde{Y}}]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta\\
-&= \Delta
-\end{align*}
-#+END_EXPORT
-where we used the law of total expectation (first line) and the independence between the censoring mecanisms.
+\clearpage
 
 *** Exponential distribution (no censoring)
 
@@ -498,6 +666,8 @@ CIF_1(t|group = X) &= \frac{\alpha_{E,X}}{\alpha_{E,X} + \alpha_{CR,X}} \left(1 
 CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 - \exp(- (\alpha_{E,Y} + \alpha_{CR,Y}) * t_-)\right) 
 \end{align*}
 #+END_EXPORT
+
+\clearpage
 
 ** In R
 
@@ -738,33 +908,132 @@ mean((df$time<=1)*(df$event==1))
 
 
 
+\clearpage
+
+* Inverse probability weighting
+
+In case of censoring we can use an inverse probability weighting
+approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
+indicator of no censoring relative to \(\tilde{X}\) (resp \(\tilde{Y}\)), \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
+censored event time. We can use inverse probability weighting to
+compute the net benefit:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta^{IPW} &= \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}])\\
+&= \left\{
+                \begin{array}{ll}
+                  \frac{1}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[Y>X]-\Ind[Y<X])\text{, if no censoring}\\
+                  0\text{, if censoring}
+                \end{array}
+              \right.
+\end{align*}
+#+END_EXPORT
+
+This is equivalent to weight the informative pairs (i.e. favorable,
+unfavorable and neutral) by the inverse of the complement of the
+probability of being uninformative. This is what is done by the
+argument =correction.tte= of =BuyseTest=. This works whenever the
+censoring mechanism is independent of the event times and we have a
+consistent estimate of \(\Prob[\delta_c]\) since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Esp[\Delta^{IPW}] &= \Esp\left[ \Esp\left[ \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}]) \Bigg| \tilde{X}, \tilde{Y} \right] \right]\\
+&= \Esp\left[\Esp\left[\frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Bigg| \tilde{X}, \tilde{Y} \right]\right] \Esp\left[\Ind[Y>X]-\Ind[Y<X]\right]\\
+&= \frac{\Esp\left[\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}} \right]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta
+= \frac{\Esp[\delta_{c,\tilde{X}}]\Esp[\delta_{c,\tilde{Y}}]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta\\
+&= \Delta
+\end{align*}
+#+END_EXPORT
+where we used the law of total expectation (first line) and the independence between the censoring mecanisms.
+
+\clearpage
+
+* Information about the R session used for this document
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+sessionInfo()
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 16.04.5 LTS
+
+Matrix products: default
+BLAS: /usr/lib/libblas/libblas.so.3.6.0
+LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
+
+locale:
+ [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8       
+ [4] LC_COLLATE=fr_FR.UTF-8     LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8   
+ [7] LC_PAPER=da_DK.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] BuyseTest_1.6      data.table_1.11.8  Rcpp_0.12.19       prodlim_2018.04.18
+
+loaded via a namespace (and not attached):
+ [1] codetools_0.2-15   lattice_0.20-35    foreach_1.4.4      grid_3.5.1        
+ [5] R6_2.3.0           stats4_3.5.1       magrittr_1.5       KernSmooth_2.23-15
+ [9] rlang_0.2.2        doParallel_1.0.14  testthat_2.0.0     Matrix_1.2-14     
+[13] lava_1.6.3         splines_3.5.1      iterators_1.0.10   tools_3.5.1       
+[17] survival_2.42-6    parallel_3.5.1     compiler_3.5.1
+#+end_example
+
+
+
 * CONFIG :noexport:
-# #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}
 #+LANGUAGE:  en
 #+LaTeX_CLASS: org-article
-#+OPTIONS:   title:t author:t toc:t todo:nil
+#+LaTeX_CLASS_OPTIONS: [12pt]
+#+OPTIONS:   title:t author:t toc:nil todo:nil
 #+OPTIONS:   H:3 num:t 
 #+OPTIONS:   TeX:t LaTeX:t
+#+PROPERTY: tangle yes
 
 ** Code
 #+PROPERTY: header-args :session *R*
 #+PROPERTY: header-args :tange yes % extract source code: http://orgmode.org/manual/Extracting-source-code.html
-#+PROPERTY: header-args :cache no
+#+PROPERTY: header-args :cache no 
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
 
 ** Display 
+#+LaTeX_HEADER: \geometry{a4paper, left=15mm, right=15mm}
+
 #+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
 #+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
-#+LaTeX_HEADER:\usepackage{authblk} % enable several affiliations (clash with beamer)
+#+LaTeX_HEADER: \usepackage{authblk} % enable several affiliations (clash with beamer)
+#+LaTeX_HEADER: \renewcommand{\baselinestretch}{1.1}
+#+LATEX_HEADER: \geometry{top=1cm}
+
+#+LaTeX_HEADER: \definecolor{darkgreen}{RGB}{0,125,0}
+#+LaTeX_HEADER: \definecolor{darkred}{RGB}{125,0,0}
+#+LaTeX_HEADER: \definecolor{darkblue}{RGB}{0,0,125}
+
+
+** List
+#+LaTeX_HEADER: \usepackage{enumitem}
+
+** Notations
+#+LATEX_HEADER: \RequirePackage{xspace} % 
+#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
+#+LATEX_HEADER: \newcommand\Xobs{\tilde{X}}
+#+LATEX_HEADER: \newcommand\Yobs{\tilde{Y}}
+#+LATEX_HEADER: \newcommand\xobs{\tilde{x}}
+#+LATEX_HEADER: \newcommand\yobs{\tilde{y}}
+#+LATEX_HEADER: \newcommand\CensT{\varepsilon_X}
+#+LATEX_HEADER: \newcommand\CensC{\varepsilon_Y}
+#+LATEX_HEADER: \newcommand\censT{e_X}
+#+LATEX_HEADER: \newcommand\censC{e_Y}
 
 ** Image
 #+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
 
-** Latex command
-#+LaTeX_HEADER: %
-#+LaTeX_HEADER: %%%% additional latex commands %%%%
-#+LaTeX_HEADER: %
 
 ** Algorithm
 #+LATEX_HEADER: \RequirePackage{amsmath}
@@ -823,6 +1092,9 @@ mean((df$time<=1)*(df$event==1))
 #+LATEX_HEADER: \newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+
+#+LATEX_HEADER: \newcommandx\SurvT[1][1=]{\defOperator{#1}{}{S_T}{}{(}{)}{}}
+#+LATEX_HEADER: \newcommandx\SurvC[1][1=]{\defOperator{#1}{}{S_C}{}{(}{)}{}}
 
 **** Operators
 #+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
