@@ -32,7 +32,7 @@ library(survival)
 
 \clearpage
 
-* Parameter of interest
+* Parameter of interest :noexport:
 
 Let consider two independent real valued (univariate) random variables
 \(X\) and \(Y\). Informally \(X\) refer to the outcome in the
@@ -59,7 +59,7 @@ X+\tau]\)).
 
 \clearpage
 
-* Binary variable
+* Binary variable  :noexport:
 ** Relationship between \(\Delta_+\) and the prevalence
 #+BEGIN_EXPORT latex
 \begin{align*}
@@ -121,7 +121,7 @@ prob2 - prob1
 
 \clearpage
 
-* Continuous variable
+* Continuous variable  :noexport:
 ** Relationship between \(\Delta\) and Cohen's d
 Let's consider two independent normally distributed variables with common variance:
 - \(X \sim \Gaus[\mu_X,\sigma^2]\) 
@@ -185,7 +185,7 @@ d <- (meanY-meanX)/sdXY
 
 \clearpage
 
-* Survival
+* Survival  :noexport:
 ** Relationship between \(\Delta\) and the hazard ratio
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
@@ -319,7 +319,7 @@ By symmetry we have: @@latex:\\@@
 + \Prob[ \left( X \geq Y + \tau  \right) \cap \left( \xobs < Y + \tau  \right) \big| X>\xobs,  Y>\yobs]  \\
 &= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
 + \frac{
-\Prob[ \left( X \geq Y + \tau  \right) \cap \left( \xobs < Y + \tau  \right) \cap \left( X>\xobs \right) \cap  \left(Y>\yobs \right)]
+\Prob \left[ \left( X \geq Y + \tau  \right) \cap \left( \xobs < Y + \tau  \right) \cap \Ccancel[red]{\left( X>\xobs \right)} \cap  \left(Y>\yobs \right) \right]
 }{
 \Prob[\left( X>\xobs \right) \cap  \left(Y>\yobs \right)]
 }  \\
@@ -341,11 +341,11 @@ Since:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \Prob[A>B] &= \int_{-\infty}^{+\infty}\Prob[A>t] d \Prob[B \leq t] \\
-\Prob[(A>B) \cap (B>b)] &= \int_{b}^{+\infty}\Prob[A>t] d \Prob[B \leq t] \\
-&= - \int_{b}^{+\infty}\Prob[A>t] d \Prob[B > t]
+\Prob[(A>B+\tau) \cap (B>b)] &= \int_{b^+}^{+\infty}\Prob[A>t+\tau] d \Prob[B \leq t] \\
+&= - \int_{b^+}^{+\infty}\Prob[A>t+\tau] d \Prob[B > t]
 \end{align*}
 #+END_EXPORT 
-we obtain:
+we obtain for \(A=X\), \(B=Y\),\(b=\max(\yobs, \xobs-\tau)\):
 #+BEGIN_EXPORT latex
 \begin{align*}
 &\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
@@ -357,7 +357,7 @@ we obtain:
 }  \\
 &= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
 - \frac{
-\int_{\max(\yobs, \xobs-\tau)^+}^{\infty} \SurvT(t+\tau) d \SurvC(t)
+\int_{\max(\yobs, \xobs-\tau)^+}^{\infty} \SurvT((t+\tau)_{-}) d \SurvC(t)
 }{
 \SurvT[\xobs]\SurvC[\yobs]
 }  \\
@@ -369,12 +369,12 @@ So using the results of the case \(\SurvT=1,\SurvC=0\) we obtain:
 &\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
 &= \left\{ \begin{array}{ll}
            - \frac{
-\int_{\yobs^+}^{\infty} \SurvT(t+\tau) d \SurvC(t)
+\int_{\yobs^+}^{\infty} \SurvT((t+\tau)_-) d \SurvC(t)
 }{
 \SurvT[\xobs]\SurvC[\yobs]
 }  \text{ if } \yobs \geq \xobs - \tau\\
            1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]} - \frac{
-\int_{(\xobs-\tau)^+}^{\infty} \SurvT(t+\tau) d \SurvC(t)
+\int_{(\xobs-\tau)^+}^{\infty} \SurvT((t+\tau)_-) d \SurvC(t)
 }{
 \SurvT[\xobs]\SurvC[\yobs]
 } \text{ if } \yobs < \xobs - \tau\\ \\
@@ -389,12 +389,12 @@ By symmetry we have: @@latex:\\@@
 &\Prob[Y \geq X + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
 &= \left\{ \begin{array}{ll}
            - \frac{
-\int_{\xobs^+}^{\infty} \SurvC(t+\tau) d \SurvT(t)
+\int_{\xobs^+}^{\infty} \SurvC((t+\tau)_-) d \SurvT(t)
 }{
 \SurvT[\xobs]\SurvC[\yobs]
 }  \text{ if } \xobs \geq \yobs - \tau\\
            1-\frac{\SurvT[\yobs - \tau]}{\SurvT[\xobs]} - \frac{
-\int_{(\yobs-\tau)^+}^{\infty} \SurvC(t+\tau) d \SurvT(t)
+\int_{(\yobs-\tau)^+}^{\infty} \SurvC((t+\tau)_-) d \SurvT(t)
 }{
 \SurvT[\xobs]\SurvC[\yobs]
 } \text{ if } \xobs < \yobs - \tau\\ \\
@@ -404,6 +404,7 @@ By symmetry we have: @@latex:\\@@
 
 \clearpage
  
+
 *** Synthesis
 #+BEGIN_EXPORT latex
 \textcolor{darkgreen}{Probability in favor of the treatment}: \(\Prob[X \geq Y+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
@@ -415,9 +416,9 @@ By symmetry we have: @@latex:\\@@
 		(&1,&1) & \(0\) & \(0\) & \(1\) \\
 		(&1,&0) & \(0\) & \(0\) & $1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]}$ \\
 		(&0,&1) & $\frac{\SurvT[(\yobs+\tau)_{-}]}{\SurvT[\xobs]}$ & $\frac{\SurvT[(\yobs+\tau)_{-}]}{\SurvT[\xobs]}$ & \(1\) \\
-		(&0,&0) & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[t+\tau] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
-              & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[t+\tau] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
-              & \( 1 - \frac{\SurvC[\xobs-\tau]}{\SurvC[\yobs]} - \frac{\int_{t>\xobs-\tau}^{\infty} \SurvT[t+\tau] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+		(&0,&0) & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[(t+\tau)_{-}] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[(t+\tau)_{-}] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \( 1 - \frac{\SurvC[\xobs-\tau]}{\SurvC[\yobs]} - \frac{\int_{t>\xobs-\tau}^{\infty} \SurvT[(t+\tau)_{-}] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
 \\ \hline
 	\end{tabular}
 \end{table}
@@ -434,9 +435,9 @@ By symmetry we have: @@latex:\\@@
 		(&1,&1) & \(1\) & \(0\) & \(0\) \\
 		(&1,&0) & \(1\) & $\frac{\SurvC[(\xobs + \tau)_{-}]}{\SurvC[\yobs]}$ & $\frac{\SurvC[(\xobs + \tau)_{-}]}{\SurvC[\yobs]}$ \\
 		(&0,&1) & $1 - \frac{\SurvT[\yobs-\tau]}{\SurvT[\xobs]}$ & \(0\) & \(0\) \\
-		(&0,&0) & \( 1 - \frac{\SurvT[\yobs-\tau]}{\SurvT[\xobs]} - \frac{\int_{t>\yobs-\tau}^{\infty} \SurvC[t+\tau] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
-              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[t+\tau] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
-              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[t+\tau] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+		(&0,&0) & \( 1 - \frac{\SurvT[\yobs-\tau]}{\SurvT[\xobs]} - \frac{\int_{t>\yobs-\tau}^{\infty} \SurvC[(t+\tau)_{-}] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[(t+\tau)_{-}] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[(t+\tau)_{-}] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
 \\ \hline
 	\end{tabular}
 \end{table}
@@ -449,6 +450,8 @@ By symmetry we have: @@latex:\\@@
  = 1-\Prob[X \geq Y+\tau  \big|\xobs,\yobs,\theta,\eta,S_T,S_C]-\Prob[Y \geq X+\tau  \big| \xobs,\yobs,\theta,\eta,S_T,S_C]
 \end{align*}
 #+END_EXPORT
+
+\clearpage
 
 ** Partially known survival curve                                 :noexport:
 In the case where \(x^* < y^* - \tau\), we need an estimate of
@@ -551,7 +554,7 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 
 \clearpage
 
-* Competing risks
+* Competing risks  :noexport:
 
 ** Theory
 
@@ -910,7 +913,7 @@ mean((df$time<=1)*(df$event==1))
 
 \clearpage
 
-* Inverse probability weighting
+* Inverse probability weighting  :noexport:
 
 In case of censoring we can use an inverse probability weighting
 approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
@@ -948,7 +951,230 @@ where we used the law of total expectation (first line) and the independence bet
 
 \clearpage
 
-* Information about the R session used for this document
+* Asymptotic distribution                        :noexport:
+
+\clearpage
+
+* References
+#+LaTeX: \begingroup
+#+LaTeX: \renewcommand{\section}[2]{}
+bibliographystyle:apalike
+[[bibliography:bibliography.bib]]
+# help: https://gking.harvard.edu/files/natnotes2.pdf
+#+LaTeX: \endgroup
+
+\clearpage
+
+\appendix
+
+* Recall on the U-statistic theory
+
+This recall is based on chapter 1 of cite:lee1990u.
+
+** Motivating example
+
+We will illustrate basic results on U-statistics with the following
+motivating question: "what is the asymptotic distribution of the
+empirical variance estimator?". For a more concrete example, imagine
+that we want to provide an estimate with its 95% confidence interval
+for the variability in cholesterol measurements. We assume that we are
+able to collect a sample of \(n\) independent and identically
+distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
+variable cholesterol, denoted \(X\). We ignore any measurement error.
+
+** Estimate, estimator, and functionnal
+
+We can compute an *estimate* \(s\) of the variance using the following
+*estimators* \(f_m\) and \(f_s\):
+#+BEGIN_EXPORT latex
+\begin{align}
+m &= f_m(x_1,\ldots,x_n) = \frac{1}{n} \sum_{i=1}^n x_i \label{eq:m(F)} \\
+s &= f_s(x_1,\ldots,x_n) = \frac{1}{n-1} \sum_{i=1}^n (x_i-m)^2 \label{eq:s(F)}
+\end{align}
+#+END_EXPORT
+Given a dataset \(s\) is a deterministic (not random) quantity,
+e.g. if we observe:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+x <- c(1,3,5,2,1,3)
+#+END_SRC
+
+#+RESULTS:
+
+then \(s\) equals:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+m <- mean(x)
+s <- var(x)
+s
+#+END_SRC
+
+#+RESULTS:
+: [1] 2.3
+
+But in general the value of \(s\) depends on the dataset. \(s\) is
+like a function \(f_n\) that takes as argument some data and output a
+quantity of interest. This is often refer to as a *functionnal*,
+e.g. \(S=f_n(x_1,\ldots,x_n)\). Here we use the upper case \(S\) to
+emphasise that it is a random quantity: for each new realisation
+\((x_1,\ldots,x_n)\) of \(X\) corresponds a realisation for \(S\)
+i.e. a possibly different value for the variance. If mechanism
+generating the data has cumulative distribution function \(F\) then we
+can also define the true value as \(\mu=f(F)=lim\). Because \(S\) and \(f\) are very close
+quantities we will not distinguish them in the notation, i.e. write
+\(S=S(F)\). This corresponds to formula (1) in cite:lee1990u. To be
+more precise we can explicit what is \(S(F)\):
+#+BEGIN_EXPORT latex
+\begin{align}
+M(F) &= \int_{-\infty}^{+\infty} x dF(x) \label{eq:M(F)}\\
+S(F) &= \int_{-\infty}^{+\infty} (x - M(F))^2 dF(x) \label{eq:S(F)}
+\end{align}
+#+END_EXPORT
+
+When we observe a sample, we use it to plug-in formula eqref:eq:M(F)
+and eqref:eq:S(F) an approximation \(\hat{F}\) of \(F\). Usually our
+best guess for \(F\) is \(\hat{F}(x)= \frac{1}{n}\sum_{i=1}^n
+\Ind[x \leq x_i]\) where \(\Ind[.]\) is the indicator function taking value
+1 if \(.\) is true and 0 otherwise. One can check that when plug-in
+\(\hat{F}\) formula eqref:eq:M(F) and eqref:eq:S(F) becomes formula
+eqref:eq:m(F) and eqref:eq:s(F).
+
+\bigskip
+
+To summarize:
+- an estimator is a random variable whose realisation depends on the
+  data. It realization is called estimate.
+- an estimate is a deterministic value that we obtain using the
+  observed data (e.g. variability is 2.3)
+- a functionnal (of an estimator) is the rule by which an estimator
+  transform the data into an estimate.
+
+** Aim
+
+Using formula eqref:eq:m(F) and eqref:eq:s(F) we can easily estimate
+the variance based on the observed realisations of \(X\) (i.e. the
+data). However how can we get an confidence interval? What we want is
+to quantify the incertainty associated with the estimator, i.e. how
+the value output by the functionnal is sensitive to a change in the
+dataset. To do so, since the estimator \(S\) is a random variable, we
+can try to characterize its distribution. This is in general
+difficult. It is much easier to look at the distribution of the
+estimator \(S\) if we would have an infinite sample size. This is what
+we will do, and rely on similations to see how things go in finite
+sample size. As we will see, the asymptotic distribution of the
+variance is a Gaussian distribution with a variance that we can estimate:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+n <- length(x)
+k <- mean((x-m)^4)
+var_s <- k/n - ((n-3)*s^2)/(n*(n-1))
+var_s
+#+END_SRC 
+
+#+RESULTS:
+: [1] 0.8425278
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+## chekc with lava
+library(lava)
+estimate(lvm(x~1), data = data.frame(x = x))
+sqrt((2*mean((x-m)^2)^2)/(n))
+#+END_SRC
+
+#+RESULTS:
+:                     Estimate Std. Error Z-value   P-value
+: Intercepts:                                              
+:    x                 2.50000    0.56519 4.42326 9.722e-06
+: Residual Variances:                                      
+:    x                 1.91667    1.10659 1.73205
+: [1] 1.106588
+
+So we obtain a 95% confidence intervals for the variance doing:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+c(estimate = s, 
+  lower = s + qnorm(0.025) * sqrt(var_s),
+  upper = s + qnorm(0.975) * sqrt(var_s))
+#+END_SRC
+
+#+RESULTS:
+:  estimate     lower     upper 
+: 2.3000000 0.5009625 4.0990375
+
+We can see that it is not a very good confidence interval since it
+symmetric - we know that the variance is positive so it should extend
+more on the right side. But this only problematic in small sample
+sizes. In large enough sample sizes the confidence interval will be
+correct and we focus on this case.
+
+\clearpage
+
+In summary, we would like:
+- to show that our estimator \(S\) is asymptotically normally distributed.
+- to have a formula for computing the asymptotic variance
+
+\bigskip
+
+Note: we can already guess that the estimator \(S\) (as most
+estimators) will be asymptotically distributed because it can be
+expressed as a average (see formula eqref:eq:s(F)). If we would know
+the mean of \(X\), then the terms \(x_i-m\) are iid so the
+asymptotically normality of \(S\) follows from the central limit
+theorem. It does not give us a formula for the asymptotic variance
+though. To get that we will use results from the theory of the U-statistics.
+
+** Definition of a U-statistic and examples
+
+A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
+form:
+#+BEGIN_EXPORT latex
+\begin{align*}
+U_n = \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_r) \in \beta} h \left(X_{\beta_1},\ldots,X_{\beta_k} \right)
+\end{align*}
+#+END_EXPORT
+where \(beta\) is the set of all possible permutations between \(r\)
+integers choosen from \(\{1,\ldots,n\}\). The simplest example of a
+U-statistic is the estimator of mean for which \(k=1\) and \(h\) is the identity
+function:
+#+BEGIN_EXPORT latex
+\begin{align*}
+U_n = \frac{1}{{n \choose 1}} \sum_{(\beta_1) \in \{1,\ldots,n\}} X_{\beta_1} = \frac{1}{n} \sum_{i=1}^{n} X_{i}
+\end{align*}
+#+END_EXPORT
+Our estimator of the variance is also a U-statistic, but this requires
+a little bit more work to see that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+s &= \frac{1}{n-1} \sum_{i=1}^n (x_i-m)^2 = \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i m + m^2\right) \\
+&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + m^2\right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + m^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + m^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - m^2\right)
+=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - s \\
+s &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
+=  \frac{2}{n(n-1)} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2}
+=  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
+\end{align*}
+#+END_EXPORT
+So the variance estimator is a U-statistic of order 2 with kernel \(k(x)=(x-m)^2\).
+
+** Why using the U-statistic theory?
+
+Because it provides very useful results to characterize the asymptotic
+distribution of an estimator. For instance:
+
+\bigskip
+
+*Theorem 3* (cite:lee1990u) Let \(U_n\) be a U-statistic with a kernel \(h\) of degre \(r\). Then:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[U_n] &= {n \choose k}^{-1} \sum_{c=1}^k {k \choose c} {n-k \choose k-c} \sigma^2_c \\
+\text{where } \sigma^2_c &= \Cov[h(x_1,\ldots,x_r),h(x'_1,\ldots,x'_r)]
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+
+\clearpage
+
+* Information about the R session used for this document :noexport:
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 sessionInfo()
@@ -983,6 +1209,8 @@ loaded via a namespace (and not attached):
 [13] lava_1.6.3         splines_3.5.1      iterators_1.0.10   tools_3.5.1       
 [17] survival_2.42-6    parallel_3.5.1     compiler_3.5.1
 #+end_example
+
+
 
 
 
@@ -1053,6 +1281,11 @@ loaded via a namespace (and not attached):
 #+LaTeX_HEADER: \RequirePackage{amsthm}
 #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
 #+LaTeX_HEADER: \newtheorem{lemma}[theorem]{Lemma}
+
+# ## simplification
+#+LaTeX_HEADER: \RequirePackage[makeroom]{cancel} % cancel terms
+#+LaTeX_HEADER: \newcommand\Ccancelto[3][black]{\renewcommand\CancelColor{\color{#1}}\cancelto{#2}{#3}}
+#+LaTeX_HEADER: \newcommand\Ccancel[2][black]{\renewcommand\CancelColor{\color{#1}}\cancel{#2}}
 
 *** Template for shortcut
 #+LATEX_HEADER: \newcommand\defOperator[7]{%
