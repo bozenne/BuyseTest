@@ -984,16 +984,17 @@ variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 ** Estimate, estimator, and functionnal
 
-We can compute an *estimate* \(s\) of the variance using the following
-*estimators* \(f_m\) and \(f_s\):
+We can compute an *estimate* of the variance using the following
+*estimators* \(\hat{\mu}\) and \(\hat{\sigma}^2\):
 #+BEGIN_EXPORT latex
 \begin{align}
-m &= f_m(x_1,\ldots,x_n) = \frac{1}{n} \sum_{i=1}^n x_i \label{eq:m(F)} \\
-s &= f_s(x_1,\ldots,x_n) = \frac{1}{n-1} \sum_{i=1}^n (x_i-m)^2 \label{eq:s(F)}
+\hat{\mu} &= \frac{1}{n} \sum_{i=1}^n x_i \label{eq:m(F)} \\
+\hat{\sigma}^2 &= \frac{1}{n-1} \sum_{i=1}^n (x_i-\hat{\mu})^2 \label{eq:s(F)}
 \end{align}
 #+END_EXPORT
-Given a dataset \(s\) is a deterministic (not random) quantity,
-e.g. if we observe:
+Given a dataset the estimator \(\hat{\sigma}^2\) outputs a
+deterministic (i.e. not random) quantity, called the estimate of the
+variance. For instance if we observe:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 x <- c(1,3,5,2,1,3)
 #+END_SRC
@@ -1002,32 +1003,38 @@ x <- c(1,3,5,2,1,3)
 
 then \(s\) equals:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-m <- mean(x)
-s <- var(x)
-s
+mu <- mean(x)
+sigma2 <- var(x)
+sigma2
 #+END_SRC
 
 #+RESULTS:
 : [1] 2.3
 
-But in general the value of \(s\) depends on the dataset. \(s\) is
-like a function \(f_n\) that takes as argument some data and output a
-quantity of interest. This is often refer to as a *functionnal*,
-e.g. \(S=f_n(x_1,\ldots,x_n)\). Here we use the upper case \(S\) to
-emphasise that it is a random quantity: for each new realisation
-\((x_1,\ldots,x_n)\) of \(X\) corresponds a realisation for \(S\)
-i.e. a possibly different value for the variance. If mechanism
-generating the data has cumulative distribution function \(F\) then we
-can also define the true value as \(\mu=f(F)=lim\). Because \(S\) and \(f\) are very close
-quantities we will not distinguish them in the notation, i.e. write
-\(S=S(F)\). This corresponds to formula (1) in cite:lee1990u. To be
-more precise we can explicit what is \(S(F)\):
+In general the value of the estimate depends on the dataset. The
+estimator acts like a function \(f_n\) that takes as argument some
+data and output a quantity of interest. This is often refer to as a
+*functionnal*, e.g. \(\hat{\sigma}^2=f_n(x_1,\ldots,x_n)\). Here we
+use the hat notation to emphasise that \(\hat{\sigma}^2\) is a random
+quantity: for each new realisation \((x_1,\ldots,x_n)\) of \(X\)
+corresponds a realisation for \(\hat{\sigma}^2\) i.e. a possibly
+different value for the variance. If mechanism generating the data has
+cumulative distribution function \(F\) then we can also define the
+true value as \(\sigma^2=f_{\sigma^2}(F)\) (which is a deterministic
+value) where:
 #+BEGIN_EXPORT latex
 \begin{align}
-M(F) &= \int_{-\infty}^{+\infty} x dF(x) \label{eq:M(F)}\\
-S(F) &= \int_{-\infty}^{+\infty} (x - M(F))^2 dF(x) \label{eq:S(F)}
+\mu(F) &= f_\mu(F) = \int_{-\infty}^{+\infty} x dF(x) \label{eq:M(F)}\\
+\sigma^2(F) &= f_{\sigma^2}(F) = \int_{-\infty}^{+\infty} (x - f_\mu(F))^2 dF(x) \label{eq:S(F)}
 \end{align}
 #+END_EXPORT
+This can be understood as the limit \(f(F)=\lim_{n \rightarrow \infty}
+f_n(x_1,\ldots,x_n)\). Because \(\sigma^2\) and \(f_{\sigma^2}\) are
+very close quantities we will not distinguish them in the notation,
+i.e. write \(\sigma^2=\sigma^2(F)\). This corresponds to formula (1)
+in cite:lee1990u. 
+
+\bigskip
 
 When we observe a sample, we use it to plug-in formula eqref:eq:M(F)
 and eqref:eq:S(F) an approximation \(\hat{F}\) of \(F\). Usually our
@@ -1041,11 +1048,11 @@ eqref:eq:m(F) and eqref:eq:s(F).
 
 To summarize:
 - an estimator is a random variable whose realisation depends on the
-  data. It realization is called estimate.
+  data. Its realization is called estimate.
 - an estimate is a deterministic value that we obtain using the
-  observed data (e.g. variability is 2.3)
+  observed data (e.g. observed variability is 2.3)
 - a functionnal (of an estimator) is the rule by which an estimator
-  transform the data into an estimate.
+  transforms the data into an estimate.
 
 ** Aim
 
@@ -1054,28 +1061,28 @@ the variance based on the observed realisations of \(X\) (i.e. the
 data). However how can we get an confidence interval? What we want is
 to quantify the incertainty associated with the estimator, i.e. how
 the value output by the functionnal is sensitive to a change in the
-dataset. To do so, since the estimator \(S\) is a random variable, we
+dataset. To do so, since the estimator \(\hat{\sigma}^2\) is a random variable, we
 can try to characterize its distribution. This is in general
 difficult. It is much easier to look at the distribution of the
-estimator \(S\) if we would have an infinite sample size. This is what
+estimator \(\hat{\sigma}^2\) if we would have an infinite sample size. This is what
 we will do, and rely on similations to see how things go in finite
 sample size. As we will see, the asymptotic distribution of the
 variance is a Gaussian distribution with a variance that we can estimate:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 n <- length(x)
-k <- mean((x-m)^4)
-var_s <- k/n - ((n-3)*s^2)/(n*(n-1))
-var_s
+k <- mean((x-mu)^4)
+var_sigma2 <- (k-sigma2^2)/n
+var_sigma2
 #+END_SRC 
 
 #+RESULTS:
-: [1] 0.8425278
+: [1] 0.4898611
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
 ## chekc with lava
 library(lava)
 estimate(lvm(x~1), data = data.frame(x = x))
-sqrt((2*mean((x-m)^2)^2)/(n))
+sqrt((2*mean((x-mu)^2)^2)/(n))
 #+END_SRC
 
 #+RESULTS:
@@ -1088,14 +1095,14 @@ sqrt((2*mean((x-m)^2)^2)/(n))
 
 So we obtain a 95% confidence intervals for the variance doing:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-c(estimate = s, 
-  lower = s + qnorm(0.025) * sqrt(var_s),
-  upper = s + qnorm(0.975) * sqrt(var_s))
+c(estimate = sigma2, 
+  lower = sigma2 + qnorm(0.025) * sqrt(var_sigma2),
+  upper = sigma2 + qnorm(0.975) * sqrt(var_sigma2))
 #+END_SRC
 
 #+RESULTS:
 :  estimate     lower     upper 
-: 2.3000000 0.5009625 4.0990375
+: 2.3000000 0.9282197 3.6717803
 
 We can see that it is not a very good confidence interval since it
 symmetric - we know that the variance is positive so it should extend
@@ -1106,18 +1113,19 @@ correct and we focus on this case.
 \clearpage
 
 In summary, we would like:
-- to show that our estimator \(S\) is asymptotically normally distributed.
-- to have a formula for computing the asymptotic variance
+- to show that our estimator \(\hat{\sigma}^2\) is asymptotically normally distributed.
+- to have a formula for computing the asymptotic variance.
+To do so we will use results from the theory on U-statistics.
 
 \bigskip
 
-Note: we can already guess that the estimator \(S\) (as most
-estimators) will be asymptotically distributed because it can be
+\textsc{Note:} we can already guess that the estimator \(\hat{\sigma}^2\) (as
+most estimators) will be asymptotically distributed because it can be
 expressed as a average (see formula eqref:eq:s(F)). If we would know
-the mean of \(X\), then the terms \(x_i-m\) are iid so the
-asymptotically normality of \(S\) follows from the central limit
-theorem. It does not give us a formula for the asymptotic variance
-though. To get that we will use results from the theory of the U-statistics.
+the mean of \(X\), then the terms \(x_i-\mu\) are iid so the
+asymptotically normality of \(\hat{\sigma}^2\) follows from the
+central limit theorem. It does not give us a formula for the
+asymptotic variance though. 
 
 ** Definition of a U-statistic and examples
 
@@ -1125,54 +1133,452 @@ A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
 #+BEGIN_EXPORT latex
 \begin{align*}
-U_n = \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_r) \in \beta} h \left(X_{\beta_1},\ldots,X_{\beta_k} \right)
+\hat{U} = \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right)
 \end{align*}
 #+END_EXPORT
-where \(beta\) is the set of all possible permutations between \(r\)
-integers choosen from \(\{1,\ldots,n\}\). The simplest example of a
-U-statistic is the estimator of mean for which \(k=1\) and \(h\) is the identity
+where \(\beta\) is the set of all possible permutations between \(k\)
+integers choosen from \(\{1,\ldots,n\}\). We will also assume that the
+kernel is symmetric, i.e. the order of the arguments in \(h\) has no
+importance. Note that because the observations are iid, \(\hat{U}\) is
+an unbiased estimator of \(U\).
+
+\bigskip
+
+\textsc{Example 1}: the simplest example of a U-statistic is the
+estimator of mean for which \(k=1\) and \(h\) is the identity
 function:
 #+BEGIN_EXPORT latex
 \begin{align*}
-U_n = \frac{1}{{n \choose 1}} \sum_{(\beta_1) \in \{1,\ldots,n\}} X_{\beta_1} = \frac{1}{n} \sum_{i=1}^{n} X_{i}
+\hat{\mu} = \frac{1}{{n \choose 1}} \sum_{(\beta_1) \in \{1,\ldots,n\}} x_{\beta_1} = \frac{1}{n} \sum_{i=1}^{n} x_{i}
 \end{align*}
 #+END_EXPORT
-Our estimator of the variance is also a U-statistic, but this requires
-a little bit more work to see that:
+
+\bigskip
+
+\textsc{Example 2}: our estimator of the variance is also a
+U-statistic, but this requires a little bit more work to see that:
 #+BEGIN_EXPORT latex
 \begin{align*}
-s &= \frac{1}{n-1} \sum_{i=1}^n (x_i-m)^2 = \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i m + m^2\right) \\
-&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + m^2\right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + m^2 \right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + m^2 \right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - m^2\right)
+\hat{\sigma}^2 &= \frac{1}{n-1} \sum_{i=1}^n (x_i-\hat{\mu})^2 = \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \hat{\mu} + \hat{\mu}^2\right) \\
+&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + \hat{\mu}^2\right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right)
 =  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - s \\
-s &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
+\hat{\sigma}^2 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
 =  \frac{2}{n(n-1)} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2}
-=  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
+\hat{\sigma}^2 =  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
 \end{align*}
 #+END_EXPORT
-So the variance estimator is a U-statistic of order 2 with kernel \(k(x)=(x-m)^2\).
-
-** Why using the U-statistic theory?
-
-Because it provides very useful results to characterize the asymptotic
-distribution of an estimator. For instance:
+So the variance estimator is a U-statistic of order 2 with kernel
+\(h(x_1,x_2)=\frac{(x_1 - x_2)^2}{2}\).
 
 \bigskip
 
-*Theorem 3* (cite:lee1990u) Let \(U_n\) be a U-statistic with a kernel \(h\) of degre \(r\). Then:
+\textsc{Example 3}: another classical example of U-statistic is the
+signed rank statistic which enable to test non-parametrically whether
+the center of a distribution is 0. This corresponds to:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+wilcox.test(x)
+#+END_SRC
+
+#+RESULTS:
+: 
+: 	Wilcoxon signed rank test with continuity correction
+: 
+: data:  x
+: V = 21, p-value = 0.03501
+: alternative hypothesis: true location is not equal to 0
+: 
+: Warning message:
+: In wilcox.test.default(x) : cannot compute exact p-value with ties
+
+Let's take to random realisation of \(X\) and denote thoses \(X_1\)
+and \(X_2\) (they are random variables). The parameter of interest (or
+true value) is \(U = \Prob[X_1+X_2>0]\) and the corresponding
+estimator is:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Var[U_n] &= {n \choose k}^{-1} \sum_{c=1}^k {k \choose c} {n-k \choose k-c} \sigma^2_c \\
-\text{where } \sigma^2_c &= \Cov[h(x_1,\ldots,x_r),h(x'_1,\ldots,x'_r)]
+\hat{U} = \frac{1}{{n \choose 2}} \sum_{i=1}^{n} \sum_{i<j} \Ind[x_i+x_j>0]
+\end{align*}
+#+END_EXPORT
+
+** A major result from the U-statistic theory
+
+So far we have seen that our estimator for the variance was a
+U-statistic. We will now use the U-statistic theory to obtain its
+asymptotic distribution.
+
+\bigskip
+
+*Theorem* (adapted from cite:lee1990u, theorem 1 page 76) @@latex:\\@@
+ Let \(\hat{U}\) be a U-statistic of order \(k\) with non-zero first
+ component in its H-decomposition. Then \(n^{\frac{1}{2}}
+ (\hat{U}-U)\) is asymptotically normal with mean zero and asymptotic
+ variance \(\sigma^2_1\) where \(\sigma^2_1\) is the variance of the
+ first component in the H-decomposition of \(\hat{U}\).
+
+\bigskip
+
+So under the asymption that the first term of the H-decomposition of
+the variance is non 0 then we know that the asymptotic distribution of
+our variance estimator is normal and if we are able to compute the
+variance of the first term of the H-decomposition then we would also
+know the variance parameter of the asymptotic distribution. So it
+remains to see what is this H-decomposition and how can we
+characterize it.
+
+** The first term of the H-decomposition
+
+The H-decomposition (short for Hoeffling decomposition) enables us to
+decompose the estimator of a U-statistic of rank \(k\) into a sum of
+\(k\) uncorrelated U-statistics of increasing order (from \(1\) to
+\(k\)) with variances of decreasing order in \(n\). As a consequence
+the variance of the U-statistic will be asymptotically equal to the
+variance of the first non-0 term in the decomposition.
+
+\bigskip
+
+Before going further we introduce:
+- \(X_1\), \ldots, \(X_n\) the random variables associated with each
+  sample.
+- \(\mathcal{L}_2\) the space of all random variables with zero mean
+  and finite variance. @@latex:\\@@ It is equiped with the inner
+  product \(\Cov[X,Y]\).
+-  the subspaces \(\left(\mathcal{L}_2^{(j)}\right)_{j \in
+  \{1,\ldots,k\}}\) where for a given \(j\in \{1,\ldots,k\}\),
+  \(\mathcal{L}_2^{(j)}\) is the subspace of \(\mathcal{L}_2\)
+  containing all random variables of the form
+  \(\sum_{(\beta_1,\ldots,\beta_j) \in \beta}
+  \psi(X_{\beta_1},\ldots,X_{\beta_j})\) where \(\beta\) is the set of
+  all possible permutations between \(j\) integers choosen from
+  \(\{1,\ldots,n\}\). For instance \(\mathcal{L}_2^{(1)}\) contains
+  the mean, \(\mathcal{L}_2^{(2)}\) contains the variance, and
+  \(\mathcal{L}_2^{(j)}\) contains all U-statistics of order \(j\)
+  with square integrable kernels.
+
+We can now define the H-decomposition as the projection of
+\(\hat{U}-U\) on the subspaces \(\mathcal{L}_2^{(1)}\),
+\(\mathcal{L}_2^{(2)} \cap \left( \mathcal{L}_2^{(1)} \right)^{\perp}
+\), \ldots, \(\mathcal{L}_2^{(k)} \cap \left( \mathcal{L}_2^{(k-1)}
+\right)^{\perp} \). Here \(A^{\perp}\) indicates the space orthogonal
+to \(A\). So the first term of the H-decomposition, denoted
+\(H^{(1)}\), is the projection of \(\hat{U}-U\) on
+\(\mathcal{L}_2^{(1)}\); this is also called the H\(\'{a}\)jek
+projection. Clearly all terms of the projection are mutually
+orthogonal (or uncorrelated), they are unique (it is a projection) and
+they correspond to U-statistics of increasing degree (from \(1\) to
+\(k\)). It remains to get a more explicit expression for these term
+and show that their variance are of decreasing order in \(n\).
+
+\bigskip
+
+We now focus on the first term and show that \(H^{(1)} = \sum_{i=1}^n
+\Esp[\hat{U}-U|X_i]\). Clearly this term belongs to
+\(\mathcal{L}_2^{(1)}\). It remains to show that \(\hat{U}-U -
+H^{(1)}\) is orthogonal to \(\mathcal{L}_2^{(1)}\). Let consider an element \(V \in \mathcal{L}_2^{(1)}\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Cov[\hat{U}-U - H^{(1)}, V ] &= \Esp[(\hat{U}-U - H^{(1)} ) V ] \\
+&= \sum_{i'=1}^{n} \Esp[(\hat{U}-U - H^{(1)}) \psi(X_{i'}) ] \\ 
+&= \sum_{i'=1}^{n} \Esp[\Esp[\hat{U}-U - H^{(1)} \big| X_{i'}] \psi(X_{i'}) ]
+\end{align*}
+#+END_EXPORT
+So it remains to show that \(\Esp[\hat{U}-U \big| X_{i'}] = \Esp[H^{(1)}
+\big| X_{i'}]\). This follows from:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Esp[H^{(1)} \big| X_{i'}] &= \Esp[\sum_{i=1}^n \Esp[\hat{U}-U|X_i] \big| X_{i'}] = \sum_{i=1}^n \Esp[\Esp[\hat{U}-U|X_i] \big| X_{i'}] \\
+&= \Esp[\hat{U}-U|X_i] + \sum_{i\neq i'}^n \Esp[\Esp[\hat{U}-U|X_i] \big| X_{i'}] \\
+&= \Esp[\hat{U}-U|X_i] + \sum_{i\neq i'}^n \Ccancelto[red]{0}{\Esp[\Esp[\hat{U}-U|X_i]]}
+\end{align*}
+#+END_EXPORT
+where we have used that \(X_i\) and \(X_{i'}\) are independent and \(\Esp[\Esp[\hat{U}-U|X_i]]=\Esp[\hat{U}-U]=0\).
+
+\bigskip
+
+We can now re-express the first term of the H-decomposition more
+explicitely:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)} &= \sum_{i=1}^n \Esp[\hat{U}-U \big| X_i]  \\
+&=  \sum_{i=1}^n \Esp[ \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right) - U \big| X_i ] \\
+&=  \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} \sum_{i=1}^n \Esp[ h \left(x_{\beta_1},\ldots,x_{\beta_k} \right) \big| X_i ] - U \\
+&=  \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} \sum_{i=1}^n \Ind[i \in \beta] \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] + \Ind[i \notin \beta] * 0 - U \\
+&=  \frac{1}{{n \choose k}} \sum_{i=1}^n \Prob[i \in \beta] \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] - U  \\
+&=  \frac{{n - 1 \choose k - 1}}{{n \choose k}} \sum_{i=1}^n \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] - U  \\
+H^{(1)} &=  \frac{k}{n} \sum_{i=1}^n \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] - U 
+\end{align*}
+#+END_EXPORT
+Let's now compute the variance of \(\hat{U}\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+ \Var[\hat{U}] &= {n \choose k}^{-2} \Var[\sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right)] \\
+&= {n \choose k}^{-2} \Cov[\sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right),\sum_{(\beta'_1,\ldots,\beta'_k) \in \beta'} h \left(x_{\beta'_1},\ldots,x_{\beta'_k} \right)] \\
+&= {n \choose k}^{-2} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} \sum_{(\beta'_1,\ldots,\beta'_k) \in \beta'} \Cov[ h \left(x_{\beta_1},\ldots,x_{\beta_k} \right), h \left(x_{\beta'_1},\ldots,x_{\beta'_k} \right)] \\
+ \end{align*}
+#+END_EXPORT
+Using the symmetry of the kernel we see that the terms in the double
+sum only depends on the number of common observations. To determine a
+term with \(j\) common observations, a choose:
+- \(k\) observations among the \(n\) for the first kernel: \({n \choose k}\) possibilities
+- \(c\) common index for the two kernels among the \(k\): \({k \choose c}\) possibilities 
+- \(k-c\) observations among the remaining \(n-k\) observations for
+  the second kernel: \({n - k \choose k - c}\) possibilities
+So denoting \(\sigma^2_c=\Cov[ h \left(x_{1},\ldots,x_{k} \right), h \left(x_{1},\ldots,x_{c},x'_{c+1},\ldots,x'_{k} \right)]\) this gives:
+#+BEGIN_EXPORT latex
+\begin{align*}
+ \Var[\hat{U}] &= {n \choose k}^{-2} \sum_{c=0}^{n} {n \choose k} {k \choose c} {n - k \choose k - c} \sigma^2_c \\
+&=  \sum_{c=0}^{k} \frac{k!(n-k)!}{n!}  \frac{k!}{c!(k-c)!} \frac{(n-k)!}{(k-2k+c)!(n-c)!} \sigma^2_c \\
+&=  \sum_{c=0}^{k}  \frac{k!^2}{c!(k-c)!^2}  \frac{(n-k)!^2}{(n-2k+c)!n!} \sigma^2_c \\
+&= \sum_{c=0}^{k} \mathcal{O}\left(\frac{(n-k)!^2}{(n-2k+c)!n!}\right) \sigma^2_c \\
+&= \sum_{c=0}^{k} \mathcal{O}\left(\frac{(n-k) \ldots (n-2k+c+1)}{n \ldots (n-k+1) }\right) \sigma^2_c \\
+&= \sum_{c=0}^{k} \mathcal{O}\left(\frac{n^{- k + 2k - c}}{n^{k}}\right) = \sum_{c=0}^{k} \mathcal{O}\left(n^{-c}\right) \sigma^2_c \\
+\end{align*}
+#+END_EXPORT
+So if \(\sigma^2_1 \neq 0\) then the asymptotic variance only depends on the variance of the first term, i.e.:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \Var[H^{(1)}] = \frac{k^2}{n^2}  \Var[ \sum_{i=1}^n \Esp[h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] ] \\
+&= \frac{k^2}{n^2} \sum_{i=1}^n \Var[\Esp[h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] ] \\
+&= \frac{k^2}{n^2} n \Var[\Esp[h \left(x,x_2,\ldots,x_{k} \right) \big| x] ] \\
+\Var[\hat{U}] &= \frac{k^2}{n}  \Var[ \Esp[h \left(x,x_2,\ldots,x_{k} \right) \big| x] ]
 \end{align*}
 #+END_EXPORT
 
 \bigskip
 
+In summary we have obtained a formula for the asymptotic variance of
+the U-statistic.
 
-\clearpage
+\bigskip
+
+\textsc{Example 1}: Sample mean @@latex:\\@@
+We first compute the H\(\'{a}\)jek projection of the mean:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_{\hat{\mu}} = \frac{1}{n} \sum_{i=1}^n \Esp[x_i|x_i]-\mu = \frac{1}{n}  \sum_{i=1}^n x_i-\mu
+\end{align*}
+#+END_EXPORT
+And then compute the asymptotic variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{\mu}] =  \Var[H^{(1)}_{\hat{\mu}}] = \frac{1}{n^2}  \sum_{i=1}^n \Var[x_i-\mu] = \frac{1}{n^2}  \sum_{i=1}^n \sigma^2 = \frac{\sigma^2}{n}
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+\textsc{Example 2}: Sample variance @@latex:\\@@
+We first compute the H\(\'{a}\)jek projection of the variance:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_{\hat{\sigma}^2} &= \frac{2}{n} \sum_{i=1}^n  \Esp[\frac{(x_i-X_2)^2}{2} \big|x]  - \sigma^2 = \frac{1}{n} \sum_{i=1}^n \Esp[x_i^2 - 2 x_i X_2 + X_2^2 \big|x_i]  - \sigma^2 \\
+&= \frac{1}{n} \sum_{i=1}^n \left( x_i^2 - 2 x_i \mu + \sigma^2 + \mu^2 \right)  - \sigma^2 \\
+&= \frac{1}{n} \sum_{i=1}^n \left( (x_i - \mu)^2 - \sigma^2 \right) 
+\end{align*}
+#+END_EXPORT
+And then compute the asymptotic variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{\sigma}^2] &=   \Var[H^{(1)}_{\hat{\sigma}^2}] = \frac{1}{n^2} \sum_{i=1}^n  \Var[ (x_i - \mu)^2 - \sigma^2]\\
+&= \frac{1}{n^2} \sum_{i=1}^n \Esp[(x - \mu)^4]-\Esp[(x - \mu)^2]^2 \\
+&=\frac{\mu_4-\left(\sigma^2\right)^2}{n}  
+\end{align*}
+#+END_EXPORT
+where \(\mu_4=\Esp[(x - \mu)^4]\) is the fourth moment of the
+distribution. For a better approximation in small sample size we could
+account for the variance of the second term of the H-decomposition. We
+would obtain (cite:lee1990u, page 13):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{\sigma}^2] = \frac{\mu_4}{n}-\frac{(n-3)\left(\sigma^2\right)^2}{n(n-1)}  
+\end{align*}
+#+END_EXPORT
+When \(\frac{n-3}{n-1}\) is close to 1 then the first order
+approximation is sufficient.
+
+\bigskip
+
+\textsc{Example 3}: Signed rank statistic @@latex:\\@@
+We first compute the H\(\'{a}\)jek projection of the signed rank statistic:
+#+BEGIN_EXPORT latex
+\begin{align*}
+ H^{(1)}_{\hat{U}} &=   \frac{2}{n} \sum_{i=1}^n \Esp\left[ \Ind[x_i+X_2>0] \big|x_i \right] - U = \frac{2}{n} \sum_{i=1}^n \Prob[ X_{2} > -x_i \big|x_i] - \Prob[X_{2}> - X_{1}] \\
+ &= \frac{2}{n} \sum_{i=1}^n (1 - F(-x_i)) - \Esp[x][(1 - F(-x))] \\
+\end{align*}
+#+END_EXPORT
+Since under the null, the distribution is symmetric \(F(-x)=1-F(x)\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+ H^{(1)}_{\hat{U}} &= \frac{2}{n} \sum_{i=1}^n F(x_i) - \Esp[x][F(x)]
+\end{align*}
+#+END_EXPORT
+We will use that for continuous distribution \(F(x)\) is uniformly
+distribution and therefore has variance \(\frac{1}{12}\). So we can
+compute the asymptotic variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \Var[H^{(1)}_{U}] = \frac{4}{n^2} \sum_{i=1}^n \Var\left[ F(x_i) - \Esp[x][F(x)] \right] = \frac{4}{n^2} n \frac{1}{12} = \frac{1}{3}
+\end{align*}
+#+END_EXPORT
+
+** Two sample U-statistics 
+
+So far we have assumed that all our observations were iid. But in the
+case of GPC, we study two populations (experimental arm and control
+arm) so we can only assume to have two independent samples
+\(x_1,x_2,\ldots,x_m\) and \(y_1,y_2,\ldots,y_n\) where the first one
+contains iid realisations of a random variable \(X\) and the second
+one contains iid realisations of a second variable \(Y\). We can now
+define a two-sample U-statistic as of order \(k_x\) and \(k_y\) as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{U} = \frac{1}{{m \choose k_x}{n \choose k_y}} \sum_{(\alpha_1,\ldots,\alpha_{k_x})\in \alpha} \sum_{(\beta_1,\ldots,\beta_{k_y})\in \alpha} h(x_{\alpha_{k_x}},\ldots,x_{\alpha_j},y_{\beta_1},\ldots,y_{\beta_{k_y}})
+\end{align*}
+#+END_EXPORT
+where \(\alpha\) (resp. \(\beta\)) is the set of all possible
+ permutations between \(k_x\) (resp. \(k_y\)) intergers chosen from
+ \(\{1,\ldots,m\}\) (resp.  \(\{1,\ldots,n\}\)) and the kernel
+ \(h=h(x_1,\ldots,x_{k_x},y_1,\ldots,y_{k_y})\) is permutation symmetric in
+ its first \(k_x\) arguments and its last \(k_y\) arguments
+ separately. Once more it follows from the independence and iid
+ assumptions that \(\hat{U}\) is an unbiased estimator of \(U =
+ \Esp[h(X_1,\ldots,X_{k_x},Y_1,\ldots,Y_{k_y})]\) where \(X_1,\ldots,X_{k_x}\)
+ (resp. \(Y_1,\ldots,Y_{k_y}\)) are the random variables associated to
+ distinct random samples from \(X\) (resp. \(Y\)). The two-sample case
+ is a specific case of the Generalized U-statistics introduced in
+ section 2.2 in cite:lee1990u.
+
+\bigskip
+
+Many results for U-statistics extends to two sample U-statistics. For
+instance the H\(\'{a}\)jek projection of \(\hat{U}-U\) becomes:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)} = \frac{k_x}{m} \sum_{i=1}^{m} \left( \Esp[h(x,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x] - U \right) + \frac{k_y}{n} \sum_{j=1}^{n} \left( \Esp[h(x_1,\ldots,x_{k_x},y,y_2,\ldots,y_{k_y}) \big| y] - U \right)
+\end{align*}
+#+END_EXPORT
+Before stating any asymptotic results, we need to define what we now
+mean by asymptotic (since we have two sample sizes \(m\) and
+\(n\)). We now mean by asymptotic that we create an increasing
+sequence of \(m\) and \(n\) indexed by \(v\) such that:
+- \(m_v \cvD[][v \rightarrow \infty] \infty\) 
+- \(n_v \cvD[][v \rightarrow \infty] \infty\)
+- there exist a \(p \in ]0;1[\) satisfying \(\frac{m}{n+m} \cvD[][v
+  \rightarrow \infty] p\) and \(\frac{n}{n+m} \cvD[][v \rightarrow
+  \infty] 1-p\).  
+
+Informally speaking, this means that \(m\) and \(n\) goes to infinity
+  at the same speed. Let's denotes:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\Esp[h(x,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x]] &= \sigma^2_{1,0} \\
+\Var[\Esp[h(x_1,\ldots,x_{k_x},y,y_2,\ldots,y_{k_y}) \big| y]] &= \sigma^2_{0,1} 
+\end{align*}
+#+END_EXPORT
+We then have the following result:
+
+\bigskip
+
+*Theorem* (adapted from cite:lee1990u, theorem 1 page 141)
+ @@latex:\\@@ Let \(\hat{U}\) be a U-statistic of order \(k_x\) and
+ \(k_y\) with non-zero first component (i.e. \(\sigma^2_{1,0}>0\) and
+ \(\sigma^2_{0,1}>0\)) in its H-decomposition. Then
+ \((m+n)^{\frac{1}{2}} (\hat{U}-U)\) is asymptotically normal with
+ mean zero and asymptotic variance \(p^{-1} k_x^2
+ \sigma^2_{1,0}+(1-p)^{-1} k_y^2 \sigma^2_{0,1}\) which is the
+ variance of the first component in the H-decomposition of
+ \(\hat{U}\).
+
+\bigskip
+
+\textsc{Example 4}: Mann-Whitney statistic @@latex:\\@@
+If our parameter of interest is \(\Prob[X \leq Y]\) then the estimator:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{U} = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j]
+\end{align*}
+#+END_EXPORT
+is a U-statistic of order \(k_x=1\) and \(k_y=1\) with kernel \(h(x,y)=\Ind[x \leq y]\)
+We first compute the H\(\'{a}\)jek projection of the signed rank statistic:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H_{\hat{U}}^{(1)} &= \frac{1}{m} \sum_{i=1}^m \left( \Esp\left[\Ind[x_i \leq y] \big| x_i\right] - U \right)
++ \frac{1}{n} \sum_{j=1}^n \left( \Esp\left[\Ind[x \leq y_j] \big| y_j\right] - U \right) \\
+&= \frac{1}{m} \sum_{i=1}^m \left( \Prob[Y \geq x_i] - U \right)
++ \frac{1}{n} \sum_{j=1}^n \left( \Prob[X \leq y_j] - U \right) \\
+&= \frac{1}{m} \sum_{i=1}^m \left( 1 - F_{-,y}(x_i) - U \right)
++ \frac{1}{n} \sum_{j=1}^n \left( F_x(y_j) - U \right) \\
+&= - \frac{1}{m} \sum_{i=1}^m \left( F_{-,y}(x_i) - \Esp_x[ F_{-,x}(x) ] \right)
++ \frac{1}{n} \sum_{j=1}^n \left( F_x(y_j) - \Esp_y[ F_y(y) ] \right) 
+\end{align*}
+#+END_EXPORT
+where \(F_{-}\) is the left limit of \(F\), \(F_x\)(resp. \(F_y\))
+denoting the cumulative distribution function of \(X\)
+(resp. \(Y\)). For continuous distributions \(F_{-}=F\) and under the
+null hypothesis that \(F_x=F_y\), we get that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] = \Var[H_{\hat{U}}^{(1)}] = \frac{1}{m} \frac{1}{12} + \frac{1}{n} \frac{1}{12} = \frac{nm}{12(m+n)}
+\end{align*}
+#+END_EXPORT
+If we are not under the null we end up with the formula:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] = \frac{1}{m^2} \sum_{i=1}^m \Var\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] + \frac{1}{n^2} \sum_{j=1}^n \Var\left[ \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] - U\right]
+\end{align*}
+#+END_EXPORT
+Noticing that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Esp\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] = \Esp\left[ \Ind[x_i \leq y]\right] - U = 0 
+\end{align*}
+#+END_EXPORT
+We can compute the variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] &= \Esp\left[ \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right)^2\right]  \\
+&= \int_{x} \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right)  \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right) dF_{X}(x)\\
+&= \int_{x} \left(\int_{y_1} \left(\Ind[x \leq y_1] - U \right) dF_Y(y_1)\right)  \left(\int_{y_2} \left(\Ind[x \leq y_2] - U \right) dF_Y(y_2)\right) dF_{X}(x)\\
+&= \Esp\left[\left( \Ind[x \leq y_1] - U\right)\left(\Ind[x \leq y_2] - U\right)\right] \\
+&= \Esp\left[\Ind[x \leq x_1]  \Ind[x \leq y_2] \right] - \Esp\left[\Ind[x \leq y_1]\right] U  - \Esp\left[\Ind[x \leq y_2]\right] U + U^2 \\
+&= \Prob[x \leq y_1, x \leq y_2] - \Prob[x \leq y]^2
+\end{align*}
+#+END_EXPORT
+
+So the variance is:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \frac{1}{m} \left(\Prob[x \leq y_1, x \leq y_2] - \Prob[x \leq y]^2 \right) + \frac{1}{n} \left(\Prob[x_1 \leq y, x_2 \leq y] - \Prob[x \leq y]^2 \right) \\
+&= \frac{\sigma^2_{1,0}}{m} + \frac{\sigma^2_{0,1}}{n}
+\end{align*}
+#+END_EXPORT
+In fact we could have a more precise formula by accounting for the
+second term in the H-decomposition. cite:lee1990u (Theorem 2 page 38, formula 2)
+give the general formal for the variance that becomes in the case of a two sample U statistic of degree 1:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \frac{\sigma^2_{1,0}}{m} + \frac{\sigma^2_{0,1}}{n} + \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm} \\
+&= \frac{1}{nm} \left((n-1)\sigma^2_{1,0} + (m-1)\sigma^2_{0,1} + \sigma^2_{1,1} \right) 
+\end{align*}
+#+END_EXPORT
+where \(\sigma^2_{1,1} = \Prob[x<y](1-\Prob[x<y])\). Indeed the second
+term of the H-decomposition would be the projection of \(\Ind[X \leq
+Y]\) on \(X,Y\) where we substract components of the H\(\'{a}\)jek
+projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
+\(H_{\hat{U}}^{(2)}\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] \\
+&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right]
+\end{align*}
+#+END_EXPORT
+
+\(\sigma^2_{1,1} = \Var[\Prob[x<y]]= \Var\left[\Esp\left[ \Ind[x_i \leq
+y_j] \big| x_i,y_j\right]\right]\)
+
+  \clearpage 
 
 * Information about the R session used for this document :noexport:
 
