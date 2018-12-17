@@ -1,4 +1,4 @@
-% Created 2018-12-14 fr 18:19
+% Created 2018-12-17 ma 13:03
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -217,7 +217,7 @@ library(survival)
 \clearpage
 
 \section{References}
-\label{sec:org0315190}
+\label{sec:org581876c}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -230,12 +230,12 @@ library(survival)
 \appendix
 
 \section{Recall on the U-statistic theory}
-\label{sec:org9d47745}
+\label{sec:orgd91d458}
 
 This recall is based on chapter 1 of \cite{lee1990u}.
 
 \subsection{Motivating example}
-\label{sec:orge9d33a5}
+\label{sec:org73fa9ff}
 
 We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
@@ -247,7 +247,7 @@ distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 \subsection{Estimate, estimator, and functionnal}
-\label{sec:org04b3fd5}
+\label{sec:orgb27e8d2}
 
 We can compute an \textbf{estimate} of the variance using the following
 \textbf{estimators} \(\hat{\mu}\) and \(\hat{\sigma}^2\):
@@ -319,7 +319,7 @@ transforms the data into an estimate.
 \end{itemize}
 
 \subsection{Aim}
-\label{sec:orga65fc2b}
+\label{sec:org0d8201c}
 
 Using formula \eqref{eq:m(F)} and \eqref{eq:s(F)} we can easily estimate
 the variance based on the observed realisations of \(X\) (i.e. the
@@ -384,7 +384,7 @@ central limit theorem. It does not give us a formula for the
 asymptotic variance though. 
 
 \subsection{Definition of a U-statistic and examples}
-\label{sec:orgaf9ef10}
+\label{sec:org54a10f4}
 
 A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
@@ -455,7 +455,7 @@ estimator is:
 \end{align*}
 
 \subsection{A major result from the U-statistic theory}
-\label{sec:org4cbcea6}
+\label{sec:org9c7426b}
 
 So far we have seen that our estimator for the variance was a
 U-statistic. We will now use the U-statistic theory to obtain its
@@ -481,7 +481,7 @@ remains to see what is this H-decomposition and how can we
 characterize it.
 
 \subsection{The first term of the H-decomposition}
-\label{sec:orgc953b1d}
+\label{sec:org531c6dc}
 
 The H-decomposition (short for Hoeffling decomposition) enables us to
 decompose the estimator of a U-statistic of rank \(k\) into a sum of
@@ -652,7 +652,7 @@ compute the asymptotic variance as:
 \end{align*}
 
 \subsection{Two sample U-statistics}
-\label{sec:orgefad915}
+\label{sec:org0f33e1f}
 
 So far we have assumed that all our observations were iid. But in the
 case of GPC, we study two populations (experimental arm and control
@@ -781,9 +781,19 @@ projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
 H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] \\
 &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right]
 \end{align*}
-
-\(\sigma^2_{1,1} = \Var[\Prob[x<y]]= \Var\left[\Esp\left[ \Ind[x_i \leq
-y_j] \big| x_i,y_j\right]\right]\)
-
-\clearpage 
+Indeed:
+\begin{align*}
+\Var[H_{\hat{U}}^{(2)}] 
+&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] - \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+& \qquad \qquad \qquad - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+&= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm} - \frac{1}{m} \sum_{i=1}^m \sum_{j=1}^n \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] + \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right]  \\
+&= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm}
+\end{align*}
+Since:
+\begin{align*}
+\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] &= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[1- \Ind[x_i > y] \big| x_i\right]\right] \\
+&= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[- \Ind[y < x_i] \big| x_i\right]\right]
+\end{align*}
+which under the null hypothesis that \(X\) and \(Y\) have the same distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j]\right] \big| y_j\right]\).
+  \clearpage 
 \end{document}

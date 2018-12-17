@@ -1574,10 +1574,24 @@ H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Esp\left[ \Ind[x_i 
 &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right]
 \end{align*}
 #+END_EXPORT
-
-\(\sigma^2_{1,1} = \Var[\Prob[x<y]]= \Var\left[\Esp\left[ \Ind[x_i \leq
-y_j] \big| x_i,y_j\right]\right]\)
-
+Indeed:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[H_{\hat{U}}^{(2)}] 
+&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] - \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+& \qquad \qquad \qquad - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+&= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm} - \frac{1}{m} \sum_{i=1}^m \sum_{j=1}^n \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] + \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right]  \\
+&= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm}
+\end{align*}
+#+END_EXPORT
+Since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] &= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[1- \Ind[x_i > y] \big| x_i\right]\right] \\
+&= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[- \Ind[y < x_i] \big| x_i\right]\right]
+\end{align*}
+#+END_EXPORT
+which under the null hypothesis that \(X\) and \(Y\) have the same distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j]\right] \big| y_j\right]\).
   \clearpage 
 
 * Information about the R session used for this document :noexport:
