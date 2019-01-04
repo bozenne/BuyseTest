@@ -977,7 +977,7 @@ We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
 empirical variance estimator?". For a more concrete example, imagine
 that we want to provide an estimate with its 95% confidence interval
-for the variability in cholesterol measurements. We assume that we are
+of the variability in cholesterol measurements. We assume that we are
 able to collect a sample of \(n\) independent and identically
 distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
@@ -1164,7 +1164,7 @@ U-statistic, but this requires a little bit more work to see that:
 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) \\
 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right)
-=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - s \\
+=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \hat{\sigma}^2 \\
 \hat{\sigma}^2 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
 =  \frac{2}{n(n-1)} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2}
 \hat{\sigma}^2 =  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
@@ -1193,7 +1193,7 @@ wilcox.test(x)
 : Warning message:
 : In wilcox.test.default(x) : cannot compute exact p-value with ties
 
-Let's take to random realisation of \(X\) and denote thoses \(X_1\)
+Let's take two random realisation of \(X\) and denote thoses \(X_1\)
 and \(X_2\) (they are random variables). The parameter of interest (or
 true value) is \(U = \Prob[X_1+X_2>0]\) and the corresponding
 estimator is:
@@ -1220,7 +1220,7 @@ asymptotic distribution.
 
 \bigskip
 
-So under the asymption that the first term of the H-decomposition of
+So under the assumption that the first term of the H-decomposition of
 the variance is non 0 then we know that the asymptotic distribution of
 our variance estimator is normal and if we are able to compute the
 variance of the first term of the H-decomposition then we would also
@@ -1367,13 +1367,13 @@ And then compute the asymptotic variance as:
 \end{align*}
 #+END_EXPORT
 
-\bigskip
+\clearpage
 
 \textsc{Example 2}: Sample variance @@latex:\\@@
 We first compute the H\(\'{a}\)jek projection of the variance:
 #+BEGIN_EXPORT latex
 \begin{align*}
-H^{(1)}_{\hat{\sigma}^2} &= \frac{2}{n} \sum_{i=1}^n  \Esp[\frac{(x_i-X_2)^2}{2} \big|x]  - \sigma^2 = \frac{1}{n} \sum_{i=1}^n \Esp[x_i^2 - 2 x_i X_2 + X_2^2 \big|x_i]  - \sigma^2 \\
+H^{(1)}_{\hat{\sigma}^2} &= \frac{2}{n} \sum_{i=1}^n  \Esp[\frac{(x_i-X_2)^2}{2} \bigg|x_i]  - \sigma^2 = \frac{1}{n} \sum_{i=1}^n \Esp[x_i^2 - 2 x_i X_2 + X_2^2 \big|x_i]  - \sigma^2 \\
 &= \frac{1}{n} \sum_{i=1}^n \left( x_i^2 - 2 x_i \mu + \sigma^2 + \mu^2 \right)  - \sigma^2 \\
 &= \frac{1}{n} \sum_{i=1}^n \left( (x_i - \mu)^2 - \sigma^2 \right) 
 \end{align*}
@@ -1567,14 +1567,15 @@ where \(\sigma^2_{1,1} = \Prob[x<y](1-\Prob[x<y])\). Indeed the second
 term of the H-decomposition would be the projection of \(\Ind[X \leq
 Y]\) on \(X,Y\) where we substract components of the H\(\'{a}\)jek
 projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
-\(H_{\hat{U}}^{(2)}\):
+\(H_{\hat{U}}^{(2)}\) (see theorem 3 page 4 of cite:lee1990u for a
+generic formula):
 #+BEGIN_EXPORT latex
 \begin{align*}
-H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] \\
-&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right]
+H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \left(\Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - U\right) - \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right) - \left(\Esp\left[ \Ind[x \leq y_j] \big| y_j\right] - U\right) \\
+&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] + U
 \end{align*}
 #+END_EXPORT
-Indeed:
+and:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \Var[H_{\hat{U}}^{(2)}] 
@@ -1591,7 +1592,36 @@ Since:
 &= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[- \Ind[y < x_i] \big| x_i\right]\right]
 \end{align*}
 #+END_EXPORT
-which under the null hypothesis that \(X\) and \(Y\) have the same distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j]\right] \big| y_j\right]\).
+which under the null hypothesis that \(X\) and \(Y\) have the same
+distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x
+\leq y_j]\right] \big| y_j\right]\). It remains to show that this is
+also true under the alternative hypothesis.
+
+# butils.base:::sourcePackage("BuyseTest", c.code = TRUE)
+# library(lava)
+
+# ## ** iid
+# set.seed(10)
+# d <- simBuyseTest(5)
+# e.BT <- BuyseTest(Treatment ~ cont(score), data = d, method.inference = "asymptotic", keep.pairScore = TRUE)
+
+# e.dtBT <- e.BT@tablePairScore[[1]][,.(index.C,index.T,favorable,unfavorable)]
+# iid.BT <- cbind(favorable = c((e.dtBT[,mean(favorable),by = "index.C"][[2]] - mean(e.dtBT$favorable))/length(unique(e.dtBT$index.C)),
+#                               (e.dtBT[,mean(unfavorable),by = "index.T"][[2]] - mean(e.dtBT$unfavorable))/length(unique(e.dtBT$index.T))),
+#                 unfavorable = c((e.dtBT[,mean(unfavorable),by = "index.C"][[2]] - mean(e.dtBT$unfavorable))/length(unique(e.dtBT$index.C)),
+#                                 (e.dtBT[,mean(favorable),by = "index.T"][[2]] - mean(e.dtBT$favorable))/length(unique(e.dtBT$index.T)))
+#                 )
+
+# colSums(iid.BT^2)
+# e.BT@covariance
+
+# colSums(iid.BT[d$Treatment=="T",]^2) + colSums(iid.BT[d$Treatment=="C",]^2)
+
+# mean(e.dtBT[, sum(apply(combn(.N, m = 2),2, function(x){.SD[x[1],favorable]*.SD[x[2],favorable]}))/NCOL(combn(.N, m = 2)), by = "index.T"][[2]]) - mean(e.dtBT[, favorable])^2
+
+# mean(e.dtBT[, sum(apply(combn(.N, m = 2),2, function(x){.SD[x[1],unfavorable]*.SD[x[2],unfavorable]}))/NCOL(combn(.N, m = 2)), by = "index.T"][[2]]) - mean(e.dtBT[, unfavorable])^2
+
+
   \clearpage 
 
 * Information about the R session used for this document :noexport:

@@ -253,15 +253,13 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
     xi_01_12 <- cumsum(sum.mixedC) - p1.favorable * p1.unfavorable
 
     ## ** compute sigma
-    n <- n.T
-    m <- n.C
-    N <- n+m
 
-    ## asymptotic variance i.e. sqrt(n+m)(Uhat - U) \sim N(0,Sigma)
-    ## scaled asymptotic variance i.e. (Uhat - U) \sim N(0,Sigma/N)
-    M.cov <- cbind(favorable = 1/m * xi_10_11 + 1/n * xi_01_11,
-                   unfavorable = 1/m * xi_10_22 + 1/n * xi_01_22,
-                   covariance = 1/m * xi_10_12 + 1/n * xi_01_12)
+    ## N.TC = N.T+N.C
+    ## asymptotic variance i.e. sqrt(N.TC)(Uhat - U) \sim N(0,Sigma)
+    ## scaled asymptotic variance i.e. (Uhat - U) \sim N(0,Sigma/N.TC)
+    M.cov <- cbind(favorable = 1/n.C * xi_10_11 + 1/n.T * xi_01_11,
+                   unfavorable = 1/n.C * xi_10_22 + 1/n.T * xi_01_22,
+                   covariance = 1/n.C * xi_10_12 + 1/n.T * xi_01_12)
     ## crossprod(cbind(M.iid.favorable,M.iid.unfavorable))
 
     if(any((M.cov[,"favorable"] + M.cov[,"unfavorable"] - 2 * M.cov[,"covariance"]) <= 0)){

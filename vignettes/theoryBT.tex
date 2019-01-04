@@ -1,4 +1,4 @@
-% Created 2018-12-17 ma 13:03
+% Created 2019-01-04 fr 17:05
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -217,7 +217,7 @@ library(survival)
 \clearpage
 
 \section{References}
-\label{sec:org581876c}
+\label{sec:orge34fe7e}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -230,24 +230,24 @@ library(survival)
 \appendix
 
 \section{Recall on the U-statistic theory}
-\label{sec:orgd91d458}
+\label{sec:org29e439e}
 
 This recall is based on chapter 1 of \cite{lee1990u}.
 
 \subsection{Motivating example}
-\label{sec:org73fa9ff}
+\label{sec:org1a717c2}
 
 We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
 empirical variance estimator?". For a more concrete example, imagine
 that we want to provide an estimate with its 95\% confidence interval
-for the variability in cholesterol measurements. We assume that we are
+of the variability in cholesterol measurements. We assume that we are
 able to collect a sample of \(n\) independent and identically
 distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 \subsection{Estimate, estimator, and functionnal}
-\label{sec:orgb27e8d2}
+\label{sec:org6274057}
 
 We can compute an \textbf{estimate} of the variance using the following
 \textbf{estimators} \(\hat{\mu}\) and \(\hat{\sigma}^2\):
@@ -319,7 +319,7 @@ transforms the data into an estimate.
 \end{itemize}
 
 \subsection{Aim}
-\label{sec:org0d8201c}
+\label{sec:orge102901}
 
 Using formula \eqref{eq:m(F)} and \eqref{eq:s(F)} we can easily estimate
 the variance based on the observed realisations of \(X\) (i.e. the
@@ -384,7 +384,7 @@ central limit theorem. It does not give us a formula for the
 asymptotic variance though. 
 
 \subsection{Definition of a U-statistic and examples}
-\label{sec:org54a10f4}
+\label{sec:orga7e6cda}
 
 A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
@@ -416,7 +416,7 @@ U-statistic, but this requires a little bit more work to see that:
 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) \\
 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right)
-=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - s \\
+=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \hat{\sigma}^2 \\
 \hat{\sigma}^2 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
 =  \frac{2}{n(n-1)} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2}
 \hat{\sigma}^2 =  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
@@ -446,7 +446,7 @@ Warning message:
 In wilcox.test.default(x) : cannot compute exact p-value with ties
 \end{verbatim}
 
-Let's take to random realisation of \(X\) and denote thoses \(X_1\)
+Let's take two random realisation of \(X\) and denote thoses \(X_1\)
 and \(X_2\) (they are random variables). The parameter of interest (or
 true value) is \(U = \Prob[X_1+X_2>0]\) and the corresponding
 estimator is:
@@ -455,7 +455,7 @@ estimator is:
 \end{align*}
 
 \subsection{A major result from the U-statistic theory}
-\label{sec:org9c7426b}
+\label{sec:orgc44ae98}
 
 So far we have seen that our estimator for the variance was a
 U-statistic. We will now use the U-statistic theory to obtain its
@@ -472,7 +472,7 @@ asymptotic distribution.
 
 \bigskip
 
-So under the asymption that the first term of the H-decomposition of
+So under the assumption that the first term of the H-decomposition of
 the variance is non 0 then we know that the asymptotic distribution of
 our variance estimator is normal and if we are able to compute the
 variance of the first term of the H-decomposition then we would also
@@ -481,7 +481,7 @@ remains to see what is this H-decomposition and how can we
 characterize it.
 
 \subsection{The first term of the H-decomposition}
-\label{sec:org531c6dc}
+\label{sec:orgb573af4}
 
 The H-decomposition (short for Hoeffling decomposition) enables us to
 decompose the estimator of a U-statistic of rank \(k\) into a sum of
@@ -607,12 +607,12 @@ And then compute the asymptotic variance as:
 \Var[\hat{\mu}] =  \Var[H^{(1)}_{\hat{\mu}}] = \frac{1}{n^2}  \sum_{i=1}^n \Var[x_i-\mu] = \frac{1}{n^2}  \sum_{i=1}^n \sigma^2 = \frac{\sigma^2}{n}
 \end{align*}
 
-\bigskip
+\clearpage
 
 \textsc{Example 2}: Sample variance \\
 We first compute the H\(\'{a}\)jek projection of the variance:
 \begin{align*}
-H^{(1)}_{\hat{\sigma}^2} &= \frac{2}{n} \sum_{i=1}^n  \Esp[\frac{(x_i-X_2)^2}{2} \big|x]  - \sigma^2 = \frac{1}{n} \sum_{i=1}^n \Esp[x_i^2 - 2 x_i X_2 + X_2^2 \big|x_i]  - \sigma^2 \\
+H^{(1)}_{\hat{\sigma}^2} &= \frac{2}{n} \sum_{i=1}^n  \Esp[\frac{(x_i-X_2)^2}{2} \bigg|x_i]  - \sigma^2 = \frac{1}{n} \sum_{i=1}^n \Esp[x_i^2 - 2 x_i X_2 + X_2^2 \big|x_i]  - \sigma^2 \\
 &= \frac{1}{n} \sum_{i=1}^n \left( x_i^2 - 2 x_i \mu + \sigma^2 + \mu^2 \right)  - \sigma^2 \\
 &= \frac{1}{n} \sum_{i=1}^n \left( (x_i - \mu)^2 - \sigma^2 \right) 
 \end{align*}
@@ -652,7 +652,7 @@ compute the asymptotic variance as:
 \end{align*}
 
 \subsection{Two sample U-statistics}
-\label{sec:org0f33e1f}
+\label{sec:orgf71812c}
 
 So far we have assumed that all our observations were iid. But in the
 case of GPC, we study two populations (experimental arm and control
@@ -776,12 +776,13 @@ where \(\sigma^2_{1,1} = \Prob[x<y](1-\Prob[x<y])\). Indeed the second
 term of the H-decomposition would be the projection of \(\Ind[X \leq
 Y]\) on \(X,Y\) where we substract components of the H\(\'{a}\)jek
 projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
-\(H_{\hat{U}}^{(2)}\):
+\(H_{\hat{U}}^{(2)}\) (see theorem 3 page 4 of \cite{lee1990u} for a
+generic formula):
 \begin{align*}
-H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] \\
-&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right]
+H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \left(\Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - U\right) - \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right) - \left(\Esp\left[ \Ind[x \leq y_j] \big| y_j\right] - U\right) \\
+&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] + U
 \end{align*}
-Indeed:
+and:
 \begin{align*}
 \Var[H_{\hat{U}}^{(2)}] 
 &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] - \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
@@ -794,6 +795,10 @@ Since:
 \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] &= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[1- \Ind[x_i > y] \big| x_i\right]\right] \\
 &= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[- \Ind[y < x_i] \big| x_i\right]\right]
 \end{align*}
-which under the null hypothesis that \(X\) and \(Y\) have the same distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j]\right] \big| y_j\right]\).
-  \clearpage 
+which under the null hypothesis that \(X\) and \(Y\) have the same
+distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x
+\leq y_j]\right] \big| y_j\right]\). It remains to show that this is
+also true under the alternative hypothesis.
+
+\clearpage 
 \end{document}
