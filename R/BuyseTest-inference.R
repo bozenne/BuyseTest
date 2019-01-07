@@ -132,46 +132,61 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
     }
     ## ls.table[[1]][, mean(favorable)-mean(unfavorable)]
     ## ls.table[[2]][, mean(favorable)-mean(unfavorable)]
-
-
     
-    ## ** compute sufficient statistic for each endpoint
-    
-    ## *** compute sufficient statistics
-    ## X1 Y1 X1 Y1' ie 10
+    ## ** compute sufficient statistics
+    ## expectation
+    p1.favorable <- cumsum(count.favorable)/n.pairs ## same as percentage favorable
+    p1.unfavorable <- cumsum(count.unfavorable)/n.pairs ## same as percentage unfavorable
+
+    ## variance T 
     strataSum.favorableT <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
-                                  dimnames = list(NULL, endpoint))
+                                   dimnames = list(NULL, endpoint))
     strataSum.unfavorableT <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
-                                    dimnames = list(NULL, endpoint))
+                                     dimnames = list(NULL, endpoint))
     strataSum.mixedT <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
                                dimnames = list(NULL, endpoint))
-    strataSum.setT <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
-                            dimnames = list(NULL, endpoint))
 
-    ## X1 Y1 X1' Y1 ie 01
+    ## variance C
     strataSum.favorableC <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
                                    dimnames = list(NULL, endpoint))
     strataSum.unfavorableC <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
                                      dimnames = list(NULL, endpoint))
     strataSum.mixedC <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
                                dimnames = list(NULL, endpoint))
-    strataSum.setC <- matrix(NA, nrow = n.strata, ncol = n.endpoint,
-                            dimnames = list(NULL, endpoint))
 
-    colname.tempo <- c("set","favorable","unfavorable","mixed")
-    M.iid.favorable <- matrix(NA, nrow = n.T+n.C, ncol = n.endpoint)
-    M.iid.unfavorable <- matrix(NA, nrow = n.T+n.C, ncol = n.endpoint)
-    
-    for(iE in 1:n.endpoint){ ## iStrata <- 1
-        for(iStrata in 1:n.strata){ ## iStrata <- 1
+    ## iid decomposition
+    A.iid <- array(NA, dim = c(n.T+n.C, n.endpoint, 2), dimnames = list(NULL, endpoint, c("favorable","unfavorable")))
 
+    ## loop
+    for(iStrata in 1:n.strata){ ## iStrata <- 1
+        for(iE in 1:n.endpoint){ ## iE <- 1
+
+            iTable <- ls.table[[iE]][ls.table[[iE]]$strata == iStrata]
+            index2originalOrder.C <- iTable[!duplicated(index.C),setNames(index.C,indexWithinStrata.C)]
+            index2originalOrder.T <- iTable[!duplicated(index.T),setNames(index.T,indexWithinStrata.T)]
+            iN.strata <- NROW(iTable) ## number of pairs
+
+            ## ***  Hajek projection (iid decomposition)
+            ## \E[X_i>=Y_j+\tau|X_i] and \E[X_i+\tau<=Y_j|X_i]
+            sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.T"]
+            sumPair.T[, c("E.favorable") := .SD$favorable/.SD$pairs]
+            sumPair.T[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
+                
+            ## \E[X_i>=Y_j+\tau|Y_j] and \E[X_i+\tau<=Y_j|Y_j]
+            sumPair.C <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.C"]
+            sumPair.C[, c("E.favorable") := .SD$favorable/.SD$pairs]
+            sumPair.C[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
+
+            ## store
+            A.iid[index2originalOrder.C,iE,"favorable"] <- (sumPair.C$E.favorable - (count.favorable[iE]/n.pairs)) / n.T
+            A.iid[index2originalOrder.T,iE,"favorable"] <- (sumPair.T$E.favorable - (count.favorable[iE]/n.pairs)) / n.C
+            A.iid[index2originalOrder.C,iE,"unfavorable"] <- (sumPair.C$E.unfavorable - (count.unfavorable[iE]/n.pairs)) / n.T
+            A.iid[index2originalOrder.T,iE,"unfavorable"] <- (sumPair.T$E.unfavorable - (count.unfavorable[iE]/n.pairs)) / n.C
+
+            ## *** variance 
             ## P[1(X_i,Y_j)1(X_i,Y_k)] = 1/nm(m-1) sum_i sum_j 1(X_i,Y_j) sum_k neq j 1(X_i,Y_j)
             ##                         = 1/nm(m-1) sum_i sum_j 1(X_i,Y_j) ( sum_k 1(X_i,Y_k) - 1(X_i,Y_j) )
             ## here we compute sum_k 1(X_i,Y_k) and m-1
-            iTable <- ls.table[[iE]][ls.table[[iE]]$strata == iStrata]
-            
-            sumPair.T <- iTable[, .(favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.T"]
-            sumPair.C <- iTable[, .(favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.C"]
 
             iTable[, c("sumFavorable.T") := sumPair.T$favorable[.SD$indexWithinStrata.T]]
             iTable[, c("sumUnfavorable.T") := sumPair.T$unfavorable[.SD$indexWithinStrata.T]]
@@ -179,64 +194,39 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
             iTable[, c("sumFavorable.C") := sumPair.C$favorable[.SD$indexWithinStrata.C]]
             iTable[, c("sumUnfavorable.C") := sumPair.C$unfavorable[.SD$indexWithinStrata.C]]
 
-            iN.strata <- NROW(iTable)
-            iN.setT <- NROW(sumPair.T) - 1
-            iN.setC <- NROW(sumPair.C) - 1
-
-            ## 1/iN.strata =  nm
-            if(iN.setT > 0){
+            iN.setT <- NROW(sumPair.T)
+            iN.setC <- NROW(sumPair.C)
+            
+            if(NROW(sumPair.T) > 0){
                 ## E[ 1(X_i>Y_j) 1(X_i>Y_k) ]
-                strataSum.favorableT[iStrata,iE] <- iTable[,sum((.SD$sumFavorable.T  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setT)]
+                strataSum.favorableT[iStrata,iE] <- iTable[,sum(.SD$sumFavorable.T * .SD$favorable)] / (iN.strata*iN.setT)
                 ## E[ 1(X_i<Y_j) 1(X_i<Y_k) ]
-                strataSum.unfavorableT[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.T  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setT)]
+                strataSum.unfavorableT[iStrata,iE] <- iTable[,sum(.SD$sumUnfavorable.T * .SD$unfavorable)] / (iN.strata*iN.setT)
                 ## E[ 1(X_i>Y_j) 1(X_i<Y_k) ]
-                strataSum.mixedT[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.T  - .SD$unfavorable) * .SD$favorable) / (iN.strata*iN.setT)]
-                ## strataSum.mixedT[iStrata,iE] <- iTable[,sum((sumFavorable.T  - favorable) * unfavorable) / (iN.strata*iN.setT)]
+                strataSum.mixedT[iStrata,iE] <- iTable[,sum(.SD$sumUnfavorable.T * .SD$favorable)] / (iN.strata*iN.setT)
             }
-            if(iN.setC > 0){
+            if(NCOL(sumPair.C) > 0){
                 ## E[ 1(X_i>Y_j) 1(X_k>Y_j) ]
-                strataSum.favorableC[iStrata,iE] <- iTable[,sum((.SD$sumFavorable.C  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setC)]
+                strataSum.favorableC[iStrata,iE] <- iTable[,sum(.SD$sumFavorable.C * .SD$favorable)] / (iN.strata*iN.setC)
                 ## E[ 1(X_i<Y_j) 1(X_k<Y_j) ]
-                strataSum.unfavorableC[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.C  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setC)]
+                strataSum.unfavorableC[iStrata,iE] <- iTable[,sum(.SD$sumUnfavorable.C * .SD$unfavorable)] / (iN.strata*iN.setC)
                 ## E[ 1(X_i>Y_j) 1(X_k<Y_j) ]
-                strataSum.mixedC[iStrata,iE] <- iTable[,sum((.SD$sumUnfavorable.C  - .SD$unfavorable) * .SD$favorable) / (iN.strata*iN.setC)]
-                ## strataSum.mixedC[iStrata,iE] <- iTable[,sum((sumFavorable.C  - favorable) * unfavorable) / (iN.strata*iN.setC)]
+                strataSum.mixedC[iStrata,iE] <- iTable[,sum(.SD$sumUnfavorable.C * .SD$favorable)] / (iN.strata*iN.setC)
             }
 
-            ## iid decomposition
-            dt.iid.T <- iTable[,.(favorable = sum((.SD$sumFavorable.T  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setT),
-                                  unfavorable = sum((.SD$sumUnfavorable.T  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setT)),by = "index.T"]
-            dt.iid.C <- iTable[,.(favorable = sum((.SD$sumFavorable.C  - .SD$favorable) * .SD$favorable) / (iN.strata*iN.setC),
-                                  unfavorable = sum((.SD$sumUnfavorable.C  - .SD$unfavorable) * .SD$unfavorable) / (iN.strata*iN.setC)),by = "index.C"]
-
-            centering.tempo <- mean(c(dt.iid.T$favorable, dt.iid.C$favorable))
-            M.iid.favorable[dt.iid.T$index.T,iE] <- dt.iid.T$favorable - centering.tempo
-            M.iid.favorable[dt.iid.C$index.C,iE] <- dt.iid.C$favorable - centering.tempo
-
-            centering.tempo <- mean(c(dt.iid.T$unfavorable, dt.iid.C$unfavorable))
-            M.iid.unfavorable[dt.iid.T$index.T,iE] <- dt.iid.T$unfavorable - centering.tempo
-            M.iid.unfavorable[dt.iid.C$index.C,iE] <- dt.iid.C$unfavorable - centering.tempo
-
-            ## sum(M.iid.favorable^2)
-            ## sum(M.iid.unfavorable^2)
         }
-    }    
+    }
 
+    ## ** average over strata
     sum.favorableT <- colSums(strataSum.favorableT)
     sum.unfavorableT <- colSums(strataSum.unfavorableT)
     sum.mixedT <- colSums(strataSum.mixedT)
-    n.setT <- strataSum.setT[1,]
 
     sum.favorableC <- colSums(strataSum.favorableC)
     sum.unfavorableC <- colSums(strataSum.unfavorableC)
     sum.mixedC <- colSums(strataSum.mixedC)
-    n.setC <- strataSum.setC[1,]
 
     ## ** compute xi
-    ## pre-compute
-    p1.favorable <- cumsum(count.favorable)/n.pairs ## same as percentage favorable
-    p1.unfavorable <- cumsum(count.unfavorable)/n.pairs ## same as percentage unfavorable
-
     ## P[X1>Y1 & X1>Y1'] - P[X1>Y1]^2
     xi_10_11 <- cumsum(sum.favorableT) - p1.favorable^2
     ## P[X1>Y1 & X1'>Y1] - P[X1>Y1]^2
@@ -253,20 +243,18 @@ inferenceUstatistic <- function(tablePairScore, count.favorable, count.unfavorab
     xi_01_12 <- cumsum(sum.mixedC) - p1.favorable * p1.unfavorable
 
     ## ** compute sigma
-
     ## N.TC = N.T+N.C
     ## asymptotic variance i.e. sqrt(N.TC)(Uhat - U) \sim N(0,Sigma)
     ## scaled asymptotic variance i.e. (Uhat - U) \sim N(0,Sigma/N.TC)
     M.cov <- cbind(favorable = 1/n.C * xi_10_11 + 1/n.T * xi_01_11,
                    unfavorable = 1/n.C * xi_10_22 + 1/n.T * xi_01_22,
                    covariance = 1/n.C * xi_10_12 + 1/n.T * xi_01_12)
-    ## crossprod(cbind(M.iid.favorable,M.iid.unfavorable))
 
     if(any((M.cov[,"favorable"] + M.cov[,"unfavorable"] - 2 * M.cov[,"covariance"]) <= 0)){
         warning("Non positive definite covariance matrix")
     }
 
+    ## ** export
     return(list(Sigma = M.cov,
-                iid.favorable = M.iid.favorable,
-                iid.unfavorable = M.iid.unfavorable))
+                iid = A.iid))
 }

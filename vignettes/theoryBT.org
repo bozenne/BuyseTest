@@ -32,11 +32,11 @@ library(survival)
 
 \clearpage
 
-* Parameter of interest :noexport:
+* Parameter of interest
 
 Let consider two independent real valued (univariate) random variables
 \(X\) and \(Y\). Informally \(X\) refer to the outcome in the
-treatment group while \(Y\) refer to the outcome in the treatment
+experimental group while \(Y\) refer to the outcome in the control
 group. For a given threshold \(\tau \in \Real^{+*}\), the net benefit
 can be expressed as:
 #+BEGIN_EXPORT latex
@@ -51,15 +51,14 @@ the case of an infinitesimal threshold \(\tau\):
 \Delta_+ = \Prob[X > Y] - \Prob[Y > X]
 \end{align*}
 #+END_EXPORT
-In any case, \(X\) and \(Y\) play a symetric role, in the sense that
-given a formula for \(\Prob[X \geq Y+\tau]\) (or \(\Prob[X >
-Y+\tau]\)), we can substitute \(X\) to \(Y\) and \(Y\) to \(X\) to
-obtain the formula for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y >
-X+\tau]\)).
+In any case, \(X\) and \(Y\) play a symetric role in the sense that
+given a formula for \(\Prob[X \geq Y+\tau]\) (or \(\Prob[X > Y]\)), we
+can substitute \(X\) to \(Y\) and \(Y\) to \(X\) to obtain the formula
+for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y > X]\)).
 
 \clearpage
 
-* Binary variable  :noexport:
+* Binary variable :noexport:
 ** Relationship between \(\Delta_+\) and the prevalence
 #+BEGIN_EXPORT latex
 \begin{align*}
@@ -121,7 +120,7 @@ prob2 - prob1
 
 \clearpage
 
-* Continuous variable  :noexport:
+* Continuous variable :noexport:
 ** Relationship between \(\Delta\) and Cohen's d
 Let's consider two independent normally distributed variables with common variance:
 - \(X \sim \Gaus[\mu_X,\sigma^2]\) 
@@ -185,7 +184,7 @@ d <- (meanY-meanX)/sdXY
 
 \clearpage
 
-* Survival  :noexport:
+* Survival :noexport:
 ** Relationship between \(\Delta\) and the hazard ratio
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
@@ -235,11 +234,11 @@ So \(\Prob[Y>X] = \frac{\alpha_X}{\alpha_Y+\alpha_X} = 1-\frac{1}{1+HR} \) and:
 
 ** Scoring rule in presence of censoring
 Let's consider the following random variables:  
-- \(X\) the time to the occurrence of the event in the treatment group.
-- \(\Xobs\) the censored event time in the treatment group,
-  i.e. \(\Xobs = X \wedge C_X\) where \(C_X\) denotes the censoring time in the treatment group.
-- \(\CensT = \Ind[X \leq C_X]\) the event time indicator in the treatment group.
-- \(Y\) the time to the occurrence of the event in the treatment group.
+- \(X\) the time to the occurrence of the event in the experimental group.
+- \(\Xobs\) the censored event time in the experimental group,
+  i.e. \(\Xobs = X \wedge C_X\) where \(C_X\) denotes the censoring time in the experimental group.
+- \(\CensT = \Ind[X \leq C_X]\) the event time indicator in the experimental group.
+- \(Y\) the time to the occurrence of the event in the control group.
 - \(\Yobs\) the censored event time in the control group,
   i.e. \(\Yobs = X \wedge C_Y\) where \(C_Y\) denotes the censoring time in the control group.
 - \(\CensC = \Ind[Y \leq C_Y]\) the event time indicator in the control group.
@@ -453,7 +452,7 @@ By symmetry we have: @@latex:\\@@
 
 \clearpage
 
-** Partially known survival curve                                 :noexport:
+** Partially known survival curve
 In the case where \(x^* < y^* - \tau\), we need an estimate of
 \(S_X(y^* - \tau)\) to compute the probability in favor of the
 control. If we can only have an estimate of \(S_X\) up to
@@ -501,7 +500,7 @@ in favor of the control, and neutral.
   so the probability of being uninformative is 0.
 
 - when \(\left|x^* - y^*\right| < \tau\), the probability of being in
-  favor of the control is 0. If we know the survival in the treatment
+  favor of the control is 0. If we know the survival in the experimental
   group up to time \(y^*\), then we can only say that the probability
   of being favorable is bounded below by 0. The probability of being
   neutral bounded below by \(1-S_T(y^*)/S_T(x^*)\). The probability of
@@ -554,19 +553,18 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 
 \clearpage
 
-* Competing risks  :noexport:
-
+* Competing risks :noexport:
 ** Theory
 
 *** General case (no censoring)
 Let consider: 
-- \(X^*_{E}\) the time to the occurrence of the event of interest in the control group.
-- \(Y^*_{E}\) the time to the occurrence of the event of interest in the treatment group.
-- \(X^*_{CR}\) the time to the occurrence of the competing event of interest in the control group.
-- \(Y^*_{CR}\) the time to the occurrence of the competing event of interest in the treatment group.
+- \(X^*_{E}\) the time to the occurrence of the event of interest in the experimental group.
+- \(Y^*_{E}\) the time to the occurrence of the event of interest in the control group.
+- \(X^*_{CR}\) the time to the occurrence of the competing event of interest in the experimental group.
+- \(Y^*_{CR}\) the time to the occurrence of the competing event of interest in the control group.
 Let denote \(\varepsilon_X = 1 +\Ind[X^*_{E} > X^*_{CR}]\) the event type
-indicator in the control group and \(\varepsilon_Y = 1 + \Ind[Y^*_{E} >
-Y^*_{CR}]\) the event type indicator in treatment group (\(=1\) when the
+indicator in the experimental group and \(\varepsilon_Y = 1 + \Ind[Y^*_{E} >
+Y^*_{CR}]\) the event type indicator in control group (\(=1\) when the
 cause of interest is realised first and 2 when the competing risk is
 realised first).
 
@@ -598,26 +596,26 @@ i.e. when the event of interest is not realized we say that the time to event is
 We thus have:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Prob[Y > X] 
-= & \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
-&+ \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=2]\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
-&+ \Prob[Y > X|\varepsilon_X=2,\varepsilon_Y=1]\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
-&+ \Prob[Y > X|\varepsilon_X=2,\varepsilon_Y=2]\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
-= & \Prob[Y > X|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
-&+ 1*\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
-&+ 0*\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+\Prob[X > Y] 
+= & \Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ \Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=2]\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ \Prob[X > Y|\varepsilon_X=2,\varepsilon_Y=1]\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&+ \Prob[X > Y|\varepsilon_X=2,\varepsilon_Y=2]\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
+= & \Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ 0*\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ 1*\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
 &+ 0*\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
 \end{align*}
 #+END_EXPORT
 
 So \(\Prob[X > Y] = \Prob[X >
 Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
-\Prob[\varepsilon_X=1,\varepsilon_Y=2] \) and:
+\Prob[\varepsilon_X=2,\varepsilon_Y=1] \) and:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \Delta = &
  \big(\Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1] - \Prob[X < Y|\varepsilon_X=1,\varepsilon_Y=1] \big) \Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
-& + \Prob[\varepsilon_X=1,\varepsilon_Y=2] - \Prob[\varepsilon_X=2,\varepsilon_Y=1]
+& + \Prob[\varepsilon_X=2,\varepsilon_Y=1] - \Prob[\varepsilon_X=1,\varepsilon_Y=2]
 \end{align*}
 #+END_EXPORT
 
@@ -634,12 +632,12 @@ Now let's assume that:
 Then:
 #+BEGIN_EXPORT latex
 \begin{align*}
- \Prob[Y_{E} > X_{E}] &= \Prob[Y_{E} >
-X_{E}|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
-\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+ \Prob[X_{E} > Y_{E}] &= \Prob[X_{E} >
+Y_{E}|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
+\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
 &= \frac{1}{(\alpha_{E,X}+\alpha_{CR,X})(\alpha_{E,Y}+\alpha_{CR,Y})} \left(
  \alpha_{E,X}\alpha_{E,Y} \frac{\alpha_{E,X}}{\alpha_{E,X}+\alpha_{E,Y}}
-+ \alpha_{E,X}\alpha_{CR,Y} \right) \\
++ \alpha_{CR,X}\alpha_{E,Y} \right) \\
 \end{align*}
 #+END_EXPORT
 
@@ -951,7 +949,157 @@ where we used the law of total expectation (first line) and the independence bet
 
 \clearpage
 
-* Asymptotic distribution                        :noexport:
+* Asymptotic distribution
+
+** Gehan scoring rule
+
+In this section we consider two independent samples
+\(x_1,x_2,\ldots,x_m\) and \(y_1,y_2,\ldots,y_n\) where the first one
+contains iid realisations of a random variable \(X\) and the second
+one contains iid realisations of a second variable \(Y\). For each
+realisation we observe \(p\) endpoint. 
+
+\bigskip
+
+
+The estimator of the net benefit can be written as the difference
+between two estimators:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{\Delta}_\tau = \widehat{\Prob}[X \geq Y+\tau] - \widehat{\Prob}[Y \geq Y+\tau]
+\end{align*}
+#+END_EXPORT
+We denote by \(\phi_k\) the scoring rule relative to \(\Prob[X \geq
+Y+\tau]\) for the endpoint \(k\),
+e.g. \(\phi_k(x_1,y_1)=\Ind[x_1>y_1]\) for a binary endpoint. The
+scoring rule may depend of additional arguments, e.g. a threshold
+\(\tau\) but this will be ignored for the moment. Finally, we denote
+by \(k_{ij}\) the endpoint at which the pair \((i,j)\) is classified
+as favorable or unfavorable. If this does not happen then
+\(k_{ij}=p\). With this notations, the estimator \(\widehat{\Prob}[X
+\geq Y+\tau]\) can be written as a U-statistic:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\widehat{\Prob}[X \geq Y+\tau] = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \phi_{k_{ij}}(x_1,y_1)
+\end{align*}
+#+END_EXPORT
+This is a two sample U-statistic of order (1,1) with kernel
+\(\phi_{k_{ij}}(x_1,y_1)\) (trivially symmetric in \(x\) and \(y\)
+separately). From the U-statistic theory (e.g. see appendix
+[[#SM:Ustat]]), it follows that \(\widehat{\Prob}[X \geq Y+\tau]\) is
+unbiased, normally distributed, and its iid decomposition is the
+H\(\'{a}\)jek projection:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}(\widehat{\Prob}[X \geq Y+\tau]) &= \frac{1}{m} \sum_{i=1}^m \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| x_i] - \widehat{\Prob}[X \geq Y+\tau] \right) + \frac{1}{n} \sum_{j=1}^n \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| y_j] - \widehat{\Prob}[X \geq Y+\tau]\right) \\
+&= \sum_{l=1}^{m+n} H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])
+\end{align*}
+#+END_EXPORT
+where \(H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])\) are the
+individual terms of the iid decomposition. For instance in the binary
+case, the term relative to the \(i-th\) observation of the
+experimental group is:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) & = \frac{\Esp[\phi_{k_{ij}}(x_i,y) \bigg| x_i]-\widehat{\Prob}[X \geq Y+\tau]}{m} = \left\{ \begin{array}{cc} 
+ \frac{1-p_y-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 1 \\
+\frac{-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 0 \\
+\end{array} \right. 
+\end{align*}
+#+END_EXPORT
+where \(p_y\) is the proportion of 1 in the control group.
+
+
+\clearpage
+
+** Example
+
+Let's consider a case with 2 observations per group:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
+d
+#+END_SRC
+
+#+RESULTS:
+:    id group toxicity
+: 1:  1     C        1
+: 2:  2     C        0
+: 3:  3     T        1
+: 4:  4     T        0
+
+We can form 4 pairs:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+d2 <- data.table(pair = c("3-1","4-1","3-2","4-2"), 
+                 type = c("1-1","0-1","1-0","0-0"),
+                 favorable = c(0,0,1,0),
+                 unfavorable = c(0,1,0,0))
+d2
+#+END_SRC
+
+#+RESULTS:
+:    pair type favorable unfavorable
+: 1:  3-1  1-1         0           0
+: 2:  4-1  0-1         0           1
+: 3:  3-2  1-0         1           0
+: 4:  4-2  0-0         0           0
+
+So \(U=\Prob[X>Y]\) equals:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+U <- 1/4
+#+END_SRC
+
+#+RESULTS:
+
+and the iid terms are:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_1(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x>y_1]\big|y_1\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_1]+\Ind[x_2>y_1]}{2}- 1/4}{2} = \frac{0-1/4}{2} = -1/8 \\
+H^{(1)}_2(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x>y_2]\big|y_2\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_2]+\Ind[x_2>y_2]}{2}- 1/4}{2} = \frac{1/2-1/4}{2} = 1/8 \\
+H^{(1)}_3(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x_1>y]\big|x_1\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_1]+\Ind[x_1>y_2]}{2}- 1/4}{2} = \frac{1/2-1/4}{2} = 1/8 \\
+H^{(1)}_4(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x_2>y]\big|x_2\right]-U \right)&= \frac{ \frac{\Ind[x_2>y_1]+\Ind[x_2>y_2]}{2}- 1/4}{2} = \frac{0-1/4}{2} = -1/8
+\end{align*}
+#+END_EXPORT
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
+                  keep.pairScore = TRUE,
+                  method.inference = "asymptotic", trace = 0)
+iid(e.BT)
+#+END_SRC
+
+#+RESULTS:
+:      favorable unfavorable
+: [1,]    -0.125       0.125
+: [2,]     0.125      -0.125
+: [3,]     0.125      -0.125
+: [4,]    -0.125       0.125
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BT@covariance[1,]
+colSums(iid(e.BT)^2)
+#+END_SRC
+
+#+RESULTS:
+:   favorable unfavorable  covariance 
+:      0.0625      0.0625     -0.0625
+:   favorable unfavorable 
+:      0.0625      0.0625
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+tt <- e.BT@tablePairScore[[1]][,.(index.C,index.T,favorable,unfavorable)]
+U <- as.double(e.BT@count.favorable/NROW(tt))
+tt[,list(favorable,favorable-U),by = "index.T"]
+#+END_SRC
+
+
+
+
+#+RESULTS:
+:    index.T favorable    V2
+: 1:       3         0 -0.25
+: 2:       3         1  0.75
+: 3:       4         0 -0.25
+: 4:       4         0 -0.25
 
 \clearpage
 
@@ -968,6 +1116,10 @@ bibliographystyle:apalike
 \appendix
 
 * Recall on the U-statistic theory
+:PROPERTIES:
+:CUSTOM_ID: SM:Ustat
+:END:
+
 
 This recall is based on chapter 1 of cite:lee1990u.
 
@@ -1456,7 +1608,7 @@ Many results for U-statistics extends to two sample U-statistics. For
 instance the H\(\'{a}\)jek projection of \(\hat{U}-U\) becomes:
 #+BEGIN_EXPORT latex
 \begin{align*}
-H^{(1)} = \frac{k_x}{m} \sum_{i=1}^{m} \left( \Esp[h(x,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x] - U \right) + \frac{k_y}{n} \sum_{j=1}^{n} \left( \Esp[h(x_1,\ldots,x_{k_x},y,y_2,\ldots,y_{k_y}) \big| y] - U \right)
+H^{(1)} = \frac{k_x}{m} \sum_{i=1}^{m} \left( \Esp[h(x_1,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x_i] - U \right) + \frac{k_y}{n} \sum_{j=1}^{n} \left( \Esp[h(x_1,\ldots,x_{k_x},y_1,y_2,\ldots,y_{k_y}) \big| y_j] - U \right)
 \end{align*}
 #+END_EXPORT
 Before stating any asymptotic results, we need to define what we now
@@ -1541,6 +1693,7 @@ We can compute the variance as:
 \Var\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] &= \Esp\left[ \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right)^2\right]  \\
 &= \int_{x} \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right)  \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right) dF_{X}(x)\\
 &= \int_{x} \left(\int_{y_1} \left(\Ind[x \leq y_1] - U \right) dF_Y(y_1)\right)  \left(\int_{y_2} \left(\Ind[x \leq y_2] - U \right) dF_Y(y_2)\right) dF_{X}(x)\\
+&= \int_{x} \int_{y_1} \int_{y_2} \left(\Ind[x \leq y_1] - U \right) \left(\Ind[x \leq y_2] - U \right) dF_Y(y_1) dF_Y(y_2) dF_{X}(x)\\
 &= \Esp\left[\left( \Ind[x \leq y_1] - U\right)\left(\Ind[x \leq y_2] - U\right)\right] \\
 &= \Esp\left[\Ind[x \leq x_1]  \Ind[x \leq y_2] \right] - \Esp\left[\Ind[x \leq y_1]\right] U  - \Esp\left[\Ind[x \leq y_2]\right] U + U^2 \\
 &= \Prob[x \leq y_1, x \leq y_2] - \Prob[x \leq y]^2
@@ -1597,29 +1750,6 @@ distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x
 \leq y_j]\right] \big| y_j\right]\). It remains to show that this is
 also true under the alternative hypothesis.
 
-# butils.base:::sourcePackage("BuyseTest", c.code = TRUE)
-# library(lava)
-
-# ## ** iid
-# set.seed(10)
-# d <- simBuyseTest(5)
-# e.BT <- BuyseTest(Treatment ~ cont(score), data = d, method.inference = "asymptotic", keep.pairScore = TRUE)
-
-# e.dtBT <- e.BT@tablePairScore[[1]][,.(index.C,index.T,favorable,unfavorable)]
-# iid.BT <- cbind(favorable = c((e.dtBT[,mean(favorable),by = "index.C"][[2]] - mean(e.dtBT$favorable))/length(unique(e.dtBT$index.C)),
-#                               (e.dtBT[,mean(unfavorable),by = "index.T"][[2]] - mean(e.dtBT$unfavorable))/length(unique(e.dtBT$index.T))),
-#                 unfavorable = c((e.dtBT[,mean(unfavorable),by = "index.C"][[2]] - mean(e.dtBT$unfavorable))/length(unique(e.dtBT$index.C)),
-#                                 (e.dtBT[,mean(favorable),by = "index.T"][[2]] - mean(e.dtBT$favorable))/length(unique(e.dtBT$index.T)))
-#                 )
-
-# colSums(iid.BT^2)
-# e.BT@covariance
-
-# colSums(iid.BT[d$Treatment=="T",]^2) + colSums(iid.BT[d$Treatment=="C",]^2)
-
-# mean(e.dtBT[, sum(apply(combn(.N, m = 2),2, function(x){.SD[x[1],favorable]*.SD[x[2],favorable]}))/NCOL(combn(.N, m = 2)), by = "index.T"][[2]]) - mean(e.dtBT[, favorable])^2
-
-# mean(e.dtBT[, sum(apply(combn(.N, m = 2),2, function(x){.SD[x[1],unfavorable]*.SD[x[2],unfavorable]}))/NCOL(combn(.N, m = 2)), by = "index.T"][[2]]) - mean(e.dtBT[, unfavorable])^2
 
 
   \clearpage 

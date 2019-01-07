@@ -1,4 +1,4 @@
-% Created 2019-01-04 fr 17:05
+% Created 2019-01-07 ma 17:36
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -216,8 +216,177 @@ library(survival)
 
 \clearpage
 
+\section{Parameter of interest}
+\label{sec:org442d19a}
+
+Let consider two independent real valued (univariate) random variables
+\(X\) and \(Y\). Informally \(X\) refer to the outcome in the
+experimental group while \(Y\) refer to the outcome in the control
+group. For a given threshold \(\tau \in \Real^{+*}\), the net benefit
+can be expressed as:
+\begin{align*}
+\Delta_\tau = \Prob[X \geq Y+\tau] - \Prob[Y \geq Y+\tau]
+\end{align*}
+To relate the net benefit to known quantities we will also consider
+the case of an infinitesimal threshold \(\tau\):
+\begin{align*}
+\Delta_+ = \Prob[X > Y] - \Prob[Y > X]
+\end{align*}
+In any case, \(X\) and \(Y\) play a symetric role in the sense that
+given a formula for \(\Prob[X \geq Y+\tau]\) (or \(\Prob[X > Y]\)), we
+can substitute \(X\) to \(Y\) and \(Y\) to \(X\) to obtain the formula
+for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y > X]\)).
+
+\clearpage
+
+\section{Asymptotic distribution}
+\label{sec:orge90e676}
+
+\subsection{Gehan scoring rule}
+\label{sec:org2e81075}
+
+In this section we consider two independent samples
+\(x_1,x_2,\ldots,x_m\) and \(y_1,y_2,\ldots,y_n\) where the first one
+contains iid realisations of a random variable \(X\) and the second
+one contains iid realisations of a second variable \(Y\). For each
+realisation we observe \(p\) endpoint. 
+
+\bigskip
+
+
+The estimator of the net benefit can be written as the difference
+between two estimators:
+\begin{align*}
+\hat{\Delta}_\tau = \widehat{\Prob}[X \geq Y+\tau] - \widehat{\Prob}[Y \geq Y+\tau]
+\end{align*}
+We denote by \(\phi_k\) the scoring rule relative to \(\Prob[X \geq
+Y+\tau]\) for the endpoint \(k\),
+e.g. \(\phi_k(x_1,y_1)=\Ind[x_1>y_1]\) for a binary endpoint. The
+scoring rule may depend of additional arguments, e.g. a threshold
+\(\tau\) but this will be ignored for the moment. Finally, we denote
+by \(k_{ij}\) the endpoint at which the pair \((i,j)\) is classified
+as favorable or unfavorable. If this does not happen then
+\(k_{ij}=p\). With this notations, the estimator \(\widehat{\Prob}[X
+\geq Y+\tau]\) can be written as a U-statistic:
+\begin{align*}
+\widehat{\Prob}[X \geq Y+\tau] = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \phi_{k_{ij}}(x_1,y_1)
+\end{align*}
+This is a two sample U-statistic of order (1,1) with kernel
+\(\phi_{k_{ij}}(x_1,y_1)\) (trivially symmetric in \(x\) and \(y\)
+separately). From the U-statistic theory (e.g. see appendix
+\ref{SM:Ustat}), it follows that \(\widehat{\Prob}[X \geq Y+\tau]\) is
+unbiased, normally distributed, and its iid decomposition is the
+H\(\'{a}\)jek projection:
+\begin{align*}
+H^{(1)}(\widehat{\Prob}[X \geq Y+\tau]) &= \frac{1}{m} \sum_{i=1}^m \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| x_i] - \widehat{\Prob}[X \geq Y+\tau] \right) + \frac{1}{n} \sum_{j=1}^n \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| y_j] - \widehat{\Prob}[X \geq Y+\tau]\right) \\
+&= \sum_{l=1}^{m+n} H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])
+\end{align*}
+where \(H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])\) are the
+individual terms of the iid decomposition. For instance in the binary
+case, the term relative to the \(i-th\) observation of the
+experimental group is:
+\begin{align*}
+H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) & = \frac{\Esp[\phi_{k_{ij}}(x_i,y) \bigg| x_i]-\widehat{\Prob}[X \geq Y+\tau]}{m} = \left\{ \begin{array}{cc} 
+ \frac{1-p_y-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 1 \\
+\frac{-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 0 \\
+\end{array} \right. 
+\end{align*}
+where \(p_y\) is the proportion of 1 in the control group.
+
+
+\clearpage
+
+\subsection{Example}
+\label{sec:orgb36cd30}
+
+Let's consider a case with 2 observations per group:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
+d
+\end{lstlisting}
+
+\begin{verbatim}
+   id group toxicity
+1:  1     C        1
+2:  2     C        0
+3:  3     T        1
+4:  4     T        0
+\end{verbatim}
+
+We can form 4 pairs:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+d2 <- data.table(pair = c("3-1","4-1","3-2","4-2"), 
+				 type = c("1-1","0-1","1-0","0-0"),
+				 favorable = c(0,0,1,0),
+				 unfavorable = c(0,1,0,0))
+d2
+\end{lstlisting}
+
+\begin{verbatim}
+   pair type favorable unfavorable
+1:  3-1  1-1         0           0
+2:  4-1  0-1         0           1
+3:  3-2  1-0         1           0
+4:  4-2  0-0         0           0
+\end{verbatim}
+
+So \(U=\Prob[X>Y]\) equals:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+U <- 1/4
+\end{lstlisting}
+
+and the iid terms are:
+\begin{align*}
+H^{(1)}_1(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x>y_1]\big|y_1\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_1]+\Ind[x_2>y_1]}{2}- 1/4}{2} = \frac{0-1/4}{2} = -1/8 \\
+H^{(1)}_2(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x>y_2]\big|y_2\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_2]+\Ind[x_2>y_2]}{2}- 1/4}{2} = \frac{1/2-1/4}{2} = 1/8 \\
+H^{(1)}_3(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x_1>y]\big|x_1\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_1]+\Ind[x_1>y_2]}{2}- 1/4}{2} = \frac{1/2-1/4}{2} = 1/8 \\
+H^{(1)}_4(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x_2>y]\big|x_2\right]-U \right)&= \frac{ \frac{\Ind[x_2>y_1]+\Ind[x_2>y_2]}{2}- 1/4}{2} = \frac{0-1/4}{2} = -1/8
+\end{align*}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
+				  keep.pairScore = TRUE,
+				  method.inference = "asymptotic", trace = 0)
+iid(e.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+Warning message:
+In inferenceUstatistic(tablePairScore = outPoint$tablePairScore,  :
+  Non positive definite covariance matrix
+     favorable unfavorable
+[1,]    -0.125       0.125
+[2,]     0.125      -0.125
+[3,]     0.125      -0.125
+[4,]    -0.125       0.125
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+tt <- e.BT@tablePairScore[[1]][,.(index.C,index.T,favorable,unfavorable)]
+U <- as.double(e.BT@count.favorable/NROW(tt))
+tt[,list(favorable,favorable-U),by = "index.T"]
+\end{lstlisting}
+
+
+
+
+\begin{verbatim}
+   index.T favorable    V2
+1:       3         0 -0.25
+2:       3         1  0.75
+3:       4         0 -0.25
+4:       4         0 -0.25
+\end{verbatim}
+
+\clearpage
+
 \section{References}
-\label{sec:orge34fe7e}
+\label{sec:org6f9923b}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -230,12 +399,11 @@ library(survival)
 \appendix
 
 \section{Recall on the U-statistic theory}
-\label{sec:org29e439e}
-
+\label{SM:Ustat}
 This recall is based on chapter 1 of \cite{lee1990u}.
 
 \subsection{Motivating example}
-\label{sec:org1a717c2}
+\label{sec:org14fb09c}
 
 We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
@@ -247,7 +415,7 @@ distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 \subsection{Estimate, estimator, and functionnal}
-\label{sec:org6274057}
+\label{sec:org8e66ae7}
 
 We can compute an \textbf{estimate} of the variance using the following
 \textbf{estimators} \(\hat{\mu}\) and \(\hat{\sigma}^2\):
@@ -319,7 +487,7 @@ transforms the data into an estimate.
 \end{itemize}
 
 \subsection{Aim}
-\label{sec:orge102901}
+\label{sec:orgffb1561}
 
 Using formula \eqref{eq:m(F)} and \eqref{eq:s(F)} we can easily estimate
 the variance based on the observed realisations of \(X\) (i.e. the
@@ -384,7 +552,7 @@ central limit theorem. It does not give us a formula for the
 asymptotic variance though. 
 
 \subsection{Definition of a U-statistic and examples}
-\label{sec:orga7e6cda}
+\label{sec:orgcc02422}
 
 A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
@@ -455,7 +623,7 @@ estimator is:
 \end{align*}
 
 \subsection{A major result from the U-statistic theory}
-\label{sec:orgc44ae98}
+\label{sec:org3fff585}
 
 So far we have seen that our estimator for the variance was a
 U-statistic. We will now use the U-statistic theory to obtain its
@@ -481,7 +649,7 @@ remains to see what is this H-decomposition and how can we
 characterize it.
 
 \subsection{The first term of the H-decomposition}
-\label{sec:orgb573af4}
+\label{sec:org6e3d1d7}
 
 The H-decomposition (short for Hoeffling decomposition) enables us to
 decompose the estimator of a U-statistic of rank \(k\) into a sum of
@@ -652,7 +820,7 @@ compute the asymptotic variance as:
 \end{align*}
 
 \subsection{Two sample U-statistics}
-\label{sec:orgf71812c}
+\label{sec:org3ec33bc}
 
 So far we have assumed that all our observations were iid. But in the
 case of GPC, we study two populations (experimental arm and control
@@ -682,7 +850,7 @@ where \(\alpha\) (resp. \(\beta\)) is the set of all possible
 Many results for U-statistics extends to two sample U-statistics. For
 instance the H\(\'{a}\)jek projection of \(\hat{U}-U\) becomes:
 \begin{align*}
-H^{(1)} = \frac{k_x}{m} \sum_{i=1}^{m} \left( \Esp[h(x,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x] - U \right) + \frac{k_y}{n} \sum_{j=1}^{n} \left( \Esp[h(x_1,\ldots,x_{k_x},y,y_2,\ldots,y_{k_y}) \big| y] - U \right)
+H^{(1)} = \frac{k_x}{m} \sum_{i=1}^{m} \left( \Esp[h(x_1,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x_i] - U \right) + \frac{k_y}{n} \sum_{j=1}^{n} \left( \Esp[h(x_1,\ldots,x_{k_x},y_1,y_2,\ldots,y_{k_y}) \big| y_j] - U \right)
 \end{align*}
 Before stating any asymptotic results, we need to define what we now
 mean by asymptotic (since we have two sample sizes \(m\) and
@@ -755,6 +923,7 @@ We can compute the variance as:
 \Var\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] &= \Esp\left[ \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right)^2\right]  \\
 &= \int_{x} \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right)  \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right) dF_{X}(x)\\
 &= \int_{x} \left(\int_{y_1} \left(\Ind[x \leq y_1] - U \right) dF_Y(y_1)\right)  \left(\int_{y_2} \left(\Ind[x \leq y_2] - U \right) dF_Y(y_2)\right) dF_{X}(x)\\
+&= \int_{x} \int_{y_1} \int_{y_2} \left(\Ind[x \leq y_1] - U \right) \left(\Ind[x \leq y_2] - U \right) dF_Y(y_1) dF_Y(y_2) dF_{X}(x)\\
 &= \Esp\left[\left( \Ind[x \leq y_1] - U\right)\left(\Ind[x \leq y_2] - U\right)\right] \\
 &= \Esp\left[\Ind[x \leq x_1]  \Ind[x \leq y_2] \right] - \Esp\left[\Ind[x \leq y_1]\right] U  - \Esp\left[\Ind[x \leq y_2]\right] U + U^2 \\
 &= \Prob[x \leq y_1, x \leq y_2] - \Prob[x \leq y]^2
@@ -799,6 +968,8 @@ which under the null hypothesis that \(X\) and \(Y\) have the same
 distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x
 \leq y_j]\right] \big| y_j\right]\). It remains to show that this is
 also true under the alternative hypothesis.
+
+
 
 \clearpage 
 \end{document}

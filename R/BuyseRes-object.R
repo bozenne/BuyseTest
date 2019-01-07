@@ -135,8 +135,9 @@ methods::setMethod(
                  .Object@DeltaResampling.netBenefit <- DeltaResampling.netBenefit
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
 
-                 .Object@covariance <- covariance
-
+                 .Object@covariance <- covariance$Sigma
+                 attr(.Object@covariance, "iid") <- covariance$iid
+                     
                  .Object@tablePairScore <- tablePairScore
                  .Object@tableSurvival <- tableSurvival
                  
