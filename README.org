@@ -3,6 +3,7 @@
 <a href="http://cran.rstudio.com/web/packages/BuyseTest/index.html"><img src="http://www.r-pkg.org/badges/version/BuyseTest"></a>
 <a href="http://cranlogs.r-pkg.org/downloads/total/last-month/BuyseTest"><img src="http://cranlogs.r-pkg.org/badges/BuyseTest"></a>
 <a href="https://ci.appveyor.com/project/bozenne/BuyseTest"><img src="https://ci.appveyor.com/api/projects/status/github/bozenne/BuyseTest?svg=true" alt="Build status"></a>
+<a href="http://www.gnu.org/licenses/gpl-3.0.html"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License"></a>
 #+END_HTML
 
 * BuyseTest
