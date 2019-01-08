@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 1.6.2
-Date: 2018-11-01
+Version: 1.7
+Date: 2019-01-08
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.ozenne@orange.fr", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "aut")
@@ -48,8 +48,9 @@ Collate:
     '0-onLoad.R'
     '1-setGeneric.R'
     'BuyseRes-object.R'
-    'BuyseRes-summary.R'
     'BuyseRes-confint.R'
+    'BuyseRes-iid.R'
+    'BuyseRes-summary.R'
     'BuyseRes_get.R'
     'BuyseRes_show.R'
     'BuyseSim-object.R'

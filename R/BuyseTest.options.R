@@ -43,6 +43,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                correction.uninf = FALSE,               
                n.resampling = 1000,
                neutral.as.uninf = TRUE,
+               order.Hprojection = 2,
                statistic = "netBenefit",               
                transformation = FALSE,               
                trace = 2), 

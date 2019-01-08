@@ -121,7 +121,7 @@ setMethod(f = "summary",
               }
 
               ## safety
-              if(method.inference == "asymptotic"){
+              if(method.inference %in% c("asymptotic","asymptotic-bebu")){
                   if(object@method.tte == "Peron"){
                       warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
                               "Standard errors / confidence intervals / p-values will not be displayed \n")
@@ -202,7 +202,7 @@ setMethod(f = "summary",
                   colStars[index.global] <- sapply(table.print[index.global,"p.value"],function(x){
                       if(is.na(x)){""}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
                   })
-                  if(method.inference == "asymptotic"){
+                  if(method.inference %in% c("asymptotic","asymptotic-bebu")){
                       table.print <- cbind(table.print[,setdiff(names(table.print), "n.resampling")],
                                            "significance" = colStars)
                   }else{
@@ -230,7 +230,7 @@ setMethod(f = "summary",
                   keep.cols <- setdiff(names(table.print),
                                        c("CIinf.Delta","CIsup.Delta","n.resampling","p.value"))
                   table.print <- table.print[,keep.cols, drop = FALSE]
-              }else if(method.inference == "asymptotic"){
+              }else if(method.inference %in% c("asymptotic","asymptotic-bebu")){
                   keep.cols <- setdiff(names(table.print), "n.resampling")
                   table.print <- table.print[,keep.cols, drop = FALSE]
               }
@@ -367,7 +367,7 @@ setMethod(f = "summary",
                                            "stratified bootstrap" = "stratified bootstrap resampling"
                                            )
                       cat(" > ",txt.method,": ",txt.permutation," samples, confidence level ",1-alpha," \n", sep = "")
-                  }else if(method.inference == "asymptotic"){
+                  }else if(method.inference %in% c("asymptotic","asymptotic-beta")){
                       cat(" >  asymptotic confidence intervals and p-values, confidence level ",1-alpha," \n", sep = "")
                   }
                   

@@ -44,6 +44,7 @@ setClass(
       DeltaResampling.netBenefit = "matrix",
       DeltaResampling.winRatio = "matrix",
       covariance = "matrix",
+      iid = "list",
       tablePairScore = "list",
       tableSurvival = "list"
       )
@@ -79,6 +80,7 @@ methods::setMethod(
                                    DeltaResampling.netBenefit,
                                    DeltaResampling.winRatio,
                                    covariance,
+                                   iid,
                                    tablePairScore,
                                    tableSurvival,
                                    args){
@@ -136,8 +138,9 @@ methods::setMethod(
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
 
                  .Object@covariance <- covariance$Sigma
-                 attr(.Object@covariance, "iid") <- covariance$iid
-                     
+                 .Object@iid <- list(iid1 = covariance$iid1,
+                                     iid2 = covariance$iid2)
+                 
                  .Object@tablePairScore <- tablePairScore
                  .Object@tableSurvival <- tableSurvival
                  

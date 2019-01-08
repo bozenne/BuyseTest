@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: nov  1 2018 (10:18) 
+## Last-Updated: jan  8 2019 (09:36) 
 ##           By: Brice Ozenne
-##     Update #: 221
+##     Update #: 223
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,7 +20,7 @@
 #' @name BuyseRes-confint
 #' @title  Confidence Intervals for Model Parameters
 #' @aliases confing confint,BuyseRes-method
-#' @include BuyseRes-object.R BuyseRes-summary.R
+#' @include BuyseRes-object.R
 #' 
 #' @description Computes confidence intervals for net benefit statistic or the win ratio statistic.
 #' 
@@ -138,7 +138,7 @@ setMethod(f = "confint",
               endpoint <- object@endpoint
               alpha <- 1-conf.level
 
-              if(object@method.inference == "asymptotic"){
+              if(object@method.inference %in% c("asymptotic","asymptotic-beta")){
                   if(object@method.tte == "Peron"){
                       warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
                               "Standard errors / confidence intervals / p-values should not be trusted \n")
@@ -160,6 +160,7 @@ setMethod(f = "confint",
                                        "bootstrap" = if(method.boot == "percentile"){confint_percentileBootstrap}else{confint_gaussianBootstrap},
                                        "stratified bootstrap" = if(method.boot == "percentile"){confint_percentileBootstrap}else{confint_gaussianBootstrap},
                                        "asymptotic" = confint_Ustatistic,
+                                       "asymptotic-bebu" = confint_Ustatistic,
                                        "none" = confint_none 
                                        )
 

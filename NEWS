@@ -1,5 +1,12 @@
 # -*- mode: org -*-
 
+* Version 1.7
+** User visble changes
+- NEW FEATURE: iid function 
+
+** Internal change
+- fix bug in the computation of the asymptotic variance + add tests
+
 * Version 1.6
 ** Internal change
   - simplify C++ code.

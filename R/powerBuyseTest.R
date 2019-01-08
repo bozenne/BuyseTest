@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 19 2018 (16:45) 
+## Last-Updated: jan  8 2019 (13:26) 
 ##           By: Brice Ozenne
-##     Update #: 231
+##     Update #: 238
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -175,7 +175,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         
     }
     ## ** define environment
-    name.copy <- c("initializeSurvival_Peron", "initializeData", ".BuyseTest", "call", "sim",
+    name.copy <- c("call", "sim",
                    "outArgs", "sample.sizeTmax", "sample.sizeCmax", "n.sample.size",
                    "sample.size", "sample.sizeC", "sample.sizeT", "n.rep", "alternative", "seed")
     envirBT <- new.env()
@@ -252,16 +252,34 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
             ## *** Inference 
             if(outArgs$method.inference %in% c("asymptotic")){
-                outCovariance <- inferenceUstatistic(tableSample,
-                                                     count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
-                                                     count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
-                                                     n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
-                                                     n.C = envir$sample.sizeC[iSample],
-                                                     n.T = envir$sample.sizeT[iSample],
-                                                     n.strata = envir$outArgs$n.strata,
-                                                     n.endpoint = length(envir$outArgs$endpoint),
-                                                     endpoint = envir$outArgs$endpoint)
 
+                ## warning: only work if no strata, otherwise n.pairs/count.favorable/count.unfavorable needs to be sum over strata
+                ## see BuyseTest.R
+                if(outArgs$method.inference == "asymptotic"){
+                    outCovariance <- inferenceUstatistic(tableSample,
+                                                         count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
+                                                         count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
+                                                         n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
+                                                         n.C = envir$sample.sizeC[iSample],
+                                                         n.T = envir$sample.sizeT[iSample],
+                                                         level.strata = envir$outArgs$level.strata,
+                                                         n.strata = envir$outArgs$n.strata,
+                                                         n.endpoint = length(envir$outArgs$endpoint),
+                                                         endpoint = envir$outArgs$endpoint)
+                }else if(outArgs$method.inference == "asymptotic-bebu"){
+                    outCovariance <- inferenceUstatisticBebu(tableSample,
+                                                             count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
+                                                             count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
+                                                             n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
+                                                             n.C = envir$sample.sizeC[iSample],
+                                                             n.T = envir$sample.sizeT[iSample],
+                                                             level.strata = envir$outArgs$level.strata,
+                                                             n.strata = envir$outArgs$n.strata,
+                                                             n.endpoint = length(envir$outArgs$endpoint),
+                                                             endpoint = envir$outArgs$endpoint)
+                }
+
+                
                 for(iStatistic in c("netBenefit","winRatio")){
                     outCI <- confint_Ustatistic(Delta = iOut[iSample,iStatistic],
                                                 pc.favorable = MresSample[,"favorable"]/MresSample[,"npairs"],
@@ -318,7 +336,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","initializeSurvival_Peron","pairScore2dt","inferenceUstatistic","confint_Ustatistic", "validNumeric")
+        toExport <- c(".BuyseTest","initializeData","pairScore2dt","inferenceUstatistic","confint_Ustatistic", "validNumeric")
 
         i <- NULL ## [:forCRANcheck:] foreach        
         ls.simulation <- foreach::`%dopar%`(

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: okt 17 2018 (00:14) 
+## Last-Updated: jan  8 2019 (09:24) 
 ##           By: Brice Ozenne
-##     Update #: 116
+##     Update #: 117
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -241,7 +241,7 @@ testArgs <- function(alternative,
     ## ** method.inference
     validCharacter(method.inference,
                    valid.length = 1,
-                   valid.values = c("none","asymptotic","bootstrap","permutation","stratified bootstrap","stratified permutation"),
+                   valid.values = c("none","asymptotic","asymptotic-bebu","bootstrap","permutation","stratified bootstrap","stratified permutation"),
                    method = "BuyseTest")
 
     ## ** n.resampling
