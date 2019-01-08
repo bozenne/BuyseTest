@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: jan  8 2019 (12:57) 
+## Last-Updated: jan  8 2019 (15:08) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 10
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,6 +25,7 @@ context("Check correct computation of the variance \n")
 ## * settings
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
+                  order.Hprojection = 1,
                   trace = 0)
 
 

@@ -140,11 +140,11 @@ inferenceUstatistic <- function(tablePairScore, order, count.favorable, count.un
 
     ## storage
     A.iid <- array(NA, dim = c(n.T+n.C, n.endpoint, 2), dimnames = list(NULL, endpoint, c("favorable","unfavorable")))
-    ## if(order == 2){
-        ## A2.iid <- array(NA, dim = c(n.pairs, n.endpoint, 2), dimnames = list(NULL, endpoint, c("favorable","unfavorable")))
-    ## }else{
+    if(order == 2){
+        A2.iid <- array(NA, dim = c(n.pairs, n.endpoint, 2), dimnames = list(NULL, endpoint, c("favorable","unfavorable")))
+    }else{
         A2.iid <- NULL
-    ## }
+    }
 
     ## loop
     for(iStrata in 1:n.strata){ ## iStrata <- 1
@@ -174,10 +174,10 @@ inferenceUstatistic <- function(tablePairScore, order, count.favorable, count.un
             A.iid[index2originalOrder.T,iE,"unfavorable"] <- (sumPair.T$E.unfavorable - Upartial.unfavorable[iE]) / n.T
 
             ## *** second order
-            ## if(order == 2){
-                ## A2.iid[,iE,"favorable"] <- (iTable$favorable - A.iid[iTable$index.C,iE,"favorable"] * n.C - A.iid[iTable$index.T,iE,"favorable"] * n.T - Upartial.favorable[iE])/n.pairs
-                ## A2.iid[,iE,"unfavorable"] <- (iTable$unfavorable - A.iid[iTable$index.C,iE,"unfavorable"] * n.C - A.iid[iTable$index.T,iE,"unfavorable"] * n.T - Upartial.unfavorable[iE])/n.pairs                
-            ## }
+            if(order == 2){
+                A2.iid[,iE,"favorable"] <- (iTable$favorable - A.iid[iTable$index.C,iE,"favorable"] * n.C - A.iid[iTable$index.T,iE,"favorable"] * n.T - Upartial.favorable[iE])/n.pairs
+                A2.iid[,iE,"unfavorable"] <- (iTable$unfavorable - A.iid[iTable$index.C,iE,"unfavorable"] * n.C - A.iid[iTable$index.T,iE,"unfavorable"] * n.T - Upartial.unfavorable[iE])/n.pairs                
+            }
         }
     }
 
@@ -186,15 +186,23 @@ inferenceUstatistic <- function(tablePairScore, order, count.favorable, count.un
         M.cov <- cbind(favorable = sum(A.iid[,,"favorable"]^2),
                        unfavorable = sum(A.iid[,,"unfavorable"]^2),
                        covariance = sum(A.iid[,,"favorable"] * A.iid[,,"unfavorable"]))
+
+        if(order == 2){
+            M.cov[1,"favorable"] <- M.cov[1,"favorable"] + sum(A2.iid[,,"favorable"]^2)
+            M.cov[1,"unfavorable"] <- M.cov[1,"unfavorable"] + sum(A2.iid[,,"unfavorable"]^2)
+            M.cov[1,"covariance"] <- M.cov[1,"covariance"] + sum(A2.iid[,,"favorable"] * A2.iid[,,"unfavorable"])
+        }
     }else{
         ## cumsum because the iid decomposition is endpoint specific while the net benefit is the overall
         M.cov <- cbind(favorable = cumsum(apply(A.iid[,,"favorable"]^2,2,sum)),
                        unfavorable = cumsum(apply(A.iid[,,"unfavorable"]^2,2,sum)),
                        covariance = cumsum(apply(A.iid[,,"favorable"] * A.iid[,,"unfavorable"],2,sum)))
 
-        ## if(order == 2){
-            ## M.cov[,"favorable"] <- A2.iid[,,"favorable"]
-        ## }
+        if(order == 2){
+            M.cov[,"favorable"] <- M.cov[,"favorable"] + cumsum(apply(A2.iid[,,"favorable"]^2,2,sum))
+            M.cov[,"unfavorable"] <- M.cov[,"unfavorable"] + cumsum(apply(A2.iid[,,"unfavorable"]^2,2,sum))
+            M.cov[,"covariance"] <- M.cov[,"covariance"] + cumsum(apply(A2.iid[,,"favorable"] * A2.iid[,,"unfavorable"],2,sum))
+        }
     }
     rownames(M.cov) <- endpoint
     
@@ -329,15 +337,21 @@ inferenceUstatisticBebu <- function(tablePairScore, order, count.favorable, coun
         ## P[X1>Y1 & X1'<Y1] - P[X1>Y1]*P[X1<Y1]
         xi_01_12 <- cumsum(strataSum["mixedT",]) - p1.favorable * p1.unfavorable
 
-        ## *** second order terms    
-        ## if(order == 2){
-        ## H2.favorable <- (p1.favorable*(1-p1.favorable) - xi_10_11 - xi_01_11)/(n.pairs)
-        ## H2.unfavorable <- (p1.unfavorable*(1-p1.unfavorable) - xi_10_22 - xi_01_22)/(n.pairs)
-        ## }else{
-        ## H2.favorable <- 0
-        ## H2.unfavorable <- 0
-        ## }
-    
+        ## *** second order terms
+        if(order == 2){
+            H2.favorable <- (p1.favorable*(1-p1.favorable) - xi_10_11 - xi_01_11)/(iN.strata)
+            H2.unfavorable <- (p1.unfavorable*(1-p1.unfavorable) - xi_10_22 - xi_01_22)/(iN.strata)
+            H2.covariance <- 0##(-xi_10_12)/(iN.strata)
+            warning("No formula for the contribution of the second order term to the covariance. It is set to 0.")
+        }else{
+            H2.favorable <- 0
+            H2.unfavorable <- 0
+            H2.covariance <- 0
+        }
+        if(n.endpoint>1){
+            warning("No complete formula for the contribution of the second order term to the covariance. Some terms are set to 0.")
+        }
+
         ## ** compute sigma
         ## NO STRATA:
         ## N.TC = N.T+N.C
@@ -347,9 +361,9 @@ inferenceUstatisticBebu <- function(tablePairScore, order, count.favorable, coun
         ##
         ## STRATA:
         ## same but adding a factor n.strata / N.TC to accound for pooling
-        M.cov <- M.cov + (iN.strata/ntot.pairs)^2 * cbind(favorable =  xi_10_11 / iN.C + xi_01_11 / iN.T,
-                                                          unfavorable = xi_10_22 / iN.C + xi_01_22 / iN.T,
-                                                          covariance = xi_10_12 / iN.C + xi_01_12 / iN.T)
+        M.cov <- M.cov + (iN.strata/ntot.pairs)^2 * cbind(favorable =  xi_10_11 / iN.C + xi_01_11 / iN.T + H2.favorable,
+                                                          unfavorable = xi_10_22 / iN.C + xi_01_22 / iN.T + H2.unfavorable,
+                                                          covariance = xi_10_12 / iN.C + xi_01_12 / iN.T + H2.covariance)
     }
 
     ## ** export

@@ -1,0 +1,2183 @@
+#+TITLE: Theory supporting the net benefit and Peron's scoring rules
+#+Author: Brice Ozenne
+#+LaTeX_HEADER: %\VignetteIndexEntry{theory}
+#+LaTeX_HEADER: %\VignetteEngine{R.rsp::tex}
+#+LaTeX_HEADER: %\VignetteKeyword{R}
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+options(width = 90)
+#+END_SRC
+
+This document describe the relationship between the net benefit and
+traditional parameter of interest (e.g. hazard ratio). It also present
+how Peron's scoring rules for the survival and competing setting were
+derived.
+
+\bigskip
+
+In the examples we will use a sample size of:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+n <- 1e4
+#+END_SRC
+
+#+RESULTS:
+
+and use the following R packages
+#+BEGIN_SRC R :exports code :results silent :session *R* :cache no
+library(BuyseTest)
+library(riskRegression)
+library(survival)
+#+END_SRC
+
+\tableofcontents
+
+\clearpage
+
+* Parameter of interest
+
+Let consider two independent real valued (univariate) random variables
+\(X\) and \(Y\). Informally \(X\) refer to the outcome in the
+experimental group while \(Y\) refer to the outcome in the control
+group. For a given threshold \(\tau \in \Real^{+*}\), the net benefit
+can be expressed as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_\tau = \Prob[X \geq Y+\tau] - \Prob[Y \geq Y+\tau]
+\end{align*}
+#+END_EXPORT
+To relate the net benefit to known quantities we will also consider
+the case of an infinitesimal threshold \(\tau\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_+ = \Prob[X > Y] - \Prob[Y > X]
+\end{align*}
+#+END_EXPORT
+In any case, \(X\) and \(Y\) play a symetric role in the sense that
+given a formula for \(\Prob[X \geq Y+\tau]\) (or \(\Prob[X > Y]\)), we
+can substitute \(X\) to \(Y\) and \(Y\) to \(X\) to obtain the formula
+for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y > X]\)).
+
+\clearpage
+
+* Binary variable
+** Relationship between \(\Delta_+\) and the prevalence
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X>Y] = \Prob[X=1,Y=0]
+\end{align*}
+#+END_EXPORT
+Using the independence between \(X\) and \(Y\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X>Y] = \Prob[X=1]\Prob[Y=0] = \Prob[X=1](1-\Prob[Y=1]) = \Prob[X=1] - \Prob[X=1]\Prob[Y=1]
+\end{align*}
+#+END_EXPORT
+By symmetry:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y>X] = \Prob[Y=1] - \Prob[Y=1]\Prob[X=1]
+\end{align*}
+#+END_EXPORT
+So 
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_+ = \Prob[X=1] - \Prob[Y=1]
+\end{align*}
+#+END_EXPORT
+
+** In R
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+prob1 <- 0.4
+prob2 <- 0.2
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- rbind(data.frame(tox = rbinom(n, prob = prob1, size = 1), group = "C"),
+            data.frame(tox = rbinom(n, prob = prob2, size = 1), group = "T"))
+#+END_SRC
+
+#+RESULTS:
+
+Buyse test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest(group ~ bin(tox), data = df, method.inference = "none", trace = 0)
+#+END_SRC
+#+RESULTS:
+:  endpoint threshold   delta   Delta
+:       tox       0.5 -0.1981 -0.1981
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+prob2 - prob1
+#+END_SRC
+
+#+RESULTS:
+: [1] -0.2
+
+\clearpage
+
+* Continuous variable
+** Relationship between \(\Delta\) and Cohen's d
+Let's consider two independent normally distributed variables with common variance:
+- \(X \sim \Gaus[\mu_X,\sigma^2]\) 
+- \(Y \sim \Gaus[\mu_Y,\sigma^2]\) 
+Considering \(Z \sim \Gaus[d,2]\) with \(d = \frac{\mu_X-\mu_Y}{\sigma}\), we express:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X>Y] &= \Prob[\sigma (Y-X) >0] = \Prob[Z>0] = \Phi(\frac{d}{\sqrt{2}})
+\end{align*}
+#+END_EXPORT
+By symmetry
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y>X] &= \Prob[Z<0] = 1-\Phi(\frac{d}{\sqrt{2}})
+\end{align*}
+#+END_EXPORT
+So
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta = 2*\Phi(\frac{d}{\sqrt{2}})-1
+\end{align*}
+#+END_EXPORT
+
+** In R
+
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+meanX <- 0
+meanY <- 2
+sdXY <- 1
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- rbind(data.frame(tox = rnorm(n, mean = meanX, sd = sdXY), group = "C"),
+            data.frame(tox = rnorm(n, mean = meanY, sd = sdXY), group = "T"))
+#+END_SRC
+
+#+RESULTS:
+
+Buyse test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest(group ~ cont(tox), data = df, method.inference = "none", trace = 0)
+#+END_SRC
+
+#+RESULTS:
+:  endpoint threshold  delta  Delta
+:       tox     1e-12 0.8359 0.8359
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+d <- (meanY-meanX)/sdXY
+2*pnorm(d/sqrt(2))-1
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.8427008
+
+\clearpage
+
+* Survival
+** Relationship between \(\Delta\) and the hazard ratio
+For a given cumulative density function \(F(x)\) and a corresponding
+probability density function \(f(x)\) we define the hazard by:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\lambda(t) &=  \left. \frac{\Prob[t\leq T \leq t+h \big| T\geq t]}{h}\right|_{h \rightarrow 0^+} \\
+&= \left. \frac{\Prob[t\leq T \leq t+h]}{\Prob[T\geq t]h}\right|_{h \rightarrow 0^+} \\
+&= \frac{f(t)}{1-F(t)}
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+Let now consider two times to events following an exponential distribution:
+- \(X \sim Exp(\alpha_X)\). The corresponding hazard function is \(\lambda(t)=\alpha_X\).
+- \(Y \sim Exp(\alpha_Y)\). The corresponding hazard function is \(\lambda(t)=\alpha_Y\).
+So the hazad ratio is \(HR = \frac{\alpha_X}{\alpha_Y}\). Note that if we use a Cox model we will have:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\lambda(t) = \lambda_0(t) \exp(\beta \Ind[group])
+\end{align*}
+#+END_EXPORT
+where \(\exp(\beta)\) is the hazard ratio.
+
+\bigskip
+
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X>Y] &= \int_{0}^{\infty} \Prob[x>Y] d\Prob[x>X] \\
+ &= \int_{0}^{\infty} \left(\int_0^{x} \alpha_Y \exp(-\alpha_Y y) dy\right) \left( \alpha_X \exp(-\alpha_X x) dx \right) \\
+ &= \int_{0}^{\infty} \left[-\exp(-\alpha_Y y) \right]_0^{x} \left( \alpha_X \exp(-\alpha_X x) dx \right) \\
+ &= \int_{0}^{\infty} \left(1-\exp(-\alpha_Y x) \right) \left( \alpha_X \exp(-\alpha_X x) dx \right) \\
+ &=  \int_{0}^{\infty} \alpha_X \left(\exp(-\alpha_X x)-\exp(-(\alpha_X+\alpha_Y) x)\right)  dx \\
+ &=  \left[\exp(-\alpha_X x)- \frac{\alpha_X}{\alpha_X+\alpha_Y} \exp(-(\alpha_X+\alpha_Y) x)\right]_{0}^{\infty} \\
+ &=  1 - \frac{\alpha_X}{\alpha_X+\alpha_Y} = \frac{\alpha_Y}{\alpha_X+\alpha_Y}\\
+ &=  \frac{1}{1+HR}
+\end{align*}
+#+END_EXPORT
+So \(\Prob[Y>X] = \frac{\alpha_X}{\alpha_Y+\alpha_X} = 1-\frac{1}{1+HR} \) and:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta_+ = 2\frac{1}{1+HR}-1 = \frac{1-HR}{1+HR}
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+
+** Scoring rule in presence of censoring
+Let's consider the following random variables:  
+- \(X\) the time to the occurrence of the event in the experimental group.
+- \(\Xobs\) the censored event time in the experimental group,
+  i.e. \(\Xobs = X \wedge C_X\) where \(C_X\) denotes the censoring time in the experimental group.
+- \(\CensT = \Ind[X \leq C_X]\) the event time indicator in the experimental group.
+- \(Y\) the time to the occurrence of the event in the control group.
+- \(\Yobs\) the censored event time in the control group,
+  i.e. \(\Yobs = X \wedge C_Y\) where \(C_Y\) denotes the censoring time in the control group.
+- \(\CensC = \Ind[Y \leq C_Y]\) the event time indicator in the control group.
+
+We observe one realization \(\left(\xobs, \yobs, \censT, \censC
+\right)\) of the random variables \(\left(\Xobs, \Yobs, \censT, \censC
+\right)\). We use the short notation \(x \wedge y = \min(x,y)\) and
+\(x \vee y = \max(x,y)\). We assume to know the expected survival in
+each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
+
+*** Case: \(\SurvT=0,\SurvC=1\)
+
+\noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \Prob[X \geq \yobs + \tau \big| X>\xobs]  \\
+&= \frac{\Prob[X \geq \yobs + \tau, X>\xobs]}{\Prob[X>\xobs]}  \\
+&= \left\{ \begin{array}{ll}
+           1 \text{ if } \xobs \geq \yobs + \tau\\
+           \frac{\SurvT[(\yobs + \tau)_-]}{\SurvT[\xobs]}  \text{ if } \xobs < \yobs + \tau \\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+\noindent \textcolor{darkred}{Probability in favor of the control}:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y \geq X + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \Prob[\yobs \geq X + \tau \big| X>\xobs]  \\
+&= 1-\Prob[\yobs < X + \tau \big| X>\xobs]  \\
+&= 1-\frac{\Prob[X>\max\left(\xobs,\yobs - \tau\right)]}{\Prob[X>\xobs]}  \\
+&= \left\{ \begin{array}{ll}
+           0 \text{ if } \xobs \geq \yobs - \tau\\
+           1-\frac{\SurvT[\yobs - \tau]}{\SurvT[\xobs]} \text{ if } \xobs < \yobs - \tau \\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+
+*** Case: \(\SurvT=1,\SurvC=0\)
+By symmetry we have: @@latex:\\@@
+\noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \left\{ \begin{array}{ll}
+           0 \text{ if } \yobs \geq \xobs - \tau\\
+           1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]} \text{ if } \yobs < \xobs - \tau\\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+\noindent \textcolor{darkred}{Probability in favor of the control}:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[Y \geq X + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] 
+&= \Prob[\yobs \geq X + \tau \big| X>\xobs]  \\
+&= \left\{ \begin{array}{ll}
+           1 \text{ if } \yobs \geq \xobs + \tau\\
+           \frac{\SurvC[(\xobs + \tau)_-]}{\SurvC[\yobs]} \text{ if } \yobs < \xobs - \tau\\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+
+
+
+*** Case: \(\SurvT=0,\SurvC=0\)
+
+\noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \Prob[X \geq Y + \tau \big| X>\xobs,  Y>\yobs]  \\
+&= \Prob[ \left( X \geq Y + \tau  \right) \cap \left( \xobs \geq Y + \tau  \right) \big| X>\xobs,  Y>\yobs]  
++ \Prob[ \left( X \geq Y + \tau  \right) \cap \left( \xobs < Y + \tau  \right) \big| X>\xobs,  Y>\yobs]  \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
++ \frac{
+\Prob \left[ \left( X \geq Y + \tau  \right) \cap \left( \xobs < Y + \tau  \right) \cap \Ccancel[red]{\left( X>\xobs \right)} \cap  \left(Y>\yobs \right) \right]
+}{
+\Prob[\left( X>\xobs \right) \cap  \left(Y>\yobs \right)]
+}  \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
++ \frac{
+\Prob[ \left( X \geq Y + \tau  \right) \cap  \left(Y> \max(\yobs, \xobs-\tau) \right)]
+}{
+\Prob[\left( X>\xobs \right) \cap  \left(Y>\yobs \right)]
+}  
+\end{align*}
+#+END_EXPORT
+where we have used that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\left( X \geq Y + \tau \right) \cap \left( \xobs < Y + \tau \right) \implies X > \xobs
+\end{align*}
+#+END_EXPORT
+Since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[A>B] &= \int_{-\infty}^{+\infty}\Prob[A>t] d \Prob[B \leq t] \\
+\Prob[(A>B+\tau) \cap (B>b)] &= \int_{b^+}^{+\infty}\Prob[A>t+\tau] d \Prob[B \leq t] \\
+&= - \int_{b^+}^{+\infty}\Prob[A>t+\tau] d \Prob[B > t]
+\end{align*}
+#+END_EXPORT 
+we obtain for \(A=X\), \(B=Y\),\(b=\max(\yobs, \xobs-\tau)\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
+- \frac{
+\int_{\max(\yobs, \xobs-\tau)^+}^{\infty} \Prob[\left( X \geq t + \tau  \right)] d \Prob[Y > t]
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \\
+&= \Prob[ \xobs \geq Y + \tau  \big| Y>\yobs]  
+- \frac{
+\int_{\max(\yobs, \xobs-\tau)^+}^{\infty} \SurvT((t+\tau)_{-}) d \SurvC(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \\
+\end{align*}
+#+END_EXPORT
+So using the results of the case \(\SurvT=1,\SurvC=0\) we obtain:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[X \geq Y + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \left\{ \begin{array}{ll}
+           - \frac{
+\int_{\yobs^+}^{\infty} \SurvT((t+\tau)_-) d \SurvC(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \text{ if } \yobs \geq \xobs - \tau\\
+           1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]} - \frac{
+\int_{(\xobs-\tau)^+}^{\infty} \SurvT((t+\tau)_-) d \SurvC(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+} \text{ if } \yobs < \xobs - \tau\\ \\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+\noindent \textcolor{darkred}{Probability in favor of the control}:
+By symmetry we have: @@latex:\\@@
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[Y \geq X + \tau \big| \xobs, \yobs, \censT, \censC, \SurvT, \SurvC] \\
+&= \left\{ \begin{array}{ll}
+           - \frac{
+\int_{\xobs^+}^{\infty} \SurvC((t+\tau)_-) d \SurvT(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+}  \text{ if } \xobs \geq \yobs - \tau\\
+           1-\frac{\SurvT[\yobs - \tau]}{\SurvT[\xobs]} - \frac{
+\int_{(\yobs-\tau)^+}^{\infty} \SurvC((t+\tau)_-) d \SurvT(t)
+}{
+\SurvT[\xobs]\SurvC[\yobs]
+} \text{ if } \xobs < \yobs - \tau\\ \\
+           \end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+ 
+
+*** Synthesis
+#+BEGIN_EXPORT latex
+\textcolor{darkgreen}{Probability in favor of the treatment}: \(\Prob[X \geq Y+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
+\begin{table}[!h]
+	\centering
+	\setlength{\extrarowheight}{6mm}
+	\begin{tabular}{l@{}l@{}l|lll}
+		(&$\censT$, & $\censC$) & $\xobs \leq \yobs - \tau$ & $ |\xobs - \yobs| < \tau$ & $\xobs \geq \yobs + \tau$ \\ \hline 
+		(&1,&1) & \(0\) & \(0\) & \(1\) \\
+		(&1,&0) & \(0\) & \(0\) & $1-\frac{\SurvC[\xobs - \tau]}{\SurvC[\yobs]}$ \\
+		(&0,&1) & $\frac{\SurvT[(\yobs+\tau)_{-}]}{\SurvT[\xobs]}$ & $\frac{\SurvT[(\yobs+\tau)_{-}]}{\SurvT[\xobs]}$ & \(1\) \\
+		(&0,&0) & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[(t+\tau)_{-}] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\yobs}^{\infty} \SurvT[(t+\tau)_{-}] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \( 1 - \frac{\SurvC[\xobs-\tau]}{\SurvC[\yobs]} - \frac{\int_{t>\xobs-\tau}^{\infty} \SurvT[(t+\tau)_{-}] d\SurvC[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+\\ \hline
+	\end{tabular}
+\end{table}
+#+END_EXPORT
+
+#+BEGIN_EXPORT latex
+\textcolor{darkred}{Probability in favor of the control}: \(\Prob[Y \geq X+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
+
+\begin{table}[!h]
+	\centering
+	\setlength{\extrarowheight}{6mm}
+	\begin{tabular}{l@{}l@{}l|lll}
+		(&$\censT$, & $\censC$) & $\xobs \leq \yobs - \tau$ & $ |\xobs - \yobs| < \tau$ & $\xobs \geq \yobs + \tau$ \\ \hline 
+		(&1,&1) & \(1\) & \(0\) & \(0\) \\
+		(&1,&0) & \(1\) & $\frac{\SurvC[(\xobs + \tau)_{-}]}{\SurvC[\yobs]}$ & $\frac{\SurvC[(\xobs + \tau)_{-}]}{\SurvC[\yobs]}$ \\
+		(&0,&1) & $1 - \frac{\SurvT[\yobs-\tau]}{\SurvT[\xobs]}$ & \(0\) & \(0\) \\
+		(&0,&0) & \( 1 - \frac{\SurvT[\yobs-\tau]}{\SurvT[\xobs]} - \frac{\int_{t>\yobs-\tau}^{\infty} \SurvC[(t+\tau)_{-}] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[(t+\tau)_{-}] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+              & \(-\frac{\int_{t>\xobs}^{\infty} \SurvC[(t+\tau)_{-}] d\SurvT[t]}{\SurvT[\xobs]\SurvC[\yobs]}\)
+\\ \hline
+	\end{tabular}
+\end{table}
+
+\hfill 
+
+\textcolor{darkblue}{Probability neutral to the treatment}:  \(\Prob[|X-Y| < \tau  \big| \xobs,\yobs,\theta,\eta,S_T,S_C]\)
+
+\begin{align*}
+ = 1-\Prob[X \geq Y+\tau  \big|\xobs,\yobs,\theta,\eta,S_T,S_C]-\Prob[Y \geq X+\tau  \big| \xobs,\yobs,\theta,\eta,S_T,S_C]
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+
+** Partially known survival curve
+In the case where \(x^* < y^* - \tau\), we need an estimate of
+\(S_X(y^* - \tau)\) to compute the probability in favor of the
+control. If we can only have an estimate of \(S_X\) up to
+\(x_{max} < y^* - \tau\) then we can use the following inequality:
+#+BEGIN_EXPORT latex
+\begin{align*}
+S_X(x_{max}) &\geq S_X(y^* - \tau) \\
+\Prob[x \geq y - \tau | x \geq x^*, y = y^*] &\geq 1 - \frac{ S_X(x_{max})}{S_X(x^*)} \\
+\end{align*}
+#+END_EXPORT
+
+*Probability of being neutral*:
+
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] 
+&= 1-\Prob[x \geq y + \tau | x \geq x^*, y = y^*]-\Prob[y \geq x + \tau | x \geq x^*, y = y^*]  \\
+&= \frac{ S_X(y^* - \tau \vee x^*) - S_X(y^* + \tau \vee x^*)}{S_X(x^*)}
+\end{align*}
+#+END_EXPORT
+
+Consider the case \(  x^*\)
+If \(x_{max} > y^* - \tau\) then 
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] \geq \frac{ S_X(y^* - \tau) - S_X(x_{max})}{S_X(x^*)}
+\end{align*}
+#+END_EXPORT
+otherwise
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[|x-y| \leq \tau | x \geq x^*, y = y^*] \geq 0
+\end{align*}
+#+END_EXPORT
+
+*Probability of being uninformative*: It is computed as the complement
+to 1 of the sum of the probability of being in favor of the treatment,
+in favor of the control, and neutral.
+
+\bigskip
+
+\textsc{Example}:
+
+- when \(x^* > y^* + \tau\), the probability of being favorable is 1
+  so the probability of being uninformative is 0.
+
+- when \(\left|x^* - y^*\right| < \tau\), the probability of being in
+  favor of the control is 0. If we know the survival in the experimental
+  group up to time \(y^*\), then we can only say that the probability
+  of being favorable is bounded below by 0. The probability of being
+  neutral bounded below by \(1-S_T(y^*)/S_T(x^*)\). The probability of
+  being uninformative is then \(S_T(y^*)/S_T(x^*)\). Clearly this
+  probability becomes small when \(S_T(y^*)\) is small. The
+  approximation by the lower bound becomes exact when \(S_T(y^*)\)
+  tends to 0.
+
+** In R
+
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+alphaX <- 2
+alphaY <- 1
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- rbind(data.frame(time = rexp(n, rate = alphaX), group = "C", event = 1),
+            data.frame(time = rexp(n, rate = alphaY), group = "T", event = 1))
+#+END_SRC
+
+#+RESULTS:
+
+Buyse test:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest(group ~ tte(time, censoring = event), data = df,
+          method.inference = "none", trace = 0, method.tte = "Gehan")
+#+END_SRC
+#+RESULTS:
+:  endpoint threshold  delta  Delta
+:      time     1e-12 0.3403 0.3403
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.coxph <- coxph(Surv(time,event)~group,data = df)
+HR <- as.double(exp(coef(e.coxph)))
+c("HR" = alphaY/alphaX, "Delta" = 2*alphaX/(alphaY+alphaX)-1)
+c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
+#+END_SRC
+
+#+RESULTS:
+:        HR     Delta 
+: 0.5000000 0.3333333
+:    HR.cox     Delta 
+: 0.4918256 0.3406392
+
+\clearpage
+
+* Competing risks
+** Theory
+
+*** General case (no censoring)
+Let consider: 
+- \(X^*_{E}\) the time to the occurrence of the event of interest in the experimental group.
+- \(Y^*_{E}\) the time to the occurrence of the event of interest in the control group.
+- \(X^*_{CR}\) the time to the occurrence of the competing event of interest in the experimental group.
+- \(Y^*_{CR}\) the time to the occurrence of the competing event of interest in the control group.
+Let denote \(\varepsilon_X = 1 +\Ind[X^*_{E} > X^*_{CR}]\) the event type
+indicator in the experimental group and \(\varepsilon_Y = 1 + \Ind[Y^*_{E} >
+Y^*_{CR}]\) the event type indicator in control group (\(=1\) when the
+cause of interest is realised first and 2 when the competing risk is
+realised first).
+
+\bigskip
+
+For each subject either the event of interest or the competing event
+is realized. We now define:
+#+BEGIN_EXPORT latex
+\begin{align*}
+X = \left\{
+              \begin{array}{ll}
+                 X^*_{E} \text{ if }\varepsilon_X = 1  \\
+                 +\infty \text{ if }\varepsilon_X = 2 
+                \end{array}
+              \right.
+\text{ and }
+Y = \left\{
+              \begin{array}{ll}
+                 Y^*_{E} \text{ if }\varepsilon_Y = 1  \\
+                 +\infty \text{ if }\varepsilon_Y = 2 
+                \end{array}
+              \right.
+\end{align*}
+#+END_EXPORT
+i.e. when the event of interest is not realized we say that the time to event is infinite.
+
+\bigskip
+
+We thus have:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[X > Y] 
+= & \Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ \Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=2]\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ \Prob[X > Y|\varepsilon_X=2,\varepsilon_Y=1]\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&+ \Prob[X > Y|\varepsilon_X=2,\varepsilon_Y=2]\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
+= & \Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+&+ 0*\Prob[\varepsilon_X=1,\varepsilon_Y=2] \\
+&+ 1*\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&+ 0*\Prob[\varepsilon_X=2,\varepsilon_Y=2] \\
+\end{align*}
+#+END_EXPORT
+
+So \(\Prob[X > Y] = \Prob[X >
+Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
+\Prob[\varepsilon_X=2,\varepsilon_Y=1] \) and:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta = &
+ \big(\Prob[X > Y|\varepsilon_X=1,\varepsilon_Y=1] - \Prob[X < Y|\varepsilon_X=1,\varepsilon_Y=1] \big) \Prob[\varepsilon_X=1,\varepsilon_Y=1] \\
+& + \Prob[\varepsilon_X=2,\varepsilon_Y=1] - \Prob[\varepsilon_X=1,\varepsilon_Y=2]
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+
+*** Exponential distribution (no censoring)
+
+Now let's assume that:
+- \(X_{E} \sim Exp(\alpha_{E,X})\).
+- \(Y_{E} \sim Exp(\alpha_{E,Y})\).
+- \(X_{CR} \sim Exp(\alpha_{CR,X})\).
+- \(Y_{CR} \sim Exp(\alpha_{CR,Y})\).
+
+Then:
+#+BEGIN_EXPORT latex
+\begin{align*}
+ \Prob[X_{E} > Y_{E}] &= \Prob[X_{E} >
+Y_{E}|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
+\Prob[\varepsilon_X=2,\varepsilon_Y=1] \\
+&= \frac{1}{(\alpha_{E,X}+\alpha_{CR,X})(\alpha_{E,Y}+\alpha_{CR,Y})} \left(
+ \alpha_{E,X}\alpha_{E,Y} \frac{\alpha_{E,X}}{\alpha_{E,X}+\alpha_{E,Y}}
++ \alpha_{CR,X}\alpha_{E,Y} \right) \\
+\end{align*}
+#+END_EXPORT
+
+
+Just for comparison let's compare to the cumulative incidence. First
+we only consider one group and two competing events whose times to
+event follow an exponential distribution:
+- \(T_E \sim Exp(\alpha_E)\). The corresponding hazard function is \(\lambda(t)=\alpha_E\).
+- \(T_{CR} \sim Exp(\alpha_{CR})\). The corresponding hazard function is \(\lambda(t)=\alpha_{CR}\).
+The cumulative incidence function can be written:
+#+BEGIN_EXPORT latex
+\begin{align*}
+CIF_1(t) &= \int_0^t \lambda_1(s) S(s_-) ds \\
+&= \int_0^t \alpha_E \exp(- (\alpha_E + \alpha_{CR}) * s_-) ds \\
+&= \frac{\alpha_E}{\alpha_E + \alpha_{CR}} \left[ \exp(- (\alpha_E + \alpha_{CR}) * s_-)\right]_t^0 \\
+&= \frac{\alpha_E}{\alpha_E + \alpha_{CR}} \left(1 - \exp(- (\alpha_E + \alpha_{CR}) * t_-)\right) 
+\end{align*}
+#+END_EXPORT
+where \(S(t)\) denote the event free survival and \(s_-\) denotes the right sided limit.
+
+\bigskip
+
+Then applying this formula in the case of two groups gives:
+#+BEGIN_EXPORT latex
+\begin{align*}
+CIF_1(t|group = X) &= \frac{\alpha_{E,X}}{\alpha_{E,X} + \alpha_{CR,X}} \left(1 - \exp(- (\alpha_{E,X} + \alpha_{CR,X}) * t_-)\right) \\
+CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 - \exp(- (\alpha_{E,Y} + \alpha_{CR,Y}) * t_-)\right) 
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+
+** In R
+
+*** BuyseTest (no censoring)
+
+Setting:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+alphaE.X <- 2
+alphaCR.X <- 1
+alphaE.Y <- 3
+alphaCR.Y <- 2
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), group = "1"),
+            data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
+df$time <- pmin(df$time1,df$time2) ## first event
+df$event <- (df$time2<df$time1)+1 ## type of event
+#+END_SRC
+
+#+RESULTS:
+
+BuyseTest:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
+                  method.inference = "none", method.tte = "Gehan",
+                  trace = 0)
+summary(e.BT, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : uninformative pairs
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
+#+end_example
+
+Note that without censoring one can get the same results by treating
+time as a continuous variable that take value \(\infty\) when the
+competing risk is observed:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+df$timeXX <- df$time
+df$timeXX[df$event==2] <- max(df$time)+1
+e.BT.bis <- BuyseTest(group ~ cont(timeXX), data = df,
+                  method.inference = "none", trace = 0)
+summary(e.BT.bis, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+:         Generalized pairwise comparison with 1 prioritized endpoint
+: 
+:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 1 (control) vs. 2 (treatment) 
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+:    timeXX     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
+
+Expected:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+weight <- (alphaE.X+alphaCR.X)*(alphaE.Y+alphaCR.Y)
+exp <- list()
+exp$favorable <- 1/weight*(alphaE.X*alphaE.Y*alphaE.X/(alphaE.X+alphaE.Y)+(alphaE.X*alphaCR.Y))
+exp$unfavorable <- 1/weight*(alphaE.X*alphaE.Y*alphaE.Y/(alphaE.X+alphaE.Y)+(alphaE.Y*alphaCR.X))
+exp$neutral <- alphaCR.X*alphaCR.Y/weight
+
+100*unlist(exp)
+#+END_SRC
+
+#+RESULTS:
+:   favorable unfavorable     neutral 
+:    42.66667    44.00000    13.33333
+
+# ## Flexible simulation of competing risks data following prespecified subdistribution hazards
+# Subdistributional hazard:
+# #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+# e.coxph <- coxph(Surv(timeXX, event==1) ~ group, data = df)
+# HR.coxph <- as.double(exp(coef(e.coxph)))
+# c("HR.sub" = HR.coxph, "Delta.sub" = (1-HR.coxph)/(1+HR.coxph))
+# #+END_SRC
+
+# #+RESULTS:
+# :     HR.sub  Delta.sub 
+# : 0.95597188 0.02250959
+
+# # #+RESULTS:
+# # :     HR.sub  Delta.sub 
+# # : 0.97182195 0.01429036
+
+# #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+# library(timereg)
+# e.fg <- comp.risk(Event(time,event) ~ const(group), data = df, cause = 1, model = "fg",
+#                   resample.iid = 1)
+# summary(e.fg)
+# HR.fg <- as.double(exp(coef(e.fg)[1]))
+# c("HR.sub" = HR.fg, "Delta.sub" = (1-HR.fg)/(1+HR.fg))
+# #+END_SRC
+
+# #+RESULTS:
+# : Competing risks Model 
+# : 
+# : No test for non-parametric terms
+# : Parametric terms : 
+# :               Coef.     SE Robust SE    z P-val lower2.5% upper97.5%
+# : const(group)2 0.165 0.0195    0.0195 8.47     0     0.127      0.203
+# :      HR.sub   Delta.sub 
+# :  1.17939312 -0.08231334
+
+*** BuyseTest (with censoring)
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+df$eventC <- df$event
+df$eventC[rbinom(n, size = 1, prob = 0.2)==1] <- 0
+#+END_SRC
+
+#+RESULTS:
+
+BuyseTest (biased):
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BTC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
+                   method.inference = "none", method.tte = "Gehan",
+                   trace = 0)
+summary(e.BTC, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : uninformative pairs
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time     1e-12   100      31.1       35.15    8.65  25.1 -0.0406 -0.0406
+#+end_example
+
+BuyseTest (unbiased):
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BTCC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
+                   method.inference = "none", method.tte = "Gehan corrected",
+                   trace = 0)
+summary(e.BTCC, percentage = TRUE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Generalized pairwise comparison with 1 prioritized endpoint
+
+ > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : uninformative pairs
+                     IPW for uninformative pairs
+
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time     1e-12   100     41.52       46.94   11.54     0 -0.0542 -0.0542
+#+end_example
+
+*** Cumulative incidence
+
+Settings:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+alphaE <- 2
+alphaCR <- 1
+#+END_SRC
+
+#+RESULTS:
+
+Simulate data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+df <- data.frame(time1 = rexp(n, rate = alphaE), time2 = rexp(n, rate = alphaCR), group = "1", event = 1)
+df$time <- pmin(df$time1,df$time2)
+df$event <- (df$time2<df$time1)+1
+#+END_SRC
+
+#+RESULTS:
+
+Cumulative incidence (via risk regression):
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.CSC <- CSC(Hist(time, event) ~ 1, data = df)
+vec.times <- unique(round(exp(seq(log(min(df$time)),log(max(df$time)),length.out = 12)),2))
+e.CSCpred <- predict(e.CSC, newdata = data.frame(X = 1), time = vec.times , cause = 1)
+#+END_SRC
+
+#+RESULTS:
+
+Expected vs. calculated:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+cbind(time = vec.times,
+      CSC = e.CSCpred$absRisk[1,],
+      manual = alphaE/(alphaE+alphaCR)*(1-exp(-(alphaE+alphaCR)*(vec.times)))
+      )
+#+END_SRC
+
+#+RESULTS:
+:      time    CSC     manual
+: [1,] 0.00 0.0000 0.00000000
+: [2,] 0.01 0.0186 0.01970298
+: [3,] 0.02 0.0377 0.03882364
+: [4,] 0.05 0.0924 0.09286135
+: [5,] 0.14 0.2248 0.22863545
+: [6,] 0.42 0.4690 0.47756398
+: [7,] 1.24 0.6534 0.65051069
+: [8,] 3.70 0.6703 0.66665659
+
+Could also be obtained treating the outcome as binary:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+mean((df$time<=1)*(df$event==1))
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.6375
+
+
+# * References
+# bibliographystyle:apalike
+# [[bibliography:bibliography.bib]]
+
+# @@latex:any arbitrary LaTeX code@@
+
+
+
+
+\clearpage
+
+* Inverse probability weighting
+
+In case of censoring we can use an inverse probability weighting
+approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
+indicator of no censoring relative to \(\tilde{X}\) (resp \(\tilde{Y}\)), \(\tilde{X}_E\) and \(\tilde{Y}_E\) the
+censored event time. We can use inverse probability weighting to
+compute the net benefit:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Delta^{IPW} &= \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}])\\
+&= \left\{
+                \begin{array}{ll}
+                  \frac{1}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[Y>X]-\Ind[Y<X])\text{, if no censoring}\\
+                  0\text{, if censoring}
+                \end{array}
+              \right.
+\end{align*}
+#+END_EXPORT
+
+This is equivalent to weight the informative pairs (i.e. favorable,
+unfavorable and neutral) by the inverse of the complement of the
+probability of being uninformative. This is what is done by the
+argument =correction.tte= of =BuyseTest=. This works whenever the
+censoring mechanism is independent of the event times and we have a
+consistent estimate of \(\Prob[\delta_c]\) since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Esp[\Delta^{IPW}] &= \Esp\left[ \Esp\left[ \frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} (\Ind[\tilde{Y}>\tilde{X}]-\Ind[\tilde{Y}<\tilde{X}]) \Bigg| \tilde{X}, \tilde{Y} \right] \right]\\
+&= \Esp\left[\Esp\left[\frac{\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}}}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Bigg| \tilde{X}, \tilde{Y} \right]\right] \Esp\left[\Ind[Y>X]-\Ind[Y<X]\right]\\
+&= \frac{\Esp\left[\delta_{c,\tilde{X}}\delta_{c,\tilde{Y}} \right]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta
+= \frac{\Esp[\delta_{c,\tilde{X}}]\Esp[\delta_{c,\tilde{Y}}]}{\Prob[\delta_{c,\tilde{X}}]\Prob[\delta_{c,\tilde{Y}}]} \Delta\\
+&= \Delta
+\end{align*}
+#+END_EXPORT
+where we used the law of total expectation (first line) and the independence between the censoring mecanisms.
+
+\clearpage
+
+* Asymptotic distribution
+
+In this section we restrict ourself to the GPC as defined in
+citep:buyse2010generalized, i.e. we do not consider Peron scoring rule
+nor any correction (like inverse probability weighting).
+
+** Theory
+
+We consider two independent samples \(x_1,x_2,\ldots,x_m\) and
+\(y_1,y_2,\ldots,y_n\) where the first one contains iid realisations
+of a random variable \(X\) and the second one contains iid
+realisations of a second variable \(Y\). For each realisation we
+observe \(p\) endpoints.
+
+\bigskip
+
+
+The estimator of the net benefit can be written as the difference
+between two estimators:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{\Delta}_\tau = \widehat{\Prob}[X \geq Y+\tau] - \widehat{\Prob}[Y \geq Y+\tau]
+\end{align*}
+#+END_EXPORT
+We denote by \(\phi_k\) the scoring rule relative to \(\Prob[X \geq
+Y+\tau]\) for the endpoint \(k\),
+e.g. \(\phi_k(x_1,y_1)=\Ind[x_1>y_1]\) for a binary endpoint. The
+scoring rule may depend of additional arguments, e.g. a threshold
+\(\tau\) but this will be ignored for the moment. Finally, we denote
+by \(k_{ij}\) the endpoint at which the pair \((i,j)\) is classified
+as favorable or unfavorable. If this does not happen then
+\(k_{ij}=p\). With this notations, the estimator \(\widehat{\Prob}[X
+\geq Y+\tau]\) can be written as a U-statistic:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\widehat{\Prob}[X \geq Y+\tau] = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \phi_{k_{ij}}(x_1,y_1)
+\end{align*}
+#+END_EXPORT
+This is a two sample U-statistic of order (1,1) with kernel
+\(\phi_{k_{ij}}(x_1,y_1)\) (trivially symmetric in \(x\) and \(y\)
+separately). From the U-statistic theory (e.g. see appendix
+[[#SM:Ustat]]), it follows that \(\widehat{\Prob}[X \geq Y+\tau]\) is
+unbiased, normally distributed, and its iid decomposition is the
+H\(\'{a}\)jek projection:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}(\widehat{\Prob}[X \geq Y+\tau]) &= \frac{1}{m} \sum_{i=1}^m \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| x_i] - \widehat{\Prob}[X \geq Y+\tau] \right) \\
+& \qquad + \frac{1}{n} \sum_{j=1}^n \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| y_j] - \widehat{\Prob}[X \geq Y+\tau]\right) \\
+&= \sum_{l=1}^{m+n} H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])
+\end{align*}
+#+END_EXPORT
+where \(H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])\) are the
+individual terms of the iid decomposition. For instance in the binary
+case, the term relative to the \(i-th\) observation of the
+experimental group is:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) & = \frac{\Esp[\phi_{k_{ij}}(x_i,y) \bigg| x_i]-\widehat{\Prob}[X \geq Y+\tau]}{m} = \left\{ \begin{array}{cc} 
+ \frac{1-p_y-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 1 \\
+\frac{-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 0 \\
+\end{array} \right. 
+\end{align*}
+#+END_EXPORT
+where \(p_y\) is the proportion of 1 in the control group.
+
+
+\clearpage
+
+** Example
+
+Let's consider a case with 2 observations per group:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
+d
+#+END_SRC
+
+#+RESULTS:
+:    id group toxicity
+: 1:  1     C        1
+: 2:  2     C        0
+: 3:  3     T        1
+: 4:  4     T        0
+
+We can form 4 pairs:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+d2 <- data.table(pair = c("3-1","4-1","3-2","4-2"), 
+                 type = c("1-1","0-1","1-0","0-0"),
+                 favorable = c(0,0,1,0),
+                 unfavorable = c(0,1,0,0))
+d2
+#+END_SRC
+
+#+RESULTS:
+:    pair type favorable unfavorable
+: 1:  3-1  1-1         0           0
+: 2:  4-1  0-1         0           1
+: 3:  3-2  1-0         1           0
+: 4:  4-2  0-0         0           0
+
+So \(U=\Prob[X>Y]\) equals:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+U <- 1/4
+#+END_SRC
+
+#+RESULTS:
+
+and the iid terms are:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_1(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{n} \left( \Esp\left[\Ind[x>y_1]\big|y_1\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_1]+\Ind[x_2>y_1]}{2}- 1/4}{2} = \frac{0-1/4}{2} = -1/8 \\
+H^{(1)}_2(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{n} \left( \Esp\left[\Ind[x>y_2]\big|y_2\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_2]+\Ind[x_2>y_2]}{2}- 1/4}{2} = \frac{1/2-1/4}{2} = 1/8 \\
+H^{(1)}_3(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x_1>y]\big|x_1\right]-U \right)&= \frac{ \frac{\Ind[x_1>y_1]+\Ind[x_1>y_2]}{2}- 1/4}{2} = \frac{1/2-1/4}{2} = 1/8 \\
+H^{(1)}_4(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[x_2>y]\big|x_2\right]-U \right)&= \frac{ \frac{\Ind[x_2>y_1]+\Ind[x_2>y_2]}{2}- 1/4}{2} = \frac{0-1/4}{2} = -1/8
+\end{align*}
+#+END_EXPORT
+
+We can use the method =iid= to extract the iid decomposition in the
+BuyseTest package:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
+                  keep.pairScore = TRUE,
+                  method.inference = "asymptotic", trace = 0)
+iid(e.BT)
+#+END_SRC
+
+#+RESULTS:
+:      favorable unfavorable
+: [1,]    -0.125       0.125
+: [2,]     0.125      -0.125
+: [3,]     0.125      -0.125
+: [4,]    -0.125       0.125
+
+This leads to the following estimates for the variance covariance:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+crossprod(iid(e.BT))
+#+END_SRC
+
+#+RESULTS:
+:             favorable unfavorable
+: favorable      0.0625     -0.0625
+: unfavorable   -0.0625      0.0625
+
+Which is precisely what is stored in =e.BT=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.BT@covariance
+#+END_SRC
+
+#+RESULTS:
+:          favorable unfavorable covariance
+: toxicity    0.0625      0.0625    -0.0625
+
+Note that we could also estimate the variance via the formula given in
+citep:bebu2015large, e.g.:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\sigma^2_{favorable} &= \Prob[X \geq Y_1,X \geq Y_2] - \Prob[X \geq Y]^2 \\
+&= 1/8 - 1/16 = 0.0625
+\end{align*}
+#+END_EXPORT
+Indeed to compute \(\Prob[X \geq Y_1,X \geq Y_2]\) we distinguish
+2*2*2=8 cases (\(X \in \{x_1,x_2\}\), \(Y_1 \in \{y_1,y_2\}\), and
+\(Y_2 \in \{y_1,y_2\}\)) and only one satisfyies \(X \geq Y_1,X \geq
+Y_2\) (when \(X=x_1\) and \(Y_1=Y_2=y_2\)). This is what is performed when calling:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e2.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
+                  keep.pairScore = TRUE,
+                  method.inference = "asymptotic-bebu", trace = 0)
+e2.BT@covariance
+#+END_SRC
+
+#+RESULTS:
+:          favorable unfavorable covariance
+: toxicity    0.0625      0.0625    -0.0625
+
+\clearpage
+
+** Type 1 error in finite sample
+
+*** Binary endpoint
+#+BEGIN_SRC R :exports code :results output :session *R* :cache no
+tpsBin <- system.time(
+    eBin.power <- powerBuyseTest(sim = simBuyseTest, 
+                                 sample.size = c(10,50,100,250), 
+                                 n.rep = 1e3,
+                                 cpus = 4,
+                                 formula = Treatment ~ bin(toxicity), 
+                                 method.inference = "asymptotic",
+                                 transform = TRUE,
+                                 trace = 0)
+)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+tpsBin
+#+END_SRC
+
+#+RESULTS:
+:    user  system elapsed 
+:    1.28    0.18  182.21
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+
+ > statistic   : net benefit
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000      0.007000     0.22743 0.21170          0.114
+2:  50  50         1000   1000      0.005300     0.10148 0.09896          0.055
+3: 100 100         1000   1000      0.003750     0.07020 0.07036          0.050
+4: 250 250         1000   1000      0.002012     0.04488 0.04463          0.052
+
+ > statistic   : win ratio
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10          999    999         1.797      3.0035  1.8306        0.04217
+2:  50  50         1000   1000         1.112      0.4672  0.4499        0.05500
+3: 100 100         1000   1000         1.057      0.3054  0.3005        0.05000
+4: 250 250         1000   1000         1.025      0.1878  0.1837        0.05200
+#+end_example
+
+\clearpage
+
+*** Continuous endpoint
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+tpsCont <- system.time(
+    eCont.power <- powerBuyseTest(sim = simBuyseTest, 
+                                  sample.size = c(10,50,100,250), 
+                                  n.rep = 1e3,
+                                  cpus = 4,
+                                  formula = Treatment ~ cont(score), 
+                                  method.inference = "asymptotic",
+                                  transform = TRUE,
+                                  trace = 0)
+)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+tpsCont
+#+END_SRC
+
+#+RESULTS:
+:    user  system elapsed 
+:    1.49    0.21  178.25
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(eCont.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+
+ > statistic   : net benefit
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000     0.0030800     0.26826 0.25578          0.148
+2:  50  50         1000   1000     0.0020984     0.11936 0.11538          0.079
+3: 100 100         1000   1000     0.0007032     0.08447 0.08162          0.073
+4: 250 250         1000   1000     0.0015386     0.05184 0.05164          0.053
+
+ > statistic   : win ratio
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000         1.202      0.8670  0.6813          0.045
+2:  50  50         1000   1000         1.035      0.2585  0.2424          0.058
+3: 100 100         1000   1000         1.016      0.1735  0.1671          0.064
+4: 250 250         1000   1000         1.009      0.1056  0.1044          0.051
+#+end_example
+
+\clearpage
+
+*** Time to event endpoint (Gehan method)
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+tpsGehan <- system.time(
+    eGehan.power <- powerBuyseTest(sim = simBuyseTest, 
+                                   sample.size = c(10,50,100,250), 
+                                   n.rep = 1e3,
+                                   cpus = 4,
+                                   formula = Treatment ~ tte(eventtime, 
+                                                             censoring = status), 
+                                   method.inference = "asymptotic",
+                                   transform = TRUE,
+                                   method.tte = "Gehan",
+                                   trace = 0)
+)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+tpsGehan
+#+END_SRC
+
+#+RESULTS:
+:    user  system elapsed 
+:    1.38    0.25  177.58
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(eGehan.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+
+ > statistic   : net benefit
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000     -0.003120     0.14812 0.14413          0.087
+2:  50  50         1000   1000      0.001308     0.06445 0.06620          0.052
+3: 100 100         1000   1000     -0.000690     0.04785 0.04690          0.049
+4: 250 250         1000   1000     -0.000647     0.02929 0.02978          0.050
+
+ > statistic   : win ratio
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10          974    974         1.873      3.2268  2.0924        0.04339
+2:  50  50         1000   1000         1.092      0.4696  0.4510        0.04500
+3: 100 100         1000   1000         1.038      0.3045  0.2983        0.04500
+4: 250 250         1000   1000         1.012      0.1818  0.1819        0.04900
+#+end_example
+
+\clearpage
+
+*** Time to event endpoint (Peron method)
+#+BEGIN_SRC R :exports code :results output :session *R* :cache no
+tpsPeron <- system.time(
+    ePeron.power <- powerBuyseTest(sim = simBuyseTest, 
+                                   sample.size = c(10,50,100,250), 
+                                   n.rep = 1e3,
+                                   cpus = 4,
+                                   formula = Treatment ~ tte(eventtime, 
+                                                             censoring = status), 
+                                   method.inference = "asymptotic",
+                                   transform = TRUE,
+                                   method.tte = "Peron",
+                                   trace = 0)
+)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+tpsPeron
+#+END_SRC
+
+#+RESULTS:
+:    user  system elapsed 
+:    1.16    0.13  198.24
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(ePeron.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+
+ > statistic   : net benefit
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000     0.0048942     0.22201 0.19280          0.172
+2:  50  50         1000   1000     0.0028917     0.11738 0.08918          0.167
+3: 100 100         1000   1000     0.0004554     0.10206 0.06325          0.250
+4: 250 250         1000   1000     0.0036080     0.08643 0.04016          0.358
+
+ > statistic   : win ratio
+   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
+1:  10  10         1000   1000         1.137      0.6089 0.47252          0.086
+2:  50  50         1000   1000         1.037      0.2597 0.19203          0.144
+3: 100 100         1000   1000         1.023      0.2186 0.13397          0.231
+4: 250 250         1000   1000         1.023      0.1838 0.08482          0.354
+#+end_example
+
+\clearpage
+
+* References
+#+LaTeX: \begingroup
+#+LaTeX: \renewcommand{\section}[2]{}
+bibliographystyle:apalike
+[[bibliography:bibliography.bib]]
+# help: https://gking.harvard.edu/files/natnotes2.pdf
+#+LaTeX: \endgroup
+
+\clearpage
+
+\appendix
+
+* Recall on the U-statistic theory
+:PROPERTIES:
+:CUSTOM_ID: SM:Ustat
+:END:
+
+
+This recall is based on chapter 1 of cite:lee1990u.
+
+** Motivating example
+
+We will illustrate basic results on U-statistics with the following
+motivating question: "what is the asymptotic distribution of the
+empirical variance estimator?". For a more concrete example, imagine
+that we want to provide an estimate with its 95% confidence interval
+of the variability in cholesterol measurements. We assume that we are
+able to collect a sample of \(n\) independent and identically
+distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
+variable cholesterol, denoted \(X\). We ignore any measurement error.
+
+** Estimate, estimator, and functionnal
+
+We can compute an *estimate* of the variance using the following
+*estimators* \(\hat{\mu}\) and \(\hat{\sigma}^2\):
+#+BEGIN_EXPORT latex
+\begin{align}
+\hat{\mu} &= \frac{1}{n} \sum_{i=1}^n x_i \label{eq:m(F)} \\
+\hat{\sigma}^2 &= \frac{1}{n-1} \sum_{i=1}^n (x_i-\hat{\mu})^2 \label{eq:s(F)}
+\end{align}
+#+END_EXPORT
+Given a dataset the estimator \(\hat{\sigma}^2\) outputs a
+deterministic (i.e. not random) quantity, called the estimate of the
+variance. For instance if we observe:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+x <- c(1,3,5,2,1,3)
+#+END_SRC
+
+#+RESULTS:
+
+then \(s\) equals:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+mu <- mean(x)
+sigma2 <- var(x)
+sigma2
+#+END_SRC
+
+#+RESULTS:
+: [1] 2.3
+
+In general the value of the estimate depends on the dataset. The
+estimator acts like a function \(f_n\) that takes as argument some
+data and output a quantity of interest. This is often refer to as a
+*functionnal*, e.g. \(\hat{\sigma}^2=f_n(x_1,\ldots,x_n)\). Here we
+use the hat notation to emphasise that \(\hat{\sigma}^2\) is a random
+quantity: for each new realisation \((x_1,\ldots,x_n)\) of \(X\)
+corresponds a realisation for \(\hat{\sigma}^2\) i.e. a possibly
+different value for the variance. If mechanism generating the data has
+cumulative distribution function \(F\) then we can also define the
+true value as \(\sigma^2=f_{\sigma^2}(F)\) (which is a deterministic
+value) where:
+#+BEGIN_EXPORT latex
+\begin{align}
+\mu(F) &= f_\mu(F) = \int_{-\infty}^{+\infty} x dF(x) \label{eq:M(F)}\\
+\sigma^2(F) &= f_{\sigma^2}(F) = \int_{-\infty}^{+\infty} (x - f_\mu(F))^2 dF(x) \label{eq:S(F)}
+\end{align}
+#+END_EXPORT
+This can be understood as the limit \(f(F)=\lim_{n \rightarrow \infty}
+f_n(x_1,\ldots,x_n)\). Because \(\sigma^2\) and \(f_{\sigma^2}\) are
+very close quantities we will not distinguish them in the notation,
+i.e. write \(\sigma^2=\sigma^2(F)\). This corresponds to formula (1)
+in cite:lee1990u. 
+
+\bigskip
+
+When we observe a sample, we use it to plug-in formula eqref:eq:M(F)
+and eqref:eq:S(F) an approximation \(\hat{F}\) of \(F\). Usually our
+best guess for \(F\) is \(\hat{F}(x)= \frac{1}{n}\sum_{i=1}^n
+\Ind[x \leq x_i]\) where \(\Ind[.]\) is the indicator function taking value
+1 if \(.\) is true and 0 otherwise. One can check that when plug-in
+\(\hat{F}\) formula eqref:eq:M(F) and eqref:eq:S(F) becomes formula
+eqref:eq:m(F) and eqref:eq:s(F).
+
+\bigskip
+
+To summarize:
+- an estimator is a random variable whose realisation depends on the
+  data. Its realization is called estimate.
+- an estimate is a deterministic value that we obtain using the
+  observed data (e.g. observed variability is 2.3)
+- a functionnal (of an estimator) is the rule by which an estimator
+  transforms the data into an estimate.
+
+** Aim
+
+Using formula eqref:eq:m(F) and eqref:eq:s(F) we can easily estimate
+the variance based on the observed realisations of \(X\) (i.e. the
+data). However how can we get an confidence interval? What we want is
+to quantify the incertainty associated with the estimator, i.e. how
+the value output by the functionnal is sensitive to a change in the
+dataset. To do so, since the estimator \(\hat{\sigma}^2\) is a random variable, we
+can try to characterize its distribution. This is in general
+difficult. It is much easier to look at the distribution of the
+estimator \(\hat{\sigma}^2\) if we would have an infinite sample size. This is what
+we will do, and rely on similations to see how things go in finite
+sample size. As we will see, the asymptotic distribution of the
+variance is a Gaussian distribution with a variance that we can estimate:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+n <- length(x)
+k <- mean((x-mu)^4)
+var_sigma2 <- (k-sigma2^2)/n
+var_sigma2
+#+END_SRC 
+
+#+RESULTS:
+: [1] 0.4898611
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+## chekc with lava
+library(lava)
+estimate(lvm(x~1), data = data.frame(x = x))
+sqrt((2*mean((x-mu)^2)^2)/(n))
+#+END_SRC
+
+#+RESULTS:
+:                     Estimate Std. Error Z-value   P-value
+: Intercepts:                                              
+:    x                 2.50000    0.56519 4.42326 9.722e-06
+: Residual Variances:                                      
+:    x                 1.91667    1.10659 1.73205
+: [1] 1.106588
+
+So we obtain a 95% confidence intervals for the variance doing:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+c(estimate = sigma2, 
+  lower = sigma2 + qnorm(0.025) * sqrt(var_sigma2),
+  upper = sigma2 + qnorm(0.975) * sqrt(var_sigma2))
+#+END_SRC
+
+#+RESULTS:
+:  estimate     lower     upper 
+: 2.3000000 0.9282197 3.6717803
+
+We can see that it is not a very good confidence interval since it
+symmetric - we know that the variance is positive so it should extend
+more on the right side. But this only problematic in small sample
+sizes. In large enough sample sizes the confidence interval will be
+correct and we focus on this case.
+
+\clearpage
+
+In summary, we would like:
+- to show that our estimator \(\hat{\sigma}^2\) is asymptotically normally distributed.
+- to have a formula for computing the asymptotic variance.
+To do so we will use results from the theory on U-statistics.
+
+\bigskip
+
+\textsc{Note:} we can already guess that the estimator \(\hat{\sigma}^2\) (as
+most estimators) will be asymptotically distributed because it can be
+expressed as a average (see formula eqref:eq:s(F)). If we would know
+the mean of \(X\), then the terms \(x_i-\mu\) are iid so the
+asymptotically normality of \(\hat{\sigma}^2\) follows from the
+central limit theorem. It does not give us a formula for the
+asymptotic variance though. 
+
+** Definition of a U-statistic and examples
+
+A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
+form:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{U} = \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right)
+\end{align*}
+#+END_EXPORT
+where \(\beta\) is the set of all possible permutations between \(k\)
+integers choosen from \(\{1,\ldots,n\}\). We will also assume that the
+kernel is symmetric, i.e. the order of the arguments in \(h\) has no
+importance. Note that because the observations are iid, \(\hat{U}\) is
+an unbiased estimator of \(U\).
+
+\bigskip
+
+\textsc{Example 1}: the simplest example of a U-statistic is the
+estimator of mean for which \(k=1\) and \(h\) is the identity
+function:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{\mu} = \frac{1}{{n \choose 1}} \sum_{(\beta_1) \in \{1,\ldots,n\}} x_{\beta_1} = \frac{1}{n} \sum_{i=1}^{n} x_{i}
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+\textsc{Example 2}: our estimator of the variance is also a
+U-statistic, but this requires a little bit more work to see that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{\sigma}^2 &= \frac{1}{n-1} \sum_{i=1}^n (x_i-\hat{\mu})^2 = \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \hat{\mu} + \hat{\mu}^2\right) \\
+&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + \hat{\mu}^2\right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right)
+=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \hat{\sigma}^2 \\
+\hat{\sigma}^2 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
+=  \frac{2}{n(n-1)} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2}
+\hat{\sigma}^2 =  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
+\end{align*}
+#+END_EXPORT
+So the variance estimator is a U-statistic of order 2 with kernel
+\(h(x_1,x_2)=\frac{(x_1 - x_2)^2}{2}\).
+
+\bigskip
+
+\textsc{Example 3}: another classical example of U-statistic is the
+signed rank statistic which enable to test non-parametrically whether
+the center of a distribution is 0. This corresponds to:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+wilcox.test(x)
+#+END_SRC
+
+#+RESULTS:
+: 
+: 	Wilcoxon signed rank test with continuity correction
+: 
+: data:  x
+: V = 21, p-value = 0.03501
+: alternative hypothesis: true location is not equal to 0
+: 
+: Warning message:
+: In wilcox.test.default(x) : cannot compute exact p-value with ties
+
+Let's take two random realisation of \(X\) and denote thoses \(X_1\)
+and \(X_2\) (they are random variables). The parameter of interest (or
+true value) is \(U = \Prob[X_1+X_2>0]\) and the corresponding
+estimator is:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{U} = \frac{1}{{n \choose 2}} \sum_{i=1}^{n} \sum_{i<j} \Ind[x_i+x_j>0]
+\end{align*}
+#+END_EXPORT
+
+** A major result from the U-statistic theory
+
+So far we have seen that our estimator for the variance was a
+U-statistic. We will now use the U-statistic theory to obtain its
+asymptotic distribution.
+
+\bigskip
+
+*Theorem* (adapted from cite:lee1990u, theorem 1 page 76) @@latex:\\@@
+ Let \(\hat{U}\) be a U-statistic of order \(k\) with non-zero first
+ component in its H-decomposition. Then \(n^{\frac{1}{2}}
+ (\hat{U}-U)\) is asymptotically normal with mean zero and asymptotic
+ variance \(\sigma^2_1\) where \(\sigma^2_1\) is the variance of the
+ first component in the H-decomposition of \(\hat{U}\).
+
+\bigskip
+
+So under the assumption that the first term of the H-decomposition of
+the variance is non 0 then we know that the asymptotic distribution of
+our variance estimator is normal and if we are able to compute the
+variance of the first term of the H-decomposition then we would also
+know the variance parameter of the asymptotic distribution. So it
+remains to see what is this H-decomposition and how can we
+characterize it.
+
+** The first term of the H-decomposition
+
+The H-decomposition (short for Hoeffling decomposition) enables us to
+decompose the estimator of a U-statistic of rank \(k\) into a sum of
+\(k\) uncorrelated U-statistics of increasing order (from \(1\) to
+\(k\)) with variances of decreasing order in \(n\). As a consequence
+the variance of the U-statistic will be asymptotically equal to the
+variance of the first non-0 term in the decomposition.
+
+\bigskip
+
+Before going further we introduce:
+- \(X_1\), \ldots, \(X_n\) the random variables associated with each
+  sample.
+- \(\mathcal{L}_2\) the space of all random variables with zero mean
+  and finite variance. @@latex:\\@@ It is equiped with the inner
+  product \(\Cov[X,Y]\).
+-  the subspaces \(\left(\mathcal{L}_2^{(j)}\right)_{j \in
+  \{1,\ldots,k\}}\) where for a given \(j\in \{1,\ldots,k\}\),
+  \(\mathcal{L}_2^{(j)}\) is the subspace of \(\mathcal{L}_2\)
+  containing all random variables of the form
+  \(\sum_{(\beta_1,\ldots,\beta_j) \in \beta}
+  \psi(X_{\beta_1},\ldots,X_{\beta_j})\) where \(\beta\) is the set of
+  all possible permutations between \(j\) integers choosen from
+  \(\{1,\ldots,n\}\). For instance \(\mathcal{L}_2^{(1)}\) contains
+  the mean, \(\mathcal{L}_2^{(2)}\) contains the variance, and
+  \(\mathcal{L}_2^{(j)}\) contains all U-statistics of order \(j\)
+  with square integrable kernels.
+
+We can now define the H-decomposition as the projection of
+\(\hat{U}-U\) on the subspaces \(\mathcal{L}_2^{(1)}\),
+\(\mathcal{L}_2^{(2)} \cap \left( \mathcal{L}_2^{(1)} \right)^{\perp}
+\), \ldots, \(\mathcal{L}_2^{(k)} \cap \left( \mathcal{L}_2^{(k-1)}
+\right)^{\perp} \). Here \(A^{\perp}\) indicates the space orthogonal
+to \(A\). So the first term of the H-decomposition, denoted
+\(H^{(1)}\), is the projection of \(\hat{U}-U\) on
+\(\mathcal{L}_2^{(1)}\); this is also called the H\(\'{a}\)jek
+projection. Clearly all terms of the projection are mutually
+orthogonal (or uncorrelated), they are unique (it is a projection) and
+they correspond to U-statistics of increasing degree (from \(1\) to
+\(k\)). It remains to get a more explicit expression for these term
+and show that their variance are of decreasing order in \(n\).
+
+\bigskip
+
+We now focus on the first term and show that \(H^{(1)} = \sum_{i=1}^n
+\Esp[\hat{U}-U|X_i]\). Clearly this term belongs to
+\(\mathcal{L}_2^{(1)}\). It remains to show that \(\hat{U}-U -
+H^{(1)}\) is orthogonal to \(\mathcal{L}_2^{(1)}\). Let consider an element \(V \in \mathcal{L}_2^{(1)}\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Cov[\hat{U}-U - H^{(1)}, V ] &= \Esp[(\hat{U}-U - H^{(1)} ) V ] \\
+&= \sum_{i'=1}^{n} \Esp[(\hat{U}-U - H^{(1)}) \psi(X_{i'}) ] \\ 
+&= \sum_{i'=1}^{n} \Esp[\Esp[\hat{U}-U - H^{(1)} \big| X_{i'}] \psi(X_{i'}) ]
+\end{align*}
+#+END_EXPORT
+So it remains to show that \(\Esp[\hat{U}-U \big| X_{i'}] = \Esp[H^{(1)}
+\big| X_{i'}]\). This follows from:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Esp[H^{(1)} \big| X_{i'}] &= \Esp[\sum_{i=1}^n \Esp[\hat{U}-U|X_i] \big| X_{i'}] = \sum_{i=1}^n \Esp[\Esp[\hat{U}-U|X_i] \big| X_{i'}] \\
+&= \Esp[\hat{U}-U|X_i] + \sum_{i\neq i'}^n \Esp[\Esp[\hat{U}-U|X_i] \big| X_{i'}] \\
+&= \Esp[\hat{U}-U|X_i] + \sum_{i\neq i'}^n \Ccancelto[red]{0}{\Esp[\Esp[\hat{U}-U|X_i]]}
+\end{align*}
+#+END_EXPORT
+where we have used that \(X_i\) and \(X_{i'}\) are independent and \(\Esp[\Esp[\hat{U}-U|X_i]]=\Esp[\hat{U}-U]=0\).
+
+\bigskip
+
+We can now re-express the first term of the H-decomposition more
+explicitely:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)} &= \sum_{i=1}^n \Esp[\hat{U}-U \big| X_i]  \\
+&=  \sum_{i=1}^n \Esp[ \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right) - U \big| X_i ] \\
+&=  \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} \sum_{i=1}^n \Esp[ h \left(x_{\beta_1},\ldots,x_{\beta_k} \right) \big| X_i ] - U \\
+&=  \frac{1}{{n \choose k}} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} \sum_{i=1}^n \Ind[i \in \beta] \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] + \Ind[i \notin \beta] * 0 - U \\
+&=  \frac{1}{{n \choose k}} \sum_{i=1}^n \Prob[i \in \beta] \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] - U  \\
+&=  \frac{{n - 1 \choose k - 1}}{{n \choose k}} \sum_{i=1}^n \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] - U  \\
+H^{(1)} &=  \frac{k}{n} \sum_{i=1}^n \Esp[ h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] - U 
+\end{align*}
+#+END_EXPORT
+Let's now compute the variance of \(\hat{U}\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+ \Var[\hat{U}] &= {n \choose k}^{-2} \Var[\sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right)] \\
+&= {n \choose k}^{-2} \Cov[\sum_{(\beta_1,\ldots,\beta_k) \in \beta} h \left(x_{\beta_1},\ldots,x_{\beta_k} \right),\sum_{(\beta'_1,\ldots,\beta'_k) \in \beta'} h \left(x_{\beta'_1},\ldots,x_{\beta'_k} \right)] \\
+&= {n \choose k}^{-2} \sum_{(\beta_1,\ldots,\beta_k) \in \beta} \sum_{(\beta'_1,\ldots,\beta'_k) \in \beta'} \Cov[ h \left(x_{\beta_1},\ldots,x_{\beta_k} \right), h \left(x_{\beta'_1},\ldots,x_{\beta'_k} \right)] \\
+ \end{align*}
+#+END_EXPORT
+Using the symmetry of the kernel we see that the terms in the double
+sum only depends on the number of common observations. To determine a
+term with \(j\) common observations, a choose:
+- \(k\) observations among the \(n\) for the first kernel: \({n \choose k}\) possibilities
+- \(c\) common index for the two kernels among the \(k\): \({k \choose c}\) possibilities 
+- \(k-c\) observations among the remaining \(n-k\) observations for
+  the second kernel: \({n - k \choose k - c}\) possibilities
+So denoting \(\sigma^2_c=\Cov[ h \left(x_{1},\ldots,x_{k} \right), h \left(x_{1},\ldots,x_{c},x'_{c+1},\ldots,x'_{k} \right)]\) this gives:
+#+BEGIN_EXPORT latex
+\begin{align*}
+ \Var[\hat{U}] &= {n \choose k}^{-2} \sum_{c=0}^{n} {n \choose k} {k \choose c} {n - k \choose k - c} \sigma^2_c \\
+&=  \sum_{c=0}^{k} \frac{k!(n-k)!}{n!}  \frac{k!}{c!(k-c)!} \frac{(n-k)!}{(k-2k+c)!(n-c)!} \sigma^2_c \\
+&=  \sum_{c=0}^{k}  \frac{k!^2}{c!(k-c)!^2}  \frac{(n-k)!^2}{(n-2k+c)!n!} \sigma^2_c \\
+&= \sum_{c=0}^{k} \mathcal{O}\left(\frac{(n-k)!^2}{(n-2k+c)!n!}\right) \sigma^2_c \\
+&= \sum_{c=0}^{k} \mathcal{O}\left(\frac{(n-k) \ldots (n-2k+c+1)}{n \ldots (n-k+1) }\right) \sigma^2_c \\
+&= \sum_{c=0}^{k} \mathcal{O}\left(\frac{n^{- k + 2k - c}}{n^{k}}\right) = \sum_{c=0}^{k} \mathcal{O}\left(n^{-c}\right) \sigma^2_c \\
+\end{align*}
+#+END_EXPORT
+So if \(\sigma^2_1 \neq 0\) then the asymptotic variance only depends on the variance of the first term, i.e.:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \Var[H^{(1)}] = \frac{k^2}{n^2}  \Var[ \sum_{i=1}^n \Esp[h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] ] \\
+&= \frac{k^2}{n^2} \sum_{i=1}^n \Var[\Esp[h \left(x_1,\ldots,x_{i-1},x_i,x_{i+1},\ldots,x_{k} \right) \big| x_i] ] \\
+&= \frac{k^2}{n^2} n \Var[\Esp[h \left(x,x_2,\ldots,x_{k} \right) \big| x] ] \\
+\Var[\hat{U}] &= \frac{k^2}{n}  \Var[ \Esp[h \left(x,x_2,\ldots,x_{k} \right) \big| x] ]
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+In summary we have obtained a formula for the asymptotic variance of
+the U-statistic.
+
+\bigskip
+
+\textsc{Example 1}: Sample mean @@latex:\\@@
+We first compute the H\(\'{a}\)jek projection of the mean:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_{\hat{\mu}} = \frac{1}{n} \sum_{i=1}^n \Esp[x_i|x_i]-\mu = \frac{1}{n}  \sum_{i=1}^n x_i-\mu
+\end{align*}
+#+END_EXPORT
+And then compute the asymptotic variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{\mu}] =  \Var[H^{(1)}_{\hat{\mu}}] = \frac{1}{n^2}  \sum_{i=1}^n \Var[x_i-\mu] = \frac{1}{n^2}  \sum_{i=1}^n \sigma^2 = \frac{\sigma^2}{n}
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+
+\textsc{Example 2}: Sample variance @@latex:\\@@
+We first compute the H\(\'{a}\)jek projection of the variance:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)}_{\hat{\sigma}^2} &= \frac{2}{n} \sum_{i=1}^n  \Esp[\frac{(x_i-X_2)^2}{2} \bigg|x_i]  - \sigma^2 = \frac{1}{n} \sum_{i=1}^n \Esp[x_i^2 - 2 x_i X_2 + X_2^2 \big|x_i]  - \sigma^2 \\
+&= \frac{1}{n} \sum_{i=1}^n \left( x_i^2 - 2 x_i \mu + \sigma^2 + \mu^2 \right)  - \sigma^2 \\
+&= \frac{1}{n} \sum_{i=1}^n \left( (x_i - \mu)^2 - \sigma^2 \right) 
+\end{align*}
+#+END_EXPORT
+And then compute the asymptotic variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{\sigma}^2] &=   \Var[H^{(1)}_{\hat{\sigma}^2}] = \frac{1}{n^2} \sum_{i=1}^n  \Var[ (x_i - \mu)^2 - \sigma^2]\\
+&= \frac{1}{n^2} \sum_{i=1}^n \Esp[(x - \mu)^4]-\Esp[(x - \mu)^2]^2 \\
+&=\frac{\mu_4-\left(\sigma^2\right)^2}{n}  
+\end{align*}
+#+END_EXPORT
+where \(\mu_4=\Esp[(x - \mu)^4]\) is the fourth moment of the
+distribution. For a better approximation in small sample size we could
+account for the variance of the second term of the H-decomposition. We
+would obtain (cite:lee1990u, page 13):
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{\sigma}^2] = \frac{\mu_4}{n}-\frac{(n-3)\left(\sigma^2\right)^2}{n(n-1)}  
+\end{align*}
+#+END_EXPORT
+When \(\frac{n-3}{n-1}\) is close to 1 then the first order
+approximation is sufficient.
+
+\bigskip
+
+\textsc{Example 3}: Signed rank statistic @@latex:\\@@
+We first compute the H\(\'{a}\)jek projection of the signed rank statistic:
+#+BEGIN_EXPORT latex
+\begin{align*}
+ H^{(1)}_{\hat{U}} &=   \frac{2}{n} \sum_{i=1}^n \Esp\left[ \Ind[x_i+X_2>0] \big|x_i \right] - U = \frac{2}{n} \sum_{i=1}^n \Prob[ X_{2} > -x_i \big|x_i] - \Prob[X_{2}> - X_{1}] \\
+ &= \frac{2}{n} \sum_{i=1}^n (1 - F(-x_i)) - \Esp[x][(1 - F(-x))] \\
+\end{align*}
+#+END_EXPORT
+Since under the null, the distribution is symmetric \(F(-x)=1-F(x)\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+ H^{(1)}_{\hat{U}} &= \frac{2}{n} \sum_{i=1}^n F(x_i) - \Esp[x][F(x)]
+\end{align*}
+#+END_EXPORT
+We will use that for continuous distribution \(F(x)\) is uniformly
+distribution and therefore has variance \(\frac{1}{12}\). So we can
+compute the asymptotic variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \Var[H^{(1)}_{U}] = \frac{4}{n^2} \sum_{i=1}^n \Var\left[ F(x_i) - \Esp[x][F(x)] \right] = \frac{4}{n^2} n \frac{1}{12} = \frac{1}{3}
+\end{align*}
+#+END_EXPORT
+
+** Two sample U-statistics 
+
+So far we have assumed that all our observations were iid. But in the
+case of GPC, we study two populations (experimental arm and control
+arm) so we can only assume to have two independent samples
+\(x_1,x_2,\ldots,x_m\) and \(y_1,y_2,\ldots,y_n\) where the first one
+contains iid realisations of a random variable \(X\) and the second
+one contains iid realisations of a second variable \(Y\). We can now
+define a two-sample U-statistic as of order \(k_x\) and \(k_y\) as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{U} = \frac{1}{{m \choose k_x}{n \choose k_y}} \sum_{(\alpha_1,\ldots,\alpha_{k_x})\in \alpha} \sum_{(\beta_1,\ldots,\beta_{k_y})\in \alpha} h(x_{\alpha_{k_x}},\ldots,x_{\alpha_j},y_{\beta_1},\ldots,y_{\beta_{k_y}})
+\end{align*}
+#+END_EXPORT
+where \(\alpha\) (resp. \(\beta\)) is the set of all possible
+ permutations between \(k_x\) (resp. \(k_y\)) intergers chosen from
+ \(\{1,\ldots,m\}\) (resp.  \(\{1,\ldots,n\}\)) and the kernel
+ \(h=h(x_1,\ldots,x_{k_x},y_1,\ldots,y_{k_y})\) is permutation symmetric in
+ its first \(k_x\) arguments and its last \(k_y\) arguments
+ separately. Once more it follows from the independence and iid
+ assumptions that \(\hat{U}\) is an unbiased estimator of \(U =
+ \Esp[h(X_1,\ldots,X_{k_x},Y_1,\ldots,Y_{k_y})]\) where \(X_1,\ldots,X_{k_x}\)
+ (resp. \(Y_1,\ldots,Y_{k_y}\)) are the random variables associated to
+ distinct random samples from \(X\) (resp. \(Y\)). The two-sample case
+ is a specific case of the Generalized U-statistics introduced in
+ section 2.2 in cite:lee1990u.
+
+\bigskip
+
+Many results for U-statistics extends to two sample U-statistics. For
+instance the H\(\'{a}\)jek projection of \(\hat{U}-U\) becomes:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H^{(1)} = \frac{k_x}{m} \sum_{i=1}^{m} \left( \Esp[h(x_1,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x_i] - U \right) + \frac{k_y}{n} \sum_{j=1}^{n} \left( \Esp[h(x_1,\ldots,x_{k_x},y_1,y_2,\ldots,y_{k_y}) \big| y_j] - U \right)
+\end{align*}
+#+END_EXPORT
+Before stating any asymptotic results, we need to define what we now
+mean by asymptotic (since we have two sample sizes \(m\) and
+\(n\)). We now mean by asymptotic that we create an increasing
+sequence of \(m\) and \(n\) indexed by \(v\) such that:
+- \(m_v \cvD[][v \rightarrow \infty] \infty\) 
+- \(n_v \cvD[][v \rightarrow \infty] \infty\)
+- there exist a \(p \in ]0;1[\) satisfying \(\frac{m}{n+m} \cvD[][v
+  \rightarrow \infty] p\) and \(\frac{n}{n+m} \cvD[][v \rightarrow
+  \infty] 1-p\).  
+
+Informally speaking, this means that \(m\) and \(n\) goes to infinity
+  at the same speed. Let's denotes:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\Esp[h(x,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x]] &= \sigma^2_{1,0} \\
+\Var[\Esp[h(x_1,\ldots,x_{k_x},y,y_2,\ldots,y_{k_y}) \big| y]] &= \sigma^2_{0,1} 
+\end{align*}
+#+END_EXPORT
+We then have the following result:
+
+\bigskip
+
+*Theorem* (adapted from cite:lee1990u, theorem 1 page 141)
+ @@latex:\\@@ Let \(\hat{U}\) be a U-statistic of order \(k_x\) and
+ \(k_y\) with non-zero first component (i.e. \(\sigma^2_{1,0}>0\) and
+ \(\sigma^2_{0,1}>0\)) in its H-decomposition. Then
+ \((m+n)^{\frac{1}{2}} (\hat{U}-U)\) is asymptotically normal with
+ mean zero and asymptotic variance \(p^{-1} k_x^2
+ \sigma^2_{1,0}+(1-p)^{-1} k_y^2 \sigma^2_{0,1}\) which is the
+ variance of the first component in the H-decomposition of
+ \(\hat{U}\).
+
+\bigskip
+
+\textsc{Example 4}: Mann-Whitney statistic @@latex:\\@@
+If our parameter of interest is \(\Prob[X \leq Y]\) then the estimator:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\hat{U} = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j]
+\end{align*}
+#+END_EXPORT
+is a U-statistic of order \(k_x=1\) and \(k_y=1\) with kernel \(h(x,y)=\Ind[x \leq y]\)
+We first compute the H\(\'{a}\)jek projection of the signed rank statistic:
+#+BEGIN_EXPORT latex
+\begin{align*}
+H_{\hat{U}}^{(1)} &= \frac{1}{m} \sum_{i=1}^m \left( \Esp\left[\Ind[x_i \leq y] \big| x_i\right] - U \right)
++ \frac{1}{n} \sum_{j=1}^n \left( \Esp\left[\Ind[x \leq y_j] \big| y_j\right] - U \right) \\
+&= \frac{1}{m} \sum_{i=1}^m \left( \Prob[Y \geq x_i] - U \right)
++ \frac{1}{n} \sum_{j=1}^n \left( \Prob[X \leq y_j] - U \right) \\
+&= \frac{1}{m} \sum_{i=1}^m \left( 1 - F_{-,y}(x_i) - U \right)
++ \frac{1}{n} \sum_{j=1}^n \left( F_x(y_j) - U \right) \\
+&= - \frac{1}{m} \sum_{i=1}^m \left( F_{-,y}(x_i) - \Esp_x[ F_{-,x}(x) ] \right)
++ \frac{1}{n} \sum_{j=1}^n \left( F_x(y_j) - \Esp_y[ F_y(y) ] \right) 
+\end{align*}
+#+END_EXPORT
+where \(F_{-}\) is the left limit of \(F\), \(F_x\)(resp. \(F_y\))
+denoting the cumulative distribution function of \(X\)
+(resp. \(Y\)). For continuous distributions \(F_{-}=F\) and under the
+null hypothesis that \(F_x=F_y\), we get that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] = \Var[H_{\hat{U}}^{(1)}] = \frac{1}{m} \frac{1}{12} + \frac{1}{n} \frac{1}{12} = \frac{nm}{12(m+n)}
+\end{align*}
+#+END_EXPORT
+If we are not under the null we end up with the formula:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] = \frac{1}{m^2} \sum_{i=1}^m \Var\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] + \frac{1}{n^2} \sum_{j=1}^n \Var\left[ \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] - U\right]
+\end{align*}
+#+END_EXPORT
+Noticing that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Esp\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] = \Esp\left[ \Ind[x_i \leq y]\right] - U = 0 
+\end{align*}
+#+END_EXPORT
+We can compute the variance as:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var\left[ \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right] &= \Esp\left[ \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right)^2\right]  \\
+&= \int_{x} \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right)  \left(\int_y \left(\Ind[x \leq y] - U \right) dF_Y(y)\right) dF_{X}(x)\\
+&= \int_{x} \left(\int_{y_1} \left(\Ind[x \leq y_1] - U \right) dF_Y(y_1)\right)  \left(\int_{y_2} \left(\Ind[x \leq y_2] - U \right) dF_Y(y_2)\right) dF_{X}(x)\\
+&= \int_{x} \int_{y_1} \int_{y_2} \left(\Ind[x \leq y_1] - U \right) \left(\Ind[x \leq y_2] - U \right) dF_Y(y_1) dF_Y(y_2) dF_{X}(x)\\
+&= \Esp\left[\left( \Ind[x \leq y_1] - U\right)\left(\Ind[x \leq y_2] - U\right)\right] \\
+&= \Esp\left[\Ind[x \leq x_1]  \Ind[x \leq y_2] \right] - \Esp\left[\Ind[x \leq y_1]\right] U  - \Esp\left[\Ind[x \leq y_2]\right] U + U^2 \\
+&= \Prob[x \leq y_1, x \leq y_2] - \Prob[x \leq y]^2
+\end{align*}
+#+END_EXPORT
+
+So the variance is:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \frac{1}{m} \left(\Prob[x \leq y_1, x \leq y_2] - \Prob[x \leq y]^2 \right) + \frac{1}{n} \left(\Prob[x_1 \leq y, x_2 \leq y] - \Prob[x \leq y]^2 \right) \\
+&= \frac{\sigma^2_{1,0}}{m} + \frac{\sigma^2_{0,1}}{n}
+\end{align*}
+#+END_EXPORT
+In fact we could have a more precise formula by accounting for the
+second term in the H-decomposition. cite:lee1990u (Theorem 2 page 38, formula 2)
+give the general formal for the variance that becomes in the case of a two sample U statistic of degree 1:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[\hat{U}] &= \frac{\sigma^2_{1,0}}{m} + \frac{\sigma^2_{0,1}}{n} + \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm} \\
+&= \frac{1}{nm} \left((n-1)\sigma^2_{1,0} + (m-1)\sigma^2_{0,1} + \sigma^2_{1,1} \right) 
+\end{align*}
+#+END_EXPORT
+where \(\sigma^2_{1,1} = \Prob[x<y](1-\Prob[x<y])\). Indeed the second
+term of the H-decomposition would be the projection of \(\Ind[X \leq
+Y]\) on \(X,Y\) where we substract components of the H\(\'{a}\)jek
+projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
+\(H_{\hat{U}}^{(2)}\) (see theorem 3 page 4 of cite:lee1990u for a
+generic formula):
+#+BEGIN_EXPORT latex
+\begin{align*}
+H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \left(\Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - U\right) - \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right) - \left(\Esp\left[ \Ind[x \leq y_j] \big| y_j\right] - U\right) \\
+&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] + U
+\end{align*}
+#+END_EXPORT
+and:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var[H_{\hat{U}}^{(2)}] 
+&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] - \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+& \qquad \qquad \qquad - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+&= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm} - \frac{1}{m} \sum_{i=1}^m \sum_{j=1}^n \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] + \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right]  \\
+&= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm}
+\end{align*}
+#+END_EXPORT
+Since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] &= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[1- \Ind[x_i > y] \big| x_i\right]\right] \\
+&= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[- \Ind[y < x_i] \big| x_i\right]\right]
+\end{align*}
+#+END_EXPORT
+which under the null hypothesis that \(X\) and \(Y\) have the same
+distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x
+\leq y_j]\right] \big| y_j\right]\). It remains to show that this is
+also true under the alternative hypothesis.
+
+
+
+  \clearpage 
+
+* Information about the R session used for this document 
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+sessionInfo()
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252    LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
+
+attached base packages:
+ [1] stats4    parallel  tools     stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] lava_1.6.4          doParallel_1.0.14   iterators_1.0.10    foreach_1.4.4       BuyseTest_1.7       testthat_2.0.0      prodlim_2018.04.18 
+ [8] spelling_1.2        roxygen2_6.1.0.9000 butils.base_1.2     Rcpp_1.0.0          data.table_1.11.8   usethis_1.4.0       devtools_2.0.1     
+
+loaded via a namespace (and not attached):
+ [1] compiler_3.5.1            prettyunits_1.0.2         base64enc_0.1-3           remotes_2.0.2             digest_0.6.17             pkgbuild_1.0.2           
+ [7] pkgload_1.0.2             lattice_0.20-35           memoise_1.1.0             rlang_0.3.0.1             Matrix_1.2-14             cli_1.0.1                
+[13] commonmark_1.6            RcppArmadillo_0.9.200.4.0 withr_2.1.2               stringr_1.3.1             xml2_1.2.0                desc_1.2.0               
+[19] fs_1.2.6                  grid_3.5.1                rprojroot_1.3-2           glue_1.3.0                R6_2.3.0                  processx_3.2.0           
+[25] survival_2.42-6           sessioninfo_1.1.1         callr_3.0.0               purrr_0.2.5               magrittr_1.5              codetools_0.2-15         
+[31] backports_1.1.2           ps_1.1.0                  splines_3.5.1             assertthat_0.2.0          stringi_1.2.4             crayon_1.3.4
+#+end_example
+
+
+
+
+
+* CONFIG :noexport:
+#+LANGUAGE:  en
+#+LaTeX_CLASS: org-article
+#+LaTeX_CLASS_OPTIONS: [12pt]
+#+OPTIONS:   title:t author:t toc:nil todo:nil
+#+OPTIONS:   H:3 num:t 
+#+OPTIONS:   TeX:t LaTeX:t
+#+PROPERTY: tangle yes
+
+** Code
+#+PROPERTY: header-args :session *R*
+#+PROPERTY: header-args :tange yes % extract source code: http://orgmode.org/manual/Extracting-source-code.html
+#+PROPERTY: header-args :cache no 
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+
+** Display 
+#+LaTeX_HEADER: \geometry{a4paper, left=15mm, right=15mm}
+
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+#+LaTeX_HEADER: \usepackage{authblk} % enable several affiliations (clash with beamer)
+#+LaTeX_HEADER: \renewcommand{\baselinestretch}{1.1}
+#+LATEX_HEADER: \geometry{top=1cm}
+
+#+LaTeX_HEADER: \definecolor{darkgreen}{RGB}{0,125,0}
+#+LaTeX_HEADER: \definecolor{darkred}{RGB}{125,0,0}
+#+LaTeX_HEADER: \definecolor{darkblue}{RGB}{0,0,125}
+
+
+** List
+#+LaTeX_HEADER: \usepackage{enumitem}
+
+** Notations
+#+LATEX_HEADER: \RequirePackage{xspace} % 
+#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
+#+LATEX_HEADER: \newcommand\Xobs{\tilde{X}}
+#+LATEX_HEADER: \newcommand\Yobs{\tilde{Y}}
+#+LATEX_HEADER: \newcommand\xobs{\tilde{x}}
+#+LATEX_HEADER: \newcommand\yobs{\tilde{y}}
+#+LATEX_HEADER: \newcommand\CensT{\varepsilon_X}
+#+LATEX_HEADER: \newcommand\CensC{\varepsilon_Y}
+#+LATEX_HEADER: \newcommand\censT{e_X}
+#+LATEX_HEADER: \newcommand\censC{e_Y}
+
+** Image
+#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+
+
+** Algorithm
+#+LATEX_HEADER: \RequirePackage{amsmath}
+#+LATEX_HEADER: \RequirePackage{algorithm}
+#+LATEX_HEADER: \RequirePackage[noend]{algpseudocode}
+
+** Math
+#+LATEX_HEADER: \RequirePackage{ifthen}
+#+LATEX_HEADER: \RequirePackage{xspace} % space for newcommand macro
+#+LATEX_HEADER: \RequirePackage{xifthen}
+#+LATEX_HEADER: \RequirePackage{xargs}
+#+LATEX_HEADER: \RequirePackage{dsfont}
+#+LATEX_HEADER: \RequirePackage{amsmath,stmaryrd,graphicx}
+#+LATEX_HEADER: \RequirePackage{prodint} % product integral symbol (\PRODI)
+
+# ## lemma
+#+LaTeX_HEADER: \RequirePackage{amsthm}
+#+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
+#+LaTeX_HEADER: \newtheorem{lemma}[theorem]{Lemma}
+
+# ## simplification
+#+LaTeX_HEADER: \RequirePackage[makeroom]{cancel} % cancel terms
+#+LaTeX_HEADER: \newcommand\Ccancelto[3][black]{\renewcommand\CancelColor{\color{#1}}\cancelto{#2}{#3}}
+#+LaTeX_HEADER: \newcommand\Ccancel[2][black]{\renewcommand\CancelColor{\color{#1}}\cancel{#2}}
+
+*** Template for shortcut
+#+LATEX_HEADER: \newcommand\defOperator[7]{%
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER:		\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+#+LATEX_HEADER:	}{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand\defUOperator[5]{%
+#+LATEX_HEADER: \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:		#5\left#3 #2 \right#4
+#+LATEX_HEADER: }{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+#+LATEX_HEADER:		\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand{\defBoldVar}[2]{	
+#+LATEX_HEADER:	\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+#+LATEX_HEADER: }
+
+*** Shortcuts
+
+**** Probability
+#+LATEX_HEADER: \newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+
+#+LATEX_HEADER: \newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+
+#+LATEX_HEADER: \newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+
+#+LATEX_HEADER: \newcommandx\SurvT[1][1=]{\defOperator{#1}{}{S_T}{}{(}{)}{}}
+#+LATEX_HEADER: \newcommandx\SurvC[1][1=]{\defOperator{#1}{}{S_C}{}{(}{)}{}}
+
+**** Operators
+#+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+
+#+LATEX_HEADER: \newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+#+LATEX_HEADER: \newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+#+LATEX_HEADER: \newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+#+LATEX_HEADER: \newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+#+LATEX_HEADER: \newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+
+#+LATEX_HEADER: \newcommandx\Hypothesis[2][1=,2=]{
+#+LATEX_HEADER:         \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:         \mathcal{H}
+#+LATEX_HEADER:         }{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER: 		\mathcal{H}_{#1}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\mathcal{H}^{(#2)}_{#1}
+#+LATEX_HEADER:         }
+#+LATEX_HEADER:         }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{#4 #1}{#4 #2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+
+#+LATEX_HEADER: \newcommandx\ddpartial[3][1=,2=,3=]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{\partial^{2} #1}{\left( \partial #2\right)^2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\frac{\partial^2 #1}{\partial #2\partial #3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: } 
+
+**** General math
+#+LATEX_HEADER: \newcommand\Real{\mathbb{R}}
+#+LATEX_HEADER: \newcommand\Rational{\mathbb{Q}}
+#+LATEX_HEADER: \newcommand\Natural{\mathbb{N}}
+#+LATEX_HEADER: \newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+#+LATEX_HEADER: \newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+#+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
+#+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+#+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}

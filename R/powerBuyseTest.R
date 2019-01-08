@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan  8 2019 (13:26) 
+## Last-Updated: jan  8 2019 (15:15) 
 ##           By: Brice Ozenne
-##     Update #: 238
+##     Update #: 241
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -175,7 +175,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         
     }
     ## ** define environment
-    name.copy <- c("call", "sim",
+    name.copy <- c("call", "sim", "option",
                    "outArgs", "sample.sizeTmax", "sample.sizeCmax", "n.sample.size",
                    "sample.size", "sample.sizeC", "sample.sizeT", "n.rep", "alternative", "seed")
     envirBT <- new.env()
@@ -257,6 +257,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                 ## see BuyseTest.R
                 if(outArgs$method.inference == "asymptotic"){
                     outCovariance <- inferenceUstatistic(tableSample,
+                                                         order = envir$option$order.Hprojection,
                                                          count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
                                                          count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
                                                          n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
@@ -268,6 +269,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                          endpoint = envir$outArgs$endpoint)
                 }else if(outArgs$method.inference == "asymptotic-bebu"){
                     outCovariance <- inferenceUstatisticBebu(tableSample,
+                                                             order = envir$option$order.Hprojection,
                                                              count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
                                                              count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
                                                              n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
