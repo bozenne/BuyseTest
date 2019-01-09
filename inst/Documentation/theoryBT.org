@@ -1823,10 +1823,10 @@ arm) so we can only assume to have two independent samples
 \(x_1,x_2,\ldots,x_m\) and \(y_1,y_2,\ldots,y_n\) where the first one
 contains iid realisations of a random variable \(X\) and the second
 one contains iid realisations of a second variable \(Y\). We can now
-define a two-sample U-statistic as of order \(k_x\) and \(k_y\) as:
+define a two-sample U-statistic of order \(k_x\) and \(k_y\) as:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\hat{U} = \frac{1}{{m \choose k_x}{n \choose k_y}} \sum_{(\alpha_1,\ldots,\alpha_{k_x})\in \alpha} \sum_{(\beta_1,\ldots,\beta_{k_y})\in \alpha} h(x_{\alpha_{k_x}},\ldots,x_{\alpha_j},y_{\beta_1},\ldots,y_{\beta_{k_y}})
+\hat{U} = \frac{1}{{m \choose k_x}{n \choose k_y}} \sum_{(\alpha_1,\ldots,\alpha_{k_x})\in \alpha} \sum_{(\beta_1,\ldots,\beta_{k_y})\in \beta} h(x_{\alpha_{k_x}},\ldots,x_{\alpha_j},y_{\beta_1},\ldots,y_{\beta_{k_y}})
 \end{align*}
 #+END_EXPORT
 where \(\alpha\) (resp. \(\beta\)) is the set of all possible
