@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan  8 2019 (15:15) 
+## Last-Updated: jan  9 2019 (13:45) 
 ##           By: Brice Ozenne
-##     Update #: 241
+##     Update #: 282
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -43,6 +43,7 @@
 #' @param transformation [logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param order.Hprojection [integer 1,2] the order of the H-project to be used to compute the asymptotic variance.
 #' @param ... parameters from \code{BuyseTest}.
 #' 
 
@@ -71,15 +72,19 @@
 ##' @rdname powerBuyseTest
 ##' @export
 powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL, n.rep, cpus = 1,                          
-                          alternative = NULL, seed = 10, conf.level = NULL, transformation = NULL, trace = 1, ...){
+                           alternative = NULL, seed = 10, conf.level = NULL, order.Hprojection = NULL, transformation = NULL, trace = 1,
+                           ...){
 
     call <- match.call()$sim
-    
+
     ## ** normalize and check arguments
     name.call <- names(match.call())
     option <- BuyseTest.options()
     if(is.null(transformation)){
         transformation <- option$transformation
+    }
+    if(is.null(order.Hprojection)){
+        order.Hprojection <- option$order.Hprojection
     }
     if(is.null(conf.level)){
         conf.level <- option$conf.level
@@ -109,6 +114,9 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         stop("Arguments \'sample.sizeT\ and \'sample.sizeC\' must have the same length \n")
     }
     n.sample.size <- length(sample.sizeT)
+    grid.inference <- expand.grid(order = order.Hprojection,
+                                  transformation = transformation)
+    n.inference <- NROW(grid.inference)
     sample.sizeCmax <- sample.sizeC[n.sample.size]
     sample.sizeTmax <- sample.sizeT[n.sample.size]
 
@@ -185,11 +193,13 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
     ## ** warper
     warper <- function(i, envir){
-        iOut <- matrix(NA, nrow = n.sample.size, ncol = 13,
-                       dimnames = list(NULL, c("simulation","n.T","n.C",
+        iOut <- matrix(NA, nrow = n.sample.size * n.inference, ncol = 14,
+                       dimnames = list(NULL, c("simulation","n.T","n.C","method.inference",
                                                "netBenefit","netBenefit.se","netBenefit.lower","netBenefit.upper","netBenefit.p.value",
                                                "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value")))
-
+        iOut <- as.data.frame(iOut)
+        iOut[,"simulation"] <- i
+            
         ## *** Initialize data
         out.name <- c("data","M.endpoint","M.censoring",
                       "index.C","index.T","index.strata",
@@ -219,10 +229,10 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                        threshold = envir$outArgs$threshold)
 
         for(iSample in 1:n.sample.size){ ## iSample <- 1
-            iOut[iSample,"simulation"] <- i
-            iOut[iSample,"n.C"] <- envir$sample.sizeC[iSample]
-            iOut[iSample,"n.T"] <- envir$sample.sizeT[iSample]
-
+            iIndex.store <- seq(1 + (iSample-1)*n.inference, iSample*n.inference)
+            iOut[iIndex.store,"n.C"] <- envir$sample.sizeC[iSample]
+            iOut[iIndex.store,"n.T"] <- envir$sample.sizeT[iSample]
+            
             tableSample <- lapply(tablePairScore, function(iEndpoint){ ## iEndpoint <- tablePairScore[[1]]
                 ## restrict pairs 
                 index <- intersect(which(iEndpoint$indexWithinStrata.C <= envir$sample.sizeC[iSample]),
@@ -247,54 +257,55 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                          "favorable" = sum(iEndpoint$favorable),
                          "unfavorable" = sum(iEndpoint$unfavorable)))
             }))
-            iOut[iSample,"netBenefit"] <- (sum(MresSample[,"favorable"]) - sum(MresSample[,"unfavorable"]))/MresSample[1,"npairs"]
-            iOut[iSample,"winRatio"] <- sum(MresSample[,"favorable"]) / sum(MresSample[,"unfavorable"])
+            
+            iOut[iIndex.store,"netBenefit"] <- (sum(MresSample[,"favorable"]) - sum(MresSample[,"unfavorable"]))/MresSample[1,"npairs"]
+            iOut[iIndex.store,"winRatio"] <- sum(MresSample[,"favorable"]) / sum(MresSample[,"unfavorable"])
 
             ## *** Inference 
             if(outArgs$method.inference %in% c("asymptotic")){
 
                 ## warning: only work if no strata, otherwise n.pairs/count.favorable/count.unfavorable needs to be sum over strata
                 ## see BuyseTest.R
-                if(outArgs$method.inference == "asymptotic"){
-                    outCovariance <- inferenceUstatistic(tableSample,
-                                                         order = envir$option$order.Hprojection,
-                                                         count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
-                                                         count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
-                                                         n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
-                                                         n.C = envir$sample.sizeC[iSample],
-                                                         n.T = envir$sample.sizeT[iSample],
-                                                         level.strata = envir$outArgs$level.strata,
-                                                         n.strata = envir$outArgs$n.strata,
-                                                         n.endpoint = length(envir$outArgs$endpoint),
-                                                         endpoint = envir$outArgs$endpoint)
-                }else if(outArgs$method.inference == "asymptotic-bebu"){
-                    outCovariance <- inferenceUstatisticBebu(tableSample,
-                                                             order = envir$option$order.Hprojection,
-                                                             count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
-                                                             count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
-                                                             n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
-                                                             n.C = envir$sample.sizeC[iSample],
-                                                             n.T = envir$sample.sizeT[iSample],
-                                                             level.strata = envir$outArgs$level.strata,
-                                                             n.strata = envir$outArgs$n.strata,
-                                                             n.endpoint = length(envir$outArgs$endpoint),
-                                                             endpoint = envir$outArgs$endpoint)
-                }
-
+                outCovariance <- inferenceUstatistic(tableSample,
+                                                     order = max(order.Hprojection), ## if order 1 and 2 are requested by the user then feed order 2
+                                                     count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
+                                                     count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
+                                                     n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
+                                                     n.C = envir$sample.sizeC[iSample],
+                                                     n.T = envir$sample.sizeT[iSample],
+                                                     level.strata = envir$outArgs$level.strata,
+                                                     n.strata = envir$outArgs$n.strata,
+                                                     n.endpoint = length(envir$outArgs$endpoint),
+                                                     endpoint = envir$outArgs$endpoint)
                 
                 for(iStatistic in c("netBenefit","winRatio")){
-                    outCI <- confint_Ustatistic(Delta = iOut[iSample,iStatistic],
-                                                pc.favorable = MresSample[,"favorable"]/MresSample[,"npairs"],
-                                                pc.unfavorable =  MresSample[,"unfavorable"]/MresSample[,"npairs"],
-                                                covariance = outCovariance$Sigma, statistic = iStatistic,
-                                                alternative = alternative, alpha = alpha,
-                                                endpoint = envir$outArgs$endpoint, transformation = transformation)
-                
-                    iOut[iSample,paste0(iStatistic,".se")] <- outCI[1,"se"]
-                    iOut[iSample,paste0(iStatistic,".lower")] <- outCI[1,"lower.ci"]
-                    iOut[iSample,paste0(iStatistic,".upper")] <- outCI[1,"upper.ci"]
-                    iOut[iSample,paste0(iStatistic,".p.value")] <- outCI[1,"p.value"]
+                    for(iInference in 1:n.inference){ ## iInference <- 1
+                        ## cat("\n",iStatistic," ",iInference," ",iSample,"\n")
+                            
+                        iTransformation <- grid.inference[iInference,"transformation"]
+                        iOrder <- grid.inference[iInference,"order"]
+                        if(iOrder == max(order.Hprojection)){
+                            iCovariance <- outCovariance$Sigma                         
+                        }else{
+                            ## recompute the covariance matrix to remove second order term 
+                            iCovariance <- .iid2cov(A.iid = outCovariance$iid1, A2.iid = NULL,
+                                                    order = iOrder, endpoint = envir$outArgs$endpoint, n.endpoint = length(envir$outArgs$endpoint))
+                        }
+                        outCI <- confint_Ustatistic(Delta = iOut[iIndex.store[iInference],iStatistic],
+                                                    pc.favorable = MresSample[,"favorable"]/MresSample[,"npairs"],
+                                                    pc.unfavorable =  MresSample[,"unfavorable"]/MresSample[,"npairs"],
+                                                    covariance = iCovariance, statistic = iStatistic,
+                                                    alternative = alternative, alpha = alpha,
+                                                    endpoint = envir$outArgs$endpoint, transformation = iTransformation)
+
+                        iOut[iIndex.store[iInference],"method.inference"] <- paste0("order=",iOrder," - transformation=",iTransformation)
+                        iOut[iIndex.store[iInference],paste0(iStatistic,".se")] <- outCI[1,"se"]
+                        iOut[iIndex.store[iInference],paste0(iStatistic,".lower")] <- outCI[1,"lower.ci"]
+                        iOut[iIndex.store[iInference],paste0(iStatistic,".upper")] <- outCI[1,"upper.ci"]
+                        iOut[iIndex.store[iInference],paste0(iStatistic,".p.value")] <- outCI[1,"p.value"]
+                    }
                 }
+            
 
             }
 
@@ -338,7 +349,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","initializeData","pairScore2dt","inferenceUstatistic","confint_Ustatistic", "validNumeric")
+        toExport <- c(".BuyseTest","initializeData","pairScore2dt","inferenceUstatistic","confint_Ustatistic", ".iid2cov", "validNumeric")
 
         i <- NULL ## [:forCRANcheck:] foreach        
         ls.simulation <- foreach::`%dopar%`(
@@ -358,10 +369,10 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## ** export
     BuyseSim.object <- BuyseSim(
         alternative = alternative,      
+        method.inference = outArgs$method.inference,
         conf.level = conf.level,      
         n.rep = n.rep,      
-        results = dt.out,
-        transformation = transformation
+        results = dt.out
     )
 
     return(BuyseSim.object)

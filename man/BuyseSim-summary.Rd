@@ -7,7 +7,7 @@
 \title{Summary Method for Class "BuyseSim"}
 \usage{
 \S4method{summary}{BuyseSim}(object, print = TRUE, statistic = NULL,
-  legend = TRUE, digit = 4)
+  legend = TRUE, method.inference = NULL, digit = 4)
 }
 \arguments{
 \item{object}{output of \code{\link{powerBuyseTest}}}
@@ -19,6 +19,8 @@
 whereas \code{"winRatio"} displays the win ratio.}
 
 \item{legend}{[logical] should explainations about the content of each column be displayed?}
+
+\item{method.inference}{[character vector] for which inference method the rejection rate should be displayed?}
 
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
 

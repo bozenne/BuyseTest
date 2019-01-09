@@ -182,29 +182,8 @@ inferenceUstatistic <- function(tablePairScore, order, count.favorable, count.un
     }
 
     ## ** compute Sigma
-    if(n.endpoint==1){
-        M.cov <- cbind(favorable = sum(A.iid[,,"favorable"]^2),
-                       unfavorable = sum(A.iid[,,"unfavorable"]^2),
-                       covariance = sum(A.iid[,,"favorable"] * A.iid[,,"unfavorable"]))
-
-        if(order == 2){
-            M.cov[1,"favorable"] <- M.cov[1,"favorable"] + sum(A2.iid[,,"favorable"]^2)
-            M.cov[1,"unfavorable"] <- M.cov[1,"unfavorable"] + sum(A2.iid[,,"unfavorable"]^2)
-            M.cov[1,"covariance"] <- M.cov[1,"covariance"] + sum(A2.iid[,,"favorable"] * A2.iid[,,"unfavorable"])
-        }
-    }else{
-        ## cumsum because the iid decomposition is endpoint specific while the net benefit is the overall
-        M.cov <- cbind(favorable = cumsum(apply(A.iid[,,"favorable"]^2,2,sum)),
-                       unfavorable = cumsum(apply(A.iid[,,"unfavorable"]^2,2,sum)),
-                       covariance = cumsum(apply(A.iid[,,"favorable"] * A.iid[,,"unfavorable"],2,sum)))
-
-        if(order == 2){
-            M.cov[,"favorable"] <- M.cov[,"favorable"] + cumsum(apply(A2.iid[,,"favorable"]^2,2,sum))
-            M.cov[,"unfavorable"] <- M.cov[,"unfavorable"] + cumsum(apply(A2.iid[,,"unfavorable"]^2,2,sum))
-            M.cov[,"covariance"] <- M.cov[,"covariance"] + cumsum(apply(A2.iid[,,"favorable"] * A2.iid[,,"unfavorable"],2,sum))
-        }
-    }
-    rownames(M.cov) <- endpoint
+    M.cov <- .iid2cov(A.iid = A.iid, A2.iid = A2.iid,
+                      order = order, endpoint = endpoint, n.endpoint = n.endpoint)
     
     ## ** export
     return(list(Sigma = M.cov,
@@ -370,4 +349,35 @@ inferenceUstatisticBebu <- function(tablePairScore, order, count.favorable, coun
     return(list(Sigma = M.cov,
                 iid1 = NULL,
                 iid2 = NULL))
+}
+
+## * .iid2cov
+.iid2cov <- function(A.iid, A2.iid,
+                     order, endpoint, n.endpoint){
+    
+    if(n.endpoint==1){
+        M.cov <- cbind(favorable = sum(A.iid[,,"favorable"]^2),
+                       unfavorable = sum(A.iid[,,"unfavorable"]^2),
+                       covariance = sum(A.iid[,,"favorable"] * A.iid[,,"unfavorable"]))
+
+        if(order == 2){
+            M.cov[1,"favorable"] <- M.cov[1,"favorable"] + sum(A2.iid[,,"favorable"]^2)
+            M.cov[1,"unfavorable"] <- M.cov[1,"unfavorable"] + sum(A2.iid[,,"unfavorable"]^2)
+            M.cov[1,"covariance"] <- M.cov[1,"covariance"] + sum(A2.iid[,,"favorable"] * A2.iid[,,"unfavorable"])
+        }
+    }else{
+        ## cumsum because the iid decomposition is endpoint specific while the net benefit is the overall
+        M.cov <- cbind(favorable = cumsum(apply(A.iid[,,"favorable"]^2,2,sum)),
+                       unfavorable = cumsum(apply(A.iid[,,"unfavorable"]^2,2,sum)),
+                       covariance = cumsum(apply(A.iid[,,"favorable"] * A.iid[,,"unfavorable"],2,sum)))
+
+        if(order == 2){
+            M.cov[,"favorable"] <- M.cov[,"favorable"] + cumsum(apply(A2.iid[,,"favorable"]^2,2,sum))
+            M.cov[,"unfavorable"] <- M.cov[,"unfavorable"] + cumsum(apply(A2.iid[,,"unfavorable"]^2,2,sum))
+            M.cov[,"covariance"] <- M.cov[,"covariance"] + cumsum(apply(A2.iid[,,"favorable"] * A2.iid[,,"unfavorable"],2,sum))
+        }
+    }
+    rownames(M.cov) <- endpoint
+    
+    return(M.cov)
 }

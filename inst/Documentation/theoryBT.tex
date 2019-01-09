@@ -1,4 +1,4 @@
-% Created 2019-01-08 ti 14:06
+% Created 2019-01-09 on 13:34
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -217,7 +217,7 @@ library(survival)
 \clearpage
 
 \section{Parameter of interest}
-\label{sec:org1f36cdb}
+\label{sec:orgaaa822d}
 
 Let consider two independent real valued (univariate) random variables
 \(X\) and \(Y\). Informally \(X\) refer to the outcome in the
@@ -240,9 +240,9 @@ for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y > X]\)).
 \clearpage
 
 \section{Binary variable}
-\label{sec:orgaf48f60}
+\label{sec:orgb9e2e25}
 \subsection{Relationship between \(\Delta_+\) and the prevalence}
-\label{sec:org3f93097}
+\label{sec:org55110c8}
 \begin{align*}
 \Prob[X>Y] = \Prob[X=1,Y=0]
 \end{align*}
@@ -260,7 +260,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:org78ed252}
+\label{sec:org4f618cd}
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -299,9 +299,9 @@ prob2 - prob1
 \clearpage
 
 \section{Continuous variable}
-\label{sec:orga4b73e9}
+\label{sec:org1309bba}
 \subsection{Relationship between \(\Delta\) and Cohen's d}
-\label{sec:org565c0de}
+\label{sec:org67d477b}
 Let's consider two independent normally distributed variables with common variance:
 \begin{itemize}
 \item \(X \sim \Gaus[\mu_X,\sigma^2]\)
@@ -321,7 +321,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:orgc13ebeb}
+\label{sec:org6c30fb2}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -364,9 +364,9 @@ d <- (meanY-meanX)/sdXY
 \clearpage
 
 \section{Survival}
-\label{sec:org542c67d}
+\label{sec:orgfd58778}
 \subsection{Relationship between \(\Delta\) and the hazard ratio}
-\label{sec:org98b791c}
+\label{sec:org0eed8f8}
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 \begin{align*}
@@ -408,7 +408,7 @@ So \(\Prob[Y>X] = \frac{\alpha_X}{\alpha_Y+\alpha_X} = 1-\frac{1}{1+HR}\) and:
 \clearpage
 
 \subsection{Scoring rule in presence of censoring}
-\label{sec:org12a1757}
+\label{sec:org5ecc9c7}
 Let's consider the following random variables:  
 \begin{itemize}
 \item \(X\) the time to the occurrence of the event in the experimental group.
@@ -428,7 +428,7 @@ We observe one realization \(\left(\xobs, \yobs, \censT, \censC
 each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=1\)}
-\label{sec:orga76b459}
+\label{sec:org00e1808}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -455,7 +455,7 @@ each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 
 \subsubsection{Case: \(\SurvT=1,\SurvC=0\)}
-\label{sec:orgfd1ec0e}
+\label{sec:org5898fea}
 By symmetry we have: \\
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -480,7 +480,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=0\)}
-\label{sec:org3b2b006}
+\label{sec:org2f0f9f6}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -566,7 +566,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Synthesis}
-\label{sec:org72b2aea}
+\label{sec:org0c97ed0}
 \textcolor{darkgreen}{Probability in favor of the treatment}: \(\Prob[X \geq Y+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
 \begin{table}[!h]
 	\centering
@@ -611,7 +611,7 @@ By symmetry we have: \\
 \clearpage
 
 \subsection{Partially known survival curve}
-\label{sec:orgd234c1a}
+\label{sec:org72e67dd}
 In the case where \(x^* < y^* - \tau\), we need an estimate of
 \(S_X(y^* - \tau)\) to compute the probability in favor of the
 control. If we can only have an estimate of \(S_X\) up to
@@ -663,7 +663,7 @@ tends to 0.
 \end{itemize}
 
 \subsection{In R}
-\label{sec:orgaf588de}
+\label{sec:org590d4bc}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -710,12 +710,12 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 \clearpage
 
 \section{Competing risks}
-\label{sec:org7e7b415}
+\label{sec:orgb0c2ef1}
 \subsection{Theory}
-\label{sec:orgc300c98}
+\label{sec:org1dcf78d}
 
 \subsubsection{General case (no censoring)}
-\label{sec:org99ed9f1}
+\label{sec:org595aa7e}
 Let consider: 
 \begin{itemize}
 \item \(X^*_{E}\) the time to the occurrence of the event of interest in the experimental group.
@@ -777,7 +777,7 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \clearpage
 
 \subsubsection{Exponential distribution (no censoring)}
-\label{sec:orgd103e06}
+\label{sec:org40b3233}
 
 Now let's assume that:
 \begin{itemize}
@@ -825,10 +825,10 @@ CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 
 \clearpage
 
 \subsection{In R}
-\label{sec:org5969d74}
+\label{sec:org3cb6987}
 
 \subsubsection{BuyseTest (no censoring)}
-\label{sec:orge128f98}
+\label{sec:org4526915}
 
 Setting:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -912,7 +912,7 @@ favorable unfavorable     neutral
 \end{verbatim}
 
 \subsubsection{BuyseTest (with censoring)}
-\label{sec:orgc513b35}
+\label{sec:org5473780}
 
 Simulate data:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -967,7 +967,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \end{verbatim}
 
 \subsubsection{Cumulative incidence}
-\label{sec:org8d696ea}
+\label{sec:org4c5dd80}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1030,7 +1030,7 @@ mean((df$time<=1)*(df$event==1))
 \clearpage
 
 \section{Inverse probability weighting}
-\label{sec:org1d99e39}
+\label{sec:orgc7b9b2e}
 
 In case of censoring we can use an inverse probability weighting
 approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
@@ -1065,14 +1065,14 @@ where we used the law of total expectation (first line) and the independence bet
 \clearpage
 
 \section{Asymptotic distribution}
-\label{sec:org1f24d16}
+\label{sec:orgee19917}
 
 In this section we restrict ourself to the GPC as defined in
 \citep{buyse2010generalized}, i.e. we do not consider Peron scoring rule
 nor any correction (like inverse probability weighting).
 
 \subsection{Theory}
-\label{sec:org372b995}
+\label{sec:org00e22a9}
 
 We consider two independent samples \(x_1,x_2,\ldots,x_m\) and
 \(y_1,y_2,\ldots,y_n\) where the first one contains iid realisations
@@ -1127,7 +1127,7 @@ where \(p_y\) is the proportion of 1 in the control group.
 \clearpage
 
 \subsection{Example}
-\label{sec:org2eaab60}
+\label{sec:orgef24862}
 
 Let's consider a case with 2 observations per group:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1243,21 +1243,18 @@ toxicity    0.0625      0.0625    -0.0625
 \clearpage
 
 \subsection{Type 1 error in finite sample}
-\label{sec:orgdd67d09}
+\label{sec:orgf4e5faf}
 
 \subsubsection{Binary endpoint}
-\label{sec:orgbd64873}
+\label{sec:org8b4e275}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsBin <- system.time(
-	eBin.power <- powerBuyseTest(sim = simBuyseTest, 
-								 sample.size = c(10,50,100,250), 
-								 n.rep = 1e3,
-								 cpus = 4,
-								 formula = Treatment ~ bin(toxicity), 
-								 method.inference = "asymptotic",
-								 transform = TRUE,
-								 trace = 0)
+	eBin.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
+								 formula = Treatment ~ bin(toxicity),
+								 sample.size = c(10,25,50,100,250),                                   
+								 method.inference = "asymptotic", trace = 0,
+								 transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 \end{lstlisting}
 
@@ -1268,46 +1265,59 @@ tpsBin
 
 \begin{verbatim}
 user  system elapsed 
-1.28    0.18  182.21
+1.47    0.14  211.06
 \end{verbatim}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-summary(eBin.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
+summary(eBin.power, statistic = c("netBenefit","winRatio"), 
+		legend = FALSE, col.rep = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
-        Simulation study with Generalized pairwise comparison
+       Simulation study with Generalized pairwise comparison
 
- > statistic   : net benefit
-   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10         1000   1000      0.007000     0.22743 0.21170          0.114
-2:  50  50         1000   1000      0.005300     0.10148 0.09896          0.055
-3: 100 100         1000   1000      0.003750     0.07020 0.07036          0.050
-4: 250 250         1000   1000      0.002012     0.04488 0.04463          0.052
+> statistic   : net benefit
+n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRUE)
+ 10  10        0.0023      0.2235     1  0.2116             0.085            0.113
+                                      2  0.2116             0.085            0.113
+ 25  25        -6e-04      0.1482     1  0.1385             0.084            0.089
+                                      2  0.1385             0.084            0.089
+ 50  50       -0.0015      0.1003     1  0.0990             0.059            0.059
+                                      2  0.0990             0.059            0.059
+100 100       -0.0018      0.0694     1  0.0704             0.044            0.044
+                                      2  0.0704             0.044            0.044
+250 250       -0.0011      0.0423     1  0.0446             0.045            0.045
+                                      2  0.0446             0.045            0.045
 
- > statistic   : win ratio
-   n.T n.C rep.estimate rep.se mean.estimate sd.estimate mean.se rejection.rate
-1:  10  10          999    999         1.797      3.0035  1.8306        0.04217
-2:  50  50         1000   1000         1.112      0.4672  0.4499        0.05500
-3: 100 100         1000   1000         1.057      0.3054  0.3005        0.05000
-4: 250 250         1000   1000         1.025      0.1878  0.1837        0.05200
+> statistic   : win ratio
+n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRUE)
+ 10  10        1.6606      2.2207     1  1.6772            0.1301           0.0381
+                                      2  1.6540            0.1301           0.0381
+ 25  25        1.2083      0.8376     1  0.7044            0.1120           0.0620
+                                      2  0.7035            0.1120           0.0620
+ 50  50        1.0795      0.4534     1  0.4366            0.0730           0.0590
+                                      2  0.4365            0.0730           0.0590
+100 100        1.0327      0.2948     1  0.2937            0.0520           0.0440
+                                      2  0.2936            0.0520           0.0440
+250 250        1.0099      0.1715     1  0.1810            0.0490           0.0450
+                                      2  0.1810            0.0490           0.0450
 \end{verbatim}
 
 \clearpage
 
 \subsubsection{Continuous endpoint}
-\label{sec:orgabe5f59}
+\label{sec:orgb780acf}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsCont <- system.time(
 	eCont.power <- powerBuyseTest(sim = simBuyseTest, 
-								  sample.size = c(10,50,100,250), 
+								  sample.size = c(10,25,50,100,250), 
 								  n.rep = 1e3,
 								  cpus = 4,
 								  formula = Treatment ~ cont(score), 
 								  method.inference = "asymptotic",
-								  transform = TRUE,
+								  transform = c(TRUE,FALSE),
 								  trace = 0)
 )
 \end{lstlisting}
@@ -1348,18 +1358,18 @@ summary(eCont.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 \clearpage
 
 \subsubsection{Time to event endpoint (Gehan method)}
-\label{sec:org58292a1}
+\label{sec:orgb75e956}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsGehan <- system.time(
 	eGehan.power <- powerBuyseTest(sim = simBuyseTest, 
-								   sample.size = c(10,50,100,250), 
+								   sample.size = c(10,25,50,100,250), 
 								   n.rep = 1e3,
 								   cpus = 4,
 								   formula = Treatment ~ tte(eventtime, 
 															 censoring = status), 
 								   method.inference = "asymptotic",
-								   transform = TRUE,
+								   transform = c(TRUE,FALSE),
 								   method.tte = "Gehan",
 								   trace = 0)
 )
@@ -1401,18 +1411,18 @@ summary(eGehan.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 \clearpage
 
 \subsubsection{Time to event endpoint (Peron method)}
-\label{sec:orgf482983}
+\label{sec:orga7c5d77}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsPeron <- system.time(
 	ePeron.power <- powerBuyseTest(sim = simBuyseTest, 
-								   sample.size = c(10,50,100,250), 
+								   sample.size = c(10,25,50,100,250), 
 								   n.rep = 1e3,
 								   cpus = 4,
 								   formula = Treatment ~ tte(eventtime, 
 															 censoring = status), 
 								   method.inference = "asymptotic",
-								   transform = TRUE,
+								   transform = c(TRUE,FALSE),
 								   method.tte = "Peron",
 								   trace = 0)
 )
@@ -1454,7 +1464,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 \clearpage
 
 \section{References}
-\label{sec:orgd7ec73e}
+\label{sec:orgcffd4f1}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -1471,7 +1481,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"), legend = FALSE)
 This recall is based on chapter 1 of \cite{lee1990u}.
 
 \subsection{Motivating example}
-\label{sec:org3a9d816}
+\label{sec:orgd7cc34a}
 
 We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
@@ -1483,7 +1493,7 @@ distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 \subsection{Estimate, estimator, and functionnal}
-\label{sec:org645c63b}
+\label{sec:org8537d00}
 
 We can compute an \textbf{estimate} of the variance using the following
 \textbf{estimators} \(\hat{\mu}\) and \(\hat{\sigma}^2\):
@@ -1555,7 +1565,7 @@ transforms the data into an estimate.
 \end{itemize}
 
 \subsection{Aim}
-\label{sec:org488bdcd}
+\label{sec:org98a6cd6}
 
 Using formula \eqref{eq:m(F)} and \eqref{eq:s(F)} we can easily estimate
 the variance based on the observed realisations of \(X\) (i.e. the
@@ -1620,7 +1630,7 @@ central limit theorem. It does not give us a formula for the
 asymptotic variance though. 
 
 \subsection{Definition of a U-statistic and examples}
-\label{sec:org2f8c7fb}
+\label{sec:org48064d4}
 
 A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
@@ -1691,7 +1701,7 @@ estimator is:
 \end{align*}
 
 \subsection{A major result from the U-statistic theory}
-\label{sec:org4e44647}
+\label{sec:org734e58f}
 
 So far we have seen that our estimator for the variance was a
 U-statistic. We will now use the U-statistic theory to obtain its
@@ -1717,7 +1727,7 @@ remains to see what is this H-decomposition and how can we
 characterize it.
 
 \subsection{The first term of the H-decomposition}
-\label{sec:orgce843c0}
+\label{sec:orgd2d1b85}
 
 The H-decomposition (short for Hoeffling decomposition) enables us to
 decompose the estimator of a U-statistic of rank \(k\) into a sum of
@@ -1888,7 +1898,7 @@ compute the asymptotic variance as:
 \end{align*}
 
 \subsection{Two sample U-statistics}
-\label{sec:orga3c42e3}
+\label{sec:org7b61327}
 
 So far we have assumed that all our observations were iid. But in the
 case of GPC, we study two populations (experimental arm and control
@@ -2042,7 +2052,7 @@ also true under the alternative hypothesis.
 \clearpage 
 
 \section{Information about the R session used for this document}
-\label{sec:org3f24311}
+\label{sec:org849e3ce}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -2061,20 +2071,18 @@ locale:
 [5] LC_TIME=Danish_Denmark.1252    
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
+ [1] stats4    parallel  tools     stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] BuyseTest_1.6.2     testthat_2.0.0      prodlim_2018.04.18  spelling_1.2        roxygen2_6.1.0.9000 butils.base_1.2     Rcpp_1.0.0         
- [8] data.table_1.11.8   usethis_1.4.0       devtools_2.0.1     
+ [1] lava_1.6.4          doParallel_1.0.14   iterators_1.0.10    foreach_1.4.4       BuyseTest_1.7       testthat_2.0.0      prodlim_2018.04.18 
+ [8] spelling_1.2        roxygen2_6.1.0.9000 butils.base_1.2     Rcpp_1.0.0          data.table_1.11.8   usethis_1.4.0       devtools_2.0.1     
 
 loaded via a namespace (and not attached):
- [1] compiler_3.5.1            iterators_1.0.10          prettyunits_1.0.2         base64enc_0.1-3           remotes_2.0.2             tools_3.5.1              
- [7] digest_0.6.17             pkgbuild_1.0.2            pkgload_1.0.2             lattice_0.20-35           memoise_1.1.0             rlang_0.3.0.1            
-[13] foreach_1.4.4             Matrix_1.2-14             cli_1.0.1                 commonmark_1.6            parallel_3.5.1            RcppArmadillo_0.9.200.4.0
-[19] withr_2.1.2               stringr_1.3.1             xml2_1.2.0                desc_1.2.0                fs_1.2.6                  stats4_3.5.1             
-[25] grid_3.5.1                rprojroot_1.3-2           glue_1.3.0                R6_2.3.0                  processx_3.2.0            pbapply_1.3-4            
-[31] survival_2.42-6           sessioninfo_1.1.1         lava_1.6.4                callr_3.0.0               purrr_0.2.5               magrittr_1.5             
-[37] codetools_0.2-15          backports_1.1.2           ps_1.1.0                  splines_3.5.1             assertthat_0.2.0          stringi_1.2.4            
-[43] doParallel_1.0.14         crayon_1.3.4
+ [1] compiler_3.5.1            prettyunits_1.0.2         base64enc_0.1-3           remotes_2.0.2             digest_0.6.17             pkgbuild_1.0.2           
+ [7] pkgload_1.0.2             lattice_0.20-35           memoise_1.1.0             rlang_0.3.0.1             Matrix_1.2-14             cli_1.0.1                
+[13] commonmark_1.6            RcppArmadillo_0.9.200.4.0 withr_2.1.2               stringr_1.3.1             xml2_1.2.0                desc_1.2.0               
+[19] fs_1.2.6                  grid_3.5.1                rprojroot_1.3-2           glue_1.3.0                R6_2.3.0                  processx_3.2.0           
+[25] survival_2.42-6           sessioninfo_1.1.1         callr_3.0.0               purrr_0.2.5               magrittr_1.5              codetools_0.2-15         
+[31] backports_1.1.2           ps_1.1.0                  splines_3.5.1             assertthat_0.2.0          stringi_1.2.4             crayon_1.3.4
 \end{verbatim}
 \end{document}

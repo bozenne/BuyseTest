@@ -21,10 +21,10 @@ setClass(
   
   representation(
       alternative = "character",
+      method.inference = "character",
       conf.level = "numeric",
       n.rep = "numeric",
-      results = "data.table",
-      transformation = "logical"
+      results = "data.table"
       )
 
 )
@@ -35,16 +35,16 @@ methods::setMethod(
              signature = "BuyseSim", 
              definition = function(.Object,
                                    alternative,
+                                   method.inference,
                                    conf.level,
                                    n.rep,
-                                   results,
-                                   transformation){
+                                   results){
 
                  .Object@alternative <- alternative
+                 .Object@method.inference <- method.inference
                  .Object@conf.level <- conf.level
                  .Object@n.rep <- n.rep
                  .Object@results <- results
-                 .Object@transformation <- transformation
                  
                  ## validObject(.Object)
                  return(.Object)

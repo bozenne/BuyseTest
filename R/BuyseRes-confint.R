@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jan  8 2019 (09:36) 
+## Last-Updated: jan  9 2019 (10:59) 
 ##           By: Brice Ozenne
-##     Update #: 223
+##     Update #: 225
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -327,7 +327,7 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
         ## *** standard error
         if(statistic == "netBenefit"){
             outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])
-            
+
             if(transformation){ ## atanh transform (also called fisher transform)
                 iSE <- outTable[iE,"se"] / (1+Delta[iE]^2)
                 iDelta <-  atanh(Delta[iE])

@@ -6,8 +6,8 @@
 \usage{
 powerBuyseTest(sim, sample.size, sample.sizeC = NULL,
   sample.sizeT = NULL, n.rep, cpus = 1, alternative = NULL,
-  seed = 10, conf.level = NULL, transformation = NULL, trace = 1,
-  ...)
+  seed = 10, conf.level = NULL, order.Hprojection = NULL,
+  transformation = NULL, trace = 1, ...)
 }
 \arguments{
 \item{sim}{[function] take two arguments:
@@ -35,6 +35,8 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
+
+\item{order.Hprojection}{[integer 1,2] the order of the H-project to be used to compute the asymptotic variance.}
 
 \item{transformation}{[logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.

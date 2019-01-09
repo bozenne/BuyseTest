@@ -9,4 +9,5 @@ vignettes/change.sty
 ^\.Rproj\.user$
 Projet
 Bibliography
+LICENSE
 ^appveyor\.yml$
