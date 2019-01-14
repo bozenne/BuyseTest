@@ -5,23 +5,25 @@
 \title{Performing simulation studies with BuyseTest}
 \usage{
 powerBuyseTest(sim, sample.size, sample.sizeC = NULL,
-  sample.sizeT = NULL, n.rep, cpus = 1, alternative = NULL,
-  seed = 10, conf.level = NULL, order.Hprojection = NULL,
-  transformation = NULL, trace = 1, ...)
+  sample.sizeT = NULL, n.rep, null = c(0, 1), cpus = 1,
+  alternative = NULL, seed = 10, conf.level = NULL,
+  order.Hprojection = NULL, transformation = NULL, trace = 1, ...)
 }
 \arguments{
 \item{sim}{[function] take two arguments:
 the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
 and generate datasets. The datasets must be data.table objects.}
 
-\item{sample.size}{the various sample sizes at which the simulation should be perform.
+\item{sample.size}{[integer vector, >0] the various sample sizes at which the simulation should be perform.
 Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} are specified.}
 
-\item{sample.sizeC}{the various sample sizes in the control group.}
+\item{sample.sizeC}{[integer vector, >0] the various sample sizes in the control group.}
 
-\item{sample.sizeT}{the various sample sizes in the treatment group.}
+\item{sample.sizeT}{[integer vector, >0] the various sample sizes in the treatment group.}
 
-\item{n.rep}{the number of simulations.}
+\item{n.rep}{[integer, >0] the number of simulations.}
+
+\item{null}{[numeric vector] the null hypothesis to be tested for the net benefit (first element) and the win ratio (second element).}
 
 \item{cpus}{[integer, >0] the number of CPU to use.
 Only the permutation test can use parallel computation.

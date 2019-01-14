@@ -23,6 +23,7 @@ setClass(
       alternative = "character",
       method.inference = "character",
       conf.level = "numeric",
+      null = "numeric",
       n.rep = "numeric",
       results = "data.table"
       )
@@ -37,12 +38,14 @@ methods::setMethod(
                                    alternative,
                                    method.inference,
                                    conf.level,
+                                   null,
                                    n.rep,
                                    results){
 
                  .Object@alternative <- alternative
                  .Object@method.inference <- method.inference
                  .Object@conf.level <- conf.level
+                 .Object@null <- null
                  .Object@n.rep <- n.rep
                  .Object@results <- results
                  

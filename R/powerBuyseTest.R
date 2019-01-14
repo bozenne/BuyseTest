@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan  9 2019 (13:45) 
+## Last-Updated: jan 14 2019 (09:50) 
 ##           By: Brice Ozenne
-##     Update #: 282
+##     Update #: 287
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,11 +25,12 @@
 #' @param sim [function] take two arguments:
 #' the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
 #' and generate datasets. The datasets must be data.table objects.
-#' @param sample.size the various sample sizes at which the simulation should be perform.
+#' @param sample.size [integer vector, >0] the various sample sizes at which the simulation should be perform.
 #' Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} are specified.
-#' @param sample.sizeC the various sample sizes in the control group.
-#' @param sample.sizeT the various sample sizes in the treatment group.
-#' @param n.rep the number of simulations.
+#' @param sample.sizeC [integer vector, >0] the various sample sizes in the control group.
+#' @param sample.sizeT [integer vector, >0] the various sample sizes in the treatment group.
+#' @param n.rep [integer, >0] the number of simulations.
+#' @param null [numeric vector] the null hypothesis to be tested for the net benefit (first element) and the win ratio (second element).
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
 #' Default value read from \code{BuyseTest.options()}.
@@ -71,7 +72,7 @@
 ## * powerBuyseTest (code)
 ##' @rdname powerBuyseTest
 ##' @export
-powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL, n.rep, cpus = 1,                          
+powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL, n.rep, null = c(0,1), cpus = 1,                          
                            alternative = NULL, seed = 10, conf.level = NULL, order.Hprojection = NULL, transformation = NULL, trace = 1,
                            ...){
 
@@ -113,6 +114,11 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     if(length(sample.sizeT)!=length(sample.sizeC)){
         stop("Arguments \'sample.sizeT\ and \'sample.sizeC\' must have the same length \n")
     }
+    validNumeric(null,
+                 valid.length = 2,
+                 method = "BuyseTest")
+    names(null) <- c("netBenefit","winRatio")
+        
     n.sample.size <- length(sample.sizeT)
     grid.inference <- expand.grid(order = order.Hprojection,
                                   transformation = transformation)
@@ -295,7 +301,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                     pc.favorable = MresSample[,"favorable"]/MresSample[,"npairs"],
                                                     pc.unfavorable =  MresSample[,"unfavorable"]/MresSample[,"npairs"],
                                                     covariance = iCovariance, statistic = iStatistic,
-                                                    alternative = alternative, alpha = alpha,
+                                                    alternative = alternative, alpha = alpha, null = null[iStatistic],
                                                     endpoint = envir$outArgs$endpoint, transformation = iTransformation)
 
                         iOut[iIndex.store[iInference],"method.inference"] <- paste0("order=",iOrder," - transformation=",iTransformation)
@@ -370,7 +376,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     BuyseSim.object <- BuyseSim(
         alternative = alternative,      
         method.inference = outArgs$method.inference,
-        conf.level = conf.level,      
+        conf.level = conf.level,
+        null = null,
         n.rep = n.rep,      
         results = dt.out
     )

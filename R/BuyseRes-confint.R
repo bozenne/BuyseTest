@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jan  9 2019 (10:59) 
+## Last-Updated: jan 14 2019 (09:45) 
 ##           By: Brice Ozenne
-##     Update #: 225
+##     Update #: 227
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -309,7 +309,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.resampling,
                   
 
 ## * confint_Ustatistic (called by confint)
-confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, statistic,
+confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, statistic, null,
                                alternative, alpha,
                                endpoint, transformation, ...){
 
@@ -332,12 +332,11 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
                 iSE <- outTable[iE,"se"] / (1+Delta[iE]^2)
                 iDelta <-  atanh(Delta[iE])
                 backtransform <- tanh
-                null <- atanh(0)
+                null <- atanh(null)
             }else{ ## on the original scale
                 iSE <- outTable[iE,"se"]
                 iDelta <- Delta[iE]
                 backtransform <- function(x){x}
-                null <- 0
             }
             
             ## on the logit scale
@@ -349,12 +348,11 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
                 iSE <- outTable[iE,"se"] / Delta[iE]
                 iDelta <-  log(Delta[iE])
                 backtransform <- exp
-                null <- log(1)
+                null <- log(null)
             }else{ ## on the original scale
                 iSE <- outTable[iE,"se"]
                 iDelta <- Delta[iE]
                 backtransform <- function(x){x}
-                null <- 1
             }
 
         }

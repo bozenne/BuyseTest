@@ -33,6 +33,7 @@ setMethod(f = "summary",
 
               dt.res <- slot(object, name = "results")
               alpha <- 1-slot(object, name = "conf.level")
+              null <- slot(object, name = "null")
               
               ## ** normalize and check arguments
               option <- BuyseTest.options()
@@ -108,7 +109,7 @@ setMethod(f = "summary",
                   rm.duplicate <- c("n.T", "n.C", "rep.estimate", "rep.se", "mean.estimate", "sd.estimate")
                   
                   if("netBenefit" %in% statistic){
-                      cat(" > statistic   : net benefit\n")
+                      cat(" > statistic   : net benefit (null hypothesis Delta=",null["netBenefit"],")\n", sep = "")
                       printNetBenefit <- as.data.frame(outW$netBenefit)
                       printNetBenefit <- round(printNetBenefit, digits = digit)
                       if(length(outW$netBenefit$order)>1){ ## remove duplicated values due to order = 1:2
@@ -123,7 +124,7 @@ setMethod(f = "summary",
                   }
                   
                   if("winRatio" %in% statistic){
-                      cat(" > statistic   : win ratio\n")
+                      cat(" > statistic   : win ratio (null hypothesis Delta=",null["netBenefit"],")\n", sep = "")
                       printWinRatio <- as.data.frame(outW$winRatio)
                       printWinRatio <- round(printWinRatio, digits = digit)
                       if(length(outW$netBenefit$order)>1){ ## remove duplicated values due to order = 1:2

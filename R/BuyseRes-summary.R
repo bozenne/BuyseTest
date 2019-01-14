@@ -58,7 +58,7 @@ setMethod(f = "summary",
           signature = "BuyseRes",
           definition = function(object, print = TRUE, percentage = TRUE, statistic = NULL,
                                 conf.level = NULL,
-                                strata = if(length(object@level.strata)==1){"global"}else{NULL},                                
+                                strata = if(length(object@level.strata)==1){"global"}else{NULL},
                                 digit = c(2,4), ...){
 
               ## ** normalize and check arguments
