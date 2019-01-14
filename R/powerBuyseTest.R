@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan 14 2019 (09:50) 
+## Last-Updated: jan 15 2019 (00:03) 
 ##           By: Brice Ozenne
-##     Update #: 287
+##     Update #: 292
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -238,6 +238,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             iIndex.store <- seq(1 + (iSample-1)*n.inference, iSample*n.inference)
             iOut[iIndex.store,"n.C"] <- envir$sample.sizeC[iSample]
             iOut[iIndex.store,"n.T"] <- envir$sample.sizeT[iSample]
+            iPairs <- envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample]
             
             tableSample <- lapply(tablePairScore, function(iEndpoint){ ## iEndpoint <- tablePairScore[[1]]
                 ## restrict pairs 
@@ -276,7 +277,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                      order = max(order.Hprojection), ## if order 1 and 2 are requested by the user then feed order 2
                                                      count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
                                                      count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
-                                                     n.pairs = envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample],
+                                                     n.pairs = iPairs,
                                                      n.C = envir$sample.sizeC[iSample],
                                                      n.T = envir$sample.sizeT[iSample],
                                                      level.strata = envir$outArgs$level.strata,
@@ -302,7 +303,9 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                     pc.unfavorable =  MresSample[,"unfavorable"]/MresSample[,"npairs"],
                                                     covariance = iCovariance, statistic = iStatistic,
                                                     alternative = alternative, alpha = alpha, null = null[iStatistic],
-                                                    endpoint = envir$outArgs$endpoint, transformation = iTransformation)
+                                                    endpoint = envir$outArgs$endpoint, transformation = iTransformation,
+                                                    continuity.correction = envir$option$continuity.correction,
+                                                    n.pairs = iPairs)
 
                         iOut[iIndex.store[iInference],"method.inference"] <- paste0("order=",iOrder," - transformation=",iTransformation)
                         iOut[iIndex.store[iInference],paste0(iStatistic,".se")] <- outCI[1,"se"]
@@ -373,6 +376,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     dt.out <- as.data.table(do.call(rbind, ls.simulation))
 
     ## ** export
+    attr(outArgs$method.inference,"continuity.correction") <- option$continuity.correction
+        
     BuyseSim.object <- BuyseSim(
         alternative = alternative,      
         method.inference = outArgs$method.inference,

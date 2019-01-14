@@ -351,12 +351,16 @@ BuyseTest <- function(formula,
                                                          count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
                                                          n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                     level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
             }
+
+            attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
             
             outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
                                   deltaResampling.winRatio = array(dim=c(0,0,0)),
                                   DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
                                   DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
                                   n.resampling = as.double(NA))
+            
+            
         }else{
             outResampling <- inferenceResampling(envirBT)
             outCovariance <- list(Sigma = matrix(nrow = 0, ncol = 0),
@@ -397,7 +401,6 @@ BuyseTest <- function(formula,
         }
     }
     
- 
     BuyseRes.object <- BuyseRes(
         count.favorable = outPoint$count_favorable,      
         count.unfavorable = outPoint$count_unfavorable,

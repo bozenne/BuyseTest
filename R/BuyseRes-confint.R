@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jan 14 2019 (09:45) 
+## Last-Updated: jan 14 2019 (11:02) 
 ##           By: Brice Ozenne
-##     Update #: 227
+##     Update #: 243
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -175,7 +175,9 @@ setMethod(f = "confint",
                                                                 null = null,
                                                                 alpha = alpha,
                                                                 endpoint = endpoint,
-                                                                transformation = transformation))
+                                                                transformation = transformation,
+                                                                continuity.correction = option$continuity.correction,
+                                                                n.pairs = n.pairs))
 
               ## ** number of permutations
               if(method.inference %in%  c("permutation","stratified permutation","bootstrap","stratified bootstrap")){
@@ -311,7 +313,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.resampling,
 ## * confint_Ustatistic (called by confint)
 confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, statistic, null,
                                alternative, alpha,
-                               endpoint, transformation, ...){
+                               endpoint, transformation, continuity.correction, n.pairs, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
@@ -328,6 +330,10 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
         if(statistic == "netBenefit"){
             outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])
 
+            if(continuity.correction){
+                Delta[iE] <- Delta[iE] - sign(Delta[iE])/(2*n.pairs)
+            }
+
             if(transformation){ ## atanh transform (also called fisher transform)
                 iSE <- outTable[iE,"se"] / (1+Delta[iE]^2)
                 iDelta <-  atanh(Delta[iE])
@@ -335,7 +341,7 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
                 null <- atanh(null)
             }else{ ## on the original scale
                 iSE <- outTable[iE,"se"]
-                iDelta <- Delta[iE]
+                iDelta <- Delta[iE] ## 0.5/(n.y * n.x)
                 backtransform <- function(x){x}
             }
             
@@ -363,7 +369,7 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
                                                                       "less" = c(iDelta + stats::qnorm(alpha) * iSE, Inf),
                                                                       "greater" = c(-Inf,iDelta + stats::qnorm(1-alpha) * iSE)
                                                                       ))
-        
+
         ## *** p.value
         outTable[iE,"p.value"] <- switch(alternative,
                                          "two.sided" = 2*(1-stats::pnorm(abs((iDelta-null)/iSE))), ## 2*(1-pnorm(1.96))

@@ -352,6 +352,9 @@ setMethod(f = "summary",
                       cat(" > statistic       : net benefit (delta: endpoint specific, Delta: global) \n",
                           " > null hypothesis : Delta == 0 \n", sep = "")
                   }
+                  if(method.inference != "none"){
+                      cat(" > confidence level: ",1-alpha," \n", sep = "")
+                  }
                   if(method.inference %in% c("permutation","bootstrap", "stratified permutation", "stratified bootstrap")){
                       ok.permutation <- all(n.resampling[1]==n.resampling)
                       if(ok.permutation){
@@ -366,9 +369,16 @@ setMethod(f = "summary",
                                            "bootstrap" = "bootstrap resampling",
                                            "stratified bootstrap" = "stratified bootstrap resampling"
                                            )
-                      cat(" > ",txt.method,": ",txt.permutation," samples, confidence level ",1-alpha," \n", sep = "")
-                  }else if(method.inference %in% c("asymptotic","asymptotic-beta")){
-                      cat(" >  asymptotic confidence intervals and p-values, confidence level ",1-alpha," \n", sep = "")
+                      cat(" > inference       : ",txt.method," with ",txt.permutation," samples", sep = "")
+                  }else if(method.inference %in% c("asymptotic","asymptotic-bebu")){
+                      if(statistic == "netBenefit" && option$continuity.correction){
+                          add.text <- " with continuity correction"
+                      }else{
+                          add.text <- NULL
+                      }
+                      
+                      cat(" > inference       : H-projection of order ",attr(method.inference,"Hprojection"),add.text,"\n", sep = "")
+
                   }
                   
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")

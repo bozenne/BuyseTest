@@ -109,7 +109,12 @@ setMethod(f = "summary",
                   rm.duplicate <- c("n.T", "n.C", "rep.estimate", "rep.se", "mean.estimate", "sd.estimate")
                   
                   if("netBenefit" %in% statistic){
-                      cat(" > statistic   : net benefit (null hypothesis Delta=",null["netBenefit"],")\n", sep = "")
+                      if(attr(object@method.inference, "continuity.correction")){
+                          add.text <- ", inference with continuity correction"
+                      }else{
+                          add.text <- NULL
+                      }
+                      cat(" > statistic   : net benefit (null hypothesis Delta=",null["netBenefit"],add.text,")\n", sep = "")
                       printNetBenefit <- as.data.frame(outW$netBenefit)
                       printNetBenefit <- round(printNetBenefit, digits = digit)
                       if(length(outW$netBenefit$order)>1){ ## remove duplicated values due to order = 1:2

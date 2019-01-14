@@ -29,25 +29,26 @@
 #' @export
 BuyseTest.options <- function(..., reinitialise = FALSE){
   
-  if (reinitialise == TRUE) {
-    assign(".BuyseTest-options", 
-           new("BuyseTest.options",
-               alternative = "two.sided",
-               check = TRUE,
-               conf.level = 0.95,
-               cpus = 1,
-               keep.pairScore = FALSE,
-               keep.survival = FALSE,
-               method.inference = "stratified permutation",
-               method.tte = "Peron",               
-               correction.uninf = FALSE,               
-               n.resampling = 1000,
-               neutral.as.uninf = TRUE,
-               order.Hprojection = 1,
-               statistic = "netBenefit",               
-               transformation = FALSE,               
-               trace = 2), 
-           envir = BuyseTest.env)
+    if (reinitialise == TRUE) {
+        assign(".BuyseTest-options", 
+               new("BuyseTest.options",
+                   alternative = "two.sided",
+                   check = TRUE,
+                   conf.level = 0.95,
+                   continuity.correction = FALSE,
+                   cpus = 1,
+                   keep.pairScore = FALSE,
+                   keep.survival = FALSE,
+                   method.inference = "stratified permutation",
+                   method.tte = "Peron",               
+                   correction.uninf = FALSE,               
+                   n.resampling = 1000,
+                   neutral.as.uninf = TRUE,
+                   order.Hprojection = 1,
+                   statistic = "netBenefit",               
+                   transformation = FALSE,               
+                   trace = 2), 
+               envir = BuyseTest.env)
     
     return(invisible(get(".BuyseTest-options", envir = BuyseTest.env)))
     

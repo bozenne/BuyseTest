@@ -22,6 +22,7 @@ setClass(
       alternative = "character",
       check = "logical",
       conf.level = "numeric",
+      continuity.correction = "logical",
       correction.uninf = "logical",
       cpus = "numeric",
       keep.pairScore = "logical",
