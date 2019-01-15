@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan 15 2019 (00:03) 
+## Last-Updated: jan 15 2019 (09:20) 
 ##           By: Brice Ozenne
-##     Update #: 292
+##     Update #: 320
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -135,7 +135,12 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, alternative = alternative,
                               data = NULL, model.tte = NULL, keep.pairScore = TRUE, ...)
-
+    if(outArgs$method.tte==1){
+        stop("Peron correction not compatible with powerBuyseTest \n")
+    }
+    if(outArgs$correction.uninf>0){
+        stop("correction uninformative not (yet!) compatible with powerBuyseTest \n")
+    }
     if(any(outArgs$operator!=">0")){
         stop("Cannot use argument \'operator\' with powerBuyseTest \n")
     }
@@ -270,7 +275,6 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
             ## *** Inference 
             if(outArgs$method.inference %in% c("asymptotic")){
-
                 ## warning: only work if no strata, otherwise n.pairs/count.favorable/count.unfavorable needs to be sum over strata
                 ## see BuyseTest.R
                 outCovariance <- inferenceUstatistic(tableSample,
@@ -342,16 +346,29 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                              })
                                  )
     }else { ## *** parallel permutation test
+        n.block <- max(cpus,round(sqrt(n.rep)))
+        rep.perBlock0 <- max(1,floor(n.rep/n.block))
+        rep.perBlock <- c(rep(rep.perBlock0, n.block-1), n.rep - (n.block-1)*rep.perBlock0)
+        cumsum.rep.perBlock <- c(0,cumsum(rep.perBlock))
 
         ## define cluster
         if(trace>0){
             cl <- suppressMessages(parallel::makeCluster(cpus, outfile = ""))
-            pb <- utils::txtProgressBar(max = n.rep, style = 3)          
+            pb <- utils::txtProgressBar(max = n.block, style = 3)          
         }else{
             cl <- parallel::makeCluster(cpus)
         }
         ## link to foreach
         doParallel::registerDoParallel(cl)
+
+        ## seed
+        if (!is.null(seed)) {
+            set.seed(seed)
+            seqSeed <- sample.int(1e3, size = cpus)
+            parallel::clusterApply(cl, seqSeed, function(x){
+                set.seed(x)
+            })
+        }         
 
         ## export package
         parallel::clusterCall(cl, fun = function(x){
@@ -359,14 +376,18 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         })
         ## export functions
         toExport <- c(".BuyseTest","initializeData","pairScore2dt","inferenceUstatistic","confint_Ustatistic", ".iid2cov", "validNumeric")
-
-        i <- NULL ## [:forCRANcheck:] foreach        
+        
+        i <- NULL ## [:forCRANcheck:] foreach
         ls.simulation <- foreach::`%dopar%`(
-                                       foreach::foreach(i=1:n.rep,
-                                                        .export = toExport),                                            
-                                       {                                           
-                                           if(trace>0){utils::setTxtProgressBar(pb, i)}
-                                           return(warper(i = i, envir = envirBT))
+                                      foreach::foreach(i=1:n.block,
+                                                       .export = toExport),                                            
+                                      {                                           
+                                          if(trace>0){utils::setTxtProgressBar(pb, i)}
+                                          ls.out <- list()
+                                          for(j in 1:rep.perBlock[i]){
+                                            ls.out[[j]] <- warper(i = j + cumsum.rep.perBlock[i], envir = envirBT)
+                                          }
+                                          return(do.call(rbind, ls.out))
                       
                                        })
 
