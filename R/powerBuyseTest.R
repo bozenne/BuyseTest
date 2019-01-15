@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan 15 2019 (09:20) 
+## Last-Updated: jan 15 2019 (10:16) 
 ##           By: Brice Ozenne
-##     Update #: 320
+##     Update #: 337
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -135,11 +135,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, alternative = alternative,
                               data = NULL, model.tte = NULL, keep.pairScore = TRUE, ...)
-    if(outArgs$method.tte==1){
-        stop("Peron correction not compatible with powerBuyseTest \n")
-    }
-    if(outArgs$correction.uninf>0){
-        stop("correction uninformative not (yet!) compatible with powerBuyseTest \n")
+    if(outArgs$method.tte==1 && n.sample.size >1){
+        stop("Peron correction not compatible with powerBuyseTest for more than one sample size \n")
     }
     if(any(outArgs$operator!=">0")){
         stop("Cannot use argument \'operator\' with powerBuyseTest \n")
@@ -210,7 +207,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value")))
         iOut <- as.data.frame(iOut)
         iOut[,"simulation"] <- i
-            
+
         ## *** Initialize data
         out.name <- c("data","M.endpoint","M.censoring",
                       "index.C","index.T","index.strata",
@@ -259,6 +256,16 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                 iEndpoint[, c("index.T") := old2new[.SD$index.T]]
                 iEndpoint[, c("index.C") := old2new[.SD$index.C]]
 
+                ## update correction (no strata)
+                if(envir$outArgs$correction.uninf>0 && iSample < n.sample.size && sum(iEndpoint$uninf)>0){
+## new weighting                    
+                        mfactor <- sum(iEndpoint$favorable + iEndpoint$unfavorable + iEndpoint$neutral + iEndpoint$uninf) / sum(iEndpoint$favorable + iEndpoint$unfavorable + iEndpoint$neutral)
+                        iEndpoint[, c("favorableC") :=.SD$favorable * .SD$weight * mfactor]
+                        iEndpoint[, c("unfavorableC") :=.SD$unfavorable * .SD$weight * mfactor]
+                        iEndpoint[, c("neutralC") :=.SD$neutral * .SD$weight * mfactor]
+                    
+                }
+                
                 ## export
                 return(iEndpoint)
             })
@@ -266,8 +273,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             ## *** Point estimate
             MresSample <- do.call(rbind,lapply(tableSample, function(iEndpoint){
                 return(c("npairs" = NROW(iEndpoint),
-                         "favorable" = sum(iEndpoint$favorable),
-                         "unfavorable" = sum(iEndpoint$unfavorable)))
+                         "favorable" = sum(iEndpoint$favorableC),
+                         "unfavorable" = sum(iEndpoint$unfavorableC)))
             }))
             
             iOut[iIndex.store,"netBenefit"] <- (sum(MresSample[,"favorable"]) - sum(MresSample[,"unfavorable"]))/MresSample[1,"npairs"]
