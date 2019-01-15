@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jan 14 2019 (11:02) 
+## Last-Updated: jan 15 2019 (15:47) 
 ##           By: Brice Ozenne
-##     Update #: 243
+##     Update #: 244
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -335,7 +335,7 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
             }
 
             if(transformation){ ## atanh transform (also called fisher transform)
-                iSE <- outTable[iE,"se"] / (1+Delta[iE]^2)
+                iSE <- outTable[iE,"se"] / (1-Delta[iE]^2)
                 iDelta <-  atanh(Delta[iE])
                 backtransform <- tanh
                 null <- atanh(null)
