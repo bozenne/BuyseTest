@@ -1552,18 +1552,32 @@ U-statistic, but this requires a little bit more work to see that:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \hat{\sigma}^2 &= \frac{1}{n-1} \sum_{i=1}^n (x_i-\hat{\mu})^2 = \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \hat{\mu} + \hat{\mu}^2\right) \\
-&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + \hat{\mu}^2\right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right)
-=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \hat{\sigma}^2 \\
+&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + \hat{\mu}^2\right) =  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) =  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \hat{\sigma}^2 \\
 \hat{\sigma}^2 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
 =  \frac{2}{n(n-1)} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2}
-\hat{\sigma}^2 =  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
+=  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
 \end{align*}
 #+END_EXPORT
-So the variance estimator is a U-statistic of order 2 with kernel
-\(h(x_1,x_2)=\frac{(x_1 - x_2)^2}{2}\).
+where we have used that \(\sum_{i=1}^n \left( - 2 x_i \hat{\mu} +
+\hat{\mu}^2\right) = \left( - 2 n \hat{\mu}^2 + n \hat{\mu}^2\right) =
+\sum_{i=1}^n - \hat{\mu}^2 \). So the variance estimator is a
+U-statistic of order 2 with kernel \(h(x_1,x_2)=\frac{(x_1 -
+x_2)^2}{2}\).
+
+\clearpage
+
+We can verify that numerically:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+M.combn <- combn(length(x),2) ## create all pairs
+xi_minus_xj <- apply(M.combn,2, function(iPair){(x[iPair[1]]-x[iPair[2]])})
+mean(xi_minus_xj^2/2) - var(x)
+#+END_SRC
+
+#+RESULTS:
+: [1] 2.3
+
 
 \bigskip
 

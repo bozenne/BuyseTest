@@ -1,4 +1,4 @@
-% Created 2019-01-16 on 09:55
+% Created 2019-01-16 ons 23:54
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -185,7 +185,7 @@ emphstyle=\color{blue}
  pdftitle={Theory supporting the net benefit and Peron's scoring rules},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 25.2.1 (Org mode 9.0.4)},
+ pdfcreator={Emacs 27.0.50 (Org mode 9.0.4)},
  pdflang={English}
  }
 \begin{document}
@@ -217,7 +217,7 @@ library(survival)
 \clearpage
 
 \section{Parameter of interest}
-\label{sec:orge028c48}
+\label{sec:org36b5b3b}
 
 Let consider two independent real valued (univariate) random variables
 \(X\) and \(Y\). Informally \(X\) refer to the outcome in the
@@ -240,9 +240,9 @@ for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y > X]\)).
 \clearpage
 
 \section{Binary variable}
-\label{sec:org63c22d9}
+\label{sec:orgb1affbc}
 \subsection{Relationship between \(\Delta_+\) and the prevalence}
-\label{sec:orgbc6e35a}
+\label{sec:orgc101454}
 \begin{align*}
 \Prob[X>Y] = \Prob[X=1,Y=0]
 \end{align*}
@@ -260,7 +260,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:org5aef081}
+\label{sec:orgee4d340}
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -273,7 +273,7 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(tox = rbinom(n, prob = prob1, size = 1), group = "C"),
-			data.frame(tox = rbinom(n, prob = prob2, size = 1), group = "T"))
+	    data.frame(tox = rbinom(n, prob = prob2, size = 1), group = "T"))
 \end{lstlisting}
 
 Buyse test:
@@ -299,9 +299,9 @@ prob2 - prob1
 \clearpage
 
 \section{Continuous variable}
-\label{sec:org6c28ced}
+\label{sec:org72b8d14}
 \subsection{Relationship between \(\Delta\) and Cohen's d}
-\label{sec:orgdc23c90}
+\label{sec:org3ff498a}
 Let's consider two independent normally distributed variables with common variance:
 \begin{itemize}
 \item \(X \sim \Gaus[\mu_X,\sigma^2]\)
@@ -321,7 +321,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:orge28c576}
+\label{sec:org0450ec0}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -336,7 +336,7 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(tox = rnorm(n, mean = meanX, sd = sdXY), group = "C"),
-			data.frame(tox = rnorm(n, mean = meanY, sd = sdXY), group = "T"))
+	    data.frame(tox = rnorm(n, mean = meanY, sd = sdXY), group = "T"))
 \end{lstlisting}
 
 Buyse test:
@@ -364,9 +364,9 @@ d <- (meanY-meanX)/sdXY
 \clearpage
 
 \section{Survival}
-\label{sec:orgb6cb555}
+\label{sec:org92558ca}
 \subsection{Relationship between \(\Delta\) and the hazard ratio}
-\label{sec:org8c5d81d}
+\label{sec:org01a66f0}
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 \begin{align*}
@@ -408,7 +408,7 @@ So \(\Prob[Y>X] = \frac{\alpha_X}{\alpha_Y+\alpha_X} = 1-\frac{1}{1+HR}\) and:
 \clearpage
 
 \subsection{Scoring rule in presence of censoring}
-\label{sec:orga618f42}
+\label{sec:org30f5cdd}
 Let's consider the following random variables:  
 \begin{itemize}
 \item \(X\) the time to the occurrence of the event in the experimental group.
@@ -428,7 +428,7 @@ We observe one realization \(\left(\xobs, \yobs, \censT, \censC
 each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=1\)}
-\label{sec:orgb10807e}
+\label{sec:orga68c16c}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -455,7 +455,7 @@ each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 
 \subsubsection{Case: \(\SurvT=1,\SurvC=0\)}
-\label{sec:org4be1c04}
+\label{sec:org8267165}
 By symmetry we have: \\
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -480,7 +480,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=0\)}
-\label{sec:org20dac01}
+\label{sec:org6ea1cde}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -566,7 +566,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Synthesis}
-\label{sec:org6806a28}
+\label{sec:org1356392}
 \textcolor{darkgreen}{Probability in favor of the treatment}: \(\Prob[X \geq Y+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
 \begin{table}[!h]
 	\centering
@@ -611,7 +611,7 @@ By symmetry we have: \\
 \clearpage
 
 \subsection{Partially known survival curve}
-\label{sec:org8faa1d0}
+\label{sec:org25819c9}
 In the case where \(x^* < y^* - \tau\), we need an estimate of
 \(S_X(y^* - \tau)\) to compute the probability in favor of the
 control. If we can only have an estimate of \(S_X\) up to
@@ -663,7 +663,7 @@ tends to 0.
 \end{itemize}
 
 \subsection{In R}
-\label{sec:org2804758}
+\label{sec:org2593ab2}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -677,14 +677,14 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(time = rexp(n, rate = alphaX), group = "C", event = 1),
-			data.frame(time = rexp(n, rate = alphaY), group = "T", event = 1))
+	    data.frame(time = rexp(n, rate = alphaY), group = "T", event = 1))
 \end{lstlisting}
 
 Buyse test:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BuyseTest(group ~ tte(time, censoring = event), data = df,
-		  method.inference = "none", trace = 0, method.tte = "Gehan")
+	  method.inference = "none", trace = 0, method.tte = "Gehan")
 \end{lstlisting}
 \begin{verbatim}
 endpoint threshold  delta  Delta
@@ -710,12 +710,12 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 \clearpage
 
 \section{Competing risks}
-\label{sec:org7655dc6}
+\label{sec:orgd9a195f}
 \subsection{Theory}
-\label{sec:orgfef2d42}
+\label{sec:org3884a17}
 
 \subsubsection{General case (no censoring)}
-\label{sec:orgab2b5ce}
+\label{sec:org82d7e8e}
 Let consider: 
 \begin{itemize}
 \item \(X^*_{E}\) the time to the occurrence of the event of interest in the experimental group.
@@ -777,7 +777,7 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \clearpage
 
 \subsubsection{Exponential distribution (no censoring)}
-\label{sec:orge285808}
+\label{sec:org1694156}
 
 Now let's assume that:
 \begin{itemize}
@@ -825,10 +825,10 @@ CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 
 \clearpage
 
 \subsection{In R}
-\label{sec:orgef823f5}
+\label{sec:org8bd38ac}
 
 \subsubsection{BuyseTest (no censoring)}
-\label{sec:orgc873ee7}
+\label{sec:org30e3e30}
 
 Setting:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -844,7 +844,7 @@ Simulate data:
 \begin{lstlisting}
 set.seed(10)
 df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), group = "1"),
-			data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
+	    data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
 df$time <- pmin(df$time1,df$time2) ## first event
 df$event <- (df$time2<df$time1)+1 ## type of event
 \end{lstlisting}
@@ -853,8 +853,8 @@ BuyseTest:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
-				  method.inference = "none", method.tte = "Gehan",
-				  trace = 0)
+		  method.inference = "none", method.tte = "Gehan",
+		  trace = 0)
 summary(e.BT, percentage = TRUE)
 \end{lstlisting}
 
@@ -879,7 +879,7 @@ competing risk is observed:
 df$timeXX <- df$time
 df$timeXX[df$event==2] <- max(df$time)+1
 e.BT.bis <- BuyseTest(group ~ cont(timeXX), data = df,
-				  method.inference = "none", trace = 0)
+		  method.inference = "none", trace = 0)
 summary(e.BT.bis, percentage = TRUE)
 \end{lstlisting}
 
@@ -912,7 +912,7 @@ favorable unfavorable     neutral
 \end{verbatim}
 
 \subsubsection{BuyseTest (with censoring)}
-\label{sec:org6c0e7ae}
+\label{sec:org8079b3e}
 
 Simulate data:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -925,8 +925,8 @@ BuyseTest (biased):
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BTC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
-				   method.inference = "none", method.tte = "Gehan",
-				   trace = 0)
+		   method.inference = "none", method.tte = "Gehan",
+		   trace = 0)
 summary(e.BTC, percentage = TRUE)
 \end{lstlisting}
 
@@ -947,8 +947,8 @@ BuyseTest (unbiased):
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BTCC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
-				   method.inference = "none", method.tte = "Gehan corrected",
-				   trace = 0)
+		   method.inference = "none", method.tte = "Gehan corrected",
+		   trace = 0)
 summary(e.BTCC, percentage = TRUE)
 \end{lstlisting}
 
@@ -967,7 +967,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \end{verbatim}
 
 \subsubsection{Cumulative incidence}
-\label{sec:orgd5ed931}
+\label{sec:org5585680}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -997,9 +997,9 @@ Expected vs. calculated:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 cbind(time = vec.times,
-	  CSC = e.CSCpred$absRisk[1,],
-	  manual = alphaE/(alphaE+alphaCR)*(1-exp(-(alphaE+alphaCR)*(vec.times)))
-	  )
+      CSC = e.CSCpred$absRisk[1,],
+      manual = alphaE/(alphaE+alphaCR)*(1-exp(-(alphaE+alphaCR)*(vec.times)))
+      )
 \end{lstlisting}
 
 \begin{verbatim}
@@ -1030,7 +1030,7 @@ mean((df$time<=1)*(df$event==1))
 \clearpage
 
 \section{Inverse probability weighting}
-\label{sec:orga4d77d7}
+\label{sec:orge1586dc}
 
 In case of censoring we can use an inverse probability weighting
 approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
@@ -1065,14 +1065,14 @@ where we used the law of total expectation (first line) and the independence bet
 \clearpage
 
 \section{Asymptotic distribution}
-\label{sec:org743c4f6}
+\label{sec:org2d6b7dd}
 
 In this section we restrict ourself to the GPC as defined in
 \citep{buyse2010generalized}, i.e. we do not consider Peron scoring rule
 nor any correction (like inverse probability weighting).
 
 \subsection{Theory}
-\label{sec:orgacda60a}
+\label{sec:org7418e18}
 
 We consider two independent samples \(x_1,x_2,\ldots,x_m\) and
 \(y_1,y_2,\ldots,y_n\) where the first one contains iid realisations
@@ -1127,7 +1127,7 @@ where \(p_y\) is the proportion of 1 in the control group.
 \clearpage
 
 \subsection{Example}
-\label{sec:org060ac7f}
+\label{sec:orgfbbcbd7}
 
 Let's consider a case with 2 observations per group:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1148,9 +1148,9 @@ We can form 4 pairs:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 d2 <- data.table(pair = c("3-1","4-1","3-2","4-2"), 
-				 type = c("1-1","0-1","1-0","0-0"),
-				 favorable = c(0,0,1,0),
-				 unfavorable = c(0,1,0,0))
+		 type = c("1-1","0-1","1-0","0-0"),
+		 favorable = c(0,0,1,0),
+		 unfavorable = c(0,1,0,0))
 d2
 \end{lstlisting}
 
@@ -1181,8 +1181,8 @@ BuyseTest package:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
-				  keep.pairScore = TRUE,
-				  method.inference = "asymptotic", trace = 0)
+		  keep.pairScore = TRUE,
+		  method.inference = "asymptotic", trace = 0)
 iid(e.BT)
 \end{lstlisting}
 
@@ -1230,8 +1230,8 @@ Y_2\) (when \(X=x_1\) and \(Y_1=Y_2=y_2\)). This is what is performed when calli
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e2.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
-				  keep.pairScore = TRUE,
-				  method.inference = "asymptotic-bebu", trace = 0)
+		  keep.pairScore = TRUE,
+		  method.inference = "asymptotic-bebu", trace = 0)
 e2.BT@covariance
 \end{lstlisting}
 
@@ -1243,18 +1243,18 @@ toxicity    0.0625      0.0625    -0.0625
 \clearpage
 
 \subsection{Type 1 error in finite sample}
-\label{sec:orgc2b0e90}
+\label{sec:orgd6530d4}
 
 \subsubsection{Binary endpoint}
-\label{sec:org1908956}
+\label{sec:org4358428}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsBin <- system.time(
-	eBin.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
-								 formula = Treatment ~ bin(toxicity),
-								 sample.size = c(10,25,50,100,250),                                   
-								 method.inference = "asymptotic", trace = 0,
-								 transform = c(TRUE,FALSE), order.Hprojection = 1:2)
+    eBin.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
+				 formula = Treatment ~ bin(toxicity),
+				 sample.size = c(10,25,50,100,250),                                   
+				 method.inference = "asymptotic", trace = 0,
+				 transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 \end{lstlisting}
 
@@ -1271,7 +1271,7 @@ user  system elapsed
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 summary(eBin.power, statistic = c("netBenefit","winRatio"), 
-		legend = FALSE, col.rep = FALSE)
+	legend = FALSE, col.rep = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -1307,15 +1307,15 @@ n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRU
 \clearpage
 
 \subsubsection{Continuous endpoint}
-\label{sec:org3f09723}
+\label{sec:org070676a}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsCont <- system.time(
-	eCont.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
-								  formula = Treatment ~ cont(score), 
-								  sample.size = c(10,25,50,100,250), 
-								  method.inference = "asymptotic", trace = 0,
-								  transform = c(TRUE,FALSE), order.Hprojection = 1:2)
+    eCont.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
+				  formula = Treatment ~ cont(score), 
+				  sample.size = c(10,25,50,100,250), 
+				  method.inference = "asymptotic", trace = 0,
+				  transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 \end{lstlisting}
 
@@ -1332,7 +1332,7 @@ user  system elapsed
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 summary(eCont.power, statistic = c("netBenefit","winRatio"), 
-		legend = FALSE, col.rep = FALSE)
+	legend = FALSE, col.rep = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -1368,17 +1368,17 @@ n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRU
 \clearpage
 
 \subsubsection{Time to event endpoint (Gehan method)}
-\label{sec:org119d4ab}
+\label{sec:org56c11af}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsGehan <- system.time(
-	eGehan.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
-								   formula = Treatment ~ tte(eventtime, 
-															 censoring = status), 
-								   method.tte = "Gehan",
-								   sample.size = c(10,25,50,100,250), 
-								   method.inference = "asymptotic", trace = 0
-								   transform = c(TRUE,FALSE), order.Hprojection = 1:2)
+    eGehan.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
+				   formula = Treatment ~ tte(eventtime, 
+							     censoring = status), 
+				   method.tte = "Gehan",
+				   sample.size = c(10,25,50,100,250), 
+				   method.inference = "asymptotic", trace = 0
+				   transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 \end{lstlisting}
 
@@ -1395,7 +1395,7 @@ user  system elapsed
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 summary(eGehan.power, statistic = c("netBenefit","winRatio"), 
-		legend = FALSE, col.rep = FALSE)
+	legend = FALSE, col.rep = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -1419,17 +1419,17 @@ summary(eGehan.power, statistic = c("netBenefit","winRatio"),
 \clearpage
 
 \subsubsection{Time to event endpoint (Peron method)}
-\label{sec:org57e7099}
+\label{sec:org9ce1870}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsPeron <- system.time(
-	ePeron.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
-								   formula = Treatment ~ tte(eventtime, 
-															 censoring = status), 
-								   method.tte = "Peron",
-								   sample.size = c(10,25,50,100,250), 
-								   method.inference = "asymptotic", trace = 0
-								   transform = c(TRUE,FALSE), order.Hprojection = 1:2)
+    ePeron.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
+				   formula = Treatment ~ tte(eventtime, 
+							     censoring = status), 
+				   method.tte = "Peron",
+				   sample.size = c(10,25,50,100,250), 
+				   method.inference = "asymptotic", trace = 0
+				   transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 \end{lstlisting}
 
@@ -1446,7 +1446,7 @@ user  system elapsed
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 summary(ePeron.power, statistic = c("netBenefit","winRatio"), 
-		legend = FALSE, col.rep = FALSE)
+	legend = FALSE, col.rep = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -1470,7 +1470,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"),
 \clearpage
 
 \section{References}
-\label{sec:org62b4bea}
+\label{sec:orgb58379f}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -1487,7 +1487,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"),
 This recall is based on chapter 1 of \cite{lee1990u}.
 
 \subsection{Motivating example}
-\label{sec:orgeab6b4b}
+\label{sec:org8a82136}
 
 We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
@@ -1499,7 +1499,7 @@ distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 \subsection{Estimate, estimator, and functionnal}
-\label{sec:org300d248}
+\label{sec:org76733ba}
 
 We can compute an \textbf{estimate} of the variance using the following
 \textbf{estimators} \(\hat{\mu}\) and \(\hat{\sigma}^2\):
@@ -1571,7 +1571,7 @@ transforms the data into an estimate.
 \end{itemize}
 
 \subsection{Aim}
-\label{sec:orga8c3790}
+\label{sec:org73b2615}
 
 Using formula \eqref{eq:m(F)} and \eqref{eq:s(F)} we can easily estimate
 the variance based on the observed realisations of \(X\) (i.e. the
@@ -1636,7 +1636,7 @@ central limit theorem. It does not give us a formula for the
 asymptotic variance though. 
 
 \subsection{Definition of a U-statistic and examples}
-\label{sec:org02d2e3c}
+\label{sec:orgbb0b606}
 
 A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
@@ -1664,17 +1664,33 @@ function:
 U-statistic, but this requires a little bit more work to see that:
 \begin{align*}
 \hat{\sigma}^2 &= \frac{1}{n-1} \sum_{i=1}^n (x_i-\hat{\mu})^2 = \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \hat{\mu} + \hat{\mu}^2\right) \\
-&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + \hat{\mu}^2\right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) \\
-&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right)
-=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \hat{\sigma}^2 \\
+&=  \frac{1}{n-1} \sum_{i=1}^n \left(x_i^2 - 2 x_i \frac{1}{n} \sum_{j=1}^n x_j + \hat{\mu}^2\right) =  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( x_i^2 - 2 x_i  x_j + \hat{\mu}^2 \right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \left( (x_i - x_j)^2 - x_j^2 + \hat{\mu}^2 \right) =  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \frac{1}{n-1} \sum_{j=1}^n \left(x_j^2 - \hat{\mu}^2\right) \\
+&=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n (x_i - x_j)^2 - \hat{\sigma}^2 \\
 \hat{\sigma}^2 &=  \frac{1}{n(n-1)} \sum_{i=1}^n \sum_{j=1}^n \frac{(x_i - x_j)^2}{2} 
 =  \frac{2}{n(n-1)} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2}
-\hat{\sigma}^2 =  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
+=  \frac{1}{{n \choose 2}} \sum_{i=1}^n \sum_{i<j}^n \frac{(x_i - x_j)^2}{2} 
 \end{align*}
-So the variance estimator is a U-statistic of order 2 with kernel
-\(h(x_1,x_2)=\frac{(x_1 - x_2)^2}{2}\).
+where we have used that \(\sum_{i=1}^n \left( - 2 x_i \hat{\mu} +
+\hat{\mu}^2\right) = \left( - 2 n \hat{\mu}^2 + n \hat{\mu}^2\right) =
+\sum_{i=1}^n - \hat{\mu}^2\). So the variance estimator is a
+U-statistic of order 2 with kernel \(h(x_1,x_2)=\frac{(x_1 -
+x_2)^2}{2}\).
+
+\clearpage
+
+We can verify that numerically:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+M.combn <- combn(length(x),2) ## create all pairs
+xi_minus_xj <- apply(M.combn,2, function(iPair){(x[iPair[1]]-x[iPair[2]])})
+mean(xi_minus_xj^2/2) - var(x)
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 2.3
+\end{verbatim}
+
 
 \bigskip
 
@@ -1707,7 +1723,7 @@ estimator is:
 \end{align*}
 
 \subsection{A major result from the U-statistic theory}
-\label{sec:org8284f98}
+\label{sec:org8676f8a}
 
 So far we have seen that our estimator for the variance was a
 U-statistic. We will now use the U-statistic theory to obtain its
@@ -1733,7 +1749,7 @@ remains to see what is this H-decomposition and how can we
 characterize it.
 
 \subsection{The first term of the H-decomposition}
-\label{sec:orgc7bbfc7}
+\label{sec:org85b2eca}
 
 The H-decomposition (short for Hoeffling decomposition) enables us to
 decompose the estimator of a U-statistic of rank \(k\) into a sum of
@@ -1904,7 +1920,7 @@ compute the asymptotic variance as:
 \end{align*}
 
 \subsection{Two sample U-statistics}
-\label{sec:orgdd3a0cc}
+\label{sec:org86e7dc8}
 
 So far we have assumed that all our observations were iid. But in the
 case of GPC, we study two populations (experimental arm and control
@@ -2058,7 +2074,7 @@ also true under the alternative hypothesis.
 \clearpage 
 
 \section{Information about the R session used for this document}
-\label{sec:org2feeffa}
+\label{sec:orgaa6d974}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
