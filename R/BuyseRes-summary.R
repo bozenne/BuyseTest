@@ -390,7 +390,7 @@ setMethod(f = "summary",
 
                       cat(" > censored pairs  : ",txt.method.tte,"\n", sep = "")
                   }
-                  if(!( (object@correction.uninf == 0) && (object@count.uninf==0) )){
+                  if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){
                       txt.uninf <- switch(as.character(object@correction.uninf),
                                           "0" = "no contribution at the current endpoint, analyzed at later endpoints (if any)",
                                           "1" = "score equals the averaged score of all informative pairs",
