@@ -458,15 +458,20 @@ initializeFormula <- function(x){
         ## extract arguments
         endpoint[iE] <- gsub("\"","",iArg[iName=="endpoint"])
         if("threshold" %in% iName){
-            thresholdTempo <- tryCatch(as.numeric(iArg[iName=="threshold"]),
-                                       error = function(c){ "error" },
-                                       warning = function(c){ "warning" }
-                                       )
-            if(thresholdTempo %in% c("error", "warning")){ ## maybe a variable was passed instead of a value
-              thresholdTempo <- eval(expr = parse(text = iArg[iName=="threshold"]))
+            thresholdTempo <- eval(expr = parse(text = iArg[iName=="threshold"]))
+
+            if(inherits(thresholdTempo, "function")){
+                packageTempo <- environmentName(environment(thresholdTempo))
+                if(nchar(packageTempo)>0){
+                    txt <- paste0("(package ",packageTempo,")")
+                }else{
+                    txt <- ""
+                }
+                stop(iArg[iName=="threshold"]," is already defined as a function ",txt,"\n",
+                     "cannot be used to specify the threshold \n")
             }
             
-            threshold[iE] <- thresholdTempo
+            threshold[iE] <- as.numeric(thresholdTempo)
         }
         if("censoring" %in% iName){
             censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])

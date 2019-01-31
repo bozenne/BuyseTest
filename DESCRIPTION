@@ -2,7 +2,7 @@ Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
 Version: 1.7.1
-Date: 2019-01-15
+Date: 2019-01-31
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "aut")
@@ -43,7 +43,7 @@ LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
 VignetteBuilder: R.rsp
 NeedsCompilation: yes
-RoxygenNote: 6.1.0.9000
+RoxygenNote: 6.1.1
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
