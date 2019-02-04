@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jan 15 2019 (15:47) 
+## Last-Updated: feb  4 2019 (22:51) 
 ##           By: Brice Ozenne
-##     Update #: 244
+##     Update #: 247
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -176,7 +176,6 @@ setMethod(f = "confint",
                                                                 alpha = alpha,
                                                                 endpoint = endpoint,
                                                                 transformation = transformation,
-                                                                continuity.correction = option$continuity.correction,
                                                                 n.pairs = n.pairs))
 
               ## ** number of permutations
@@ -313,7 +312,7 @@ confint_gaussianBootstrap <- function(Delta, Delta.resampling,
 ## * confint_Ustatistic (called by confint)
 confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, statistic, null,
                                alternative, alpha,
-                               endpoint, transformation, continuity.correction, n.pairs, ...){
+                               endpoint, transformation, n.pairs, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
@@ -329,10 +328,6 @@ confint_Ustatistic <- function(Delta, pc.favorable, pc.unfavorable, covariance, 
         ## *** standard error
         if(statistic == "netBenefit"){
             outTable[iE,"se"] <- sqrt(covariance[iE,"favorable"] + covariance[iE,"unfavorable"] - 2 * covariance[iE,"covariance"])
-
-            if(continuity.correction){
-                Delta[iE] <- Delta[iE] - sign(Delta[iE])/(2*n.pairs)
-            }
 
             if(transformation){ ## atanh transform (also called fisher transform)
                 iSE <- outTable[iE,"se"] / (1-Delta[iE]^2)

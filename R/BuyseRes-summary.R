@@ -371,13 +371,8 @@ setMethod(f = "summary",
                                            )
                       cat(" > inference       : ",txt.method," with ",txt.permutation," samples", sep = "")
                   }else if(method.inference %in% c("asymptotic","asymptotic-bebu")){
-                      if(statistic == "netBenefit" && option$continuity.correction){
-                          add.text <- " with continuity correction"
-                      }else{
-                          add.text <- NULL
-                      }
                       
-                      cat(" > inference       : H-projection of order ",attr(method.inference,"Hprojection"),add.text,"\n", sep = "")
+                      cat(" > inference       : H-projection of order ",attr(method.inference,"Hprojection"),"\n", sep = "")
 
                   }
                   

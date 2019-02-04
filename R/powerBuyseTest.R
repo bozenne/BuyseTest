@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan 15 2019 (10:16) 
+## Last-Updated: feb  4 2019 (22:52) 
 ##           By: Brice Ozenne
-##     Update #: 337
+##     Update #: 339
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -315,7 +315,6 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                     covariance = iCovariance, statistic = iStatistic,
                                                     alternative = alternative, alpha = alpha, null = null[iStatistic],
                                                     endpoint = envir$outArgs$endpoint, transformation = iTransformation,
-                                                    continuity.correction = envir$option$continuity.correction,
                                                     n.pairs = iPairs)
 
                         iOut[iIndex.store[iInference],"method.inference"] <- paste0("order=",iOrder," - transformation=",iTransformation)
@@ -404,8 +403,6 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     dt.out <- as.data.table(do.call(rbind, ls.simulation))
 
     ## ** export
-    attr(outArgs$method.inference,"continuity.correction") <- option$continuity.correction
-        
     BuyseSim.object <- BuyseSim(
         alternative = alternative,      
         method.inference = outArgs$method.inference,

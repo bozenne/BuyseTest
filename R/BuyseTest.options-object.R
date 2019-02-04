@@ -22,8 +22,6 @@ setClass(
       alternative = "character",
       check = "logical",
       conf.level = "numeric",
-      continuity.correction = "logical",
-      correction.uninf = "logical",
       cpus = "numeric",
       keep.pairScore = "logical",
       keep.survival = "logical",
@@ -52,10 +50,6 @@ setClass(
                    name1 = "@conf.level",
                    min = 0,
                    max = 1,
-                   valid.length = 1,
-                   method = "Class BuyseTest.options")
-      validLogical(object@correction.uninf,
-                   name1 = "@correction.uninf",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       validInteger(object@cpus,

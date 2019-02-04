@@ -35,7 +35,6 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    alternative = "two.sided",
                    check = TRUE,
                    conf.level = 0.95,
-                   continuity.correction = FALSE,
                    cpus = 1,
                    keep.pairScore = FALSE,
                    keep.survival = FALSE,
@@ -46,7 +45,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    neutral.as.uninf = TRUE,
                    order.Hprojection = 1,
                    statistic = "netBenefit",               
-                   transformation = FALSE,               
+                   transformation = TRUE,               
                    trace = 2), 
                envir = BuyseTest.env)
     
