@@ -45,6 +45,7 @@ initializeArgs <- function(alternative,
                            model.tte,
                            method.inference = NULL,
                            n.resampling = NULL,
+                           hierarchical = NULL,
                            neutral.as.uninf = NULL,
                            operator,
                            option,
@@ -59,6 +60,7 @@ initializeArgs <- function(alternative,
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
     if(is.null(method.tte)){ method.tte <- option$method.tte }
+    if(is.null(hierarchical)){ hierarchical <- option$hierarchical }
     if(is.null(correction.uninf)){ correction.uninf <- option$correction.uninf }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
@@ -74,6 +76,7 @@ initializeArgs <- function(alternative,
         endpoint <- resFormula$endpoint
         threshold <- resFormula$threshold
         censoring <- resFormula$censoring
+        weight <- resFormula$weight
         operator <- resFormula$operator
         strata <- resFormula$strata
     }else{
@@ -81,8 +84,11 @@ initializeArgs <- function(alternative,
             operator <- rep(">0",length(endpoint))
         }
         formula <- NULL
+        if(is.null(weight)){
+            operator <- rep(1,length(endpoint))
+        }
     }
-
+    
     ## ** endpoint
     D <- length(endpoint) 
     
@@ -199,6 +205,7 @@ initializeArgs <- function(alternative,
         method.inference = method.inference,
         method.score = method.score,
         n.resampling = n.resampling,
+        hierarchical = hierarchical,
         neutral.as.uninf = neutral.as.uninf,
         operator = operator,
         seed = seed,
@@ -206,7 +213,8 @@ initializeArgs <- function(alternative,
         threshold = threshold,
         trace = trace,
         treatment = treatment,
-        type = type
+        type = type,
+        weight = weight
     ))
 }
 
@@ -402,7 +410,8 @@ initializeFormula <- function(x){
     censoring <- rep("..NA..", n.endpoint)
     endpoint <- rep(NA, n.endpoint)
     operator <- rep(">0", n.endpoint)
-    validArgs <- c("endpoint","threshold","censoring","operator")
+    weight <- rep(1, n.endpoint)
+    validArgs <- c("endpoint","threshold","censoring","operator","weight")
 
     ## split around parentheses
     ls.x.endpoint <- strsplit(vec.x.endpoint, split = "(", fixed = TRUE)
@@ -458,21 +467,16 @@ initializeFormula <- function(x){
         ## extract arguments
         endpoint[iE] <- gsub("\"","",iArg[iName=="endpoint"])
         if("threshold" %in% iName){
-            thresholdTempo <- tryCatch(as.numeric(iArg[iName=="threshold"]),
-                                       error = function(c){ "error" },
-                                       warning = function(c){ "warning" }
-                                       )
-            if(thresholdTempo %in% c("error", "warning")){ ## maybe a variable was passed instead of a value
-              thresholdTempo <- eval(expr = parse(text = iArg[iName=="threshold"]))
-            }
-            
-            threshold[iE] <- thresholdTempo
+            threshold[iE] <- as.numeric(eval(expr = parse(text = iArg[iName=="threshold"])))
         }
         if("censoring" %in% iName){
             censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])
         }
         if("operator" %in% iName){
             operator[iE] <- gsub("\"","",iArg[iName=="operator"])
+        }
+        if("weight" %in% iName){
+            weight[iE] <- as.numeric(eval(expr = parse(text = iArg[iName=="weight"])))
         }
     }
 
@@ -483,6 +487,7 @@ initializeFormula <- function(x){
                 threshold = threshold,
                 censoring = censoring,
                 operator = operator,
+                weight = weight,
                 strata = strata))
 }
 

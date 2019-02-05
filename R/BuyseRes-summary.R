@@ -107,6 +107,7 @@ setMethod(f = "summary",
                            method = "summary[BuyseRes]")
 
               ## ** load info from object
+              hierarchical <- object@hierarchical
               endpoint <- object@endpoint
               n.endpoint <- length(endpoint)
               n.strata <- length(object@level.strata)
@@ -139,8 +140,8 @@ setMethod(f = "summary",
           
               ## ** generate summary table
               ## *** prepare
-              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=14))
-              names(table) <- c("endpoint","threshold","strata",
+              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15))
+              names(table) <- c("endpoint","threshold","weight","strata",
                                 "n.total","n.favorable","n.unfavorable","n.neutral","n.uninf",
                                 "delta","Delta","CIinf.Delta","CIsup.Delta","p.value","n.resampling")
             
@@ -154,6 +155,7 @@ setMethod(f = "summary",
             
               table[index.global,"endpoint"] <- object@endpoint
               table[index.global,"threshold"] <- object@threshold
+              table[index.global,"weight"] <- object@weight
               table[index.global,"strata"] <- "global"
 
               if(statistic=="netBenefit"){ ##
@@ -175,6 +177,7 @@ setMethod(f = "summary",
                   table[index.strata,"strata"] <- object@level.strata[iStrata]
                   table[index.strata,"endpoint"] <- object@endpoint
                   table[index.strata,"threshold"] <- object@threshold
+                  table[index.strata,"weight"] <- object@weight
                   table[index.strata,"delta"] <- delta[iStrata,]
               }
 
@@ -192,7 +195,7 @@ setMethod(f = "summary",
               table[index.global,"CIsup.Delta"] <- outConfint[,"upper.ci"]
               table[index.global,"p.value"] <- outConfint[,"p.value"]
               table[index.global,"n.resampling"] <- attr(outConfint,"n.resampling")
-            
+
               ## ** generate print table
               table.print <- table
                   
@@ -253,7 +256,7 @@ setMethod(f = "summary",
                       param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
 
                       ## take care of the p.value
-                      table.print[,"p.value"] <- format.pval(table.print[,"p.value"], digits = digit[2])
+                      table.print[index.global,"p.value"] <- format.pval(table.print[index.global,"p.value"], digits = digit[2])
                       
                   }
                   table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[2])
@@ -334,17 +337,23 @@ setMethod(f = "summary",
 
               ## *** remove duplicated values in endpoint/threshold
               test.duplicated <- duplicated(interaction(table.print$endpoint,table.print$threshold))
-              table.print[which(test.duplicated),c("endpoint","threshold")] <- ""
+              table.print[which(test.duplicated),c("endpoint","threshold","weight")] <- ""
+
+              ## *** rm weights
+              if(hierarchical){
+                  table.print$weight <- NULL
+              }
 
               ## ** display
               if(print){
                   ## *** additional text
+                  txt.GPC <- ifelse(hierarchical, "Hierarchical", "Full")
                   txt.strata <- if(n.strata>1){paste0(" and ",n.strata," strata")}else{""}
                   txt.endpoint <- paste0("with ",n.endpoint," prioritized endpoint")
                   if(n.endpoint>1){txt.endpoint <- paste0(txt.endpoint,"s")}
                   
-                  ## *** display                  
-                  cat("        Generalized pairwise comparison ",txt.endpoint,txt.strata,"\n\n", sep = "")
+                  ## *** display
+                  cat("       ",txt.GPC," generalized pairwise comparison ",txt.endpoint,txt.strata,"\n\n", sep = "")
                   if(statistic == "winRatio"){
                       cat(" > statistic       : win ratio (delta: endpoint specific, Delta: global) \n",
                           " > null hypothesis : Delta == 1 \n", sep = "")

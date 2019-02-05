@@ -22,9 +22,11 @@ setClass(
       alternative = "character",
       check = "logical",
       conf.level = "numeric",
+      correction.uninf = "logical",
       cpus = "numeric",
+      hierarchical = "logical",
       keep.pairScore = "logical",
-      keep.survival = "logical",
+      keep.survival = "logical",      
       method.inference = "character",
       method.tte = "character",
       n.resampling = "numeric",
@@ -52,9 +54,17 @@ setClass(
                    max = 1,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
+      validLogical(object@correction.uninf,
+                   name1 = "@correction.uninf",
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
       validInteger(object@cpus,
                    name1 = "@cpus",
                    min = 1,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validLogical(object@hierarchical,
+                   name1 = "@hierarchical",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       validLogical(object@keep.pairScore,

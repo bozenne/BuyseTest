@@ -36,6 +36,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    check = TRUE,
                    conf.level = 0.95,
                    cpus = 1,
+                   hierarchical = TRUE,
                    keep.pairScore = FALSE,
                    keep.survival = FALSE,
                    method.inference = "stratified permutation",

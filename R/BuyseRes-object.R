@@ -34,6 +34,7 @@ setClass(
       level.treatment = "vector",
       level.strata = "vector",
       method.tte = "character",
+      hierarchical = "logical",
       correction.uninf = "numeric",
       method.inference = "character",
       strata = "vector",
@@ -44,6 +45,7 @@ setClass(
       DeltaResampling.netBenefit = "matrix",
       DeltaResampling.winRatio = "matrix",
       covariance = "matrix",
+      weight = "numeric",
       iid = "list",
       tablePairScore = "list",
       tableSurvival = "list"
@@ -70,6 +72,7 @@ methods::setMethod(
                                    level.strata,
                                    level.treatment,
                                    method.tte,
+                                   hierarchical,
                                    correction.uninf,
                                    method.inference,
                                    strata,
@@ -80,6 +83,7 @@ methods::setMethod(
                                    DeltaResampling.netBenefit,
                                    DeltaResampling.winRatio,
                                    covariance,
+                                   weight,
                                    iid,
                                    tablePairScore,
                                    tableSurvival,
@@ -93,6 +97,8 @@ methods::setMethod(
                  dimnames(count.neutral) <- list(level.strata, name.endpoint)
                  dimnames(count.uninf) <- list(level.strata, name.endpoint)
 
+                 names(weight) <- name.endpoint
+                 
                  ## ** delta/Delta
                  dimnames(delta.netBenefit) <- list(level.strata, name.endpoint)
                  dimnames(delta.winRatio) <- list(level.strata, name.endpoint)
@@ -125,6 +131,7 @@ methods::setMethod(
                  .Object@level.strata <- level.strata
                  .Object@level.treatment <- level.treatment
                  .Object@method.tte <- method.tte
+                 .Object@hierarchical <- hierarchical
                  .Object@correction.uninf <- correction.uninf
                  .Object@method.inference <- method.inference
                  .Object@strata <- strata
@@ -138,6 +145,7 @@ methods::setMethod(
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
 
                  .Object@covariance <- covariance$Sigma
+                 .Object@weight <- weight
                  .Object@iid <- list(iid1 = covariance$iid1,
                                      iid2 = covariance$iid2)
                  

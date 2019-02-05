@@ -23,6 +23,8 @@
 #' There must be one threshold for each endpoint variable.
 #' Must value \code{NA} when the endpoint is not a time to event.
 #' Disregarded if the argument \code{formula} is defined.
+#' @param weight [numeric vector] the weights (associated to each endpoint) used to cumulating the pairwise scores over the endpoints.
+#' Only used when \code{hierarchical=FALSE}.
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
 #' @param method.tte [character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
 #' Can be \code{"Gehan"} or \code{"Peron"}. \code{"Gehan"} only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral.
@@ -42,6 +44,7 @@
 #' @param n.resampling [integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
+#' @param hierarchical [logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 #' @param alternative [character] the alternative hypothesis.
 #' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
@@ -200,13 +203,15 @@ BuyseTest <- function(formula,
                       model.tte = NULL,
                       method.inference = NULL,
                       n.resampling = NULL,
+                      hierarchical = NULL,
                       neutral.as.uninf = NULL,
                       keep.pairScore = NULL,
                       treatment = NULL,
                       endpoint = NULL,
                       type = NULL,
-                      threshold = NULL,
+                      threshold = NULL,                      
                       censoring = NULL,
+                      weight = NULL,
                       operator = NULL,
                       strata = NULL, 
                       alternative = NULL, 
@@ -238,6 +243,7 @@ BuyseTest <- function(formula,
                               correction.uninf = correction.uninf,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
+                              hierarchical = hierarchical,
                               neutral.as.uninf = neutral.as.uninf,
                               operator = operator,
                               option = option,
@@ -415,6 +421,7 @@ BuyseTest <- function(formula,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
         method.tte = method.tte,
+        hierarchical = outArgs$hierarchical,
         correction.uninf = outArgs$correction.uninf,
         method.inference = outArgs$method.inference,
         strata = outArgs$strata,
@@ -426,6 +433,7 @@ BuyseTest <- function(formula,
         DeltaResampling.netBenefit = outResampling$DeltaResampling.netBenefit,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
         covariance = outCovariance,
+        weight = outArgs$weight,
         tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
         tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
     )
@@ -592,11 +600,13 @@ BuyseTest <- function(formula,
                      list_survJumpC = outSurv$survJumpC,
                      list_survJumpT = outSurv$survJumpT,
                      list_lastSurv = outSurv$lastSurv,
+                     hierarchical = envir$outArgs$hierarchical,
                      correctionUninf = envir$outArgs$correction.uninf,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = keep.pairScore,
                      reserve = TRUE,
-                     returnOnlyDelta = (method.inference!="none")
+                     returnOnlyDelta = (method.inference!="none"),
+                     weight = envir$outArgs$weight
                      )
 
     ## ** export

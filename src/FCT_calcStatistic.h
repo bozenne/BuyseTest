@@ -16,7 +16,8 @@ using namespace arma ;
 // * calcStatistic
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::vector< double >& Delta_netBenefit, std::vector< double >& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
-                   const int& D, const int& n_strata, const std::vector< double >& n_pairs){
+                   const int& D, const int& n_strata, const std::vector< double >& n_pairs,
+		   const std::vector< double >& weight){
   
 
   // total number of pairs
@@ -36,8 +37,8 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::
       delta_winRatio(iter_strata,iter_d) = Mcount_favorable(iter_strata,iter_d)/(double)(Mcount_unfavorable(iter_strata,iter_d));
 
 	  // accumulate number of favorable and unfavorable
-      strata_favorable += Mcount_favorable(iter_strata,iter_d);
-      strata_unfavorable += Mcount_unfavorable(iter_strata,iter_d);
+      strata_favorable += weight[iter_d] * Mcount_favorable(iter_strata,iter_d);
+      strata_unfavorable += weight[iter_d] * Mcount_unfavorable(iter_strata,iter_d);
     }
     
     Delta_winRatio[iter_d] = strata_favorable/(double)(strata_unfavorable);

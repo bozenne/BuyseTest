@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jan  8 2019 (09:24) 
+## Last-Updated: feb  5 2019 (23:07) 
 ##           By: Brice Ozenne
-##     Update #: 117
+##     Update #: 125
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,7 @@ testArgs <- function(alternative,
                      model.tte,
                      method.inference,
                      n.resampling,
+                     hierarchical,
                      neutral.as.uninf,
                      operator,
                      seed,
@@ -41,6 +42,7 @@ testArgs <- function(alternative,
                      trace,
                      treatment,
                      type,
+                     weight,
                      ...){
 
     ## ** data
@@ -252,6 +254,11 @@ testArgs <- function(alternative,
                      method = "BuyseTest")
     }
     
+   ## ** hierarchical
+    validLogical(hierarchical,
+                 valid.length = 1,
+                 method = "BuyseTest")
+
     ## ** neutral.as.uninf
     validLogical(neutral.as.uninf,
                  valid.length = 1,
@@ -368,6 +375,17 @@ testArgs <- function(alternative,
                           paste0(unique(endpoint)[n.typePerEndpoint>1],collapse = ""),
                           "\n")        
         stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
+    }
+
+    ## ** weight
+    if(length(weight) != D){
+            stop("BuyseTest: argument \'weight\' must have length the number of endpoints \n")
+    }
+    
+    if(hierarchical){
+        if(any(weight!=1) || any(is.na(weight))){
+            stop("BuyseTest: all the weights must be 1 when using hierarchical GPC \n")
+        }
     }
     
     ## ** export
