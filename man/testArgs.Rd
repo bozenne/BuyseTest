@@ -6,8 +6,8 @@
 \usage{
 testArgs(alternative, name.call, censoring, correction.uninf, cpus, data,
   endpoint, formula, keep.pairScore, method.tte, model.tte,
-  method.inference, n.resampling, neutral.as.uninf, operator, seed, strata,
-  threshold, trace, treatment, type, ...)
+  method.inference, n.resampling, hierarchical, neutral.as.uninf, operator,
+  seed, strata, threshold, trace, treatment, type, weight, ...)
 }
 \description{
 Check the validity of the argument passed the BuyseTest function by the user.

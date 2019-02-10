@@ -8,11 +8,12 @@
 \alias{initializeSurvival_Peron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
-initializeArgs(alternative, name.call, censoring, cpus = NULL, data,
-  endpoint, formula, keep.pairScore = NULL, method.tte = NULL,
-  correction.uninf = NULL, model.tte, method.inference = NULL,
-  n.resampling = NULL, neutral.as.uninf = NULL, operator, option,
-  seed = NULL, strata, threshold, trace = NULL, treatment, type)
+initializeArgs(alternative, censoring, correction.uninf = NULL,
+  cpus = NULL, data, endpoint, formula, hierarchical = NULL,
+  keep.pairScore = NULL, method.inference = NULL, method.tte = NULL,
+  model.tte, n.resampling = NULL, name.call, neutral.as.uninf = NULL,
+  operator, option, seed = NULL, strata, threshold, trace = NULL,
+  treatment, type, weight)
 
 initializeData(data, type, endpoint, method.tte, censoring, operator,
   strata, treatment, copy)

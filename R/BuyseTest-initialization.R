@@ -33,19 +33,19 @@
 ## * initializeArgs
 #' @rdname internal-initialization
 initializeArgs <- function(alternative,
-                           name.call,
                            censoring,
+                           correction.uninf = NULL,
                            cpus = NULL,
                            data,
                            endpoint,
                            formula,
-                           keep.pairScore = NULL,
-                           method.tte = NULL,
-                           correction.uninf = NULL,
-                           model.tte,
-                           method.inference = NULL,
-                           n.resampling = NULL,
                            hierarchical = NULL,
+                           keep.pairScore = NULL,
+                           method.inference = NULL,
+                           method.tte = NULL,
+                           model.tte,
+                           n.resampling = NULL,
+                           name.call,
                            neutral.as.uninf = NULL,
                            operator,
                            option,
@@ -54,7 +54,8 @@ initializeArgs <- function(alternative,
                            threshold,
                            trace = NULL,
                            treatment,
-                           type){
+                           type,
+                           weight){
 
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
@@ -70,7 +71,23 @@ initializeArgs <- function(alternative,
 
     ## ** convert formula into separate arguments
     if(!missing(formula)){
+        ## the missing is for BuysePower where the arguments are not necessarily specified
+        test.null <- c(censoring = !missing(censoring) && !is.null(censoring),
+                       endpoint = !missing(endpoint) && !is.null(endpoint),
+                       operator = !missing(operator) && !is.null(operator),
+                       strata = !missing(strata) && !is.null(strata),
+                       threshold = !missing(threshold) && !is.null(threshold),
+                       treatment = !missing(treatment) && !is.null(treatment),
+                       type = !missing(type) && !is.null(type),
+                       weight = !missing(weight) && !is.null(weight)
+                       )
+        if(any(test.null)){
+            txt <- names(test.null)[test.null]
+            warning("Argument",if(sum(test.null)>1){"s"}," \'",paste(txt, collpase="\' \'"),if(sum(test.null)>1){" are "}else{" is "}," ignored when argument \'formula\' has been specified\n")
+        }
+        
         resFormula <- initializeFormula(formula)
+
         treatment <- resFormula$treatment
         type <- resFormula$type
         endpoint <- resFormula$endpoint
@@ -85,7 +102,7 @@ initializeArgs <- function(alternative,
         }
         formula <- NULL
         if(is.null(weight)){
-            operator <- rep(1,length(endpoint))
+            weight <- rep(1,length(endpoint))
         }
     }
     

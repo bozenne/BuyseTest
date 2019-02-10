@@ -6,8 +6,9 @@
 \usage{
 BuyseTest(formula, data, method.tte = NULL, correction.uninf = NULL,
   model.tte = NULL, method.inference = NULL, n.resampling = NULL,
-  neutral.as.uninf = NULL, keep.pairScore = NULL, treatment = NULL,
-  endpoint = NULL, type = NULL, threshold = NULL, censoring = NULL,
+  hierarchical = NULL, neutral.as.uninf = NULL,
+  keep.pairScore = NULL, treatment = NULL, endpoint = NULL,
+  type = NULL, threshold = NULL, censoring = NULL, weight = NULL,
   operator = NULL, strata = NULL, alternative = NULL, seed = 10,
   cpus = NULL, trace = NULL, keep.comparison)
 }
@@ -37,6 +38,8 @@ be used to compute p-values and confidence intervals.}
 \item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 Default value read from \code{BuyseTest.options()}.}
 
+\item{hierarchical}{[logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
+
 \item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analyzed using endpoints of lower priority.
 Default value read from \code{BuyseTest.options()}.}
 
@@ -58,6 +61,9 @@ Disregarded if the argument \code{formula} is defined.}
 There must be one threshold for each endpoint variable.
 Must value \code{NA} when the endpoint is not a time to event.
 Disregarded if the argument \code{formula} is defined.}
+
+\item{weight}{[numeric vector] the weights (associated to each endpoint) used to cumulating the pairwise scores over the endpoints.
+Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.}
 
 \item{operator}{[character vector] the sign defining a favorable endpoint:
 ">0" indicates that higher values are favorable while "<0" indicates the opposite.

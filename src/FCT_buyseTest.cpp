@@ -24,7 +24,8 @@ using namespace arma ;
 //' @param censoring A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows).
 //' @param indexC A list containing the indexes of control observations belonging for each strata. 
 //' @param indexT A list containing the indexes of treatment observations belonging for each strata. 
-//' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.
+//' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
+//' @param weight Store the weight associated to each endpoint. Must have length D. 
 //' @param method The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.
 //' @param D The number of endpoints.
 //' @param n_strata The number of strata. 

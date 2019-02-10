@@ -3,6 +3,7 @@
 * Version 1.7
 ** User visble changes
 - NEW FEATURE: iid function 
+- NEW FEATURE: option hierarchical in BuyseTest
 
 ** Internal change
 - fix bug in the computation of the asymptotic variance + add tests

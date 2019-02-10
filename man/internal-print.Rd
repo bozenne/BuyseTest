@@ -6,9 +6,10 @@
 \alias{printInference}
 \title{internal functions for BuyseTest - display}
 \usage{
-printGeneral(censoring, D, D.TTE, data, endpoint, level.strata,
-  level.treatment, method.tte, neutral.as.uninf, correction.uninf,
-  operator, strata, threshold, trace, treatment, type, Wscheme, ...)
+printGeneral(censoring, D, D.TTE, data, endpoint, hierarchical,
+  level.strata, level.treatment, method.tte, neutral.as.uninf,
+  correction.uninf, operator, strata, threshold, trace, treatment, type,
+  weight, Wscheme, ...)
 
 printInference(method.inference, n.resampling, cpus, seed, ...)
 }

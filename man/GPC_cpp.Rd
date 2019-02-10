@@ -4,11 +4,11 @@
 \alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
+GPC_cpp(endpoint, censoring, indexC, indexT, threshold, weight, method, D,
   n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring,
   index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC,
-  list_survJumpT, list_lastSurv, correctionUninf, neutralAsUninf,
-  keepScore, reserve, returnOnlyDelta)
+  list_survJumpT, list_lastSurv, correctionUninf, hierarchical,
+  neutralAsUninf, keepScore, reserve, returnOnlyDelta)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
@@ -19,7 +19,9 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
 
 \item{indexT}{A list containing the indexes of treatment observations belonging for each strata.}
 
-\item{threshold}{Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. Must have D columns.}
+\item{threshold}{Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints.}
+
+\item{weight}{Store the weight associated to each endpoint. Must have length D.}
 
 \item{method}{The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.}
 
@@ -52,6 +54,8 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, method, D,
 \item{list_lastSurv}{A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).}
 
 \item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
+
+\item{hierarchical}{Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
 
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?}
 

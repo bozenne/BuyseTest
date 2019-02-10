@@ -24,7 +24,7 @@
 #' Must value \code{NA} when the endpoint is not a time to event.
 #' Disregarded if the argument \code{formula} is defined.
 #' @param weight [numeric vector] the weights (associated to each endpoint) used to cumulating the pairwise scores over the endpoints.
-#' Only used when \code{hierarchical=FALSE}.
+#' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
 #' @param method.tte [character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
 #' Can be \code{"Gehan"} or \code{"Peron"}. \code{"Gehan"} only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral.
@@ -232,18 +232,19 @@ BuyseTest <- function(formula,
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(alternative = alternative,
-                              name.call = name.call,
                               censoring = censoring,
+                              correction.uninf = correction.uninf,
                               cpus = cpus,
                               data = data,
                               endpoint = endpoint,
                               formula = formula,
+                              hierarchical = hierarchical,
                               keep.pairScore = keep.pairScore,
+                              method.inference = method.inference,
                               method.tte = method.tte,
-                              correction.uninf = correction.uninf,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
-                              hierarchical = hierarchical,
+                              name.call = name.call,
                               neutral.as.uninf = neutral.as.uninf,
                               operator = operator,
                               option = option,
@@ -253,7 +254,7 @@ BuyseTest <- function(formula,
                               trace = trace,
                               treatment = treatment,
                               type = type,
-                              method.inference = method.inference)
+                              weight = weight)
 
     if(outArgs$keep.pairScore || outArgs$method.inference %in% c("asymptotic","asymptotic-bebu")){
         keep.pairScore <- TRUE
