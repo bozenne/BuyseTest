@@ -43,7 +43,7 @@ LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
 VignetteBuilder: R.rsp
 NeedsCompilation: yes
-RoxygenNote: 6.1.0.9000
+RoxygenNote: 6.1.1
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'

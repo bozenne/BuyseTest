@@ -485,7 +485,20 @@ initializeFormula <- function(x){
         ## extract arguments
         endpoint[iE] <- gsub("\"","",iArg[iName=="endpoint"])
         if("threshold" %in% iName){
-            threshold[iE] <- as.numeric(eval(expr = parse(text = iArg[iName=="threshold"])))
+            thresholdTempo <- eval(expr = parse(text = iArg[iName=="threshold"]))
+
+            if(inherits(thresholdTempo, "function")){
+                packageTempo <- environmentName(environment(thresholdTempo))
+                if(nchar(packageTempo)>0){
+                    txt <- paste0("(package ",packageTempo,")")
+                }else{
+                    txt <- ""
+                }
+                stop(iArg[iName=="threshold"]," is already defined as a function ",txt,"\n",
+                     "cannot be used to specify the threshold \n")
+            }
+            
+            threshold[iE] <- as.numeric(thresholdTempo)
         }
         if("censoring" %in% iName){
             censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])
