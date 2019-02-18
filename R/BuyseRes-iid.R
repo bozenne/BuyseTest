@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: jan  8 2019 (10:16) 
+## Last-Updated: feb 10 2019 (16:59) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 32
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,14 +42,12 @@
 setMethod(f = "iid",
           signature = "BuyseRes",
           definition = function(object,
-                                endpoint = NULL,
-                                order = 1){
+                                endpoint = NULL){
 
 
               ## ** check arguments
               valid.endpoint <- object@endpoint
-              validInteger(order, valid.length = 1, valid.values = 1:2, refuse.NULL = FALSE)
-              validCharacter(endpoint, valid.length = 1, valid.values = valid.endpoint, refuse.NULL = FALSE)
+              validCharacter(endpoint, valid.length = 1:length(valid.endpoint), valid.values = valid.endpoint, refuse.NULL = FALSE)
 
               ## ** extract H-decomposition
               object.iid <- object@iid
@@ -59,34 +57,19 @@ setMethod(f = "iid",
               }
 
               ## ** accumulate H-decomposition
-              if(is.null(order) ||order == 1){
-                  if(is.null(endpoint)){
-                      ## iid decomposition over all endpoints
-                      object.iid$iid1 <- apply(object.iid$iid1, MARGIN = c(1,3), sum)
-                  }else{
-                      ## iid decomposition for each endpoint
-                      object.iid$iid1 <- object.iid$iid1[,endpoint,,drop=FALSE]
-                  }
-              }
-              if(is.null(order) ||order == 2){
-                  if(is.null(endpoint)){
-                      ## iid decomposition over all endpoints
-                      object.iid$iid2 <- apply(object.iid$iid2, MARGIN = c(1,3), sum)
-                  }else{
-                      ## iid decomposition for each endpoint
-                      object.iid$iid2 <- object.iid$iid2[,endpoint,,drop=FALSE]
-                  }
+              if(is.null(endpoint)){                  
+                  ## iid decomposition over all endpoints
+                  object.iid <- do.call(cbind,lapply(object.iid, function(iIID){
+                      wIID <- sweep(iIID, MARGIN = 2, FUN = "*", STATS = object@weight)
+                      return(apply(iIID, MARGIN = 1, sum))
+                  }))
+              }else{
+                  ## iid decomposition for each endpoint
+                  object.iid <- lapply(object.iid, function(iIID){iIID[,endpoint,drop=FALSE]})
               }
 
               ## ** output H-decomposition
-              if(is.null(order)){
-                  return(object.iid)
-              }else if(order == 1){
-                  return(object.iid$iid1)
-              }else if(order == 2){
-                  return(object.iid$iid2)
-              }              
-
+              return(object.iid)
     
 })
 

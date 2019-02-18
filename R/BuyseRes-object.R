@@ -84,7 +84,8 @@ methods::setMethod(
                                    DeltaResampling.winRatio,
                                    covariance,
                                    weight,
-                                   iid,
+                                   iid_favorable,
+                                   iid_unfavorable,
                                    tablePairScore,
                                    tableSurvival,
                                    args){
@@ -144,10 +145,10 @@ methods::setMethod(
                  .Object@DeltaResampling.netBenefit <- DeltaResampling.netBenefit
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
 
-                 .Object@covariance <- covariance$Sigma
+                 .Object@covariance <- covariance
                  .Object@weight <- weight
-                 .Object@iid <- list(iid1 = covariance$iid1,
-                                     iid2 = covariance$iid2)
+                 .Object@iid<- list(favorable = iid_favorable,
+                                    unfavorable = iid_unfavorable)
                  
                  .Object@tablePairScore <- tablePairScore
                  .Object@tableSurvival <- tableSurvival

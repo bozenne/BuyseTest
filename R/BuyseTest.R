@@ -256,12 +256,6 @@ BuyseTest <- function(formula,
                               type = type,
                               weight = weight)
 
-    if(outArgs$keep.pairScore || outArgs$method.inference %in% c("asymptotic","asymptotic-bebu")){
-        keep.pairScore <- TRUE
-    }else{
-        keep.pairScore <- FALSE
-    }
-
     ## ** test arguments
     if(option$check){
         outTest <- do.call(testArgs, args = outArgs)
@@ -312,15 +306,14 @@ BuyseTest <- function(formula,
         cat("Point estimation")
     }
     outPoint <- .BuyseTest(envir = envirBT,
-                           keep.pairScore = keep.pairScore,
                            method.inference = "none")
 
     if (outArgs$trace > 1) {
         cat("\n\n")
     }
-    
+
     ## convert from a list of vector (output of C++) to a list of data.table
-    if(keep.pairScore){
+    if(outArgs$keep.pairScore){
         ## needed for inference
         outPoint$tablePairScore <- pairScore2dt(outPoint$tableScore,
                                                 level.treatment = outArgs$level.treatment,
@@ -349,18 +342,40 @@ BuyseTest <- function(formula,
 
             if(outArgs$method.inference=="asymptotic"){
                 ## via the iid decomposition
+                browser()
+                ## not needed anymore - done in the cpp part
                 outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
                                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
-                                                     n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                   level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+                                                     n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
+                                                     level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+                outCovariance$Sigma
+                outPoint$Mvar
+                outPoint$count_favorable
+                head(outPoint$iid_favorable)
+                outCovariance$iid1[1:5,,1:2]
+                
+                dimnames(outPoint$Mvar) <- list(outArgs$endpoint, c("favorable","unfavorable","covariance"))
+                colnames(outPoint$iid_favorable) <- outArgs$endpoint
+                colnames(outPoint$iid_unfavorable) <- outArgs$endpoint
+                attr(outArgs$method.inference,"Hprojection") <- 1
+                
             }else if(outArgs$method.inference=="asymptotic-bebu"){
+                if(outArgs$keep.pairScore == FALSE){
+                    stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"asymptotic-bebu\" \n")
+                }
+
+                            
                 ## direct computation of the variance
                 outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
                                                          count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
                                                          n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                     level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+
+                outPoint$Mvar <- outCovariance$Sigma
+                outPoint$iid_favorable <- NULL
+                outPoint$iid_unfavorable <- NULL
+                attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
             }
 
-            attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
-            
             outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
                                   deltaResampling.winRatio = array(dim=c(0,0,0)),
                                   DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
@@ -370,9 +385,9 @@ BuyseTest <- function(formula,
             
         }else{
             outResampling <- inferenceResampling(envirBT)
-            outCovariance <- list(Sigma = matrix(nrow = 0, ncol = 0),
-                                  iid1 = NULL,
-                                  iid2 = NULL)
+            outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
+            outPoint$iid_favorable <- NULL
+            outPoint$iid_unfavorable <- NULL
         }
         if(outArgs$trace > 1){
             cat("\n")
@@ -433,8 +448,10 @@ BuyseTest <- function(formula,
         deltaResampling.winRatio = outResampling$deltaResampling.winRatio,
         DeltaResampling.netBenefit = outResampling$DeltaResampling.netBenefit,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
-        covariance = outCovariance,
+        covariance = outPoint$Mvar,
         weight = outArgs$weight,
+        iid_favorable = outPoint$iid_favorable,
+        iid_unfavorable = outPoint$iid_unfavorable,
         tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
         tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
     )
@@ -448,7 +465,6 @@ BuyseTest <- function(formula,
 
 ## * .BuyseTest (code)
 .BuyseTest <- function(envir,
-                       keep.pairScore,
                        method.inference){
    
     n.strata <- envir$outArgs$n.strata ## to simplify code
@@ -586,6 +602,7 @@ BuyseTest <- function(formula,
                      indexC = ls.indexC,
                      indexT = ls.indexT,                     
                      threshold = envir$outArgs$threshold,
+                     weight = envir$outArgs$weight,
                      method = envir$outArgs$method.score,
                      D = D,
                      n_strata = n.strata,
@@ -601,13 +618,12 @@ BuyseTest <- function(formula,
                      list_survJumpC = outSurv$survJumpC,
                      list_survJumpT = outSurv$survJumpT,
                      list_lastSurv = outSurv$lastSurv,
-                     hierarchical = envir$outArgs$hierarchical,
                      correctionUninf = envir$outArgs$correction.uninf,
+                     hierarchical = envir$outArgs$hierarchical,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
-                     keepScore = keep.pairScore,
+                     keepScore = envir$outArgs$keep.pairScore,
                      reserve = TRUE,
-                     returnOnlyDelta = (method.inference!="none"),
-                     weight = envir$outArgs$weight
+                     returnOnlyDelta = (method.inference!="none")
                      )
 
     ## ** export
@@ -621,7 +637,7 @@ BuyseTest <- function(formula,
                     Delta_netBenefit = resBT$Delta_netBenefit,
                     delta_winRatio = resBT$delta_winRatio,
                     Delta_winRatio = resBT$Delta_winRatio))
-}
+    }
 }
 
 

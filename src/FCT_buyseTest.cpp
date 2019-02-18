@@ -87,16 +87,21 @@ List GPC_cpp(arma::mat endpoint,
   // The first endpoint begin with complete weight for each pair (i.e 1). If the pair is classed favorable or unfavorable the whole weight is affected to this category (i.e count_favorable++ or count_unfavorable++) and the pair is not used for the following outcomes.
   // If the pair is partially or completely classed uninformative or neutral, the remaining weight is used for the following endpoints.
   // EX : pair 1 is 0.15 favorable and 0.45 unfavorable for survival endpoint 1. Then the remaining 0.4 are passed to endpoint 2 that class it into favorable.
+
   
   /// ** initialization
-  
   // *** final results
   arma::mat Mcount_favorable(n_strata,D,fill::zeros); // store the total weight of favorable pairs by endpoint for each strata
   arma::mat Mcount_unfavorable(n_strata,D,fill::zeros); // store the total weight of unfavorable pairs by endpoint for each strata
   arma::mat Mcount_neutral(n_strata,D,fill::zeros); // store the total weight of neutral pairs by endpoint for each strata
   arma::mat Mcount_uninf(n_strata,D,fill::zeros); // store the total weight of uninf pairs by endpoint for each strata
   std::vector< double > n_pairs(n_strata); // number of pairs sumed over the strats
-  
+
+  // iid decomposition
+  arma::mat iid_favorable(endpoint.n_rows,D,fill::zeros);
+  arma::mat iid_unfavorable(endpoint.n_rows,D,fill::zeros);
+  arma::mat Mvar(D,3,fill::zeros);
+    
   // *** for a given stata [input]
   // weights of the neutral / uninformative pairs
   arma::mat matWeight;  // for all endpoint up to the current endpoint 
@@ -118,6 +123,9 @@ List GPC_cpp(arma::mat endpoint,
   std::vector< int > iIndex_control_M1; // in the control arm [previous endpoint]
   std::vector< int > iIndex_treatment_M1;  // in the treatment arm [previous endpoint]
 
+  arma::mat iIID_C;
+  arma::mat iIID_T;
+    
   // weights of the neutral / uninformative pairs
   arma::vec iWeight; // store weights for the current endpoint
 
@@ -181,9 +189,10 @@ List GPC_cpp(arma::mat endpoint,
 			      list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 			      list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), 
 			      iMethod, correctionUninf,	
-			      Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+			      Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
 			      iIndex_control, iIndex_treatment,
 			      iWeight, iVecFavorable, iVecUnfavorable,
+			      iIID_C, iIID_T,
 			      neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
 
 	// add to the total number of pairs the number of pairs found for this endpoint
@@ -201,11 +210,19 @@ List GPC_cpp(arma::mat endpoint,
 				 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 				 iIndex_control, iIndex_treatment, 
 				 iWeight, iIndexWeight_pair, iVecFavorable, iVecUnfavorable,
+				 iIID_C, iIID_T,
 				 neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
       }
       R_CheckUserInterrupt();
 	
 
+      // **** update iid
+      iid_favorable.submat(indexC[iter_strata],iUvec_endpoint) = iIID_C.col(0);
+      iid_favorable.submat(indexT[iter_strata],iUvec_endpoint) = iIID_T.col(0);
+	
+      iid_unfavorable.submat(indexC[iter_strata],iUvec_endpoint) = iIID_C.col(1);
+      iid_unfavorable.submat(indexT[iter_strata],iUvec_endpoint) = iIID_T.col(1);
+      
       // **** update all Scores
       if(keepScore){
 	// Rcout << " update lsScore" << endl;
@@ -285,7 +302,8 @@ List GPC_cpp(arma::mat endpoint,
   std::vector< double > Delta_netBenefit(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
   
   calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
-                Mcount_favorable, Mcount_unfavorable, 
+                Mcount_favorable, Mcount_unfavorable,
+		iid_favorable, iid_unfavorable, Mvar,
                 D, n_strata, n_pairs, weight);
 
   // ** export
@@ -307,6 +325,9 @@ List GPC_cpp(arma::mat endpoint,
 			Named("Delta_netBenefit")  = Delta_netBenefit,
 			Named("Delta_winRatio")  = Delta_winRatio,
 			Named("n_pairs")  = n_pairs,
+			Named("iid_favorable")  = iid_favorable,
+			Named("iid_unfavorable")  = iid_unfavorable,
+			Named("Mvar")  = Mvar,
 			Named("tableScore")  = lsScore
 			));
   }
