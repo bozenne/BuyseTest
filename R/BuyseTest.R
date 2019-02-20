@@ -342,18 +342,12 @@ BuyseTest <- function(formula,
 
             if(outArgs$method.inference=="asymptotic"){
                 ## via the iid decomposition
-                browser()
                 ## not needed anymore - done in the cpp part
                 outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
                                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
                                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
                                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
-                outCovariance$Sigma
-                outPoint$Mvar
-                outPoint$count_favorable
-                head(outPoint$iid_favorable)
-                outCovariance$iid1[1:5,,1:2]
-                
+
                 dimnames(outPoint$Mvar) <- list(outArgs$endpoint, c("favorable","unfavorable","covariance"))
                 colnames(outPoint$iid_favorable) <- outArgs$endpoint
                 colnames(outPoint$iid_unfavorable) <- outArgs$endpoint

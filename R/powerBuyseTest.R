@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: feb 10 2019 (10:33) 
+## Last-Updated: feb 20 2019 (17:07) 
 ##           By: Brice Ozenne
-##     Update #: 342
+##     Update #: 343
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -225,7 +225,6 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
         ## *** Point estimate
         outPoint <- .BuyseTest(envir = envir,
-                               keep.pairScore = TRUE,
                                method.inference = "none")
 
         ## *** put results into a data.table

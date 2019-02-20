@@ -249,8 +249,9 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
     // Rcout << "end merge " << endl;
 
     // ** rescale iid to proba
-    MC_iid /= n_pair;
-    MT_iid /= n_pair;
+	// Rcout << n_pair << endl;
+    MC_iid /= n_Treatment;
+    MT_iid /= n_Control;
     
     // ** export
     return matPairScore;
@@ -279,7 +280,6 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
   int n_Treatment = Treatment.size(); // number of patients from the treatment arm
   int n_Control = Control.size(); // number of patients from the control arm
   int n_pair = index_control_M1.size(); // n_pair may not be n_Control * n_Treatment since some pairs may have been informative regarding the previous endpoint 
-  int n_allPair = n_Control * n_Treatment; 
 
   bool updateIndexNeutral = moreEndpoint && neutralAsUninf;
   bool updateIndexUninf = moreEndpoint;
@@ -394,6 +394,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
       MC_iid(iter_C,1) += weight_unfavorable;
       MT_iid(iter_T,1) += weight_unfavorable;
     }
+
     if(weight_neutral > zeroPlus){
       count_neutral += weight_neutral;
       if(updateIndexNeutral){
@@ -470,9 +471,9 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
   }
   // Rcout << "end merge " << endl;
 
-  // ** rescale iid to proba
-  MC_iid /= n_pair;
-  MT_iid /= n_pair;
+  // ** rescale iid: divide the sum over the pairs including the observations by the number of pairs
+  MC_iid /= n_Treatment;
+  MT_iid /= n_Control;
 
   // ** export 
   return matPairScore;

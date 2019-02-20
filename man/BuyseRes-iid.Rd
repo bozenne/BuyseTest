@@ -9,7 +9,7 @@
 \usage{
 iid(object, endpoint = NULL, order = 1)
 
-\S4method{iid}{BuyseRes}(object, endpoint = NULL, order = 1)
+\S4method{iid}{BuyseRes}(object, endpoint = NULL)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}

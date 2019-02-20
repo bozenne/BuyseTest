@@ -17,14 +17,19 @@ using namespace arma ;
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::vector< double >& Delta_netBenefit, std::vector< double >& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
                    arma::mat& iid_favorable, arma::mat& iid_unfavorable, arma::mat& Mvar,
+				   std::vector< arma::uvec >& indexC, std::vector< arma::uvec >& indexT,
                    const int& D, const int& n_strata, const std::vector< double >& n_pairs,
-		   const std::vector< double >& weight){
+		           const std::vector< double >& weight){
   
   
-  // total number of pairs
+  // total number of pairs and patients in each arm
   double ntot_pair=0;
+  double ntot_treatment=0;
+  double ntot_control=0;
   for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
 	ntot_pair += n_pairs[iter_strata];
+	ntot_control += indexC[iter_strata].size();
+	ntot_treatment += indexT[iter_strata].size();
   }
 
   // global iid decomposition
@@ -55,26 +60,37 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::
       iStrata_unfavorable += Mcount_unfavorable(iter_strata,iter_d);
     }
 
-      iFavorable += weight[iter_d] * iStrata_favorable;
-      iUnfavorable += weight[iter_d] * iStrata_unfavorable;
-  
-      Delta_winRatio[iter_d] = iFavorable/(double)(iUnfavorable);
-      Delta_netBenefit[iter_d] = (iFavorable-iUnfavorable)/(double)(ntot_pair);
 
-      // center and scale iid
-      iid_favorable.col(iter_d) -= iStrata_favorable / (double)(ntot_pair);
-      iid_unfavorable.col(iter_d) -= iStrata_unfavorable / (double)(ntot_pair);
-    
-      if(iter_d==0){
-	cumiid_favorable.col(iter_d) = weight[iter_d] * iid_favorable.col(iter_d);
-	cumiid_unfavorable.col(iter_d) = weight[iter_d] * iid_unfavorable.col(iter_d);
-      }else{
-	cumiid_favorable.col(iter_d) = weight[iter_d] * iid_favorable.col(iter_d) + cumiid_favorable.col(iter_d-1);
-	cumiid_unfavorable.col(iter_d) = weight[iter_d] * iid_unfavorable.col(iter_d) + cumiid_unfavorable.col(iter_d-1);
-      }
+	// normalize iid
+	iid_favorable.col(iter_d) -= iStrata_favorable / (double)(ntot_pair); // center
+	iid_unfavorable.col(iter_d) -= iStrata_unfavorable / (double)(ntot_pair); // center
+	for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // divide by the number of terms i.e. we output \psi_i/n in 1/n \sum_i \psi_i
+	  iid_favorable.rows(indexC[iter_strata]) /= ntot_control;
+	  iid_unfavorable.rows(indexC[iter_strata]) /= ntot_control;
+
+	  iid_favorable.rows(indexT[iter_strata]) /= ntot_treatment;
+	  iid_unfavorable.rows(indexT[iter_strata]) /= ntot_treatment;
+	}
+	
+	// cumulate statistic over endpoints
+	iFavorable += weight[iter_d] * iStrata_favorable;
+	iUnfavorable += weight[iter_d] * iStrata_unfavorable;
+  
+	Delta_winRatio[iter_d] = iFavorable/(double)(iUnfavorable);
+	Delta_netBenefit[iter_d] = (iFavorable-iUnfavorable)/(double)(ntot_pair);
+
+	// cumulate iid over endpoints
+	if(iter_d==0){
+	  cumiid_favorable.col(iter_d) = weight[iter_d] * iid_favorable.col(iter_d);
+	  cumiid_unfavorable.col(iter_d) = weight[iter_d] * iid_unfavorable.col(iter_d);
+	}else{
+	  cumiid_favorable.col(iter_d) = weight[iter_d] * iid_favorable.col(iter_d) + cumiid_favorable.col(iter_d-1);
+  	  cumiid_unfavorable.col(iter_d) = weight[iter_d] * iid_unfavorable.col(iter_d) + cumiid_unfavorable.col(iter_d-1);
+    }
     
   }
 
+  // compute variance
   Mvar.col(0) = trans(sum(pow(cumiid_favorable,2), 0));
   Mvar.col(1) = trans(sum(pow(cumiid_unfavorable,2), 0));
   Mvar.col(2) = trans(sum(cumiid_favorable % cumiid_unfavorable, 0));

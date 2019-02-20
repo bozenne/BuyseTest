@@ -303,7 +303,8 @@ List GPC_cpp(arma::mat endpoint,
   
   calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
                 Mcount_favorable, Mcount_unfavorable,
-		iid_favorable, iid_unfavorable, Mvar,
+		        iid_favorable, iid_unfavorable, Mvar,
+				indexC, indexT,
                 D, n_strata, n_pairs, weight);
 
   // ** export

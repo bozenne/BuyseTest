@@ -56,8 +56,7 @@ inferenceResampling <- function(envir){
                                            if(trace>0){utils::setTxtProgressBar(pb, iB)}
 
                                            return(.BuyseTest(envir = envir,
-                                                      keep.pairScore = FALSE,
-                                                      method.inference = envir$outArgs$method.inference))
+                                                             method.inference = envir$outArgs$method.inference))
                       
                                        })
 
@@ -162,7 +161,7 @@ inferenceUstatistic <- function(tablePairScore, order, count.favorable, count.un
             sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.T"]
             sumPair.T[, c("E.favorable") := .SD$favorable/.SD$pairs]
             sumPair.T[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
-            
+
             ## \E[X_i>=Y_j+\tau|Y_j] and \E[X_i+\tau<=Y_j|Y_j]
             sumPair.C <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.C"]
             sumPair.C[, c("E.favorable") := .SD$favorable/.SD$pairs]

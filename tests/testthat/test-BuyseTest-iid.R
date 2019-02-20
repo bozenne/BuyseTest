@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: jan  9 2019 (20:22) 
+## Last-Updated: feb 20 2019 (18:19) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,6 @@ BuyseTest.options(check = TRUE,
                   order.Hprojection = 1,
                   trace = 0)
 
-
 ## * Binary case
 ## ** no strata
 ## equal number in each group
@@ -41,7 +40,7 @@ test_that("iid: binary and no strata (balanced groups)", {
     e2.BT <- BuyseTest(group ~ bin(toxicity),
                        data = d, 
                        method.inference = "asymptotic-bebu")
-    
+
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16) )
 

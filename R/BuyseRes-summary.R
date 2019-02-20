@@ -121,18 +121,6 @@ setMethod(f = "summary",
                   method.inference <- "none"
               }
 
-              ## safety
-              if(method.inference %in% c("asymptotic","asymptotic-bebu")){
-                  if(object@method.tte == "Peron"){
-                      warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
-                              "Standard errors / confidence intervals / p-values will not be displayed \n")
-                      conf.level <- NA
-                  }else if(object@correction.uninf > 0){
-                      warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
-                              "Standard errors / confidence intervals / p-values will not be displayed \n")
-                      conf.level <- NA
-                  }
-              }
               alpha <- 1-conf.level
               
               ## ** compute confidence intervals and p-values
