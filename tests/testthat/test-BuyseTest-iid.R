@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 20 2019 (18:19) 
+## Last-Updated: feb 21 2019 (13:12) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -112,6 +112,7 @@ set.seed(10)
 d <- simBuyseTest(50)
 
 test_that("iid: two endpoints (no strata)", {
+    ## different endpoints
     e.BT <- BuyseTest(Treatment ~  bin(toxicity) + cont(score, threshold = 1),
                       data = d,
                       method.inference = "asymptotic")
@@ -120,13 +121,41 @@ test_that("iid: two endpoints (no strata)", {
                        method.inference = "asymptotic-bebu")
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance["toxicity",]), c(0.002499994, 0.002499994, -0.002492006), tol = 1e-6 )
-    expect_equal(as.double(e.BT@covariance["score",]), c(0.003049562, 0.003202234, -0.002925978), tol = 1e-6 )
+    expect_equal(as.double(e.BT@covariance["toxicity_0.5",]),
+                 c(0.002499994, 0.002499994, -0.002492006), tol = 1e-6 )
+    expect_equal(as.double(e.BT@covariance["score_1",]),
+                 c(0.003049562, 0.003202234, -0.002925978), tol = 1e-6 )
 
     ## favorable unfavorable   covariance
     ## toxicity 0.002499994 0.002499994 -0.002492006
     ## score    0.008041562 0.008194234 -0.002925978
-})
+
+    ## same endpoint
+    e.BT <- BuyseTest(Treatment ~  cont(score, threshold = 2) + cont(score, threshold = 1),
+                      data = d,
+                      method.inference = "asymptotic")
+    e2.BT <- BuyseTest(Treatment ~  cont(score, threshold = 2) + cont(score, threshold = 1),
+                       data = d,
+                       method.inference = "asymptotic-bebu")
+    expect_equal(e.BT@covariance, e2.BT@covariance)
+    expect_equal(as.double(e.BT@covariance["score_2",]),
+                 c(0.00036192, 0.000613760, -0.000166400), tol = 1e-6 )
+    expect_equal(as.double(e.BT@covariance["score_1",]),
+                 c(0.00190759, 0.002360218, -0.001708275), tol = 1e-6 )
+
+    ## same endpoint tte
+    e.BT <- suppressWarnings(BuyseTest(Treatment ~  tte(eventtime, threshold = 2, censoring = status) + tte(eventtime, threshold = 1, censoring = status),
+                                       data = d,
+                                       method.inference = "asymptotic"))
+    e2.BT <- suppressWarnings(BuyseTest(Treatment ~  tte(eventtime, threshold = 2, censoring = status) + tte(eventtime, threshold = 1, censoring = status),
+                                        data = d,
+                                        method.inference = "asymptotic-bebu"))
+    expect_equal(e.BT@covariance, e2.BT@covariance)
+    expect_equal(as.double(e.BT@covariance["eventtime_2",]),
+                 c(0.0000000000, 0.0004251505, 0.0000000000), tol = 1e-6 )
+    expect_equal(as.double(e.BT@covariance["eventtime_1",]),
+                 c(0.0008748297, 0.0015243380, -0.0009593909), tol = 1e-6 )
+x})
 
 
 ## ** strata

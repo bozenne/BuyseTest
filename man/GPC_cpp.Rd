@@ -63,7 +63,7 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, weight, method, D,
 
 \item{reserve}{Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?}
 
-\item{returnOnlyDelta}{Should only the net benefit and win ratio be output?.}
+\item{returnOnlyDelta}{Should only the net benefit and win ratio be output? Slightly faster because the iid is not computed.}
 }
 \description{
 \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results.

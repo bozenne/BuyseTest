@@ -31,7 +31,7 @@
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 #' @param keepScore Should the result of each pairwise comparison be kept?
 #' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?
-#' @param returnOnlyDelta Should only the net benefit and win ratio be output?.
+#' @param returnOnlyDelta Should only the net benefit and win ratio be output? Slightly faster because the iid is not computed.
 #' @keywords function Cpp BuyseTest
 NULL
 

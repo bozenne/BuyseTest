@@ -46,7 +46,7 @@ using namespace arma ;
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 //' @param keepScore Should the result of each pairwise comparison be kept?
 //' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?
-//' @param returnOnlyDelta Should only the net benefit and win ratio be output?.
+//' @param returnOnlyDelta Should only the net benefit and win ratio be output? Slightly faster because the iid is not computed.
 //' @keywords function Cpp BuyseTest
 
 // * Function GPC_cpp
@@ -98,10 +98,11 @@ List GPC_cpp(arma::mat endpoint,
   std::vector< double > n_pairs(n_strata); // number of pairs sumed over the strats
 
   // iid decomposition
+  bool returnIID = (returnOnlyDelta == false);
   arma::mat iid_favorable(endpoint.n_rows,D,fill::zeros);
   arma::mat iid_unfavorable(endpoint.n_rows,D,fill::zeros);
   arma::mat Mvar(D,3,fill::zeros);
-    
+  
   // *** for a given stata [input]
   // weights of the neutral / uninformative pairs
   arma::mat matWeight;  // for all endpoint up to the current endpoint 
@@ -123,8 +124,8 @@ List GPC_cpp(arma::mat endpoint,
   std::vector< int > iIndex_control_M1; // in the control arm [previous endpoint]
   std::vector< int > iIndex_treatment_M1;  // in the treatment arm [previous endpoint]
 
-  arma::mat iIID_C;
-  arma::mat iIID_T;
+  arma::mat iIID_C; // iid in the control group [current endpoint]
+  arma::mat iIID_T; // iid in the treatment group [current endpoint]
     
   // weights of the neutral / uninformative pairs
   arma::vec iWeight; // store weights for the current endpoint
@@ -143,6 +144,7 @@ List GPC_cpp(arma::mat endpoint,
   int iMethod;
   bool iReanalyzed;
   int iIndex_UTTE;
+  arma::uvec iUvec_iter_d(1);
   arma::uvec iUvec_weight;
   arma::uvec iUvec_endpoint(1);
   arma::uvec iUvec_censoring(1);
@@ -192,7 +194,7 @@ List GPC_cpp(arma::mat endpoint,
 			      Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
 			      iIndex_control, iIndex_treatment,
 			      iWeight, iVecFavorable, iVecUnfavorable,
-			      iIID_C, iIID_T,
+						  iIID_C, iIID_T, returnIID,
 			      neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
 
 	// add to the total number of pairs the number of pairs found for this endpoint
@@ -210,19 +212,23 @@ List GPC_cpp(arma::mat endpoint,
 				 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 				 iIndex_control, iIndex_treatment, 
 				 iWeight, iIndexWeight_pair, iVecFavorable, iVecUnfavorable,
-				 iIID_C, iIID_T,
+				 iIID_C, iIID_T, returnIID,
 				 neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
       }
       R_CheckUserInterrupt();
 	
 
       // **** update iid
-      iid_favorable.submat(indexC[iter_strata],iUvec_endpoint) = iIID_C.col(0);
-      iid_favorable.submat(indexT[iter_strata],iUvec_endpoint) = iIID_T.col(0);
+	// Rcout << " update iid" << endl;
+	  if(returnIID){
+		iUvec_iter_d = {iter_d};
+		iid_favorable.submat(indexC[iter_strata], iUvec_iter_d) = iIID_C.col(0);
+		iid_favorable.submat(indexT[iter_strata], iUvec_iter_d) = iIID_T.col(0);
 	
-      iid_unfavorable.submat(indexC[iter_strata],iUvec_endpoint) = iIID_C.col(1);
-      iid_unfavorable.submat(indexT[iter_strata],iUvec_endpoint) = iIID_T.col(1);
-      
+		iid_unfavorable.submat(indexC[iter_strata], iUvec_iter_d) = iIID_C.col(1);
+		iid_unfavorable.submat(indexT[iter_strata], iUvec_iter_d) = iIID_T.col(1);
+      }
+	  
       // **** update all Scores
       if(keepScore){
 	// Rcout << " update lsScore" << endl;
@@ -297,13 +303,14 @@ List GPC_cpp(arma::mat endpoint,
     }
   }
   
-  // ** proportion in favor of treatment 
+  // ** proportion in favor of treatment
+   // Rcout << " compute statistics" << endl;
   arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
   std::vector< double > Delta_netBenefit(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
   
   calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
                 Mcount_favorable, Mcount_unfavorable,
-		        iid_favorable, iid_unfavorable, Mvar,
+		        iid_favorable, iid_unfavorable, Mvar, returnIID,
 				indexC, indexT,
                 D, n_strata, n_pairs, weight);
 

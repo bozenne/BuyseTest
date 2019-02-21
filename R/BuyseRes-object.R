@@ -146,10 +146,20 @@ methods::setMethod(
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
 
                  .Object@covariance <- covariance
+                 if(NCOL(covariance)>0){
+                     dimnames(.Object@covariance) <- list(name.endpoint,
+                                                          c("favorable","unfavorable","covariance"))
+                 }
                  .Object@weight <- weight
-                 .Object@iid<- list(favorable = iid_favorable,
-                                    unfavorable = iid_unfavorable)
                  
+                 .Object@iid <- list(favorable = iid_favorable,
+                                     unfavorable = iid_unfavorable)
+                 if(!is.null(.Object@iid[[1]])){
+                     colnames(.Object@iid[[1]]) <- name.endpoint
+                 }
+                 if(!is.null(.Object@iid[[2]])){
+                     colnames(.Object@iid[[2]]) <- name.endpoint
+                 }                 
                  .Object@tablePairScore <- tablePairScore
                  .Object@tableSurvival <- tableSurvival
                  

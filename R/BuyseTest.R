@@ -343,14 +343,10 @@ BuyseTest <- function(formula,
             if(outArgs$method.inference=="asymptotic"){
                 ## via the iid decomposition
                 ## not needed anymore - done in the cpp part
-                outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
-                                                     count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
-                                                     n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
-                                                     level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
-
-                dimnames(outPoint$Mvar) <- list(outArgs$endpoint, c("favorable","unfavorable","covariance"))
-                colnames(outPoint$iid_favorable) <- outArgs$endpoint
-                colnames(outPoint$iid_unfavorable) <- outArgs$endpoint
+                ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
+                ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
+                ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
+                ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
                 attr(outArgs$method.inference,"Hprojection") <- 1
                 
             }else if(outArgs$method.inference=="asymptotic-bebu"){
@@ -393,9 +389,9 @@ BuyseTest <- function(formula,
                               DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
                               DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
                               n.resampling = as.double(NA))
-        outCovariance <- list(Sigma = matrix(nrow = 0, ncol = 0),
-                              iid1 = NULL,
-                              iid2 = NULL)
+        outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
+        outPoint$iid_favorable <- NULL
+        outPoint$iid_unfavorable <- NULL
     }
     
     ## ** Gather results into a BuyseRes object
