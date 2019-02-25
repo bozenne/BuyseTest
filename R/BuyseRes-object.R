@@ -150,9 +150,13 @@ methods::setMethod(
                  .Object@covariance <- covariance
                  if(NCOL(covariance)>0){
                      dimnames(.Object@covariance) <- list(name.endpoint,
-                                                          c("favorable","unfavorable","covariance"))
+                                                          c("favorable","unfavorable","covariance","netBenefit","winRatio"))
                  }
                  .Object@covarianceResampling <- covarianceResampling
+                 if(dim(.Object@covarianceResampling)[1]>0){
+                     dimnames(.Object@covarianceResampling) <- list(NULL,name.endpoint,
+                                                            c("favorable","unfavorable","covariance","netBenefit","winRatio"))
+                 }
                  .Object@weight <- weight
                  
                  .Object@iid <- list(favorable = iid_favorable,

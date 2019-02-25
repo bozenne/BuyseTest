@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: okt 15 2018 (21:52) 
+## Last-Updated: feb 25 2019 (15:15) 
 ##           By: Brice Ozenne
-##     Update #: 241
+##     Update #: 253
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -99,7 +99,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
         }
                 
     }
-    
+
 ### ** If did not find a value whose image matched tol, give the closest solution
     if(ncv){
         iIndexInSet <- which.min(abs(value.grid))
@@ -113,7 +113,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
                 value = value,
                 ## grid = setNames(value.grid,grid),
                 counts = iter,
-                cv = ncv,
+                cv = (ncv==FALSE),
                 message = NULL))
 }
 
@@ -232,23 +232,14 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
         increasing = increasing,
         check = FALSE)
 
-        ## check change sign
-        sign.before <- sign(FUN.ci(x = x.boot,
-                                   p.value = max(0,resSearch$par-1/n.boot),
-                                   alternative = alternative,
-                                   sign.estimate = sign.statistic)-null)
-
-        sign.after <- sign(FUN.ci(x = x.boot,
-                                  p.value = min(1,resSearch$par+1/n.boot),
-                                  alternative = alternative,
-                                  sign.estimate = sign.statistic)-null)
-
-        ##
-        if(is.na(resSearch$value) || length(resSearch$value)==0 || resSearch$par<0 || resSearch$par>1 || sign.before==sign.after){
+        ## cv check
+        if(is.na(resSearch$value) || length(resSearch$value)==0 || resSearch$par<0 || resSearch$par>1 || resSearch$cv == FALSE){
             warning("incorrect convergence of the algorithm finding the critical quantile \n",
                     "p-value may not be reliable \n")
 
         }
+
+        ## do not check unique maximum
         p.value <- resSearch$par
     }
 

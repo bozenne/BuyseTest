@@ -106,19 +106,29 @@ printGeneral <- function(censoring,
 #' @rdname internal-print
 printInference <- function(method.inference, n.resampling, cpus, seed, ...){
 
-    txt.type <- switch(method.inference,
-                       "asymptotic" = "moments of the U-statistic",
-                       "bootstrap" = paste0("non parametric bootstrap with ",n.resampling," samples"),
-                       "stratified bootstrap" = paste0("stratified non-parametric bootstrap with ",n.resampling," samples"),
-                       "permutation" = paste0("permutation test with ", n.resampling, " permutations"),
-                       "stratified permutation" = paste0("stratified permutation test with ", n.resampling, " permutations"))
+    if(method.inference != "none"){
 
-    cat("Estimation of the asymptotic distribution \n",
-        "   - method: ",txt.type,"\n", sep = "")
-    if(method.inference != "asymptotic"){
-        cat("   - cpus  : ",cpus,"\n", sep = "")
-        if (!is.null(seed)) {
-            cat("   - seeds : ",paste(seq(seed,seed + cpus - 1), collapse = " "),"\n", sep = "")       
+        ## method        
+        if(attr(method.inference,"ustatistic")){
+            txt.type <- "moments of the U-statistic"
+        }else if(attr(method.inference,"bootstrap")){
+            txt.type <- paste0("non-parametric bootstrap with ",n.resampling," samples")
+        }else if(attr(method.inference,"permutation")){
+            txt.type <- paste0("permutation test with ",n.resampling," permutations")
+        }
+
+        if(attr(method.inference,"stratified")){
+            txt.type <- paste0("stratified ",txt.type)
+        }
+
+        ## display
+        cat("Estimation of the estimator's distribution \n",
+            "   - method: ",txt.type,"\n", sep = "")
+        if(method.inference != "asymptotic"){
+            cat("   - cpus  : ",cpus,"\n", sep = "")
+            if (!is.null(seed)) {
+                cat("   - seeds : ",paste(seq(seed,seed + cpus - 1), collapse = " "),"\n", sep = "")       
+            }
         }
     }
 

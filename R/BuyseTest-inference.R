@@ -82,13 +82,13 @@ inferenceResampling <- function(envir){
 
     out <- list(deltaResampling.netBenefit = array(NA, dim = dim.delta, dimnames = dimnames.delta),
                 deltaResampling.winRatio = array(NA, dim = dim.delta, dimnames = dimnames.delta),
-                DeltaResampling.netBenefit = matrix(NA, nrow = D, ncol = n.resampling,
-                                                    dimnames = list(endpoint, as.character(1:n.resampling))),
-                DeltaResampling.winRatio = matrix(NA, nrow = D, ncol = n.resampling,
-                                                  dimnames = list(endpoint, as.character(1:n.resampling)))
+                DeltaResampling.netBenefit = matrix(NA, ncol = D, nrow = n.resampling,
+                                                    dimnames = list(as.character(1:n.resampling), endpoint)),
+                DeltaResampling.winRatio = matrix(NA, ncol = D, nrow = n.resampling,
+                                                  dimnames = list(as.character(1:n.resampling), endpoint))
                 )
     if(iid){
-        out$covariance = array(NA, dim = c(n.resampling, D, 3))
+        out$covariance = array(NA, dim = c(n.resampling, D, 5))
     }else{
         out$covariance <- array(NA, dim = c(0,0,0))
     }
@@ -97,8 +97,8 @@ inferenceResampling <- function(envir){
         out$deltaResampling.netBenefit[,,iR] <- ls.resampling[[iR]]$delta_netBenefit
         out$deltaResampling.winRatio[,,iR] <- ls.resampling[[iR]]$delta_winRatio
 
-        out$DeltaResampling.netBenefit[,iR] <- ls.resampling[[iR]]$Delta_netBenefit
-        out$DeltaResampling.winRatio[,iR] <- ls.resampling[[iR]]$Delta_winRatio
+        out$DeltaResampling.netBenefit[iR,] <- ls.resampling[[iR]]$Delta_netBenefit
+        out$DeltaResampling.winRatio[iR,] <- ls.resampling[[iR]]$Delta_winRatio
 
         if(iid){
             out$covariance[iR,,] <- ls.resampling[[iR]]$Mvar

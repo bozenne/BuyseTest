@@ -124,8 +124,8 @@ setMethod(f = "summary",
               alpha <- 1-conf.level
               
               ## ** compute confidence intervals and p-values
-              outConfint <- confint(object, conf.level = conf.level, statistic = statistic, ...)
-          
+              outConfint  <- confint(object, conf.level = conf.level, statistic = statistic, ...)
+
               ## ** generate summary table
               ## *** prepare
               table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=15))
@@ -177,7 +177,7 @@ setMethod(f = "summary",
                   table[,"n.uninf"] <- 100*table[,"n.uninf"]/table[1,"n.total"]
                   table[,"n.total"] <- 100*table[,"n.total"]/table[1,"n.total"]
               }
-             
+
               ## *** compute CI and p-value
               table[index.global,"CIinf.Delta"] <- outConfint[,"lower.ci"]
               table[index.global,"CIsup.Delta"] <- outConfint[,"upper.ci"]
@@ -237,19 +237,17 @@ setMethod(f = "summary",
                   param.signif <- c("n.total","n.favorable","n.unfavorable","n.neutral","n.uninf")
                   table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[1])
               }
-
               if(!is.na(digit[2])){
                   param.signif <- c("delta","Delta")
                   if(method.inference != "none"){
                       param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
 
                       ## take care of the p.value
-                      table.print[index.global,"p.value"] <- format.pval(table.print[index.global,"p.value"], digits = digit[2])
+                      table.print[,"p.value"] <- format.pval(table.print[,"p.value"], digits = digit[2])
                       
                   }
                   table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[2])
               }
-              
               ## *** set names
               if(identical(percentage,TRUE)){
                   oldnames <- c("n.favorable","n.unfavorable","n.neutral","n.uninf","n.total")
@@ -257,7 +255,7 @@ setMethod(f = "summary",
                   names(table)[match(oldnames,names(table))] <- newnames
                   names(table.print)[match(oldnames,names(table.print))] <- newnames
               }
-
+              
               ## *** set Inf to NA in summary
               ## e.g. in the case of no unfavorable pairs the win ratio is Inf
               ##      this is not a valid estimate and it is set to NA
@@ -287,7 +285,6 @@ setMethod(f = "summary",
               if(!is.null(table.print$p.value) && any(is.na(table.print$p.value))){
                   table.print[is.na(table.print$p.value), "p.value"] <- ""
               }
-
 
               ## *** remove name significance
               if(method.inference != "none"){
@@ -351,26 +348,31 @@ setMethod(f = "summary",
                   }
                   if(method.inference != "none"){
                       cat(" > confidence level: ",1-alpha," \n", sep = "")
-                  }
-                  if(method.inference %in% c("permutation","bootstrap", "stratified permutation", "stratified bootstrap")){
-                      ok.permutation <- all(n.resampling[1]==n.resampling)
-                      if(ok.permutation){
-                          txt.permutation <- n.resampling[1]
-                          table.print$n.resampling <- NULL
-                      }else{
-                          txt.permutation <- paste0("[",min(n.resampling)," ; ",max(n.resampling),"]")
-                      }
-                      txt.method <- switch(method.inference,
-                                           "permutation" = "permutation test",
-                                           "stratified permutation" = "stratified permutation test",
-                                           "bootstrap" = "bootstrap resampling",
-                                           "stratified bootstrap" = "stratified bootstrap resampling"
-                                           )
-                      cat(" > inference       : ",txt.method," with ",txt.permutation," samples", sep = "")
-                  }else if(method.inference %in% c("asymptotic","asymptotic-bebu")){
-                      
-                      cat(" > inference       : H-projection of order ",attr(method.inference,"Hprojection"),"\n", sep = "")
 
+                      if(attr(method.inference,"permutation")){
+                          txt.method <- "permutation test"
+                      }else if(attr(method.inference,"bootstrap")){
+                          txt.method <- "bootstrap resampling"
+                      }else if(attr(method.inference,"ustatistic")){
+                          txt.method <- paste0("H-projection of order ",attr(method.inference,"Hprojection"),"\n")
+                      }
+
+                      if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap") ){
+                          ok.resampling <- all(n.resampling[1]==n.resampling)
+                          if(ok.resampling){
+                              txt.method <- paste0(txt.method, " with ",n.resampling[1]," samples \n")
+                              table.print$n.resampling <- NULL
+                          }else{
+                              txt.method <- paste0(txt.method, " with [",min(n.resampling)," ; ",max(n.resampling),"] samples \n")
+                          }
+                          txt.method.ci <- switch(attr(outConfint,"method.ci.resampling"),
+                                                  "gaussian" = "quantiles of a Gaussian distribution",
+                                                  "student" = "quantiles of a Student's t-distribution",
+                                                  "percentile" = "quantiles of the empirical distribution"
+                                                  )
+                          txt.method <- paste0(txt.method,"                     confidence intervals/p-values computed using the ",txt.method.ci," \n")
+                      }
+                      cat(" > inference       : ",txt.method, sep = "")
                   }
                   
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")

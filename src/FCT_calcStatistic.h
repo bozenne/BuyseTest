@@ -17,7 +17,7 @@ using namespace arma ;
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::vector< double >& Delta_netBenefit, std::vector< double >& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
                    arma::mat& iid_favorable, arma::mat& iid_unfavorable, arma::mat& Mvar, bool returnIID,
-				   std::vector< arma::uvec >& indexC, std::vector< arma::uvec >& indexT,
+				   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const std::vector< double >& n_pairs,
 		           const std::vector< double >& weight){
   
@@ -28,8 +28,8 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::
   double ntot_control=0;
   for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
 	ntot_pair += n_pairs[iter_strata];
-	ntot_control += indexC[iter_strata].size();
-	ntot_treatment += indexT[iter_strata].size();
+	ntot_control += posC[iter_strata].size();
+	ntot_treatment += posT[iter_strata].size();
   }
 
   // global iid decomposition
@@ -52,12 +52,14 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::
   
   //
   double iStrata_favorable, iStrata_unfavorable;
-  double iFavorable = 0;
-  double iUnfavorable = 0;
+  double iFavorable = 0.0;
+  double iUnfavorable = 0.0;
+  arma::colvec colvec_favorable(D);
+  arma::colvec colvec_unfavorable(D);
   uvec iUvec_iter_d;
   
   for(unsigned int iter_d=0; iter_d<D ; iter_d++){ // loop over endpoints
-
+	// Rcout << "** endpoint" << iter_d << " ** " << endl;
     iStrata_favorable=0;
     iStrata_unfavorable=0;
     iUvec_iter_d = {iter_d};
@@ -75,14 +77,18 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::
 
 	// normalize iid
 	if(returnIID){
+	  // Rcout << "iid favorable " << iid_favorable << std::endl;
+	  // Rcout << "iid unfavorable " << iid_unfavorable << std::endl;
+	  // Rcout << iStrata_favorable / (double)(ntot_pair) << std::endl;
+	  // Rcout << iStrata_unfavorable / (double)(ntot_pair) << std::endl;
 	  iid_favorable.col(iter_d) -= iStrata_favorable / (double)(ntot_pair); // center
 	  iid_unfavorable.col(iter_d) -= iStrata_unfavorable / (double)(ntot_pair); // center
 	  for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // divide by the number of terms i.e. we output \psi_i/n in 1/n \sum_i \psi_i
-		iid_favorable.submat(indexC[iter_strata], iUvec_iter_d) /= (double) ntot_control;
-		iid_unfavorable.submat(indexC[iter_strata], iUvec_iter_d) /= (double) ntot_control;
+		iid_favorable.submat(posC[iter_strata], iUvec_iter_d) /= (double) ntot_control;
+		iid_unfavorable.submat(posC[iter_strata], iUvec_iter_d) /= (double) ntot_control;
 
-		iid_favorable.submat(indexT[iter_strata], iUvec_iter_d) /= (double) ntot_treatment;
-		iid_unfavorable.submat(indexT[iter_strata], iUvec_iter_d) /= (double) ntot_treatment;
+		iid_favorable.submat(posT[iter_strata], iUvec_iter_d) /= (double) ntot_treatment;
+		iid_unfavorable.submat(posT[iter_strata], iUvec_iter_d) /= (double) ntot_treatment;
 	}
 	}
 	
@@ -95,6 +101,9 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::
 
 	// cumulate iid over endpoints
 	if(returnIID){
+	  colvec_favorable(iter_d) = iFavorable/(double)(ntot_pair);
+	  colvec_unfavorable(iter_d) = iUnfavorable/(double)(ntot_pair);
+	  
 	  if(iter_d==0){
 		cumiid_favorable.col(iter_d) = weight[iter_d] * iid_favorable.col(iter_d);
 		cumiid_unfavorable.col(iter_d) = weight[iter_d] * iid_unfavorable.col(iter_d);
@@ -111,6 +120,16 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, std::
 	Mvar.col(0) = trans(sum(pow(cumiid_favorable,2), 0));
 	Mvar.col(1) = trans(sum(pow(cumiid_unfavorable,2), 0));
 	Mvar.col(2) = trans(sum(cumiid_favorable % cumiid_unfavorable, 0));
+
+	// Rcout << "favorable is" << std::endl << colvec_favorable << std::endl;
+	// Rcout << "unfavorable is" << std::endl << colvec_unfavorable << std::endl;
+
+	// delta method: var(A-B) = var(A) + var(B) - 2 * cov(A,B)
+	// indeed (A-B)' = A' - B' so (A-B)^'2 = A'A' + B'B'  - 2*A'B'
+	Mvar.col(3) = Mvar.col(0) + Mvar.col(1) - 2 * Mvar.col(2);
+	// delta method: var(A/B) = var(A)/B^2 + var(B)*(A^2/B^4) - 2*cov(A,B)A/B^3
+	// indeed (A/B)' = A'/B - B'A/B^2 so (A/B)^'2 = A'A'/B^2 + B'B'A^2/B^2 - 2B'A' A/B^3
+	Mvar.col(4) = Mvar.col(0)/pow(colvec_unfavorable, 2) + Mvar.col(1) % pow(colvec_favorable,2)/pow(colvec_unfavorable,4) - 2 * Mvar.col(2) % colvec_favorable/pow(colvec_unfavorable, 3);
   }
   
   return ;

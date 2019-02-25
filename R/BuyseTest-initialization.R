@@ -125,9 +125,17 @@ initializeArgs <- function(alternative,
     D.TTE <- sum(type == 3) # number of time to event endpoints
 
     ## ** method.inference
-    method.inference <- tolower(method.inference)
+    method.inference <- tolower(method.inference)    
+    attr(method.inference,"permutation") <- grepl("permutation",method.inference)
+    attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
+    attr(method.inference,"studentized") <- grepl("studentized",method.inference)
+    attr(method.inference,"stratified") <- grepl("stratified",method.inference)
+    attr(method.inference,"ustatistic") <- grepl("asymptotic",method.inference)
+
+    iid <- any(c(attr(method.inference,"studentized"), method.inference == "asymptotic"))
     if(is.null(strata) && length(grep("stratified ",method.inference))>0){ ## remove stratified if no strata variable
         method.inference <- gsub("stratified ","",method.inference)
+        attr(method.inference,"stratified") <- FALSE
     }
 
     ## ** censoring
@@ -215,12 +223,12 @@ initializeArgs <- function(alternative,
         data = data,
         endpoint = endpoint,
         formula = formula,
-        iid = method.inference %in% c("asymptotic","studentized bootstrap","studentized stratified bootstrap"),
+        iid = iid,
         keep.pairScore = keep.pairScore,
         keep.survival = option$keep.survival,
         method.tte = method.tte,
         model.tte = model.tte,
-        method.inference = gsub("studentized ","",method.inference),
+        method.inference = method.inference,
         method.score = method.score,
         n.resampling = n.resampling,
         hierarchical = hierarchical,

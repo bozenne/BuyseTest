@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: feb 25 2019 (13:58) 
+## Last-Updated: feb 25 2019 (14:19) 
 ##           By: Brice Ozenne
-##     Update #: 129
+##     Update #: 138
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,6 +28,7 @@ testArgs <- function(alternative,
                      data,
                      endpoint,
                      formula,
+                     iid,
                      keep.pairScore,
                      method.tte,
                      model.tte,
@@ -36,6 +37,7 @@ testArgs <- function(alternative,
                      hierarchical,
                      neutral.as.uninf,
                      operator,
+                     order.Hprojection,
                      seed,
                      strata,
                      threshold,
@@ -248,6 +250,19 @@ testArgs <- function(alternative,
                                     "permutation","stratified permutation"),
                    method = "BuyseTest")
 
+    if(iid && (order.Hprojection != 1)){
+        stop("Option \'order.Hprojection\' must be 1 when estimating the variance using the iid decomposition \n")
+    }
+    if(iid && (method.tte > 0)){
+        warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
+                "Standard errors / confidence intervals / p-values should not be trusted \n")
+    }
+    
+    if(iid && (correction.uninf > 0)){
+        warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
+                "Standard errors / confidence intervals / p-values should not be trusted \n")
+    }
+    
     ## ** n.resampling
     if(method.inference %in% c("bootstrap","permutation","stratified bootstrap","stratified permutation")){
         validInteger(n.resampling,

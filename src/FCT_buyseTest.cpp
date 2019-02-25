@@ -22,8 +22,10 @@ using namespace arma ;
 //' 
 //' @param endpoint A matrix containing the values of each endpoint (in columns) for each observation (in rows). 
 //' @param censoring A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows).
-//' @param indexC A list containing the indexes of control observations belonging for each strata. 
-//' @param indexT A list containing the indexes of treatment observations belonging for each strata. 
+//' @param indexC A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the control observations. Not unique when bootstraping.
+//' @param posC A list containing, for each strata, the unique identifier of each control observations. 
+//' @param indexT A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the treatment observations. Not unique when bootstraping.
+//' @param posT A list containing, for each strata, the unique identifier of each treatment observations.
 //' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
 //' @param weight Store the weight associated to each endpoint. Must have length D. 
 //' @param method The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.
@@ -56,7 +58,9 @@ using namespace arma ;
 List GPC_cpp(arma::mat endpoint,
 			 arma::mat censoring,
 			 std::vector< arma::uvec > indexC,
+			 std::vector< arma::uvec > posC,
 			 std::vector< arma::uvec > indexT,
+			 std::vector< arma::uvec > posT,
 			 std::vector< double > threshold,
 			 std::vector< double > weight,
 			 std::vector< int > method,
@@ -108,7 +112,7 @@ List GPC_cpp(arma::mat endpoint,
 	iid_favorable.fill(0.0);
 	iid_unfavorable.resize(endpoint.n_rows,D);
 	iid_favorable.fill(0.0);
-	Mvar.resize(D,3);
+	Mvar.resize(D,5);
 	Mvar.fill(0.0);
   }
   
@@ -231,11 +235,11 @@ List GPC_cpp(arma::mat endpoint,
 	// Rcout << " update iid" << endl;
 	  if(returnIID){
 		iUvec_iter_d = {iter_d};
-		iid_favorable.submat(indexC[iter_strata], iUvec_iter_d) = iIID_C.col(0);
-		iid_favorable.submat(indexT[iter_strata], iUvec_iter_d) = iIID_T.col(0);
+		iid_favorable.submat(posC[iter_strata], iUvec_iter_d) = iIID_C.col(0);
+		iid_favorable.submat(posT[iter_strata], iUvec_iter_d) = iIID_T.col(0);
 	
-		iid_unfavorable.submat(indexC[iter_strata], iUvec_iter_d) = iIID_C.col(1);
-		iid_unfavorable.submat(indexT[iter_strata], iUvec_iter_d) = iIID_T.col(1);
+		iid_unfavorable.submat(posC[iter_strata], iUvec_iter_d) = iIID_C.col(1);
+		iid_unfavorable.submat(posT[iter_strata], iUvec_iter_d) = iIID_T.col(1);
       }
 	  
       // **** update all Scores
@@ -245,8 +249,8 @@ List GPC_cpp(arma::mat endpoint,
 	iMat.resize(iNpairs,3);
 	iMat.col(0).fill(iter_strata);
 	for(int iPair=0; iPair < iNpairs; iPair++){
-	  iMat(iPair,1) = indexC[iter_strata](iScore(iPair,0));
-	  iMat(iPair,2) = indexT[iter_strata](iScore(iPair,1));
+	  iMat(iPair,1) = posC[iter_strata](iScore(iPair,0));
+	  iMat(iPair,2) = posT[iter_strata](iScore(iPair,1));
 	}
 	// merge with current table and store
 	if(iter_strata==0){
@@ -313,14 +317,14 @@ List GPC_cpp(arma::mat endpoint,
   }
   
   // ** proportion in favor of treatment
-   // Rcout << " compute statistics" << endl;
+  // Rcout << endl << " compute statistics" << endl;
   arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
   std::vector< double > Delta_netBenefit(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
   
   calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
                 Mcount_favorable, Mcount_unfavorable,
 		        iid_favorable, iid_unfavorable, Mvar, returnIID,
-				indexC, indexT,
+				posC, posT,
                 D, n_strata, n_pairs, weight);
 
   // ** export

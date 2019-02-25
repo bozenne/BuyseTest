@@ -258,7 +258,7 @@ BuyseTest <- function(formula,
 
     ## ** test arguments
     if(option$check){
-        outTest <- do.call(testArgs, args = outArgs)
+        outTest <- do.call(testArgs, args = c(outArgs, order.Hprojection = option$order.Hprojection))
     }
 
     ## ** initialization data
@@ -314,100 +314,7 @@ BuyseTest <- function(formula,
         cat("\n\n")
     }
 
-    ## convert from a list of vector (output of C++) to a list of data.table
-    if(outArgs$keep.pairScore){
-        ## needed for inference
-        outPoint$tablePairScore <- pairScore2dt(outPoint$tableScore,
-                                                level.treatment = outArgs$level.treatment,
-                                                level.strata = outArgs$level.strata,
-                                                n.strata = outArgs$n.strata,
-                                                endpoint = outArgs$endpoint,
-                                                threshold = outArgs$threshold)
-    }
-    
-    ## ** Inference
-    if (outArgs$method.inference!="none") {
-        if(outArgs$trace > 1){
-            do.call(printInference, args = outArgs)
-        }
-
-        if(outArgs$method.inference %in% c("asymptotic","asymptotic-bebu")){
-
-            if(outArgs$method.tte > 0){
-                warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
-                        "Standard errors / confidence intervals / p-values should not be trusted \n")
-            }
-            if(outArgs$correction.uninf > 0){
-                warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",
-                        "Standard errors / confidence intervals / p-values should not be trusted \n")
-            }
-
-            if(outArgs$method.inference=="asymptotic"){
-                ## via the iid decomposition
-                ## not needed anymore - done in the cpp part
-                ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
-                ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
-                ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
-                ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
-                if(option$order.Hprojection!=1){
-                    stop("Option \'order.Hprojection\' must be 1 when argument \'method.inference\' is \"asymptotic\" \n")
-                }
-                attr(outArgs$method.inference,"Hprojection") <- 1
-                
-            }else if(outArgs$method.inference=="asymptotic-bebu"){
-                if(outArgs$keep.pairScore == FALSE){
-                    stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"asymptotic-bebu\" \n")
-                }
-
-                            
-                ## direct computation of the variance
-                outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
-                                                         count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
-                                                         n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                     level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
-
-                outPoint$Mvar <- outCovariance$Sigma
-                outPoint$iid_favorable <- NULL
-                outPoint$iid_unfavorable <- NULL
-                attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
-            }
-
-            outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
-                                  deltaResampling.winRatio = array(dim=c(0,0,0)),
-                                  DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
-                                  DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
-                                  covariance = array(NA, dim = c(0,0,0)),
-                                  n.resampling = as.double(NA))
-            
-            
-        }else{
-            outResampling <- inferenceResampling(envirBT)
-            outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
-            outPoint$iid_favorable <- NULL
-            outPoint$iid_unfavorable <- NULL
-        }
-        if(outArgs$trace > 1){
-            cat("\n")
-        }
-        
-    }else{
-        outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
-                              deltaResampling.winRatio = array(dim=c(0,0,0)),
-                              DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
-                              DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
-                              covariance = array(NA, dim = c(0,0,0)),
-                              n.resampling = as.double(NA))
-        outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
-        outPoint$iid_favorable <- NULL
-        outPoint$iid_unfavorable <- NULL
-    }
-    
-    ## ** Gather results into a BuyseRes object
-    if(outArgs$trace > 1){
-        cat("Gather the results in a BuyseRes object \n")
-    }
-    method.tte <- c("Gehan","Peron")[outArgs$method.tte+1]
-    type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
-
+    ## check number of pairs
     if(option$check){
         vec.nPair <- sapply(1:length(outArgs$level.strata), function(iStrata){            
             iN.C <- length(intersect(outArgs$index.C, outArgs$index.strata[[iStrata]]))
@@ -419,6 +326,68 @@ BuyseTest <- function(formula,
                     "Something probably went wrong - contact the package maintainer\n")
         }
     }
+
+    
+    ## convert from a list of vector (output of C++) to a list of data.table
+    if(outArgs$keep.pairScore){
+        ## needed for inference with bebu
+        outPoint$tablePairScore <- pairScore2dt(outPoint$tableScore,
+                                                level.treatment = outArgs$level.treatment,
+                                                level.strata = outArgs$level.strata,
+                                                n.strata = outArgs$n.strata,
+                                                endpoint = outArgs$endpoint,
+                                                threshold = outArgs$threshold)
+    }
+    
+    ## ** Inference
+    if((outArgs$method.inference != "none") && (outArgs$trace > 1)){
+        do.call(printInference, args = outArgs)
+    }
+
+    outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
+                          deltaResampling.winRatio = array(dim=c(0,0,0)),
+                          DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
+                          DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+                          covariance = array(NA, dim = c(0,0,0)),
+                          n.resampling = as.double(NA))
+    if(outArgs$iid){ ## not needed anymore - done in the cpp part, kept for debugging
+        ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
+        ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
+        ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
+        ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+        attr(outArgs$method.inference,"Hprojection") <- 1
+    }else{
+        outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
+        outPoint$iid_favorable <- NULL
+        outPoint$iid_unfavorable <- NULL
+    }
+
+    if(outArgs$method.inference == "asymptotic-bebu"){
+        if(outArgs$keep.pairScore == FALSE){
+            stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"asymptotic-bebu\" \n")
+        }
+
+        ## direct computation of the variance
+        outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
+                                                 count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
+                                                 n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                     level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+
+        outPoint$Mvar <- outCovariance$Sigma
+        attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
+    }else if(grepl("bootstrap|permutation",outArgs$method.inference)){
+        outResampling <- inferenceResampling(envirBT)
+    }
+    
+    if((outArgs$method.inference != "none") && (outArgs$trace > 1)){
+        cat("\n")
+    }
+
+    ## ** Gather results into a BuyseRes object
+    if(outArgs$trace > 1){
+        cat("Gather the results in a BuyseRes object \n")
+    }
+    method.tte <- c("Gehan","Peron")[outArgs$method.tte+1]
+    type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
     
     BuyseRes.object <- BuyseRes(
         count.favorable = outPoint$count_favorable,      
@@ -480,7 +449,8 @@ BuyseTest <- function(formula,
     ## ** Resampling
     ls.indexC <- vector(mode = "list", length = n.strata)
     ls.indexT <- vector(mode = "list", length = n.strata)
-    if(method.inference %in% c("none","asymptotic","asymptotic-bebu")){
+   
+    if(method.inference == "none"){
 
         ## find groups
         if(n.strata==1){        
@@ -498,16 +468,17 @@ BuyseTest <- function(formula,
             data <- data.table(envir$outArgs$data,envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
         }
         
-    }else if(method.inference %in% c("permutation","stratified permutation")){
+    }else if(attr(method.inference, "permutation")){
 
         ## permute
-        if(method.inference == "permutation"){
-            index.resampling <- sample.int(envir$outArgs$n.obs, replace = FALSE)
-        }else if(method.inference == "stratified permutation"){
+        if(attr(method.inference, "stratified")){
             index.resampling <- NULL
             for(iStrata in 1:n.strata){ ## iStrata <- 1  
                 index.resampling <- c(index.resampling,envir$outArgs$cumn.obsStrata[iStrata] + sample.int(envir$outArgs$n.obsStrata[iStrata], replace = FALSE))
             }
+        }else{
+            index.resampling <- sample.int(envir$outArgs$n.obs, replace = FALSE)
+
         }
         ## find groups
         if(n.strata==1){        
@@ -531,16 +502,16 @@ BuyseTest <- function(formula,
             data.table::setnames(data, old = names(data)[1], new = treatment)
         }
         
-    }else if(method.inference %in% c("bootstrap","stratified bootstrap")){ 
+    }else if(attr(method.inference, "bootstrap")){ 
 
         ## bootstrap
-        if(method.inference == "bootstrap"){
-            index.resampling <- sample.int(envir$outArgs$n.obs, replace = TRUE)
-        }else if(method.inference == "stratified bootstrap"){
+        if(attr(method.inference, "stratified")){
             index.resampling <- NULL
             for(iStrata in 1:n.strata){ ## iStrata <- 1  
                 index.resampling <- c(index.resampling,envir$outArgs$cumn.obsStrata[iStrata] + sample.int(envir$outArgs$n.obsStrata[iStrata], replace = TRUE))
-            }
+            }            
+        }else{
+            index.resampling <- sample.int(envir$outArgs$n.obs, replace = TRUE)
         }
             
         ## find groups
@@ -570,37 +541,55 @@ BuyseTest <- function(formula,
         }
     }
 
-    ## Check valid resampling
-    if (any(c(sapply(ls.indexC,length),sapply(ls.indexT,length))==0)) {
-        return(NULL)
-    }
+    ## new ordering of the observations in the dataset
+    if(method.inference == "none"){
+        ls.posC <- ls.indexC
+        ls.posT <- ls.indexT
+    }else if(attr(method.inference,"bootstrap") || attr(method.inference,"permutation")){
+        ## new position in the dataset
+        new.cumn.C <- c(0,cumsum(sapply(ls.indexC,length)))
+        new.cumn.T <- c(tail(new.cumn.C,1),tail(new.cumn.C,1)+cumsum(sapply(ls.indexT,length)))
+        ls.posC <- vector(mode = "list", length = n.strata)
+        ls.posT <- vector(mode = "list", length = n.strata)
+        for(iStrata in 1:n.strata){
+            ls.posC[[iStrata]] <- new.cumn.C[iStrata] + 0:(length(ls.indexC[[iStrata]])-1)
+            ls.posT[[iStrata]] <- new.cumn.T[iStrata] + 0:(length(ls.indexT[[iStrata]])-1)
+        }
 
+        ## Check valid resampling
+        if (any(c(sapply(ls.indexC,length),sapply(ls.indexT,length))==0)) {
+            return(NULL)
+        }
+    }
+    
     ## *** Update survival
     if(method.tte == 0){ ## Gehan
         outSurv <- envir$outArgs$outSurv
 
-    }else{ ## Peron
-        outSurv <- initializeSurvival_Peron(data = data,
-                                            model.tte = envir$outArgs$model.tte,
-                                            treatment = treatment,
-                                            level.treatment = envir$outArgs$level.treatment,
-                                            endpoint = endpoint,
-                                            endpoint.UTTE = envir$outArgs$endpoint.UTTE,
-                                            censoring = censoring,
-                                            D.TTE = D.TTE,
-                                            D.UTTE = envir$outArgs$D.UTTE,
-                                            type = type,
-                                            threshold = envir$outArgs$threshold,
-                                            n.strata = n.strata,
-                                            strata = envir$outArgs$strata,
-                                            out = envir$outArgs$outSurv)
-    }
+        }else{ ## Peron
+            outSurv <- initializeSurvival_Peron(data = data,
+                                                model.tte = envir$outArgs$model.tte,
+                                                treatment = treatment,
+                                                level.treatment = envir$outArgs$level.treatment,
+                                                endpoint = endpoint,
+                                                endpoint.UTTE = envir$outArgs$endpoint.UTTE,
+                                                censoring = censoring,
+                                                D.TTE = D.TTE,
+                                                D.UTTE = envir$outArgs$D.UTTE,
+                                                type = type,
+                                                threshold = envir$outArgs$threshold,
+                                                n.strata = n.strata,
+                                                strata = envir$outArgs$strata,
+                                                out = envir$outArgs$outSurv)
+        }
 
     ## ** Computation
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
                      censoring = envir$outArgs$M.censoring,
                      indexC = ls.indexC,
+                     posC = ls.posC,
                      indexT = ls.indexT,                     
+                     posT = ls.posT,                     
                      threshold = envir$outArgs$threshold,
                      weight = envir$outArgs$weight,
                      method = envir$outArgs$method.score,
@@ -624,7 +613,7 @@ BuyseTest <- function(formula,
                      keepScore = envir$outArgs$keep.pairScore,
                      reserve = TRUE,
                      returnIID = iid
-                     )
+                     ) 
 
     ## ** export
     if(pointEstimation){
