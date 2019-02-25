@@ -25,8 +25,8 @@ Default value read from \code{BuyseTest.options()}.}
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{method.boot}{[character] the method used to compute the boostrap confidence intervals and p-values.
-Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
+\item{method.boot}{[character] the method used to compute the bootstrap confidence intervals and p-values.
+Can be \code{"percentile"} for computing the CI using the quantiles of the bootstrap distribution or
 \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.}
 
 \item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.

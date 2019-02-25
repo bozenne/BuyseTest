@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: feb 20 2019 (17:43) 
+## Last-Updated: feb 25 2019 (11:46) 
 ##           By: Brice Ozenne
-##     Update #: 249
+##     Update #: 251
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,8 +36,8 @@
 #' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param method.boot [character] the method used to compute the boostrap confidence intervals and p-values.
-#' Can be \code{"percentile"} for computing the CI using the quantiles of the boostrap distribution or
+#' @param method.boot [character] the method used to compute the bootstrap confidence intervals and p-values.
+#' Can be \code{"percentile"} for computing the CI using the quantiles of the bootstrap distribution or
 #' \code{"gaussian"} for using a Gaussian approximation to compute the CI where the standard error is computed using the bootstrap samples.
 #' 
 #' @seealso 

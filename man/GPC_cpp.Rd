@@ -8,7 +8,7 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, weight, method, D,
   n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring,
   index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC,
   list_survJumpT, list_lastSurv, correctionUninf, hierarchical,
-  neutralAsUninf, keepScore, reserve, returnOnlyDelta)
+  neutralAsUninf, keepScore, reserve, returnIID)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
@@ -63,7 +63,7 @@ GPC_cpp(endpoint, censoring, indexC, indexT, threshold, weight, method, D,
 
 \item{reserve}{Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?}
 
-\item{returnOnlyDelta}{Should only the net benefit and win ratio be output? Slightly faster because the iid is not computed.}
+\item{returnIID}{Should the iid be computed?}
 }
 \description{
 \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results.

@@ -4,7 +4,9 @@ inferenceResampling <- function(envir){
     cpus <- envir$outArgs$cpus
     D <- envir$outArgs$D
     endpoint <- envir$outArgs$endpoint
+    iid <- envir$outArgs$iid
     level.strata <- envir$outArgs$level.strata
+    method.inference <- envir$outArgs$method.inference
     n.resampling <- envir$outArgs$n.resampling
     n.strata <- envir$outArgs$n.strata
     seed <- envir$outArgs$seed
@@ -23,9 +25,11 @@ inferenceResampling <- function(envir){
         }
         ls.resampling <- do.call(method.loop,
                                   args = list(X = 1:n.resampling,
-                                              FUN = function(iB){
+                                              FUN = function(iB){                                                  
                                                   .BuyseTest(envir = envir,
-                                                             method.inference = envir$outArgs$method.inference
+                                                             iid = iid,
+                                                             method.inference = method.inference,
+                                                             pointEstimation = FALSE
                                                              )
                                               })
                                   )
@@ -56,7 +60,9 @@ inferenceResampling <- function(envir){
                                            if(trace>0){utils::setTxtProgressBar(pb, iB)}
 
                                            return(.BuyseTest(envir = envir,
-                                                             method.inference = envir$outArgs$method.inference))
+                                                             iid = iid,
+                                                             method.inference = method.inference,
+                                                             pointEstimation = FALSE))
                       
                                        })
 
@@ -77,17 +83,26 @@ inferenceResampling <- function(envir){
     out <- list(deltaResampling.netBenefit = array(NA, dim = dim.delta, dimnames = dimnames.delta),
                 deltaResampling.winRatio = array(NA, dim = dim.delta, dimnames = dimnames.delta),
                 DeltaResampling.netBenefit = matrix(NA, nrow = D, ncol = n.resampling,
-                                                   dimnames = list(endpoint, as.character(1:n.resampling))),
+                                                    dimnames = list(endpoint, as.character(1:n.resampling))),
                 DeltaResampling.winRatio = matrix(NA, nrow = D, ncol = n.resampling,
                                                   dimnames = list(endpoint, as.character(1:n.resampling)))
                 )
-
+    if(iid){
+        out$covariance = array(NA, dim = c(n.resampling, D, 3))
+    }else{
+        out$covariance <- array(NA, dim = c(0,0,0))
+    }
+    
     for(iR in test.resampling){
         out$deltaResampling.netBenefit[,,iR] <- ls.resampling[[iR]]$delta_netBenefit
         out$deltaResampling.winRatio[,,iR] <- ls.resampling[[iR]]$delta_winRatio
 
         out$DeltaResampling.netBenefit[,iR] <- ls.resampling[[iR]]$Delta_netBenefit
         out$DeltaResampling.winRatio[,iR] <- ls.resampling[[iR]]$Delta_winRatio
+
+        if(iid){
+            out$covariance[iR,,] <- ls.resampling[[iR]]$Mvar
+        }
 
     }
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: feb 20 2019 (17:07) 
+## Last-Updated: feb 25 2019 (11:26) 
 ##           By: Brice Ozenne
-##     Update #: 343
+##     Update #: 349
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -225,7 +225,9 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
         ## *** Point estimate
         outPoint <- .BuyseTest(envir = envir,
-                               method.inference = "none")
+                               method.inference = "none",
+                               iid = FALSE,
+                               pointEstimation = TRUE)
 
         ## *** put results into a data.table
         tablePairScore <- pairScore2dt(outPoint$tableScore,
@@ -279,7 +281,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             iOut[iIndex.store,"netBenefit"] <- (sum(MresSample[,"favorable"]) - sum(MresSample[,"unfavorable"]))/MresSample[1,"npairs"]
             iOut[iIndex.store,"winRatio"] <- sum(MresSample[,"favorable"]) / sum(MresSample[,"unfavorable"])
 
-            ## *** Inference 
+            ## *** Inference
             if(outArgs$method.inference %in% c("asymptotic")){
                 ## warning: only work if no strata, otherwise n.pairs/count.favorable/count.unfavorable needs to be sum over strata
                 ## see BuyseTest.R

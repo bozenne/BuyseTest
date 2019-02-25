@@ -46,7 +46,7 @@ using namespace arma ;
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 //' @param keepScore Should the result of each pairwise comparison be kept?
 //' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?
-//' @param returnOnlyDelta Should only the net benefit and win ratio be output? Slightly faster because the iid is not computed.
+//' @param returnIID Should the iid be computed?
 //' @keywords function Cpp BuyseTest
 
 // * Function GPC_cpp
@@ -54,32 +54,32 @@ using namespace arma ;
 //' @export
 // [[Rcpp::export]]
 List GPC_cpp(arma::mat endpoint,
-	     arma::mat censoring,
-	     std::vector< arma::uvec > indexC,
-	     std::vector< arma::uvec > indexT,
-	     std::vector< double > threshold,
-	     std::vector< double > weight,
-	     std::vector< int > method,
-	     unsigned int D,
-	     unsigned int n_strata,
-	     unsigned int n_TTE, 
-	     int n_UTTE, 
-	     arma::mat Wscheme,
-	     std::vector<int> index_endpoint, 
-	     std::vector<int> index_censoring, 
-	     std::vector<int> index_UTTE, 
-	     std::vector<bool> reanalyzed, 
-	     std::vector< std::vector< arma::mat > > list_survTimeC,
-	     std::vector< std::vector< arma::mat > > list_survTimeT,
-	     std::vector< std::vector< arma::mat > > list_survJumpC,
-	     std::vector< std::vector< arma::mat > > list_survJumpT,
-	     std::vector< arma::mat > list_lastSurv,
-	     int correctionUninf,
-	     bool hierarchical,
-	     bool neutralAsUninf,
-	     bool keepScore,
-	     bool reserve,
-	     bool returnOnlyDelta){
+			 arma::mat censoring,
+			 std::vector< arma::uvec > indexC,
+			 std::vector< arma::uvec > indexT,
+			 std::vector< double > threshold,
+			 std::vector< double > weight,
+			 std::vector< int > method,
+			 unsigned int D,
+			 unsigned int n_strata,
+			 unsigned int n_TTE, 
+			 int n_UTTE, 
+			 arma::mat Wscheme,
+			 std::vector<int> index_endpoint, 
+			 std::vector<int> index_censoring, 
+			 std::vector<int> index_UTTE, 
+			 std::vector<bool> reanalyzed, 
+			 std::vector< std::vector< arma::mat > > list_survTimeC,
+			 std::vector< std::vector< arma::mat > > list_survTimeT,
+			 std::vector< std::vector< arma::mat > > list_survJumpC,
+			 std::vector< std::vector< arma::mat > > list_survJumpT,
+			 std::vector< arma::mat > list_lastSurv,
+			 int correctionUninf,
+			 bool hierarchical,
+			 bool neutralAsUninf,
+			 bool keepScore,
+			 bool reserve,
+			 bool returnIID){
 
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -98,10 +98,19 @@ List GPC_cpp(arma::mat endpoint,
   std::vector< double > n_pairs(n_strata); // number of pairs sumed over the strats
 
   // iid decomposition
-  bool returnIID = (returnOnlyDelta == false);
-  arma::mat iid_favorable(endpoint.n_rows,D,fill::zeros);
-  arma::mat iid_unfavorable(endpoint.n_rows,D,fill::zeros);
-  arma::mat Mvar(D,3,fill::zeros);
+  arma::mat iid_favorable;
+  arma::mat iid_unfavorable;
+  arma::mat Mvar;
+  if(returnIID){
+	iid_favorable.resize(endpoint.n_rows,D);
+	iid_favorable.fill(0.0);
+	iid_unfavorable.resize(endpoint.n_rows,D);
+	iid_favorable.fill(0.0);
+	iid_unfavorable.resize(endpoint.n_rows,D);
+	iid_favorable.fill(0.0);
+	Mvar.resize(D,3);
+	Mvar.fill(0.0);
+  }
   
   // *** for a given stata [input]
   // weights of the neutral / uninformative pairs
@@ -315,14 +324,6 @@ List GPC_cpp(arma::mat endpoint,
                 D, n_strata, n_pairs, weight);
 
   // ** export
-  if(returnOnlyDelta){
-    return(List::create(
-			Named("delta_netBenefit")  = delta_netBenefit,
-			Named("delta_winRatio")  = delta_winRatio,
-			Named("Delta_netBenefit")  = Delta_netBenefit,
-			Named("Delta_winRatio")  = Delta_winRatio
-			));
-  }else{
     return(List::create(
 			Named("count_favorable")  = Mcount_favorable,
 			Named("count_unfavorable")  = Mcount_unfavorable,
@@ -337,9 +338,7 @@ List GPC_cpp(arma::mat endpoint,
 			Named("iid_unfavorable")  = iid_unfavorable,
 			Named("Mvar")  = Mvar,
 			Named("tableScore")  = lsScore
-			));
-  }
-  
+						));
 }
 
 

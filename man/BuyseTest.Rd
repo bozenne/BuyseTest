@@ -32,7 +32,7 @@ Models must \code{prodlim} objects and stratified on the treatment and strata va
 
 \item{method.inference}{[character] should the asymptotic theory (\code{"asymptotic"}),
 or a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
-or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
+or bootstrap resampling (\code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"})
 be used to compute p-values and confidence intervals.}
 
 \item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
@@ -158,7 +158,7 @@ summary(BT, statistic = "winRatio") # win Ratio
 summary(BT, statistic = "netBenefit") ## default
 summary(BT, statistic = "winRatio") 
 
-## parallel boostrap
+## parallel bootstrap
 \dontrun{
     BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)

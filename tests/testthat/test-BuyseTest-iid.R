@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 21 2019 (13:12) 
+## Last-Updated: feb 25 2019 (11:13) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 25
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -155,7 +155,7 @@ test_that("iid: two endpoints (no strata)", {
                  c(0.0000000000, 0.0004251505, 0.0000000000), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["eventtime_1",]),
                  c(0.0008748297, 0.0015243380, -0.0009593909), tol = 1e-6 )
-x})
+})
 
 
 ## ** strata

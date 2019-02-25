@@ -37,7 +37,7 @@
 #' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
 #' @param method.inference [character] should the asymptotic theory (\code{"asymptotic"}),
 #' or a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
-#' or bootstrap resampling (\code{"bootstrap"} or \code{"stratified boostrap"})
+#' or bootstrap resampling (\code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"})
 #' be used to compute p-values and confidence intervals.
 #' @param neutral.as.uninf [logical] should paired classified as neutral be re-analyzed using endpoints of lower priority.
 #' Default value read from \code{BuyseTest.options()}.
@@ -139,7 +139,7 @@
 #' summary(BT, statistic = "netBenefit") ## default
 #' summary(BT, statistic = "winRatio") 
 #' 
-#' ## parallel boostrap
+#' ## parallel bootstrap
 #' \dontrun{
 #'     BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
 #'                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)
@@ -306,7 +306,9 @@ BuyseTest <- function(formula,
         cat("Point estimation")
     }
     outPoint <- .BuyseTest(envir = envirBT,
-                           method.inference = "none")
+                           iid = outArgs$iid,
+                           method.inference = "none",
+                           pointEstimation = TRUE)
 
     if (outArgs$trace > 1) {
         cat("\n\n")
@@ -347,6 +349,9 @@ BuyseTest <- function(formula,
                 ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
                 ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
                 ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+                if(option$order.Hprojection!=1){
+                    stop("Option \'order.Hprojection\' must be 1 when argument \'method.inference\' is \"asymptotic\" \n")
+                }
                 attr(outArgs$method.inference,"Hprojection") <- 1
                 
             }else if(outArgs$method.inference=="asymptotic-bebu"){
@@ -370,6 +375,7 @@ BuyseTest <- function(formula,
                                   deltaResampling.winRatio = array(dim=c(0,0,0)),
                                   DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
                                   DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+                                  covariance = array(NA, dim = c(0,0,0)),
                                   n.resampling = as.double(NA))
             
             
@@ -388,6 +394,7 @@ BuyseTest <- function(formula,
                               deltaResampling.winRatio = array(dim=c(0,0,0)),
                               DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
                               DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+                              covariance = array(NA, dim = c(0,0,0)),
                               n.resampling = as.double(NA))
         outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
         outPoint$iid_favorable <- NULL
@@ -438,6 +445,7 @@ BuyseTest <- function(formula,
         deltaResampling.winRatio = outResampling$deltaResampling.winRatio,
         DeltaResampling.netBenefit = outResampling$DeltaResampling.netBenefit,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
+        covarianceResampling = outResampling$covariance,
         covariance = outPoint$Mvar,
         weight = outArgs$weight,
         iid_favorable = outPoint$iid_favorable,
@@ -455,7 +463,9 @@ BuyseTest <- function(formula,
 
 ## * .BuyseTest (code)
 .BuyseTest <- function(envir,
-                       method.inference){
+                       iid,
+                       method.inference,
+                       pointEstimation){
    
     n.strata <- envir$outArgs$n.strata ## to simplify code
     treatment <- envir$outArgs$treatment ## to simplify code
@@ -470,7 +480,7 @@ BuyseTest <- function(formula,
     ## ** Resampling
     ls.indexC <- vector(mode = "list", length = n.strata)
     ls.indexT <- vector(mode = "list", length = n.strata)
-    if(method.inference == "none"){
+    if(method.inference %in% c("none","asymptotic","asymptotic-bebu")){
 
         ## find groups
         if(n.strata==1){        
@@ -613,11 +623,11 @@ BuyseTest <- function(formula,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = envir$outArgs$keep.pairScore,
                      reserve = TRUE,
-                     returnOnlyDelta = (method.inference!="none")
+                     returnIID = iid
                      )
 
     ## ** export
-    if(method.inference == "none"){
+    if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
             resBT$tableSurvival <- outSurv
         }
@@ -626,7 +636,8 @@ BuyseTest <- function(formula,
         return(list(delta_netBenefit = resBT$delta_netBenefit,
                     Delta_netBenefit = resBT$Delta_netBenefit,
                     delta_winRatio = resBT$delta_winRatio,
-                    Delta_winRatio = resBT$Delta_winRatio))
+                    Delta_winRatio = resBT$Delta_winRatio,
+                    Mvar = resBT$Mvar))
     }
 }
 

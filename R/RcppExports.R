@@ -31,14 +31,14 @@
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 #' @param keepScore Should the result of each pairwise comparison be kept?
 #' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?
-#' @param returnOnlyDelta Should only the net benefit and win ratio be output? Slightly faster because the iid is not computed.
+#' @param returnIID Should the iid be computed?
 #' @keywords function Cpp BuyseTest
 NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, censoring, indexC, indexT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, neutralAsUninf, keepScore, reserve, returnOnlyDelta) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, indexT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, neutralAsUninf, keepScore, reserve, returnOnlyDelta)
+GPC_cpp <- function(endpoint, censoring, indexC, indexT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, neutralAsUninf, keepScore, reserve, returnIID) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, indexT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, neutralAsUninf, keepScore, reserve, returnIID)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

@@ -22,7 +22,7 @@ setClass(
       alternative = "character",
       check = "logical",
       conf.level = "numeric",
-      correction.uninf = "logical",
+      correction.uninf = "numeric",
       cpus = "numeric",
       hierarchical = "logical",
       keep.pairScore = "logical",
@@ -54,8 +54,10 @@ setClass(
                    max = 1,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
-      validLogical(object@correction.uninf,
+      validInteger(object@correction.uninf,
                    name1 = "@correction.uninf",
+                   min = 0,
+                   max = 2,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       validInteger(object@cpus,
@@ -77,9 +79,9 @@ setClass(
                    method = "Class BuyseTest.options")
       validCharacter(object@method.inference,
                      name1 = "@resampling",
-                     valid.values = c("bootstrap", "stratified boostrata",
+                     valid.values = c("bootstrap", "stratified bootstrap", "studentized bootstrap", "studentized stratified bootstrap",
                                       "permutation", "stratified permutation",
-                                      "asymptotic"),
+                                      "none", "asymptotic", "asymptotic-bebu"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
       validCharacter(object@method.tte,

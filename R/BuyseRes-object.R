@@ -45,6 +45,7 @@ setClass(
       DeltaResampling.netBenefit = "matrix",
       DeltaResampling.winRatio = "matrix",
       covariance = "matrix",
+      covarianceResampling = "array",
       weight = "numeric",
       iid = "list",
       tablePairScore = "list",
@@ -83,6 +84,7 @@ methods::setMethod(
                                    DeltaResampling.netBenefit,
                                    DeltaResampling.winRatio,
                                    covariance,
+                                   covarianceResampling,
                                    weight,
                                    iid_favorable,
                                    iid_unfavorable,
@@ -150,6 +152,7 @@ methods::setMethod(
                      dimnames(.Object@covariance) <- list(name.endpoint,
                                                           c("favorable","unfavorable","covariance"))
                  }
+                 .Object@covarianceResampling <- covarianceResampling
                  .Object@weight <- weight
                  
                  .Object@iid <- list(favorable = iid_favorable,
