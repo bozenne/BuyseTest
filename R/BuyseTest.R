@@ -369,8 +369,9 @@ BuyseTest <- function(formula,
 
         ## direct computation of the variance
         outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
+                                                 weight = outArgs$weight,
                                                  count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
-                                                 n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                     level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+                                                 n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                   level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
 
         outPoint$Mvar <- outCovariance$Sigma
         attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection

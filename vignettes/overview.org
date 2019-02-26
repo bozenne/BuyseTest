@@ -42,7 +42,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '1.6.2'
+: [1] '1.7.3'
 
 \vfill
 
@@ -156,7 +156,7 @@ summary(BT)
 #+END_SRC 
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
+:        Generalized pairwise comparisons with 1 endpoint
 : 
 :  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
@@ -174,7 +174,7 @@ summary(BT, percentage = FALSE)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
+:        Generalized pairwise comparisons with 1 endpoint
 : 
 :  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
@@ -192,7 +192,7 @@ summary(BT, statistic = "winRatio")
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
+:        Generalized pairwise comparisons with 1 endpoint
 : 
 :  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 1 
@@ -213,14 +213,31 @@ another endpoint at then end of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.multi <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status",) + cont(karno, threshold = 0),
                       data = veteran, method.inference = "none", trace = 0)
-
 #+END_SRC
 
 #+RESULTS:
 
 The hierarchy of the endpoint is defined from left (most important
 endpoint, here =time=) to right (least important endpoint, here
-=karno=).
+=karno=). It is also possible to perform the comparisons on all
+endpoints setting the argument =hierarchical= to =FALSE=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.multi2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status",) + cont(karno, threshold = 0),
+                      hierarchical = FALSE,
+                      data = veteran, method.inference = "none", trace = 0)
+#+END_SRC
+In that case the score of a pair is the weighted sum of the score
+relative to each endpoint. By default the weights are all set to 1 but
+this behavior can be changed by setting the argument =weight= when
+calling =BuyseTest=, e.g.:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.multi3 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", weight = 0.8) + cont(karno, threshold = 0, weight = 0.2),
+                      hierarchical = FALSE,
+                      data = veteran, method.inference = "none", trace = 0)
+#+END_SRC
+
+#+RESULTS:
+This has been refered as the O’Brien test in the litterature.
 
 ** What if smaller is better?
 By default =BuyseTest= will always assume that higher values of an
@@ -278,12 +295,13 @@ summary(BT2)
 
 #+RESULTS:
 #+begin_example
-        Generalized pairwise comparison with 2 prioritized endpoints and 4 strata
+       Generalized pairwise comparisons with 2 prioritized endpoints and 4 strata
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold    strata  total favorable unfavorable neutral uninf   delta   Delta
      time        20    global 100.00     36.06       45.77   17.33  0.85 -0.0971 -0.0971
@@ -332,7 +350,7 @@ summary(BT.pair)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 2 prioritized endpoints
+:        Generalized pairwise comparisons with 2 prioritized endpoints
 : 
 :  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
@@ -353,7 +371,7 @@ summary(BT.pair2)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 2 prioritized endpoints
+:        Generalized pairwise comparisons with 2 prioritized endpoints
 : 
 :  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
@@ -377,20 +395,20 @@ summary(BT.perm)
 
 #+RESULTS:
 #+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
+       Generalized pairwise comparisons with 1 endpoint
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > permutation test: 25 samples, confidence level 0.95 
+ > confidence level: 0.95 
+ > inference       : permutation test with 25 samples 
+                     confidence intervals/p-values computed using the quantiles of the empirical distribution 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
  > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
-  CI [2.5 ; 97.5] p.value 
- [-0.3245;0.1381]    0.32 
-NOTE: confidence intervals computed under the null hypothesis
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta p.value 
+     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877    0.32
 #+end_example
+
 
 The argument =n.resampling= indicates the permutation that will be
 performed. We set it to 10 to save computation time but to obtain
@@ -409,11 +427,13 @@ summary(BT.boot)
 
 #+RESULTS:
 #+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
+       Generalized pairwise comparisons with 1 endpoint
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > bootstrap resampling: 25 samples, confidence level 0.95 
+ > confidence level: 0.95 
+ > inference       : bootstrap resampling with 25 samples 
+                     confidence intervals/p-values computed using the quantiles of the empirical distribution 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
  > results
@@ -801,7 +821,7 @@ summary(BT)
 
 #+RESULTS:
 #+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
+       Generalized pairwise comparisons with 1 endpoint
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
@@ -863,7 +883,7 @@ summary(BT)
 
 #+RESULTS:
 #+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
+       Generalized pairwise comparisons with 1 endpoint
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
@@ -1016,24 +1036,23 @@ attached base packages:
 [9] base     
 
 other attached packages:
- [1] lava_1.6.3          doParallel_1.0.14   iterators_1.0.10    foreach_1.4.4      
- [5] BuyseTest_1.6.2     testthat_2.0.0      data.table_1.11.8   Rcpp_0.12.19       
- [9] prodlim_2018.04.18  spelling_1.2        roxygen2_6.1.0.9000 butils.base_1.1    
-[13] XML_3.98-1.16       selectr_0.4-1       devtools_1.13.6    
+[1] lava_1.6.4         doParallel_1.0.14  iterators_1.0.10   foreach_1.4.4     
+[5] BuyseTest_1.7.3    data.table_1.12.0  Rcpp_1.0.0         prodlim_2018.04.18
 
 loaded via a namespace (and not attached):
- [1] compiler_3.5.1            pipeR_0.6.1.3             base64enc_0.1-3          
- [4] tools_3.5.1               digest_0.6.17             pkgbuild_1.0.1           
- [7] pkgload_1.0.0             memoise_1.1.0             lattice_0.20-35          
-[10] rlang_0.2.2               Matrix_1.2-14             commonmark_1.6           
-[13] RcppArmadillo_0.9.100.5.0 withr_2.1.2               httr_1.3.1               
-[16] stringr_1.3.1             xml2_1.2.0                desc_1.2.0               
-[19] rprojroot_1.3-2           grid_3.5.1                R6_2.3.0                 
-[22] processx_3.2.0            survival_2.42-6           purrr_0.2.5              
-[25] callr_3.0.0               magrittr_1.5              codetools_0.2-15         
-[28] splines_3.5.1             ps_1.1.0                  backports_1.1.2          
-[31] assertthat_0.2.0          rvest_0.3.2               KernSmooth_2.23-15       
-[34] stringi_1.2.4             crayon_1.3.4              zoo_1.8-4
+ [1] compiler_3.5.1            prettyunits_1.0.2         base64enc_0.1-3          
+ [4] remotes_2.0.2             tools_3.5.1               testthat_2.0.0           
+ [7] digest_0.6.17             pkgbuild_1.0.2            pkgload_1.0.2            
+[10] memoise_1.1.0             butils.base_1.2           lattice_0.20-35          
+[13] rlang_0.3.1               Matrix_1.2-14             cli_1.0.1                
+[16] RcppArmadillo_0.9.200.7.0 withr_2.1.2               desc_1.2.0               
+[19] fs_1.2.6                  devtools_2.0.1            rprojroot_1.3-2          
+[22] grid_3.5.1                glue_1.3.0                R6_2.3.0                 
+[25] processx_3.2.0            survival_2.42-6           sessioninfo_1.1.1        
+[28] callr_3.0.0               magrittr_1.5              codetools_0.2-15         
+[31] backports_1.1.2           ps_1.1.0                  splines_3.5.1            
+[34] usethis_1.4.0             assertthat_0.2.0          KernSmooth_2.23-15       
+[37] crayon_1.3.4
 #+end_example
 
 

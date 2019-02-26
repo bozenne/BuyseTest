@@ -4,9 +4,11 @@
 ** User visble changes
 - NEW FEATURE: iid function 
 - NEW FEATURE: option hierarchical in BuyseTest
+- NEW FEATURE: studentized bootstrap
 
 ** Internal change
 - fix bug in the computation of the asymptotic variance + add tests
+- faster computation of the iid (done in the C++ code)
 
 * Version 1.6
 ** Internal change

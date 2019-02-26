@@ -391,17 +391,17 @@ initializeFormula <- function(x){
 
   validClass(x, valid.class = "formula")
     
-  ## ** extract treatment
-  treatment <- setdiff(all.vars(x), all.vars(stats::delete.response(stats::terms(x))))
-  if(length(treatment)!=1){
-    stop("initFormula: there must be exactly one response variable in formula\n",
-         "number of response variables founded: ",length(treatment),"\n")
-  }
+    ## ** extract treatment
+    treatment <- setdiff(all.vars(x), all.vars(stats::delete.response(stats::terms(x))))
+    if(length(treatment)!=1){
+        stop("initFormula: there must be exactly one response variable in formula\n",
+             "number of response variables founded: ",length(treatment),"\n")
+    }
   
-  if(length(as.character(x))!=3){
-    stop("initFormula: formula with unexpected length, as.character(x) should have length 3\n",
-         "length founded: ",length(as.character(x)),"\n")
-  }
+    if(length(as.character(x))!=3){
+        stop("initFormula: formula with unexpected length, as.character(x) should have length 3\n",
+             "length founded: ",length(as.character(x)),"\n")
+    }
   
     ## ** restrict to the right side of the formula
     x.rhs <- as.character(x)[3]
@@ -426,7 +426,7 @@ initializeFormula <- function(x){
     ## ** number of endpoint variables    
     vec.x.endpoint <- vec.x.rhs[index.endpoint]
     n.endpoint <- length(vec.x.endpoint)
-    if(length(n.endpoint)==0){
+    if(n.endpoint==0){
         stop("initFormula: x must contain endpoints \n",
              "nothing of the form type(endpoint,threshold,censoring) found in the formula \n")
     }

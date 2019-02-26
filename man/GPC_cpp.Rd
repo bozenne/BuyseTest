@@ -4,20 +4,24 @@
 \alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-GPC_cpp(endpoint, censoring, indexC, indexT, threshold, weight, method, D,
-  n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring,
-  index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC,
-  list_survJumpT, list_lastSurv, correctionUninf, hierarchical,
-  neutralAsUninf, keepScore, reserve, returnIID)
+GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
+  method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint,
+  index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT,
+  list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf,
+  hierarchical, neutralAsUninf, keepScore, reserve, returnIID)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
 
 \item{censoring}{A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows).}
 
-\item{indexC}{A list containing the indexes of control observations belonging for each strata.}
+\item{indexC}{A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the control observations. Not unique when bootstraping.}
 
-\item{indexT}{A list containing the indexes of treatment observations belonging for each strata.}
+\item{posC}{A list containing, for each strata, the unique identifier of each control observations.}
+
+\item{indexT}{A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the treatment observations. Not unique when bootstraping.}
+
+\item{posT}{A list containing, for each strata, the unique identifier of each treatment observations.}
 
 \item{threshold}{Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints.}
 

@@ -7,6 +7,8 @@
 options(width = 90)
 #+END_SRC
 
+#+RESULTS:
+
 This document describe the relationship between the net benefit and
 traditional parameter of interest (e.g. hazard ratio). It also present
 how Peron's scoring rules for the survival and competing setting were
@@ -704,18 +706,15 @@ summary(e.BT, percentage = TRUE)
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
-
- > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 0 
- > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : uninformative pairs
-
- > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
-#+end_example
+:        Generalized pairwise comparisons with 1 endpoint
+: 
+:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 1 (control) vs. 2 (treatment) 
+:  > censored pairs  : uninformative pairs
+:  > results
+:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+:      time     1e-12   100      41.6       45.12   13.28     0 -0.0352 -0.0352
 
 Note that without censoring one can get the same results by treating
 time as a continuous variable that take value \(\infty\) when the
@@ -729,9 +728,9 @@ summary(e.BT.bis, percentage = TRUE)
 #+END_SRC
 
 #+RESULTS:
-:         Generalized pairwise comparison with 1 prioritized endpoint
+:        Generalized pairwise comparisons with 1 endpoint
 : 
-:  > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
 :  > treatment groups: 1 (control) vs. 2 (treatment) 
 :  > results
@@ -808,13 +807,13 @@ summary(e.BTC, percentage = TRUE)
 
 #+RESULTS:
 #+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
+       Generalized pairwise comparisons with 1 endpoint
 
- > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : uninformative pairs
-
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time     1e-12   100      31.1       35.15    8.65  25.1 -0.0406 -0.0406
@@ -823,21 +822,21 @@ summary(e.BTC, percentage = TRUE)
 BuyseTest (unbiased):
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.BTCC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
-                   method.inference = "none", method.tte = "Gehan corrected",
-                   trace = 0)
+                    method.inference = "none", method.tte = "Gehan",
+                    correction.uninf = 2,
+                    trace = 0)
 summary(e.BTCC, percentage = TRUE)
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
-        Generalized pairwise comparison with 1 prioritized endpoint
+       Generalized pairwise comparisons with 1 endpoint
 
- > statistic       : net chance of a better outcome (delta: endpoint specific, Delta: global) 
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : uninformative pairs
-                     IPW for uninformative pairs
-
+ > uninformative pairs: no contribution, their weight is passed to the informative pairs using IPCW
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time     1e-12   100     41.52       46.94   11.54     0 -0.0542 -0.0542
@@ -898,14 +897,6 @@ mean((df$time<=1)*(df$event==1))
 
 #+RESULTS:
 : [1] 0.6375
-
-
-# * References
-# bibliographystyle:apalike
-# [[bibliography:bibliography.bib]]
-
-# @@latex:any arbitrary LaTeX code@@
-
 
 
 
@@ -1097,8 +1088,8 @@ e.BT@covariance
 #+END_SRC
 
 #+RESULTS:
-:          favorable unfavorable covariance
-: toxicity    0.0625      0.0625    -0.0625
+:              favorable unfavorable covariance netBenefit winRatio
+: toxicity_0.5    0.0625      0.0625    -0.0625       0.25        4
 
 Note that we could also estimate the variance via the formula given in
 citep:bebu2015large, e.g.:
@@ -1120,8 +1111,8 @@ e2.BT@covariance
 #+END_SRC
 
 #+RESULTS:
-:          favorable unfavorable covariance
-: toxicity    0.0625      0.0625    -0.0625
+:              favorable unfavorable covariance netBenefit winRatio
+: toxicity_0.5    0.0625      0.0625    -0.0625       0.25        4
 
 \clearpage
 

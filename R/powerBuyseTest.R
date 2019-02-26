@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: feb 25 2019 (14:04) 
+## Last-Updated: feb 26 2019 (17:48) 
 ##           By: Brice Ozenne
-##     Update #: 351
+##     Update #: 450
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -54,8 +54,8 @@
 ##'
 ##' ## using simBuyseTest
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
-##'               formula = Treatment ~ tte(eventtime, censoring = status),
-##'               method.inference = "asymptotic", trace = 4)
+##'                formula = Treatment ~ bin(toxicity),
+##'                method.inference = "asymptotic", trace = 4)
 ##'
 ##' ## using user defined simulation function
 ##' simFCT <- function(n.C, n.T){
@@ -105,11 +105,11 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
     validInteger(sample.sizeC,
                  valid.length = NULL,
-                 min = 1, refuse.duplicates = TRUE,
+                 min = 1, refuse.duplicates = FALSE, ## accept duplicates for checking the software
                  method = "BuyseTest")
     validInteger(sample.sizeT,
                  valid.length = NULL,
-                 min = 1, refuse.duplicates = TRUE,
+                 min = 1, refuse.duplicates = FALSE, ## accept duplicates for checking the software
                  method = "BuyseTest")
     if(length(sample.sizeT)!=length(sample.sizeC)){
         stop("Arguments \'sample.sizeT\ and \'sample.sizeC\' must have the same length \n")
@@ -121,6 +121,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         
     n.sample.size <- length(sample.sizeT)
     grid.inference <- expand.grid(order = order.Hprojection,
+                                  index.sample.size = 1:n.sample.size,
                                   transformation = transformation)
     n.inference <- NROW(grid.inference)
     sample.sizeCmax <- sample.sizeC[n.sample.size]
@@ -135,8 +136,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, alternative = alternative,
                               data = NULL, model.tte = NULL, keep.pairScore = TRUE, ...)
-    if(outArgs$method.tte==1 && n.sample.size >1){
-        stop("Peron correction not compatible with powerBuyseTest for more than one sample size \n")
+    if(outArgs$method.tte==1 && n.sample.size > 1){
+        stop("Peron correction not compatible with powerBuyseTest for more than one sample size\n")
     }
     if(any(outArgs$operator!=">0")){
         stop("Cannot use argument \'operator\' with powerBuyseTest \n")
@@ -201,7 +202,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
     ## ** warper
     warper <- function(i, envir){
-        iOut <- matrix(NA, nrow = n.sample.size * n.inference, ncol = 14,
+        iOut <- matrix(NA, nrow = n.inference, ncol = 14,
                        dimnames = list(NULL, c("simulation","n.T","n.C","method.inference",
                                                "netBenefit","netBenefit.se","netBenefit.lower","netBenefit.upper","netBenefit.p.value",
                                                "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value")))
@@ -226,113 +227,58 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         ## *** Point estimate
         outPoint <- .BuyseTest(envir = envir,
                                method.inference = "none",
-                               iid = FALSE,
+                               iid = TRUE,
                                pointEstimation = TRUE)
 
-        ## *** put results into a data.table
-        tablePairScore <- pairScore2dt(outPoint$tableScore,
-                                       level.treatment = envir$outArgs$level.treatment,
-                                       level.strata = envir$outArgs$level.strata,
-                                       n.strata = envir$outArgs$n.strata,
-                                       endpoint = envir$outArgs$endpoint,
-                                       threshold = envir$outArgs$threshold)
+        ## *** generate BT results based on all sample sizes
+        ls.BT <- .createSubBT(outPoint, order = order.Hprojection,
+                              type = envir$outArgs$type,
+                              endpoint = envir$outArgs$endpoint,
+                              level.treatment = envir$outArgs$level.treatment,
+                              method.tte = envir$outArgs$method.tte,
+                              method.inference = envir$outArgs$method.inference,
+                              hierarchical = envir$outArgs$hierarchical,
+                              correction.uninf = envir$outArgs$correction.uninf,
+                              threshold = envir$outArgs$threshold,
+                              weight = envir$outArgs$weight,
+                              sample.sizeC = envir$sample.sizeC, sample.sizeT = envir$sample.sizeT, n.sample.size = n.sample.size)
 
-        for(iSample in 1:n.sample.size){ ## iSample <- 1
-            iIndex.store <- seq(1 + (iSample-1)*n.inference, iSample*n.inference)
-            iOut[iIndex.store,"n.C"] <- envir$sample.sizeC[iSample]
-            iOut[iIndex.store,"n.T"] <- envir$sample.sizeT[iSample]
-            iPairs <- envir$sample.sizeC[iSample]*envir$sample.sizeT[iSample]
-            
-            tableSample <- lapply(tablePairScore, function(iEndpoint){ ## iEndpoint <- tablePairScore[[1]]
-                ## restrict pairs 
-                index <- intersect(which(iEndpoint$indexWithinStrata.C <= envir$sample.sizeC[iSample]),
-                                   which(iEndpoint$indexWithinStrata.T <= envir$sample.sizeT[iSample]))
-                iEndpoint <- iEndpoint[index]
+        for(iInference in 1:n.inference){ ## iInference <- 1
 
-                ## update index in dataset
-                old.position <- sort(c(unique(iEndpoint$index.T),unique(iEndpoint$index.C)))
-                new.position <- rank(old.position)
-                old2new <- rep(NA, max(old.position))
-                old2new[old.position] <- new.position
-                iEndpoint[, c("index.T") := old2new[.SD$index.T]]
-                iEndpoint[, c("index.C") := old2new[.SD$index.C]]
+            ##
+            iTransformation <- grid.inference[iInference,"transformation"]
+            iOrder <- grid.inference[iInference,"order"]
+            iSample.size <- grid.inference[iInference,"index.sample.size"]
 
-                ## update correction (no strata)
-                if(envir$outArgs$correction.uninf>0 && iSample < n.sample.size && sum(iEndpoint$uninf)>0){
-## new weighting                    
-                        mfactor <- sum(iEndpoint$favorable + iEndpoint$unfavorable + iEndpoint$neutral + iEndpoint$uninf) / sum(iEndpoint$favorable + iEndpoint$unfavorable + iEndpoint$neutral)
-                        iEndpoint[, c("favorableC") :=.SD$favorable * .SD$weight * mfactor]
-                        iEndpoint[, c("unfavorableC") :=.SD$unfavorable * .SD$weight * mfactor]
-                        iEndpoint[, c("neutralC") :=.SD$neutral * .SD$weight * mfactor]
-                    
-                }
-                
-                ## export
-                return(iEndpoint)
-            })
+            ##
+            iOut[iInference,"n.T"] <- sample.sizeT[iSample.size]
+            iOut[iInference,"n.C"] <- sample.sizeC[iSample.size]
+            iOut[iInference,"method.inference"] <- paste0("order=",iOrder," - transformation=",iTransformation)
 
-            ## *** Point estimate
-            MresSample <- do.call(rbind,lapply(tableSample, function(iEndpoint){
-                return(c("npairs" = NROW(iEndpoint),
-                         "favorable" = sum(iEndpoint$favorableC),
-                         "unfavorable" = sum(iEndpoint$unfavorableC)))
-            }))
-            
-            iOut[iIndex.store,"netBenefit"] <- (sum(MresSample[,"favorable"]) - sum(MresSample[,"unfavorable"]))/MresSample[1,"npairs"]
-            iOut[iIndex.store,"winRatio"] <- sum(MresSample[,"favorable"]) / sum(MresSample[,"unfavorable"])
-
-            ## *** Inference
-            if(outArgs$method.inference %in% c("asymptotic")){
-                ## warning: only work if no strata, otherwise n.pairs/count.favorable/count.unfavorable needs to be sum over strata
-                ## see BuyseTest.R
-                outCovariance <- inferenceUstatistic(tableSample,
-                                                     order = max(order.Hprojection), ## if order 1 and 2 are requested by the user then feed order 2
-                                                     count.favorable = matrix(MresSample[,"favorable"], nrow = 1),
-                                                     count.unfavorable = matrix(MresSample[,"unfavorable"], nrow = 1),
-                                                     n.pairs = iPairs,
-                                                     n.C = envir$sample.sizeC[iSample],
-                                                     n.T = envir$sample.sizeT[iSample],
-                                                     level.strata = envir$outArgs$level.strata,
-                                                     n.strata = envir$outArgs$n.strata,
-                                                     n.endpoint = length(envir$outArgs$endpoint),
-                                                     endpoint = envir$outArgs$endpoint)
-                
-                for(iStatistic in c("netBenefit","winRatio")){
-                    for(iInference in 1:n.inference){ ## iInference <- 1
-                        ## cat("\n",iStatistic," ",iInference," ",iSample,"\n")
-                            
-                        iTransformation <- grid.inference[iInference,"transformation"]
-                        iOrder <- grid.inference[iInference,"order"]
-                        if(iOrder == max(order.Hprojection)){
-                            iCovariance <- outCovariance$Sigma                         
-                        }else{
-                            ## recompute the covariance matrix to remove second order term 
-                            iCovariance <- .iid2cov(A.iid = outCovariance$iid1, A2.iid = NULL,
-                                                    order = iOrder, endpoint = envir$outArgs$endpoint, n.endpoint = length(envir$outArgs$endpoint))
-                        }
-                        outCI <- confint_Ustatistic(Delta = iOut[iIndex.store[iInference],iStatistic],
-                                                    pc.favorable = MresSample[,"favorable"]/MresSample[,"npairs"],
-                                                    pc.unfavorable =  MresSample[,"unfavorable"]/MresSample[,"npairs"],
-                                                    covariance = iCovariance, statistic = iStatistic,
-                                                    alternative = alternative, alpha = alpha, null = null[iStatistic],
-                                                    endpoint = envir$outArgs$endpoint, transformation = iTransformation,
-                                                    n.pairs = iPairs)
-
-                        iOut[iIndex.store[iInference],"method.inference"] <- paste0("order=",iOrder," - transformation=",iTransformation)
-                        iOut[iIndex.store[iInference],paste0(iStatistic,".se")] <- outCI[1,"se"]
-                        iOut[iIndex.store[iInference],paste0(iStatistic,".lower")] <- outCI[1,"lower.ci"]
-                        iOut[iIndex.store[iInference],paste0(iStatistic,".upper")] <- outCI[1,"upper.ci"]
-                        iOut[iIndex.store[iInference],paste0(iStatistic,".p.value")] <- outCI[1,"p.value"]
-                    }
-                }
-            
-
+            ##
+            BT.tempo <- ls.BT[[iSample.size]]
+            ## ls.BT[[iSample.size]]@covariance
+            if(length(order.Hprojection)==2 && iOrder==1){
+                BT.tempo@covariance <- attr(BT.tempo@covariance,"first.order")
             }
+                
+            for(iStatistic in c("netBenefit","winRatio")){ ## iStatistic <- "winRatio"
 
+                outCI <- suppressWarnings(confint(BT.tempo, transformation = iTransformation, statistic = iStatistic))
+
+                iOut[iInference,paste0(iStatistic)] <- outCI[NROW(outCI),"estimate"]
+                iOut[iInference,paste0(iStatistic,".se")] <- outCI[NROW(outCI),"se"]
+                iOut[iInference,paste0(iStatistic,".lower")] <- outCI[NROW(outCI),"lower.ci"]
+                iOut[iInference,paste0(iStatistic,".upper")] <- outCI[NROW(outCI),"upper.ci"]
+                iOut[iInference,paste0(iStatistic,".p.value")] <- outCI[NROW(outCI),"p.value"]
+            }
+            
         }
-        
+
         return(iOut)
     }
+            
+
     
 
     ## ** simulation study
@@ -414,6 +360,154 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     )
 
     return(BuyseSim.object)
+}
+
+## * .createSubBT
+.createSubBT <- function(object, order,
+                         type, endpoint, level.treatment, method.tte, method.inference, hierarchical, correction.uninf,
+                         threshold, weight,
+                         sample.sizeT, sample.sizeC, n.sample.size){
+
+    n.endpoint <- length(endpoint)
+    out <- vector(mode = "list", length = n.sample.size)
+
+    ## ** put pairwise comparisons into a data.table
+    table <- pairScore2dt(object$tableScore,
+                          level.treatment = level.treatment,
+                          level.strata = "1",
+                          n.strata = 1,
+                          endpoint = endpoint,
+                          threshold = threshold)
+
+    ## ** create BT for each sample size
+    for(iSample in 1:n.sample.size){ ## iSample <- 1
+
+        if(iSample!=n.sample.size || 2 %in% order){
+            iCount_favorable <- matrix(NA, nrow = 1, ncol = n.endpoint)
+            iCount_unfavorable <- matrix(NA, nrow = 1, ncol = n.endpoint)
+            iCount_neutral <- matrix(NA, nrow = 1, ncol = n.endpoint)
+            iCount_uninf <- matrix(NA, nrow = 1, ncol = n.endpoint)
+
+            iLS.table <- vector(mode = "list", length = n.endpoint)
+            
+            ## *** subset of index
+            iN.C <- sample.sizeC[iSample]
+            iN.T <- sample.sizeT[iSample]
+            iN_pairs <- iN.C * iN.T
+
+            ## *** update scores
+            for(iEndpoint in 1:length(endpoint)){ ## iEndpoint <- 1
+
+                ## restrict pairs 
+                index <- intersect(which(table[[iEndpoint]]$indexWithinStrata.C <= iN.C),
+                                   which(table[[iEndpoint]]$indexWithinStrata.T <= iN.T))
+                iTable <- table[[iEndpoint]][index]
+
+                ## update index in dataset
+                old.position <- sort(c(unique(iTable$index.T),unique(iTable$index.C)))
+                new.position <- rank(old.position)
+                old2new <- rep(NA, max(old.position))
+                old2new[old.position] <- new.position
+                iTable[, c("index.T") := old2new[.SD$index.T]]
+                iTable[, c("index.C") := old2new[.SD$index.C]]
+
+                ## update correction (no strata)
+                if(correction.uninf>0 && iSample < n.sample.size && sum(iTable$uninf)>0){
+                    ## new weighting
+                    if(correction.uninf == 1){
+                        mfactorFavorable <- sum(iTable$favorable) / sum(iTable$favorable + iTable$unfavorable + iTable$neutral)
+                        mfactorUnfavorable <- sum(iTable$unfavorable) / sum(iTable$favorable + iTable$unfavorable + iTable$neutral)
+                        mfactorNeutral <- sum(iTable$neutral) / sum(iTable$favorable + iTable$unfavorable + iTable$neutral)
+                        iTable[, c("favorableC") := (.SD$favorable + .SD$uninf * mfactorFavorable) * .SD$weight]
+                        iTable[, c("unfavorableC") := (.SD$unfavorable + .SD$uninf * mfactorUnfavorable) * .SD$weight]
+                        iTable[, c("neutralC") := (.SD$neutral + .SD$uninf * mfactorNeutral) * .SD$weight]
+                    }else if(correction.uninf == 2){
+                        mfactor <- sum(iTable$favorable + iTable$unfavorable + iTable$neutral + iTable$uninf) / sum(iTable$favorable + iTable$unfavorable + iTable$neutral)
+                        iTable[, c("favorableC") :=.SD$favorable * .SD$weight * mfactor]
+                        iTable[, c("unfavorableC") :=.SD$unfavorable * .SD$weight * mfactor]
+                        iTable[, c("neutralC") :=.SD$neutral * .SD$weight * mfactor]
+                    }
+                }
+
+                ## Point estimates
+                iCount_favorable[1,iEndpoint] <- sum(iTable$favorableC)
+                iCount_unfavorable[1,iEndpoint] <- sum(iTable$unfavorableC)
+                iCount_neutral[1,iEndpoint] <- sum(iTable$neutralC)
+                iCount_uninf[1,iEndpoint] <- sum(iTable$uninfC)
+
+                iLS.table[[iEndpoint]] <- iTable
+            }
+
+            ## *** new point estimate
+            idelta_netBenefit <- iCount_favorable/iN_pairs-iCount_unfavorable/iN_pairs
+            idelta_winRatio <- iCount_favorable/iCount_unfavorable
+
+            iDelta_netBenefit <- cumsum(iCount_favorable[1,]*weight)/iN_pairs-cumsum(iCount_unfavorable[1,]*weight)/iN_pairs
+            iDelta_winRatio <- cumsum(iCount_favorable[1,]*weight)/cumsum(iCount_unfavorable[1,]*weight)
+
+            ## *** compute variance            
+            iSigma <- inferenceUstatistic(iLS.table, order = order,
+                                           weight = weight, count.favorable = iCount_favorable, count.unfavorable = iCount_unfavorable,
+                                           n.pairs = iN_pairs, n.C = iN.C, n.T = iN.T,
+                                           level.strata = "1", n.strata = 1, n.endpoint = n.endpoint, endpoint = endpoint)$Sigma
+
+        }else{
+            iN_pairs <- object$n_pairs
+
+            iCount_favorable <- object$count_favorable
+            iCount_unfavorable <- object$count_unfavorable
+            iCount_neutral <- object$count_neutral
+            iCount_uninf <- object$count_uninf
+
+            idelta_netBenefit <- object$delta_netBenefit
+            idelta_winRatio <- object$delta_winRatio
+            iDelta_netBenefit <- object$Delta_netBenefit
+            iDelta_winRatio <- object$Delta_winRatio
+
+            iSigma <- object$Mvar
+        }
+            
+        ## *** Create object
+        out[[iSample]] <- BuyseRes(
+            count.favorable = iCount_favorable,      
+            count.unfavorable = iCount_unfavorable,
+            count.neutral = iCount_neutral,    
+            count.uninf = iCount_uninf,
+            n.pairs = iN_pairs,
+            delta.netBenefit = idelta_netBenefit,
+            delta.winRatio = idelta_winRatio,
+            Delta.netBenefit = iDelta_netBenefit,
+            Delta.winRatio = iDelta_winRatio,
+            type = type,
+            endpoint = endpoint,
+            level.treatment = level.treatment,
+            method.tte = switch(as.character(method.tte),
+                                "0" = "Gehan",
+                                "1" = "Peron"),
+            hierarchical = hierarchical,
+            correction.uninf = correction.uninf,
+            method.inference = method.inference,
+            strata = NULL,
+            level.strata = "1",
+            threshold = threshold,
+            n.resampling = as.double(NA),
+            deltaResampling.netBenefit = array(dim=c(0,0,0)),
+            deltaResampling.winRatio = array(dim=c(0,0,0)),
+            DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
+            DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+            covarianceResampling = array(NA, dim = c(0,0,0)),
+            covariance = iSigma,
+            weight = weight,
+            iid_favorable = NULL,
+            iid_unfavorable = NULL,
+            tablePairScore = list(),
+            tableSurvival = list()
+        )
+            
+    }
+
+    return(out)
+    
 }
 
 ######################################################################

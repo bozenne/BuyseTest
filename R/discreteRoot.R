@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: feb 25 2019 (15:15) 
+## Last-Updated: feb 26 2019 (18:35) 
 ##           By: Brice Ozenne
-##     Update #: 253
+##     Update #: 254
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@
 #'
 
 ## * discreteRoot
-#' @rdname dicreteRoot
+#' @rdname discreteRoot
 #' @export
 discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
                          tol = .Machine$double.eps ^ 0.5) {

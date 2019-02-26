@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 25 2019 (11:13) 
+## Last-Updated: feb 26 2019 (18:04) 
 ##           By: Brice Ozenne
-##     Update #: 25
+##     Update #: 27
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,11 +38,11 @@ test_that("iid: binary and no strata (balanced groups)", {
                       data = d, 
                       method.inference = "asymptotic")
     e2.BT <- BuyseTest(group ~ bin(toxicity),
-                       data = d, 
+                       data = d, keep.pairScore = TRUE,
                        method.inference = "asymptotic-bebu")
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16) )
+    expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16, 1/4, 4) )
 
     expect_equal(iid(e.BT)[,"favorable"], c(-1/8,1/8,1/8,-1/8))
     expect_equal(iid(e.BT)[,"unfavorable"], c(1/8,-1/8,-1/8,1/8))
@@ -56,11 +56,11 @@ test_that("iid: binary and no strata (unbalanced groups)", {
                       data = d.bis, 
                       method.inference = "asymptotic")
     e2.BT <- BuyseTest(group ~ bin(toxicity),
-                       data = d.bis, 
+                       data = d.bis, keep.pairScore = TRUE,
                        method.inference = "asymptotic-bebu")
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(0,2/27,0) )
+    expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0) )
 
     expect_equal(iid(e.BT)[,"favorable"], c(0,0,0,0))
     expect_equal(iid(e.BT)[,"unfavorable"], c(0,-1/9,-1/9,2/9))
@@ -77,11 +77,11 @@ test_that("iid: binary with strata (balanced groups)", {
                       data = d2, 
                       method.inference = "asymptotic")
     e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2, 
+                       data = d2, keep.pairScore = TRUE,
                        method.inference = "asymptotic-bebu")
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16)/3 )
+    expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16,1/4,4)/3 )
 
     expect_equal(iid(e.BT)[,"favorable"], rep(c(-1/8,1/8,1/8,-1/8),3)/3)
     expect_equal(iid(e.BT)[,"unfavorable"], rep(c(1/8,-1/8,-1/8,1/8),3)/3)
@@ -96,11 +96,11 @@ test_that("iid: binary and no strata (unbalanced groups)", {
                       data = d2.bis, 
                       method.inference = "asymptotic")
     e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2.bis, 
+                       data = d2.bis, keep.pairScore = TRUE,
                        method.inference = "asymptotic-bebu")
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(0,2/27,0)/3 )
+    expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0)/3 )
 
     expect_equal(iid(e.BT)[,"favorable"], rep(c(0,0,0,0),3)/3)
     expect_equal(iid(e.BT)[,"unfavorable"], rep(c(0,-1/9,-1/9,2/9),3)/3)
@@ -117,14 +117,14 @@ test_that("iid: two endpoints (no strata)", {
                       data = d,
                       method.inference = "asymptotic")
     e2.BT <- BuyseTest(Treatment ~  bin(toxicity) + cont(score, threshold = 1),
-                       data = d,
+                       data = d, keep.pairScore = TRUE,
                        method.inference = "asymptotic-bebu")
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["toxicity_0.5",]),
-                 c(0.002499994, 0.002499994, -0.002492006), tol = 1e-6 )
+                 c(0.002499994, 0.002499994, -0.002492006, 0.009984000, 0.160256410), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["score_1",]),
-                 c(0.003049562, 0.003202234, -0.002925978), tol = 1e-6 )
+                 c(0.003049562, 0.003202234, -0.002925978, 0.012103750, 0.077787351), tol = 1e-6 )
 
     ## favorable unfavorable   covariance
     ## toxicity 0.002499994 0.002499994 -0.002492006
@@ -135,26 +135,26 @@ test_that("iid: two endpoints (no strata)", {
                       data = d,
                       method.inference = "asymptotic")
     e2.BT <- BuyseTest(Treatment ~  cont(score, threshold = 2) + cont(score, threshold = 1),
-                       data = d,
+                       data = d, keep.pairScore = TRUE,
                        method.inference = "asymptotic-bebu")
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["score_2",]),
-                 c(0.00036192, 0.000613760, -0.000166400), tol = 1e-6 )
+                 c(0.00036192, 0.000613760, -0.000166400, 0.00130848, 0.13086775), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["score_1",]),
-                 c(0.00190759, 0.002360218, -0.001708275), tol = 1e-6 )
+                 c(0.00190759, 0.002360218, -0.001708275, 0.007684358, 0.088893573), tol = 1e-6 )
 
     ## same endpoint tte
     e.BT <- suppressWarnings(BuyseTest(Treatment ~  tte(eventtime, threshold = 2, censoring = status) + tte(eventtime, threshold = 1, censoring = status),
                                        data = d,
                                        method.inference = "asymptotic"))
     e2.BT <- suppressWarnings(BuyseTest(Treatment ~  tte(eventtime, threshold = 2, censoring = status) + tte(eventtime, threshold = 1, censoring = status),
-                                        data = d,
+                                        data = d, keep.pairScore = TRUE,
                                         method.inference = "asymptotic-bebu"))
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["eventtime_2",]),
-                 c(0.0000000000, 0.0004251505, 0.0000000000), tol = 1e-6 )
+                 c(0.0000000000, 0.0004251505, 0.0000000000, 0.0004251505, 0.0000000000), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["eventtime_1",]),
-                 c(0.0008748297, 0.0015243380, -0.0009593909), tol = 1e-6 )
+                 c(0.0008748297, 0.0015243380, -0.0009593909, 0.0043179495, 0.0171570309), tol = 1e-6 )
 })
 
 
@@ -177,12 +177,12 @@ test_that("iid: two endpoints (strata)", {
                       method.inference = "asymptotic")
 
     e2.BT <- BuyseTest(Treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + strata,
-                       data = d2,
+                       data = d2, keep.pairScore = TRUE,
                        method.inference = "asymptotic-bebu")
 
     expect_equal(as.double(e0.BT@covariance), as.double(e.BT@covariance[2,]))
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e0.BT@covariance), c(0.0009537952, 0.001180109, -0.0008541376), tol = 1e-6 )
+    expect_equal(as.double(e0.BT@covariance), c(0.0009537952, 0.001180109, -0.0008541376, 0.0038421792, 0.0444467864), tol = 1e-6 )
 })
 
 ######################################################################

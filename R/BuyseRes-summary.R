@@ -115,10 +115,10 @@ setMethod(f = "summary",
               delta <- slot(object, name = paste0("delta.",statistic))
               Delta <- slot(object, name = paste0("Delta.",statistic))
               n.resampling <- object@n.resampling
-              if(!is.na(conf.level)){
-                  method.inference <- object@method.inference
-              }else{
-                  method.inference <- "none"
+
+              method.inference <- object@method.inference
+              if(is.na(conf.level)){
+                  method.inference[] <- "none" ## uses [] to not remove the attributees of method.inference
               }
 
               alpha <- 1-conf.level
@@ -179,14 +179,16 @@ setMethod(f = "summary",
               }
 
               ## *** compute CI and p-value
-              table[index.global,"CIinf.Delta"] <- outConfint[,"lower.ci"]
-              table[index.global,"CIsup.Delta"] <- outConfint[,"upper.ci"]
+              if(!attr(method.inference,"permutation")){
+                  table[index.global,"CIinf.Delta"] <- outConfint[,"lower.ci"]
+                  table[index.global,"CIsup.Delta"] <- outConfint[,"upper.ci"]
+              }
               table[index.global,"p.value"] <- outConfint[,"p.value"]
               table[index.global,"n.resampling"] <- attr(outConfint,"n.resampling")
 
               ## ** generate print table
               table.print <- table
-                  
+
               ## *** add column with stars
               if(method.inference != "none"){
                   colStars <- rep("",NROW(table.print))
@@ -221,8 +223,11 @@ setMethod(f = "summary",
                   keep.cols <- setdiff(names(table.print),
                                        c("CIinf.Delta","CIsup.Delta","n.resampling","p.value"))
                   table.print <- table.print[,keep.cols, drop = FALSE]
-              }else if(method.inference %in% c("asymptotic","asymptotic-bebu")){
+              }else if(attr(method.inference,"ustatistic")){
                   keep.cols <- setdiff(names(table.print), "n.resampling")
+                  table.print <- table.print[,keep.cols, drop = FALSE]
+              }else if(attr(method.inference,"permutation")){
+                  keep.cols <- setdiff(names(table.print), c("CIinf.Delta","CIsup.Delta"))
                   table.print <- table.print[,keep.cols, drop = FALSE]
               }
 
@@ -240,11 +245,10 @@ setMethod(f = "summary",
               if(!is.na(digit[2])){
                   param.signif <- c("delta","Delta")
                   if(method.inference != "none"){
+                      table.print[!is.na(table.print$p.value),"p.value"] <- format.pval(table.print[!is.na(table.print$p.value),"p.value"], digits = digit[2])                      
+                  }
+                  if(method.inference != "none" && !attr(method.inference,"permutation")){
                       param.signif <- c(param.signif, "CIinf.Delta","CIsup.Delta")
-
-                      ## take care of the p.value
-                      table.print[,"p.value"] <- format.pval(table.print[,"p.value"], digits = digit[2])
-                      
                   }
                   table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[2])
               }
@@ -255,7 +259,7 @@ setMethod(f = "summary",
                   names(table)[match(oldnames,names(table))] <- newnames
                   names(table.print)[match(oldnames,names(table.print))] <- newnames
               }
-              
+
               ## *** set Inf to NA in summary
               ## e.g. in the case of no unfavorable pairs the win ratio is Inf
               ##      this is not a valid estimate and it is set to NA
@@ -292,7 +296,7 @@ setMethod(f = "summary",
               }
                   
               ## *** merge CI inf and CI sup column
-              if(method.inference != "none"){
+              if(method.inference != "none" && !attr(method.inference,"permutation")){
                   if("strata" %in% names(table.print)){
                       index.tempo <- which(table.print$strata == "global")                                       
                   }else{
@@ -332,13 +336,15 @@ setMethod(f = "summary",
               ## ** display
               if(print){
                   ## *** additional text
-                  txt.GPC <- ifelse(hierarchical, "Hierarchical", "Full")
+                  if(n.endpoint>1){
+                      txt.endpoint <- paste0("with ",n.endpoint," ",ifelse(hierarchical, "prioritized ", ""),"endpoints", sep = "")
+                  }else{
+                      txt.endpoint <- paste0("with 1 endpoint")
+                  }
                   txt.strata <- if(n.strata>1){paste0(" and ",n.strata," strata")}else{""}
-                  txt.endpoint <- paste0("with ",n.endpoint," prioritized endpoint")
-                  if(n.endpoint>1){txt.endpoint <- paste0(txt.endpoint,"s")}
                   
                   ## *** display
-                  cat("       ",txt.GPC," generalized pairwise comparison ",txt.endpoint,txt.strata,"\n\n", sep = "")
+                  cat("       Generalized pairwise comparisons ",txt.endpoint,txt.strata,"\n\n", sep = "")
                   if(statistic == "winRatio"){
                       cat(" > statistic       : win ratio (delta: endpoint specific, Delta: global) \n",
                           " > null hypothesis : Delta == 1 \n", sep = "")
@@ -365,11 +371,15 @@ setMethod(f = "summary",
                           }else{
                               txt.method <- paste0(txt.method, " with [",min(n.resampling)," ; ",max(n.resampling),"] samples \n")
                           }
-                          txt.method.ci <- switch(attr(outConfint,"method.ci.resampling"),
-                                                  "gaussian" = "quantiles of a Gaussian distribution",
-                                                  "student" = "quantiles of a Student's t-distribution",
-                                                  "percentile" = "quantiles of the empirical distribution"
-                                                  )
+                          if(attr(method.inference,"bootstrap")){
+                              txt.method.ci <- switch(attr(outConfint,"method.ci.boot"),
+                                                      "gaussian" = "quantiles of a Gaussian distribution",
+                                                      "student" = "quantiles of a Student's t-distribution",
+                                                      "percentile" = "quantiles of the empirical distribution"
+                                                      )
+                          }else{
+                              txt.method.ci <- "quantiles of the empirical distribution"
+                          }
                           txt.method <- paste0(txt.method,"                     confidence intervals/p-values computed using the ",txt.method.ci," \n")
                       }
                       cat(" > inference       : ",txt.method, sep = "")
@@ -395,9 +405,6 @@ setMethod(f = "summary",
                   
                   cat(" > results\n")
                   print(table.print, row.names = FALSE)
-                  if(method.inference %in% c("permutation","stratified permutation")){
-                      cat("NOTE: confidence intervals computed under the null hypothesis\n")
-                  }
               }
               ## ** export
               return(invisible(list(table = table,
