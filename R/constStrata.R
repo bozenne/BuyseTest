@@ -18,6 +18,8 @@
 #' @return A \emph{factor vector} or a \emph{numeric vector}.
 #' 
 #' @examples
+#' library(data.table)
+#' 
 #' data(veteran,package="survival")
 #'   
 #' # strata with two variables : celltype and karno

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: okt 30 2018 (16:21) 
+## Last-Updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 18
+##     Update #: 20
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,6 +18,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check that the option operator in BuyseTest is working correctly \n")

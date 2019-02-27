@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 22 2017 (18:37) 
 ## Version: 
-## Last-Updated: okt 16 2018 (16:22) 
+## Last-Updated: feb 27 2019 (22:34) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,6 +18,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 context("Check the function initializing the thresholds")
 

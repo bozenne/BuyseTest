@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 27 2018 (17:10) 
 ## Version: 
-## Last-Updated: maj 27 2018 (20:42) 
+## Last-Updated: feb 27 2019 (22:34) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,6 +19,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Comparison with other softwares")

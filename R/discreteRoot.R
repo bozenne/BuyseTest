@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: feb 26 2019 (18:35) 
+## Last-Updated: feb 27 2019 (22:31) 
 ##           By: Brice Ozenne
-##     Update #: 254
+##     Update #: 256
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -147,7 +147,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' }
 #' If the argument alternative is set to \code{"greater"}, it returns 1.
 #' 
-#' @examples 
+#' @examples
 #' set.seed(10)
 #' 
 #' #### no effect ####

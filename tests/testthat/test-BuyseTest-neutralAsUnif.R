@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: okt 30 2018 (16:21) 
+## last-updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 48
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -20,6 +20,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check that the option neutral.as.uninf in BuyseTest is working correctly \n")

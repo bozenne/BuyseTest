@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 26 2019 (18:04) 
+## Last-Updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 27
+##     Update #: 30
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,6 +18,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check correct computation of the variance \n")

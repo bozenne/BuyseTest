@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: okt 30 2018 (16:21) 
+## Last-Updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 9
+##     Update #: 11
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,6 +18,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check that BuyseTest with competing risks \n")

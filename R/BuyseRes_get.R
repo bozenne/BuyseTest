@@ -85,6 +85,8 @@ setMethod(f = "getCount",
 ## * getPairScore (examples)
 #' @rdname BuyseRes-getPairScore
 #' @examples
+#' library(data.table)
+#' 
 #' ## run BuyseTest
 #' data(veteran,package="survival")
 #'

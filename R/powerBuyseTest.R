@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: feb 26 2019 (17:48) 
+## Last-Updated: feb 27 2019 (22:30) 
 ##           By: Brice Ozenne
-##     Update #: 450
+##     Update #: 451
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -51,7 +51,8 @@
 ## * powerBuyseTest (examples)
 ##' @rdname powerBuyseTest
 ##' @examples
-##'
+##' library(data.table)
+##' 
 ##' ## using simBuyseTest
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
 ##'                formula = Treatment ~ bin(toxicity),

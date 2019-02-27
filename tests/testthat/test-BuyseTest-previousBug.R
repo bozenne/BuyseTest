@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: feb 10 2019 (10:17) 
+## Last-Updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 85
+##     Update #: 86
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,6 +18,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check that bugs that have been reported are fixed \n")

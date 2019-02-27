@@ -10,7 +10,9 @@
 #'         
 #' @details It only affects the \code{\link{BuyseTest}} function
 #' 
-#' @examples  
+#' @examples
+#' library(data.table)
+#' 
 #' ## see all global parameters
 #' BuyseTest.options()
 #' 

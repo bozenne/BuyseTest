@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: feb 26 2019 (18:30) 
+## Last-Updated: feb 27 2019 (22:34) 
 ##           By: Brice Ozenne
-##     Update #: 2
+##     Update #: 5
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,6 +18,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check BuysePower \n")

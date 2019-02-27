@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: okt 30 2018 (17:22) 
+## Last-Updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 97
+##     Update #: 99
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,6 +18,7 @@
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check that method.tte = corrected  in BuyseTest is working correctly \n")

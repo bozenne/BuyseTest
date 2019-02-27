@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: feb 21 2019 (12:12) 
+## Last-Updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 47
+##     Update #: 49
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,10 +15,10 @@
 ## 
 ### Code:
 
-
 if(FALSE){
     library(testthat)
     library(BuyseTest)
+    library(data.table)
 }
 
 context("Check tableComparison matches the summary of BuyseTest objects")

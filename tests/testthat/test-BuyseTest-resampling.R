@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: feb 26 2019 (18:20) 
+## last-updated: feb 27 2019 (22:33) 
 ##           By: Brice Ozenne
-##     Update #: 105
+##     Update #: 106
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -19,6 +19,7 @@ context("Check resampling")
 if(FALSE){
     library(BuyseTest)
     library(testthat)
+    library(data.table)
 }
 
 
