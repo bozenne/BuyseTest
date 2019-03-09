@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:33) 
+## Last-Updated: mar  9 2019 (10:58) 
 ##           By: Brice Ozenne
-##     Update #: 86
+##     Update #: 93
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -344,4 +344,39 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
                        method.tte = "Peron", correction.uninf = FALSE)
 
     expect_equal(as.double(Peron@count.neutral),0) ## should not be any neutral pair with a threshold of 0
+})
+
+## * Hickey, Graeme: 8 mars 2019 14:54 p-value permutation
+## I have one question, which I hope you can help with.
+## If using method.inference = “permutation”, the P-values are slightly different for the net benefit and win ratio summary methods.
+## However, if you use using method.inference = “bootstrap”, the P-values are identical, as I would expect.
+## Can you explain why they differ with the permutation test?
+
+set.seed(1)
+dt <- simBuyseTest(50)
+
+test_that("same p.value (permutation test) for winRatio and net Benefit", {
+    e.perm <- BuyseTest(Treatment ~ bin(toxicity), data = dt,
+                        method.inference = "permutation", n.resampling = 100)
+    netBenefit.perm <- confint(e.perm, statistic = "netBenefit")
+    winRatio.perm <- confint(e.perm, statistic = "winRatio")
+
+    manual <- c(netBenefit = mean(abs(e.perm@DeltaResampling.netBenefit[,1]) >= abs(e.perm@Delta.netBenefit)),
+                winRatio = mean(abs(e.perm@DeltaResampling.winRatio[,1]-1) >= abs(e.perm@Delta.winRatio-1)),
+                winRatio.log = mean(abs(log(e.perm@DeltaResampling.winRatio[,1])) >= abs(log(e.perm@Delta.winRatio)))
+                )
+
+    expect_equal(netBenefit.perm[,"p.value"], winRatio.perm[,"p.value"])
+    expect_equal(unname(manual["netBenefit"]), netBenefit.perm[,"p.value"])
+    expect_equal(unname(manual["winRatio.log"]), winRatio.perm[,"p.value"])
+
+    ## note CI are not agreeing with p-values
+    confint(e.perm, statistic = "netBenefit", conf.level = 1-0.48)
+    ##              estimate        se lower.ci upper.ci p.value
+    ## toxicity_0.5      0.1 0.1010618     0.04      0.2    0.48
+
+    confint(e.perm, statistic = "winRatio", conf.level = 1-0.48)
+    ##              estimate        se lower.ci upper.ci p.value
+    ## toxicity_0.5 1.496032 0.4939202 1.175454 2.238111    0.48
+
 })

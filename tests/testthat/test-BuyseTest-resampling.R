@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: feb 27 2019 (22:33) 
+## last-updated: mar  9 2019 (10:49) 
 ##           By: Brice Ozenne
-##     Update #: 106
+##     Update #: 107
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -69,16 +69,16 @@ test_that("permutation", {
     ##                           1   0.47      0.11        0.12    0.24  0.00 -0.0002                
     ##                           2   2.10      0.50        0.39    1.22  0.00  0.0034                
     
-    p.value <- c(mean(abs(BT.perm@Delta.netBenefit[1]) < abs(BT.perm@DeltaResampling.netBenefit[,1])),
-                 mean(abs(BT.perm@Delta.netBenefit[2]) < abs(BT.perm@DeltaResampling.netBenefit[,2])))
+    p.value <- c(mean(abs(BT.perm@Delta.netBenefit[1]) <= abs(BT.perm@DeltaResampling.netBenefit[,1])),
+                 mean(abs(BT.perm@Delta.netBenefit[2]) <= abs(BT.perm@DeltaResampling.netBenefit[,2])))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
-
+       
     ## ** summary (greater)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT.perm@Delta.netBenefit[1] < BT.perm@DeltaResampling.netBenefit[,1]),
-                 mean(BT.perm@Delta.netBenefit[2] < BT.perm@DeltaResampling.netBenefit[,2]))
+    p.value <- c(mean(BT.perm@Delta.netBenefit[1] <= BT.perm@DeltaResampling.netBenefit[,1]),
+                 mean(BT.perm@Delta.netBenefit[2] <= BT.perm@DeltaResampling.netBenefit[,2]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
@@ -125,24 +125,24 @@ test_that("stratified permutation", {
     ## ** summary (two.sided)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "two.sided")
 
-    p.value <- c(mean(abs(BT.perm@Delta.netBenefit[1]) < abs(BT.perm@DeltaResampling.netBenefit[,1])),
-                 mean(abs(BT.perm@Delta.netBenefit[2]) < abs(BT.perm@DeltaResampling.netBenefit[,2])))
+    p.value <- c(mean(abs(BT.perm@Delta.netBenefit[1]) <= abs(BT.perm@DeltaResampling.netBenefit[,1])),
+                 mean(abs(BT.perm@Delta.netBenefit[2]) <= abs(BT.perm@DeltaResampling.netBenefit[,2])))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
     ## ** summary (greater)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "greater")
     
-    p.value <- c(mean(BT.perm@Delta.netBenefit[1] < BT.perm@DeltaResampling.netBenefit[,1]),
-                 mean(BT.perm@Delta.netBenefit[2] < BT.perm@DeltaResampling.netBenefit[,2]))
+    p.value <- c(mean(BT.perm@Delta.netBenefit[1] <= BT.perm@DeltaResampling.netBenefit[,1]),
+                 mean(BT.perm@Delta.netBenefit[2] <= BT.perm@DeltaResampling.netBenefit[,2]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
 
        ## ** summary (less)
     outSummary <- summary(BT.perm, print = FALSE, alternative = "less")
     
-    p.value <- c(mean(BT.perm@Delta.netBenefit[1] > BT.perm@DeltaResampling.netBenefit[,1]),
-                 mean(BT.perm@Delta.netBenefit[2] > BT.perm@DeltaResampling.netBenefit[,2]))
+    p.value <- c(mean(BT.perm@Delta.netBenefit[1] >= BT.perm@DeltaResampling.netBenefit[,1]),
+                 mean(BT.perm@Delta.netBenefit[2] >= BT.perm@DeltaResampling.netBenefit[,2]))
     expect_equal(outSummary$table[outSummary$table$strata=="global","p.value"],
                  p.value)
     
