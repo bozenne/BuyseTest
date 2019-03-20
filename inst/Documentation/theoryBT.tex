@@ -1,4 +1,4 @@
-% Created 2019-02-26 ti 19:07
+% Created 2019-03-20 on 18:07
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -216,7 +216,7 @@ library(survival)
 \clearpage
 
 \section{Parameter of interest}
-\label{sec:orgded37f6}
+\label{sec:orgcdf828d}
 
 Let consider two independent real valued (univariate) random variables
 \(X\) and \(Y\). Informally \(X\) refer to the outcome in the
@@ -239,9 +239,9 @@ for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y > X]\)).
 \clearpage
 
 \section{Binary variable}
-\label{sec:orge3c2810}
+\label{sec:org48e55a8}
 \subsection{Relationship between \(\Delta_+\) and the prevalence}
-\label{sec:orgc1032b9}
+\label{sec:orgac04ab0}
 \begin{align*}
 \Prob[X>Y] = \Prob[X=1,Y=0]
 \end{align*}
@@ -259,7 +259,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:org03aaccd}
+\label{sec:orgf7f348b}
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -298,9 +298,9 @@ prob2 - prob1
 \clearpage
 
 \section{Continuous variable}
-\label{sec:org223ff46}
+\label{sec:org410711d}
 \subsection{Relationship between \(\Delta\) and Cohen's d}
-\label{sec:org46d5abe}
+\label{sec:org72c968b}
 Let's consider two independent normally distributed variables with common variance:
 \begin{itemize}
 \item \(X \sim \Gaus[\mu_X,\sigma^2]\)
@@ -320,7 +320,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:org17748d8}
+\label{sec:org6d0674a}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -363,9 +363,9 @@ d <- (meanY-meanX)/sdXY
 \clearpage
 
 \section{Survival}
-\label{sec:orge2c7488}
+\label{sec:orgdabd374}
 \subsection{Relationship between \(\Delta\) and the hazard ratio}
-\label{sec:org8c5703d}
+\label{sec:orgc56c513}
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 \begin{align*}
@@ -407,7 +407,7 @@ So \(\Prob[Y>X] = \frac{\alpha_X}{\alpha_Y+\alpha_X} = 1-\frac{1}{1+HR}\) and:
 \clearpage
 
 \subsection{Scoring rule in presence of censoring}
-\label{sec:org9c861b0}
+\label{sec:org83d0fca}
 Let's consider the following random variables:  
 \begin{itemize}
 \item \(X\) the time to the occurrence of the event in the experimental group.
@@ -427,7 +427,7 @@ We observe one realization \(\left(\xobs, \yobs, \censT, \censC
 each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=1\)}
-\label{sec:org5a309c3}
+\label{sec:org9ddbf8e}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -454,7 +454,7 @@ each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 
 \subsubsection{Case: \(\SurvT=1,\SurvC=0\)}
-\label{sec:orgc740631}
+\label{sec:orgc8c9a8c}
 By symmetry we have: \\
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -479,7 +479,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=0\)}
-\label{sec:org06412b7}
+\label{sec:org7564f47}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -565,7 +565,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Synthesis}
-\label{sec:orgf4b19e2}
+\label{sec:orgc3084fa}
 \textcolor{darkgreen}{Probability in favor of the treatment}: \(\Prob[X \geq Y+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
 \begin{table}[!h]
 	\centering
@@ -610,7 +610,7 @@ By symmetry we have: \\
 \clearpage
 
 \subsection{Partially known survival curve}
-\label{sec:org26faf3e}
+\label{sec:org6e18c1c}
 In the case where \(x^* < y^* - \tau\), we need an estimate of
 \(S_X(y^* - \tau)\) to compute the probability in favor of the
 control. If we can only have an estimate of \(S_X\) up to
@@ -662,7 +662,7 @@ tends to 0.
 \end{itemize}
 
 \subsection{In R}
-\label{sec:org03417ad}
+\label{sec:org2a081fd}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -709,12 +709,12 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 \clearpage
 
 \section{Competing risks}
-\label{sec:org7c56f95}
+\label{sec:orge0ec4d6}
 \subsection{Theory}
-\label{sec:org618fa29}
+\label{sec:org16c7d2b}
 
 \subsubsection{General case (no censoring)}
-\label{sec:orgab2a508}
+\label{sec:orgae09eb0}
 Let consider: 
 \begin{itemize}
 \item \(X^*_{E}\) the time to the occurrence of the event of interest in the experimental group.
@@ -776,7 +776,7 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \clearpage
 
 \subsubsection{Exponential distribution (no censoring)}
-\label{sec:orgf61607b}
+\label{sec:org5f2b677}
 
 Now let's assume that:
 \begin{itemize}
@@ -824,10 +824,10 @@ CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 
 \clearpage
 
 \subsection{In R}
-\label{sec:org8b3b299}
+\label{sec:org3a09c75}
 
 \subsubsection{BuyseTest (no censoring)}
-\label{sec:orgbb2370e}
+\label{sec:org7920636}
 
 Setting:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -910,7 +910,7 @@ favorable unfavorable     neutral
 \end{verbatim}
 
 \subsubsection{BuyseTest (with censoring)}
-\label{sec:orgca2b983}
+\label{sec:org2e98baf}
 
 Simulate data:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -965,7 +965,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \end{verbatim}
 
 \subsubsection{Cumulative incidence}
-\label{sec:org72443b7}
+\label{sec:org81a97fd}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1027,7 +1027,7 @@ mean((df$time<=1)*(df$event==1))
 \clearpage
 
 \section{Inverse probability weighting}
-\label{sec:org70a5248}
+\label{sec:org8a34faa}
 
 In case of censoring we can use an inverse probability weighting
 approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
@@ -1062,14 +1062,14 @@ where we used the law of total expectation (first line) and the independence bet
 \clearpage
 
 \section{Asymptotic distribution}
-\label{sec:org6fb4a36}
+\label{sec:org4fab59f}
 
 In this section we restrict ourself to the GPC as defined in
 \citep{buyse2010generalized}, i.e. we do not consider Peron scoring rule
 nor any correction (like inverse probability weighting).
 
 \subsection{Theory}
-\label{sec:org6e58549}
+\label{sec:org3ad694e}
 
 We consider two independent samples \(x_1,x_2,\ldots,x_m\) and
 \(y_1,y_2,\ldots,y_n\) where the first one contains iid realisations
@@ -1104,8 +1104,8 @@ separately). From the U-statistic theory (e.g. see appendix
 unbiased, normally distributed, and its iid decomposition is the
 H\(\'{a}\)jek projection:
 \begin{align*}
-H^{(1)}(\widehat{\Prob}[X \geq Y+\tau]) &= \frac{1}{m} \sum_{i=1}^m \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| x_i] - \widehat{\Prob}[X \geq Y+\tau] \right) \\
-& \qquad + \frac{1}{n} \sum_{j=1}^n \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| y_j] - \widehat{\Prob}[X \geq Y+\tau]\right) \\
+H^{(1)}(\widehat{\Prob}[X \geq Y+\tau]) &= \frac{1}{m} \sum_{i=1}^m \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| x_i] - \Prob[X \geq Y+\tau] \right) \\
+& \qquad + \frac{1}{n} \sum_{j=1}^n \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| y_j] - \Prob[X \geq Y+\tau]\right) \\
 &= \sum_{l=1}^{m+n} H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])
 \end{align*}
 where \(H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])\) are the
@@ -1113,9 +1113,9 @@ individual terms of the iid decomposition. For instance in the binary
 case, the term relative to the \(i-th\) observation of the
 experimental group is:
 \begin{align*}
-H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) & = \frac{\Esp[\phi_{k_{ij}}(x_i,y) \bigg| x_i]-\widehat{\Prob}[X \geq Y+\tau]}{m} = \left\{ \begin{array}{cc} 
- \frac{1-p_y-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 1 \\
-\frac{-\widehat{\Prob}[X \geq Y+\tau]}{m} \text{ if } x = 0 \\
+H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) & = \frac{\Esp[\phi_{k_{ij}}(x_i,y) \bigg| x_i]-\Prob[X \geq Y+\tau]}{m} = \left\{ \begin{array}{cc} 
+ \frac{1-p_y-\Prob[X \geq Y+\tau]}{m} \text{ if } x = 1 \\
+\frac{-\Prob[X \geq Y+\tau]}{m} \text{ if } x = 0 \\
 \end{array} \right. 
 \end{align*}
 where \(p_y\) is the proportion of 1 in the control group.
@@ -1124,7 +1124,7 @@ where \(p_y\) is the proportion of 1 in the control group.
 \clearpage
 
 \subsection{Example}
-\label{sec:org107ad84}
+\label{sec:org7b8d859}
 
 Let's consider a case with 2 observations per group:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1240,10 +1240,10 @@ toxicity_0.5    0.0625      0.0625    -0.0625       0.25        4
 \clearpage
 
 \subsection{Type 1 error in finite sample}
-\label{sec:orgebc0fbc}
+\label{sec:org1c8f485}
 
 \subsubsection{Binary endpoint}
-\label{sec:org2ac4695}
+\label{sec:orgcf554fb}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsBin <- system.time(
@@ -1304,7 +1304,7 @@ n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRU
 \clearpage
 
 \subsubsection{Continuous endpoint}
-\label{sec:org92b2515}
+\label{sec:org75eae1a}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsCont <- system.time(
@@ -1365,7 +1365,7 @@ n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRU
 \clearpage
 
 \subsubsection{Time to event endpoint (Gehan method)}
-\label{sec:org81506ad}
+\label{sec:org349647b}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsGehan <- system.time(
@@ -1416,7 +1416,7 @@ summary(eGehan.power, statistic = c("netBenefit","winRatio"),
 \clearpage
 
 \subsubsection{Time to event endpoint (Peron method)}
-\label{sec:org43ed01f}
+\label{sec:org845e18a}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsPeron <- system.time(
@@ -1467,7 +1467,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"),
 \clearpage
 
 \section{References}
-\label{sec:orgbd7e752}
+\label{sec:org207ee02}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -1484,7 +1484,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"),
 This recall is based on chapter 1 of \cite{lee1990u}.
 
 \subsection{Motivating example}
-\label{sec:orgf3ee17a}
+\label{sec:org66bc22b}
 
 We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
@@ -1496,7 +1496,7 @@ distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 \subsection{Estimate, estimator, and functionnal}
-\label{sec:org045b4a4}
+\label{sec:org78786f3}
 
 We can compute an \textbf{estimate} of the variance using the following
 \textbf{estimators} \(\hat{\mu}\) and \(\hat{\sigma}^2\):
@@ -1568,7 +1568,7 @@ transforms the data into an estimate.
 \end{itemize}
 
 \subsection{Aim}
-\label{sec:org208bb98}
+\label{sec:org75005c1}
 
 Using formula \eqref{eq:m(F)} and \eqref{eq:s(F)} we can easily estimate
 the variance based on the observed realisations of \(X\) (i.e. the
@@ -1633,7 +1633,7 @@ central limit theorem. It does not give us a formula for the
 asymptotic variance though. 
 
 \subsection{Definition of a U-statistic and examples}
-\label{sec:org935b5a0}
+\label{sec:orgd0eedb8}
 
 A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
@@ -1720,7 +1720,7 @@ estimator is:
 \end{align*}
 
 \subsection{A major result from the U-statistic theory}
-\label{sec:org6a4ea06}
+\label{sec:org04fe73f}
 
 So far we have seen that our estimator for the variance was a
 U-statistic. We will now use the U-statistic theory to obtain its
@@ -1746,7 +1746,7 @@ remains to see what is this H-decomposition and how can we
 characterize it.
 
 \subsection{The first term of the H-decomposition}
-\label{sec:orgfb0992a}
+\label{sec:org668a292}
 
 The H-decomposition (short for Hoeffling decomposition) enables us to
 decompose the estimator of a U-statistic of rank \(k\) into a sum of
@@ -1917,7 +1917,7 @@ compute the asymptotic variance as:
 \end{align*}
 
 \subsection{Two sample U-statistics}
-\label{sec:org9daf0ac}
+\label{sec:org983e887}
 
 So far we have assumed that all our observations were iid. But in the
 case of GPC, we study two populations (experimental arm and control
@@ -2071,7 +2071,7 @@ also true under the alternative hypothesis.
 \clearpage 
 
 \section{Information about the R session used for this document}
-\label{sec:org1a606ac}
+\label{sec:org1c2a838}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
