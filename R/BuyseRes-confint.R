@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: feb 26 2019 (16:13) 
+## Last-Updated: mar  9 2019 (10:39) 
 ##           By: Brice Ozenne
-##     Update #: 461
+##     Update #: 473
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -191,7 +191,7 @@ setMethod(f = "confint",
                   method.confint <- confint_Ustatistic
               }else if(attr(method.inference,"permutation")){
                   method.confint <- confint_permutation
-                  transformation <- FALSE
+                  transformation <- (statistic=="winRatio")
               }else if(attr(method.inference,"bootstrap")){
                   method.confint <- switch(method.ci.boot,
                                            "percentile" = confint_percentileBootstrap,
@@ -262,37 +262,37 @@ setMethod(f = "confint",
 ## * confint_permutation (called by confint)
 confint_permutation <- function(Delta, Delta.resampling,
                                 null, alternative, alpha,
-                                endpoint, ...){
+                                backtransform.delta, endpoint, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
                        dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
-
+    
     ## ** point estimate
-    outTable[,"estimate"] <- Delta
+    outTable[,"estimate"] <- backtransform.delta(Delta)
 
     ## ** standard error
-    outTable[,"se"] <- apply(Delta.resampling, MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
+    outTable[,"se"] <- apply(backtransform.delta(Delta.resampling), MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
 
     ## ** confidence interval
-    outTable[,"lower.ci"] <- switch(alternative,
-                                    "two.sided" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = alpha/2, na.rm = TRUE),
-                                    "less" = -Inf,
-                                    "greater" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = alpha, na.rm = TRUE)
-                                    )
+    outTable[,"lower.ci"] <- backtransform.delta(switch(alternative,
+                                                        "two.sided" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = alpha/2, na.rm = TRUE),
+                                                        "less" = -Inf,
+                                                        "greater" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = alpha, na.rm = TRUE)
+                                                        ))
     
-    outTable[,"upper.ci"] <- switch(alternative,
-                                    "two.sided" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha/2, na.rm = TRUE),
-                                    "less" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha, na.rm = TRUE),
-                                    "greater" = Inf
-                                    )
+    outTable[,"upper.ci"] <- backtransform.delta(switch(alternative,
+                                                        "two.sided" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha/2, na.rm = TRUE),
+                                                        "less" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha, na.rm = TRUE),
+                                                        "greater" = Inf
+                                                        ))
 
     ## ** p-value
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-               "two.sided" = mean(abs(Delta[iE] - null) < abs(Delta.resampling[,iE] - null)),
-               "less" = mean((Delta[iE] - null) > (Delta.resampling[,iE] - null)),
-               "greater" = mean((Delta[iE] - null) < (Delta.resampling[,iE] - null))
+               "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null)),
+               "less" = mean((Delta[iE] - null) >= (Delta.resampling[,iE] - null)),
+               "greater" = mean((Delta[iE] - null) <= (Delta.resampling[,iE] - null))
                )
     })
 

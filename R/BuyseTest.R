@@ -107,6 +107,8 @@
 ## * BuyseTest (example)
 #' @rdname BuyseTest
 #' @examples
+#' library(data.table)
+#' 
 #' # reset the default value of the number of permuation sample
 #' BuyseTest.options(method.inference = "none") # no permutation test
 #'

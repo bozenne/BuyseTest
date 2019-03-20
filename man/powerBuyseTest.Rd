@@ -53,6 +53,7 @@ Performs a simulation studies for several sample sizes.
 Returns estimates, standard errors, confidence intervals and p.values.
 }
 \examples{
+library(data.table)
 
 ## using simBuyseTest
 powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,

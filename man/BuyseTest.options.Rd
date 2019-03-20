@@ -18,7 +18,8 @@ Update or select global options for the BuyseTest package.
 It only affects the \code{\link{BuyseTest}} function
 }
 \examples{
- 
+library(data.table)
+
 ## see all global parameters
 BuyseTest.options()
 

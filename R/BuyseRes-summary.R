@@ -37,6 +37,8 @@
 #'   \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object.
 #' 
 #' @examples
+#' library(data.table)
+#' 
 #' dt <- simBuyseTest(1e2, n.strata = 3)
 #' 
 #'  \dontrun{

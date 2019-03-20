@@ -61,6 +61,8 @@ The first weighting consists in multiplying the probability by the residual weig
 For time to event endpoint an additional weighting may be performed to avoid a possible bias in presence of censoring.
 }
 \examples{
+library(data.table)
+
 ## run BuyseTest
 data(veteran,package="survival")
 

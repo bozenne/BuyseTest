@@ -30,6 +30,8 @@ Create strata from several variables.
 This function uses the \code{interaction} function from the \emph{base} package to form the strata.
 }
 \examples{
+library(data.table)
+
 data(veteran,package="survival")
   
 # strata with two variables : celltype and karno

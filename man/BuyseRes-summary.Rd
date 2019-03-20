@@ -48,6 +48,8 @@ These development have not been examined by Wang et al. (2016), or in other pape
 They are only provided here by implementation convenience.
 }
 \examples{
+library(data.table)
+
 dt <- simBuyseTest(1e2, n.strata = 3)
 
  \dontrun{
