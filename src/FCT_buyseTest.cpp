@@ -215,9 +215,12 @@ List GPC_cpp(arma::mat endpoint,
 	  n_pairs[iter_strata] = Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
 	}
       }else{
-	iScore = calcSubsetPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-				 censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
-				 list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+	iScore = calcSubsetPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint),
+							 endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
+				 censoring.submat(indexC[iter_strata],iUvec_censoring),
+							 censoring.submat(indexT[iter_strata],iUvec_censoring),
+				 list_survTimeC[iter_d][iter_strata],
+							 list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 				 list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
 				 iIndex_control_M1, iIndex_treatment_M1,
 				 iCumWeight_M1, lsScore_UTTE, iIndex_UTTE, isStored_UTTE,
