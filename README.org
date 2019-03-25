@@ -39,6 +39,7 @@ endpoint considered the most clinically relevant.  The endpoint with
 highest priority is analyzed first, and neutral and uninformative pair
 are analyzed regarding endpoint of lower priority.
 
+
 * Installation
 
 You can download the latest stable version on =CRAN= using:
