@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: feb 25 2019 (14:19) 
+## Last-Updated: mar 25 2019 (16:10) 
 ##           By: Brice Ozenne
-##     Update #: 138
+##     Update #: 140
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -200,11 +200,8 @@ testArgs <- function(alternative,
                    refuse.NULL = FALSE,
                    method = "BuyseTest")
 
-        if(method.tte==0){ ## Gehan
-            valid.values.censoring <- 0:2
-        }else if(method.tte==1){ ## Peron
-            valid.values.censoring <- 0:1
-        }
+        valid.values.censoring <- 0:2
+
         for(iTTE in index.TTE){
             validNumeric(data[[endpoint[iTTE]]],
                          name1 = endpoint[iTTE],
