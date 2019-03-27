@@ -44,7 +44,7 @@ using namespace arma ;
 //' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps.
 //' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).
 //' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
-//' @param hierarchical Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
+//' @param hierarchical Should only the S pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 //' @param keepScore Should the result of each pairwise comparison be kept?
 //' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?

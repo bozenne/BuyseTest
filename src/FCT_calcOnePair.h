@@ -10,7 +10,6 @@
 
 // :cppFile:{FCT_buyseTest.cpp}:end:
 using namespace Rcpp ;
-using namespace std ;
 using namespace arma ;
 
 inline std::vector< double > calcOnePair_Continuous(double diff, double threshold);
@@ -22,15 +21,15 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 											const arma::mat& survJumpC, const arma::mat& survJumpT,
 											double lastSurvC, double lastSurvT);
 
-inline std::vector< double > CalcOnePair_TTEperon_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C, 
-                                                  double tau, int index_T, int index_C, const arma::mat& cifTimeT, 
-                                                  const arma::mat& cifTimeC, const arma::mat& cifJumpC, 
-                                                  double lastCif1C, double lastCif2C, double lastCif1T, 
-                                                  double lastCif2T)
+inline std::vector< double > CalcOnePair_TTEperon_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C,
+                                                  double tau, int index_T, int index_C, const arma::mat& cifTimeT,
+                                                  const arma::mat& cifTimeC, const arma::mat& cifJumpC,
+                                                  double lastCif1C, double lastCif2C, double lastCif1T,
+                                                  double lastCif2T);
 
 std::vector<double> calcIntegralScore_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv);
 
-double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t, double lastCIF, int type)
+double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t, double lastCIF, int type);
 
 // * calcOnePair_Continuous
 inline std::vector< double > calcOnePair_Continuous(double diff, double threshold){
@@ -301,31 +300,31 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 
 // * calcOnePair_Peron
 // [[Rcpp::export]]
-inline std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C, 
-                                               double tau, int index_T, int index_C, const arma::mat& cifTimeT, 
-                                               const arma::mat& cifTimeC, const arma::mat& cifJumpC, 
-                                               double lastCif1C, double lastCif2C, double lastCif1T, 
+std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C,
+                                               double tau, int index_T, int index_C, const arma::mat& cifTimeT,
+                                               const arma::mat& cifTimeC, const arma::mat& cifJumpC,
+                                               double lastCif1C, double lastCif2C, double lastCif1T,
                                                double lastCif2T) {
-  
+
   // cifTimeC and cifTimeT: cumulative incidence at control/treatment observation times
-  //        [1]    times 
+  //        [1]    times
   //        [2-4]  cif of event of interest estimated in the control arm: time - tau, time, time + tau
   //        [5-7]  cif of event of interest estimated in the treatment arm: time - tau, time, time + tau
   //        [8]  cif of competing event estimated in the control arm: time
   //        [9]  cif of competing event estimated in the treatment arm: time
-  
+
   // cifJumpC: cumulative incidence of event of interest in control group at jump times
   //        [1]  jump times in control group (unique values in ascending order)
   //        [2-3]  cif of the treatment group at times-tau and times+tau
-  //        [4]  d(cif) of control group estimated at time 
-  
+  //        [4]  d(cif) of control group estimated at time
+
   double diff = endpoint_T - endpoint_C;
   double Cif1T_t = cifTimeT(index_T,5);
-  std::vector< double > proba(5, 0.0); // [0] favorable, [1] unfavorable, [2] neutral competing, [3] neutral event, 
+  std::vector< double > proba(5, 0.0); // [0] favorable, [1] unfavorable, [2] neutral competing, [3] neutral event,
   // [4] uninformative
   double denomC = 1 - cifTimeC(index_C, 2) - cifTimeC(index_C, 7);
   double denomT = 1 - cifTimeT(index_T, 5) - cifTimeT(index_T, 8);
-  
+
   if(delta_T == 2) {
     if(delta_C == 2) { // (2,2)
       proba[2] = 1.0; // systematically neutral competing
@@ -428,10 +427,10 @@ inline std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endp
         double intNeutralEvent1 = CalcIntegral_Peron_CR(cifJumpC, endpoint_T - tau, endpoint_T + tau, Cif1T_t, lastCif1T, 3)/(denomT*denomC);
         double intNeutralEvent2 = CalcIntegral_Peron_CR(cifJumpC, endpoint_T + tau, endpoint_T + tau, Cif1T_t, lastCif1T, 4)/(denomT*denomC);
         if (R_IsNA(cifTimeT(index_T,1)) == false) {
-          proba[0] = ((cifTimeT(index_T,1) - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) + 
-            intFav + prob21;          
+          proba[0] = ((cifTimeT(index_T,1) - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) +
+            intFav + prob21;
         } else {
-          proba[0] = ((lastCif1C - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) + 
+          proba[0] = ((lastCif1C - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) +
             intFav + prob21;
         }
         proba[1] = intDefav + prob12;
@@ -514,29 +513,29 @@ std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double st
 
 
 // * CalcIntegral_Peron_CR
-//' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR). 
+//' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR).
 //' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
 //' @name CalcIntegral_Peron_CR
-//' 
-//' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group 
+//'
+//' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
 //' T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).
 //' @param start_val [numeric] Time at which to start the integral.
 //' @param stop_val [numeric] Time at which to stop the integral.
 //' @param CIF_t [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
 //' @param lastCIF [numeric, >0] last value of CIF of event type 1 in group T.
-//' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two 
-//' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with 
+//' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two
+//' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with
 //' t+tau and t-tau).
 //'
 //' @keywords function Cpp internal
 //' @export
 // [[Rcpp::export]]
-double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t, 
+double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t,
                     double lastCIF, int type){
-  
+
   double integral = 0.0;
   int nJump = cif.n_rows;
-  
+
   if (nJump > 0) {
     if(type == 1) {
       for(int i = 0; i<nJump; i++){
@@ -572,7 +571,7 @@ double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop
       }
     }
   }
-  
-  return integral; 
-  
+
+  return integral;
+
 }
