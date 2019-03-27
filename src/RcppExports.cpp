@@ -99,24 +99,12 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// timesTwo
-NumericVector timesTwo(int x);
-RcppExport SEXP _BuyseTest_timesTwo(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 29},
     {"_BuyseTest_CalcOnePair_Peron_CR", (DL_FUNC) &_BuyseTest_CalcOnePair_Peron_CR, 14},
     {"_BuyseTest_calcIntegralScore_cpp", (DL_FUNC) &_BuyseTest_calcIntegralScore_cpp, 4},
     {"_BuyseTest_CalcIntegral_Peron_CR", (DL_FUNC) &_BuyseTest_CalcIntegral_Peron_CR, 6},
-    {"_BuyseTest_timesTwo", (DL_FUNC) &_BuyseTest_timesTwo, 1},
     {NULL, NULL, 0}
 };
 

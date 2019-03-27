@@ -68,15 +68,15 @@ void mergeVectors(const std::vector< int >& index_neutralC, const std::vector< i
 // * calcAllPairs
 // perform pairwise comparisons over all possible pairs for a continuous endpoints
 arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
-		       arma::colvec deltaC, arma::colvec deltaT, 
-		       arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-		       double lastSurvC, double lastSurvT, 
-		       int method, int correctionUninf,
-		       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-		       std::vector< int >& index_control, std::vector< int >& index_treatment, 
-		       arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-		       arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
-		       bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
+					   arma::colvec deltaC, arma::colvec deltaT, 
+					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
+					   double lastSurvC, double lastSurvT, 
+					   int method, int correctionUninf,
+					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+					   std::vector< int >& index_control, std::vector< int >& index_treatment, 
+					   arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
+					   arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+					   bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
 
   // ** initialize
   int n_Treatment = Treatment.size(); // number of patients from the treatment arm
@@ -139,7 +139,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
     int iter_pair = 0;
     for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
       for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
-
+		// Rcout << iter_pair << endl;
 	// score
 	if(method == 1){
 	  iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);

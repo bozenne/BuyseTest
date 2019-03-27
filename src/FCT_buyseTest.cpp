@@ -199,43 +199,42 @@ List GPC_cpp(arma::mat endpoint,
       // **** compute scores
       // Rcout << " score" << endl;
       if((iter_d==0) || (hierarchical == false)){
-	iScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-			      censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
-			      list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-			      list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), 
-			      iMethod, correctionUninf,	
-			      Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
-			      iIndex_control, iIndex_treatment,
-			      iWeight, iVecFavorable, iVecUnfavorable,
-						  iIID_C, iIID_T, returnIID,
-			      neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
-
-	// add to the total number of pairs the number of pairs found for this endpoint
-	if(iter_d==0){
-	  n_pairs[iter_strata] = Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
-	}
+		iScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
+							  censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
+							  list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+							  list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), 
+							  iMethod, correctionUninf,	
+							  Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
+							  iIndex_control, iIndex_treatment,
+							  iWeight, iVecFavorable, iVecUnfavorable,
+							  iIID_C, iIID_T, returnIID,
+							  neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
+		// add to the total number of pairs the number of pairs found for this endpoint
+		if(iter_d==0){
+		  n_pairs[iter_strata] = Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
+		}
       }else{
-	iScore = calcSubsetPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint),
-							 endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-				 censoring.submat(indexC[iter_strata],iUvec_censoring),
-							 censoring.submat(indexT[iter_strata],iUvec_censoring),
-				 list_survTimeC[iter_d][iter_strata],
-							 list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-				 list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
-				 iIndex_control_M1, iIndex_treatment_M1,
-				 iCumWeight_M1, lsScore_UTTE, iIndex_UTTE, isStored_UTTE,
-				 iMethod, correctionUninf,	
-				 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
-				 iIndex_control, iIndex_treatment, 
-				 iWeight, iIndexWeight_pair, iVecFavorable, iVecUnfavorable,
-				 iIID_C, iIID_T, returnIID,
-				 neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
+		iScore = calcSubsetPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint),
+								 endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
+								 censoring.submat(indexC[iter_strata],iUvec_censoring),
+								 censoring.submat(indexT[iter_strata],iUvec_censoring),
+								 list_survTimeC[iter_d][iter_strata],
+								 list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+								 list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
+								 iIndex_control_M1, iIndex_treatment_M1,
+								 iCumWeight_M1, lsScore_UTTE, iIndex_UTTE, isStored_UTTE,
+								 iMethod, correctionUninf,	
+								 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+								 iIndex_control, iIndex_treatment, 
+								 iWeight, iIndexWeight_pair, iVecFavorable, iVecUnfavorable,
+								 iIID_C, iIID_T, returnIID,
+								 neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
       }
       R_CheckUserInterrupt();
 	
 
       // **** update iid
-	// Rcout << " update iid" << endl;
+	  // Rcout << " update iid" << endl;
 	  if(returnIID){
 		iUvec_iter_d = {iter_d};
 		iid_favorable.submat(posC[iter_strata], iUvec_iter_d) = iIID_C.col(0);
@@ -247,39 +246,39 @@ List GPC_cpp(arma::mat endpoint,
 	  
       // **** update all Scores
       if(keepScore){
-	// Rcout << " update lsScore" << endl;
-	iNpairs = iScore.n_rows;
-	iMat.resize(iNpairs,3);
-	iMat.col(0).fill(iter_strata);
-	for(int iPair=0; iPair < iNpairs; iPair++){
-	  iMat(iPair,1) = posC[iter_strata](iScore(iPair,0));
-	  iMat(iPair,2) = posT[iter_strata](iScore(iPair,1));
-	}
-	// merge with current table and store
-	if(iter_strata==0){
-	  lsScore[iter_d] = arma::join_rows(iMat,iScore);
-	}else{
-	  lsScore[iter_d] = arma::join_cols(lsScore[iter_d], arma::join_rows(iMat,iScore));
-	}
+		// Rcout << " update lsScore" << endl;
+		iNpairs = iScore.n_rows;
+		iMat.resize(iNpairs,3);
+		iMat.col(0).fill(iter_strata);
+		for(int iPair=0; iPair < iNpairs; iPair++){
+		  iMat(iPair,1) = posC[iter_strata](iScore(iPair,0));
+		  iMat(iPair,2) = posT[iter_strata](iScore(iPair,1));
+		}
+		// merge with current table and store
+		if(iter_strata==0){
+		  lsScore[iter_d] = arma::join_rows(iMat,iScore);
+		}else{
+		  lsScore[iter_d] = arma::join_cols(lsScore[iter_d], arma::join_rows(iMat,iScore));
+		}
       }
     
       // **** check that there remain pairs to be analyzed
       iSize_weight = iWeight.size();
       if(iSize_weight < zeroPlus || (iMoreEndpoint==false) ){
-	break;
+		break;
       }
 
       if(hierarchical){
-	// **** update weights associated to the remaing pairs
-	// Rcout << " update matWeights" << endl;
-	matWeight.resize(iSize_weight, iter_d+1);
-	matWeight.col(iter_d) = iWeight; // current endpoint
-	if(iter_d > 0){ // previous endpoints
-	  iUvec_weight = arma::regspace<uvec>(0, 1, iter_d - 1);
-	  matWeight.cols(iUvec_weight) = matWeight_M1.submat(iIndexWeight_pair, iUvec_weight);
-	} 
+		// **** update weights associated to the remaing pairs
+		// Rcout << " update matWeights" << endl;
+		matWeight.resize(iSize_weight, iter_d+1);
+		matWeight.col(iter_d) = iWeight; // current endpoint
+		if(iter_d > 0){ // previous endpoints
+		  iUvec_weight = arma::regspace<uvec>(0, 1, iter_d - 1);
+		  matWeight.cols(iUvec_weight) = matWeight_M1.submat(iIndexWeight_pair, iUvec_weight);
+		} 
 
-	// **** update scores associated to the remaing pairs
+		// **** update scores associated to the remaing pairs
 	// Rcout << " update lsScore_UTTE" << endl;
 	// add scores estimated at the current endpoint
 	if(iMethod==3){

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:30) 
+## Last-Updated: mar 27 2019 (13:53) 
 ##           By: Brice Ozenne
-##     Update #: 451
+##     Update #: 457
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -213,8 +213,9 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         ## *** Initialize data
         out.name <- c("data","M.endpoint","M.censoring",
                       "index.C","index.T","index.strata",
-                      "index.endpoint","index.censoring","level.treatment","level.strata",
+                      "index.endpoint","index.censoring","level.treatment","level.strata", "method.score",
                       "n.strata","n.obs","n.obsStrata","cumn.obsStrata")
+
         envir$outArgs[out.name] <- initializeData(data = do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax)),
                                                   type = envir$outArgs$type,
                                                   endpoint = envir$outArgs$endpoint,

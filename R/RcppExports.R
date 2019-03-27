@@ -84,7 +84,3 @@ CalcIntegral_Peron_CR <- function(cif, start_val, stop_val, CIF_t, lastCIF, type
     .Call(`_BuyseTest_CalcIntegral_Peron_CR`, cif, start_val, stop_val, CIF_t, lastCIF, type)
 }
 
-timesTwo <- function(x) {
-    .Call(`_BuyseTest_timesTwo`, x)
-}
-
