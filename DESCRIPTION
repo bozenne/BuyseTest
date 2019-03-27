@@ -66,6 +66,7 @@ Collate:
     'BuyseTest.options-object.R'
     'BuyseTest.options.R'
     'PairScore.R'
+    'RcppExports.R'
     'constStrata.R'
     'discreteRoot.R'
     'powerBuyseTest.R'
