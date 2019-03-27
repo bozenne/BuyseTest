@@ -16,12 +16,12 @@ inline std::vector< double > calcOnePair_Continuous(double diff, double threshol
  
 inline std::vector< double > calcOnePair_TTEgehan(double diff, double delta_C, double delta_T, double threshold);
  
-inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
+inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
 											arma::rowvec survTimeC, arma::rowvec survTimeT,
 											const arma::mat& survJumpC, const arma::mat& survJumpT,
 											double lastSurvC, double lastSurvT);
 
-inline std::vector< double > CalcOnePair_TTEperon_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C,
+inline std::vector< double > CalcOnePair_CRPeron(double endpoint_T, double endpoint_C, double delta_T, double delta_C,
                                                   double tau, int index_T, int index_C, const arma::mat& cifTimeT,
                                                   const arma::mat& cifTimeC, const arma::mat& cifJumpC,
                                                   double lastCif1C, double lastCif2C, double lastCif1T,
@@ -122,8 +122,8 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double delta_C, d
   
 }
 
-// * calcOneScore_TTEperon
-inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
+// * calcOnePair_SurvPeron
+inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
 											arma::rowvec survTimeC, arma::rowvec survTimeT,
 											const arma::mat& survJumpC, const arma::mat& survJumpT,
 											double lastSurvC, double lastSurvT){
@@ -298,13 +298,13 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
   return(score);  
 }
 
-// * calcOnePair_Peron
+// * CalcOnePair_CRPeron
+// author Eva Cantagallo
 // [[Rcpp::export]]
-std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C,
-                                               double tau, int index_T, int index_C, const arma::mat& cifTimeT,
-                                               const arma::mat& cifTimeC, const arma::mat& cifJumpC,
-                                               double lastCif1C, double lastCif2C, double lastCif1T,
-                                               double lastCif2T) {
+std::vector< double > CalcOnePair_CRPeron(double endpoint_T, double endpoint_C, double delta_T, double delta_C,
+                                               double tau, arma::rowvec cifTimeT_vec, arma::rowvec cifTimeC_vec, 
+                                               const arma::mat& cifJumpC, double lastCif1C, double lastCif1T, 
+                                               double lastCif2C, double lastCif2T) {
 
   // cifTimeC and cifTimeT: cumulative incidence at control/treatment observation times
   //        [1]    times
@@ -319,11 +319,12 @@ std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C,
   //        [4]  d(cif) of control group estimated at time
 
   double diff = endpoint_T - endpoint_C;
-  double Cif1T_t = cifTimeT(index_T,5);
+  double Cif1T_t = cifTimeT_vec(5);
   std::vector< double > proba(5, 0.0); // [0] favorable, [1] unfavorable, [2] neutral competing, [3] neutral event,
   // [4] uninformative
-  double denomC = 1 - cifTimeC(index_C, 2) - cifTimeC(index_C, 7);
-  double denomT = 1 - cifTimeT(index_T, 5) - cifTimeT(index_T, 8);
+  std::vector< double > proba2(4, 0.0); // [0] favorable, [1] unfavorable, [2] neutral, [3] uninformative
+  double denomC = 1 - cifTimeC_vec(2) - cifTimeC_vec(7);
+  double denomT = 1 - cifTimeT_vec(5) - cifTimeT_vec(8);
 
   if(delta_T == 2) {
     if(delta_C == 2) { // (2,2)
@@ -331,11 +332,11 @@ std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C,
     } else if(delta_C == 1){ // (2,1)
       proba[0] = 1.0; // systematically favorable
     } else if(delta_C == 0) { // (2,0)
-      proba[0] = (lastCif1C - cifTimeC(index_C, 2))/denomC;
+      proba[0] = (lastCif1C - cifTimeC_vec(2))/denomC;
       // proba[1] = 0
-      proba[2] = (lastCif2C - cifTimeC(index_C, 7))/denomC;
+      proba[2] = (lastCif2C - cifTimeC_vec(7))/denomC;
       // proba[3] = 0 // since the treated patient had the competing event
-      proba[4] = 1 - (proba[0] + proba[2]);
+      //proba[4] = 1 - (proba[0] + proba[2]);
     }
   } else if(delta_T == 1){
     if(delta_C == 2){ // (1,2)
@@ -350,87 +351,87 @@ std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C,
       }
     } else if(delta_C == 0) { // (1,0)
       if(diff >= tau) {
-        if(R_IsNA(cifTimeT(index_T,1)) == false) {
-          proba[0] = (cifTimeT(index_T,1) - cifTimeC(index_C,2))/denomC;
+        if(R_IsNA(cifTimeT_vec(1)) == false) {
+          proba[0] = (cifTimeT_vec(1) - cifTimeC_vec(2))/denomC;
         } else {
-          proba[0] = (lastCif1C - cifTimeC(index_C,2))/denomC;
+          proba[0] = (lastCif1C - cifTimeC_vec(2))/denomC;
         }
-        if(R_IsNA(cifTimeT(index_T,4)) == false) {
-          proba[1] = (lastCif1C - cifTimeT(index_T,3) + lastCif2C - cifTimeC(index_C,7))/denomC;
+        if(R_IsNA(cifTimeT_vec(4)) == false) {
+          proba[1] = (lastCif1C - cifTimeT_vec(3) + lastCif2C - cifTimeC_vec(7))/denomC;
         } else {
-          proba[1] = (lastCif2C - cifTimeC(index_C,7))/denomC;
+          proba[1] = (lastCif2C - cifTimeC_vec(7))/denomC;
         }
-        if((R_IsNA(cifTimeT(index_T,3)) == false) & (R_IsNA(cifTimeT(index_T,1)) == false)) {
-          proba[3] = (cifTimeT(index_T,3) - cifTimeT(index_T,1))/denomC;
-        } else if ((R_IsNA(cifTimeT(index_T,4)) == true) & (R_IsNA(cifTimeT(index_T,2)) == false)) {
-          proba[3] = (lastCif1C - cifTimeT(index_T,1))/denomC;
+        if((R_IsNA(cifTimeT_vec(3)) == false) & (R_IsNA(cifTimeT_vec(1)) == false)) {
+          proba[3] = (cifTimeT_vec(3) - cifTimeT_vec(1))/denomC;
+        } else if ((R_IsNA(cifTimeT_vec(4)) == true) & (R_IsNA(cifTimeT_vec(2)) == false)) {
+          proba[3] = (lastCif1C - cifTimeT_vec(1))/denomC;
         } else {
           proba[3] = 0.0;
         }
       } else if(diff <= -tau) {
         proba[1] = 1.0;
       } else { // |diff| < tau
-        if(R_IsNA(cifTimeT(index_T,3)) == false) {
-          proba[1] = (lastCif1C - cifTimeT(index_T,3) + lastCif2C - cifTimeC(index_C,7))/denomC;
-          proba[3] = (cifTimeT(index_T,3) - cifTimeC(index_C,2))/denomC;
+        if(R_IsNA(cifTimeT_vec(3)) == false) {
+          proba[1] = (lastCif1C - cifTimeT_vec(3) + lastCif2C - cifTimeC_vec(7))/denomC;
+          proba[3] = (cifTimeT_vec(3) - cifTimeC_vec(2))/denomC;
         } else {
-          proba[1] = (lastCif2C - cifTimeC(index_C,7))/denomC;
-          proba[3] = (lastCif1C - cifTimeC(index_C,2))/denomC;
+          proba[1] = (lastCif2C - cifTimeC_vec(7))/denomC;
+          proba[3] = (lastCif1C - cifTimeC_vec(2))/denomC;
         }
       }
-      proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
+      //proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
     }
   } else { // delta_T == 0
     if(delta_C == 2) { // (0,2)
-      proba[1] = (lastCif1T - cifTimeT(index_T,5))/denomT;
-      proba[2] = (lastCif2T - cifTimeT(index_T,8))/denomT;
-      proba[4] = 1 - (proba[1] + proba[2]);
+      proba[1] = (lastCif1T - cifTimeT_vec(5))/denomT;
+      proba[2] = (lastCif2T - cifTimeT_vec(8))/denomT;
+      //proba[4] = 1 - (proba[1] + proba[2]);
     } else if(delta_C == 1) { // (0,1)
       if(diff >= tau) {
         proba[0] = 1.0;
       } else if(diff <= -tau) {
-        if(R_IsNA(cifTimeC(index_C,6)) == false) {
-          proba[0] = (lastCif1T - cifTimeC(index_C,6) + lastCif2T - cifTimeT(index_T,8))/denomT;
+        if(R_IsNA(cifTimeC_vec(6)) == false) {
+          proba[0] = (lastCif1T - cifTimeC_vec(6) + lastCif2T - cifTimeT_vec(8))/denomT;
         } else {
-          proba[0] = (lastCif2T - cifTimeT(index_T,8))/denomT;
+          proba[0] = (lastCif2T - cifTimeT_vec(8))/denomT;
         }
-        if(R_IsNA(cifTimeC(index_C,4)) == false) {
-          proba[1] = (cifTimeC(index_C,4) - cifTimeT(index_T,5))/denomT;
+        if(R_IsNA(cifTimeC_vec(4)) == false) {
+          proba[1] = (cifTimeC_vec(4) - cifTimeT_vec(5))/denomT;
         } else {
-          proba[1] = (lastCif1T - cifTimeT(index_T,5))/denomT;
+          proba[1] = (lastCif1T - cifTimeT_vec(5))/denomT;
         }
-        if((R_IsNA(cifTimeC(index_C,6)) == false) & (R_IsNA(cifTimeC(index_C,4)) == false)) {
-          proba[3] = (cifTimeC(index_C,6) - cifTimeC(index_C,4))/denomT;
-        } else if ((R_IsNA(cifTimeC(index_C,6)) == true) & (R_IsNA(cifTimeC(index_C,4)) == false)) {
-          proba[3] = (lastCif1T - cifTimeC(index_C,4))/denomT;
+        if((R_IsNA(cifTimeC_vec(6)) == false) & (R_IsNA(cifTimeC_vec(4)) == false)) {
+          proba[3] = (cifTimeC_vec(6) - cifTimeC_vec(4))/denomT;
+        } else if ((R_IsNA(cifTimeC_vec(6)) == true) & (R_IsNA(cifTimeC_vec(4)) == false)) {
+          proba[3] = (lastCif1T - cifTimeC_vec(4))/denomT;
         } else {
           proba[3] = 0.0;
         }
       } else { // |diff| < tau
-        if(R_IsNA(cifTimeC(index_C,6)) == false) {
-          proba[0] = (lastCif1T - cifTimeC(index_C,6) + lastCif2T - cifTimeT(index_T,8))/denomT;
-          proba[3] = (cifTimeC(index_C,6) - cifTimeT(index_T,5))/denomT;
+        if(R_IsNA(cifTimeC_vec(6)) == false) {
+          proba[0] = (lastCif1T - cifTimeC_vec(6) + lastCif2T - cifTimeT_vec(8))/denomT;
+          proba[3] = (cifTimeC_vec(6) - cifTimeT_vec(5))/denomT;
         } else {
-          proba[0] = (lastCif2T - cifTimeT(index_T,8))/denomT;
-          proba[3] = (lastCif1T - cifTimeT(index_T,5))/denomT;
+          proba[0] = (lastCif2T - cifTimeT_vec(8))/denomT;
+          proba[3] = (lastCif1T - cifTimeT_vec(5))/denomT;
         }
       }
-      proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
+      //proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
     } else if (delta_C == 0) { // (0,0)
-      double prob21 = (lastCif2T - cifTimeT(index_T,8))*(lastCif1C - cifTimeC(index_C,2))/(denomT*denomC);
-      double prob12 = (lastCif2C - cifTimeC(index_C,7))*(lastCif1T - cifTimeT(index_T,5))/(denomT*denomC);
-      double prob22 = (lastCif2C - cifTimeC(index_C,7))*(lastCif2T - cifTimeT(index_T,8))/(denomT*denomC);
+      double prob21 = (lastCif2T - cifTimeT_vec(8))*(lastCif1C - cifTimeC_vec(2))/(denomT*denomC);
+      double prob12 = (lastCif2C - cifTimeC_vec(7))*(lastCif1T - cifTimeT_vec(5))/(denomT*denomC);
+      double prob22 = (lastCif2C - cifTimeC_vec(7))*(lastCif2T - cifTimeT_vec(8))/(denomT*denomC);
       if(diff >= tau) {
         // lower bound of each integral
         double intFav = CalcIntegral_Peron_CR(cifJumpC, endpoint_T - tau, endpoint_T + tau, Cif1T_t, lastCif1T, 1)/(denomT*denomC);
         double intDefav = CalcIntegral_Peron_CR(cifJumpC, endpoint_T + tau, endpoint_T + tau, Cif1T_t, lastCif1T, 2)/(denomT*denomC);
         double intNeutralEvent1 = CalcIntegral_Peron_CR(cifJumpC, endpoint_T - tau, endpoint_T + tau, Cif1T_t, lastCif1T, 3)/(denomT*denomC);
         double intNeutralEvent2 = CalcIntegral_Peron_CR(cifJumpC, endpoint_T + tau, endpoint_T + tau, Cif1T_t, lastCif1T, 4)/(denomT*denomC);
-        if (R_IsNA(cifTimeT(index_T,1)) == false) {
-          proba[0] = ((cifTimeT(index_T,1) - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) +
+        if (R_IsNA(cifTimeT_vec(1)) == false) {
+          proba[0] = ((cifTimeT_vec(1) - cifTimeC_vec(2))/denomC)*((lastCif1T - cifTimeT_vec(5))/denomT) +
             intFav + prob21;
         } else {
-          proba[0] = ((lastCif1C - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) +
+          proba[0] = ((lastCif1C - cifTimeC_vec(2))/denomC)*((lastCif1T - cifTimeT_vec(5))/denomT) +
             intFav + prob21;
         }
         proba[1] = intDefav + prob12;
@@ -454,10 +455,19 @@ std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C,
         proba[2] = prob22;
         proba[3] = intNeutralEvent1 + intNeutralEvent2;
       }
-      proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
+      //proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
     }
   }
-  return proba;
+  
+  proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
+  
+  // merge the two kinds of neutral pairs
+  proba2[0] = proba[0];
+  proba2[1] = proba[1];
+  proba2[2] = proba[2] + proba[3];
+  proba2[3] = proba[4];
+  
+  return proba2;
 }
 
 
@@ -528,6 +538,7 @@ std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double st
 //' t+tau and t-tau).
 //'
 //' @keywords function Cpp internal
+//' @author Eva Cantagallo
 //' @export
 // [[Rcpp::export]]
 double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t,

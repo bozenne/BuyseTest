@@ -29,6 +29,7 @@
 #' \code{initializeSurvival}: Compute the survival via KM.
 #' 
 #' @keywords function internal BuyseTest
+#' @author Brice Ozenne, Eva Cantagallo
 
 ## * initializeArgs
 #' @rdname internal-initialization
@@ -663,25 +664,25 @@ initializePeron <- function(data,
             
                 iPredCif1C <- stats::approxfun(x = model.tte[[iEndpoint.UTTE]]$time[iIndex.startC:iIndex.stopC], 
                                                y = model.tte[[iEndpoint.UTTE]]$cuminc[[1]][iIndex.startC:iIndex.stopC],
-                                               yleft = 0, yright = switch(as.character(sumCifC == 1),
+                                               yleft = 0, yright = switch(as.character(abs(sumCifC-1) < 10^-12),
                                                                           "TRUE" = iLast.cif1C,
                                                                           "FALSE" = NA), f = 0, method = "constant")
             
                 iPredCif1T <- stats::approxfun(x = model.tte[[iEndpoint.UTTE]]$time[iIndex.startT:iIndex.stopT], 
                                                y = model.tte[[iEndpoint.UTTE]]$cuminc[[1]][iIndex.startT:iIndex.stopT],
-                                               yleft = 0, yright = switch(as.character(sumCifT == 1),
+                                               yleft = 0, yright = switch(as.character(abs(sumCifT-1) < 10^-12),
                                                                           "TRUE" = iLast.cif1T,
                                                                           "FALSE" = NA), f = 0, method = "constant")
             
                 iPredCif2C <- stats::approxfun(x = model.tte[[iEndpoint.UTTE]]$time[iIndex.startC:iIndex.stopC], 
                                                y = model.tte[[iEndpoint.UTTE]]$cuminc[[2]][iIndex.startC:iIndex.stopC],
-                                               yleft = 0, yright = switch(as.character(sumCifC == 1),
+                                               yleft = 0, yright = switch(as.character(abs(sumCifC-1) < 10^-12),
                                                                           "TRUE" = iLast.cif2C,
                                                                           "FALSE" = NA), f = 0, method = "constant")
             
                 iPredCif2T <- stats::approxfun(x = model.tte[[iEndpoint.UTTE]]$time[iIndex.startT:iIndex.stopT], 
                                                y = model.tte[[iEndpoint.UTTE]]$cuminc[[2]][iIndex.startT:iIndex.stopT],
-                                               yleft = 0, yright = switch(as.character(sumCifT == 1),
+                                               yleft = 0, yright = switch(as.character(abs(sumCifT-1) < 10^-12),
                                                                           "TRUE" = iLast.cif2T,
                                                                           "FALSE" = NA), f = 0, method = "constant")
 
@@ -701,7 +702,7 @@ initializePeron <- function(data,
               iThreshold <- threshold[iEndpoint] ## iThreshold = 1
               
               ## **** last survival
-              out$lastSurv[[iEndpoint]][iStrata,] <- cbind(iLast.cif1C, iLast.cif1T, iLast.cif2C, iLast.cif2T)
+              out$lastSurv[[iEndpoint]][iStrata,] <- c(iLast.cif1C, iLast.cif1T, iLast.cif2C, iLast.cif2T)
               
               ## **** survival at jump times
               out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(time = iJump1C,

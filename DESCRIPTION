@@ -5,7 +5,8 @@ Version: 1.7.4
 Date: 2019-03-27
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
-    person("Julien", "Peron", role = "aut")
+    person("Julien", "Peron", role = "aut"),
+    person("Eva", "Cantagallo", role = "aut")
 	)
 Description: Implementation of the Generalized Pairwise Comparisons (GPC).
              GPC compare two groups of observations (intervention vs. control group)

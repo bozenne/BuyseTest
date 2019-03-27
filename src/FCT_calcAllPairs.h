@@ -16,7 +16,7 @@ using namespace arma ;
 arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
 		       arma::colvec deltaC, arma::colvec deltaT, 
 		       arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-		       double lastSurvC, double lastSurvT, 
+		       arma::rowvec lastSurv, 
 		       int method, int correctionUninf,
 		       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 		       std::vector< int >& index_control, std::vector< int >& index_treatment, 
@@ -27,7 +27,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double threshold, 
 			  arma::colvec deltaC, arma::colvec deltaT, 
 			  arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-			  double lastSurvC, double lastSurvT,						  
+			  arma::rowvec lastSurv,					  
 			  const std::vector< int >& index_control_M1, const vector<int>& index_treatment_M1,						  
 			  const arma::vec& cumWeight_M1, const std::vector< arma::mat >& lsScore_UTTE, int index_UTTE, const std::vector< bool >& isStored_UTTE,
 			  int method, int correctionUninf,
@@ -70,7 +70,7 @@ void mergeVectors(const std::vector< int >& index_neutralC, const std::vector< i
 arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
 					   arma::colvec deltaC, arma::colvec deltaT, 
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-					   double lastSurvC, double lastSurvT, 
+					   arma::rowvec lastSurv, 
 					   int method, int correctionUninf,
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 					   std::vector< int >& index_control, std::vector< int >& index_treatment, 
@@ -145,19 +145,23 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	  iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
 	}else if(method == 2){
 	  iScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
-	}else if(method == 3){
-	  iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
-					 deltaC[iter_C], deltaT[iter_T], threshold,
-					 survTimeC.row(iter_C), survTimeT.row(iter_T),
-					 survJumpC, survJumpT, lastSurvC, lastSurvT);
-
+	}else {
+	  if(method == 3){
+	    iScore = calcOnePair_SurvPeron(Control[iter_C], Treatment[iter_T], 
+                                    deltaC[iter_C], deltaT[iter_T], threshold,
+                                    survTimeC.row(iter_C), survTimeT.row(iter_T),
+                                    survJumpC, survJumpT, lastSurv(0), lastSurv(1));
+	  }else if (method == 4) {
+	    iScore = CalcOnePair_CRPeron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold,
+                                   survTimeT.row(iter_T), survTimeC.row(iter_C), survJumpC,
+                                   lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3));
+	  }
 	  if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
 	    // store for future endpoints
 	    vecFavorable.push_back(iScore[0]);
 	    vecUnfavorable.push_back(iScore[1]);
 	  }
-	
-	}	
+	}
 
 	// store results
 	if(iScore[0] > zeroPlus){
@@ -274,7 +278,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double threshold, 
 						  arma::colvec deltaC, arma::colvec deltaT, 
 						  arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-						  double lastSurvC, double lastSurvT,						  
+						  arma::rowvec lastSurv,					  
 						  const std::vector< int >& index_control_M1, const vector<int>& index_treatment_M1,						  
 						  const arma::vec& cumWeight_M1, const std::vector< arma::mat >& lsScore_UTTE, int index_UTTE, const std::vector< bool >& isStored_UTTE,
 						  int method, int correctionUninf,
@@ -370,22 +374,27 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
       iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
     }else if(method == 2){
       iScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
-    }else if(method == 3){
-      iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
-									 deltaC[iter_C], deltaT[iter_T], threshold,
-									 survTimeC.row(iter_C), survTimeT.row(iter_T),
-									 survJumpC, survJumpT, lastSurvC, lastSurvT);
-
+    }else {
+      if(method ==3) {
+        iScore = calcOnePair_SurvPeron(Control[iter_C], Treatment[iter_T], 
+                                       deltaC[iter_C], deltaT[iter_T], threshold,
+                                       survTimeC.row(iter_C), survTimeT.row(iter_T),
+                                       survJumpC, survJumpT, lastSurv(0), lastSurv(1));
+      }else if(method == 4) {
+        iScore = CalcOnePair_CRPeron(Treatment[iter_T], Control[iter_C], deltaT[iter_T], deltaC[iter_C], threshold,
+                                      survTimeT.row(iter_T), survTimeC.row(iter_C), survJumpC,
+                                      lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3));
+      }
       if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
-		// store for future endpoints
-		vecFavorable.push_back(iScore[0]);
-		vecUnfavorable.push_back(iScore[1]);
+        // store for future endpoints
+        vecFavorable.push_back(iScore[0]);
+        vecUnfavorable.push_back(iScore[1]);
       }
       if(alreadyAnalyzed){
-		iScoreM1[0] = lsScore_UTTE[index_UTTE](iter_pair,0);
-		iScoreM1[1] = lsScore_UTTE[index_UTTE](iter_pair,1);
+        iScoreM1[0] = lsScore_UTTE[index_UTTE](iter_pair,0);
+        iScoreM1[1] = lsScore_UTTE[index_UTTE](iter_pair,1);
       }
-    }	
+    }
 
     // *** compute adjusted for the previous endpoint
     weight_favorable = (iScore[0] - iScoreM1[0]) * cumWeight_M1(iter_pair);

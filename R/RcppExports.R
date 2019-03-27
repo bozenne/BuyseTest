@@ -43,8 +43,8 @@ GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, 
     .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, neutralAsUninf, keepScore, reserve, returnIID)
 }
 
-CalcOnePair_Peron_CR <- function(endpoint_T, endpoint_C, delta_T, delta_C, tau, index_T, index_C, cifTimeT, cifTimeC, cifJumpC, lastCif1C, lastCif2C, lastCif1T, lastCif2T) {
-    .Call(`_BuyseTest_CalcOnePair_Peron_CR`, endpoint_T, endpoint_C, delta_T, delta_C, tau, index_T, index_C, cifTimeT, cifTimeC, cifJumpC, lastCif1C, lastCif2C, lastCif1T, lastCif2T)
+CalcOnePair_CRPeron <- function(endpoint_T, endpoint_C, delta_T, delta_C, tau, cifTimeT_vec, cifTimeC_vec, cifJumpC, lastCif1C, lastCif1T, lastCif2C, lastCif2T) {
+    .Call(`_BuyseTest_CalcOnePair_CRPeron`, endpoint_T, endpoint_C, delta_T, delta_C, tau, cifTimeT_vec, cifTimeC_vec, cifJumpC, lastCif1C, lastCif1T, lastCif2C, lastCif2T)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 
@@ -79,6 +79,7 @@ calcIntegralScore_cpp <- function(survival, start, lastSurv, lastdSurv) {
 #' t+tau and t-tau).
 #'
 #' @keywords function Cpp internal
+#' @author Eva Cantagallo
 #' @export
 CalcIntegral_Peron_CR <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) {
     .Call(`_BuyseTest_CalcIntegral_Peron_CR`, cif, start_val, stop_val, CIF_t, lastCIF, type)
