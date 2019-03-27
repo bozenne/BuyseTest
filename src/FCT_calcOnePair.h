@@ -22,7 +22,15 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 											const arma::mat& survJumpC, const arma::mat& survJumpT,
 											double lastSurvC, double lastSurvT);
 
+inline std::vector< double > CalcOnePair_TTEperon_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C, 
+                                                  double tau, int index_T, int index_C, const arma::mat& cifTimeT, 
+                                                  const arma::mat& cifTimeC, const arma::mat& cifJumpC, 
+                                                  double lastCif1C, double lastCif2C, double lastCif1T, 
+												  double lastCif2T);
+
 std::vector<double> calcIntegralScore_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv);
+
+double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t, double lastCIF, int type);
 
 // * calcOnePair_Continuous
 inline std::vector< double > calcOnePair_Continuous(double diff, double threshold){
@@ -291,6 +299,169 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
   return(score);  
 }
 
+// * calcOnePair_Peron
+// [[Rcpp::export]]
+inline std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C, 
+                                               double tau, int index_T, int index_C, const arma::mat& cifTimeT, 
+                                               const arma::mat& cifTimeC, const arma::mat& cifJumpC, 
+                                               double lastCif1C, double lastCif2C, double lastCif1T, 
+                                               double lastCif2T) {
+  
+  // cifTimeC and cifTimeT: cumulative incidence at control/treatment observation times
+  //        [1]    times 
+  //        [2-4]  cif of event of interest estimated in the control arm: time - tau, time, time + tau
+  //        [5-7]  cif of event of interest estimated in the treatment arm: time - tau, time, time + tau
+  //        [8]  cif of competing event estimated in the control arm: time
+  //        [9]  cif of competing event estimated in the treatment arm: time
+  
+  // cifJumpC: cumulative incidence of event of interest in control group at jump times
+  //        [1]  jump times in control group (unique values in ascending order)
+  //        [2-3]  cif of the treatment group at times-tau and times+tau
+  //        [4]  d(cif) of control group estimated at time 
+  
+  double diff = endpoint_T - endpoint_C;
+  double Cif1T_t = cifTimeT(index_T,5);
+  std::vector< double > proba(5, 0.0); // [0] favorable, [1] unfavorable, [2] neutral competing, [3] neutral event, 
+  // [4] uninformative
+  double denomC = 1 - cifTimeC(index_C, 2) - cifTimeC(index_C, 7);
+  double denomT = 1 - cifTimeT(index_T, 5) - cifTimeT(index_T, 8);
+  
+  if(delta_T == 2) {
+    if(delta_C == 2) { // (2,2)
+      proba[2] = 1.0; // systematically neutral competing
+    } else if(delta_C == 1){ // (2,1)
+      proba[0] = 1.0; // systematically favorable
+    } else if(delta_C == 0) { // (2,0)
+      proba[0] = (lastCif1C - cifTimeC(index_C, 2))/denomC;
+      // proba[1] = 0
+      proba[2] = (lastCif2C - cifTimeC(index_C, 7))/denomC;
+      // proba[3] = 0 // since the treated patient had the competing event
+      proba[4] = 1 - (proba[0] + proba[2]);
+    }
+  } else if(delta_T == 1){
+    if(delta_C == 2){ // (1,2)
+      proba[1] = 1.0; // systematically defavorable
+    } else if(delta_C == 1){ // (1,1)
+      if(diff >= tau) {
+        proba[0] = 1.0;
+      } else if(diff <= -tau) {
+        proba[1] = 1.0;
+      } else { // |diff| < tau
+        proba[3] = 1.0;
+      }
+    } else if(delta_C == 0) { // (1,0)
+      if(diff >= tau) {
+        if(R_IsNA(cifTimeT(index_T,1)) == false) {
+          proba[0] = (cifTimeT(index_T,1) - cifTimeC(index_C,2))/denomC;
+        } else {
+          proba[0] = (lastCif1C - cifTimeC(index_C,2))/denomC;
+        }
+        if(R_IsNA(cifTimeT(index_T,4)) == false) {
+          proba[1] = (lastCif1C - cifTimeT(index_T,3) + lastCif2C - cifTimeC(index_C,7))/denomC;
+        } else {
+          proba[1] = (lastCif2C - cifTimeC(index_C,7))/denomC;
+        }
+        if((R_IsNA(cifTimeT(index_T,3)) == false) & (R_IsNA(cifTimeT(index_T,1)) == false)) {
+          proba[3] = (cifTimeT(index_T,3) - cifTimeT(index_T,1))/denomC;
+        } else if ((R_IsNA(cifTimeT(index_T,4)) == true) & (R_IsNA(cifTimeT(index_T,2)) == false)) {
+          proba[3] = (lastCif1C - cifTimeT(index_T,1))/denomC;
+        } else {
+          proba[3] = 0.0;
+        }
+      } else if(diff <= -tau) {
+        proba[1] = 1.0;
+      } else { // |diff| < tau
+        if(R_IsNA(cifTimeT(index_T,3)) == false) {
+          proba[1] = (lastCif1C - cifTimeT(index_T,3) + lastCif2C - cifTimeC(index_C,7))/denomC;
+          proba[3] = (cifTimeT(index_T,3) - cifTimeC(index_C,2))/denomC;
+        } else {
+          proba[1] = (lastCif2C - cifTimeC(index_C,7))/denomC;
+          proba[3] = (lastCif1C - cifTimeC(index_C,2))/denomC;
+        }
+      }
+      proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
+    }
+  } else { // delta_T == 0
+    if(delta_C == 2) { // (0,2)
+      proba[1] = (lastCif1T - cifTimeT(index_T,5))/denomT;
+      proba[2] = (lastCif2T - cifTimeT(index_T,8))/denomT;
+      proba[4] = 1 - (proba[1] + proba[2]);
+    } else if(delta_C == 1) { // (0,1)
+      if(diff >= tau) {
+        proba[0] = 1.0;
+      } else if(diff <= -tau) {
+        if(R_IsNA(cifTimeC(index_C,6)) == false) {
+          proba[0] = (lastCif1T - cifTimeC(index_C,6) + lastCif2T - cifTimeT(index_T,8))/denomT;
+        } else {
+          proba[0] = (lastCif2T - cifTimeT(index_T,8))/denomT;
+        }
+        if(R_IsNA(cifTimeC(index_C,4)) == false) {
+          proba[1] = (cifTimeC(index_C,4) - cifTimeT(index_T,5))/denomT;
+        } else {
+          proba[1] = (lastCif1T - cifTimeT(index_T,5))/denomT;
+        }
+        if((R_IsNA(cifTimeC(index_C,6)) == false) & (R_IsNA(cifTimeC(index_C,4)) == false)) {
+          proba[3] = (cifTimeC(index_C,6) - cifTimeC(index_C,4))/denomT;
+        } else if ((R_IsNA(cifTimeC(index_C,6)) == true) & (R_IsNA(cifTimeC(index_C,4)) == false)) {
+          proba[3] = (lastCif1T - cifTimeC(index_C,4))/denomT;
+        } else {
+          proba[3] = 0.0;
+        }
+      } else { // |diff| < tau
+        if(R_IsNA(cifTimeC(index_C,6)) == false) {
+          proba[0] = (lastCif1T - cifTimeC(index_C,6) + lastCif2T - cifTimeT(index_T,8))/denomT;
+          proba[3] = (cifTimeC(index_C,6) - cifTimeT(index_T,5))/denomT;
+        } else {
+          proba[0] = (lastCif2T - cifTimeT(index_T,8))/denomT;
+          proba[3] = (lastCif1T - cifTimeT(index_T,5))/denomT;
+        }
+      }
+      proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
+    } else if (delta_C == 0) { // (0,0)
+      double prob21 = (lastCif2T - cifTimeT(index_T,8))*(lastCif1C - cifTimeC(index_C,2))/(denomT*denomC);
+      double prob12 = (lastCif2C - cifTimeC(index_C,7))*(lastCif1T - cifTimeT(index_T,5))/(denomT*denomC);
+      double prob22 = (lastCif2C - cifTimeC(index_C,7))*(lastCif2T - cifTimeT(index_T,8))/(denomT*denomC);
+      if(diff >= tau) {
+        // lower bound of each integral
+        double intFav = CalcIntegral_Peron_CR(cifJumpC, endpoint_T - tau, endpoint_T + tau, Cif1T_t, lastCif1T, 1)/(denomT*denomC);
+        double intDefav = CalcIntegral_Peron_CR(cifJumpC, endpoint_T + tau, endpoint_T + tau, Cif1T_t, lastCif1T, 2)/(denomT*denomC);
+        double intNeutralEvent1 = CalcIntegral_Peron_CR(cifJumpC, endpoint_T - tau, endpoint_T + tau, Cif1T_t, lastCif1T, 3)/(denomT*denomC);
+        double intNeutralEvent2 = CalcIntegral_Peron_CR(cifJumpC, endpoint_T + tau, endpoint_T + tau, Cif1T_t, lastCif1T, 4)/(denomT*denomC);
+        if (R_IsNA(cifTimeT(index_T,1)) == false) {
+          proba[0] = ((cifTimeT(index_T,1) - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) + 
+            intFav + prob21;          
+        } else {
+          proba[0] = ((lastCif1C - cifTimeC(index_C,2))/denomC)*((lastCif1T - cifTimeT(index_T,5))/denomT) + 
+            intFav + prob21;
+        }
+        proba[1] = intDefav + prob12;
+        proba[2] = prob22;
+        proba[3] = intNeutralEvent1 + intNeutralEvent2;
+      } else if(diff <= -tau) {
+        double intFav = CalcIntegral_Peron_CR(cifJumpC, endpoint_C, endpoint_T + tau, Cif1T_t, lastCif1T, 1)/(denomT*denomC);
+        double intDefav = CalcIntegral_Peron_CR(cifJumpC, endpoint_C, endpoint_T + tau, Cif1T_t, lastCif1T, 2)/(denomT*denomC);
+        double intNeutralEvent = CalcIntegral_Peron_CR(cifJumpC, endpoint_C, endpoint_T + tau, Cif1T_t, lastCif1T, 4)/(denomT*denomC);
+        proba[0] = intFav + prob21;
+        proba[1] = intDefav + prob12;
+        proba[2] = prob22;
+        proba[3] = intNeutralEvent;
+      } else { // |diff| < tau
+        double intFav = CalcIntegral_Peron_CR(cifJumpC, endpoint_C, endpoint_T + tau, Cif1T_t, lastCif1T, 1)/(denomT*denomC);
+        double intDefav = CalcIntegral_Peron_CR(cifJumpC, endpoint_T+tau, endpoint_T + tau, Cif1T_t, lastCif1T, 2)/(denomT*denomC);
+        double intNeutralEvent1 = CalcIntegral_Peron_CR(cifJumpC, endpoint_C, endpoint_T + tau, Cif1T_t, lastCif1T, 3)/(denomT*denomC);
+        double intNeutralEvent2 = CalcIntegral_Peron_CR(cifJumpC, endpoint_T+tau, endpoint_T + tau, Cif1T_t, lastCif1T, 4)/(denomT*denomC);
+        proba[0] = intFav + prob21;
+        proba[1] = intDefav + prob12;
+        proba[2] = prob22;
+        proba[3] = intNeutralEvent1 + intNeutralEvent2;
+      }
+      proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
+    }
+  }
+  return proba;
+}
+
+
 // * calcIntegralScore_cpp
 //' @title C++ Function Computing the Integral Terms for the Peron Method. 
 //' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
@@ -339,4 +510,69 @@ std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double st
   }
 
   return(integral);
+}
+
+
+// * CalcIntegral_Peron_CR
+//' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR). 
+//' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
+//' @name CalcIntegral_Peron_CR
+//' 
+//' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group 
+//' T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).
+//' @param start_val [numeric] Time at which to start the integral.
+//' @param stop_val [numeric] Time at which to stop the integral.
+//' @param CIF_t [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
+//' @param lastCIF [numeric, >0] last value of CIF of event type 1 in group T.
+//' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two 
+//' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with 
+//' t+tau and t-tau).
+//'
+//' @keywords function Cpp internal
+//' @export
+// [[Rcpp::export]]
+double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t, 
+                    double lastCIF, int type){
+  
+  double integral = 0.0;
+  int nJump = cif.n_rows;
+  
+  if (nJump > 0) {
+    if(type == 1) {
+      for(int i = 0; i<nJump; i++){
+        if(R_IsNA(cif(i,2))) {break;}
+        if(cif(i,0) > start_val) {
+          integral = integral + (lastCIF - cif(i, 2))*cif(i, 3);
+        }
+      }
+    } else if(type == 2) {
+      for(int i = 0; i<nJump; i++){
+        double lb = cif(i,1);
+        if(R_IsNA(cif(i,1))) {lb = lastCIF;}
+        if(cif(i,0) > start_val) {
+          integral = integral + (lb - CIF_t)*cif(i, 3);
+        }
+      }
+    } else if(type == 3) {
+      for(int i = 0; i<nJump; i++){
+        double lb = cif(i,2);
+        if(R_IsNA(cif(i,2))) {lb = lastCIF;}
+        if((cif(i,0) > start_val) & (cif(i,0) <= stop_val)) {
+          integral = integral + (lb - CIF_t)*cif(i, 3);
+        }
+      }
+    } else if(type == 4) {
+      for(int i = 0; i<nJump; i++){
+        double lb = cif(i, 2);
+        if(R_IsNA(cif(i,2))) {lb = lastCIF;}
+        if(R_IsNA(cif(i,1))) {break;}
+        if(cif(i,0) > start_val) {
+          integral = integral + (lb - cif(i, 1))*cif(i, 3);
+        }
+      }
+    }
+  }
+  
+  return integral; 
+  
 }

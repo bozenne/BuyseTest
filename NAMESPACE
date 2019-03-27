@@ -2,6 +2,7 @@
 
 export(BuyseTest)
 export(BuyseTest.options)
+export(CalcIntegral_Peron_CR)
 export(GPC_cpp)
 export(boot2pvalue)
 export(calcIntegralScore_cpp)

@@ -302,7 +302,7 @@ BuyseTest <- function(formula,
     envirBT <- environment()
     envirBT$.BuyseTest <- .BuyseTest
     envirBT$initializeData <- initializeData
-    envirBT$initializeSurvival_Peron <- initializeSurvival_Peron
+    envirBT$initializePeron <- initializePeron
     
     ## ** Point estimation
     if (outArgs$trace > 1) {
@@ -569,37 +569,23 @@ BuyseTest <- function(formula,
     ## *** Update survival
     if(method.tte == 0){ ## Gehan
         outSurv <- envir$outArgs$outSurv
-    }else if(method.tte == 1){ ## Peron survival
-         outSurv <- initializeSurvival_Peron(data = data,
-                                             model.tte = envir$outArgs$model.tte,
-                                             treatment = treatment,
-                                             level.treatment = envir$outArgs$level.treatment,
-                                             endpoint = endpoint,
-                                             endpoint.UTTE = envir$outArgs$endpoint.UTTE,
-                                             censoring = censoring,
-                                             D.TTE = D.TTE,
-                                             D.UTTE = envir$outArgs$D.UTTE,
-                                             type = type,
-                                             threshold = envir$outArgs$threshold,
-                                             n.strata = n.strata,
-                                             strata = envir$outArgs$strata,
-                                             out = envir$outArgs$outSurv)
-     }else if(method.tte == 2){ ## Peron competing risks
-         outSurv <- initializeSurvival_Peron(data = data,
-                                             model.tte = envir$outArgs$model.tte,
-                                             treatment = treatment,
-                                             level.treatment = envir$outArgs$level.treatment,
-                                             endpoint = endpoint,
-                                             endpoint.UTTE = envir$outArgs$endpoint.UTTE,
-                                             censoring = censoring,
-                                             D.TTE = D.TTE,
-                                             D.UTTE = envir$outArgs$D.UTTE,
-                                             type = type,
-                                             threshold = envir$outArgs$threshold,
-                                             n.strata = n.strata,
-                                             strata = envir$outArgs$strata,
-                                             out = envir$outArgs$outSurv)
-     }
+    }else{ ## Peron 
+        outSurv <- initializePeron(data = data,
+                                   model.tte = envir$outArgs$model.tte,
+                                   method.score = envir$outArgs$method.score,
+                                   treatment = treatment,
+                                   level.treatment = envir$outArgs$level.treatment,
+                                   endpoint = endpoint,
+                                   endpoint.UTTE = envir$outArgs$endpoint.UTTE,
+                                   censoring = censoring,
+                                   D.TTE = D.TTE,
+                                   D.UTTE = envir$outArgs$D.UTTE,
+                                   type = type,
+                                   threshold = envir$outArgs$threshold,
+                                   n.strata = n.strata,
+                                   strata = envir$outArgs$strata,
+                                   out = envir$outArgs$outSurv)
+    }
 
     ## ** Computation
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
