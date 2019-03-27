@@ -268,6 +268,7 @@ BuyseTest <- function(formula,
     out.name <- c("data","M.endpoint","M.censoring",
                   "index.C","index.T","index.strata",
                   "index.endpoint","index.censoring","level.treatment","level.strata",
+                  "method.score",
                   "n.strata","n.obs","n.obsStrata","cumn.obsStrata")
     outArgs[out.name] <- initializeData(data = outArgs$data,
                                         type = outArgs$type,

@@ -6,6 +6,7 @@
 \alias{initializeData}
 \alias{initializeFormula}
 \alias{initializeSurvival_Peron}
+\alias{initializeCIF_Peron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
 initializeArgs(alternative, censoring, correction.uninf = NULL,
@@ -23,6 +24,10 @@ initializeFormula(x)
 initializeSurvival_Peron(data, model.tte, treatment, level.treatment,
   endpoint, endpoint.UTTE, censoring, D.TTE, D.UTTE, type, strata,
   threshold, n.strata, out)
+
+initializeCIF_Peron(data, model.tte, treatment, level.treatment, endpoint,
+  endpoint.UTTE, censoring, D.TTE, D.UTTE, type, strata, threshold,
+  n.strata, out)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

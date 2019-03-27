@@ -53,8 +53,10 @@ Arguments in the list \code{argsCont}:
 
 Arguments in the list \code{argsTTE}:
     \itemize{
+    \item\code{CR} should competing risks be simulated? \cr 
     \item\code{rates.T} hazard corresponding to each endpoint (time to event endpoint, treatment group). \cr 
     \item\code{rates.C} same as \code{rates.T} but for the control group. \cr
+    \item\code{rates.CR} same as \code{rates.T} but for the competing event (same in both groups). \cr
     \item\code{rates.Censoring} Censoring same as \code{rates.T} but for the censoring. \cr
     \item\code{name} names of the time to event variables. \cr
     \item\code{nameCensoring} names of the event type indicators. \cr

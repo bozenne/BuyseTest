@@ -170,14 +170,9 @@ initializeArgs <- function(alternative,
     ## WARNING: choices must be lower cases
     ##          remember to update check method.tte (in BuyseTest-check.R)
     method.tte <- tolower(method.tte)
-    if(D.TTE > 0){
-        test.CR <- any(sapply(censoring, function(iC){max(unique(data[[censoring]]))})>1)
-    }else{
-        test.CR <- 0
-    }
     method.tte <- switch(method.tte,
                          "gehan" = 0,
-                         "peron" = 1 + test.CR,
+                         "peron" = 1,
                          NA
                          )
 
@@ -210,12 +205,6 @@ initializeArgs <- function(alternative,
         cpus <- parallel::detectCores() # this function detect the number of CPU cores 
     }
 
-    ## ** method.score
-    ## 1 binary continuous
-    ## 2 tte Gehan
-    ## 3 tte Peron
-    method.score <- 1 + (type==3)*(1+method.tte)
-
     ## ** export
     return(list(
         alternative = alternative,
@@ -234,7 +223,6 @@ initializeArgs <- function(alternative,
         method.tte = method.tte,
         model.tte = model.tte,
         method.inference = method.inference,
-        method.score = method.score,
         n.resampling = n.resampling,
         hierarchical = hierarchical,
         neutral.as.uninf = neutral.as.uninf,
@@ -325,6 +313,15 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
     ## ** unique endpoint
     Uendpoint <- unique(endpoint)
 
+    ## ** scoring method for each endpoint
+    method.score <- 1 + (type==3) ## 1 binary/continuous and 2 Gehan
+    if(method.tte > 0){ ## if Peron
+        test.CR <- sapply(Ucensoring, function(iC){max(data[[iC]])>1})[censoring]
+        method.score[type == 3] <- method.score[type == 3] + 1 + test.CR[type == 3]
+        ## 3 Peron survival
+        ## 4 Peron CR
+    }
+    
     ## ** export
     return(list(data = data[,.SD,.SDcols =  c(treatment,"..strata..")],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
@@ -336,6 +333,7 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
                 index.censoring = match(censoring, Ucensoring) - 1,
                 level.treatment = level.treatment,
                 level.strata = level.strata,
+                method.score = method.score,
                 n.strata = n.strata,
                 n.obs = n.obs,
                 n.obsStrata = n.obsStrata,
@@ -384,10 +382,9 @@ buildWscheme <- function(method.tte, endpoint, D.TTE, D, n.strata,
                                survTimeT = skeleton,
                                survJumpC = skeleton,
                                survJumpT = skeleton,
-                               lastSurv = lapply(1:D, function(iS){matrix(nrow=n.strata,ncol=2)})
+                               lastSurv = lapply(1:D, function(iS){matrix(nrow = n.strata, ncol = 4)}) ## 4 for competing risk setting, 2 is enough for survival
                                ))
            )
-
 }
 
 ## * initializeFormula
@@ -630,8 +627,8 @@ initializeSurvival_Peron <- function(data,
 
         
         for(iStrata in 1:n.strata){
-            iNcontrol <- length(ls.indexC[[iStrata]]+1)
-            iNtreatment <- length(ls.indexT[[iStrata]]+1)
+            iNcontrol <- length(ls.indexC[[iStrata]])
+            iNtreatment <- length(ls.indexT[[iStrata]])
 
             if("..strata.." %in% colnames(model.tte[[iEndpoint.UTTE]]$X)){
                 indexX.strata <- which(model.tte[[iEndpoint.UTTE]]$X[["..strata.."]]==iStrata)
@@ -684,7 +681,7 @@ initializeSurvival_Peron <- function(data,
                 iThreshold <- threshold[iEndpoint]
 
                 ## **** last survival
-                out$lastSurv[[iEndpoint]][iStrata,] <- c(iLast.survC, iLast.survT)
+                out$lastSurv[[iEndpoint]][iStrata,1:2] <- c(iLast.survC, iLast.survT)
 
                 ## **** survival at jump times
                 out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(time = iJumpC,
