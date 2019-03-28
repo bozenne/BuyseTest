@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar 28 2019 (15:06) 
+## Last-Updated: mar 28 2019 (15:44) 
 ##           By: Brice Ozenne
-##     Update #: 475
+##     Update #: 489
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -399,8 +399,10 @@ confint_student <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampli
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
     ## ** critical quantile
+    ## Delta.statH0.resampling <- sweep(Delta.resampling, MARGIN = 2, FUN = "-", STATS = Delta)/Delta.se.resampling
     Delta.stat.resampling <- Delta.resampling/Delta.se.resampling
     Delta.statH0.resampling <- apply(Delta.stat.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)
+    
     Delta.qInf <- switch(alternative,
                          "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
                          "less" = -Inf,
@@ -422,13 +424,16 @@ confint_student <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampli
                         "two.sided" = c(p.value/2,1-p.value/2)[2-sign.estimate], ## if positive p.value/2 otherwise 1-p.value/2
                         "less" = 1-p.value,
                         "greater" = p.value)
-        iQ <- stats::quantile(x - mean(x), probs = probs, na.rm = TRUE)
+        iQ <- stats::quantile(x, probs = probs, na.rm = TRUE)
         return(Delta[iE] + iQ * Delta.se[iE])
     }
 
-    for(iE in 1:n.endpoint){
-        outTable[iE, "p.value"] <- boot2pvalue(Delta.stat.resampling[,iE], null = null, estimate = Delta[iE],
-                                               alternative = alternative, FUN.ci = quantileCI2)
+    for(iE in 1:n.endpoint){ ## iE <- 1
+        ## if(sign(mean(Delta.resampling[,iE]))!=sign(Delta[iE])){
+            ## warning("the estimate and the average bootstrap estimate do not have same sign \n")
+        ## }
+        outTable[iE, "p.value"] <- boot2pvalue(Delta.statH0.resampling[,iE], null = null, estimate = Delta[iE],
+                                               alternative = alternative, FUN.ci = quantileCI2, checkSign = FALSE)
     }
 
     ## ** export

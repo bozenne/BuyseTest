@@ -5,7 +5,8 @@
 \title{Compute the p.value from the distribution under H1}
 \usage{
 boot2pvalue(x, null, estimate = NULL, alternative = "two.sided",
-  FUN.ci = quantileCI, tol = .Machine$double.eps^0.5)
+  FUN.ci = quantileCI, checkSign = TRUE,
+  tol = .Machine$double.eps^0.5)
 }
 \arguments{
 \item{x}{[numeric vector] a vector of bootstrap estimates of the statistic.}
@@ -19,6 +20,9 @@ boot2pvalue(x, null, estimate = NULL, alternative = "two.sided",
 \item{FUN.ci}{[function] the function used to compute the confidence interval.
 Must take \code{x}, \code{alternative}, \code{conf.level} and \code{sign.estimate} as arguments
 and only return the relevant limit (either upper or lower) of the confidence interval.}
+
+\item{checkSign}{[logical] should a warning be output if the sign of the estimate differs
+from the sign of the mean bootstrap value?}
 
 \item{tol}{[numeric] the absolute convergence tolerance.}
 }

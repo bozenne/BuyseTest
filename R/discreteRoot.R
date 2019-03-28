@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:31) 
+## Last-Updated: mar 28 2019 (15:33) 
 ##           By: Brice Ozenne
-##     Update #: 256
+##     Update #: 257
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -130,6 +130,8 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' and only return the relevant limit (either upper or lower) of the confidence interval.
 #' @param alternative [character] a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less".
 #' @param tol [numeric] the absolute convergence tolerance.
+#' @param checkSign [logical] should a warning be output if the sign of the estimate differs
+#' from the sign of the mean bootstrap value?
 #' @details
 #' For test statistic close to 0, this function returns 1. \cr \cr
 #' 
@@ -181,7 +183,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' @rdname boot2pvalue
 #' @export
 boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
-                        FUN.ci = quantileCI,
+                        FUN.ci = quantileCI, checkSign = TRUE,
                         tol = .Machine$double.eps ^ 0.5){ 
   
     x.boot <- na.omit(x)
@@ -191,7 +193,7 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
         statistic <- statistic.boot
     }else{
         statistic <- estimate - null
-        if(sign(statistic.boot)!=sign(statistic)){
+        if(checkSign && sign(statistic.boot)!=sign(statistic)){
             warning("the estimate and the average bootstrap estimate do not have same sign \n")
         }
     }

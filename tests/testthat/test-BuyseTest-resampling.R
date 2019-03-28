@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: mar 28 2019 (15:10) 
+## last-updated: mar 28 2019 (15:46) 
 ##           By: Brice Ozenne
-##     Update #: 111
+##     Update #: 112
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
