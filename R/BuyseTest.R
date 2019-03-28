@@ -600,6 +600,7 @@ BuyseTest <- function(formula,
     }
 
     ## ** Computation
+    browser()
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
                      censoring = envir$outArgs$M.censoring,
                      indexC = ls.indexC,
@@ -625,6 +626,7 @@ BuyseTest <- function(formula,
                      list_lastSurv = outSurv$lastSurv,
                      correctionUninf = envir$outArgs$correction.uninf,
                      hierarchical = envir$outArgs$hierarchical,
+                     hprojection = envir$outArgs$order.Hprojection,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = envir$outArgs$keep.pairScore,
                      reserve = TRUE,

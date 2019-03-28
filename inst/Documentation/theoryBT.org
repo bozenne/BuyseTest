@@ -1977,24 +1977,59 @@ and:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \Var[H_{\hat{U}}^{(2)}] 
-&= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] - \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
-& \qquad \qquad \qquad - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
-&= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm} - \frac{1}{m} \sum_{i=1}^m \sum_{j=1}^n \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] + \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right]  \\
+&= \frac{1}{(mn)^2} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] + \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] + \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+& \qquad \qquad \qquad -2 \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] -2 \Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
+&= \frac{1}{(mn)^2} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] - \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] - \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
 &= \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm}
 \end{align*}
 #+END_EXPORT
-Since:
+where the second line follows from:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] &= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[1- \Ind[x_i > y] \big| x_i\right]\right] \\
-&= \Cov\left[\Ind[x_i \leq y_j],\Esp\left[- \Ind[y < x_i] \big| x_i\right]\right]
+\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] &= \Esp\left[\left(\Ind[x_i \leq y_j] - U\right)\left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]-U\right)\right] \\
+&= \Esp\left[\Esp\left[\left(\Ind[x_i \leq y_j] - U\right)\Esp\left[ \Ind[x_i \leq y]-U \big| x_i\right]\Big| x_i \right] \right] 
+&= \Esp\left[\Esp\left[ \Ind[x_i \leq y]-U \big| x_i\right]^2 \right] \\
+&= \Var\left[\Esp\left[\Ind[x_i \leq y] \big| x_i\right] \right] 
 \end{align*}
 #+END_EXPORT
-which under the null hypothesis that \(X\) and \(Y\) have the same
-distribution equals \(-\Cov\left[\Ind[x_i \leq y_j],\Esp\left[ \Ind[x
-\leq y_j]\right] \big| y_j\right]\). It remains to show that this is
-also true under the alternative hypothesis.
-
+A final useful result is about the covariance between two 2-samples
+U-statistics.
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Cov[H_{\hat{U_1}}^{(2)},H_{\hat{U_2}}^{(2)}] 
+&= \frac{1}{(mn)^2} \sum_{i=1}^m \sum_{j=1}^n \Cov\left[U_{1,ij} - \Esp\left[ U_{1,ij} \big| i\right] - \Esp\left[ U_{1,ij} \big| j\right],
+U_{2,ij} - \Esp\left[ U_{2,ij} \big| i\right] - \Esp\left[ U_{2,ij} \big| j\right] \right] \\
+&= \frac{1}{(mn)^2} \sum_{i=1}^m \sum_{j=1}^n \Cov\left[U_{1,ij},U_{2,ij}\right] 
++ \Cov\left[\Esp\left[ U_{1,ij} \big| i\right],\Esp\left[ U_{2,ij} \big| i\right]\right]
++ \Cov\left[\Esp\left[ U_{1,ij} \big| j\right],\Esp\left[ U_{2,ij} \big| j\right]\right] \\
+&\qquad \qquad-\Cov\left[U_{1,ij},\Esp\left[ U_{1,ij} \big| i\right]\right]-\Cov\left[U_{2,ij},\Esp\left[ U_{1,ij} \big| i\right]\right] \\
+&\qquad \qquad-\Cov\left[U_{1,ij},\Esp\left[ U_{1,ij} \big| j\right]\right]-\Cov\left[U_{2,ij},\Esp\left[ U_{1,ij} \big| j\right]\right] \\
+&= \frac{1}{(mn)^2} \sum_{i=1}^m \sum_{j=1}^n \Cov\left[U_{1,ij},U_{2,ij}\right] 
+- \Cov\left[\Esp\left[ U_{1,ij} \big| i\right],\Esp\left[ U_{2,ij} \big| i\right]\right]
+- \Cov\left[\Esp\left[ U_{1,ij} \big| j\right],\Esp\left[ U_{2,ij} \big| j\right]\right] \\
+\end{align*}
+#+END_EXPORT
+So:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Cov[U_1,U_2] \\
+&= \Cov[H_{\hat{U_1}}^{(1)},H_{\hat{U_2}}^{(1)}] + \Cov[H_{\hat{U_1}}^{(2)},H_{\hat{U_2}}^{(2)}]  \\
+&= \frac{1}{(mn)^2} \sum_{i=1}^n \sum_{j=1}^m
+  (m-1) \Cov\left[\Esp\left[ U_{1,ij} \big| i\right],\Esp\left[ U_{2,ij} \big| i\right]\right]
++ (n-1) \Cov\left[\Esp\left[ U_{1,ij} \big| j\right],\Esp\left[ U_{2,ij} \big| j\right]\right] 
++ \Cov\left[U_{1,ij},U_{2,ij}\right]
+\end{align*}
+#+END_EXPORT 
+where the last term can be computed using that:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\frac{1}{(mn)^2} \sum_{i=1}^n \sum_{j=1}^m \Cov\left[U_{1,ij},U_{2,ij}\right] 
+&=  \frac{1}{(mn)^2} \sum_{i=1}^n \sum_{j=1}^m \Var\left[\sqrt{U_{1,ij}U_{2,ij}}\right] \\
+&=  \Var\left[\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right] \\
+&\approx \left(\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right)\left(1-\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right)
+\end{align*}
+#+END_EXPORT
+ 
 
 
   \clearpage 

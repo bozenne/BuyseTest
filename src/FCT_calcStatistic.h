@@ -19,7 +19,7 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
                    arma::mat& iid_favorable, arma::mat& iid_unfavorable, arma::mat& Mvar, bool returnIID,
 				   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs,
-		           const arma::vec& weight){
+		           const arma::vec& weight, int hprojection){
   
   // ** total number of pairs and patients in each arm
   double ntot_pair = 0;
@@ -115,11 +115,16 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
   arma::vec delta2_favorable = pow(delta_favorable,2);
   arma::vec delta2_unfavorable = pow(delta_unfavorable,2);
   arma::vec delta2_mixed = (cumWcount_favorable % cumWcount_unfavorable)/pow(ntot_pair, 2);
-	
-  Mvar.col(0) = (meani2_favorable/ntot_pair - delta2_favorable)/ntot_control + (meanj2_favorable/ntot_pair - delta2_favorable)/ntot_treatment;
-  Mvar.col(1) = (meani2_unfavorable/ntot_pair - delta2_unfavorable)/ntot_control + (meanj2_unfavorable/ntot_pair - delta2_unfavorable)/ntot_treatment;
-  Mvar.col(2) = (meani_mixed/ntot_pair - delta2_mixed)/ntot_control + (meanj_mixed/ntot_pair - delta2_mixed)/ntot_treatment;
-  
+
+  if(hprojection==1){
+	Mvar.col(0) = (meani2_favorable/ntot_pair - delta2_favorable)/ntot_control + (meanj2_favorable/ntot_pair - delta2_favorable)/ntot_treatment;
+	Mvar.col(1) = (meani2_unfavorable/ntot_pair - delta2_unfavorable)/ntot_control + (meanj2_unfavorable/ntot_pair - delta2_unfavorable)/ntot_treatment;
+	Mvar.col(2) = (meani_mixed/ntot_pair - delta2_mixed)/ntot_control + (meanj_mixed/ntot_pair - delta2_mixed)/ntot_treatment;
+  }else if(hprojection==2){
+	Mvar.col(0) = (meani2_favorable/ntot_pair - delta2_favorable)*(ntot_treatment-1)/ntot_pair + (meanj2_favorable/ntot_pair - delta2_favorable)*(ntot_control-1)/ntot_pair + delta_favorable*(1-delta_favorable);
+	Mvar.col(1) = (meani2_unfavorable/ntot_pair - delta2_unfavorable)*(ntot_treatment-1)/ntot_pair + (meanj2_unfavorable/ntot_pair - delta2_unfavorable)*(ntot_control-1)/ntot_pair + delta_unfavorable*(1-delta_unfavorable);
+	Mvar.col(2) = (meani_mixed/ntot_pair - delta2_mixed)*(ntot_treatment-1)/ntot_pair + (meanj_mixed/ntot_pair - delta2_mixed)*(ntot_control-1)/ntot_pair + delta_mixed*(1-delta_mixed);
+  }
   // Rcout << endl << "delta method" << endl;  
   // delta method
   // var(A-B) = var(A) + var(B) - 2 * cov(A,B)
