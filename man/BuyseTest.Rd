@@ -4,13 +4,13 @@
 \alias{BuyseTest}
 \title{Generalized Pairwise Comparisons (GPC)}
 \usage{
-BuyseTest(formula, data, method.tte = NULL, correction.uninf = NULL,
+BuyseTest(formula, data, scoring.rule = NULL, correction.uninf = NULL,
   model.tte = NULL, method.inference = NULL, n.resampling = NULL,
   hierarchical = NULL, neutral.as.uninf = NULL,
   keep.pairScore = NULL, treatment = NULL, endpoint = NULL,
   type = NULL, threshold = NULL, censoring = NULL, weight = NULL,
   operator = NULL, strata = NULL, alternative = NULL, seed = 10,
-  cpus = NULL, trace = NULL, keep.comparison)
+  cpus = NULL, trace = NULL, keep.comparison, method.tte)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
@@ -18,7 +18,7 @@ The rest of the formula should indicate the strata variables (if any) and the en
 
 \item{data}{[data.frame] dataset.}
 
-\item{method.tte}{[character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
+\item{scoring.rule}{[character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
 Can be \code{"Gehan"} or \code{"Peron"}. \code{"Gehan"} only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral.
 \code{"Peron"} uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified (see Peron et al. for more details).
 Default value read from \code{BuyseTest.options()}.}
@@ -30,17 +30,20 @@ Default value read from \code{BuyseTest.options()}.}
 \item{model.tte}{[list] optional survival models relative to each time to each time to event endpoint.
 Models must \code{prodlim} objects and stratified on the treatment and strata variable.}
 
-\item{method.inference}{[character] should the asymptotic theory (\code{"asymptotic"}),
-or a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
-or bootstrap resampling (\code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"})
-be used to compute p-values and confidence intervals.}
+\item{method.inference}{[character] method used to compute confidence intervals and p-values.
+When set to \code{"none"} confidence intervals / p-values are not computed.
+When set to \code{"u-statistic"} the variance / confidence intervals / p-values are computed using an H-decomposition. 
+When set to \code{"permutation"} or \code{"stratified permutation"} a permutation test is performed to compute p-values.
+When set to \code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"}, bootstrap resampling is used
+to compute p-values and confidence intervals. See the detail section for more precisions.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{hierarchical}{[logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
 
-\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analyzed using endpoints of lower priority.
+\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 Default value read from \code{BuyseTest.options()}.}
 
 \item{keep.pairScore}{[logical] should the result of each pairwise comparison be kept?}
@@ -88,6 +91,8 @@ and \code{1}-\code{3} correspond to a more and more verbose output in the consol
 Default value read from \code{BuyseTest.options()}.}
 
 \item{keep.comparison}{Obsolete. Alias for 'keep.pairScore'.}
+
+\item{method.tte}{Obsolete. Alias for 'scoring.rule'.}
 }
 \value{
 An \R object of class \code{\linkS4class{BuyseRes}}.
@@ -113,12 +118,11 @@ The detection of the number of cpus relies on the \code{detectCores} function fr
 \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint.\cr
 Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analyzed on the endpoint with priority \code{l-1}.
 
-\bold{method.tte:} the \code{method.tte="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
+\bold{scoring.rule:} the \code{scoring.rule="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{scoring.rule="Gehan"}.
 
-\bold{method.inference:} the \code{method.inference="asymptotic"} estimate the distribution of the net benefit or win ratio statistics
-based on the H-decomposition of U-statistics. \code{method.inference="asymptotic-bebu"} is an equivalent approach based on Bebu et al. 2015 (formula 2.2).
-The current implementation of \code{"asymptotic"} and \code{"asymptotic-bebu"} is not valid in small sample or when using \code{method.tte="Peron"},
-or  \code{correction.uninf=1}, or \code{correction.uninf=2}.
+\bold{method.inference:} the \code{method.inference="u-statistic"} uses a Gaussian approximation to compute the confidence intervals and p-values. This approximation is asymptotically exact. By default a second order H-projection is used to compute the variance which should yield an unbiased estimator of the variance.
+The current implementation of the H-projection is not valid when using \code{scoring.rule="Peron"}, \code{correction.uninf=1}, or \code{correction.uninf=2}.
+When stratified, permutation and bootstrap are performed separately in each strata level (and not each treatment group). This is therefore only relevant for stratified analyses.
 
 \bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
 Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
@@ -169,7 +173,7 @@ summary(BT, statistic = "winRatio")
 
 ## method Gehan is much faster but does not optimally handle censored observations
 BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-                method.tte = "Gehan", trace = 0)
+                scoring.rule = "Gehan", trace = 0)
 summary(BT)
 
 #### one time to event endpoint: only differences in survival over 1 unit ####
@@ -190,23 +194,23 @@ summary(BT)
 
 #### real example : Veteran dataset of the survival package ####
 #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
-#### method.tte = "Gehan"
+#### scoring.rule = "Gehan"
 
 if(require(survival)){
 \dontrun{
   data(veteran,package="survival")
  
-  ## method.tte = "Gehan"
+  ## scoring.rule = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, method.tte="Gehan",
+                        data=veteran, scoring.rule="Gehan",
                         method.inference = "permutation", n.resampling = 1e3)
   
   summary_Gehan <- summary(BT_Gehan)
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
-  ## method.tte = "Peron"
+  ## scoring.rule = "Peron"
   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-                        data=veteran, method.tte="Peron",
+                        data=veteran, scoring.rule="Peron",
                         method.inference = "permutation", n.resampling = 1e3)
 
   class(BT_Peron)

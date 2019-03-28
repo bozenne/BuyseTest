@@ -8,7 +8,7 @@
 #' 
 #' \code{initializeArgs}: Normalize the argument 
 #' \itemize{
-#' \item method.tte, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
+#' \item scoring.rule, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 #' \item formula: call \code{initializeFormula} to extract arguments.
 #' \item type: convert to numeric.
 #' \item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
@@ -16,7 +16,7 @@
 #' the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12.
 #' When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
 #' \item data: convert to data.table object.
-#' \item method.tte: convert to numeric.
+#' \item scoring.rule: convert to numeric.
 #' }
 #' and create \code{Wscheme}. \cr \cr
 #'
@@ -42,7 +42,7 @@ initializeArgs <- function(alternative,
                            hierarchical = NULL,
                            keep.pairScore = NULL,
                            method.inference = NULL,
-                           method.tte = NULL,
+                           scoring.rule = NULL,
                            model.tte,
                            n.resampling = NULL,
                            name.call,
@@ -60,7 +60,7 @@ initializeArgs <- function(alternative,
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
-    if(is.null(method.tte)){ method.tte <- option$method.tte }
+    if(is.null(scoring.rule)){ scoring.rule <- option$scoring.rule }
     if(is.null(hierarchical)){ hierarchical <- option$hierarchical }
     if(is.null(correction.uninf)){ correction.uninf <- option$correction.uninf }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
@@ -130,9 +130,9 @@ initializeArgs <- function(alternative,
     attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
     attr(method.inference,"studentized") <- grepl("studentized",method.inference)
     attr(method.inference,"stratified") <- grepl("stratified",method.inference)
-    attr(method.inference,"ustatistic") <- grepl("asymptotic",method.inference)
+    attr(method.inference,"ustatistic") <- grepl("u-statistic",method.inference)
 
-    iid <- any(c(attr(method.inference,"studentized"), method.inference == "asymptotic"))
+    iid <- any(c(attr(method.inference,"studentized"), method.inference == "u-statistic"))
     if(is.null(strata) && length(grep("stratified ",method.inference))>0){ ## remove stratified if no strata variable
         method.inference <- gsub("stratified ","",method.inference)
         attr(method.inference,"stratified") <- FALSE
@@ -166,20 +166,20 @@ initializeArgs <- function(alternative,
         }
     }
     
-    ## ** method.tte
+    ## ** scoring.rule
     ## WARNING: choices must be lower cases
-    ##          remember to update check method.tte (in BuyseTest-check.R)
-    method.tte <- tolower(method.tte)
-    method.tte <- switch(method.tte,
+    ##          remember to update check scoring.rule (in BuyseTest-check.R)
+    scoring.rule <- tolower(scoring.rule)
+    scoring.rule <- switch(scoring.rule,
                          "gehan" = 0,
                          "peron" = 1,
                          NA
                          )
 
     if (D.TTE == 0) {
-        method.tte <- 0
-        if ("method.tte" %in% name.call && trace > 0) {
-            message("NOTE : there is no survival endpoint, \'method.tte\' argument is ignored \n")
+        scoring.rule <- 0
+        if ("scoring.rule" %in% name.call && trace > 0) {
+            message("NOTE : there is no survival endpoint, \'scoring.rule\' argument is ignored \n")
         }
     }
 
@@ -188,7 +188,7 @@ initializeArgs <- function(alternative,
     correction.uninf <- as.numeric(correction.uninf)
 
     ## ## ** model.tte
-    if(method.tte > 0){
+    if(scoring.rule > 0){
         if((!is.null(model.tte)) && (D.TTE == 1) && inherits(model.tte, "prodlim")){
             model.tte <- list(model.tte)
             names(model.tte) <- endpoint[type==3]
@@ -220,7 +220,7 @@ initializeArgs <- function(alternative,
         iid = iid,
         keep.pairScore = keep.pairScore,
         keep.survival = option$keep.survival,
-        method.tte = method.tte,
+        scoring.rule = scoring.rule,
         model.tte = model.tte,
         method.inference = method.inference,
         n.resampling = n.resampling,
@@ -239,7 +239,7 @@ initializeArgs <- function(alternative,
 
 ## * initializeData
 #' @rdname internal-initialization
-initializeData <- function(data, type, endpoint, method.tte, censoring, operator, strata, treatment, copy){
+initializeData <- function(data, type, endpoint, scoring.rule, censoring, operator, strata, treatment, copy){
 
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
@@ -316,7 +316,7 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
 
     ## ** scoring method for each endpoint
     method.score <- 1 + (type==3) ## 1 binary/continuous and 2 Gehan
-    if(method.tte > 0){ ## if Peron
+    if(scoring.rule > 0){ ## if Peron
         test.CR <- sapply(Ucensoring, function(iC){max(data[[iC]])>1})[censoring]
         method.score[type == 3] <- method.score[type == 3] + 1 + test.CR[type == 3]
         ## 3 Peron survival
@@ -343,7 +343,7 @@ initializeData <- function(data, type, endpoint, method.tte, censoring, operator
 }
 
 ## * buildWscheme
-buildWscheme <- function(method.tte, endpoint, D.TTE, D, n.strata,
+buildWscheme <- function(scoring.rule, endpoint, D.TTE, D, n.strata,
                          type, threshold){
 
     Wscheme <- matrix(0,nrow=D,ncol=D) # design matrix indicating to combine the weights obtained at differents endpoints
@@ -353,7 +353,7 @@ buildWscheme <- function(method.tte, endpoint, D.TTE, D, n.strata,
     Wscheme[lower.tri(Wscheme)] <- NA ## do not look at future endpoint 
         
     ## take care of repeated survival endpoints
-    if(D.TTE>1 && method.tte > 0){
+    if(D.TTE>1 && scoring.rule > 0){
 
         index.TTE <- which(type == 3)
         indexDuplicated.TTE <- which(duplicated(endpoint[index.TTE]))

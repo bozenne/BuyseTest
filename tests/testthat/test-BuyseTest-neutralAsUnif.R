@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: feb 27 2019 (22:33) 
+## last-updated: mar 28 2019 (15:10) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 49
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -62,7 +62,7 @@ test_that("continue after NA (no NA)", {
 
 test_that("continue after NA (NA)", {
     BT.TRUE_NA <- BuyseTest(treat ~ Cont(memory) + TTE(time, 0, status),
-                            data = dt.dataNA, method.tte = "Peron",
+                            data = dt.dataNA, scoring.rule = "Peron",
                             neutral.as.uninf = TRUE)
     ## summary(BT.TRUE_NA, percentage = FALSE)
     expect_equal(as.double(BT.TRUE_NA@count.favorable),c(0,0))

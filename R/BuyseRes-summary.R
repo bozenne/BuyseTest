@@ -197,7 +197,7 @@ setMethod(f = "summary",
                   colStars[index.global] <- sapply(table.print[index.global,"p.value"],function(x){
                       if(is.na(x)){""}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
                   })
-                  if(method.inference %in% c("asymptotic","asymptotic-bebu")){
+                  if(method.inference %in% c("u-statistic","u-statistic-bebu")){
                       table.print <- cbind(table.print[,setdiff(names(table.print), "n.resampling")],
                                            "significance" = colStars)
                   }else{
@@ -389,12 +389,12 @@ setMethod(f = "summary",
                   
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
                   if(any(object@type == "TimeToEvent")){
-                      txt.method.tte <- switch(object@method.tte,
+                      txt.scoring.rule <- switch(object@scoring.rule,
                                                "Gehan" = "uninformative pairs",
                                                "Peron" = "use Kaplan Meier survival curves to compute the score"
                                                ) 
 
-                      cat(" > censored pairs  : ",txt.method.tte,"\n", sep = "")
+                      cat(" > censored pairs  : ",txt.scoring.rule,"\n", sep = "")
                   }
                   if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){
                       txt.uninf <- switch(as.character(object@correction.uninf),

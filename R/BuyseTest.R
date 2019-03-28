@@ -26,7 +26,7 @@
 #' @param weight [numeric vector] the weights (associated to each endpoint) used to cumulating the pairwise scores over the endpoints.
 #' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
 #' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
-#' @param method.tte [character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
+#' @param scoring.rule [character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
 #' Can be \code{"Gehan"} or \code{"Peron"}. \code{"Gehan"} only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral.
 #' \code{"Peron"} uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified (see Peron et al. for more details).
 #' Default value read from \code{BuyseTest.options()}.
@@ -35,11 +35,14 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param model.tte [list] optional survival models relative to each time to each time to event endpoint.
 #' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
-#' @param method.inference [character] should the asymptotic theory (\code{"asymptotic"}),
-#' or a permutation test (\code{"permutation"} or \code{"stratified permutation"}),
-#' or bootstrap resampling (\code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"})
-#' be used to compute p-values and confidence intervals.
-#' @param neutral.as.uninf [logical] should paired classified as neutral be re-analyzed using endpoints of lower priority.
+#' @param method.inference [character] method used to compute confidence intervals and p-values.
+#' When set to \code{"none"} confidence intervals / p-values are not computed.
+#' When set to \code{"u-statistic"} the variance / confidence intervals / p-values are computed using an H-decomposition. 
+#' When set to \code{"permutation"} or \code{"stratified permutation"} a permutation test is performed to compute p-values.
+#' When set to \code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"}, bootstrap resampling is used
+#' to compute p-values and confidence intervals. See the detail section for more precisions.
+#' Default value read from \code{BuyseTest.options()}.
+#' @param neutral.as.uninf [logical] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 #' Default value read from \code{BuyseTest.options()}.
 #' @param n.resampling [integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 #' Default value read from \code{BuyseTest.options()}.
@@ -57,6 +60,7 @@
 #' and \code{1}-\code{3} correspond to a more and more verbose output in the console.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param keep.comparison Obsolete. Alias for 'keep.pairScore'.
+#' @param method.tte Obsolete. Alias for 'scoring.rule'.
 #' 
 #' @details 
 #' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
@@ -76,12 +80,11 @@
 #' \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint.\cr
 #' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analyzed on the endpoint with priority \code{l-1}.
 #' 
-#' \bold{method.tte:} the \code{method.tte="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
+#' \bold{scoring.rule:} the \code{scoring.rule="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{scoring.rule="Gehan"}.
 #' 
-#' \bold{method.inference:} the \code{method.inference="asymptotic"} estimate the distribution of the net benefit or win ratio statistics
-#' based on the H-decomposition of U-statistics. \code{method.inference="asymptotic-bebu"} is an equivalent approach based on Bebu et al. 2015 (formula 2.2).
-#' The current implementation of \code{"asymptotic"} and \code{"asymptotic-bebu"} is not valid in small sample or when using \code{method.tte="Peron"},
-#' or  \code{correction.uninf=1}, or \code{correction.uninf=2}.
+#' \bold{method.inference:} the \code{method.inference="u-statistic"} uses a Gaussian approximation to compute the confidence intervals and p-values. This approximation is asymptotically exact. By default a second order H-projection is used to compute the variance which should yield an unbiased estimator of the variance.
+#' The current implementation of the H-projection is not valid when using \code{scoring.rule="Peron"}, \code{correction.uninf=1}, or \code{correction.uninf=2}.
+#' When stratified, permutation and bootstrap are performed separately in each strata level (and not each treatment group). This is therefore only relevant for stratified analyses.
 #'
 #' \bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
 #' Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
@@ -150,7 +153,7 @@
 #' 
 #' ## method Gehan is much faster but does not optimally handle censored observations
 #' BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
-#'                 method.tte = "Gehan", trace = 0)
+#'                 scoring.rule = "Gehan", trace = 0)
 #' summary(BT)
 #' 
 #' #### one time to event endpoint: only differences in survival over 1 unit ####
@@ -171,23 +174,23 @@
 #' 
 #' #### real example : Veteran dataset of the survival package ####
 #' #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
-#' #### method.tte = "Gehan"
+#' #### scoring.rule = "Gehan"
 #' 
 #' if(require(survival)){
 #' \dontrun{
 #'   data(veteran,package="survival")
 #'  
-#'   ## method.tte = "Gehan"
+#'   ## scoring.rule = "Gehan"
 #'   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-#'                         data=veteran, method.tte="Gehan",
+#'                         data=veteran, scoring.rule="Gehan",
 #'                         method.inference = "permutation", n.resampling = 1e3)
 #'   
 #'   summary_Gehan <- summary(BT_Gehan)
 #'   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
 #'   
-#'   ## method.tte = "Peron"
+#'   ## scoring.rule = "Peron"
 #'   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
-#'                         data=veteran, method.tte="Peron",
+#'                         data=veteran, scoring.rule="Peron",
 #'                         method.inference = "permutation", n.resampling = 1e3)
 #' 
 #'   class(BT_Peron)
@@ -200,7 +203,7 @@
 ##' @export
 BuyseTest <- function(formula,
                       data,
-                      method.tte = NULL,
+                      scoring.rule = NULL,
                       correction.uninf = NULL,
                       model.tte = NULL,
                       method.inference = NULL,
@@ -220,17 +223,26 @@ BuyseTest <- function(formula,
                       seed = 10,
                       cpus = NULL,
                       trace = NULL,
-                      keep.comparison){
+                      keep.comparison,
+                      method.tte){
 
     name.call <- names(match.call())
     option <- BuyseTest.options()
-    
+
     ## ** compatibility with previous version
     if(!missing(keep.comparison)){
         stop("Argument \'keep.comparison\' is obsolete. \n",
              "It has been replaced by the argument \'keep.pairScore\' \n")
     }
-    
+    ## if(!missing(method.tte)){
+    ## stop("Argument \'method.tte\' is obsolete. \n",
+    ## "It has been replaced by the argument \'scoring.rule\' \n")
+    ## }
+    if(!is.null(method.inference) && (method.inference=="asymptotic")){
+        stop("Value \"asymptotic\" for argument \'method.inference\' is obsolete. \n",
+             "Use \"u-statistic\" instead \n")
+    }
+
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(alternative = alternative,
@@ -243,7 +255,7 @@ BuyseTest <- function(formula,
                               hierarchical = hierarchical,
                               keep.pairScore = keep.pairScore,
                               method.inference = method.inference,
-                              method.tte = method.tte,
+                              scoring.rule = scoring.rule,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
                               name.call = name.call,
@@ -260,7 +272,7 @@ BuyseTest <- function(formula,
 
     ## ** test arguments
     if(option$check){
-        outTest <- do.call(testArgs, args = c(outArgs, order.Hprojection = option$order.Hprojection))
+        outTest <- do.call(testArgs, args = outArgs)
     }
 
     ## ** initialization data
@@ -272,7 +284,7 @@ BuyseTest <- function(formula,
                   "n.strata","n.obs","n.obsStrata","cumn.obsStrata")
     outArgs[out.name] <- initializeData(data = outArgs$data,
                                         type = outArgs$type,
-                                        method.tte = outArgs$method.tte,
+                                        scoring.rule = outArgs$scoring.rule,
                                         endpoint = outArgs$endpoint,
                                         censoring = outArgs$censoring,
                                         operator = outArgs$operator,
@@ -283,7 +295,7 @@ BuyseTest <- function(formula,
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed","outSurv")
-    outArgs[out.name] <- buildWscheme(method.tte = outArgs$method.tte,
+    outArgs[out.name] <- buildWscheme(scoring.rule = outArgs$scoring.rule,
                                       endpoint = outArgs$endpoint,
                                       D = outArgs$D,
                                       D.TTE = outArgs$D.TTE,
@@ -365,9 +377,9 @@ BuyseTest <- function(formula,
         outPoint$iid_unfavorable <- NULL
     }
 
-    if(outArgs$method.inference == "asymptotic-bebu"){
+    if(outArgs$method.inference == "u-statistic-bebu"){
         if(outArgs$keep.pairScore == FALSE){
-            stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"asymptotic-bebu\" \n")
+            stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"u-statistic-bebu\" \n")
         }
 
         ## direct computation of the variance
@@ -390,9 +402,9 @@ BuyseTest <- function(formula,
     if(outArgs$trace > 1){
         cat("Gather the results in a BuyseRes object \n")
     }
-    method.tte <- c("Gehan","Peron")[outArgs$method.tte+1]
+    scoring.rule <- c("Gehan","Peron")[outArgs$scoring.rule+1]
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
-    
+
     BuyseRes.object <- BuyseRes(
         count.favorable = outPoint$count_favorable,      
         count.unfavorable = outPoint$count_unfavorable,
@@ -406,7 +418,7 @@ BuyseTest <- function(formula,
         type = type,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
-        method.tte = method.tte,
+        scoring.rule = scoring.rule,
         hierarchical = outArgs$hierarchical,
         correction.uninf = outArgs$correction.uninf,
         method.inference = outArgs$method.inference,
@@ -444,7 +456,7 @@ BuyseTest <- function(formula,
     treatment <- envir$outArgs$treatment ## to simplify code
     censoring <- envir$outArgs$censoring ## to simplify code
     endpoint <- envir$outArgs$endpoint ## to simplify code
-    method.tte <- envir$outArgs$method.tte ## to simplify code
+    scoring.rule <- envir$outArgs$scoring.rule ## to simplify code
     type <- envir$outArgs$type ## to simplify code
     D.TTE <- envir$outArgs$D.TTE ## to simplify code
     D <- envir$outArgs$D ## to simplify code
@@ -468,7 +480,7 @@ BuyseTest <- function(formula,
         }
 
         ## rebuild dataset
-        if(method.tte>0){
+        if(scoring.rule>0){
             data <- data.table(envir$outArgs$data,envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
         }
         
@@ -499,7 +511,7 @@ BuyseTest <- function(formula,
         }
 
         ## rebuild dataset
-        if(method.tte>0){
+        if(scoring.rule>0){
             data <- data.table(envir$outArgs$data[[treatment]][index.resampling],
                                "..strata.." = envir$outArgs$data[["..strata.."]],
                                envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
@@ -539,7 +551,7 @@ BuyseTest <- function(formula,
         ## table(data[["..strata.."]],data[[treatment]])
         
         ## rebuild dataset
-        if(method.tte>0){
+        if(scoring.rule>0){
             data <- data.table(envir$outArgs$data,
                                envir$outArgs$M.endpoint,envir$outArgs$M.censoring)[index.resampling]
         }
@@ -567,7 +579,7 @@ BuyseTest <- function(formula,
     }
     
     ## *** Update survival
-    if(method.tte == 0){ ## Gehan
+    if(scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$outSurv
     }else{ ## Peron 
         outSurv <- initializePeron(data = data,
@@ -618,7 +630,7 @@ BuyseTest <- function(formula,
                      reserve = TRUE,
                      returnIID = iid
                      ) 
-
+    
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 

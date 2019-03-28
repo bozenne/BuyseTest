@@ -15,7 +15,7 @@ printGeneral <- function(censoring,
                          hierarchical,
                          level.strata,
                          level.treatment,
-                         method.tte,
+                         scoring.rule,
                          neutral.as.uninf,
                          correction.uninf,
                          operator,
@@ -87,13 +87,13 @@ printGeneral <- function(censoring,
     }
     if(D.TTE>0){
         cat("   - management of censored survival pairs: ")
-        switch(as.character(method.tte),
+        switch(as.character(scoring.rule),
                "0" = cat("uninformative pairs \n"),
                "1" = cat("use Kaplan Meier survival curves to compute the score \n")
                )
     }
     ## if(trace>2){
-    ##     if ( (method.tte == "3" || correction.uninf) && D > 1) {            
+    ##     if ( (scoring.rule == "3" || correction.uninf) && D > 1) {            
     ##         cat("   - Current contribution of a pair based on the weights computed at previous enpoints: \n")
     ##         print(Wscheme)
     ##     }
@@ -124,7 +124,7 @@ printInference <- function(method.inference, n.resampling, cpus, seed, ...){
         ## display
         cat("Estimation of the estimator's distribution \n",
             "   - method: ",txt.type,"\n", sep = "")
-        if(method.inference != "asymptotic"){
+        if(method.inference != "u-statistic"){
             cat("   - cpus  : ",cpus,"\n", sep = "")
             if (!is.null(seed)) {
                 cat("   - seeds : ",paste(seq(seed,seed + cpus - 1), collapse = " "),"\n", sep = "")       

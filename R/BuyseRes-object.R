@@ -33,7 +33,7 @@ setClass(
       endpoint = "vector",
       level.treatment = "vector",
       level.strata = "vector",
-      method.tte = "character",
+      scoring.rule = "character",
       hierarchical = "logical",
       correction.uninf = "numeric",
       method.inference = "character",
@@ -72,7 +72,7 @@ methods::setMethod(
                                    endpoint,
                                    level.strata,
                                    level.treatment,
-                                   method.tte,
+                                   scoring.rule,
                                    hierarchical,
                                    correction.uninf,
                                    method.inference,
@@ -133,7 +133,7 @@ methods::setMethod(
                  .Object@endpoint <- endpoint
                  .Object@level.strata <- level.strata
                  .Object@level.treatment <- level.treatment
-                 .Object@method.tte <- method.tte
+                 .Object@scoring.rule <- scoring.rule
                  .Object@hierarchical <- hierarchical
                  .Object@correction.uninf <- correction.uninf
                  .Object@method.inference <- method.inference

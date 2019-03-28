@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:33) 
+## Last-Updated: mar 28 2019 (15:09) 
 ##           By: Brice Ozenne
-##     Update #: 11
+##     Update #: 12
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -46,7 +46,7 @@ df$event <- (df$time2<df$time1)+1 ## type of event
 ## * test
 test_that("tte = 2 is equivalent to continuous with infty when cause=2", {
     e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
-                      method.inference = "none", method.tte = "Gehan",
+                      method.inference = "none", scoring.rule = "Gehan",
                       trace = 0)
     ## summary(e.BT)
     df$timeXX <- df$time

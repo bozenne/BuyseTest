@@ -43,10 +43,6 @@ GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, 
     .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, neutralAsUninf, keepScore, reserve, returnIID)
 }
 
-CalcOnePair_Peron_CR <- function(endpoint_T, endpoint_C, delta_T, delta_C, tau, index_T, index_C, cifTimeT, cifTimeC, cifJumpC, lastCif1C, lastCif2C, lastCif1T, lastCif2T) {
-    .Call(`_BuyseTest_CalcOnePair_Peron_CR`, endpoint_T, endpoint_C, delta_T, delta_C, tau, index_T, index_C, cifTimeT, cifTimeC, cifJumpC, lastCif1C, lastCif2C, lastCif1T, lastCif2T)
-}
-
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 
 #' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
 #' @name calcIntegralScore_cpp
@@ -62,25 +58,5 @@ CalcOnePair_Peron_CR <- function(endpoint_T, endpoint_C, delta_T, delta_C, tau, 
 #' @export
 calcIntegralScore_cpp <- function(survival, start, lastSurv, lastdSurv) {
     .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start, lastSurv, lastdSurv)
-}
-
-#' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR). 
-#' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
-#' @name CalcIntegral_Peron_CR
-#' 
-#' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group 
-#' T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).
-#' @param start_val [numeric] Time at which to start the integral.
-#' @param stop_val [numeric] Time at which to stop the integral.
-#' @param CIF_t [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
-#' @param lastCIF [numeric, >0] last value of CIF of event type 1 in group T.
-#' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two 
-#' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with 
-#' t+tau and t-tau).
-#'
-#' @keywords function Cpp internal
-#' @export
-CalcIntegral_Peron_CR <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) {
-    .Call(`_BuyseTest_CalcIntegral_Peron_CR`, cif, start_val, stop_val, CIF_t, lastCIF, type)
 }
 

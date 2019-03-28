@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: mar  9 2019 (10:49) 
+## last-updated: mar 28 2019 (15:10) 
 ##           By: Brice Ozenne
-##     Update #: 107
+##     Update #: 111
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -42,7 +42,7 @@ dt.sim <- simBuyseTest(n.T = n.patients,
 ## * Permutation
 test_that("permutation", {
     BT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                         data = dt.sim, method.tte = method, seed = 10, 
+                         data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "permutation", n.resampling = 20)
 
     ## ** summary (two.sided)
@@ -100,7 +100,7 @@ test_that("permutation", {
         expect_equal(table(dt.perm$Treatment), table(dt.sim$Treatment))
 
         iBT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                              data = dt.perm, method.tte = method,
+                              data = dt.perm, scoring.rule = method,
                               method.inference = "none")
 
         expect_equal(as.double(iBT.perm@delta.netBenefit),
@@ -119,7 +119,7 @@ test_that("permutation", {
 ## * Stratified permutation
 test_that("stratified permutation", {
     BT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                         data = dt.sim, method.tte = method, seed = 10, 
+                         data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "stratified permutation", n.resampling = 10)
 
     ## ** summary (two.sided)
@@ -155,7 +155,7 @@ test_that("stratified permutation", {
         dt.perm[, Treatment := Treatment[sample.int(.N, size = .N, replace = FALSE)], by = "strata"]
 
         iBT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                             data = dt.perm, method.tte = method,
+                             data = dt.perm, scoring.rule = method,
                              method.inference = "none")
 
         expect_equal(as.double(iBT.perm@delta.netBenefit),
@@ -173,10 +173,10 @@ test_that("stratified permutation", {
 test_that("Bootstrap", {
 
     BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
-                         data = dt.sim, method.tte = method, seed = 10, 
+                         data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "bootstrap", n.resampling = 20)
     BT.bootT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
-                                           data = dt.sim, method.tte = method, seed = 10, 
+                                           data = dt.sim, scoring.rule = method, seed = 10, 
                                            method.inference = "studentized bootstrap", n.resampling = 20))
 
     ## same point estimate with or without computation of the variance
@@ -241,7 +241,7 @@ test_that("Bootstrap", {
     expect_equal(unname(gausBoot.confint[,"se"]), unname(apply(BT.bootT@DeltaResampling.netBenefit, 2, sd)), tol = 1e-6)
     expect_equal(unname(gausBoot.confint[,"upper.ci"]), unname(gausBoot.confint[,"estimate"] + qnorm(0.95) * gausBoot.confint[,"se"]), tol = 1e-6)
     
-    ## ** check bootsrap
+    ## ** check bootstrap
     set.seed(10)
     for(iResample in 1:2){ ## iResample <- 1
         dt.boot <- copy(dt.sim)
@@ -250,8 +250,8 @@ test_that("Bootstrap", {
         
         ## BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
         iBT.boot <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                              data = dt.boot, method.tte = method,
-                              method.inference = "asymptotic"))
+                                               data = dt.boot, scoring.rule = method,
+                                               method.inference = "u-statistic"))
 
         expect_equal(as.double(iBT.boot@delta.netBenefit),
                      as.double(BT.boot@deltaResampling.netBenefit[,,iResample]))
@@ -272,10 +272,10 @@ test_that("Bootstrap", {
 test_that("Stratified bootstrap", {
     ## BT <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
     BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
-                         data = dt.sim, method.tte = method, seed = 10, 
+                         data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "stratified bootstrap", n.resampling = 20)
     BT.bootT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
-                                           data = dt.sim, method.tte = method, seed = 10, 
+                                           data = dt.sim, scoring.rule = method, seed = 10, 
                                            method.inference = "studentized stratified bootstrap", n.resampling = 20))
 
     ## same point estimate with or without computation of the variance
@@ -293,8 +293,8 @@ test_that("Stratified bootstrap", {
         
         ## BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
         iBT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                                          data = dt.boot, method.tte = method,
-                                          method.inference = "asymptotic"))
+                                          data = dt.boot, scoring.rule = method,
+                                          method.inference = "u-statistic"))
 
         expect_equal(as.double(iBT@delta.netBenefit),
                      as.double(BT.boot@deltaResampling.netBenefit[,,iResample]))
@@ -330,7 +330,7 @@ e.boot <- BuyseTest(Group ~ cont(score),
                     trace = 0)
 e.ustat <- BuyseTest(Group ~ cont(score),
                      data = df,
-                     method.inference = "asymptotic",
+                     method.inference = "u-statistic",
                      trace = 0)
 
 ## ** confint (two.sided)

@@ -547,7 +547,7 @@ More examples and explanation can be found in the documentation of
 the method =getPairScore=.
 
 ** Extracting the survival probabilities
-When using =method.tte= equals ="Peron"=, survival probabilities at
+When using =scoring.rule= equals ="Peron"=, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting =keep.survival= to =TRUE= in
 BuyseTest.options enables to export the survival probabilities in the
@@ -555,7 +555,7 @@ output of BuyseTest:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(keep.survival = TRUE)
 BT.keep2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
-                      data = veteran, keep.pairScore = TRUE, method.tte = "Peron",
+                      data = veteran, keep.pairScore = TRUE, scoring.rule = "Peron",
                       trace = 0, method.inference = "none")
 #+END_SRC
 
@@ -786,7 +786,7 @@ We would like to be able to recover the net benefit estimated with the uncensore
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest(Treatment ~ tte(eventtimeUncensored, status1, threshold = 1),
           data = dt,
-          method.tte = "Gehan", method.inference = "none", trace = 0)
+          scoring.rule = "Gehan", method.inference = "none", trace = 0)
 #+END_SRC
 
 #+RESULTS:
@@ -797,7 +797,7 @@ using the censored survival times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
           data = dt,
-          method.tte = "Gehan", method.inference = "none", trace = 0)
+          scoring.rule = "Gehan", method.inference = "none", trace = 0)
 #+END_SRC
 
 #+RESULTS:
@@ -815,7 +815,7 @@ estimate much closer to the true net benefit:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT <- BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
                 data = dt, keep.pairScore = TRUE, trace = 0,
-                method.tte = "Gehan", method.inference = "none", correction.uninf = 2)
+                scoring.rule = "Gehan", method.inference = "none", correction.uninf = 2)
 summary(BT)
 #+END_SRC
 
@@ -877,7 +877,7 @@ probability observed on the sample:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT <- BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
                 data = dt, keep.pairScore = TRUE, trace = 0,
-                method.tte = "Gehan", method.inference = "none", correction.uninf = TRUE)
+                scoring.rule = "Gehan", method.inference = "none", correction.uninf = TRUE)
 summary(BT)
 #+END_SRC
 

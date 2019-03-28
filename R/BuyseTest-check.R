@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: mar 25 2019 (16:10) 
+## Last-Updated: mar 28 2019 (15:06) 
 ##           By: Brice Ozenne
-##     Update #: 140
+##     Update #: 149
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,14 +30,13 @@ testArgs <- function(alternative,
                      formula,
                      iid,
                      keep.pairScore,
-                     method.tte,
+                     scoring.rule,
                      model.tte,
                      method.inference,
                      n.resampling,
                      hierarchical,
                      neutral.as.uninf,
                      operator,
-                     order.Hprojection,
                      seed,
                      strata,
                      threshold,
@@ -124,10 +123,10 @@ testArgs <- function(alternative,
                      method = "BuyseTest")
     }
 
-    ## ** method.tte
+    ## ** scoring.rule
     ## must be before time to event endpoints
-    if(is.na(method.tte)){
-        stop("BuyseTest: wrong specification of \'method.tte\' \n",
+    if(is.na(scoring.rule)){
+        stop("BuyseTest: wrong specification of \'scoring.rule\' \n",
              "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\" \n")
     }
 
@@ -240,18 +239,20 @@ testArgs <- function(alternative,
                  method = "BuyseTest")
 
     ## ** method.inference
-    validCharacter(method.inference,
-                   valid.length = 1,
-                   valid.values = c("none","asymptotic","asymptotic-bebu",
-                                    "bootstrap","stratified bootstrap","studentized bootstrap","studentized stratified bootstrap",
-                                    "permutation","stratified permutation"),
-                   method = "BuyseTest")
-
-    if(iid && (order.Hprojection != 1)){
-        stop("Option \'order.Hprojection\' must be 1 when estimating the variance using the iid decomposition \n")
+    if(length(method.inference)!=1){
+        stop("Argument \'method.inference\' must have length 1 \n")
     }
-    if(iid && (method.tte > 0)){
-        warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
+    if(method.inference != "u-statistic-bebu"){ ## asympototic bebu - hidden value only for debugging
+        validCharacter(method.inference,
+                       valid.length = 1,
+                       valid.values = c("none","u-statistic",
+                                        "bootstrap","stratified bootstrap","studentized bootstrap","studentized stratified bootstrap",
+                                        "permutation","stratified permutation"),
+                       method = "BuyseTest")
+    }
+
+    if(iid && (scoring.rule > 0)){
+        warning("The current implementation of the asymptotic distribution is not valid for scoring.rule=\"Peron\" \n",
                 "Standard errors / confidence intervals / p-values should not be trusted \n")
     }
     

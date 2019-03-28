@@ -28,7 +28,7 @@ setClass(
       keep.pairScore = "logical",
       keep.survival = "logical",      
       method.inference = "character",
-      method.tte = "character",
+      scoring.rule = "character",
       n.resampling = "numeric",
       neutral.as.uninf = "logical",
       order.Hprojection = "numeric",
@@ -81,11 +81,11 @@ setClass(
                      name1 = "@resampling",
                      valid.values = c("bootstrap", "stratified bootstrap", "studentized bootstrap", "studentized stratified bootstrap",
                                       "permutation", "stratified permutation",
-                                      "none", "asymptotic", "asymptotic-bebu"),
+                                      "none", "u-statistic", "u-statistic-bebu"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
-      validCharacter(object@method.tte,
-                     name1 = "@method.tte",
+      validCharacter(object@scoring.rule,
+                     name1 = "@scoring.rule",
                      valid.values = c("Gehan","Peron"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")

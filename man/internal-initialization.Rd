@@ -10,12 +10,12 @@
 \usage{
 initializeArgs(alternative, censoring, correction.uninf = NULL,
   cpus = NULL, data, endpoint, formula, hierarchical = NULL,
-  keep.pairScore = NULL, method.inference = NULL, method.tte = NULL,
-  model.tte, n.resampling = NULL, name.call, neutral.as.uninf = NULL,
-  operator, option, seed = NULL, strata, threshold, trace = NULL,
-  treatment, type, weight)
+  keep.pairScore = NULL, method.inference = NULL,
+  scoring.rule = NULL, model.tte, n.resampling = NULL, name.call,
+  neutral.as.uninf = NULL, operator, option, seed = NULL, strata,
+  threshold, trace = NULL, treatment, type, weight)
 
-initializeData(data, type, endpoint, method.tte, censoring, operator,
+initializeData(data, type, endpoint, scoring.rule, censoring, operator,
   strata, treatment, copy)
 
 initializeFormula(x)
@@ -30,7 +30,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \details{
 \code{initializeArgs}: Normalize the argument 
 \itemize{
-\item method.tte, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
+\item scoring.rule, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 \item formula: call \code{initializeFormula} to extract arguments.
 \item type: convert to numeric.
 \item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
@@ -38,7 +38,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12.
 When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
 \item data: convert to data.table object.
-\item method.tte: convert to numeric.
+\item scoring.rule: convert to numeric.
 }
 and create \code{Wscheme}. \cr \cr
 

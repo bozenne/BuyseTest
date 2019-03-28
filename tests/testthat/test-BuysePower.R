@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:34) 
+## Last-Updated: mar 28 2019 (14:32) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 6
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,7 @@ context("Check BuysePower \n")
 test_that("binary endpoint", {
     e.powerBT <- powerBuyseTest(sim = simBuyseTest, sample.size = c(50,50), n.rep = 5,
                                 formula = Treatment ~ bin(toxicity),
-                                method.inference = "asymptotic", trace = 0)
+                                method.inference = "u-statistic", trace = 0)
 
     expect_true(all(e.powerBT@results[,.SD$netBenefit[1]==.SD$netBenefit[1],by="simulation"][[2]]))
     expect_true(all(e.powerBT@results[,.SD$netBenefit.se[1]==.SD$netBenefit.se[1],by="simulation"][[2]]))

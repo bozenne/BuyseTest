@@ -251,8 +251,8 @@ setMethod(f = "getSurvival",
                   if(trace>0){
                       if(all(tolower(object@type)!="timetoevent")){
                           add.txt <- "No endpoint of type time to event \n"
-                      }else if(tolower(object@method.tte)!="peron"){
-                          add.txt <- "Consider setting the argument \'method.tte\' to \"Peron\" when calling BuyseTest \n"
+                      }else if(tolower(object@scoring.rule)!="peron"){
+                          add.txt <- "Consider setting the argument \'scoring.rule\' to \"Peron\" when calling BuyseTest \n"
                       }else{
                           add.txt <- "Consider setting the argument \'keep.survival\' to TRUE in BuyseTest.options \n"
                       }

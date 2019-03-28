@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: feb 10 2019 (16:59) 
+## Last-Updated: mar 28 2019 (14:45) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 34
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -51,9 +51,9 @@ setMethod(f = "iid",
 
               ## ** extract H-decomposition
               object.iid <- object@iid
-              if(object@method.inference != "asymptotic"){
+              if(object@method.inference != "u-statistic"){
                   stop("No H-decomposition in the object \n",
-                       "Set the argument \'method.inference\' to \"asymptotic\" when calling BuyseTest \n")
+                       "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
               }
 
               ## ** accumulate H-decomposition

@@ -533,7 +533,7 @@ df <- rbind(data.frame(time = rexp(n, rate = alphaX), group = "C", event = 1),
 Buyse test:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest(group ~ tte(time, censoring = event), data = df,
-          method.inference = "none", trace = 0, method.tte = "Gehan")
+          method.inference = "none", trace = 0, scoring.rule = "Gehan")
 #+END_SRC
 #+RESULTS:
 :  endpoint threshold  delta  Delta
@@ -700,7 +700,7 @@ df$event <- (df$time2<df$time1)+1 ## type of event
 BuyseTest:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
-                  method.inference = "none", method.tte = "Gehan",
+                  method.inference = "none", scoring.rule = "Gehan",
                   trace = 0)
 summary(e.BT, percentage = TRUE)
 #+END_SRC
@@ -800,7 +800,7 @@ df$eventC[rbinom(n, size = 1, prob = 0.2)==1] <- 0
 BuyseTest (biased):
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.BTC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
-                   method.inference = "none", method.tte = "Gehan",
+                   method.inference = "none", scoring.rule = "Gehan",
                    trace = 0)
 summary(e.BTC, percentage = TRUE)
 #+END_SRC
@@ -822,7 +822,7 @@ summary(e.BTC, percentage = TRUE)
 BuyseTest (unbiased):
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.BTCC <- BuyseTest(group ~ tte(time, censoring = eventC), data = df,
-                    method.inference = "none", method.tte = "Gehan",
+                    method.inference = "none", scoring.rule = "Gehan",
                     correction.uninf = 2,
                     trace = 0)
 summary(e.BTCC, percentage = TRUE)
@@ -1061,7 +1061,7 @@ BuyseTest package:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
                   keep.pairScore = TRUE,
-                  method.inference = "asymptotic", trace = 0)
+                  method.inference = "u-statistic", trace = 0)
 iid(e.BT)
 #+END_SRC
 
@@ -1106,7 +1106,7 @@ Y_2\) (when \(X=x_1\) and \(Y_1=Y_2=y_2\)). This is what is performed when calli
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e2.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
                   keep.pairScore = TRUE,
-                  method.inference = "asymptotic-bebu", trace = 0)
+                  method.inference = "u-statistic-bebu", trace = 0)
 e2.BT@covariance
 #+END_SRC
 
@@ -1124,7 +1124,7 @@ tpsBin <- system.time(
     eBin.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
                                  formula = Treatment ~ bin(toxicity),
                                  sample.size = c(10,25,50,100,250),                                   
-                                 method.inference = "asymptotic", trace = 0,
+                                 method.inference = "u-statistic", trace = 0,
                                  transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 #+END_SRC
@@ -1183,7 +1183,7 @@ tpsCont <- system.time(
     eCont.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
                                   formula = Treatment ~ cont(score), 
                                   sample.size = c(10,25,50,100,250), 
-                                  method.inference = "asymptotic", trace = 0,
+                                  method.inference = "u-statistic", trace = 0,
                                   transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 #+END_SRC
@@ -1242,9 +1242,9 @@ tpsGehan <- system.time(
     eGehan.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
                                    formula = Treatment ~ tte(eventtime, 
                                                              censoring = status), 
-                                   method.tte = "Gehan",
+                                   scoring.rule = "Gehan",
                                    sample.size = c(10,25,50,100,250), 
-                                   method.inference = "asymptotic", trace = 0
+                                   method.inference = "u-statistic", trace = 0
                                    transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 #+END_SRC
@@ -1291,9 +1291,9 @@ tpsPeron <- system.time(
     ePeron.power <- powerBuyseTest(sim = simBuyseTest, n.rep = 1e3, cpus = 4,
                                    formula = Treatment ~ tte(eventtime, 
                                                              censoring = status), 
-                                   method.tte = "Peron",
+                                   scoring.rule = "Peron",
                                    sample.size = c(10,25,50,100,250), 
-                                   method.inference = "asymptotic", trace = 0
+                                   method.inference = "u-statistic", trace = 0
                                    transform = c(TRUE,FALSE), order.Hprojection = 1:2)
 )
 #+END_SRC

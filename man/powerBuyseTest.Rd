@@ -38,7 +38,7 @@ Default value read from \code{BuyseTest.options()}.}
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{order.Hprojection}{[integer 1,2] the order of the H-project to be used to compute the asymptotic variance.}
+\item{order.Hprojection}{[integer 1,2] the order of the H-project to be used to compute the variance of the net benefit/win ratio.}
 
 \item{transformation}{[logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.
@@ -58,7 +58,7 @@ library(data.table)
 ## using simBuyseTest
 powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
                formula = Treatment ~ bin(toxicity),
-               method.inference = "asymptotic", trace = 4)
+               method.inference = "u-statistic", trace = 4)
 
 ## using user defined simulation function
 simFCT <- function(n.C, n.T){
@@ -69,6 +69,6 @@ return(out)
 }
 
 powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
-              formula = T ~ cont(Y), method.inference = "asymptotic", trace = 4)
+              formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4)
 
 }

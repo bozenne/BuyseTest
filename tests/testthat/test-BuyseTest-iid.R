@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:33) 
+## Last-Updated: mar 28 2019 (14:31) 
 ##           By: Brice Ozenne
-##     Update #: 30
+##     Update #: 32
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,10 +37,10 @@ d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
 test_that("iid: binary and no strata (balanced groups)", {
     e.BT <- BuyseTest(group ~ bin(toxicity),
                       data = d, 
-                      method.inference = "asymptotic")
+                      method.inference = "u-statistic")
     e2.BT <- BuyseTest(group ~ bin(toxicity),
                        data = d, keep.pairScore = TRUE,
-                       method.inference = "asymptotic-bebu")
+                       method.inference = "u-statistic-bebu")
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16, 1/4, 4) )
@@ -55,10 +55,10 @@ d.bis <- data.table(id = 1:4, group = c("C","T","T","T"), toxicity = c(1,1,1,0))
 test_that("iid: binary and no strata (unbalanced groups)", {
     e.BT <- BuyseTest(group ~ bin(toxicity),
                       data = d.bis, 
-                      method.inference = "asymptotic")
+                      method.inference = "u-statistic")
     e2.BT <- BuyseTest(group ~ bin(toxicity),
                        data = d.bis, keep.pairScore = TRUE,
-                       method.inference = "asymptotic-bebu")
+                       method.inference = "u-statistic-bebu")
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0) )
@@ -76,10 +76,11 @@ d2 <- rbind(cbind(d, strata = 1),
 test_that("iid: binary with strata (balanced groups)", {
     e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
                       data = d2, 
-                      method.inference = "asymptotic")
+                      method.inference = "u-statistic")
     e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
                        data = d2, keep.pairScore = TRUE,
-                       method.inference = "asymptotic-bebu")
+                       method.inference = "u-statistic-bebu")
+
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16,1/4,4)/3 )
@@ -95,10 +96,10 @@ d2.bis <- rbind(cbind(d.bis, strata = 1),
 test_that("iid: binary and no strata (unbalanced groups)", {
     e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
                       data = d2.bis, 
-                      method.inference = "asymptotic")
+                      method.inference = "u-statistic")
     e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
                        data = d2.bis, keep.pairScore = TRUE,
-                       method.inference = "asymptotic-bebu")
+                       method.inference = "u-statistic-bebu")
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0)/3 )
@@ -116,10 +117,10 @@ test_that("iid: two endpoints (no strata)", {
     ## different endpoints
     e.BT <- BuyseTest(Treatment ~  bin(toxicity) + cont(score, threshold = 1),
                       data = d,
-                      method.inference = "asymptotic")
+                      method.inference = "u-statistic")
     e2.BT <- BuyseTest(Treatment ~  bin(toxicity) + cont(score, threshold = 1),
                        data = d, keep.pairScore = TRUE,
-                       method.inference = "asymptotic-bebu")
+                       method.inference = "u-statistic-bebu")
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["toxicity_0.5",]),
@@ -134,10 +135,10 @@ test_that("iid: two endpoints (no strata)", {
     ## same endpoint
     e.BT <- BuyseTest(Treatment ~  cont(score, threshold = 2) + cont(score, threshold = 1),
                       data = d,
-                      method.inference = "asymptotic")
+                      method.inference = "u-statistic")
     e2.BT <- BuyseTest(Treatment ~  cont(score, threshold = 2) + cont(score, threshold = 1),
                        data = d, keep.pairScore = TRUE,
-                       method.inference = "asymptotic-bebu")
+                       method.inference = "u-statistic-bebu")
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["score_2",]),
                  c(0.00036192, 0.000613760, -0.000166400, 0.00130848, 0.13086775), tol = 1e-6 )
@@ -147,10 +148,10 @@ test_that("iid: two endpoints (no strata)", {
     ## same endpoint tte
     e.BT <- suppressWarnings(BuyseTest(Treatment ~  tte(eventtime, threshold = 2, censoring = status) + tte(eventtime, threshold = 1, censoring = status),
                                        data = d,
-                                       method.inference = "asymptotic"))
+                                       method.inference = "u-statistic"))
     e2.BT <- suppressWarnings(BuyseTest(Treatment ~  tte(eventtime, threshold = 2, censoring = status) + tte(eventtime, threshold = 1, censoring = status),
                                         data = d, keep.pairScore = TRUE,
-                                        method.inference = "asymptotic-bebu"))
+                                        method.inference = "u-statistic-bebu"))
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["eventtime_2",]),
                  c(0.0000000000, 0.0004251505, 0.0000000000, 0.0004251505, 0.0000000000), tol = 1e-6 )
@@ -171,15 +172,15 @@ test_that("iid: two endpoints (strata)", {
 
     e0.BT <- BuyseTest(Treatment ~ cont(score, threshold = 1) + strata,
                        data = d2,
-                       method.inference = "asymptotic")
+                       method.inference = "u-statistic")
 
     e.BT <- BuyseTest(Treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + strata,
                       data = d2,
-                      method.inference = "asymptotic")
+                      method.inference = "u-statistic")
 
     e2.BT <- BuyseTest(Treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + strata,
                        data = d2, keep.pairScore = TRUE,
-                       method.inference = "asymptotic-bebu")
+                       method.inference = "u-statistic-bebu")
 
     expect_equal(as.double(e0.BT@covariance), as.double(e.BT@covariance[2,]))
     expect_equal(e.BT@covariance, e2.BT@covariance)

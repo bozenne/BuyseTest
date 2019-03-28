@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: mar  9 2019 (10:58) 
+## Last-Updated: mar 28 2019 (15:10) 
 ##           By: Brice Ozenne
-##     Update #: 93
+##     Update #: 94
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -43,12 +43,12 @@ test_that("number of pairs - argument neutral.as.uninf", {
     for(iCorrection in c(FALSE,TRUE)){ ## iCorrection <- FALSE
         BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                           data = dt.sim,
-                          neutral.as.uninf = TRUE, method.tte = "Gehan", correction.uninf = iCorrection)
+                          neutral.as.uninf = TRUE, scoring.rule = "Gehan", correction.uninf = iCorrection)
         BTS.T <- as.data.table(summary(BT.T, print = FALSE, percentage = FALSE)$table)
 
         BT.F <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                           data = dt.sim,
-                          neutral.as.uninf = FALSE, method.tte = "Gehan", correction.uninf = iCorrection)
+                          neutral.as.uninf = FALSE, scoring.rule = "Gehan", correction.uninf = iCorrection)
         BTS.F <- as.data.table(summary(BT.F, print = FALSE, percentage = FALSE)$table)
 
         ## neutral.as.uninf does not impact the results for first endpoint
@@ -117,7 +117,7 @@ BT_tau0 <- BuyseTest(data=data,
                      type="timeToEvent",
                      threshold=as.numeric(0),
                      censoring="event",
-                     method.tte="Peron",
+                     scoring.rule="Peron",
                      method.inference = "none",
                      cpus=1)
 
@@ -130,17 +130,17 @@ data(veteran,package="survival")
 test_that("ordering of tied event does not affect BuyseTest", {
     ## veteran2[veteran2$time==100,]
     BT.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                        data = veteran, method.tte = "Peron", method.inference = "none", correction.uninf = FALSE)
+                        data = veteran, scoring.rule = "Peron", method.inference = "none", correction.uninf = FALSE)
 
     veteran1 <- veteran[order(veteran$time,veteran$status),c("time","status","trt")]
     ## veteran1[veteran2$time==100,]
     BT1.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                         data = veteran1, method.tte = "Peron", method.inference = "none", correction.uninf = FALSE)
+                         data = veteran1, scoring.rule = "Peron", method.inference = "none", correction.uninf = FALSE)
 
     veteran2 <- veteran[order(veteran$time,-veteran$status),c("time","status","trt")]
     ## ## veteran2[veteran2$time==100,]
     BT2.all <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = "status"),
-                         data = veteran2, method.tte = "Peron", method.inference = "none", correction.uninf = FALSE)
+                         data = veteran2, scoring.rule = "Peron", method.inference = "none", correction.uninf = FALSE)
 
     ## effect of the ordering
     expect_equal(BT.all@Delta.winRatio, BT1.all@Delta.winRatio)
@@ -207,7 +207,7 @@ test_that("Multiple thresholds",{
                              threshold=c(42,39,36,33,30,27,24,21,18,15,12,9,6,3,0),
                              n.resampling=500,
                              trace=0,
-                             method.tte="Peron",
+                             scoring.rule="Peron",
                              correction.uninf=F,
                              method.inference="none")
 
@@ -250,7 +250,7 @@ type <- rep(3, D)
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 3 times the same endpoint",{
-    Wtest <- BuyseTest_buildWscheme(method.tte = 1,
+    Wtest <- BuyseTest_buildWscheme(scoring.rule = 1,
                                     endpoint = endpoint,
                                     D.TTE = D.TTE,
                                     D = D,
@@ -278,7 +278,7 @@ type <- rep(3, D)
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 6 tte endpoint",{
-    Wtest <- BuyseTest_buildWscheme(method.tte = 1,
+    Wtest <- BuyseTest_buildWscheme(scoring.rule = 1,
                                     endpoint = endpoint,
                                     D.TTE = D.TTE,
                                     D = D,
@@ -308,7 +308,7 @@ type <- 1+(endpoint=="time")*2
 D.TTE <- sum(type==3)
 
 test_that("Wscheme: 6 mixed endpoint",{
-    Wtest <- BuyseTest_buildWscheme(method.tte = 1,
+    Wtest <- BuyseTest_buildWscheme(scoring.rule = 1,
                                     endpoint = endpoint,
                                     D.TTE = D.TTE,
                                     D = D,
@@ -341,7 +341,7 @@ df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
 test_that("1 TTE endpoint - Gehan (no correction)", {
     Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 0),
                        data = df, 
-                       method.tte = "Peron", correction.uninf = FALSE)
+                       scoring.rule = "Peron", correction.uninf = FALSE)
 
     expect_equal(as.double(Peron@count.neutral),0) ## should not be any neutral pair with a threshold of 0
 })

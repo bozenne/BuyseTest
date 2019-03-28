@@ -165,7 +165,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
                             data = dt.sim,
-                            method.tte = method,
+                            scoring.rule = method,
                             correction.uninf = FALSE
                             )
         
@@ -175,7 +175,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                          treatment = "Treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
-                         method.tte = method,
+                         scoring.rule = method,
                          correction.uninf = FALSE
                          )
     
@@ -224,7 +224,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),
-                            data = dt.sim, method.tte = method,
+                            data = dt.sim, scoring.rule = method,
                             correction.uninf = FALSE)
 
         BT2 <- BuyseTest(data = dt.sim,
@@ -233,7 +233,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                          treatment = "Treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
-                         method.tte = method,
+                         scoring.rule = method,
                          correction.uninf = FALSE
                          )
 
@@ -281,7 +281,7 @@ method <- "Peron"
 test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
     
         BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1) + strata,
-                            data = dtS.sim, method.tte = method)
+                            data = dtS.sim, scoring.rule = method)
 
 
         ## *** test against fixed value
@@ -322,7 +322,7 @@ for(method in c("Gehan")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - mixed (",method,", no strata)"),{ 
     
         BT.mixed <- BuyseTest(Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5),
-                              data = dt.sim, method.tte = method)
+                              data = dt.sim, scoring.rule = method)
 
         BT2 <- BuyseTest(data=dt.sim,
                          endpoint=c("eventtime1","score1","toxicity1","eventtime1","score1"),
@@ -330,7 +330,7 @@ for(method in c("Gehan")){ ## method <- "Peron"
                          treatment="Treatment",
                          type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                          threshold=c(0.5,1,NA,0.25,0.5),
-                         method.tte=method)
+                         scoring.rule=method)
   
         ## *** test against fixed value
         test <- list(favorable = as.double(BT.mixed@count.favorable),

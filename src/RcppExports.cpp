@@ -7,7 +7,7 @@
 using namespace Rcpp;
 
 // GPC_cpp
-List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > posC, std::vector< arma::uvec > indexT, std::vector< arma::uvec > posT, std::vector< double > threshold, std::vector< double > weight, std::vector< int > method, unsigned int D, unsigned int n_strata, unsigned int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_endpoint, std::vector<int> index_censoring, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, int correctionUninf, bool hierarchical, bool neutralAsUninf, bool keepScore, bool reserve, bool returnIID);
+List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > posC, std::vector< arma::uvec > indexT, std::vector< arma::uvec > posT, std::vector< double > threshold, arma::vec weight, std::vector< int > method, unsigned int D, unsigned int n_strata, unsigned int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_endpoint, std::vector<int> index_censoring, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, int correctionUninf, bool hierarchical, bool neutralAsUninf, bool keepScore, bool reserve, bool returnIID);
 RcppExport SEXP _BuyseTest_GPC_cpp(SEXP endpointSEXP, SEXP censoringSEXP, SEXP indexCSEXP, SEXP posCSEXP, SEXP indexTSEXP, SEXP posTSEXP, SEXP thresholdSEXP, SEXP weightSEXP, SEXP methodSEXP, SEXP DSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP n_UTTESEXP, SEXP WschemeSEXP, SEXP index_endpointSEXP, SEXP index_censoringSEXP, SEXP index_UTTESEXP, SEXP reanalyzedSEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP list_lastSurvSEXP, SEXP correctionUninfSEXP, SEXP hierarchicalSEXP, SEXP neutralAsUninfSEXP, SEXP keepScoreSEXP, SEXP reserveSEXP, SEXP returnIIDSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -19,7 +19,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector< arma::uvec > >::type indexT(indexTSEXP);
     Rcpp::traits::input_parameter< std::vector< arma::uvec > >::type posT(posTSEXP);
     Rcpp::traits::input_parameter< std::vector< double > >::type threshold(thresholdSEXP);
-    Rcpp::traits::input_parameter< std::vector< double > >::type weight(weightSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< std::vector< int > >::type method(methodSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type D(DSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type n_strata(n_strataSEXP);
@@ -45,30 +45,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// CalcOnePair_Peron_CR
-inline std::vector< double > CalcOnePair_Peron_CR(double endpoint_T, double endpoint_C, double delta_T, double delta_C, double tau, int index_T, int index_C, const arma::mat& cifTimeT, const arma::mat& cifTimeC, const arma::mat& cifJumpC, double lastCif1C, double lastCif2C, double lastCif1T, double lastCif2T);
-RcppExport SEXP _BuyseTest_CalcOnePair_Peron_CR(SEXP endpoint_TSEXP, SEXP endpoint_CSEXP, SEXP delta_TSEXP, SEXP delta_CSEXP, SEXP tauSEXP, SEXP index_TSEXP, SEXP index_CSEXP, SEXP cifTimeTSEXP, SEXP cifTimeCSEXP, SEXP cifJumpCSEXP, SEXP lastCif1CSEXP, SEXP lastCif2CSEXP, SEXP lastCif1TSEXP, SEXP lastCif2TSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type endpoint_T(endpoint_TSEXP);
-    Rcpp::traits::input_parameter< double >::type endpoint_C(endpoint_CSEXP);
-    Rcpp::traits::input_parameter< double >::type delta_T(delta_TSEXP);
-    Rcpp::traits::input_parameter< double >::type delta_C(delta_CSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< int >::type index_T(index_TSEXP);
-    Rcpp::traits::input_parameter< int >::type index_C(index_CSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type cifTimeT(cifTimeTSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type cifTimeC(cifTimeCSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type cifJumpC(cifJumpCSEXP);
-    Rcpp::traits::input_parameter< double >::type lastCif1C(lastCif1CSEXP);
-    Rcpp::traits::input_parameter< double >::type lastCif2C(lastCif2CSEXP);
-    Rcpp::traits::input_parameter< double >::type lastCif1T(lastCif1TSEXP);
-    Rcpp::traits::input_parameter< double >::type lastCif2T(lastCif2TSEXP);
-    rcpp_result_gen = Rcpp::wrap(CalcOnePair_Peron_CR(endpoint_T, endpoint_C, delta_T, delta_C, tau, index_T, index_C, cifTimeT, cifTimeC, cifJumpC, lastCif1C, lastCif2C, lastCif1T, lastCif2T));
-    return rcpp_result_gen;
-END_RCPP
-}
 // calcIntegralScore_cpp
 std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv);
 RcppExport SEXP _BuyseTest_calcIntegralScore_cpp(SEXP survivalSEXP, SEXP startSEXP, SEXP lastSurvSEXP, SEXP lastdSurvSEXP) {
@@ -83,28 +59,10 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// CalcIntegral_Peron_CR
-double CalcIntegral_Peron_CR(const arma::mat& cif, double start_val, double stop_val, double CIF_t, double lastCIF, int type);
-RcppExport SEXP _BuyseTest_CalcIntegral_Peron_CR(SEXP cifSEXP, SEXP start_valSEXP, SEXP stop_valSEXP, SEXP CIF_tSEXP, SEXP lastCIFSEXP, SEXP typeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type cif(cifSEXP);
-    Rcpp::traits::input_parameter< double >::type start_val(start_valSEXP);
-    Rcpp::traits::input_parameter< double >::type stop_val(stop_valSEXP);
-    Rcpp::traits::input_parameter< double >::type CIF_t(CIF_tSEXP);
-    Rcpp::traits::input_parameter< double >::type lastCIF(lastCIFSEXP);
-    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
-    rcpp_result_gen = Rcpp::wrap(CalcIntegral_Peron_CR(cif, start_val, stop_val, CIF_t, lastCIF, type));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 29},
-    {"_BuyseTest_CalcOnePair_Peron_CR", (DL_FUNC) &_BuyseTest_CalcOnePair_Peron_CR, 14},
     {"_BuyseTest_calcIntegralScore_cpp", (DL_FUNC) &_BuyseTest_calcIntegralScore_cpp, 4},
-    {"_BuyseTest_CalcIntegral_Peron_CR", (DL_FUNC) &_BuyseTest_CalcIntegral_Peron_CR, 6},
     {NULL, NULL, 0}
 };
 

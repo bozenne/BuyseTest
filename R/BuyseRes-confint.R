@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar  9 2019 (10:39) 
+## Last-Updated: mar 28 2019 (15:06) 
 ##           By: Brice Ozenne
-##     Update #: 473
+##     Update #: 475
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -168,9 +168,9 @@ setMethod(f = "confint",
               alpha <- 1-conf.level
 
               ## safety
-              if(method.inference %in% c("asymptotic","asymptotic-bebu")){
-                  if(object@method.tte == "Peron"){
-                      warning("The current implementation of the asymptotic distribution is not valid for method.tte=\"Peron\" \n",
+              if(method.inference %in% c("u-statistic","u-statistic-bebu")){
+                  if(object@scoring.rule == "Peron"){
+                      warning("The current implementation of the asymptotic distribution is not valid for scoring.rule=\"Peron\" \n",
                               "Standard errors / confidence intervals / p-values will not be displayed \n")
                   }else if(object@correction.uninf > 0){
                       warning("The current implementation of the asymptotic distribution is not valid when a correction is used \n",

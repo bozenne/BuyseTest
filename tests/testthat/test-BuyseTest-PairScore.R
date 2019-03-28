@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:33) 
+## Last-Updated: mar 28 2019 (15:09) 
 ##           By: Brice Ozenne
-##     Update #: 49
+##     Update #: 51
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -48,7 +48,7 @@ dt.sim[eventtime1 >= 1, time1 := 1]
 formula <- Treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
 test_that("Full data - no correction", {
 
-    BT.mixed <- BuyseTest(formula, data = dt.sim, method.tte = "Peron", correction.uninf = FALSE)
+    BT.mixed <- BuyseTest(formula, data = dt.sim, scoring.rule = "Peron", correction.uninf = FALSE)
 
     expect_equal(as.double(BT.mixed@n.pairs),
                  prod(table(dt.sim$Treatment)))
@@ -82,7 +82,7 @@ formula <- Treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity
 test_that("Full data", {
 
     BT.mixed <- BuyseTest(formula,
-                          data = dt.sim, method.tte = "Peron", correction.uninf = TRUE)
+                          data = dt.sim, scoring.rule = "Peron", correction.uninf = TRUE)
 
     expect_equal(as.double(BT.mixed@n.pairs),
                  prod(table(dt.sim$Treatment)))

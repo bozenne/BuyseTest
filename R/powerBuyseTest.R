@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 27 2019 (13:53) 
+## Last-Updated: mar 28 2019 (15:08) 
 ##           By: Brice Ozenne
-##     Update #: 457
+##     Update #: 465
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -44,7 +44,7 @@
 #' @param transformation [logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param order.Hprojection [integer 1,2] the order of the H-project to be used to compute the asymptotic variance.
+#' @param order.Hprojection [integer 1,2] the order of the H-project to be used to compute the variance of the net benefit/win ratio.
 #' @param ... parameters from \code{BuyseTest}.
 #' 
 
@@ -56,7 +56,7 @@
 ##' ## using simBuyseTest
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
 ##'                formula = Treatment ~ bin(toxicity),
-##'                method.inference = "asymptotic", trace = 4)
+##'                method.inference = "u-statistic", trace = 4)
 ##'
 ##' ## using user defined simulation function
 ##' simFCT <- function(n.C, n.T){
@@ -67,7 +67,7 @@
 ##' }
 ##'
 ##' powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
-##'               formula = T ~ cont(Y), method.inference = "asymptotic", trace = 4)
+##'               formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4)
 ##' 
 
 ## * powerBuyseTest (code)
@@ -137,7 +137,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, alternative = alternative,
                               data = NULL, model.tte = NULL, keep.pairScore = TRUE, ...)
-    if(outArgs$method.tte==1 && n.sample.size > 1){
+    if(outArgs$scoring.rule==1 && n.sample.size > 1){
         stop("Peron correction not compatible with powerBuyseTest for more than one sample size\n")
     }
     if(any(outArgs$operator!=">0")){
@@ -146,8 +146,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     if(!is.null(outArgs$strata)){
         stop("Cannot use argument \'strata\' with powerBuyseTest \n")
     }
-    if(outArgs$method.inference %in% c("none","asymptotic") == FALSE){
-        stop("Argument \'method.inference\' must be \"none\" or \"asymptotic\" \n")
+    if(outArgs$method.inference %in% c("none","u-statistic") == FALSE){
+        stop("Argument \'method.inference\' must be \"none\" or \"u-statistic\" \n")
     }
 
     cpus <- outArgs$cpus
@@ -163,7 +163,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed","outSurv")
-    outArgs[out.name] <- buildWscheme(method.tte = outArgs$method.tte,
+    outArgs[out.name] <- buildWscheme(scoring.rule = outArgs$scoring.rule,
                                       endpoint = outArgs$endpoint,
                                       D = outArgs$D,
                                       D.TTE = outArgs$D.TTE,
@@ -219,7 +219,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
         envir$outArgs[out.name] <- initializeData(data = do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax)),
                                                   type = envir$outArgs$type,
                                                   endpoint = envir$outArgs$endpoint,
-                                                  method.tte = envir$outArgs$method.tte,
+                                                  scoring.rule = envir$outArgs$scoring.rule,
                                                   censoring = envir$outArgs$censoring,
                                                   operator = envir$outArgs$operator,
                                                   strata = envir$outArgs$strata,
@@ -237,7 +237,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                               type = envir$outArgs$type,
                               endpoint = envir$outArgs$endpoint,
                               level.treatment = envir$outArgs$level.treatment,
-                              method.tte = envir$outArgs$method.tte,
+                              scoring.rule = envir$outArgs$scoring.rule,
                               method.inference = envir$outArgs$method.inference,
                               hierarchical = envir$outArgs$hierarchical,
                               correction.uninf = envir$outArgs$correction.uninf,
@@ -366,7 +366,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
 ## * .createSubBT
 .createSubBT <- function(object, order,
-                         type, endpoint, level.treatment, method.tte, method.inference, hierarchical, correction.uninf,
+                         type, endpoint, level.treatment, scoring.rule, method.inference, hierarchical, correction.uninf,
                          threshold, weight,
                          sample.sizeT, sample.sizeC, n.sample.size){
 
@@ -483,7 +483,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             type = type,
             endpoint = endpoint,
             level.treatment = level.treatment,
-            method.tte = switch(as.character(method.tte),
+            scoring.rule = switch(as.character(scoring.rule),
                                 "0" = "Gehan",
                                 "1" = "Peron"),
             hierarchical = hierarchical,
@@ -511,6 +511,6 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     return(out)
     
 }
-
+2
 ######################################################################
 ### powerBuyseTest.R ends here

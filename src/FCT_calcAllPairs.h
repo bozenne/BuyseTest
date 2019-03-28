@@ -75,7 +75,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 					   std::vector< int >& index_control, std::vector< int >& index_treatment, 
 					   arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-					   arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+					   arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
 					   bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
 
   // ** initialize
@@ -118,11 +118,11 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   }
 
   if(returnIID){
-    MC_iid.resize(n_Control, 3);
-    MC_iid.fill(0.0);
+    partialCount_C.resize(n_Control, 3);
+    partialCount_C.fill(0.0);
 
-    MT_iid.resize(n_Treatment, 3);
-    MT_iid.fill(0.0);
+    partialCount_T.resize(n_Treatment, 3);
+    partialCount_T.fill(0.0);
   }
   
     // score    
@@ -163,15 +163,15 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	if(iScore[0] > zeroPlus){
 	  count_favorable += iScore[0];
 	  if(returnIID){
-	  MC_iid(iter_C,0) += iScore[0];
-	  MT_iid(iter_T,0) += iScore[0];
+	  partialCount_C(iter_C,0) += iScore[0];
+	  partialCount_T(iter_T,0) += iScore[0];
 	  }
 	}
 	if(iScore[1] > zeroPlus){
 	  count_unfavorable += iScore[1];
 	  if(returnIID){
-	  MC_iid(iter_C,1) += iScore[1];
-	  MT_iid(iter_T,1) += iScore[1];
+	  partialCount_C(iter_C,1) += iScore[1];
+	  partialCount_T(iter_T,1) += iScore[1];
 	  }
 	}
 	if(iScore[2] > zeroPlus){
@@ -185,8 +185,8 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	if(iScore[3] > zeroPlus){
 	  count_uninf += iScore[3];
 	  if(returnIID){
-	  MC_iid(iter_C,2) += iScore[3];
-	  MT_iid(iter_T,2) += iScore[3];
+	  partialCount_C(iter_C,2) += iScore[3];
+	  partialCount_T(iter_T,2) += iScore[3];
 	  }
 	  if(updateIndexUninf){
 	    index_uninfC.push_back(iter_C);     
@@ -232,7 +232,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 						index_neutralC, index_neutralT, 
 						wNeutral, index_wNeutral, wUninf, index_wUninf,
 						index_control, index_treatment, weight, index_weight,
-						MC_iid, MT_iid, returnIID,
+						partialCount_C, partialCount_T, returnIID,
 						firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
 		// update by reference
       
@@ -241,7 +241,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 					  index_neutralC, index_neutralT,
 					  wNeutral, index_wNeutral,
 					  index_control, index_treatment, weight, index_weight,
-					  MC_iid, MT_iid, returnIID,
+					  partialCount_C, partialCount_T, returnIID,
 					  firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
 		// updated by reference      
       }
@@ -256,13 +256,6 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
     }
     // Rcout << "end merge " << endl;
 
-    // ** rescale iid to proba
-	// Rcout << n_pair << endl;
-	if(returnIID){
-    MC_iid /= n_Treatment;
-    MT_iid /= n_Control;
-    }
-	
     // ** export
     return matPairScore;
   
@@ -281,7 +274,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 						  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 						  std::vector< int >& index_control, std::vector< int >& index_treatment, 
 						  arma::vec& weight, arma::uvec& index_weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-						  arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+						  arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
 						  bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
   // Rcout << "start calcSubsetPairs " << endl;
   
@@ -329,11 +322,11 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
   }
 
   if(returnIID){
-  MC_iid.resize(n_Control, 3);
-  MC_iid.fill(0.0);
+  partialCount_C.resize(n_Control, 3);
+  partialCount_C.fill(0.0);
 
-  MT_iid.resize(n_Treatment, 3);
-  MT_iid.fill(0.0);
+  partialCount_T.resize(n_Treatment, 3);
+  partialCount_T.fill(0.0);
   }
   
   // store the score of all pairs
@@ -399,15 +392,15 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     if(weight_favorable > zeroPlus){
       count_favorable += weight_favorable;
 	  if(returnIID){
-      MC_iid(iter_C,0) += weight_favorable;
-      MT_iid(iter_T,0) += weight_favorable;
+      partialCount_C(iter_C,0) += weight_favorable;
+      partialCount_T(iter_T,0) += weight_favorable;
 	  }
     }
     if(weight_unfavorable > zeroPlus){
       count_unfavorable += weight_unfavorable;
 	  if(returnIID){
-		MC_iid(iter_C,1) += weight_unfavorable;
-		MT_iid(iter_T,1) += weight_unfavorable;
+		partialCount_C(iter_C,1) += weight_unfavorable;
+		partialCount_T(iter_T,1) += weight_unfavorable;
 	  }
     }
 
@@ -423,8 +416,8 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     if(weight_uninformative > zeroPlus){
       count_uninf += weight_uninformative;
 	  if(returnIID){
-		MC_iid(iter_C,2) += weight_uninformative;
-		MT_iid(iter_T,2) += weight_uninformative;
+		partialCount_C(iter_C,2) += weight_uninformative;
+		partialCount_T(iter_T,2) += weight_uninformative;
 	  }
       if(updateIndexUninf){
 		index_uninfC.push_back(iter_C); // index of the pair relative to Control    
@@ -466,7 +459,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 					  index_neutralC, index_neutralT, 
 					  wNeutral, index_wNeutral, wUninf, index_wUninf,
 					  index_control, index_treatment, weight, index_weight,
-					  MC_iid, MT_iid, returnIID,
+					  partialCount_C, partialCount_T, returnIID,
 					  firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
       // updated by reference
     }else if(correctionUninf == 2){
@@ -474,7 +467,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 					index_neutralC, index_neutralT,
 					wNeutral, index_wNeutral,
 					index_control, index_treatment, weight, index_weight,
-					MC_iid, MT_iid, returnIID,
+					partialCount_C, partialCount_T, returnIID,
 					firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
       // updated by reference      
     }
@@ -491,12 +484,6 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
   }
   // Rcout << "end merge " << endl;
 
-  // ** rescale iid: divide the sum over the pairs including the observations by the number of pairs
-  if(returnIID){
-  MC_iid /= n_Treatment;
-  MT_iid /= n_Control;
-  }
-  
   // ** export 
   return matPairScore;
   
@@ -583,7 +570,7 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 					 const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
 					 const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, std::vector< double >& wUninf, const std::vector< int >& index_wUninf,
 					 std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
-					 arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+					 arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
 					 bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore){
 
   // compute factor
@@ -598,10 +585,10 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
   count_uninf = 0;
 
   if(returnIID){
-	MC_iid.col(0) += factorFavorable * MC_iid.col(2);
-	MC_iid.col(1) += factorUnfavorable * MC_iid.col(2);
-	MT_iid.col(0) += factorFavorable * MT_iid.col(2);
-	MT_iid.col(1) += factorUnfavorable * MT_iid.col(2);
+	partialCount_C.col(0) += factorFavorable * partialCount_C.col(2);
+	partialCount_C.col(1) += factorUnfavorable * partialCount_C.col(2);
+	partialCount_T.col(0) += factorFavorable * partialCount_T.col(2);
+	partialCount_T.col(1) += factorUnfavorable * partialCount_T.col(2);
   }
   
   // new index/weights
@@ -634,7 +621,7 @@ void correctionIPW(double& count_favorable, double& count_unfavorable, double& c
 				   const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
 				   const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, 
 				   std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
-				   arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+				   arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
 				   bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore){
 
   // compute factor
@@ -646,8 +633,8 @@ void correctionIPW(double& count_favorable, double& count_unfavorable, double& c
   count_uninf = 0;
 
   if(returnIID){
-	MC_iid *= factor;
-	MT_iid *= factor;
+	partialCount_C *= factor;
+	partialCount_T *= factor;
   }
   
   // new index/weights
