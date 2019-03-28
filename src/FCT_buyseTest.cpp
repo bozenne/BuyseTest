@@ -172,7 +172,7 @@ List GPC_cpp(arma::mat endpoint,
   for(unsigned int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
 
     for(unsigned int iter_d=0 ; iter_d < D; iter_d++){
-      // Rcout << endl << "** endpoint " << iter_d << "**" << endl;
+      //Rcout << endl << "** endpoint " << iter_d << "**" << endl;
 
       // **** type of endpoint
       iMoreEndpoint = (D>(iter_d+1));

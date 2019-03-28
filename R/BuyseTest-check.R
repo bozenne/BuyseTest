@@ -213,6 +213,9 @@ testArgs <- function(alternative,
                          valid.values = valid.values.censoring,
                          valid.length = NULL,
                          method = "BuyseTest")
+            if(2 %in% data[[censoring.TTE[which(index.TTE == iTTE)]]]==TRUE & 1 %in% data[[censoring.TTE[which(index.TTE == iTTE)]]] == FALSE){
+              stop("BuyseTest \'", censoring.TTE[which(index.TTE == iTTE)], "\' must contain 1 (event of interest) if 2 is present (competing event)\n")
+            }
         }
     }
 

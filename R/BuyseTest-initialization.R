@@ -610,7 +610,7 @@ initializePeron <- function(data,
             }
         }
     }
-
+    
     ## ** predict individual survival
     ## *** fill
     for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
@@ -661,7 +661,7 @@ initializePeron <- function(data,
 
                 sumCifC = iLast.cif1C + iLast.cif2C
                 sumCifT = iLast.cif1T + iLast.cif2T
-            
+
                 iPredCif1C <- stats::approxfun(x = model.tte[[iEndpoint.UTTE]]$time[iIndex.startC:iIndex.stopC], 
                                                y = model.tte[[iEndpoint.UTTE]]$cuminc[[1]][iIndex.startC:iIndex.stopC],
                                                yleft = 0, yright = switch(as.character(abs(sumCifC-1) < 10^-12),

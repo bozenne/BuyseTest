@@ -324,7 +324,7 @@ std::vector< double > CalcOnePair_CRPeron(double endpoint_T, double endpoint_C, 
   // [4] uninformative
   std::vector< double > proba2(4, 0.0); // [0] favorable, [1] unfavorable, [2] neutral, [3] uninformative
   double denomC = 1 - cifTimeC_vec(2) - cifTimeC_vec(7);
-  double denomT = 1 - cifTimeT_vec(5) - cifTimeT_vec(8);
+  double denomT = 1 - cifTimeT_vec(5) - cifTimeT_vec(7);
 
   if(delta_T == 2) {
     if(delta_C == 2) { // (2,2)
@@ -356,14 +356,14 @@ std::vector< double > CalcOnePair_CRPeron(double endpoint_T, double endpoint_C, 
         } else {
           proba[0] = (lastCif1C - cifTimeC_vec(2))/denomC;
         }
-        if(R_IsNA(cifTimeT_vec(4)) == false) {
+        if(R_IsNA(cifTimeT_vec(3)) == false) {
           proba[1] = (lastCif1C - cifTimeT_vec(3) + lastCif2C - cifTimeC_vec(7))/denomC;
         } else {
           proba[1] = (lastCif2C - cifTimeC_vec(7))/denomC;
         }
         if((R_IsNA(cifTimeT_vec(3)) == false) & (R_IsNA(cifTimeT_vec(1)) == false)) {
           proba[3] = (cifTimeT_vec(3) - cifTimeT_vec(1))/denomC;
-        } else if ((R_IsNA(cifTimeT_vec(4)) == true) & (R_IsNA(cifTimeT_vec(2)) == false)) {
+        } else if ((R_IsNA(cifTimeT_vec(3)) == true) & (R_IsNA(cifTimeT_vec(1)) == false)) {
           proba[3] = (lastCif1C - cifTimeT_vec(1))/denomC;
         } else {
           proba[3] = 0.0;
@@ -384,16 +384,16 @@ std::vector< double > CalcOnePair_CRPeron(double endpoint_T, double endpoint_C, 
   } else { // delta_T == 0
     if(delta_C == 2) { // (0,2)
       proba[1] = (lastCif1T - cifTimeT_vec(5))/denomT;
-      proba[2] = (lastCif2T - cifTimeT_vec(8))/denomT;
+      proba[2] = (lastCif2T - cifTimeT_vec(7))/denomT;
       //proba[4] = 1 - (proba[1] + proba[2]);
     } else if(delta_C == 1) { // (0,1)
       if(diff >= tau) {
         proba[0] = 1.0;
       } else if(diff <= -tau) {
         if(R_IsNA(cifTimeC_vec(6)) == false) {
-          proba[0] = (lastCif1T - cifTimeC_vec(6) + lastCif2T - cifTimeT_vec(8))/denomT;
+          proba[0] = (lastCif1T - cifTimeC_vec(6) + lastCif2T - cifTimeT_vec(7))/denomT;
         } else {
-          proba[0] = (lastCif2T - cifTimeT_vec(8))/denomT;
+          proba[0] = (lastCif2T - cifTimeT_vec(7))/denomT;
         }
         if(R_IsNA(cifTimeC_vec(4)) == false) {
           proba[1] = (cifTimeC_vec(4) - cifTimeT_vec(5))/denomT;
@@ -409,18 +409,18 @@ std::vector< double > CalcOnePair_CRPeron(double endpoint_T, double endpoint_C, 
         }
       } else { // |diff| < tau
         if(R_IsNA(cifTimeC_vec(6)) == false) {
-          proba[0] = (lastCif1T - cifTimeC_vec(6) + lastCif2T - cifTimeT_vec(8))/denomT;
+          proba[0] = (lastCif1T - cifTimeC_vec(6) + lastCif2T - cifTimeT_vec(7))/denomT;
           proba[3] = (cifTimeC_vec(6) - cifTimeT_vec(5))/denomT;
         } else {
-          proba[0] = (lastCif2T - cifTimeT_vec(8))/denomT;
+          proba[0] = (lastCif2T - cifTimeT_vec(7))/denomT;
           proba[3] = (lastCif1T - cifTimeT_vec(5))/denomT;
         }
       }
       //proba[4] = 1 - (proba[0] + proba[1] + proba[2] + proba[3]);
     } else if (delta_C == 0) { // (0,0)
-      double prob21 = (lastCif2T - cifTimeT_vec(8))*(lastCif1C - cifTimeC_vec(2))/(denomT*denomC);
+      double prob21 = (lastCif2T - cifTimeT_vec(7))*(lastCif1C - cifTimeC_vec(2))/(denomT*denomC);
       double prob12 = (lastCif2C - cifTimeC_vec(7))*(lastCif1T - cifTimeT_vec(5))/(denomT*denomC);
-      double prob22 = (lastCif2C - cifTimeC_vec(7))*(lastCif2T - cifTimeT_vec(8))/(denomT*denomC);
+      double prob22 = (lastCif2C - cifTimeC_vec(7))*(lastCif2T - cifTimeT_vec(7))/(denomT*denomC);
       if(diff >= tau) {
         // lower bound of each integral
         double intFav = CalcIntegral_Peron_CR(cifJumpC, endpoint_T - tau, endpoint_T + tau, Cif1T_t, lastCif1T, 1)/(denomT*denomC);

@@ -136,7 +136,7 @@ setMethod(f = "summary",
                                 "delta","Delta","CIinf.Delta","CIsup.Delta","p.value","n.resampling")
             
               index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
-            
+
               table[index.global,"n.favorable"] <- colSums(object@count.favorable)
               table[index.global,"n.unfavorable"] <- colSums(object@count.unfavorable)
               table[index.global,"n.neutral"] <- colSums(object@count.neutral)
