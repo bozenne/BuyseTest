@@ -131,8 +131,12 @@ initializeArgs <- function(alternative,
     attr(method.inference,"studentized") <- grepl("studentized",method.inference)
     attr(method.inference,"stratified") <- grepl("stratified",method.inference)
     attr(method.inference,"ustatistic") <- grepl("u-statistic",method.inference)
-
     iid <- any(c(attr(method.inference,"studentized"), method.inference == "u-statistic"))
+    if(iid){
+        attr(method.inference,"hprojection") <- option$order.Hprojection
+    }else{
+        attr(method.inference,"hprojection") <- NA
+    }
     if(is.null(strata) && length(grep("stratified ",method.inference))>0){ ## remove stratified if no strata variable
         method.inference <- gsub("stratified ","",method.inference)
         attr(method.inference,"stratified") <- FALSE

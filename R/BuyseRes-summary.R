@@ -362,7 +362,7 @@ setMethod(f = "summary",
                       }else if(attr(method.inference,"bootstrap")){
                           txt.method <- "bootstrap resampling"
                       }else if(attr(method.inference,"ustatistic")){
-                          txt.method <- paste0("H-projection of order ",attr(method.inference,"Hprojection"),"\n")
+                          txt.method <- paste0("H-projection of order ",attr(method.inference,"hprojection"),"\n")
                       }
 
                       if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap") ){

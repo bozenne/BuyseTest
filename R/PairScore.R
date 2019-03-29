@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: feb 25 2019 (11:09) 
+## Last-Updated: mar 29 2019 (18:28) 
 ##           By: Brice Ozenne
-##     Update #: 96
+##     Update #: 97
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,13 +26,13 @@ pairScore2dt <- function(pairScore,
     
     ## Rcpp outputs vector: convert to matrix and rename
     name.tempo <- c("strata",
-                    "index.C", "index.T", 
+                    "index.C", "index.T", "index.pair",
                     "indexWithinStrata.C", "indexWithinStrata.T", 
                     "favorable","unfavorable","neutral","uninf",
                     "weight",
                     "favorableC","unfavorableC","neutralC","uninfC")
     pairScore2 <- lapply(pairScore, function(iC){ ## iC <- pairScore[[1]]
-        iM <- data.table::as.data.table(matrix(iC, ncol = 14, byrow = FALSE,
+        iM <- data.table::as.data.table(matrix(iC, ncol = 15, byrow = FALSE,
                                                dimnames = list(NULL,name.tempo)))
         iM[, c("strata") := factor(.SD[["strata"]], levels = 0:(n.strata-1), labels = level.strata)] ## indexes start at 1 in R and not at 0 as in C++
         ## recall that indexes start at 1 in R and not at 0 as in C++
@@ -40,7 +40,7 @@ pairScore2dt <- function(pairScore,
         iM[, c("index.T") := .SD$index.T + 1] ## restaure position in the original dataset, not the datasets relative to T and C
         iM[, c("indexWithinStrata.T") := .SD$indexWithinStrata.T + 1]
         iM[, c("indexWithinStrata.C") := .SD$indexWithinStrata.C + 1]
-        return(iM[])
+        return(iM)
     })
     names(pairScore2) <- paste0(endpoint,"_",threshold)
 

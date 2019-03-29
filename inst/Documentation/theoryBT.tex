@@ -1,4 +1,4 @@
-% Created 2019-03-28 to 18:19
+% Created 2019-03-29 fr 14:51
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -216,7 +216,7 @@ library(survival)
 \clearpage
 
 \section{Parameter of interest}
-\label{sec:org6952a26}
+\label{sec:orgf5cb1f7}
 
 Let consider two independent real valued (univariate) random variables
 \(X\) and \(Y\). Informally \(X\) refer to the outcome in the
@@ -239,9 +239,9 @@ for \(\Prob[Y \geq X+\tau]\) (or \(\Prob[Y > X]\)).
 \clearpage
 
 \section{Binary variable}
-\label{sec:org00eecdb}
+\label{sec:org30dfbcc}
 \subsection{Relationship between \(\Delta_+\) and the prevalence}
-\label{sec:org5435014}
+\label{sec:org71d9384}
 \begin{align*}
 \Prob[X>Y] = \Prob[X=1,Y=0]
 \end{align*}
@@ -259,7 +259,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:orgf1d5c54}
+\label{sec:orge447976}
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -298,9 +298,9 @@ prob2 - prob1
 \clearpage
 
 \section{Continuous variable}
-\label{sec:orge30ca80}
+\label{sec:org1f9d945}
 \subsection{Relationship between \(\Delta\) and Cohen's d}
-\label{sec:org4fe674b}
+\label{sec:org525c9bd}
 Let's consider two independent normally distributed variables with common variance:
 \begin{itemize}
 \item \(X \sim \Gaus[\mu_X,\sigma^2]\)
@@ -320,7 +320,7 @@ So
 \end{align*}
 
 \subsection{In R}
-\label{sec:org6f0fd3c}
+\label{sec:orga086d3d}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -363,9 +363,9 @@ d <- (meanY-meanX)/sdXY
 \clearpage
 
 \section{Survival}
-\label{sec:org8cea09b}
+\label{sec:org492b649}
 \subsection{Relationship between \(\Delta\) and the hazard ratio}
-\label{sec:org38b7f6b}
+\label{sec:org412a840}
 For a given cumulative density function \(F(x)\) and a corresponding
 probability density function \(f(x)\) we define the hazard by:
 \begin{align*}
@@ -407,7 +407,7 @@ So \(\Prob[Y>X] = \frac{\alpha_X}{\alpha_Y+\alpha_X} = 1-\frac{1}{1+HR}\) and:
 \clearpage
 
 \subsection{Scoring rule in presence of censoring}
-\label{sec:org2d154e4}
+\label{sec:orgd5ac106}
 Let's consider the following random variables:  
 \begin{itemize}
 \item \(X\) the time to the occurrence of the event in the experimental group.
@@ -427,7 +427,7 @@ We observe one realization \(\left(\xobs, \yobs, \censT, \censC
 each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=1\)}
-\label{sec:org851a3d0}
+\label{sec:orgace7d9e}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -454,7 +454,7 @@ each group (respectively \(\SurvC\) and \(\SurvT\)) at each timepoint.
 
 
 \subsubsection{Case: \(\SurvT=1,\SurvC=0\)}
-\label{sec:orgfd199d9}
+\label{sec:org63b374e}
 By symmetry we have: \\
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -479,7 +479,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Case: \(\SurvT=0,\SurvC=0\)}
-\label{sec:org7282167}
+\label{sec:org850f1f5}
 
 \noindent \textcolor{darkgreen}{Probability in favor of the treatment}:
 \begin{align*}
@@ -565,7 +565,7 @@ By symmetry we have: \\
 
 
 \subsubsection{Synthesis}
-\label{sec:org21c7953}
+\label{sec:org98e5322}
 \textcolor{darkgreen}{Probability in favor of the treatment}: \(\Prob[X \geq Y+\tau \big| \xobs,\yobs,\censT,\censC,\SurvT,\SurvC]\)
 \begin{table}[!h]
 	\centering
@@ -610,7 +610,7 @@ By symmetry we have: \\
 \clearpage
 
 \subsection{Partially known survival curve}
-\label{sec:org77c2dfa}
+\label{sec:orgfa01ff1}
 In the case where \(x^* < y^* - \tau\), we need an estimate of
 \(S_X(y^* - \tau)\) to compute the probability in favor of the
 control. If we can only have an estimate of \(S_X\) up to
@@ -662,7 +662,7 @@ tends to 0.
 \end{itemize}
 
 \subsection{In R}
-\label{sec:org0e17704}
+\label{sec:org5cd29b2}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -709,12 +709,12 @@ c("HR.cox" = HR, "Delta" = (1-HR)/(1+HR))
 \clearpage
 
 \section{Competing risks}
-\label{sec:orgb90a61d}
+\label{sec:orgd949be1}
 \subsection{Theory}
-\label{sec:org3b90ed2}
+\label{sec:org39511b4}
 
 \subsubsection{General case (no censoring)}
-\label{sec:org1551c5b}
+\label{sec:org1f2261e}
 Let consider: 
 \begin{itemize}
 \item \(X^*_{E}\) the time to the occurrence of the event of interest in the experimental group.
@@ -776,7 +776,7 @@ Y|\varepsilon_X=1,\varepsilon_Y=1]\Prob[\varepsilon_X=1,\varepsilon_Y=1] +
 \clearpage
 
 \subsubsection{Exponential distribution (no censoring)}
-\label{sec:orgae0fca7}
+\label{sec:org4de11fd}
 
 Now let's assume that:
 \begin{itemize}
@@ -824,10 +824,10 @@ CIF_1(t|group = Y) &= \frac{\alpha_{E,Y}}{\alpha_{E,Y} + \alpha_{CR,Y}} \left(1 
 \clearpage
 
 \subsection{In R}
-\label{sec:orgeb5146f}
+\label{sec:orgb0ce90b}
 
 \subsubsection{BuyseTest (no censoring)}
-\label{sec:org7b3cdc2}
+\label{sec:orgfd7e54b}
 
 Setting:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -910,7 +910,7 @@ favorable unfavorable     neutral
 \end{verbatim}
 
 \subsubsection{BuyseTest (with censoring)}
-\label{sec:org1988f27}
+\label{sec:org7175dab}
 
 Simulate data:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -965,7 +965,7 @@ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 \end{verbatim}
 
 \subsubsection{Cumulative incidence}
-\label{sec:org0b7ae50}
+\label{sec:org0ff1e83}
 
 Settings:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1027,7 +1027,7 @@ mean((df$time<=1)*(df$event==1))
 \clearpage
 
 \section{Inverse probability weighting}
-\label{sec:org6c839e0}
+\label{sec:orgc3fd731}
 
 In case of censoring we can use an inverse probability weighting
 approach. Let denote \(\delta_{c,X}\) (resp. \(\delta_{c,Y}\)) the
@@ -1062,14 +1062,14 @@ where we used the law of total expectation (first line) and the independence bet
 \clearpage
 
 \section{Asymptotic distribution}
-\label{sec:org4a38526}
+\label{sec:orgd225c4c}
 
 In this section we restrict ourself to the GPC as defined in
 \citep{buyse2010generalized}, i.e. we do not consider Peron scoring rule
 nor any correction (like inverse probability weighting).
 
 \subsection{Theory}
-\label{sec:orgd6aee7f}
+\label{sec:org8715b22}
 
 We consider two independent samples \(x_1,x_2,\ldots,x_m\) and
 \(y_1,y_2,\ldots,y_n\) where the first one contains iid realisations
@@ -1124,7 +1124,7 @@ where \(p_y\) is the proportion of 1 in the control group.
 \clearpage
 
 \subsection{Example}
-\label{sec:orgca32a26}
+\label{sec:orgd80a799}
 
 Let's consider a case with 2 observations per group:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1240,10 +1240,10 @@ toxicity_0.5    0.0625      0.0625    -0.0625       0.25        4
 \clearpage
 
 \subsection{Type 1 error in finite sample}
-\label{sec:org1c923ed}
+\label{sec:org956a033}
 
 \subsubsection{Binary endpoint}
-\label{sec:org5f45500}
+\label{sec:org30b1cce}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsBin <- system.time(
@@ -1304,7 +1304,7 @@ n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRU
 \clearpage
 
 \subsubsection{Continuous endpoint}
-\label{sec:org484ce1d}
+\label{sec:org006a58e}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsCont <- system.time(
@@ -1365,7 +1365,7 @@ n.T n.C mean.estimate sd.estimate order mean.se rejection (FALSE) rejection (TRU
 \clearpage
 
 \subsubsection{Time to event endpoint (Gehan method)}
-\label{sec:orge8c80e2}
+\label{sec:orgaf5c574}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsGehan <- system.time(
@@ -1416,7 +1416,7 @@ summary(eGehan.power, statistic = c("netBenefit","winRatio"),
 \clearpage
 
 \subsubsection{Time to event endpoint (Peron method)}
-\label{sec:orgcb0f67e}
+\label{sec:org7ad4b90}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 tpsPeron <- system.time(
@@ -1467,7 +1467,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"),
 \clearpage
 
 \section{References}
-\label{sec:org7b7601c}
+\label{sec:orgcd22aef}
 \begingroup
 \renewcommand{\section}[2]{}
 \bibliographystyle{apalike}
@@ -1484,7 +1484,7 @@ summary(ePeron.power, statistic = c("netBenefit","winRatio"),
 This recall is based on chapter 1 of \cite{lee1990u}.
 
 \subsection{Motivating example}
-\label{sec:org2957d59}
+\label{sec:org86eceeb}
 
 We will illustrate basic results on U-statistics with the following
 motivating question: "what is the asymptotic distribution of the
@@ -1496,7 +1496,7 @@ distributed (iid) realisations \((x_1,\ldots,x_n)\) of the random
 variable cholesterol, denoted \(X\). We ignore any measurement error.
 
 \subsection{Estimate, estimator, and functionnal}
-\label{sec:org191eedb}
+\label{sec:org8907026}
 
 We can compute an \textbf{estimate} of the variance using the following
 \textbf{estimators} \(\hat{\mu}\) and \(\hat{\sigma}^2\):
@@ -1568,7 +1568,7 @@ transforms the data into an estimate.
 \end{itemize}
 
 \subsection{Aim}
-\label{sec:org78b4826}
+\label{sec:org0eca8e8}
 
 Using formula \eqref{eq:m(F)} and \eqref{eq:s(F)} we can easily estimate
 the variance based on the observed realisations of \(X\) (i.e. the
@@ -1633,7 +1633,7 @@ central limit theorem. It does not give us a formula for the
 asymptotic variance though. 
 
 \subsection{Definition of a U-statistic and examples}
-\label{sec:org92f9df0}
+\label{sec:orgb73e796}
 
 A U-statistic with kernel \(h\) of order \(k\) is an estimator of the
 form:
@@ -1720,7 +1720,7 @@ estimator is:
 \end{align*}
 
 \subsection{A major result from the U-statistic theory}
-\label{sec:orgb683563}
+\label{sec:org77759e5}
 
 So far we have seen that our estimator for the variance was a
 U-statistic. We will now use the U-statistic theory to obtain its
@@ -1746,7 +1746,7 @@ remains to see what is this H-decomposition and how can we
 characterize it.
 
 \subsection{The first term of the H-decomposition}
-\label{sec:orgeab7a74}
+\label{sec:org5408d91}
 
 The H-decomposition (short for Hoeffling decomposition) enables us to
 decompose the estimator of a U-statistic of rank \(k\) into a sum of
@@ -1917,7 +1917,7 @@ compute the asymptotic variance as:
 \end{align*}
 
 \subsection{Two sample U-statistics}
-\label{sec:orgddd0d5f}
+\label{sec:org6efa381}
 
 So far we have assumed that all our observations were iid. But in the
 case of GPC, we study two populations (experimental arm and control
@@ -2038,17 +2038,17 @@ give the general formal for the variance that becomes in the case of a two sampl
 \Var[\hat{U}] &= \frac{\sigma^2_{1,0}}{m} + \frac{\sigma^2_{0,1}}{n} + \frac{\sigma^2_{1,1}-\sigma^2_{0,1}-\sigma^2_{1,0}}{nm} \\
 &= \frac{1}{nm} \left((n-1)\sigma^2_{1,0} + (m-1)\sigma^2_{0,1} + \sigma^2_{1,1} \right) 
 \end{align*}
-where \(\sigma^2_{1,1} = \Prob[x<y](1-\Prob[x<y])\). Indeed the second
+where \(\sigma^2_{1,1} = \Prob[x \leq y](1-\Prob[x \leq y])\). Indeed the second
 term of the H-decomposition would be the projection of \(\Ind[X \leq
 Y]\) on \(X,Y\) where we substract components of the H\(\'{a}\)jek
 projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
-\(H_{\hat{U}}^{(2)}\) (see theorem 3 page 4 of \cite{lee1990u} for a
+\(H_{\hat{U}}^{(2)}\) (see formula 11 page 33 of \cite{lee1990u} for a
 generic formula):
 \begin{align*}
 H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \left(\Esp\left[ \Ind[x_i \leq y_j] \big| x_i,y_j\right] - U\right) - \left(\Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - U\right) - \left(\Esp\left[ \Ind[x \leq y_j] \big| y_j\right] - U\right) \\
 &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] + U
 \end{align*}
-and:
+and we retrieve the formula given page 39 of \cite{lee1990u} for the variance of the Mann-Whitney U-statistic:
 \begin{align*}
 \Var[H_{\hat{U}}^{(2)}] 
 &= \frac{1}{(mn)^2} \sum_{i=1}^m \sum_{j=1}^n \Var\left[\Ind[x_i \leq y_j]\right] + \Var\left[\Esp\left[ \Ind[x_i \leq y] \big| x_i\right]\right] + \Var\left[\Esp\left[ \Ind[x \leq y_j] \big| y_j\right]\right] \\
@@ -2063,6 +2063,14 @@ where the second line follows from:
 &= \Esp\left[\Esp\left[ \Ind[x_i \leq y]-U \big| x_i\right]^2 \right] \\
 &= \Var\left[\Esp\left[\Ind[x_i \leq y] \big| x_i\right] \right] 
 \end{align*}
+and the last line follows from:
+\begin{align*}
+\Var\left[\Ind[x_i \leq y_j]\right] &= \Esp\left[\Ind[x_i \leq y_j]^2\right] - \Esp\left[\Ind[x_i \leq y_j]\right]^2 
+= \Esp\left[\Ind[x_i \leq y_j]\right] - \Esp\left[\Ind[x_i \leq y_j]\right]^2 \\
+&= \Esp\left[\Ind[x_i \leq y_j]\right]\left(1 - \Esp\left[\Ind[x_i \leq y_j]\right]\right)
+= \Prob[x \leq y]\left(1 - \Prob[x \leq y]\right)
+\end{align*}
+
 A final useful result is about the covariance between two 2-samples
 U-statistics.
 \begin{align*}
@@ -2089,10 +2097,8 @@ So:
 \end{align*}
 where the last term can be computed using that:
 \begin{align*}
-\frac{1}{(mn)^2} \sum_{i=1}^n \sum_{j=1}^m \Cov\left[U_{1,ij},U_{2,ij}\right] 
-&=  \frac{1}{(mn)^2} \sum_{i=1}^n \sum_{j=1}^m \Var\left[\sqrt{U_{1,ij}U_{2,ij}}\right] \\
-&=  \Var\left[\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right] \\
-&\approx \left(\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right)\left(1-\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right)
+\Cov\left[U_{1,ij},U_{2,ij}\right] 
+&= \Esp[\left(U_{1,ij} U_{2,ij}\right)^2] - \Esp[U_{1,ij} U_{2,ij}]^2
 \end{align*}
 
 
@@ -2100,7 +2106,7 @@ where the last term can be computed using that:
 \clearpage 
 
 \section{Information about the R session used for this document}
-\label{sec:org5c13ffd}
+\label{sec:org3a770e2}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}

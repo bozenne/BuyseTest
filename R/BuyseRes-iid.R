@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: mar 28 2019 (14:45) 
+## Last-Updated: mar 29 2019 (11:46) 
 ##           By: Brice Ozenne
-##     Update #: 34
+##     Update #: 36
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -59,10 +59,7 @@ setMethod(f = "iid",
               ## ** accumulate H-decomposition
               if(is.null(endpoint)){                  
                   ## iid decomposition over all endpoints
-                  object.iid <- do.call(cbind,lapply(object.iid, function(iIID){
-                      wIID <- sweep(iIID, MARGIN = 2, FUN = "*", STATS = object@weight)
-                      return(apply(iIID, MARGIN = 1, sum))
-                  }))
+                  object.iid <- do.call(cbind,lapply(object.iid, function(iI){iI[, NCOL(iI)]}))
               }else{
                   ## iid decomposition for each endpoint
                   object.iid <- lapply(object.iid, function(iIID){iIID[,endpoint,drop=FALSE]})

@@ -365,19 +365,18 @@ BuyseTest <- function(formula,
                           DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
                           covariance = array(NA, dim = c(0,0,0)),
                           n.resampling = as.double(NA))
-    if(outArgs$iid){ ## not needed anymore - done in the cpp part, kept for debugging
+
+    if(outArgs$method.inference == "none"){
+        outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
+        outPoint$iid_favorable <- NULL
+        outPoint$iid_unfavorable <- NULL
+    }else if(outArgs$method.inference == "u-statistic"){
+        ## done in the C++ code
         ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
         ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
         ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
         ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
-        attr(outArgs$method.inference,"Hprojection") <- 1
-    }else{
-        outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
-        outPoint$iid_favorable <- NULL
-        outPoint$iid_unfavorable <- NULL
-    }
-
-    if(outArgs$method.inference == "u-statistic-bebu"){
+    }else if(outArgs$method.inference == "u-statistic-bebu"){
         if(outArgs$keep.pairScore == FALSE){
             stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"u-statistic-bebu\" \n")
         }
@@ -389,9 +388,16 @@ BuyseTest <- function(formula,
                                                  n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                   level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
 
         outPoint$Mvar <- outCovariance$Sigma
+        outPoint$iid_favorable <- NULL
+        outPoint$iid_unfavorable <- NULL
         attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
     }else if(grepl("bootstrap|permutation",outArgs$method.inference)){
         outResampling <- inferenceResampling(envirBT)
+        if(outArgs$iid==FALSE){
+            outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
+            outPoint$iid_favorable <- NULL
+            outPoint$iid_unfavorable <- NULL
+        }
     }
     
     if((outArgs$method.inference != "none") && (outArgs$trace > 1)){
@@ -600,7 +606,6 @@ BuyseTest <- function(formula,
     }
 
     ## ** Computation
-    browser()
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
                      censoring = envir$outArgs$M.censoring,
                      indexC = ls.indexC,

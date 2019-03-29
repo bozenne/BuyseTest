@@ -244,10 +244,10 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
 
     ## first endpoint
     ls.table <- vector(mode = "list", length = n.endpoint)
-    ls.table[[1]] <- tablePairScore[[1]][,.SD,.SDcols = keep.col]
+    ls.table[[1]] <- data.table::copy(tablePairScore[[1]][,.SD,.SDcols = keep.col])
+    setnames(ls.table[[1]], old = old.col, new = new.col)
     ls.table[[1]][,c("favorable") := .SD$favorable * weight[1]]
     ls.table[[1]][,c("unfavorable") := .SD$unfavorable * weight[1]]
-    setnames(ls.table[[1]], old = old.col, new = new.col)
     
     if(n.endpoint>1){
         ##
@@ -259,6 +259,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
             iTable[, c("indexTable") := (.SD$indexWithinStrata.T-1) * n.TCstrata[.GRP] + .SD$indexWithinStrata.C, by="strata"]
 
             ls.table[[iE]] <- data.table::copy(ls.table[[iE-1]])
+    browser()
             ls.table[[iE]][iTable$indexTable, c("favorable") := .SD$favorable + iTable$favorable * weight[iE]]
             ls.table[[iE]][iTable$indexTable, c("unfavorable") := .SD$unfavorable + iTable$unfavorable * weight[iE]]
         }
@@ -274,7 +275,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
     strataSum <- matrix(NA, nrow = 6, ncol = n.endpoint,
                         dimnames = list(c("favorableT","favorableC","unfavorableT","unfavorableC","mixedC","mixedT"),
                                         endpoint))
-    
+
     for(iStrata in 1:n.strata){ ## iStrata <- 1
 
         iN.strata <- n.pairs[iStrata]
@@ -331,13 +332,12 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
             }
 
         }
-
         ## *** first order terms: compute xi
         ## P[X1>Y1 & X1>Y1'] - P[X1>Y1]^2
         xi_10_11 <- strataSum["favorableT",] - p1.favorable^2
         ## P[X1>Y1 & X1'>Y1] - P[X1>Y1]^2
         xi_01_11 <- strataSum["favorableC",] - p1.favorable^2
-    
+
         ## P[X1<Y1 & X1<Y1'] - P[X1<Y1]^2
         xi_10_22 <- strataSum["unfavorableT",] - p1.unfavorable^2
         ## P[X1<Y1 & X1'<Y1] - P[X1<Y1]^2
@@ -350,17 +350,22 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
 
         ## *** second order terms
         if(order == 2){
-            H2.favorable <- (p1.favorable*(1-p1.favorable) - xi_10_11 - xi_01_11)/(iN.strata)
-            H2.unfavorable <- (p1.unfavorable*(1-p1.unfavorable) - xi_10_22 - xi_01_22)/(iN.strata)
-            H2.covariance <- 0##(-xi_10_12)/(iN.strata)
-            warning("No formula for the contribution of the second order term to the covariance. It is set to 0.")
+            Mfav <- do.call(cbind,lapply(ls.table,"[[","favorable"))
+            Munfav <- do.call(cbind,lapply(ls.table,"[[","unfavorable"))
+            
+            varUfav <- colMeans(Mfav^2) - colMeans(Mfav)^2 ##instead of p1.favorable*(1-p1.favorable)
+            varUunfav <- colMeans(Munfav^2) - colMeans(Munfav)^2 ##instead of p1.unfavorable*(1-p1.unfavorable)
+            covUfavunfav <- colMeans(Mfav*Munfav) - colMeans(Mfav)*colMeans(Munfav) ##instead of -p1.favorable*p1.unfavorable
+            
+            H2.favorable <- (varUfav - xi_10_11 - xi_01_11)/(iN.strata)
+            H2.unfavorable <- (varUunfav - xi_10_22 - xi_01_22)/(iN.strata)
+            H2.covariance <- (covUfavunfav - xi_10_12 - xi_01_12)/(iN.strata)
         }else{
             H2.favorable <- 0
             H2.unfavorable <- 0
             H2.covariance <- 0
         }
         
-
         ## ** compute sigma
         ## NO STRATA:
         ## N.TC = N.T+N.C
@@ -369,7 +374,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
         ## scaled asymptotic variance i.e. (Uhat - U) \sim N(0,Sigma/N.TC) = N(0,1/N.C SigmaC + 1/N.T SigmaT)
         ##
         ## STRATA:
-        ## same but adding a factor n.strata / N.TC to accound for pooling        
+        ## same but adding a factor n.strata / N.TC to accound for pooling
         M.cov <- M.cov + (iN.strata/ntot.pairs)^2 * cbind(favorable =  xi_10_11 / iN.C + xi_01_11 / iN.T + H2.favorable,
                                                           unfavorable = xi_10_22 / iN.C + xi_01_22 / iN.T + H2.unfavorable,
                                                           covariance = xi_10_12 / iN.C + xi_01_12 / iN.T + H2.covariance)

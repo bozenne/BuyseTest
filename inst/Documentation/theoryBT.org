@@ -1961,11 +1961,11 @@ give the general formal for the variance that becomes in the case of a two sampl
 &= \frac{1}{nm} \left((n-1)\sigma^2_{1,0} + (m-1)\sigma^2_{0,1} + \sigma^2_{1,1} \right) 
 \end{align*}
 #+END_EXPORT
-where \(\sigma^2_{1,1} = \Prob[x<y](1-\Prob[x<y])\). Indeed the second
+where \(\sigma^2_{1,1} = \Prob[x \leq y](1-\Prob[x \leq y])\). Indeed the second
 term of the H-decomposition would be the projection of \(\Ind[X \leq
 Y]\) on \(X,Y\) where we substract components of the H\(\'{a}\)jek
 projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
-\(H_{\hat{U}}^{(2)}\) (see theorem 3 page 4 of cite:lee1990u for a
+\(H_{\hat{U}}^{(2)}\) (see formula 11 page 33 of cite:lee1990u for a
 generic formula):
 #+BEGIN_EXPORT latex
 \begin{align*}
@@ -1973,7 +1973,7 @@ H_{\hat{U}}^{(2)} &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \left(\Esp\left[ \In
 &= \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \Ind[x_i \leq y_j] - \Esp\left[ \Ind[x_i \leq y] \big| x_i\right] - \Esp\left[ \Ind[x \leq y_j] \big| y_j\right] + U
 \end{align*}
 #+END_EXPORT
-and:
+and we retrieve the formula given page 39 of cite:lee1990u for the variance of the Mann-Whitney U-statistic:
 #+BEGIN_EXPORT latex
 \begin{align*}
 \Var[H_{\hat{U}}^{(2)}] 
@@ -1992,6 +1992,16 @@ where the second line follows from:
 &= \Var\left[\Esp\left[\Ind[x_i \leq y] \big| x_i\right] \right] 
 \end{align*}
 #+END_EXPORT
+and the last line follows from:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var\left[\Ind[x_i \leq y_j]\right] &= \Esp\left[\Ind[x_i \leq y_j]^2\right] - \Esp\left[\Ind[x_i \leq y_j]\right]^2 
+= \Esp\left[\Ind[x_i \leq y_j]\right] - \Esp\left[\Ind[x_i \leq y_j]\right]^2 \\
+&= \Esp\left[\Ind[x_i \leq y_j]\right]\left(1 - \Esp\left[\Ind[x_i \leq y_j]\right]\right)
+= \Prob[x \leq y]\left(1 - \Prob[x \leq y]\right)
+\end{align*}
+#+END_EXPORT
+
 A final useful result is about the covariance between two 2-samples
 U-statistics.
 #+BEGIN_EXPORT latex
@@ -2023,10 +2033,8 @@ So:
 where the last term can be computed using that:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\frac{1}{(mn)^2} \sum_{i=1}^n \sum_{j=1}^m \Cov\left[U_{1,ij},U_{2,ij}\right] 
-&=  \frac{1}{(mn)^2} \sum_{i=1}^n \sum_{j=1}^m \Var\left[\sqrt{U_{1,ij}U_{2,ij}}\right] \\
-&=  \Var\left[\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right] \\
-&\approx \left(\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right)\left(1-\frac{1}{mn} \sum_{i=1}^n \sum_{j=1}^m \sqrt{U_{1,ij}U_{2,ij}}\right)
+\Cov\left[U_{1,ij},U_{2,ij}\right] 
+&= \Esp[\left(U_{1,ij} U_{2,ij}\right)^2] - \Esp[U_{1,ij} U_{2,ij}]^2
 \end{align*}
 #+END_EXPORT
  

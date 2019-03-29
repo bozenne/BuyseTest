@@ -124,7 +124,7 @@ printInference <- function(method.inference, n.resampling, cpus, seed, ...){
         ## display
         cat("Estimation of the estimator's distribution \n",
             "   - method: ",txt.type,"\n", sep = "")
-        if(method.inference != "u-statistic"){
+        if(!attr(method.inference,"ustatistic")){
             cat("   - cpus  : ",cpus,"\n", sep = "")
             if (!is.null(seed)) {
                 cat("   - seeds : ",paste(seq(seed,seed + cpus - 1), collapse = " "),"\n", sep = "")       
