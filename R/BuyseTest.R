@@ -234,10 +234,10 @@ BuyseTest <- function(formula,
         stop("Argument \'keep.comparison\' is obsolete. \n",
              "It has been replaced by the argument \'keep.pairScore\' \n")
     }
-    ## if(!missing(method.tte)){
-    ## stop("Argument \'method.tte\' is obsolete. \n",
-    ## "It has been replaced by the argument \'scoring.rule\' \n")
-    ## }
+    if(!missing(method.tte)){
+        stop("Argument \'method.tte\' is obsolete. \n",
+             "It has been replaced by the argument \'scoring.rule\' \n")
+    }
     if(!is.null(method.inference) && (method.inference=="asymptotic")){
         stop("Value \"asymptotic\" for argument \'method.inference\' is obsolete. \n",
              "Use \"u-statistic\" instead \n")
