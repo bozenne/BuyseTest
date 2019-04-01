@@ -1006,6 +1006,50 @@ H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) & = \frac{\Esp[\phi_{k_{ij}}(x_i,y) 
 where \(p_y\) is the proportion of 1 in the control group.
 
 
+** Variance estimator based on the first order H-decomposition
+
+The H\(\'{a}\)jek projection can be used to estimate the variance of \(\widehat{\Prob}[X \geq Y+\tau]\).
+Indeed, since:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\widehat{\Prob}[X \geq Y+\tau] = H^{(1)}(\widehat{\Prob}[X \geq Y + \tau]) + o_p \left( n^{-\half} \right)
+\end{align*}
+#+END_EXPORT
+We obtain that asymptotically:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var\left[\widehat{\Prob}[X \geq Y+\tau]\right] &= \frac{\sigma_{1,0}^2}{n} + \frac{\sigma_{0,1}^2}{m} = \sum_{l=1}^{m+n} \left(H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau]) \right)^2 \\
+\text{where } \sigma_{1,0}^2 &= \frac{1}{m}\sum_{i=1}^m \left(\Esp[\phi_{k_{ij}}(x_i,y) \bigg| x_i]-\Prob[X \geq Y+\tau]\right)^2 = m\sum_{i=1}^m \left(H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) \right)^2 \\
+\text{and   } \sigma_{0,1}^2 &= \frac{1}{n}\sum_{j=1}^n \left(\Esp[\phi_{k_{ij}}(x_i,y) \bigg| y_j]-\Prob[X \geq Y+\tau] \right)^2 = n\sum_{j=1}^n \left(H^{(1)}_j(\widehat{\Prob}[X \geq Y + \tau]) \right)^2
+\end{align*}
+#+END_EXPORT
+Similarly we obtain:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var\left[\widehat{\Prob}[Y \geq X+\tau]\right] &= \sum_{l=1}^{m+n} \left(H^{(1)}_l(\widehat{\Prob}[Y \geq X + \tau]) \right)^2 \\
+\Cov\left[\widehat{\Prob}[X \geq Y+\tau],\widehat{\Prob}[Y \geq X+\tau]\right] &= \sum_{l=1}^{m+n} \left(H^{(1)}_l(\widehat{\Prob}[X \geq Y + \tau])H^{(1)}_l(\widehat{\Prob}[Y \geq X + \tau]) \right) \\
+\end{align*}
+#+END_EXPORT
+
+** Variance estimator based on the second order H-decomposition
+
+An better estimator (i.e. unbiased) of the variance of
+\(\widehat{\Prob}[X \geq Y+\tau]\) can be obtained using a second
+order H-decomposition. As explained in the appendix [[#SM:Ustat]], the
+formula for the variance becomes:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Var\left[\widehat{\Prob}[X \geq Y+\tau]\right] &= \frac{1}{nm} \left((m-1)\sigma_{1,0}^2 + (n-1)\sigma_{0,1}^2 + \sigma_{1,1}^2\right) \\
+\text{where } \sigma_{1,1}^2 &= \Esp[\phi_{k_{ij}}(x_i,y_j)^2] - \Prob[X \geq Y+\tau]^2
+\end{align*}
+#+END_EXPORT
+Note that since we consider binary scores,
+\(\phi_{k_{ij}}(x_i,y_j)^2=\phi_{k_{ij}}(x_i,y_j)\) so
+\(\sigma_{1,1}^2=\Prob[X \geq Y+\tau](1-\Prob[X \geq Y+\tau])\). When
+computing the covariance \(\sigma_{1,1}^2 = -\Prob[X \geq
+Y+\tau]\Prob[Y \geq X+\tau]\) because \(\Ind[x_i \geq y_j +
+\tau]\Ind[y_j \geq x_i + \tau]=0\).
+
 \clearpage
 
 ** Example
@@ -1059,6 +1103,7 @@ H^{(1)}_4(\widehat{\Prob}[X \geq Y + \tau]) = \frac{1}{m} \left( \Esp\left[\Ind[
 We can use the method =iid= to extract the iid decomposition in the
 BuyseTest package:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(order.Hprojection = 1)
 e.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
                   keep.pairScore = TRUE,
                   method.inference = "u-statistic", trace = 0)
@@ -1113,6 +1158,41 @@ e2.BT@covariance
 #+RESULTS:
 :              favorable unfavorable covariance netBenefit winRatio
 : toxicity_0.5    0.0625      0.0625    -0.0625       0.25        4
+
+\bigskip
+
+Let's now consider the second order decomposition. For the variance of
+\(\widehat{\Prob}[Y \geq X + \tau]\):
+- \(\sigma^{2}_{1,1}=1/4(1-1/4)=3/16\)
+- \(\sigma^{2}_{1,0}=\frac{(-1/4)^2+(1/4)^2}{2} = 1/16\)
+- \(\sigma^{2}_{0,1}=\frac{(1/4)^2+(-1/4)^2}{2}  = 1/16\)
+So \(\sigma^2_{favorable}\) becomes
+\(\frac{1}{2*2}\left((2-1)\frac{1}{16}+(2-1)\frac{1}{16}+\frac{3}{16}\right)=\frac{5}{64}\)
+
+\bigskip
+
+For the covariance between \(\widehat{\Prob}[Y \geq X + \tau]\) and
+\(\widehat{\Prob}[X \geq Y + \tau]\):
+- \(\sigma^{2}_{1,1}=- (1/4)(1/4)  = -1/16\)
+- \(\sigma^{2}_{1,0}=- 1/16\)
+- \(\sigma^{2}_{0,1}=- 1/16\)
+So the covariance betwen the estimators equals
+\(\frac{1}{2*2}\left((2-1)\frac{-1}{16}+(2-1)\frac{-1}{16}-\frac{1}{16}\right)=\frac{3}{64}\). This
+is exactly what BuyseTest outputs:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(order.Hprojection = 2)
+e.BT <- BuyseTest(group ~ bin(toxicity), data = d, 
+                  keep.pairScore = TRUE,
+                  method.inference = "u-statistic", trace = 0)
+e.BT@covariance
+#+END_SRC
+
+#+RESULTS:
+:              favorable unfavorable covariance netBenefit winRatio
+: toxicity_0.5  0.078125    0.078125  -0.046875       0.25        4
+
+
 
 \clearpage
 
@@ -2037,10 +2117,8 @@ where the last term can be computed using that:
 &= \Esp[\left(U_{1,ij} U_{2,ij}\right)^2] - \Esp[U_{1,ij} U_{2,ij}]^2
 \end{align*}
 #+END_EXPORT
- 
 
-
-  \clearpage 
+\clearpage 
 
 * Information about the R session used for this document 
 

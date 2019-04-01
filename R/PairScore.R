@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: mar 29 2019 (18:28) 
+## Last-Updated: apr  1 2019 (14:50) 
 ##           By: Brice Ozenne
-##     Update #: 97
+##     Update #: 110
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,6 +38,7 @@ pairScore2dt <- function(pairScore,
         ## recall that indexes start at 1 in R and not at 0 as in C++
         iM[, c("index.C") := .SD$index.C + 1] ## restaure position in the original dataset, not the datasets relative to T and C
         iM[, c("index.T") := .SD$index.T + 1] ## restaure position in the original dataset, not the datasets relative to T and C
+        iM[, c("index.pair") := .SD$index.pair + 1] 
         iM[, c("indexWithinStrata.T") := .SD$indexWithinStrata.T + 1]
         iM[, c("indexWithinStrata.C") := .SD$indexWithinStrata.C + 1]
         return(iM)
@@ -45,4 +46,32 @@ pairScore2dt <- function(pairScore,
     names(pairScore2) <- paste0(endpoint,"_",threshold)
 
     return(pairScore2)
+}
+
+## * wsumPairScore
+## cumulate over endpoint the scores
+wsumPairScore <- function(pairScore, weight, n.endpoint){
+
+    keep.col <- c("strata","index.C","index.T","index.pair","indexWithinStrata.C", "indexWithinStrata.T","favorableC","unfavorableC")
+    old.col <- c("favorableC","unfavorableC")
+    new.col <- c("favorable","unfavorable")
+
+    out <- vector(mode = "list", length = n.endpoint)
+    for(iE in 1:n.endpoint){ ## iE <- 2
+
+        iTable <- data.table::copy(pairScore[[iE]][,.SD,.SDcols = keep.col])
+        setnames(iTable, old = old.col, new = new.col)
+        iTable[,c("favorable") := .SD$favorable * weight[iE]]
+        iTable[,c("unfavorable") := .SD$unfavorable * weight[iE]]
+        
+        if(iE==1){
+            out[[iE]] <- iTable
+        }else{
+            out[[iE]] <- data.table::copy(out[[iE-1]])
+            out[[iE]][iTable$index.pair, c("favorable") := .SD$favorable + iTable$favorable]
+            out[[iE]][iTable$index.pair, c("unfavorable") := .SD$unfavorable + iTable$unfavorable]
+        }
+    }
+
+    return(out)
 }

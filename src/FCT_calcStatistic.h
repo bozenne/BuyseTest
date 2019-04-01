@@ -112,16 +112,16 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
   arma::vec delta2_mixed = (cumWcount_favorable % cumWcount_unfavorable)/(double)(pow(ntot_pair, 2));
 
   // first order
-  arma::vec sigmaC_favorable = (meanC2_favorable/ntot_pair - delta2_favorable)/ntot_control;
-  arma::vec sigmaT_favorable = (meanT2_favorable/ntot_pair - delta2_favorable)/ntot_treatment;
-  arma::vec sigmaC_unfavorable = (meanC2_unfavorable/ntot_pair - delta2_unfavorable)/ntot_control;
-  arma::vec sigmaT_unfavorable = (meanT2_unfavorable/ntot_pair - delta2_unfavorable)/ntot_treatment;
-  arma::vec sigmaC_mixed = (meanC_mixed/ntot_pair - delta2_mixed)/ntot_control;
-  arma::vec sigmaT_mixed = (meanT_mixed/ntot_pair - delta2_mixed)/ntot_treatment;
+  arma::vec sigmaC_favorable = (meanC2_favorable/ntot_pair - delta2_favorable);
+  arma::vec sigmaT_favorable = (meanT2_favorable/ntot_pair - delta2_favorable);
+  arma::vec sigmaC_unfavorable = (meanC2_unfavorable/ntot_pair - delta2_unfavorable);
+  arma::vec sigmaT_unfavorable = (meanT2_unfavorable/ntot_pair - delta2_unfavorable);
+  arma::vec sigmaC_mixed = (meanC_mixed/ntot_pair - delta2_mixed);
+  arma::vec sigmaT_mixed = (meanT_mixed/ntot_pair - delta2_mixed);
   
-  Mvar.col(0) = sigmaC_favorable + sigmaT_favorable;
-  Mvar.col(1) = sigmaC_unfavorable + sigmaT_unfavorable; 
-  Mvar.col(2) = sigmaC_mixed + sigmaT_mixed;
+  Mvar.col(0) = sigmaC_favorable/ntot_control + sigmaT_favorable/ntot_treatment;
+  Mvar.col(1) = sigmaC_unfavorable/ntot_control + sigmaT_unfavorable/ntot_treatment; 
+  Mvar.col(2) = sigmaC_mixed/ntot_control + sigmaT_mixed/ntot_treatment;
   // Mvar.col(0) = trans(sum(pow(iid_favorable,2), 0));
   // Mvar.col(1) = trans(sum(pow(iid_unfavorable,2), 0));
   // Mvar.col(2) = trans(sum(iid_favorable % iid_unfavorable, 0));
@@ -131,7 +131,7 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
 	// compute variance at the pair level
 	arma::vec varUijF,varUijUF,covUijFUF;
 
-	if(keepScore){
+	if(keepScore){	  
 	  arma::mat pairScoreF(ntot_pair,D,fill::zeros);
 	  arma::mat pairScoreUF(ntot_pair,D,fill::zeros);
 	  arma::uvec indexRemainingPair;
@@ -143,14 +143,12 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
 		  pairScoreF.col(0) = lsScore[0].col(11);
 		  pairScoreUF.col(0) = lsScore[0].col(12);
 		}else{
-		  // Rcout << endl <<  "endpoint " << iter_d << endl;
 		  iUvec_iter_d = {iter_d};
 		  indexRemainingPair = conv_to<uvec>::from(lsScore[iter_d].col(3));
 		  pairScoreF.submat(indexRemainingPair, iUvec_iter_d) = lsScore[iter_d].col(11);
 		  pairScoreUF.submat(indexRemainingPair, iUvec_iter_d) = lsScore[iter_d].col(12);
 		}
 	  }
-
 	  pairScoreF.each_row() %= rowweight;
 	  pairScoreUF.each_row() %= rowweight;
 	  pairScoreF = cumsum(pairScoreF,1);
@@ -169,9 +167,9 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
 	}
 
 	// compute global variance
-	Mvar.col(0) += varUijF/ntot_pair - sigmaC_favorable/ntot_treatment - sigmaT_favorable/ntot_control;
-	Mvar.col(1) += varUijUF/ntot_pair - sigmaC_unfavorable/ntot_treatment - sigmaT_unfavorable/ntot_control;
-	Mvar.col(2) += covUijFUF/ntot_pair - sigmaC_mixed/ntot_treatment - sigmaT_mixed/ntot_control;
+	Mvar.col(0) += (varUijF - sigmaC_favorable - sigmaT_favorable)/(ntot_pair);
+	Mvar.col(1) += (varUijUF - sigmaC_unfavorable - sigmaT_unfavorable)/(ntot_pair);
+	Mvar.col(2) += (covUijFUF - sigmaC_mixed - sigmaT_mixed)/(ntot_pair);
   }
   // Rcout << endl << "delta method" << endl;  
   // delta method

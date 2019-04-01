@@ -121,33 +121,8 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
     n.endpoint <- length(endpoint)
     
     ## ** merge tables
-    keep.col <- c("strata","index.C","index.T","indexWithinStrata.C", "indexWithinStrata.T","favorableC","unfavorableC")
-    old.col <- c("favorableC","unfavorableC")
-    new.col <- c("favorable","unfavorable")
+    ls.table <- wsumPairScore(tablePairScore, weight = weight, n.endpoint = n.endpoint)
 
-    ## first endpoint
-    ls.table <- vector(mode = "list", length = n.endpoint)
-    ls.table[[1]] <- tablePairScore[[1]][,.SD,.SDcols = keep.col]
-    setnames(ls.table[[1]], old = old.col, new = new.col)
-    
-    if(n.endpoint>1){
-        ##
-        n.TCstrata <- tablePairScore[[1]][,length(unique(.SD$indexWithinStrata.C)), by = "strata"][[2]]
-
-        for(iE in 2:n.endpoint){ ## iE <- 2
-            iTable <- tablePairScore[[iE]][,.SD,.SDcols = keep.col]
-            setnames(iTable, old = old.col, new = new.col)
-            iTable[, c("indexTable") := (.SD$indexWithinStrata.T-1) * n.TCstrata[.GRP] + .SD$indexWithinStrata.C, by="strata"]
-
-            ls.table[[iE]] <- data.table::copy(ls.table[[iE-1]])
-            ls.table[[iE]][,c("favorable","unfavorable") := 0]
-            ls.table[[iE]][iTable$indexTable, c("favorable") := iTable$favorable]
-            ls.table[[iE]][iTable$indexTable, c("unfavorable") := iTable$unfavorable]
-        }
-    }
-    
-    ## ls.table[[1]][, mean(favorable)-mean(unfavorable)]
-    ## ls.table[[2]][, mean(favorable)-mean(unfavorable)]
     ## ** H-decomposition
     ## expectation
     Upartial.favorable <- count.favorable/n.pairs
@@ -173,12 +148,12 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
 
             ## *** Hajek projection
             ## \E[X_i>=Y_j+\tau|X_i] and \E[X_i+\tau<=Y_j|X_i]
-            sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.T"]
+            sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.T"]
             sumPair.T[, c("E.favorable") := .SD$favorable/.SD$pairs]
             sumPair.T[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
 
             ## \E[X_i>=Y_j+\tau|Y_j] and \E[X_i+\tau<=Y_j|Y_j]
-            sumPair.C <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.C"]
+            sumPair.C <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.C"]
             sumPair.C[, c("E.favorable") := .SD$favorable/.SD$pairs]
             sumPair.C[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
 
@@ -238,35 +213,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
     p1.unfavorable <- cumsum(count.unfavorable)/ntot.pairs
 
     ## ** merge tables
-    keep.col <- c("strata","index.C","index.T","indexWithinStrata.C", "indexWithinStrata.T","favorableC","unfavorableC")
-    old.col <- c("favorableC","unfavorableC")
-    new.col <- c("favorable","unfavorable")
-
-    ## first endpoint
-    ls.table <- vector(mode = "list", length = n.endpoint)
-    ls.table[[1]] <- data.table::copy(tablePairScore[[1]][,.SD,.SDcols = keep.col])
-    setnames(ls.table[[1]], old = old.col, new = new.col)
-    ls.table[[1]][,c("favorable") := .SD$favorable * weight[1]]
-    ls.table[[1]][,c("unfavorable") := .SD$unfavorable * weight[1]]
-    
-    if(n.endpoint>1){
-        ##
-        n.TCstrata <- tablePairScore[[1]][,length(unique(.SD$indexWithinStrata.C)), by = "strata"][[2]]
-
-        for(iE in 2:n.endpoint){ ## iE <- 2
-            iTable <- tablePairScore[[iE]][,.SD,.SDcols = keep.col]
-            setnames(iTable, old = old.col, new = new.col)
-            iTable[, c("indexTable") := (.SD$indexWithinStrata.T-1) * n.TCstrata[.GRP] + .SD$indexWithinStrata.C, by="strata"]
-
-            ls.table[[iE]] <- data.table::copy(ls.table[[iE-1]])
-    browser()
-            ls.table[[iE]][iTable$indexTable, c("favorable") := .SD$favorable + iTable$favorable * weight[iE]]
-            ls.table[[iE]][iTable$indexTable, c("unfavorable") := .SD$unfavorable + iTable$unfavorable * weight[iE]]
-        }
-    }
-    ## ls.table[[1]][, mean(favorable)-mean(unfavorable)]
-    ## ls.table[[2]][, mean(favorable)-mean(unfavorable)]
-
+    ls.table <- wsumPairScore(tablePairScore, weight = weight, n.endpoint = n.endpoint)
 
     ## ** compute variance component over strata
     M.cov <- matrix(0, nrow = n.endpoint, ncol = 3,
@@ -279,7 +226,8 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
     for(iStrata in 1:n.strata){ ## iStrata <- 1
 
         iN.strata <- n.pairs[iStrata]
-        iDT.nCT <- ls.table[[1]][ls.table[[1]]$strata == level.strata[iStrata], .(n.C = length(unique(.SD$index.C)),n.T = length(unique(.SD$index.T)))]
+        iDT.nCT <- ls.table[[1]][ls.table[[1]]$strata == level.strata[iStrata],
+                                 .(n.C = length(unique(.SD$indexWithinStrata.C)),n.T = length(unique(.SD$index.T)))]
         iN.C <- iDT.nCT$n.C
         iN.T <- iDT.nCT$n.T
         
@@ -291,7 +239,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
 
             ## *** Hajek projection
             ## \E[X_i>=Y_j+\tau|X_i] and \E[X_i+\tau<=Y_j|X_i]
-            sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "indexWithinStrata.T"]
+            sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.T"]
             sumPair.T[, c("E.favorable") := .SD$favorable/.SD$pairs]
             sumPair.T[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
                 
@@ -332,6 +280,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
             }
 
         }
+
         ## *** first order terms: compute xi
         ## P[X1>Y1 & X1>Y1'] - P[X1>Y1]^2
         xi_10_11 <- strataSum["favorableT",] - p1.favorable^2

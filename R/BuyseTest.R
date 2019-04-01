@@ -331,11 +331,7 @@ BuyseTest <- function(formula,
 
     ## check number of pairs
     if(option$check){
-        vec.nPair <- sapply(1:length(outArgs$level.strata), function(iStrata){            
-            iN.C <- length(intersect(outArgs$index.C, outArgs$index.strata[[iStrata]]))
-            iN.T <- length(intersect(outArgs$index.T, outArgs$index.strata[[iStrata]]))
-            return(iN.C*iN.T)
-        })
+        vec.nPair <- (outPoint$count_favorable + outPoint$count_unfavorable + outPoint$count_neutral + outPoint$count_uninf )[,1]
         if(any(abs(outPoint$n_pairs - vec.nPair) > 0.01)){
             warning("Incorrect estimation of the number of pairs \n",
                     "Something probably went wrong - contact the package maintainer\n")
@@ -633,7 +629,7 @@ BuyseTest <- function(formula,
                      hierarchical = envir$outArgs$hierarchical,
                      hprojection = envir$outArgs$order.Hprojection,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
-                     keepScore = envir$outArgs$keep.pairScore,
+                     keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                      reserve = TRUE,
                      returnIID = iid
                      ) 

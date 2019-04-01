@@ -29,6 +29,7 @@ Before going further we need to load the *BuyseTest* package in the R
 session:
 #+BEGIN_SRC R  :results silent   :exports code  :session *R* :cache no
 library(BuyseTest)
+library(data.table)
 #+END_SRC
 
 \bigskip
@@ -42,7 +43,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '1.7.3'
+: [1] '1.7.5'
 
 \vfill
 
@@ -226,6 +227,9 @@ BT.multi2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status",) + 
                       hierarchical = FALSE,
                       data = veteran, method.inference = "none", trace = 0)
 #+END_SRC
+
+#+RESULTS:
+
 In that case the score of a pair is the weighted sum of the score
 relative to each endpoint. By default the weights are all set to 1 but
 this behavior can be changed by setting the argument =weight= when
@@ -421,7 +425,7 @@ the argument =method.inference= to ="bootstrap"= when calling
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
                      data = veteran, trace = 0, method.inference = "bootstrap",
-                     n.resampling = 25) 
+                     n.resampling = 25) 2
 summary(BT.boot)
 #+END_SRC
 
@@ -437,10 +441,35 @@ summary(BT.boot)
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > censored pairs  : use Kaplan Meier survival curves to compute the score
  > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
-  CI [2.5 ; 97.5] p.value 
- [-0.1802;0.0248]     0.2
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta  CI [2.5 ; 97.5] p.value 
+     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877 [-0.1802;0.0248]     0.2
+#+end_example
+
+For the Gehan scoring rule, setting the argument =method.inference= to
+="bootstrap"= when calling =BuyseTest= lead 
+a direct calculation of the
+variance of the net benefit is feasible. This is obtain
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.ustat <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
+                      data = veteran, trace = 0, method.inference = "u-statistic",
+                      scoring.rule = "Gehan") 
+summary(BT.ustat)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > confidence level: 0.95 
+ > inference       : H-projection of order 1
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > censored pairs  : uninformative pairs
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta  CI [2.5 ; 97.5] p.value 
+     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916 [-0.2708;0.0936]  0.3323
 #+end_example
 
 

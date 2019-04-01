@@ -8,12 +8,13 @@
 \title{Extract the Score of Each Pair}
 \usage{
 getPairScore(object, endpoint = NULL, strata = NULL,
-  rm.withinStrata = TRUE, rm.weight = FALSE, unlist = TRUE,
-  trace = 1)
+  rm.withinStrata = TRUE, rm.strata = is.na(object@strata),
+  rm.indexPair = TRUE, rm.weight = FALSE, unlist = TRUE, trace = 1)
 
 \S4method{getPairScore}{BuyseRes}(object, endpoint = NULL,
-  strata = NULL, rm.withinStrata = TRUE, rm.weight = FALSE,
-  unlist = TRUE, trace = 1)
+  strata = NULL, rm.withinStrata = TRUE,
+  rm.strata = is.na(object@strata), rm.indexPair = TRUE,
+  rm.weight = FALSE, unlist = TRUE, trace = 1)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
@@ -24,6 +25,10 @@ getPairScore(object, endpoint = NULL, strata = NULL,
 
 \item{rm.withinStrata}{[logical] should the columns indicating the position of each member of the pair
 within each treatment group be removed?}
+
+\item{rm.strata}{[logical] should the column containing the level of the strata variable be removed from the output?}
+
+\item{rm.indexPair}{[logical] should the column containing the number associated to each pair be removed from the output?}
 
 \item{rm.weight}{[logical] should the column weight be remove from the output?}
 

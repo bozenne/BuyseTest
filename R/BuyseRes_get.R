@@ -53,6 +53,8 @@ setMethod(f = "getCount",
 #' @param strata [integer/character vector] the strata for which the scores should be output.
 #' @param rm.withinStrata [logical] should the columns indicating the position of each member of the pair
 #' within each treatment group be removed?
+#' @param rm.strata [logical] should the column containing the level of the strata variable be removed from the output?
+#' @param rm.indexPair [logical] should the column containing the number associated to each pair be removed from the output?
 #' @param rm.weight [logical] should the column weight be remove from the output?
 #' @param unlist [logical] should the structure of the output be simplified when possible?
 #' @param trace [logical] should a message be printed to explain what happened
@@ -135,7 +137,7 @@ setMethod(f = "getCount",
 setMethod(f = "getPairScore",
           signature = "BuyseRes",
           definition = function(object, endpoint, strata,
-                                rm.withinStrata, rm.weight,
+                                rm.withinStrata, rm.strata, rm.indexPair, rm.weight,
                                 unlist, trace){
 
               if(length(object@tablePairScore)==0){
@@ -181,9 +183,6 @@ setMethod(f = "getPairScore",
                           index.strata <- which(out[[iEndpoint]]$strata %in% strata)
                           out[[iEndpoint]][, c("strata") := factor(.SD$strata, levels = 1:length(strata.names), labels = strata.names)]
                           out[[iEndpoint]] <- out[[iEndpoint]][index.strata]
-                          if(length(strata)==1 && unlist == TRUE){
-                              out[[iEndpoint]][,c("strata") := NULL]
-                          }
                       }
 
                   }
@@ -197,6 +196,12 @@ setMethod(f = "getPairScore",
                           setnames(out[[iEndpoint]], old = old.names[1:2], new = new.names[1:2])
                       }else{
                           setnames(out[[iEndpoint]], old = old.names, new = new.names)
+                      }
+                      if(rm.indexPair){
+                          out[[iEndpoint]][,c("index.pair") := NULL]
+                      }
+                      if(rm.strata){
+                          out[[iEndpoint]][,c("strata") := NULL]
                       }
                       if(rm.weight){
                           out[[iEndpoint]][,c("weight") := NULL]

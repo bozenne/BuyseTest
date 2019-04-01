@@ -94,7 +94,6 @@ List GPC_cpp(arma::mat endpoint,
   // If the pair is partially or completely classed uninformative or neutral, the remaining weight is used for the following endpoints.
   // EX : pair 1 is 0.15 favorable and 0.45 unfavorable for survival endpoint 1. Then the remaining 0.4 are passed to endpoint 2 that class it into favorable.
 
-  
   /// ** initialization
   // *** final results
   arma::mat Mcount_favorable(n_strata,D,fill::zeros); // store the total weight of favorable pairs by endpoint for each strata
@@ -216,9 +215,10 @@ List GPC_cpp(arma::mat endpoint,
 							  neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
 		// add to the total number of pairs the number of pairs found for this endpoint
 		if(iter_d==0){
-		  n_pairs[iter_strata] = Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
 		  n_control[iter_strata] = posC[iter_strata].size();
 		  n_treatment[iter_strata] = posT[iter_strata].size();		  
+		  n_pairs[iter_strata] = n_control[iter_strata] * n_treatment[iter_strata];
+		  //= Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
 		  if(iter_strata == 0){
 			n_cumpairsM1[0] = 0;
 		  }else{
@@ -266,7 +266,7 @@ List GPC_cpp(arma::mat endpoint,
 		for(int iPair=0; iPair < iNpairs; iPair++){
 		  iMat(iPair,1) = posC[iter_strata](iScore(iPair,0));
 		  iMat(iPair,2) = posT[iter_strata](iScore(iPair,1));
-		  iMat(iPair,3) = iScore(iPair,1) + iScore(iPair,0)*n_control[iter_strata] + n_cumpairsM1[iter_strata];
+		  iMat(iPair,3) = iScore(iPair,0) + iScore(iPair,1)*n_control[iter_strata] + n_cumpairsM1[iter_strata];
 		}
 		// merge with current table and store
 		if(iter_strata==0){

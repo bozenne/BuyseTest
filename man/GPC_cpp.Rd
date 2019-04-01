@@ -8,7 +8,7 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
   method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint,
   index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT,
   list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf,
-  hierarchical, neutralAsUninf, keepScore, reserve, returnIID)
+  hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
@@ -60,6 +60,8 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 \item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 
 \item{hierarchical}{Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
+
+\item{hprojection}{Order of the H-projection used to compute the variance.}
 
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?}
 

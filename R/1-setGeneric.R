@@ -20,7 +20,8 @@ setGeneric(name = "getCount",
 #' @exportMethod getPairScore
 setGeneric(name = "getPairScore",
            def = function(object, endpoint = NULL, strata = NULL,
-                          rm.withinStrata = TRUE, rm.weight = FALSE,
+                          rm.withinStrata = TRUE, rm.strata = is.na(object@strata),
+                          rm.indexPair = TRUE, rm.weight = FALSE,
                           unlist = TRUE, trace = 1){
                standardGeneric("getPairScore")
            }

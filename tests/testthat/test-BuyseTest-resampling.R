@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: mar 28 2019 (15:46) 
+## last-updated: apr  1 2019 (18:36) 
 ##           By: Brice Ozenne
-##     Update #: 112
+##     Update #: 113
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -25,7 +25,8 @@ if(FALSE){
 
 ## * settings
 BuyseTest.options(check = TRUE,
-                  keep.pairScore = TRUE,                  
+                  keep.pairScore = TRUE,
+                  order.Hprojection = 1,
                   trace = 0)
 n.patients <- 100
 method <- "Peron"
@@ -250,7 +251,7 @@ test_that("Bootstrap", {
         
         ## BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
         iBT.boot <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-                                               data = dt.boot, scoring.rule = method,
+                                               data = dt.boot, scoring.rule = method,                                               
                                                method.inference = "u-statistic"))
 
         expect_equal(as.double(iBT.boot@delta.netBenefit),

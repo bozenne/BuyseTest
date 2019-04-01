@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: mar 29 2019 (18:32) 
+## Last-Updated: apr  1 2019 (17:13) 
 ##           By: Brice Ozenne
-##     Update #: 96
+##     Update #: 97
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -172,7 +172,6 @@ test_that("ordering of tied event does not affect BuyseTest", {
     
 
 })
-
 
 ## * Brice: 26/09/18 x:xx (Multiple thresholds in Julien's simulations)
 
@@ -381,36 +380,3 @@ test_that("same p.value (permutation test) for winRatio and net Benefit", {
 
 })
 
-## * Brice: 29/03/19: variance with strata and u-statistic-bebu
-
-set.seed(10)
-dSurv <- data.frame(Treatment = c(rep("C",10),rep("T",10)),
-                    score = rnorm(20),
-                    toxicity = rbinom(20, size = 1, prob = 0.5)
-)
-dSurv2 <- rbind(cbind(dSurv, strata = 1),
-                cbind(dSurv, strata = 2),
-                cbind(dSurv, strata = 3))
-BuyseTest.options(order.Hprojection = 1)
-
-eBT1c <- BuyseTest(Treatment ~ cont(score, threshold = 1) + bin(toxicity) + strata,
-                   ## method.inference = "u-statistic-bebu", keep.pairScore = TRUE,
-                   method.inference = "none", keep.pairScore = TRUE,
-                   data = dSurv2)
-eBT1c@covariance
-eBT1c@tablePairScore
-eBT1c@tablePairScore[[1]]
-
-keep.col <- c("favorable", "unfavorable", "neutral", "uninf", "weight", "favorableC", "unfavorableC", "neutralC", "uninfC")
-table(eBT1c@tablePairScore[[1]][strata == 1, .SD, .SDcols = keep.col] - eBT1c@tablePairScore[[1]][strata == 2, .SD, .SDcols = keep.col])
-table(eBT1c@tablePairScore[[1]][strata == 1, .SD, .SDcols = keep.col] - eBT1c@tablePairScore[[1]][strata == 3, .SD, .SDcols = keep.col])
-
-table(eBT1c@tablePairScore[[2]][strata == 1, .SD, .SDcols = keep.col] - eBT1c@tablePairScore[[2]][strata == 2, .SD, .SDcols = keep.col])
-table(eBT1c@tablePairScore[[2]][strata == 1, .SD, .SDcols = keep.col] - eBT1c@tablePairScore[[2]][strata == 3, .SD, .SDcols = keep.col])
-
-keep.col <- c("favorable", "unfavorable")
-table(ls.table[[1]][strata == 1, .SD, .SDcols = keep.col] - ls.table[[1]][strata == 2, .SD, .SDcols = keep.col])
-table(ls.table[[1]][strata == 1, .SD, .SDcols = keep.col] - ls.table[[1]][strata == 3, .SD, .SDcols = keep.col])
-
-table(ls.table[[2]][strata == 1, .SD, .SDcols = keep.col] - ls.table[[2]][strata == 2, .SD, .SDcols = keep.col])
-table(ls.table[[2]][strata == 1, .SD, .SDcols = keep.col] - ls.table[[2]][strata == 3, .SD, .SDcols = keep.col])
