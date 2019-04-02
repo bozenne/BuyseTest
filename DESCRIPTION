@@ -38,6 +38,7 @@ Imports:
 Suggests:
     pbapply,
     R.rsp,
+	riskRegression,
     survival,
     testthat
 LinkingTo: Rcpp, RcppArmadillo

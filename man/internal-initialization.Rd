@@ -22,7 +22,7 @@ initializeFormula(x)
 
 initializePeron(data, model.tte, method.score, treatment, level.treatment,
   endpoint, endpoint.UTTE, censoring, D.TTE, D.UTTE, type, strata,
-  threshold, n.strata, out)
+  threshold, n.strata, iid, out)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

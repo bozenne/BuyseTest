@@ -598,6 +598,7 @@ BuyseTest <- function(formula,
                                    threshold = envir$outArgs$threshold,
                                    n.strata = n.strata,
                                    strata = envir$outArgs$strata,
+                                   iid = iid,
                                    out = envir$outArgs$outSurv)
     }
 

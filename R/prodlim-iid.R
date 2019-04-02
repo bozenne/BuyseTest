@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: apr  2 2019 (11:23) 
+## Last-Updated: apr  2 2019 (16:08) 
 ##           By: Brice Ozenne
-##     Update #: 49
+##     Update #: 66
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,7 +20,7 @@
 #' @description Compute the influence function for each observation used to estimate the model
 #' @name iidProdlim
 #' 
-#' @param object object A prodlim object
+#' @param object A prodlim object
 #' 
 #' @details
 #' This function is a simplified version of the iidCox function of the riskRegression package.
@@ -45,8 +45,6 @@
 #' 
 #' e.KM <- prodlim(Hist(eventtime,status)~Treatment, data = dt)
 #' iidProdlim(e.KM)
-#' ## e.KM2 <- survival::coxph(Surv(eventtime,status)~strata(Treatment), data = dt,x=TRUE,y=TRUE)
-#' ## microbenchmark::microbenchmark(GS = iidCox(e.KM2), new = iidProdlim(e.KM), times = 5)
 #'
 #'
 #' 
@@ -58,6 +56,13 @@
 #' @export
 iidProdlim <- function(object){
 
+    if(!inherits(object,"prodlim")){
+        stop("Argument \'object\' must inherit from prodlim \n")
+    }
+    if(object$type!="surv"){
+        stop("Influence function only available for survival models \n")
+    }
+    
     ## ** extract elements from object
     is.strata <- !is.null(object$X)
     strataVar <- names(object$X)
@@ -68,7 +73,6 @@ iidProdlim <- function(object){
     }else{
         n.strata <- 1
     }
-
     level.strata <- as.character(interaction(object$X))
     vec.strata <- factor(interaction(object$model.matrix[object$originalDataOrder,,drop=FALSE]), levels = level.strata)
     vec.strataNum <- as.numeric(vec.strata)
@@ -95,6 +99,7 @@ iidProdlim <- function(object){
     ## -\Ind[strata] \int(\lambda0/S0) - jump/S0)
     IFhazard <- vector(mode = "list", length = n.strata)
     IFcumhazard <- vector(mode = "list", length = n.strata)
+    IFsurvival <- vector(mode = "list", length = n.strata)
     ls.Utime1 <- vector(mode = "list", length = n.strata)
     
     for(iStrata in 1:n.strata){ ## iStrata <- 1
@@ -107,6 +112,7 @@ iidProdlim <- function(object){
         ## prepare
         IFhazard[[iStrata]] <- matrix(0, nrow = n.obs, ncol = iN.time)
         IFcumhazard[[iStrata]] <- matrix(0, nrow = n.obs, ncol = iN.time)
+        IFsurvival[[iStrata]] <- matrix(0, nrow = n.obs, ncol = iN.time)
 
         ## only keep observation in the strata and with eventtime at or after the first jump
         iSubsetObs <- intersect(which(vec.strataNum==iStrata),
@@ -129,14 +135,22 @@ iidProdlim <- function(object){
          
         ## cumulative hazard
         IFcumhazard[[iStrata]][iSubsetObs,] <- t(apply(IFhazard[[iStrata]][iSubsetObs,],1,cumsum))
+
+        ## survival
+        ## note use exp(-surv) instead of product limit for consistency with riskRegression
+        IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = exp(-cumsum(iTableHazard$hazard)), MARGIN = 2)
+        ## IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = iTableHazard$survival, MARGIN = 2)
     }
+
     
     ## ** Export
     return(list(IFhazard = IFhazard,
                 IFcumhazard = IFcumhazard,
+                IFsurvival = IFsurvival,
                 time = ls.Utime1, 
                 etime.max = as.double(tapply(tableHazard$time,tableHazard$strata.index, max)),
-                label.strata = level.strata
+                label.strata = level.strata,
+                X = object$X
                 ))
 }
 

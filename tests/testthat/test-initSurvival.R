@@ -40,7 +40,7 @@ data <- rbind(dataC, dataT)
 seqThreshold <- c(0,0.5,1)
 
 ## ** tests
-for(iData in 1:3){ ## iData <- 1
+for(iData in 1:3){ ## iData <- 1 
 
     data[, status := .SD[[paste0("status",iData)]]]
 

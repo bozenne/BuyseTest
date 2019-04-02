@@ -7,7 +7,7 @@
 iidProdlim(object)
 }
 \arguments{
-\item{object}{object A prodlim object}
+\item{object}{A prodlim object}
 }
 \description{
 Compute the influence function for each observation used to estimate the model
@@ -26,8 +26,6 @@ setkeyv(dt, "Treatment")
 
 e.KM <- prodlim(Hist(eventtime,status)~Treatment, data = dt)
 iidProdlim(e.KM)
-## e.KM2 <- survival::coxph(Surv(eventtime,status)~strata(Treatment), data = dt,x=TRUE,y=TRUE)
-## microbenchmark::microbenchmark(GS = iidCox(e.KM2), new = iidProdlim(e.KM), times = 5)
 
 
 
