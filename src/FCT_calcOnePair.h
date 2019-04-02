@@ -20,7 +20,7 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double delta_C, d
 inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
 											arma::rowvec survTimeC, arma::rowvec survTimeT,
 											const arma::mat& survJumpC, const arma::mat& survJumpT,
-											double lastSurvC, double lastSurvT);
+											double lastSurvC, double lastSurvT, bool returnIID);
 
 std::vector<double> calcIntegralScore_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv);
 
@@ -119,7 +119,7 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double delta_C, d
 inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double endpoint_T, double delta_C, double delta_T, double threshold,
 											arma::rowvec survTimeC, arma::rowvec survTimeT,
 											const arma::mat& survJumpC, const arma::mat& survJumpT,
-											double lastSurvC, double lastSurvT){
+											 double lastSurvC, double lastSurvT, bool returnIID){
   
   // survTimeC and survTimeT: survival at control/treatment observation times
   //        [0]    time 
@@ -191,6 +191,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeT(3))==false){
 		  score[1] = survTimeT(3)/survTimeC(2); //  [Sc(x_i+tau)/Sc(y_j)]
 		  upperUnfavorable = score[1];
+		  Rcout << survTimeT << survTimeC << endl;
 		}else {
 		  // score[1] = 0.0 // (lower bound)
 		  upperUnfavorable = lastSurvC/survTimeC(2); // (upper bound)

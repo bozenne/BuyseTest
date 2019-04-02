@@ -79,6 +79,8 @@ List GPC_cpp(arma::mat endpoint,
 			 std::vector< std::vector< arma::mat > > list_survJumpC,
 			 std::vector< std::vector< arma::mat > > list_survJumpT,
 			 std::vector< arma::mat > list_lastSurv,
+			 arma::mat p_C,
+			 arma::mat p_T,
 			 int correctionUninf,
 			 bool hierarchical,
 			 int hprojection,
@@ -108,6 +110,8 @@ List GPC_cpp(arma::mat endpoint,
   // Partial favorable/unfavorable
   arma::mat iid_favorable;
   arma::mat iid_unfavorable;
+  // std::vector< arma::mat > wNuisance_iidC(n_strata); // iid for the nuisance parameters (Peron)
+  // std::vector< arma::mat > wNuisance_iidT(n_strata); // iid for the nuisance parameters (Peron)
   arma::mat Mvar;
   if(returnIID){
 	iid_favorable.resize(endpoint.n_rows,D);
@@ -211,7 +215,7 @@ List GPC_cpp(arma::mat endpoint,
 							  Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
 							  iIndex_control, iIndex_treatment,
 							  iWeight, iVecFavorable, iVecUnfavorable,
-							  iPartialCount_C, iPartialCount_T, returnIID, 
+							  iPartialCount_C, iPartialCount_T, p_C(iter_strata,iter_d), p_T(iter_strata,iter_d), returnIID, 
 							  neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
 		// add to the total number of pairs the number of pairs found for this endpoint
 		if(iter_d==0){
@@ -239,7 +243,7 @@ List GPC_cpp(arma::mat endpoint,
 								 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 								 iIndex_control, iIndex_treatment, 
 								 iWeight, iIndexWeight_pair, iVecFavorable, iVecUnfavorable,
-								 iPartialCount_C, iPartialCount_T, returnIID, 
+								 iPartialCount_C, iPartialCount_T, p_C(iter_strata,iter_d), p_T(iter_strata,iter_d), returnIID, 
 								 neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
       }
       R_CheckUserInterrupt();

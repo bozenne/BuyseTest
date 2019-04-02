@@ -21,7 +21,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 		       std::vector< int >& index_control, std::vector< int >& index_treatment, 
 		       arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-					   arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+			   arma::mat& MC_iid, arma::mat& MT_iid, int p_C, int p_T, bool returnIID,
 		       bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve);
 
 arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double threshold, 
@@ -34,7 +34,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 			  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 			  std::vector< int >& index_control, std::vector< int >& index_treatment, 
 			  arma::vec& weight, arma::uvec& index_weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-						  arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+			  arma::mat& MC_iid, arma::mat& MT_iid, int p_C, int p_T, bool returnIID,
 			  bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve);
 
 void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_uninfT, 
@@ -75,7 +75,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 					   std::vector< int >& index_control, std::vector< int >& index_treatment, 
 					   arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-					   arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
+					   arma::mat& partialCount_C, arma::mat& partialCount_T, int p_C, int p_T, bool returnIID,
 					   bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
 
   // ** initialize
@@ -149,7 +149,8 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
 									   deltaC[iter_C], deltaT[iter_T], threshold,
 									   survTimeC.row(iter_C), survTimeT.row(iter_T),
-									   survJumpC, survJumpT, lastSurvC, lastSurvT);
+									   survJumpC, survJumpT, lastSurvC, lastSurvT,
+									   returnIID);
 
 		if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
 		  // store for future endpoints
@@ -274,7 +275,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 						  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 						  std::vector< int >& index_control, std::vector< int >& index_treatment, 
 						  arma::vec& weight, arma::uvec& index_weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-						  arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID, 
+						  arma::mat& partialCount_C, arma::mat& partialCount_T, int p_C, int p_T, bool returnIID, 
 						  bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
   // Rcout << "start calcSubsetPairs " << endl;
   
@@ -367,7 +368,8 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
       iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
 									 deltaC[iter_C], deltaT[iter_T], threshold,
 									 survTimeC.row(iter_C), survTimeT.row(iter_T),
-									 survJumpC, survJumpT, lastSurvC, lastSurvT);
+									 survJumpC, survJumpT, lastSurvC, lastSurvT,
+									 returnIID);
 
       if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
 		// store for future endpoints
