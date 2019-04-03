@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr  1 2019 (17:13) 
+## Last-Updated: apr  3 2019 (14:54) 
 ##           By: Brice Ozenne
-##     Update #: 97
+##     Update #: 100
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -380,3 +380,22 @@ test_that("same p.value (permutation test) for winRatio and net Benefit", {
 
 })
 
+
+## * Alice, Brouquet-Laglair: 3 avril 2019 p-value bootstrap
+df <- rbind(data.frame(score = rep(1,5),
+                       tox = 0,
+                       group = 1),
+            data.frame(score = rep(0,5),
+                       tox = 0,
+                       group = 0)
+            )
+
+test_that("BuyseTest without variability", {
+    e.BT_ustat <- BuyseTest(group ~ bin(tox) + cont(score), data = df,
+                            method.inference = "u-statistic")
+    e.BT_boot <- BuyseTest(group ~ bin(tox) + cont(score), data = df,
+                           method.inference = "studentized bootstrap",
+                           n.resampling = 10)
+    expect_equal(unname(confint(e.BT_ustat)[,"p.value"]),1:0)
+    expect_equal(unname(confint(e.BT_boot)[,"p.value"]),1:0)
+})

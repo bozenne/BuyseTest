@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  2 2019 (11:46) 
+## Last-Updated: apr  3 2019 (14:53) 
 ##           By: Brice Ozenne
-##     Update #: 492
+##     Update #: 522
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -74,6 +74,7 @@ setMethod(f = "confint",
                                 transformation = NULL){
 
               option <- BuyseTest.options()
+              D <- length(object@endpoint)
               method.inference <- object@method.inference
               if(is.null(statistic)){
                   statistic <- option$statistic
@@ -199,9 +200,10 @@ setMethod(f = "confint",
                   if(method.ci.boot=="percentile"){
                       transformation <- FALSE
                   }
-              } 
-
+              }
+              
               ## ** transformation
+              
               if(transformation){
                   trans.delta <- switch(statistic,
                                         "netBenefit" = atanh,
@@ -210,11 +212,31 @@ setMethod(f = "confint",
                                          "netBenefit" = tanh,
                                          "winRatio" = exp)                  
                   trans.se.delta <- switch(statistic,
-                                           "netBenefit" = function(x,se){if(!is.null(se)){se/(1-x^2)}else{se}},
-                                           "winRatio" = function(x,se){if(!is.null(se)){se/x}else{se}})
+                                           "netBenefit" = function(x,se){
+                                               if(!is.null(se)){
+                                                   out <- se
+                                               }else{
+                                                   out <- se/(1-x^2)
+                                                   if(any(se==0)){
+                                                       out[se==0] <- 0
+                                                   }
+                                               }
+                                               return(se)
+                                           },
+                                           "winRatio" = function(x,se){
+                                               if(!is.null(se)){
+                                                   out <- se
+                                               }else{
+                                                   out <- se/x
+                                                   if(any(se==0)){
+                                                       out[se==0] <- 0
+                                                   }
+                                               }
+                                               return(se)
+                                           })
                   itrans.se <- switch(statistic,
-                                           "netBenefit" = function(x,se){if(!is.null(se)){se*(1-itrans.delta(x)^2)}else{se}},
-                                           "winRatio" = function(x,se){if(!is.null(se)){se*itrans.delta(x)}else{se}})
+                                      "netBenefit" = function(x,se){if(!is.null(se) && se>0){se*(1-itrans.delta(x)^2)}else{se}},
+                                      "winRatio" = function(x,se){if(!is.null(se) && se>0){se*itrans.delta(x)}else{se}})
               }else{
                   trans.delta <- function(x){x}
                   itrans.delta <- function(x){x}
@@ -370,7 +392,6 @@ confint_gaussian <- function(Delta, Delta.resampling,
                                                         "less" = Delta + stats::qnorm(1-alpha) * Delta.se,
                                                         "greater" = Inf
                                                         ))
-
     ## ** p-value
     outTable[,"p.value"] <- switch(alternative,
                                    "two.sided" = 2*(1-stats::pnorm(abs((Delta-null)/Delta.se))), 
@@ -411,7 +432,7 @@ confint_student <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampli
                          "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha/2),
                          "less" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha),
                          "greater" = Inf
-                         )    
+                         )
 
     ## ** confidence interval
     outTable[,"lower.ci"] <- backtransform.delta(Delta + Delta.qInf * Delta.se)
@@ -435,6 +456,15 @@ confint_student <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampli
                                                alternative = alternative, FUN.ci = quantileCI2, checkSign = FALSE)
     }
 
+    ## special case
+    if(any(Delta.se==0)){
+        index0 <- which(Delta.se==0)
+        outTable[index0,"lower.ci"] <- outTable[index0,"estimate"]
+        outTable[index0,"upper.ci"] <- outTable[index0,"estimate"]
+        outTable[index0,"p.value"] <- as.numeric(outTable[index0,"estimate"]==null)
+    }
+
+    
     ## ** export
     return(outTable)
 
@@ -477,6 +507,11 @@ confint_Ustatistic <- function(Delta, Delta.se, statistic, null,
                                    "less" = stats::pnorm((Delta-null)/Delta.se),
                                    "greater" = 1-stats::pnorm((Delta-null)/Delta.se) 
                                    )
+
+    ## special case with no variability
+    if(any((Delta==null)*(Delta.se==0) == 1)){
+        outTable[(Delta==null)*(Delta.se==0) == 1,"p.value"] <- 1
+    }
 
     ## ** export
     return(outTable)
