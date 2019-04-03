@@ -1,0 +1,39 @@
+---
+title: "Dealing with CR"
+author: "Eva Cantagallo"
+date: "3 avril 2019"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(BuyseTest)
+```
+
+\section{Dealing with competing risks}
+GPC can be used to analyze time-to-event endpoints subject to competing risks. Only two competing risks can be handled for each endpoint so far : the event of interest and one type of competing event. The former should be denoted by 1 in the censoring variable(s) while the latter should be denoted by 2. As an example, let us analyze the time to an event of interest, say death due to cancer, with death due to other causes being a competing event, in the following dataset:
+
+```{r}
+set.seed(10)
+dt.CR <- simBuyseTest(5e2, argsCont = NULL, argsTTE = list(CR = TRUE), latent = FALSE)
+head(dt.CR)
+```
+
+The \texttt{censoring} variable, called status in the dataset, contains the following levels:
+
+```{r}
+levels(as.factor(dt.CR[,status]))
+```
+
+with 0 indicating a censored observation, 1 an event of interest (time to death due to cancer is observed) and 2 a competing event (time to death due to other causes is observed). We perform the GPC analysis on this time-to-event endpoint with a threshold of 1 year using the \texttt{method.tte} equal to \texttt{"Peron"} :
+
+```{r}
+BT.CR <- BuyseTest(Treatment ~ tte(eventtime, threshold = 1, censoring = "status"), data = dt.CR, trace = 0, method.inference = "bootstrap",
+                   method.tte = "Peron", n.resampling = 100)
+summary(BT.CR)
+```
+
+Even though the net benefit is not significant, its positive value 

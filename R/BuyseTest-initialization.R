@@ -26,7 +26,8 @@
 #' \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 #' Merge the strata into one with the interaction variable.
 #' Extract for each strata the index of the observations within each group.
-#' \code{initializeSurvival}: Compute the survival via KM.
+#' \code{initializePeron}: Compute the cumulative incidence functions using the Aalen-Johansen estimator in the presence of competing risks
+#' (i.e. when '2' are contained in the censoring variable(s)) and the survival curves via Kaplan-Meier otherwise.
 #' 
 #' @keywords function internal BuyseTest
 #' @author Brice Ozenne, Eva Cantagallo
@@ -541,6 +542,7 @@ initializePeron <- function(data,
                             method.score,
                             treatment,
                             level.treatment,
+                            level.strata,
                             endpoint,
                             endpoint.UTTE,
                             censoring,
@@ -581,6 +583,7 @@ initializePeron <- function(data,
 
     ## ** estimate cumulative incidence function (survival case or competing risk case)
     if(is.null(model.tte)){
+  
         model.tte <- vector(length = D.UTTE, mode = "list")
         names(model.tte) <- endpoint.UTTE
 
@@ -592,7 +595,7 @@ initializePeron <- function(data,
         }
         
     }else{ 
-        for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
+        for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.UTTE <- 1
             ## convert treatment to numeric
             model.tte[[iEndpoint.UTTE]]$X[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.UTTE]]$X[[treatment]], levels = level.treatment))-1
             p <- NCOL(model.tte[[iEndpoint.UTTE]]$X)
@@ -603,15 +606,26 @@ initializePeron <- function(data,
                                                        "..strata.." = 1)
             }else{
                 col.strata <- setdiff(1:p,which(colnames(model.tte[[iEndpoint.UTTE]]$X)==treatment))
-                value.strata <- apply(model.tte[[iEndpoint.UTTE]]$X[,col.strata],1,paste0,collapse="")
+                value.strata <- apply(model.tte[[iEndpoint.UTTE]]$X[,col.strata,drop=FALSE],1,paste,collapse=".")
+                
+                name.strata.prodlim <- sort(unique(value.strata))
+                name.strata.BuyseTest <- sort(level.strata)
+           
+                if(any(name.strata.prodlim != name.strata.BuyseTest)){
+                  currentorder <- setdiff(names(model.tte[[iEndpoint.UTTE]]$xlevels),treatment)
+                  stop("BuyseTest: strata defined in argument \'model.tte\' do not match strata defined in the argument \'formula\' or \'strata\' \n",
+                       "prodlim strata variables: \"",paste(currentorder, collapse = "\" \""),"\"\n",
+                       "BuyseTest strata variables: \"",paste(strata, collapse = "\" \""),"\"\n",
+                       "(order of the variables matters)")
+                }
                 model.tte[[iEndpoint.UTTE]]$X <- cbind(model.tte[[iEndpoint.UTTE]]$X,
-                                                       "..strata.." = as.numeric(as.factor(value.strata)))
-
+                                                       "..strata.." = as.numeric(factor(value.strata, levels = level.strata)))
+                
             }
         }
     }
-    
-    ## ** predict individual survival
+ 
+      ## ** predict individual survival
     ## *** fill
     for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
         iEndpoint.UTTE.name <- endpoint.UTTE[iEndpoint.UTTE]

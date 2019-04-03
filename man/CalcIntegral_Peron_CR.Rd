@@ -7,7 +7,7 @@
 CalcIntegral_Peron_CR(cif, start_val, stop_val, CIF_t, lastCIF, type)
 }
 \arguments{
-\item{cif}{[matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group 
+\item{cif}{[matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
 T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).}
 
 \item{start_val}{[numeric] Time at which to start the integral.}
@@ -18,12 +18,15 @@ T at times - tau and times + tau, cif[4] : jump in cif of control group at times
 
 \item{lastCIF}{[numeric, >0] last value of CIF of event type 1 in group T.}
 
-\item{type}{[numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two 
-events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with 
+\item{type}{[numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two
+events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with
 t+tau and t-tau).}
 }
 \description{
 Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
+}
+\author{
+Eva Cantagallo
 }
 \keyword{Cpp}
 \keyword{function}

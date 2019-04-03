@@ -108,7 +108,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   }
   // }
 
-  if(method==3 && (updateIndexNeutral ||updateIndexUninf)){
+  if((method==3 || method==4) && (updateIndexNeutral || updateIndexUninf)){
     vecUnfavorable.resize(0);
     vecFavorable.resize(0);
     if(reserve){
@@ -323,7 +323,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
   }
 
   // store score of neutral and uniformative pairs when method is Peron
-  if(method==3 && reAnalyzed && (updateIndexNeutral ||updateIndexUninf)){
+  if((method==3 || method==4) && reAnalyzed && (updateIndexNeutral ||updateIndexUninf)){
     vecUnfavorable.resize(0);
     vecFavorable.resize(0);
     if(reserve){
@@ -545,7 +545,7 @@ void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_un
 		  index_weight(iIndex) = index_wUninf[iIndex];
 		}
       }
-    }else if(method!=3){
+    }else if(method < 3){
       // a pair can only be neutral or uninf
       index_control = index_neutralC;
       index_control.insert(index_control.end(),index_uninfC.begin(),index_uninfC.end());
@@ -574,6 +574,7 @@ void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_un
 	  	  
     }else{
       bool updateIndex = (firstEndpoint == false);
+      
       mergeVectors(index_neutralC, index_neutralT,
 				   index_uninfC, index_uninfT, 
 				   wNeutral, index_wNeutral,

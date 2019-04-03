@@ -84,7 +84,7 @@ List GPC_cpp(arma::mat endpoint,
 			 bool keepScore,
 			 bool reserve,
 			 bool returnIID){
-
+  
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
   // (ex : 3 pairs with weights 0.5 0.75 0.5 have total weight 1.75). 
@@ -184,7 +184,7 @@ List GPC_cpp(arma::mat endpoint,
 
       // **** compute the current weights of the pairs
       if((iter_d > 0) && hierarchical){
-        // Rcout << " compute cumweight: ";
+      //Rcout << " compute cumweight: ";
 	// matWeight.print("matWeight:");
 	// Wscheme.print("Wscheme:");
 	// initialize iCumWeight_M1
@@ -197,7 +197,7 @@ List GPC_cpp(arma::mat endpoint,
       }
 
       // **** compute scores
-      // Rcout << " score" << endl;
+      //Rcout << " score" << endl;
       if((iter_d==0) || (hierarchical == false)){
 		iScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
 							  censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
@@ -234,7 +234,7 @@ List GPC_cpp(arma::mat endpoint,
 	
 
       // **** update iid
-	  // Rcout << " update iid" << endl;
+	  //Rcout << " update iid" << endl;
 	  if(returnIID){
 		iUvec_iter_d = {iter_d};
 		iid_favorable.submat(posC[iter_strata], iUvec_iter_d) = iIID_C.col(0);
@@ -246,7 +246,7 @@ List GPC_cpp(arma::mat endpoint,
 	  
       // **** update all Scores
       if(keepScore){
-		// Rcout << " update lsScore" << endl;
+		//Rcout << " update lsScore" << endl;
 		iNpairs = iScore.n_rows;
 		iMat.resize(iNpairs,3);
 		iMat.col(0).fill(iter_strata);
@@ -270,7 +270,7 @@ List GPC_cpp(arma::mat endpoint,
 
       if(hierarchical){
 		// **** update weights associated to the remaing pairs
-		// Rcout << " update matWeights" << endl;
+		//Rcout << " update matWeights" << endl;
 		matWeight.resize(iSize_weight, iter_d+1);
 		matWeight.col(iter_d) = iWeight; // current endpoint
 		if(iter_d > 0){ // previous endpoints
@@ -279,10 +279,9 @@ List GPC_cpp(arma::mat endpoint,
 		} 
 
 		// **** update scores associated to the remaing pairs
-	// Rcout << " update lsScore_UTTE" << endl;
+	//Rcout << " update lsScore_UTTE" << endl;
 	// add scores estimated at the current endpoint
-	if(iMethod==3){
-	  // Rcout << "*" << endl;
+	if((iMethod==3) | (iMethod==4)){
 	  if(iReanalyzed){
 	    lsScore_UTTE[iIndex_UTTE].resize(iSize_weight,2);
 	    lsScore_UTTE[iIndex_UTTE].col(0) = conv_to<colvec>::from(iVecFavorable);
@@ -292,7 +291,9 @@ List GPC_cpp(arma::mat endpoint,
 	    lsScore_UTTE[iIndex_UTTE].resize(0,0);
 	    isStored_UTTE[iIndex_UTTE] = false;
 	  }
+	  
 	}
+	
 	// reshape scores estimated at the previous endpoints
 	for(int iter_d2=0; iter_d2 < n_UTTE; iter_d2++){
 	  if(isStored_UTTE[iter_d2] && iIndex_UTTE!=iter_d2){ // if scores have already been stored and that it is not hte current endpoint

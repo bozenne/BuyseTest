@@ -59,7 +59,7 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 
 \item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 
-\item{hierarchical}{Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
+\item{hierarchical}{Should only the S pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
 
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?}
 

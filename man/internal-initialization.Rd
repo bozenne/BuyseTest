@@ -50,6 +50,9 @@ Merge the strata into one with the interaction variable.
 Extract for each strata the index of the observations within each group.
 \code{initializeSurvival}: Compute the survival via KM.
 }
+\author{
+Brice Ozenne, Eva Cantagallo
+}
 \keyword{BuyseTest}
 \keyword{function}
 \keyword{internal}
