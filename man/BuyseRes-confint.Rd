@@ -31,6 +31,8 @@ Default value read from \code{BuyseTest.options()}.}
 and \code{"student"} uses the quantiles of a Student's t-distribution.
 Only relevant when using bootstrap resampling.}
 
+\item{order.Hprojection}{[integer, 1-2] order of the H-decomposition used to compute the variance.}
+
 \item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.
 Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.}

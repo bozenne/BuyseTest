@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  8 2019 (20:01) 
+## Last-Updated: apr  8 2019 (21:36) 
 ##           By: Brice Ozenne
-##     Update #: 552
+##     Update #: 553
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,6 +36,7 @@
 #' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.
+#' @param order.Hprojection [integer, 1-2] order of the H-decomposition used to compute the variance.
 #' @param method.ci.boot [character] the method used to compute the confidence intervals and p-values.
 #' \code{"percentile"} uses the quantiles of the empirical distribution,
 #' \code{"gaussian"} uses the quantiles of a Gaussian distribution,
