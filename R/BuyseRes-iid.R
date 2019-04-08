@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: mar 29 2019 (11:46) 
+## Last-Updated: apr  8 2019 (19:49) 
 ##           By: Brice Ozenne
-##     Update #: 36
+##     Update #: 41
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -45,8 +45,16 @@ setMethod(f = "iid",
                                 endpoint = NULL){
 
 
-              ## ** check arguments
-              valid.endpoint <- object@endpoint
+              ## ** check arguments              
+              valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+              if(is.numeric(endpoint)){
+                  validInteger(endpoint,
+                               name1 = "endpoint",
+                               min = 1, max = length(valid.endpoint),
+                               valid.length = NULL,
+                               method = "iid[BuyseTest]")
+                  endpoint <- valid.endpoint[endpoint]
+              }
               validCharacter(endpoint, valid.length = 1:length(valid.endpoint), valid.values = valid.endpoint, refuse.NULL = FALSE)
 
               ## ** extract H-decomposition
@@ -62,7 +70,10 @@ setMethod(f = "iid",
                   object.iid <- do.call(cbind,lapply(object.iid, function(iI){iI[, NCOL(iI)]}))
               }else{
                   ## iid decomposition for each endpoint
-                  object.iid <- lapply(object.iid, function(iIID){iIID[,endpoint,drop=FALSE]})
+                  object.iid <- lapply(endpoint, function(iE){
+                      cbind(favorable = object.iid$favorable[,endpoint],unfavorable = object.iid$unfavorable[,endpoint])
+                  })
+                  names(object.iid) <- endpoint
               }
 
               ## ** output H-decomposition

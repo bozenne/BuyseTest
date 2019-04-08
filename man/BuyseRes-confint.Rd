@@ -9,7 +9,7 @@
 \usage{
 \S4method{confint}{BuyseRes}(object, statistic = NULL,
   conf.level = NULL, alternative = NULL, method.ci.boot = NULL,
-  transformation = NULL)
+  order.Hprojection = NULL, transformation = NULL)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}

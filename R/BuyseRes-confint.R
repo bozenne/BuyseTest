@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  3 2019 (14:53) 
+## Last-Updated: apr  8 2019 (20:01) 
 ##           By: Brice Ozenne
-##     Update #: 522
+##     Update #: 552
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -71,6 +71,7 @@ setMethod(f = "confint",
                                 conf.level = NULL,
                                 alternative = NULL,
                                 method.ci.boot = NULL,
+                                order.Hprojection = NULL,
                                 transformation = NULL){
 
               option <- BuyseTest.options()
@@ -129,6 +130,33 @@ setMethod(f = "confint",
                   }
               }
 
+              if(attr(method.inference,"ustatistic") && !is.null(order.Hprojection) && order.Hprojection != attr(method.inference,"hprojection")){
+
+                  validInteger(order.Hprojection,
+                               name1 = "order.Hprojection",
+                               min = 1, max = 2, valid.length = 1,
+                               method = "confint[BuyseRes]")
+                  
+                  if(order.Hprojection > attr(method.inference,"hprojection")){
+                      stop("Cannot find the second order of the H-decomposition. \n",
+                           "Consider setting order.Hprojection to 2 in BuyseTest.options before calling BuyseTest. \n") 
+                  }else{ ## modify covariance
+                      ls.iid <- iid(object, endpoint = 1:D)
+                      delta.favorable <- colSums(object@count.favorable)/object@n.pairs
+                      delta.unfavorable <- colSums(object@count.unfavorable)/object@n.pairs
+                      keep.names <- dimnames(object@covariance)
+                          
+                      object@covariance <- do.call(rbind, lapply(1:D, function(iE){ ## iE <- 1
+                          iVar <- crossprod(ls.iid[[iE]])[c(1,4,2)]
+                          return( c(iVar,
+                                    iVar[1] + iVar[2] - 2*iVar[3],
+                                    iVar[1]/delta.unfavorable^2 + iVar[2] * delta.favorable^2/delta.unfavorable^4 - 2*iVar[3] * delta.favorable/delta.unfavorable^3)
+                                 )
+                      }))
+                      dimnames(object@covariance) <- keep.names
+                  }
+              }
+              
               validNumeric(conf.level,
                            name1 = "conf.level",
                            min = 0, max = 1,
@@ -203,7 +231,6 @@ setMethod(f = "confint",
               }
               
               ## ** transformation
-              
               if(transformation){
                   trans.delta <- switch(statistic,
                                         "netBenefit" = atanh,
@@ -213,7 +240,7 @@ setMethod(f = "confint",
                                          "winRatio" = exp)                  
                   trans.se.delta <- switch(statistic,
                                            "netBenefit" = function(x,se){
-                                               if(!is.null(se)){
+                                               if(is.null(se)){
                                                    out <- se
                                                }else{
                                                    out <- se/(1-x^2)
@@ -221,10 +248,10 @@ setMethod(f = "confint",
                                                        out[se==0] <- 0
                                                    }
                                                }
-                                               return(se)
+                                               return(out)
                                            },
                                            "winRatio" = function(x,se){
-                                               if(!is.null(se)){
+                                               if(is.null(se)){
                                                    out <- se
                                                }else{
                                                    out <- se/x
@@ -232,16 +259,36 @@ setMethod(f = "confint",
                                                        out[se==0] <- 0
                                                    }
                                                }
-                                               return(se)
+                                               return(out)
                                            })
-                  itrans.se <- switch(statistic,
-                                      "netBenefit" = function(x,se){if(!is.null(se) && se>0){se*(1-itrans.delta(x)^2)}else{se}},
-                                      "winRatio" = function(x,se){if(!is.null(se) && se>0){se*itrans.delta(x)}else{se}})
+                  itrans.se.delta <- switch(statistic,
+                                      "netBenefit" = function(x,se){
+                                          if(is.null(se)){
+                                              out <- se
+                                          }else{
+                                              out <- se*(1-itrans.delta(x)^2)
+                                              if(any(se==0)){
+                                                  out[se==0] <- 0
+                                              }
+                                          }
+                                          return(out)
+                                      },
+                                      "winRatio" = function(x,se){
+                                          if(is.null(se)){
+                                              out <- se
+                                          }else{
+                                              out <- se*itrans.delta(x)
+                                              if(any(se==0)){
+                                                  out[se==0] <- 0
+                                              }
+                                          }
+                                          return(out)
+                                      })
               }else{
                   trans.delta <- function(x){x}
                   itrans.delta <- function(x){x}
                   trans.se.delta <- function(x,se){se}
-                  itrans.se <- function(x,se){se}
+                  itrans.se.delta <- function(x,se){se}
               }
 
               ## ** compute the confidence intervals
@@ -255,7 +302,7 @@ setMethod(f = "confint",
                                                 alpha = alpha,
                                                 endpoint = endpoint,
                                                 backtransform.delta = itrans.delta,
-                                                backtransform.se = itrans.se))
+                                                backtransform.se = itrans.se.delta))
 
               ## do not output CI or p-value when the estimate has not been identified
               index.NA <- union(which(is.infinite(outConfint[,"estimate"])),which(is.na(outConfint[,"estimate"])))
