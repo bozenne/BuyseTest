@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: apr  1 2019 (16:56) 
+## Last-Updated: apr  3 2019 (09:44) 
 ##           By: Brice Ozenne
-##     Update #: 44
+##     Update #: 46
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -351,6 +351,36 @@ test_that("iid: two endpoints (strata)", {
                  c(0.0009675260, 0.0011951397, -0.0008478746, 0.0038584150, 0.0446399926), tol = 1e-6 )
 
 })
+
+
+
+## * iid Peron
+if(FALSE){
+    library(data.table)
+    library(prodlim)
+    butils.base:::sourcePackage("BuyseTest", c.code = TRUE)
+    dtAllC <- data.table(time = 1:10,
+                         status = 1,
+                         group = "C")
+    dtAllT <- data.table(time = (1:10) + 0.5,
+                         status = 1,
+                         group = "T")
+    dtAll <-  rbind(dtAllC, dtAllT)
+    e.tte <- prodlim(Hist(time,status)~group, data = dtAll)
+
+    BuyseTest.options(keep.survival = TRUE)
+    e.BT <- BuyseTest(group ~ tte(time,status,threshold = 0.1),
+                      data = data.frame(time = c(2.1,2.3),
+                                        status = c(0,1),
+                                        group = c("T","C")),
+                      method.inference = "none",
+                      model.tte = e.tte,
+                      scoring.rule = "Peron",
+                      keep.pairScore = TRUE)
+    getPairScore(e.BT)
+    scoreFavorable <- getSurvival(e.BT)$survTimeC[[1]][[1]][7]/getSurvival(e.BT)$survTimeT[[1]][[1]][5]
+    scoreUnfavorable <- 1 - getSurvival(e.BT)$survTimeC[[1]][[1]][5]/getSurvival(e.BT)$survTimeT[[1]][[1]][5]
+}
 
 ######################################################################
 ### test-BuyseTest-iid.R ends here

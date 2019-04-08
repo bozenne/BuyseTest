@@ -106,7 +106,7 @@ List GPC_cpp(arma::mat endpoint,
   arma::vec n_treatment(n_strata); // number of patients in the treatment group over the strats
   arma::vec n_control(n_strata); // number of patients in the control group over the strats
   arma::vec n_cumpairsM1(n_strata); // number of pairs in the previous strata
-
+  
   // Partial favorable/unfavorable
   arma::mat iid_favorable;
   arma::mat iid_unfavorable;
@@ -114,15 +114,18 @@ List GPC_cpp(arma::mat endpoint,
   // std::vector< arma::mat > wNuisance_iidT(n_strata); // iid for the nuisance parameters (Peron)
   arma::mat Mvar;
   if(returnIID){
-	iid_favorable.resize(endpoint.n_rows,D);
+	int n_obs = endpoint.n_rows;
+
+	iid_favorable.resize(n_obs,D);
 	iid_favorable.fill(0.0);
-	iid_unfavorable.resize(endpoint.n_rows,D);
+	iid_unfavorable.resize(n_obs,D);
 	iid_favorable.fill(0.0);
-	iid_unfavorable.resize(endpoint.n_rows,D);
+	iid_unfavorable.resize(n_obs,D);
 	iid_favorable.fill(0.0);
 	Mvar.resize(D,5);
 	Mvar.fill(0.0);
   }
+
   
   // *** for a given stata [input]
   // weights of the neutral / uninformative pairs
@@ -158,7 +161,12 @@ List GPC_cpp(arma::mat endpoint,
   // product of the weights of the neutral / uninformative pairs up to the previous endpoint
   arma::vec iCumWeight_M1;
   // NOTE: it is a special product because weights related to previous survival endpoint are ignored
-  
+
+  // store for weight for the influence function of the nuisance parameters
+  bool methodPeron = std::any_of(method.begin(), method.end(), [](int test){return test==3;});
+  arma::mat iWiidC;
+  arma::mat iWiidT;
+
   // *** others
   double zeroPlus = 1e-12;
   bool iMoreEndpoint;
@@ -204,6 +212,12 @@ List GPC_cpp(arma::mat endpoint,
 		// Rcout << " total weight M1 = " << sum(iCumWeight_M1) << endl;
       }
 
+	  // **** prepare 
+	  if(methodPeron && returnIID){
+		iWiidC.resize(p_C(iter_strata,iter_d),2);
+		iWiidT.resize(p_T(iter_strata,iter_d),2);
+	  }
+	  
       // **** compute scores
       // Rcout << " score" << endl;
       if((iter_d==0) || (hierarchical == false)){
@@ -349,21 +363,21 @@ List GPC_cpp(arma::mat endpoint,
 				weight, hprojection, lsScore, keepScore);
 
   // ** export
-    return(List::create(
-			Named("count_favorable") = Mcount_favorable,
-			Named("count_unfavorable") = Mcount_unfavorable,
-			Named("count_neutral") = Mcount_neutral,           
-			Named("count_uninf") = Mcount_uninf,           
-			Named("delta_netBenefit") = delta_netBenefit,
-			Named("delta_winRatio") = delta_winRatio,
-			Named("Delta_netBenefit") = conv_to< std::vector<double> >::from(Delta_netBenefit),
-			Named("Delta_winRatio") = conv_to< std::vector<double> >::from(Delta_winRatio),
-			Named("n_pairs") = conv_to< std::vector<double> >::from(n_pairs),
-			Named("iid_favorable") = iid_favorable,
-			Named("iid_unfavorable") = iid_unfavorable,
-			Named("Mvar") = Mvar,
-			Named("tableScore")  = lsScore
-						));
+  return(List::create(
+					  Named("count_favorable") = Mcount_favorable,
+					  Named("count_unfavorable") = Mcount_unfavorable,
+					  Named("count_neutral") = Mcount_neutral,           
+					  Named("count_uninf") = Mcount_uninf,           
+					  Named("delta_netBenefit") = delta_netBenefit,
+					  Named("delta_winRatio") = delta_winRatio,
+					  Named("Delta_netBenefit") = conv_to< std::vector<double> >::from(Delta_netBenefit),
+					  Named("Delta_winRatio") = conv_to< std::vector<double> >::from(Delta_winRatio),
+					  Named("n_pairs") = conv_to< std::vector<double> >::from(n_pairs),
+					  Named("iid_favorable") = iid_favorable,
+					  Named("iid_unfavorable") = iid_unfavorable,
+					  Named("Mvar") = Mvar,
+					  Named("tableScore")  = lsScore
+					  ));
 }
 
 

@@ -148,7 +148,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 	delta_T = 1;
   }
   	
-  /* Rcout << " (" << delta_T << ";" << delta_C << ")"; */
+  // Rcout << " (" << delta_T << ";" << delta_C << ")";
   // ** compute favorable and unfavorable
   if(delta_T==1){
     if(delta_C==1){
@@ -191,7 +191,6 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeT(3))==false){
 		  score[1] = survTimeT(3)/survTimeC(2); //  [Sc(x_i+tau)/Sc(y_j)]
 		  upperUnfavorable = score[1];
-		  Rcout << survTimeT << survTimeC << endl;
 		}else {
 		  // score[1] = 0.0 // (lower bound)
 		  upperUnfavorable = lastSurvC/survTimeC(2); // (upper bound)
