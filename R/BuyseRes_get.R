@@ -132,6 +132,7 @@ setMethod(f = "getCount",
 #'    testthat::expect_equal(pUF, pScore[91, unfavorable])
 #'    testthat::expect_equal(pN, pScore[91, neutral])
 #' }
+
 ## * getPairScore (code)
 #' @rdname BuyseRes-getPairScore
 setMethod(f = "getPairScore",

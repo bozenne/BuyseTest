@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  8 2019 (21:36) 
+## Last-Updated: apr 12 2019 (11:51) 
 ##           By: Brice Ozenne
-##     Update #: 553
+##     Update #: 560
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 #' @docType methods
 #' @name BuyseRes-confint
 #' @title  Confidence Intervals for Model Parameters
-#' @aliases confing confint,BuyseRes-method
+#' @aliases confint confint,BuyseRes-method
 #' @include BuyseRes-object.R
 #' 
 #' @description Computes confidence intervals for net benefit statistic or the win ratio statistic.
@@ -37,11 +37,10 @@
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.
 #' @param order.Hprojection [integer, 1-2] order of the H-decomposition used to compute the variance.
-#' @param method.ci.boot [character] the method used to compute the confidence intervals and p-values.
+#' @param method.ci.resampling [character] the method used to compute the confidence intervals and p-values when using bootstrap or permutation.
 #' \code{"percentile"} uses the quantiles of the empirical distribution,
 #' \code{"gaussian"} uses the quantiles of a Gaussian distribution,
-#' and \code{"student"} uses the quantiles of a Student's t-distribution.
-#' Only relevant when using bootstrap resampling.
+#' and \code{"student"} uses the quantiles of a Student's t-distribution (only available for bootstrap).
 #'  
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -54,11 +53,11 @@
 #'
 #' @return A matrix containing a column for the estimated statistic (over all strata),
 #' the lower bound and upper bound of the confidence intervals, and the associated p-values.
-#' When using resampling methods,
-#' an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.
-#' When using boostrap,
-#' an attribute \code{method.ci.boot} method used to compute the confidence intervals and p-values. 
-#' 
+#' When using resampling methods:
+#' \itemize{
+#' \item an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.
+#' \item an attribute \code{method.ci.resampling} method used to compute the confidence intervals and p-values. 
+#' }
 #' 
 #' @keywords confint BuyseRes-method
 
@@ -71,7 +70,7 @@ setMethod(f = "confint",
                                 statistic = NULL,
                                 conf.level = NULL,
                                 alternative = NULL,
-                                method.ci.boot = NULL,
+                                method.ci.resampling = NULL,
                                 order.Hprojection = NULL,
                                 transformation = NULL){
 
@@ -103,30 +102,32 @@ setMethod(f = "confint",
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
-              if(is.null(method.ci.boot)){                  
+              if(is.null(method.ci.resampling)){                  
                   if(attr(method.inference,"bootstrap")){
                       if(attr(method.inference,"studentized")){
-                          method.ci.boot <- "studentized"
+                          method.ci.resampling <- "studentized"
                       }else{
-                          method.ci.boot <- "percentile"
+                          method.ci.resampling <- "percentile"
                       }
+                  }else if(attr(method.inference,"permutation")){
+                      method.ci.resampling <- "percentile"
                   }
               }else{
-                  method.ci.boot <- tolower(method.ci.boot)
+                  method.ci.resampling <- tolower(method.ci.resampling)
               }
-              validCharacter(method.ci.boot,
-                             name1 = "method.ci.boot",
+              validCharacter(method.ci.resampling,
+                             name1 = "method.ci.resampling",
                              valid.values = c("percentile","gaussian","studentized"),
                              valid.length = 1,
                              refuse.NULL = FALSE,                             
                              method = "confint[BuyseRes]")
 
-              if(!is.null(method.ci.boot)){
-                  if(!attr(method.inference,"bootstrap")){
-                      warning("Argument \'method.ci.boot\' is disregarded when not using bootstrap resampling\n")
-                  }else if(method.ci.boot == "studentized" && !attr(method.inference,"studentized")){
-                      stop("Argument \'method.ci.boot\' cannot be set to \'studentized\' unless a studentized bootstrap has been performed\n",
-                           "Consider setting \'method.ci.boot\' to \"percentile\" or \"gaussian\" \n",
+              if(!is.null(method.ci.resampling)){
+                  if(!attr(method.inference,"bootstrap") && !attr(method.inference,"permutation")){
+                      warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")
+                  }else if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
+                      stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap has been performed\n",
+                           "Consider setting \'method.ci.resampling\' to \"percentile\" or \"gaussian\" \n",
                            "or setting \'method.inference\' to \"studentized bootstrap\" or \"studentized stratified bootstrap\" when calling BuyseTest. \n")
                   }
               }
@@ -219,14 +220,16 @@ setMethod(f = "confint",
               }else if(attr(method.inference,"ustatistic")){
                   method.confint <- confint_Ustatistic
               }else if(attr(method.inference,"permutation")){
-                  method.confint <- confint_permutation
+                  method.confint <- switch(method.ci.resampling,
+                                           "percentile" = confint_permutation,
+                                           "gaussian" = confint_gaussian)
                   transformation <- (statistic=="winRatio")
               }else if(attr(method.inference,"bootstrap")){
-                  method.confint <- switch(method.ci.boot,
+                  method.confint <- switch(method.ci.resampling,
                                            "percentile" = confint_percentileBootstrap,
                                            "gaussian" = confint_gaussian,
                                            "studentized" = confint_student)
-                  if(method.ci.boot=="percentile"){
+                  if(method.ci.resampling=="percentile"){
                       transformation <- FALSE
                   }
               }
@@ -317,7 +320,7 @@ setMethod(f = "confint",
               }else{
                   attr(outConfint, "n.resampling")  <- setNames(rep(as.numeric(NA), length(endpoint)), endpoint)
               }
-              attr(outConfint,"method.ci.boot") <- method.ci.boot
+              attr(outConfint,"method.ci.resampling") <- method.ci.resampling
 
               
               ## ** export

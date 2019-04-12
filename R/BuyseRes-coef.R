@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: apr 12 2019 (11:24) 
+## Last-Updated: apr 12 2019 (11:53) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 35
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 #' @docType methods
 #' @name BuyseRes-coef
 #' @title Coef Method for Class "BuyseRes"
-#' @aliases coef,BuyseRes-coef
+#' @aliases coef,BuyseRes-method
 #' @include BuyseRes-object.R
 #' 
 #' @description Extract summary statistics from the result of a \code{\link{BuyseTest}} function.
@@ -54,9 +54,10 @@
 setMethod(f = "coef",
           signature = "BuyseRes",
           definition = function(object,
-                                statistic = NULL,
-                                stratified = FALSE,
-                                cumulative = TRUE){
+                                statistic,
+                                stratified,
+                                cumulative,
+                                ...){
 
               ## ** normalize arguments
               option <- BuyseTest.options()
@@ -83,7 +84,7 @@ setMethod(f = "coef",
                   
               }else if(statistic %in% type.count){
                   
-                  out <- slot(object, statistic, sep = ".")
+                  out <- slot(object, statistic)
                   if(cumulative){
                       out <- t(apply(out,1,cumsum))
                   }

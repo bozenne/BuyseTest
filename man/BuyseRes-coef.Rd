@@ -3,11 +3,10 @@
 \docType{methods}
 \name{BuyseRes-coef}
 \alias{BuyseRes-coef}
-\alias{coef,BuyseRes-coef}
+\alias{coef,BuyseRes-method}
 \title{Coef Method for Class "BuyseRes"}
 \usage{
-\S4method{coef}{BuyseRes}(object, statistic = NULL, stratified = FALSE,
-  cumulative = TRUE)
+\S4method{coef}{BuyseRes}(object, statistic, stratified, cumulative, ...)
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}

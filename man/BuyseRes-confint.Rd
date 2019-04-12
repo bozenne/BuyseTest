@@ -3,12 +3,12 @@
 \docType{methods}
 \name{BuyseRes-confint}
 \alias{BuyseRes-confint}
-\alias{confing}
+\alias{confint}
 \alias{confint,BuyseRes-method}
 \title{Confidence Intervals for Model Parameters}
 \usage{
 \S4method{confint}{BuyseRes}(object, statistic = NULL,
-  conf.level = NULL, alternative = NULL, method.ci.boot = NULL,
+  conf.level = NULL, alternative = NULL, method.ci.resampling = NULL,
   order.Hprojection = NULL, transformation = NULL)
 }
 \arguments{
@@ -25,11 +25,10 @@ Default value read from \code{BuyseTest.options()}.}
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{method.ci.boot}{[character] the method used to compute the confidence intervals and p-values.
+\item{method.ci.resampling}{[character] the method used to compute the confidence intervals and p-values when using bootstrap or permutation.
 \code{"percentile"} uses the quantiles of the empirical distribution,
 \code{"gaussian"} uses the quantiles of a Gaussian distribution,
-and \code{"student"} uses the quantiles of a Student's t-distribution.
-Only relevant when using bootstrap resampling.}
+and \code{"student"} uses the quantiles of a Student's t-distribution (only available for bootstrap).}
 
 \item{order.Hprojection}{[integer, 1-2] order of the H-decomposition used to compute the variance.}
 
@@ -40,10 +39,11 @@ Default value read from \code{BuyseTest.options()}. Not relevant when using perm
 \value{
 A matrix containing a column for the estimated statistic (over all strata),
 the lower bound and upper bound of the confidence intervals, and the associated p-values.
-When using resampling methods,
-an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.
-When using boostrap,
-an attribute \code{method.ci.boot} method used to compute the confidence intervals and p-values.
+When using resampling methods:
+\itemize{
+\item an attribute \code{n.resampling} specified how many samples have been used to compute the confidence intervals and the p-values.
+\item an attribute \code{method.ci.resampling} method used to compute the confidence intervals and p-values. 
+}
 }
 \description{
 Computes confidence intervals for net benefit statistic or the win ratio statistic.

@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: apr  8 2019 (19:09) 
+## last-updated: apr 12 2019 (11:34) 
 ##           By: Brice Ozenne
-##     Update #: 116
+##     Update #: 117
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -212,33 +212,33 @@ test_that("Bootstrap", {
     ##                           2   2.10      0.50        0.39    1.22  0.00  0.0034
 
     ## CI
-    perBoot.confint <- confint(BT.bootT, method.ci.boot = "percentile", alternative = "two.sided")
+    perBoot.confint <- confint(BT.bootT, method.ci.resampling = "percentile", alternative = "two.sided")
     perBoot.manual <- t(apply(BT.bootT@DeltaResampling.netBenefit, 2, quantile, probs = c(0.025, 0.975)))
 
     expect_equal(unname(perBoot.confint[,c("lower.ci","upper.ci")]),unname(perBoot.manual), tol = 1e-6)
 
-    gausBoot.confint <- confint(BT.bootT, method.ci.boot = "gaussian", alternative = "two.sided", transform = FALSE)
+    gausBoot.confint <- confint(BT.bootT, method.ci.resampling = "gaussian", alternative = "two.sided", transform = FALSE)
     expect_equal(unname(gausBoot.confint[,"se"]), unname(apply(BT.bootT@DeltaResampling.netBenefit, 2, sd)), tol = 1e-6)
     expect_equal(unname(gausBoot.confint[,"lower.ci"]), unname(gausBoot.confint[,"estimate"] + qnorm(0.025) * gausBoot.confint[,"se"]), tol = 1e-6)
     expect_equal(unname(gausBoot.confint[,"upper.ci"]), unname(gausBoot.confint[,"estimate"] + qnorm(0.975) * gausBoot.confint[,"se"]), tol = 1e-6)
     
     ## ** greater
-    perBoot.confint <- confint(BT.bootT, method.ci.boot = "percentile", alternative = "greater")
+    perBoot.confint <- confint(BT.bootT, method.ci.resampling = "percentile", alternative = "greater")
     perBoot.manual <- cbind(apply(BT.bootT@DeltaResampling.netBenefit, 2, quantile, probs = 0.05),Inf)
 
     expect_equal(unname(perBoot.confint[,c("lower.ci","upper.ci")]),unname(perBoot.manual), tol = 1e-6)
 
-    gausBoot.confint <- confint(BT.bootT, method.ci.boot = "gaussian", alternative = "greater", transform = FALSE)
+    gausBoot.confint <- confint(BT.bootT, method.ci.resampling = "gaussian", alternative = "greater", transform = FALSE)
     expect_equal(unname(gausBoot.confint[,"se"]), unname(apply(BT.bootT@DeltaResampling.netBenefit, 2, sd)), tol = 1e-6)
     expect_equal(unname(gausBoot.confint[,"lower.ci"]), unname(gausBoot.confint[,"estimate"] + qnorm(0.05) * gausBoot.confint[,"se"]), tol = 1e-6)
     
     ## ** lower
-    perBoot.confint <- confint(BT.bootT, method.ci.boot = "percentile", alternative = "less")
+    perBoot.confint <- confint(BT.bootT, method.ci.resampling = "percentile", alternative = "less")
     perBoot.manual <- cbind(-Inf,apply(BT.bootT@DeltaResampling.netBenefit, 2, quantile, probs = 0.95))
 
     expect_equal(unname(perBoot.confint[,c("lower.ci","upper.ci")]),unname(perBoot.manual), tol = 1e-6)
 
-    gausBoot.confint <- confint(BT.bootT, method.ci.boot = "gaussian", alternative = "less", transform = FALSE)
+    gausBoot.confint <- confint(BT.bootT, method.ci.resampling = "gaussian", alternative = "less", transform = FALSE)
     expect_equal(unname(gausBoot.confint[,"se"]), unname(apply(BT.bootT@DeltaResampling.netBenefit, 2, sd)), tol = 1e-6)
     expect_equal(unname(gausBoot.confint[,"upper.ci"]), unname(gausBoot.confint[,"estimate"] + qnorm(0.95) * gausBoot.confint[,"se"]), tol = 1e-6)
     
@@ -340,11 +340,11 @@ test_that("compare with t-test (two.sided)", {
     res.tt <- t.test(y = df[df$Group=="T","score"], x = df[df$Group=="C","score"], alternative = "two.sided")
 
     ls.res <- list(perm = confint(e.perm, alternative = "two.sided"),
-                   percboot = confint(e.boot, alternative = "two.sided", method.ci.boot = "percentile"),
-                   gausboot = confint(e.boot, alternative = "two.sided", method.ci.boot = "gaussian", transformation = FALSE),
-                   gausboot.trans = confint(e.boot, alternative = "two.sided", method.ci.boot = "gaussian", transformation = TRUE),
-                   studboot = confint(e.boot, alternative = "two.sided", method.ci.boot = "studentized", transformation = FALSE),
-                   studboot.trans = confint(e.boot, alternative = "two.sided", method.ci.boot = "studentized", transformation = TRUE),
+                   percboot = confint(e.boot, alternative = "two.sided", method.ci.resampling = "percentile"),
+                   gausboot = confint(e.boot, alternative = "two.sided", method.ci.resampling = "gaussian", transformation = FALSE),
+                   gausboot.trans = confint(e.boot, alternative = "two.sided", method.ci.resampling = "gaussian", transformation = TRUE),
+                   studboot = confint(e.boot, alternative = "two.sided", method.ci.resampling = "studentized", transformation = FALSE),
+                   studboot.trans = confint(e.boot, alternative = "two.sided", method.ci.resampling = "studentized", transformation = TRUE),
                    ustat = confint(e.ustat, alternative = "two.sided", transformation = FALSE),
                    ustat.trans = confint(e.ustat, alternative = "two.sided", transformation = TRUE)
                    )
@@ -380,11 +380,11 @@ test_that("compare with t-test (greater)", {
     res.tt <- t.test(y = df[df$Group=="T","score"], x = df[df$Group=="C","score"], alternative = "greater")
 
     ls.res <- list(perm = confint(e.perm, alternative = "greater"),
-                   percboot = confint(e.boot, alternative = "greater", method.ci.boot = "percentile"),
-                   gausboot = confint(e.boot, alternative = "greater", method.ci.boot = "gaussian", transformation = FALSE),
-                   gausboot.trans = confint(e.boot, alternative = "greater", method.ci.boot = "gaussian", transformation = TRUE),
-                   studboot = confint(e.boot, alternative = "greater", method.ci.boot = "studentized", transformation = FALSE),
-                   studboot.trans = confint(e.boot, alternative = "greater", method.ci.boot = "studentized", transformation = TRUE),
+                   percboot = confint(e.boot, alternative = "greater", method.ci.resampling = "percentile"),
+                   gausboot = confint(e.boot, alternative = "greater", method.ci.resampling = "gaussian", transformation = FALSE),
+                   gausboot.trans = confint(e.boot, alternative = "greater", method.ci.resampling = "gaussian", transformation = TRUE),
+                   studboot = confint(e.boot, alternative = "greater", method.ci.resampling = "studentized", transformation = FALSE),
+                   studboot.trans = confint(e.boot, alternative = "greater", method.ci.resampling = "studentized", transformation = TRUE),
                    ustat = confint(e.ustat, alternative = "greater", transformation = FALSE),
                    ustat.trans = confint(e.ustat, alternative = "greater", transformation = TRUE)
                    )
@@ -424,11 +424,11 @@ test_that("compare with t-test (less)", {
     res.tt <- t.test(y = df[df$Group=="T","score"], x = df[df$Group=="C","score"], alternative = "less")
 
     ls.res <- list(perm = confint(e.perm, alternative = "less"),
-                   percboot = confint(e.boot, alternative = "less", method.ci.boot = "percentile"),
-                   gausboot = confint(e.boot, alternative = "less", method.ci.boot = "gaussian", transformation = FALSE),
-                   gausboot.trans = confint(e.boot, alternative = "less", method.ci.boot = "gaussian", transformation = TRUE),
-                   studboot = confint(e.boot, alternative = "less", method.ci.boot = "studentized", transformation = FALSE),
-                   studboot.trans = confint(e.boot, alternative = "less", method.ci.boot = "studentized", transformation = TRUE),
+                   percboot = confint(e.boot, alternative = "less", method.ci.resampling = "percentile"),
+                   gausboot = confint(e.boot, alternative = "less", method.ci.resampling = "gaussian", transformation = FALSE),
+                   gausboot.trans = confint(e.boot, alternative = "less", method.ci.resampling = "gaussian", transformation = TRUE),
+                   studboot = confint(e.boot, alternative = "less", method.ci.resampling = "studentized", transformation = FALSE),
+                   studboot.trans = confint(e.boot, alternative = "less", method.ci.resampling = "studentized", transformation = TRUE),
                    ustat = confint(e.ustat, alternative = "less", transformation = FALSE),
                    ustat.trans = confint(e.ustat, alternative = "less", transformation = TRUE)
                    )

@@ -8,6 +8,7 @@
 - NEW FEATURE: iid function 
 - NEW FEATURE: option hierarchical in BuyseTest
 - NEW FEATURE: studentized bootstrap
+- NEW FEATURE: gaussian permutation
 
 ** Internal change
 - fix bug in the computation of the asymptotic variance + add tests
