@@ -4,6 +4,7 @@
 ** User visble changes
 - method.inference="asymptotic" becomes method.inference="u-statistic"
 - argument method.tte becomes scoring.rule.
+- NEW FEATURE: coef function 
 - NEW FEATURE: iid function 
 - NEW FEATURE: option hierarchical in BuyseTest
 - NEW FEATURE: studentized bootstrap
