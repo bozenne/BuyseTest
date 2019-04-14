@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: apr 12 2019 (11:53) 
+## Last-Updated: apr 14 2019 (15:09) 
 ##           By: Brice Ozenne
-##     Update #: 35
+##     Update #: 36
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -54,9 +54,9 @@
 setMethod(f = "coef",
           signature = "BuyseRes",
           definition = function(object,
-                                statistic,
-                                stratified,
-                                cumulative,
+                                statistic = NULL,
+                                stratified = FALSE,
+                                cumulative = TRUE,
                                 ...){
 
               ## ** normalize arguments
