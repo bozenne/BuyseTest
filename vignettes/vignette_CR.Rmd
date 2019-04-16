@@ -2,10 +2,7 @@
 title: "Dealing with CR"
 author: "Eva Cantagallo"
 date: "3 avril 2019"
-output:
-  pdf_document: default
-  html_document:
-    df_print: paged
+output: pdf_document
 ---
 
 ```{r setup, include = FALSE}
@@ -71,4 +68,4 @@ BT.CR.corr <- BuyseTest(Treatment ~ tte(eventtime, threshold = 1, censoring = "s
 summary(BT.CR.corr)
 ```
 
-Note that in this particular example, the effect of the correction at the pair level is really moderate as the original proportion of uninformative pairs was small. 
+Note that in this particular example, the effect of the correction at the pair level is really moderate as the original proportion of uninformative pairs was small.
