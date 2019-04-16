@@ -21,7 +21,7 @@ if(FALSE){
     library(data.table)
 }
 
-context("Check that BuyseTest with competing risks \n")
+context("Check that BuyseTest works with competing risks \n")
 
 ## * settings
 BuyseTest.options(check = TRUE,
@@ -29,13 +29,16 @@ BuyseTest.options(check = TRUE,
                   method.inference = "none",
                   trace = 0)
 
-
+## * Parameters to generate data
 alphaE.X <- 2
 alphaCR.X <- 1
 alphaE.Y <- 3
 alphaCR.Y <- 2
 alpha.cens <- 1.5
 n <- 1e2
+n.big <- 7.5e4
+sHR <- 0.5 # c(0, 0.5, 1, 3) 
+true.Delta = 0.1519 # c(1/3, 0.1519, 0, -0.4012)
 
 ## * Simulate CR data without censoring
 set.seed(10)
@@ -53,7 +56,6 @@ df2$status <- ifelse(df2$time == df2$time1, 1, ifelse(df2$time == df2$time2, 2, 
 df2$strata <- sample(c('a', 'b', 'c'), 2*n, replace = T)
 df2$toxicity <- sample(0:1, 2*n, replace = T)
 df2$strata2 <- sample(c('d', 'e', 'f'), 2*n, replace = T)
-
 
 ## * test
 test_that("tte = 2 is equivalent to continuous with infty when cause=2", {
@@ -76,7 +78,7 @@ test_that("tte = 2 is equivalent to continuous with infty when cause=2", {
 
 test_that("BuyseTest package and Eva's R code give the same results with one endpoint and one stratum", {
   
-  ## Net benefit computed with Eva's R code (see reproduce-results-CR.R)
+  ## Net benefit computed with Eva's R code (see inst/Code/reproduce-results-CR.R)
   delta.R = 0.04377023
   
   ## Apply GPC with BuyseTest package
@@ -124,7 +126,9 @@ test_that("New package version gives the same results as previous one", {
   expect_equal(Delta13, as.double(BT13.D))
   expect_equal(delta21, as.double(BT21.d))
   expect_equal(Delta21, as.double(BT21.D))
-  expect_equal(delta23[1,], as.double(BT23.d[1,]));expect_equal(delta23[2,], as.double(BT23.d[2,]));expect_equal(delta23[3,], as.double(BT23.d[3,]))
+  expect_equal(delta23[1,], as.double(BT23.d[1,]))
+  expect_equal(delta23[2,], as.double(BT23.d[2,]))
+  expect_equal(delta23[3,], as.double(BT23.d[3,]))
   expect_equal(Delta23, as.double(BT23.D))
   
 })
@@ -158,6 +162,99 @@ test_that("When TTE endpoints are analyzed several times with different threshol
   ## Tests
   expect_equal(as.double(B1@Delta.netBenefit), as.double(B2@Delta.netBenefit[3]))
   
+})
+
+test_that("The relationship between net benefit and subdistribution hazard ratio is verified", {
+  
+  ## Simulate big dataset with pre-specified subdistribution hazard ratio for event of interest (based on Haller et Ulm, 2013)
+  for (q in 1:length(sHR)) {
+    
+  gamma.0 = function(t) 0.01*exp(-0.01*t/log(1.5)) # tends to 0.001 when t goes to 0
+  gamma.1 = function(t) gamma.0(t)*sHR[q] # tends to 0.001*sHR when t goes to 0
+  
+  lambda2.0 = function(t) 0.012
+  lambda2.1 = function(t) 0.005
+  
+  ## Derive cause-specific hazard functions for event of interest in both groups
+  lambda1.0 = c()
+  lambda1.1 = c()
+  integrand.0 = function(t) 0.01*exp(-0.01*t/log(1.5))*exp(-log(1.5)*(1-exp(-0.01*t/log(1.5))) 
+                                                           + 0.012*t)
+  integrand.1 = function(t) 0.01*sHR[q]*exp(-0.01*t/log(1.5))*exp(-sHR[q]*log(1.5)*(1-exp(-0.01*t/log(1.5))) 
+                                                               + 0.005*t)
+  
+  for (k in 1:40000) {
+    
+    # control group
+    num.0 = gamma.0(k)*exp(- integrate(gamma.0, lower = 0, upper = k)$value + integrate(Vectorize(lambda2.0), 
+                                                                                        lower = 0, upper = k)$value)
+    denom.0 = 1 - integrate(integrand.0, lower = 0, upper = k)$value
+    lambda1.0[k] = num.0/denom.0
+    
+    # treatment goup
+    num.1 = gamma.1(k)*exp(- integrate(gamma.1, lower = 0, upper = k)$value + integrate(Vectorize(lambda2.1), 
+                                                                                        lower = 0, upper = k)$value)
+    denom.1 = 1 - integrate(integrand.1, lower = 0, upper = k)$value
+    lambda1.1[k] = num.1/denom.1
+    
+  }
+  
+  # Create empty vectors
+  event.type = rep(0, n.big)
+  event.time = rep(0, n.big)
+  treatment = rep(0, n.big)
+  
+  set.seed(10)
+  
+  # Loop over treatment subjects
+  for (i in 1:n.big) {
+    
+    if (i <= n.big/2) { 
+      # lambda1 = function(t) lambda1.1(t)
+      # lambda2 = function(t) lambda2.1(t)
+      lambda1 = lambda1.1
+      lambda2 = lambda2.1
+      treatment[i] = 1
+    } else {
+      # lambda1 = function(t) lambda1.0(t)
+      # lambda2 = function(t) lambda2.0(t)
+      lambda1 = lambda1.0
+      lambda2 = lambda2.0
+      treatment[i] = 0
+    }
+    
+    time = 0
+    event = 0
+    
+    ## Loop over time
+    while (event != 1) {
+      
+      time = time + 1
+      p = lambda1[time] + lambda2(t = time)
+      U = runif(1, min = 0, max = 1)
+      event = U < p
+      
+      if (event == 1) { ## Determine type of event
+        event.time[i] = time
+        event.type[i] = sample(1:2, 1, prob = c(lambda1[time]/p, lambda2(t = time)/p)) 
+      }
+    }
+  }
+  
+  # ## Add censoring
+  # censoring.time = runif(n.big, min = 0, max = 300)
+  # time = pmin(event.time, censoring.time) 
+  # status = ifelse(time == event.time, event.type, 0)
+  
+  sHR.data = data.frame(time = event.time, status = event.type, treatment = treatment)
+  
+  ## Compute net benefit with BuyseTest package
+  B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0), data = sHR.data, method.tte = "Gehan", keep.pairScore = FALSE) 
+  
+  ## Tests
+  expect_equal(true.Delta[q], as.double(B@Delta.netBenefit), tolerance = 1e-2) # tolerance because of the too small dataset
+  
+  }
 })
 ######################################################################
 ### test-BuyseTest-CR.R ends here

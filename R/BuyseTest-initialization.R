@@ -26,6 +26,7 @@
 #' \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 #' Merge the strata into one with the interaction variable.
 #' Extract for each strata the index of the observations within each group.
+#' 
 #' \code{initializePeron}: Compute the cumulative incidence functions using the Aalen-Johansen estimator in the presence of competing risks
 #' (i.e. when '2' are contained in the censoring variable(s)) and the survival curves via Kaplan-Meier otherwise.
 #' 
