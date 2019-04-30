@@ -115,7 +115,7 @@ test_that("New package version gives the same results as previous one", {
   BT21.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity), data = df2)@delta.netBenefit
   BT21.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity), data = df2)@Delta.netBenefit
 
-  ## Two outcomes, one stratum
+  ## Two outcomes, 3 strata
   BT23.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@delta.netBenefit
   BT23.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@Delta.netBenefit
 

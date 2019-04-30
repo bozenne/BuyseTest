@@ -52,9 +52,6 @@ BT13.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + 
 BT21.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity), data = df)@delta.netBenefit
 BT21.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity), data = df)@Delta.netBenefit
 
-## Two outcomes, one stratum
+## Two outcomes, 3 strata
 BT23.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity) + strata, data = df)@delta.netBenefit
 BT23.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity) + strata, data = df)@Delta.netBenefit
-
-## Tests
-expect_equal(as.double(BT11@Delta.netBenefit), as.double(BT@Delta.netBenefit))
