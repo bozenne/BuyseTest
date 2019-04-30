@@ -27,7 +27,7 @@ Default value read from \code{BuyseTest.options()}.}
 0 indicates no correction, 1 impute the average score of the informative pair, and 2 performs inverse probability of censoring weights.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{model.tte}{[list] optional survival models relative to each time to each time to event endpoint.
+\item{model.tte}{[list] optional survival models relative to each time to event endpoint.
 Models must \code{prodlim} objects and stratified on the treatment and strata variable.}
 
 \item{method.inference}{[character] should the asymptotic theory (\code{"asymptotic"}),
@@ -38,9 +38,9 @@ be used to compute p-values and confidence intervals.}
 \item{n.resampling}{[integer] the number of simulations used for computing the confidence interval and the p.values. See details.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{hierarchical}{[logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
+\item{hierarchical}{[logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compared for all endpoint (full GPC).}
 
-\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analyzed using endpoints of lower priority.
+\item{neutral.as.uninf}{[logical] should paires classified as neutral be re-analyzed using endpoints of lower priority.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{keep.pairScore}{[logical] should the result of each pairwise comparison be kept?}
@@ -57,8 +57,7 @@ Disregarded if the argument \code{formula} is defined.}
 There must be one threshold for each endpoint variable.
 Disregarded if the argument \code{formula} is defined.}
 
-\item{censoring}{[character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
-There must be one threshold for each endpoint variable.
+\item{censoring}{[character vector] the name of the variable(s) indicating whether the endpoint was observed (value = 1), censored (value = 0), or whether a competing event occurred (value = 2).
 Must value \code{NA} when the endpoint is not a time to event.
 Disregarded if the argument \code{formula} is defined.}
 
@@ -99,9 +98,10 @@ Performs Generalized Pairwise Comparisons for binary, continuous and time-to-eve
 \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
 \bold{endpoint, threshold, censoring, operator, and type:}  they must have the same length. \cr
 \code{threshold} must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. \cr
-\code{censoring} must be \code{NA} for binary or continuous endpoints and indicate a variable in data for time to event endpoints. 
+\code{censoring} must be \code{NA} for binary or continuous endpoints and indicate a variable in data for time to event endpoints. In the 
+presence of competing risks, only one type of competing event (indicated by a '2'), in addition to the event of interest (indicated by a '1'), can be handled.
 Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \
-code{"TTE"} (time-to-event endpoint). 
+\code{"TTE"} (time-to-event endpoint). 
 \bold{operator:} when the operator is set to \code{"<0"} the corresponding column in the dataset is multiplied by \code{-1}.
 
 \bold{n.resampling:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
@@ -112,6 +112,9 @@ The detection of the number of cpus relies on the \code{detectCores} function fr
 
 \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint.\cr
 Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analyzed on the endpoint with priority \code{l-1}.
+
+\bold{Dealing with competing events:} When the Peron method is used, BuyseTest checks for each time to event endpoint whether competing events occurred (i.e. if the censoring indicator variable for each endpoint contains at least one '2'). 
+If it is the case, the pairs score is computed using the cumulative incidence functions of both event types in both groups. If not, the survival functions in both groups are used.
 
 \bold{method.tte:} the \code{method.tte="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{method.tte="Gehan"}.
 

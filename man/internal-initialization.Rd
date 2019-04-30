@@ -21,8 +21,8 @@ initializeData(data, type, endpoint, method.tte, censoring, operator,
 initializeFormula(x)
 
 initializePeron(data, model.tte, method.score, treatment, level.treatment,
-  endpoint, endpoint.UTTE, censoring, D.TTE, D.UTTE, type, strata,
-  threshold, n.strata, out)
+  level.strata, endpoint, endpoint.UTTE, censoring, D.TTE, D.UTTE, type,
+  strata, threshold, n.strata, out)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.
@@ -48,7 +48,9 @@ from the formula. \cr \cr
 \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 Merge the strata into one with the interaction variable.
 Extract for each strata the index of the observations within each group.
-\code{initializeSurvival}: Compute the survival via KM.
+
+\code{initializePeron}: Compute the cumulative incidence functions using the Aalen-Johansen estimator in the presence of competing risks
+(i.e. when '2' are contained in the censoring variable(s)) and the survival curves via Kaplan-Meier otherwise.
 }
 \author{
 Brice Ozenne, Eva Cantagallo

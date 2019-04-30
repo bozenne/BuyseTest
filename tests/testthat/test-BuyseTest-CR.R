@@ -136,13 +136,16 @@ test_that("New package version gives the same results as previous one", {
 test_that("Package give the same results when model.tte is (not) provided as an argument", {
   
   ## Create prodlim object to be inserted as an argument
-  fit = prodlim(Hist(time, status) ~ treatment + strata + strata2, data = df2)
+  fit = prodlim(Hist(time, status) ~ treatment + strata, data = df2)
+  #fit = prodlim(Hist(time, status) ~ treatment + strata + strata2, data = df2)
   
   ## Net benefit without passing model.tte
-  B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df2) 
+  B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df2) 
+  #B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df2) 
   
   ## Net benefit with model.tte passed as an argument
-  B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df2, model.tte = fit) 
+  B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df2, model.tte = fit)
+  #B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df2, model.tte = fit) 
   
   ## Tests
   expect_equal(as.double(B@delta.netBenefit), as.double(B.model@delta.netBenefit))

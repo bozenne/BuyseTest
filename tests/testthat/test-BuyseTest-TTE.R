@@ -49,15 +49,20 @@ df$strata2 <- sample(c('d', 'e', 'f'), 2*n, replace = T)
 test_that("Package give the same results when model.tte is (not) provided as an argument", {
   
   ## Create prodlim object to be inserted as an argument
-  fit = prodlim(Hist(time, status) ~ treatment +  strata + strata2, data = df)
+  fit = prodlim(Hist(time, status) ~ treatment +  strata, data = df)
+  #fit = prodlim(Hist(time, status) ~ treatment +  strata + strata2, data = df)
   
   ## Net benefit without passing model.tte
-  B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df,
+  B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df,
                 method.inference = "none") 
+  #B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df,
+  #              method.inference = "none") 
   
   ## Net benefit with model.tte passed as an argument
-  B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df, model.tte = fit,
+  B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df, model.tte = fit,
                       method.inference = "none") 
+  # B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df, model.tte = fit,
+  #                     method.inference = "none") 
   
   
   # # treatment strata strata2 ..strata..
