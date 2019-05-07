@@ -14,7 +14,6 @@ inferenceResampling <- function(envir){
 
     ## ** computation
     if (cpus == 1) { ## *** sequential resampling test
-           
         if (!is.null(seed)) {set.seed(seed)} # set the seed
 
         if (trace > 0) {
@@ -32,7 +31,9 @@ inferenceResampling <- function(envir){
                                                              pointEstimation = FALSE
                                                              )
                                               })
-                                  )
+                                 )
+
+        if(!is.null(seed)){rm(.Random.seed, envir=.GlobalEnv)} # restaure original seed
     }else { ## *** parallel resampling test
 
         ## define cluster

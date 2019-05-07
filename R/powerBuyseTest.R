@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 28 2019 (15:08) 
+## Last-Updated: maj  7 2019 (15:36) 
 ##           By: Brice Ozenne
-##     Update #: 465
+##     Update #: 467
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -285,7 +285,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
     ## ** simulation study
     if (cpus == 1) { ## *** sequential permutation test
-           
+        
         if (!is.null(seed)) {set.seed(seed)} # set the seed
 
         if (trace > 0) {
@@ -300,6 +300,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                                  return(warper(i = X, envir = envirBT))                                                  
                                              })
                                  )
+        if(!is.null(seed)){rm(.Random.seed, envir=.GlobalEnv)} # restaure original seed
     }else { ## *** parallel permutation test
         n.block <- max(cpus,round(sqrt(n.rep)))
         rep.perBlock0 <- max(1,floor(n.rep/n.block))
