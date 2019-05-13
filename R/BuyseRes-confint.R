@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr 12 2019 (11:51) 
+## Last-Updated: maj 13 2019 (16:22) 
 ##           By: Brice Ozenne
-##     Update #: 560
+##     Update #: 570
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -231,6 +231,14 @@ setMethod(f = "confint",
                                            "studentized" = confint_student)
                   if(method.ci.resampling=="percentile"){
                       transformation <- FALSE
+                  }else if(transformation){
+                      test <- switch(statistic,
+                                     "netBenefit"= any(abs(Delta.resampling-1)<1e-12),
+                                     "winRatio"= any(abs(Delta.resampling)<1e-12))
+                      if(test){
+                          warning("Extreme values of the statistic \n",
+                                  "Consider setting the argument \'transformation\' to FALSE \n")
+                      }
                   }
               }
               
@@ -266,35 +274,35 @@ setMethod(f = "confint",
                                                return(out)
                                            })
                   itrans.se.delta <- switch(statistic,
-                                      "netBenefit" = function(x,se){
-                                          if(is.null(se)){
-                                              out <- se
-                                          }else{
-                                              out <- se*(1-itrans.delta(x)^2)
-                                              if(any(se==0)){
-                                                  out[se==0] <- 0
-                                              }
-                                          }
-                                          return(out)
-                                      },
-                                      "winRatio" = function(x,se){
-                                          if(is.null(se)){
-                                              out <- se
-                                          }else{
-                                              out <- se*itrans.delta(x)
-                                              if(any(se==0)){
-                                                  out[se==0] <- 0
-                                              }
-                                          }
-                                          return(out)
-                                      })
+                                            "netBenefit" = function(x,se){
+                                                if(is.null(se)){
+                                                    out <- se
+                                                }else{
+                                                    out <- se*(1-itrans.delta(x)^2)
+                                                    if(any(se==0)){
+                                                        out[se==0] <- 0
+                                                    }
+                                                }
+                                                return(out)
+                                            },
+                                            "winRatio" = function(x,se){
+                                                if(is.null(se)){
+                                                    out <- se
+                                                }else{
+                                                    out <- se*itrans.delta(x)
+                                                    if(any(se==0)){
+                                                        out[se==0] <- 0
+                                                    }
+                                                }
+                                                return(out)
+                                            })
               }else{
                   trans.delta <- function(x){x}
                   itrans.delta <- function(x){x}
                   trans.se.delta <- function(x,se){se}
                   itrans.se.delta <- function(x,se){se}
               }
-
+              
               ## ** compute the confidence intervals
               outConfint <- do.call(method.confint,
                                     args = list(Delta = trans.delta(Delta),

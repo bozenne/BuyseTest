@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: apr  2 2019 (16:08) 
+## Last-Updated: maj  8 2019 (17:22) 
 ##           By: Brice Ozenne
-##     Update #: 66
+##     Update #: 76
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,7 +20,8 @@
 #' @description Compute the influence function for each observation used to estimate the model
 #' @name iidProdlim
 #' 
-#' @param object A prodlim object
+#' @param object A prodlim object.
+#' @param add0 [logical] add the 0 to vector of relevant times.
 #' 
 #' @details
 #' This function is a simplified version of the iidCox function of the riskRegression package.
@@ -54,7 +55,7 @@
 ## * iidProdlim - code
 #' @rdname iidProdlim
 #' @export
-iidProdlim <- function(object){
+iidProdlim <- function(object, add0 = FALSE){
 
     if(!inherits(object,"prodlim")){
         stop("Argument \'object\' must inherit from prodlim \n")
@@ -87,11 +88,21 @@ iidProdlim <- function(object){
                     dimnames = list(NULL, strataVar))
         cbind("strata.index" = iS, data.frame(M, stringsAsFactors = FALSE))
     }))
-    tableHazard <- cbind(df.strata, hazard = object$hazard, survival = object$surv, time = object$time,
-                         event = object$n.event,
-                         atrisk = object$n.risk)
-    
-    tableHazard.red <- tableHazard[tableHazard$event>0,]
+    tableHazard <- data.table::data.table(df.strata, hazard = object$hazard, survival = object$surv, time = object$time,
+                                          event = object$n.event,
+                                          atrisk = object$n.risk)
+    tableHazard.red <- tableHazard[tableHazard$event>0]
+    if(add0){
+        tableHazard0 <- tableHazard[,.SD[1], by = "strata.index"]
+        tableHazard0[,c("hazard","survival","time","event","atrisk") := .(rep(0,n.strata),
+                                                                          rep(1,n.strata),
+                                                                          rep(0,n.strata),
+                                                                          rep(0,n.strata),
+                                                                          as.double(table(vec.strata))
+                                                                          )]
+        tableHazard.red <- rbind(tableHazard0,tableHazard)
+        data.table::setkeyv(tableHazard.red, c("strata.index","time"))
+    }    
     n.times <- NROW(tableHazard.red)
     n.obs <- NROW(object$model.matrix)
     
@@ -103,8 +114,8 @@ iidProdlim <- function(object){
     ls.Utime1 <- vector(mode = "list", length = n.strata)
     
     for(iStrata in 1:n.strata){ ## iStrata <- 1
-        iTableHazard <- tableHazard.red[tableHazard.red$strata.index == iStrata,]
-        ls.Utime1[[iStrata]] <- iTableHazard$time
+        iTableHazard <- tableHazard.red[tableHazard.red$strata.index == iStrata]
+        ls.Utime1[[iStrata]] <- iTableHazard$time        
         iN.time <- length(ls.Utime1[[iStrata]])
         iHazard <- iTableHazard$hazard
         iSurvival <- iTableHazard$survival
@@ -116,7 +127,7 @@ iidProdlim <- function(object){
 
         ## only keep observation in the strata and with eventtime at or after the first jump
         iSubsetObs <- intersect(which(vec.strataNum==iStrata),
-                                which(vec.eventtime>=min(ls.Utime1[[iStrata]])))
+                                which(vec.eventtime>=min(ls.Utime1[[iStrata]])))        
         iVec.eventtime <- vec.eventtime[iSubsetObs]
         iVec.status <- vec.status[iSubsetObs]
         
@@ -141,16 +152,16 @@ iidProdlim <- function(object){
         IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = exp(-cumsum(iTableHazard$hazard)), MARGIN = 2)
         ## IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = iTableHazard$survival, MARGIN = 2)
     }
-
     
     ## ** Export
     return(list(IFhazard = IFhazard,
                 IFcumhazard = IFcumhazard,
                 IFsurvival = IFsurvival,
                 time = ls.Utime1, 
-                etime.max = as.double(tapply(tableHazard$time,tableHazard$strata.index, max)),
+                etime.max = tableHazard[,max(.SD$time),by = "strata.index"][[2]],
                 label.strata = level.strata,
-                X = object$X
+                X = object$X,
+                table = tableHazard.red
                 ))
 }
 
