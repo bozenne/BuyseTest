@@ -43,8 +43,6 @@ using namespace arma ;
 //' @param list_survJumpC A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps.
 //' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps.
 //' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).
-//' @param p_C Number of nuisance parameter in the survival model for the control group, for each endpoint and strata
-//' @param p_T Number of nuisance parameter in the survival model for the treatment group, for each endpoint and strata
 //' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 //' @param hierarchical Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 //' @param hprojection Order of the H-projection used to compute the variance.
@@ -81,8 +79,6 @@ List GPC_cpp(arma::mat endpoint,
 			 std::vector< std::vector< arma::mat > > list_survJumpC,
 			 std::vector< std::vector< arma::mat > > list_survJumpT,
 			 std::vector< arma::mat > list_lastSurv,
-			 arma::mat p_C,
-			 arma::mat p_T,
 			 int correctionUninf,
 			 bool hierarchical,
 			 int hprojection,
@@ -165,9 +161,9 @@ List GPC_cpp(arma::mat endpoint,
   // NOTE: it is a special product because weights related to previous survival endpoint are ignored
 
   // store for weight for the influence function of the nuisance parameters
-  bool methodPeron = std::any_of(method.begin(), method.end(), [](int test){return test==3;});
-  arma::mat iWiidC;
-  arma::mat iWiidT;
+  // bool methodPeron = std::any_of(method.begin(), method.end(), [](int test){return test==3;});
+  // arma::mat iWiidC;
+  // arma::mat iWiidT;
 
   // *** others
   double zeroPlus = 1e-12;
@@ -214,24 +210,20 @@ List GPC_cpp(arma::mat endpoint,
 		// Rcout << " total weight M1 = " << sum(iCumWeight_M1) << endl;
       }
 
-	  // **** prepare 
-	  if(methodPeron && returnIID){
-		iWiidC.resize(p_C(iter_strata,iter_d),2);
-		iWiidT.resize(p_T(iter_strata,iter_d),2);
-	  }
-	  
       // **** compute scores
       // Rcout << " score" << endl;
       if((iter_d==0) || (hierarchical == false)){
 		iScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
 							  censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
-							  list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+							  list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata],
+							  list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 							  list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), 
 							  iMethod, correctionUninf,	
-							  Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
+							  Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d),
+							  Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
 							  iIndex_control, iIndex_treatment,
 							  iWeight, iVecFavorable, iVecUnfavorable,
-							  iPartialCount_C, iPartialCount_T, p_C(iter_strata,iter_d), p_T(iter_strata,iter_d), returnIID, 
+							  iPartialCount_C, iPartialCount_T, returnIID, 
 							  neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
 		// add to the total number of pairs the number of pairs found for this endpoint
 		if(iter_d==0){
@@ -256,10 +248,11 @@ List GPC_cpp(arma::mat endpoint,
 								 iIndex_control_M1, iIndex_treatment_M1,
 								 iCumWeight_M1, lsScore_UTTE, iIndex_UTTE, isStored_UTTE,
 								 iMethod, correctionUninf,	
-								 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
+								 Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d),
+								 Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d), 
 								 iIndex_control, iIndex_treatment, 
 								 iWeight, iIndexWeight_pair, iVecFavorable, iVecUnfavorable,
-								 iPartialCount_C, iPartialCount_T, p_C(iter_strata,iter_d), p_T(iter_strata,iter_d), returnIID, 
+								 iPartialCount_C, iPartialCount_T, returnIID, 
 								 neutralAsUninf, keepScore, iMoreEndpoint, iReanalyzed, reserve);
       }
       R_CheckUserInterrupt();

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: maj  8 2019 (17:22) 
+## Last-Updated: maj 15 2019 (15:54) 
 ##           By: Brice Ozenne
-##     Update #: 76
+##     Update #: 83
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -76,8 +76,8 @@ iidProdlim <- function(object, add0 = FALSE){
     }
     level.strata <- as.character(interaction(object$X))
     vec.strata <- factor(interaction(object$model.matrix[object$originalDataOrder,,drop=FALSE]), levels = level.strata)
-    vec.strataNum <- as.numeric(vec.strata)
 
+    vec.strataNum <- as.numeric(vec.strata)
     vec.eventtime <- object$model.response[object$originalDataOrder,1]
     vec.status <- object$model.response[object$originalDataOrder,2]
     
@@ -100,7 +100,7 @@ iidProdlim <- function(object, add0 = FALSE){
                                                                           rep(0,n.strata),
                                                                           as.double(table(vec.strata))
                                                                           )]
-        tableHazard.red <- rbind(tableHazard0,tableHazard)
+        tableHazard.red <- rbind(tableHazard0,tableHazard.red)
         data.table::setkeyv(tableHazard.red, c("strata.index","time"))
     }    
     n.times <- NROW(tableHazard.red)
@@ -130,8 +130,8 @@ iidProdlim <- function(object, add0 = FALSE){
                                 which(vec.eventtime>=min(ls.Utime1[[iStrata]])))        
         iVec.eventtime <- vec.eventtime[iSubsetObs]
         iVec.status <- vec.status[iSubsetObs]
-        
-        iIndexJump <- prodlim::sindex(ls.Utime1[[iStrata]], iVec.eventtime)
+
+        iIndexJump <- prodlim::sindex(jump.times = ls.Utime1[[iStrata]], eval.times = iVec.eventtime)
         iDelta_iS0 <- iVec.status / iTableHazard$atrisk[iIndexJump]
         
         ## hazard
@@ -152,7 +152,7 @@ iidProdlim <- function(object, add0 = FALSE){
         IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = exp(-cumsum(iTableHazard$hazard)), MARGIN = 2)
         ## IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = iTableHazard$survival, MARGIN = 2)
     }
-    
+
     ## ** Export
     return(list(IFhazard = IFhazard,
                 IFcumhazard = IFcumhazard,

@@ -796,7 +796,7 @@ initializePeron <- function(data,
                                                                    dSurvival = iDSurvC)
                     if(iid){
                         out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(out$survJumpC[[iEndpoint]][[iStrata]],
-                                                                       index.survival = iIndexSurvivalT.JumpCpTau)
+                                                                       index.survival = iIndexSurvivalT.JumpCpTau - 1)
                     }
                 }else{
                     out$survJumpC[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 3,
@@ -810,7 +810,7 @@ initializePeron <- function(data,
                                                                    dSurvival = iDSurvT)
                     if(iid){
                         out$survJumpT[[iEndpoint]][[iStrata]] <- cbind(out$survJumpT[[iEndpoint]][[iStrata]],
-                                                                       index.survival = iIndexSurvivalC.JumpTpTau)
+                                                                       index.survival = iIndexSurvivalC.JumpTpTau - 1)
                     }
                 }else{
                     out$survJumpT[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 3,
@@ -832,12 +832,12 @@ initializePeron <- function(data,
                                                                "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeCpTau])
                 if(iid){
                     out$survTimeC[[iEndpoint]][[iStrata]] <- cbind(out$survTimeC[[iEndpoint]][[iStrata]],
-                                                                   "index.SurvivalC-threshold" = iIndexSurvivalC.timeCmTau,
-                                                                   "index.SurvivalC_0" = iIndexSurvivalC.timeC,
-                                                                   "index.SurvivalC+threshold" = iIndexSurvivalC.timeCpTau,
-                                                                   "index.SurvivalT-threshold" = iIndexSurvivalT.timeCmTau,
-                                                                   "index.SurvivalT_0" = iIndexSurvivalT.timeC,
-                                                                   "index.SurvivalT+threshold" = iIndexSurvivalT.timeCpTau
+                                                                   "index.SurvivalC-threshold" = iIndexSurvivalC.timeCmTau - 1,
+                                                                   "index.SurvivalC_0" = iIndexSurvivalC.timeC - 1,
+                                                                   "index.SurvivalC+threshold" = iIndexSurvivalC.timeCpTau - 1,
+                                                                   "index.SurvivalT-threshold" = iIndexSurvivalT.timeCmTau - 1,
+                                                                   "index.SurvivalT_0" = iIndexSurvivalT.timeC - 1,
+                                                                   "index.SurvivalT+threshold" = iIndexSurvivalT.timeCpTau - 1
                                                                    )
                 }
 
@@ -856,12 +856,12 @@ initializePeron <- function(data,
                                                                )
                 if(iid){
                     out$survTimeT[[iEndpoint]][[iStrata]] <- cbind(out$survTimeT[[iEndpoint]][[iStrata]],
-                                                                   "index.SurvivalC-threshold" = iIndexSurvivalC.timeTmTau,
-                                                                   "index.SurvivalC_0" = iIndexSurvivalC.timeT,
-                                                                   "index.SurvivalC+threshold" = iIndexSurvivalC.timeTpTau,
-                                                                   "index.SurvivalT-threshold" = iIndexSurvivalT.timeTmTau,
-                                                                   "index.SurvivalT_0" = iIndexSurvivalT.timeT,
-                                                                   "index.SurvivalT+threshold" = iIndexSurvivalT.timeTpTau
+                                                                   "index.SurvivalC-threshold" = iIndexSurvivalC.timeTmTau - 1,
+                                                                   "index.SurvivalC_0" = iIndexSurvivalC.timeT - 1,
+                                                                   "index.SurvivalC+threshold" = iIndexSurvivalC.timeTpTau - 1,
+                                                                   "index.SurvivalT-threshold" = iIndexSurvivalT.timeTmTau - 1,
+                                                                   "index.SurvivalT_0" = iIndexSurvivalT.timeT - 1,
+                                                                   "index.SurvivalT+threshold" = iIndexSurvivalT.timeTpTau - 1
                                                                    )
                 }
             }
@@ -875,37 +875,34 @@ initializePeron <- function(data,
     }
 
     ## ** prepare influence function
+    out$iid <- vector(mode = "list", length = 4)
+    template <- lapply(1:D.UTTE, function(IE){
+        lapply(1:n.strata, matrix, nrow = 0, ncol = 0)
+        })
+    out$iid <- lapply(out$iid, function(x){template})
+    names(out$iid) <- c("survJumpC","dSurvJumpC","survJumpT","dSurvJumpT")
+
     if(iid){
         iid.model.tte <- lapply(model.tte, function(iModel){ ## iModel <- model.tte[[1]]
-            iOut <- iidProdlim(iModel)
+            iOut <- iidProdlim(iModel, add0 = TRUE)
             iOut$IFsurvival.control <- iOut$IFsurvival[which(iOut$X[,treatment]==0)]
             iOut$IFsurvival.treatment <- iOut$IFsurvival[which(iOut$X[,treatment]==1)]
             return(iOut)
         })
-        out$iid <- vector(mode = "list", D.UTTE)
-            
-        for(iEndpoint in 1:D.UTTE){
-            out$iid[[iEndpoint]] <- vector(mode = "list", n.strata)            
-            for(iStrata in 1:n.strata){ ## iEndpoint <- 1
+        for(iEndpoint in 1:D.UTTE){  ## iEndpoint <- 1
+            for(iStrata in 1:n.strata){  ## iStrata <- 1
                 iIID.control <- iid.model.tte[[iEndpoint]]$IFsurvival.control[[iStrata]]
                 iIID.treatment <- iid.model.tte[[iEndpoint]]$IFsurvival.treatment[[iStrata]]
-                
-                iP.control <- NCOL(iIID.control)
-                iP.treatment <- NCOL(iIID.treatment)
-                
-                out$iid[[iEndpoint]][[iStrata]] <- list(IFcontrol = iIID.control,
-                                                        dIFcontrol = iIID.control - cbind(0,iIID.control[,1:(iP.control-1)]),
-                                                        IFtreatment = iIID.treatment,
-                                                        dIFtreatment = iIID.treatment - cbind(0,iIID.treatment[,1:(iP.treatment-1)])
-                                                        )
-
-                out$p.C[iStrata, endpoint == endpoint.UTTE[iEndpoint]] <- iP.control
-                out$p.T[iStrata, endpoint == endpoint.UTTE[iEndpoint]] <- iP.treatment
+                ## iid.model.tte[[iEndpoint]]$time
+                out$iid$survJumpC[[iEndpoint]][[iStrata]] <- iIID.control
+                out$iid$dSurvJumpC[[iEndpoint]][[iStrata]] <- iIID.control - cbind(0,iIID.control[,1:(NCOL(iIID.control)-1)])
+                out$iid$survJumpT[[iEndpoint]][[iStrata]] <- iIID.treatment
+                out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <- iIID.treatment - cbind(0,iIID.treatment[,1:(NCOL(iIID.treatment)-1)])
             }
         }
         
     }
-    
+
     ## ** export
     return(out)
     

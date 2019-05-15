@@ -372,6 +372,45 @@ BuyseTest <- function(formula,
         ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
         ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
         ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+        if(outArgs$scoring.rule==1 && outArgs$keep.survival && outArgs$keep.pairScore){
+            extraIID <- .iid_correctionPeron(                
+                pairScore = outPoint$tablePairScore,
+                M.endpoint = outArgs$M.endpoint,
+                M.censoring = outArgs$M.censoring,
+                endpoint = outArgs$endpoint,
+                censoring = outArgs$censoring,
+                threshold = outArgs$threshold,
+                n.strata = outArgs$n.strata,
+                n.pairs = outPoint$n_pairs,
+                survTimeC = outPoint$tableSurvival$survTimeC,
+                survTimeT = outPoint$tableSurvival$survTimeT,
+                survJumpC = outPoint$tableSurvival$survJumpC,
+                survJumpT = outPoint$tableSurvival$survJumpT,
+                iid_survJumpC = outPoint$tableSurvival$iid$survJumpC,
+                iid_dSurvJumpC = outPoint$tableSurvival$iid$dSurvJumpC,
+                iid_survJumpT = outPoint$tableSurvival$iid$survJumpT,
+                iid_dSurvJumpT = outPoint$tableSurvival$iid$dSurvJumpT)
+
+            ## xx <- cbind(outPoint$iid_favorable + extraIID$favorable,
+            ## outPoint$iid_unfavorable + extraIID$unfavorable)
+            ## print(crossprod(xx))
+            outPoint$iid_favorable <- outPoint$iid_favorable + extraIID$favorable
+            outPoint$iid_unfavorable <- outPoint$iid_unfavorable + extraIID$unfavorable
+            
+            sumFavorable <- colSums(outPoint$count_favorable)/sum(outPoint$n_pairs)
+            sumUnfavorable <- colSums(outPoint$count_unfavorable)/sum(outPoint$n_pairs)
+            iidRatio1 <- sweep(outPoint$iid_favorable, MARGIN = 2, FUN = "/", STATS = sumUnfavorable)
+            iidRatio2 <- - sweep(outPoint$iid_unfavorable, MARGIN = 2, FUN = "*", STATS = sumFavorable/sumUnfavorable^2)
+
+            outPoint$Mvar <- cbind(colSums(outPoint$iid_favorable^2),
+                                   colSums(outPoint$iid_unfavorable^2),
+                                   colSums(outPoint$iid_favorable * outPoint$iid_unfavorable),
+                                   colSums((outPoint$iid_favorable - outPoint$iid_unfavorable)^2),
+                                   colSums((iidRatio1 + iidRatio2)^2))
+        }
+
+
+        
     }else if(outArgs$method.inference == "u-statistic-bebu"){
         if(outArgs$keep.pairScore == FALSE){
             stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"u-statistic-bebu\" \n")
@@ -626,8 +665,6 @@ BuyseTest <- function(formula,
                      list_survJumpC = outSurv$survJumpC,
                      list_survJumpT = outSurv$survJumpT,
                      list_lastSurv = outSurv$lastSurv,
-                     p_C = outSurv$p.C,
-                     p_T = outSurv$p.T,
                      correctionUninf = envir$outArgs$correction.uninf,
                      hierarchical = envir$outArgs$hierarchical,
                      hprojection = envir$outArgs$order.Hprojection,
