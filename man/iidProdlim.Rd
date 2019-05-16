@@ -4,7 +4,7 @@
 \alias{iidProdlim}
 \title{Extract i.i.d. decomposition from a prodlim model}
 \usage{
-iidProdlim(object, add0 = FALSE, only.jumpTimes = FALSE)
+iidProdlim(object, add0 = FALSE)
 }
 \arguments{
 \item{object}{A prodlim object.}

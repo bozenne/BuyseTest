@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr  3 2019 (14:54) 
+## Last-Updated: maj 16 2019 (17:08) 
 ##           By: Brice Ozenne
-##     Update #: 100
+##     Update #: 101
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -396,6 +396,9 @@ test_that("BuyseTest without variability", {
     e.BT_boot <- BuyseTest(group ~ bin(tox) + cont(score), data = df,
                            method.inference = "studentized bootstrap",
                            n.resampling = 10)
-    expect_equal(unname(confint(e.BT_ustat)[,"p.value"]),1:0)
-    expect_equal(unname(confint(e.BT_boot)[,"p.value"]),1:0)
+
+    confintTempo <- confint(e.BT_ustat)
+    expect_equal(unname(confintTempo[,"p.value"]),1:0)
+    confintTempo <- suppressMessages(confint(e.BT_boot, transformation = FALSE))
+    expect_equal(unname(confintTempo[,"p.value"]),1:0)
 })

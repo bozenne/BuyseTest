@@ -28,6 +28,8 @@
 #' @param list_survJumpC A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps.
 #' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps.
 #' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).
+#' @param p_C Number of nuisance parameter in the survival model for the control group, for each endpoint and strata
+#' @param p_T Number of nuisance parameter in the survival model for the treatment group, for each endpoint and strata
 #' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 #' @param hierarchical Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 #' @param hprojection Order of the H-projection used to compute the variance.
@@ -40,8 +42,8 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
+GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

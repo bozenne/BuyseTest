@@ -7,7 +7,7 @@
 GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
   method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint,
   index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, correctionUninf,
+  list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, correctionUninf,
   hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
 }
 \arguments{
@@ -56,6 +56,10 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 \item{list_survJumpT}{A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps.}
 
 \item{list_lastSurv}{A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).}
+
+\item{p_C}{Number of nuisance parameter in the survival model for the control group, for each endpoint and strata}
+
+\item{p_T}{Number of nuisance parameter in the survival model for the treatment group, for each endpoint and strata}
 
 \item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 

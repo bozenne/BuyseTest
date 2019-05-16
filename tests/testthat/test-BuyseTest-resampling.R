@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: apr 12 2019 (11:34) 
+## last-updated: maj 16 2019 (17:24) 
 ##           By: Brice Ozenne
-##     Update #: 117
+##     Update #: 119
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -26,6 +26,7 @@ if(FALSE){
 ## * settings
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
+                  keep.survival = FALSE,
                   order.Hprojection = 1,
                   trace = 0)
 n.patients <- 100
@@ -37,7 +38,7 @@ dt.sim <- simBuyseTest(n.T = n.patients,
                        n.C = n.patients,
                        argsBin = list(p.T = c(0.5,0.75)),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
-                       argsTTE = list(rates.T = 1:3, rates.Censor = rep(1,3)),
+                       argsTTE = list(rates.T = 1:3, rates.Censoring.T = rep(1,3)),
                        n.strata = 3)
 
 ## * Permutation

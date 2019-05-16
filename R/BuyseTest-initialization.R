@@ -830,7 +830,7 @@ initializePeron <- function(data,
                                                                "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeCmTau],
                                                                "SurvivalT_0" = iSurvivalT.timeC,
                                                                "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeCpTau])
-                if(iid){
+                if(iid){                    
                     out$survTimeC[[iEndpoint]][[iStrata]] <- cbind(out$survTimeC[[iEndpoint]][[iStrata]],
                                                                    "index.SurvivalC-threshold" = iIndexSurvivalC.timeCmTau - 1,
                                                                    "index.SurvivalC_0" = iIndexSurvivalC.timeC - 1,

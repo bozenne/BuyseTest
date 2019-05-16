@@ -43,6 +43,8 @@ using namespace arma ;
 //' @param list_survJumpC A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps.
 //' @param list_survJumpT A list of matrix containing the survival estimates and survival jumps when the survival for the treatment arm jumps.
 //' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).
+//' @param p_C Number of nuisance parameter in the survival model for the control group, for each endpoint and strata
+//' @param p_T Number of nuisance parameter in the survival model for the treatment group, for each endpoint and strata
 //' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 //' @param hierarchical Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 //' @param hprojection Order of the H-projection used to compute the variance.
@@ -79,6 +81,8 @@ List GPC_cpp(arma::mat endpoint,
 			 std::vector< std::vector< arma::mat > > list_survJumpC,
 			 std::vector< std::vector< arma::mat > > list_survJumpT,
 			 std::vector< arma::mat > list_lastSurv,
+			 arma::mat p_C,
+             arma::mat p_T,
 			 int correctionUninf,
 			 bool hierarchical,
 			 int hprojection,

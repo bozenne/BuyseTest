@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: maj 15 2019 (15:54) 
+## Last-Updated: maj 16 2019 (17:23) 
 ##           By: Brice Ozenne
-##     Update #: 83
+##     Update #: 84
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -94,12 +94,12 @@ iidProdlim <- function(object, add0 = FALSE){
     tableHazard.red <- tableHazard[tableHazard$event>0]
     if(add0){
         tableHazard0 <- tableHazard[,.SD[1], by = "strata.index"]
-        tableHazard0[,c("hazard","survival","time","event","atrisk") := .(rep(0,n.strata),
-                                                                          rep(1,n.strata),
-                                                                          rep(0,n.strata),
-                                                                          rep(0,n.strata),
-                                                                          as.double(table(vec.strata))
-                                                                          )]
+        tableHazard0[,c("hazard","survival","time","event","atrisk") := list(rep(0,n.strata),
+                                                                             rep(1,n.strata),
+                                                                             rep(0,n.strata),
+                                                                             rep(0,n.strata),
+                                                                             as.double(table(vec.strata))
+                                                                             )]
         tableHazard.red <- rbind(tableHazard0,tableHazard.red)
         data.table::setkeyv(tableHazard.red, c("strata.index","time"))
     }    

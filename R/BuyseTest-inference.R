@@ -149,12 +149,12 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
 
             ## *** Hajek projection
             ## \E[X_i>=Y_j+\tau|X_i] and \E[X_i+\tau<=Y_j|X_i]
-            sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.T"]
+            sumPair.T <- iTable[, list(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.T"]
             sumPair.T[, c("E.favorable") := .SD$favorable/.SD$pairs]
             sumPair.T[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
 
             ## \E[X_i>=Y_j+\tau|Y_j] and \E[X_i+\tau<=Y_j|Y_j]
-            sumPair.C <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.C"]
+            sumPair.C <- iTable[, list(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.C"]
             sumPair.C[, c("E.favorable") := .SD$favorable/.SD$pairs]
             sumPair.C[, c("E.unfavorable") := .SD$unfavorable/.SD$pairs]
 
@@ -382,11 +382,14 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
 }
 
 ## * .iid_correctionPeron
-.iid_correctionPeron <- function(pairScore, M.endpoint, M.censoring, endpoint, censoring, threshold, n.strata, n.pairs,
-                                 survTimeC, survTimeT, survJumpC, survJumpT,
+.iid_correctionPeron <- function(pairScore, M.endpoint, M.censoring, endpoint, censoring, threshold, level.strata, n.pairs,
+                                 survTimeC, survTimeT, survJumpC, survJumpT, lastSurv,
                                  iid_survJumpC, iid_dSurvJumpC, iid_survJumpT, iid_dSurvJumpT){
 
+    J <- NULL ## for CRAN test
+    
     n.endpoint <- length(endpoint)
+    n.strata <- length(level.strata)
     n.obs <- NROW(M.censoring)
 
     ls.iid <- list(favorable = matrix(NA, nrow = n.obs, ncol = n.endpoint),
@@ -396,16 +399,17 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
             iN.pairs <- n.pairs[iStrata]
 
             for(iEndpoint in 1:n.endpoint){ ## iEndpoint <- 1        
-
-                iPairScore <- pairScore[[iEndpoint]][pairScore[[iEndpoint]]$strata == iStrata]
+                iPairScore <- pairScore[[iEndpoint]][pairScore[[iEndpoint]]$strata == level.strata[iStrata]]
                 iPairScore[, c("censoring.C") := M.censoring[iPairScore$index.C,censoring[iEndpoint]]]
                 iPairScore[, c("censoring.T") := M.censoring[iPairScore$index.T,censoring[iEndpoint]]]
                 iPairScore[, c("endpoint.C") := M.endpoint[iPairScore$index.C,endpoint[iEndpoint]]]
                 iPairScore[, c("endpoint.T") := M.endpoint[iPairScore$index.T,endpoint[iEndpoint]]]
-                iPairScore <- iPairScore[favorable<1&unfavorable<1]
+                iPairScore <- iPairScore[(iPairScore$favorable < 1) & (iPairScore$unfavorable < 1)]
+                if(NROW(iPairScore)==0){next}
                 setkeyv(iPairScore, c("censoring.C","censoring.T"))
 
                 iThreshold <- threshold[iEndpoint]
+                iLastSurv <- lastSurv[[iEndpoint]][iStrata,1:2]
                 
                 iSurvTimeC <- survTimeC[[iEndpoint]][[iStrata]]
                 iSurvTimeT <- survTimeT[[iEndpoint]][[iStrata]]
@@ -416,30 +420,191 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
                 iIID_survJumpT <- iid_survJumpT[[iEndpoint]][[iStrata]]
                 iIID_dSurvJumpT <- iid_dSurvJumpT[[iEndpoint]][[iStrata]]
             
-                ## type Control=1,Treatment=0
-                iPairScore10 <- iPairScore[J(1,0)]
+                ## ** type Control=1,Treatment=0
+                if(any((iPairScore$censoring.C==1)*(iPairScore$censoring.T==0))){                    
+                    iPairScore10 <- iPairScore[J(1,0)]
+                    Sx <- iSurvTimeT[iPairScore10$indexWithinStrata.T,"SurvivalT_0"]
+                    SyPtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT+threshold"]
+                    SyMtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT-threshold"]
+                    
+                    ## deal with NAs
+                    vecFavorable.C <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"index.SurvivalT+threshold"]+1
+                    vecFavorable.C[is.na(SyPtau)] <- 1
+                    vecUnfavorable.C <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"index.SurvivalT-threshold"]+1
+                    vecUnfavorable.C[is.na(SyMtau)] <- NCOL(iIID_survJumpT)
+                    SyPtau[is.na(SyPtau)] <- 0
+                    SyMtau[is.na(SyMtau)] <- iLastSurv[2]
+
+                    ## SyPtau/Sx - iPairScore10$favorable
+                    ## 1-SyMtau/Sx  - iPairScore10$unfavorable
+                    IFx <- iIID_survJumpT[,iSurvTimeT[iPairScore10$indexWithinStrata.T,"index.SurvivalT_0"]+1]       
+                    IFyPtau <- iIID_survJumpT[,vecFavorable.C]
+                    IFyMtau <- iIID_survJumpT[,vecUnfavorable.C]
+                    
+                    IFratio.favorable <- sweep(IFyPtau, MARGIN = 2, FUN = "/", STATS = Sx) - sweep(IFx, MARGIN = 2, FUN = "*", STATS = SyPtau/Sx^2)                    
+                    IFratio.unfavorable <- - (sweep(IFyMtau, MARGIN = 2, FUN = "/", STATS = Sx) - sweep(IFx, MARGIN = 2, FUN = "*", STATS = SyMtau/Sx^2))
+
+                    ls.iid$favorable[, iEndpoint] <- rowSums(IFratio.favorable)/iN.pairs
+                    ls.iid$unfavorable[, iEndpoint] <- rowSums(IFratio.unfavorable)/iN.pairs
+                }
+
+                ## ** type Control=0,Treatment=1
+                if(any((iPairScore$censoring.C==0)*(iPairScore$censoring.T==1))){
+                    iPairScore01 <- iPairScore[J(0,1)]
+                    Sy <- iSurvTimeC[iPairScore01$indexWithinStrata.C,"SurvivalC_0"]
+                    SxPtau <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"SurvivalC+threshold"]
+                    SxMtau <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"SurvivalC-threshold"]
+                    
+                    ## deal with NAs
+                    vecFavorable.T <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"index.SurvivalC-threshold"]+1
+                    vecFavorable.T[is.na(SxMtau)] <- NCOL(iIID_survJumpC)
+                    vecUnfavorable.T <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"index.SurvivalC+threshold"]+1
+                    vecUnfavorable.T[is.na(SxPtau)] <- 1
+                    SxMtau[is.na(SxMtau)] <- iLastSurv[1]
+                    SxPtau[is.na(SxPtau)] <- 0
+
+                    ## range(1-SxMtau/Sy  - iPairScore01$favorable)
+                    ## range(SxPtau/Sy - iPairScore01$unfavorable)
+                    IFy <- iIID_survJumpC[,iSurvTimeC[iPairScore01$indexWithinStrata.C,"index.SurvivalC_0"]+1]       
+                    IFxMtau <- iIID_survJumpC[,vecFavorable.T]
+                    IFxPtau <- iIID_survJumpC[,vecUnfavorable.T]
+
+                    IFratio.favorable <- - (sweep(IFxMtau, MARGIN = 2, FUN = "/", STATS = Sy) - sweep(IFy, MARGIN = 2, FUN = "*", STATS = SxMtau/Sy^2))
+                    IFratio.unfavorable <- sweep(IFxPtau, MARGIN = 2, FUN = "/", STATS = Sy) - sweep(IFy, MARGIN = 2, FUN = "*", STATS = SxPtau/Sy^2)                
+
+                    ls.iid$favorable[, iEndpoint] <- rowSums(IFratio.favorable)/iN.pairs
+                    ls.iid$unfavorable[, iEndpoint] <- rowSums(IFratio.unfavorable)/iN.pairs
+                }
+
+                ## ** type Control=0,Treatment=0
+                iPairScore00 <- iPairScore[J(0,0)]
+                if(any((iPairScore$censoring.C==0)*(iPairScore$censoring.T==0))){
+                    browser()
+                }
+            }
+    }
+    return(ls.iid)
+}
+
+## * .iid_correctionPeron2
+.iid_correctionPeron2 <- function(pairScore, M.endpoint, M.censoring, endpoint, censoring, threshold, level.strata, n.pairs,
+                                 survTimeC, survTimeT, survJumpC, survJumpT, lastSurv,
+                                 iid_survJumpC, iid_dSurvJumpC, iid_survJumpT, iid_dSurvJumpT){
+
+    J <- NULL ## for CRAN test
+    
+    n.endpoint <- length(endpoint)
+    n.strata <- length(level.strata)
+    n.obs <- NROW(M.censoring)
+
+    ls.iid <- list(favorable = matrix(NA, nrow = n.obs, ncol = n.endpoint),
+                   unfavorable = matrix(NA, nrow = n.obs, ncol = n.endpoint))
+
+    for(iStrata in 1:n.strata){ ## iStrata <- 1
+            iN.pairs <- n.pairs[iStrata]
+
+            for(iEndpoint in 1:n.endpoint){ ## iEndpoint <- 1
+
+                ## ** extra relevant pairs
+                iPairScore <- pairScore[[iEndpoint]][pairScore[[iEndpoint]]$strata == level.strata[iStrata]]
+                iPairScore[, c("censoring.C") := M.censoring[iPairScore$index.C,censoring[iEndpoint]]]
+                iPairScore[, c("censoring.T") := M.censoring[iPairScore$index.T,censoring[iEndpoint]]]
+                iPairScore[, c("endpoint.C") := M.endpoint[iPairScore$index.C,endpoint[iEndpoint]]]
+                iPairScore[, c("endpoint.T") := M.endpoint[iPairScore$index.T,endpoint[iEndpoint]]]
+                iPairScore <- iPairScore[(iPairScore$favorable < 1) & (iPairScore$unfavorable < 1)]
+                if(NROW(iPairScore)==0){next}
+                setkeyv(iPairScore, c("censoring.C","censoring.T"))
+
+                iThreshold <- threshold[iEndpoint]
+                iLastSurv <- lastSurv[[iEndpoint]][iStrata,1:2]
                 
-            ## vec.favorable <- pmin(iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT+threshold"]/iSurvTimeT[iPairScore10$indexWithinStrata.T,"SurvivalT_0"],1)
-            ## vec.unfavorable <- pmax(1-iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT-threshold"]/iSurvTimeT[iPairScore10$indexWithinStrata.T,"SurvivalT_0"],0)
-            ## range(iPairScore10$favorable-vec.favorable)
+                iSurvTimeC <- survTimeC[[iEndpoint]][[iStrata]]
+                iSurvTimeT <- survTimeT[[iEndpoint]][[iStrata]]
+                iSurvJumpC <- survJumpC[[iEndpoint]][[iStrata]]
+                iSurvJumpT <- survJumpT[[iEndpoint]][[iStrata]]
+                iIID_survJumpC <- iid_survJumpC[[iEndpoint]][[iStrata]]
+                iIID_dSurvJumpC <- iid_dSurvJumpC[[iEndpoint]][[iStrata]]
+                iIID_survJumpT <- iid_survJumpT[[iEndpoint]][[iStrata]]
+                iIID_dSurvJumpT <- iid_dSurvJumpT[[iEndpoint]][[iStrata]]
 
-            Sx <- iSurvTimeT[iPairScore10$indexWithinStrata.T,"SurvivalT_0"]
-            SyPtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT+threshold"]
-            SyMtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT-threshold"]
-            ## pmin(SyPtau/Sx,1) - iPairScore10$favorable
-            ## pmax((1-SyMtau/Sx),0)  - iPairScore10$unfavorable
-            iSurvTimeT[iPairScore10$indexWithinStrata.T,"time"]
-            iSurvTimeC[iPairScore10$indexWithinStrata.C,"time"]
+                pC <- NCOL(iIID_survJumpC)
+                pT <- NCOL(iIID_survJumpT)
 
-                IFx <- iIID_survJumpT[,iSurvTimeT[iPairScore10$indexWithinStrata.T,"index.SurvivalT_0"]+1]       
-            IFyPtau <- iIID_survJumpT[,iSurvTimeC[iPairScore10$indexWithinStrata.C,"index.SurvivalT+threshold"]+1]
-            IFyMtau <- iIID_survJumpT[,iSurvTimeC[iPairScore10$indexWithinStrata.C,"index.SurvivalT-threshold"]+1]
+                EdSurv.C <- matrix(0, nrow = 2, ncol = pC,
+                                   dimnames = list(c("favorable","unfavorable"), NULL))
+                EdSurv.T <- matrix(0, nrow = 2, ncol = pT,
+                                   dimnames = list(c("favorable","unfavorable"), NULL))
+                
+                ## ** Expectation of the derivative (Control=1,Treatment=0)
+                if(any((iPairScore$censoring.C==1)*(iPairScore$censoring.T==0))){                    
+                    iPairScore10 <- iPairScore[J(1,0)]
+                    Sx <- iSurvTimeT[iPairScore10$indexWithinStrata.T,"SurvivalT_0"]
+                    SyPtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT+threshold"]
+                    SyMtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"SurvivalT-threshold"]
+                    
+                    ## deal with NAs
+                    index.x <- iSurvTimeT[iPairScore10$indexWithinStrata.T,"index.SurvivalT_0"]+1
+                    index.yPtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"index.SurvivalT+threshold"]+1
+                    index.yPtau[is.na(SyPtau)] <- 1
+                    index.yMtau <- iSurvTimeC[iPairScore10$indexWithinStrata.C,"index.SurvivalT-threshold"]+1
+                    index.yMtau[is.na(SyMtau)] <- pT
+                    SyPtau[is.na(SyPtau)] <- 0
+                    SyMtau[is.na(SyMtau)] <- iLastSurv[2]
+                   
+                    ## SyPtau/Sx - iPairScore10$favorable
+                    ## 1-SyMtau/Sx  - iPairScore10$unfavorable
+                    Uindex.x <- sort(unique(index.x))
+                    Uindex.yPtau <- sort(unique(index.yPtau))
+                    Uindex.yMtau <- sort(unique(index.yMtau))
 
-            IFratio.favorable <- sweep(IFyPtau, MARGIN = 2, FUN = "/", STATS = Sx) - sweep(IFx, MARGIN = 2, FUN = "*", STATS = SyPtau/Sx^2)
-            IFratio.unfavorable <- - (sweep(IFyMtau, MARGIN = 2, FUN = "/", STATS = Sx) - sweep(IFx, MARGIN = 2, FUN = "*", STATS = SyMtau/Sx^2))
-            
-                ls.iid$favorable[, iEndpoint] <- rowSums(IFratio.favorable)/iN.pairs
-                ls.iid$unfavorable[, iEndpoint] <- rowSums(IFratio.unfavorable)/iN.pairs
+                    ##  favorable
+                    EdSurv.T["favorable",Uindex.yPtau] <- EdSurv.T["favorable",Uindex.yPtau] + tapply(1/Sx, index.yPtau, sum)/iN.pairs
+                    EdSurv.T["favorable",Uindex.x] <- EdSurv.T["favorable",Uindex.x] + tapply(-SyPtau/Sx^2, index.x, sum)/iN.pairs
+
+                    ## unfavorable
+                    EdSurv.T["unfavorable",Uindex.yMtau] <- EdSurv.T["unfavorable",Uindex.yMtau] + tapply(-1/Sx, index.yMtau, sum)/iN.pairs
+                    EdSurv.T["unfavorable",Uindex.x] <- EdSurv.T["unfavorable",Uindex.x] + tapply(SyMtau/Sx^2, index.x, sum)/iN.pairs
+                }
+
+                ## ** Expectation of the derivative (Control=0,Treatment=1)
+                if(any((iPairScore$censoring.C==0)*(iPairScore$censoring.T==1))){
+                    iPairScore01 <- iPairScore[J(0,1)]
+                    Sy <- iSurvTimeC[iPairScore01$indexWithinStrata.C,"SurvivalC_0"]
+                    SxPtau <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"SurvivalC+threshold"]
+                    SxMtau <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"SurvivalC-threshold"]
+                    
+                    ## deal with NAs
+                    index.y <- iSurvTimeC[iPairScore01$indexWithinStrata.C,"index.SurvivalC_0"]+1
+                    index.xMtau <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"index.SurvivalC-threshold"]+1
+                    index.xMtau[is.na(SxMtau)] <- pC
+                    index.xPtau <- iSurvTimeT[iPairScore01$indexWithinStrata.T,"index.SurvivalC+threshold"]+1
+                    index.xPtau[is.na(SxPtau)] <- 1
+                    SxMtau[is.na(SxMtau)] <- iLastSurv[1]
+                    SxPtau[is.na(SxPtau)] <- 0
+
+                    ## range(1-SxMtau/Sy  - iPairScore01$favorable)
+                    ## range(SxPtau/Sy - iPairScore01$unfavorable)
+                    Uindex.y <- sort(unique(index.y))
+                    Uindex.xMtau <- sort(unique(index.xMtau))
+                    Uindex.xPtau <- sort(unique(index.xPtau))
+
+                    ##  favorable
+                    EdSurv.C["favorable",Uindex.xMtau] <- EdSurv.C["favorable",Uindex.xMtau] + tapply(-1/Sy, index.xMtau, sum)/iN.pairs
+                    EdSurv.C["favorable",Uindex.y] <- EdSurv.C["favorable",Uindex.y] + tapply(SxMtau/Sy^2, index.y, sum)/iN.pairs
+
+                    ## unfavorable
+                    EdSurv.C["unfavorable",Uindex.xPtau] <- EdSurv.C["unfavorable",Uindex.xPtau] + tapply(1/Sy, index.xPtau, sum)/iN.pairs
+                    EdSurv.C["unfavorable",Uindex.y] <- EdSurv.C["unfavorable",Uindex.y] + tapply(-SxPtau/Sy^2, index.y, sum)/iN.pairs
+                }
+
+                ## ** Expectation of the derivative (Control=0,Treatment=0)
+                iPairScore00 <- iPairScore[J(0,0)]
+                if(any((iPairScore$censoring.C==0)*(iPairScore$censoring.T==0))){
+                }
+
+                ## ** update iid
+                ls.iid$favorable[,iEndpoint] <- EdSurv.C["favorable",] %*% t(iIID_survJumpC) + EdSurv.T["favorable",] %*% t(iIID_survJumpT)
+                ls.iid$unfavorable[,iEndpoint] <- EdSurv.C["unfavorable",] %*% t(iIID_survJumpC) + EdSurv.T["unfavorable",] %*% t(iIID_survJumpT)
             }
     }
     return(ls.iid)
