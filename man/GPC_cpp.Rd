@@ -7,8 +7,9 @@
 GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
   method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint,
   index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, correctionUninf,
-  hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
+  list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC,
+  iid_survJumpT, correctionUninf, hierarchical, hprojection,
+  neutralAsUninf, keepScore, reserve, returnIID)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}

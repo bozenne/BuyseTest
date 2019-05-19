@@ -587,7 +587,7 @@ initializePeron <- function(data,
     censoring.UTTE <- censoring.TTE[index.endpoint.UTTE]
 
     ## ** estimate cumulative incidence function (survival case or competing risk case)
-    if(is.null(model.tte)){
+    if(is.null(model.tte)){        
         model.tte <- vector(length = D.UTTE, mode = "list")
         names(model.tte) <- endpoint.UTTE
 
@@ -598,7 +598,8 @@ initializePeron <- function(data,
                                                             data = data)
         }
         
-    }else{ 
+    }else{
+        iid <- FALSE
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
             ## convert treatment to numeric
             model.tte[[iEndpoint.UTTE]]$X[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.UTTE]]$X[[treatment]], levels = level.treatment))-1
@@ -617,7 +618,7 @@ initializePeron <- function(data,
             }
         }
     }
-    
+
     ## ** predict individual survival
     ## *** fill
     for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
@@ -890,6 +891,9 @@ initializePeron <- function(data,
             return(iOut)
         })
         for(iEndpoint in 1:D.UTTE){  ## iEndpoint <- 1
+            iEndpoint.UTTE.name <- endpoint.UTTE[iEndpoint.UTTE]
+            iIndex.associatedEndpoint <- which(endpoint == iEndpoint.UTTE.name)
+
             for(iStrata in 1:n.strata){  ## iStrata <- 1
                 iIID.control <- iid.model.tte[[iEndpoint]]$IFsurvival.control[[iStrata]]
                 iIID.treatment <- iid.model.tte[[iEndpoint]]$IFsurvival.treatment[[iStrata]]
@@ -898,11 +902,14 @@ initializePeron <- function(data,
                 out$iid$dSurvJumpC[[iEndpoint]][[iStrata]] <- iIID.control - cbind(0,iIID.control[,1:(NCOL(iIID.control)-1)])
                 out$iid$survJumpT[[iEndpoint]][[iStrata]] <- iIID.treatment
                 out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <- iIID.treatment - cbind(0,iIID.treatment[,1:(NCOL(iIID.treatment)-1)])
+
+                out$p.C[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.control)
+                out$p.T[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.treatment)
             }
         }
         
     }
-
+    
     ## ** export
     return(out)
     

@@ -393,39 +393,38 @@ BuyseTest <- function(formula,
             ##     iid_survJumpT = outPoint$tableSurvival$iid$survJumpT,
             ##     iid_dSurvJumpT = outPoint$tableSurvival$iid$dSurvJumpT)
 
-            extraIID <- .iid_correctionPeron2(                
-                pairScore = outPoint$tablePairScore,
-                M.endpoint = outArgs$M.endpoint,
-                M.censoring = outArgs$M.censoring,
-                endpoint = outArgs$endpoint,
-                censoring = outArgs$censoring,
-                threshold = outArgs$threshold,
-                level.strata = outArgs$level.strata,
-                n.pairs = outPoint$n_pairs,
-                survTimeC = outPoint$tableSurvival$survTimeC,
-                survTimeT = outPoint$tableSurvival$survTimeT,
-                survJumpC = outPoint$tableSurvival$survJumpC,
-                survJumpT = outPoint$tableSurvival$survJumpT,
-                lastSurv = outPoint$tableSurvival$lastSurv,
-                iid_survJumpC = outPoint$tableSurvival$iid$survJumpC,
-                iid_dSurvJumpC = outPoint$tableSurvival$iid$dSurvJumpC,
-                iid_survJumpT = outPoint$tableSurvival$iid$survJumpT,
-                iid_dSurvJumpT = outPoint$tableSurvival$iid$dSurvJumpT)
+            ## extraIID <- .iid_correctionPeron2(                
+            ##     pairScore = outPoint$tablePairScore,
+            ##     M.endpoint = outArgs$M.endpoint,
+            ##     M.censoring = outArgs$M.censoring,
+            ##     endpoint = outArgs$endpoint,
+            ##     censoring = outArgs$censoring,
+            ##     threshold = outArgs$threshold,
+            ##     level.strata = outArgs$level.strata,
+            ##     n.pairs = outPoint$n_pairs,
+            ##     survTimeC = outPoint$tableSurvival$survTimeC,
+            ##     survTimeT = outPoint$tableSurvival$survTimeT,
+            ##     survJumpC = outPoint$tableSurvival$survJumpC,
+            ##     survJumpT = outPoint$tableSurvival$survJumpT,
+            ##     lastSurv = outPoint$tableSurvival$lastSurv,
+            ##     iid_survJumpC = outPoint$tableSurvival$iid$survJumpC,
+            ##     iid_dSurvJumpC = outPoint$tableSurvival$iid$dSurvJumpC,
+            ##     iid_survJumpT = outPoint$tableSurvival$iid$survJumpT,
+            ##     iid_dSurvJumpT = outPoint$tableSurvival$iid$dSurvJumpT)
 
-            
-            outPoint$iid_favorable <- outPoint$iid_favorable + extraIID$favorable
-            outPoint$iid_unfavorable <- outPoint$iid_unfavorable + extraIID$unfavorable
-            
-            sumFavorable <- colSums(outPoint$count_favorable)/sum(outPoint$n_pairs)
-            sumUnfavorable <- colSums(outPoint$count_unfavorable)/sum(outPoint$n_pairs)
-            iidRatio1 <- sweep(outPoint$iid_favorable, MARGIN = 2, FUN = "/", STATS = sumUnfavorable)
-            iidRatio2 <- - sweep(outPoint$iid_unfavorable, MARGIN = 2, FUN = "*", STATS = sumFavorable/sumUnfavorable^2)
+            ## range(extraIID$favorable - outPoint$iidNuisance_favorable)
+            ## range(extraIID$unfavorable - outPoint$iidNuisance_unfavorable)
 
-            outPoint$Mvar <- cbind(colSums(outPoint$iid_favorable^2),
-                                   colSums(outPoint$iid_unfavorable^2),
-                                   colSums(outPoint$iid_favorable * outPoint$iid_unfavorable),
-                                   colSums((outPoint$iid_favorable - outPoint$iid_unfavorable)^2),
-                                   colSums((iidRatio1 + iidRatio2)^2))
+            ## sumFavorable <- colSums(outPoint$count_favorable)/sum(outPoint$n_pairs)
+            ## sumUnfavorable <- colSums(outPoint$count_unfavorable)/sum(outPoint$n_pairs)
+            ## iidRatio1 <- sweep(outPoint$iid_favorable, MARGIN = 2, FUN = "/", STATS = sumUnfavorable)
+            ## iidRatio2 <- - sweep(outPoint$iid_unfavorable, MARGIN = 2, FUN = "*", STATS = sumFavorable/sumUnfavorable^2)
+
+            ## outPoint$Mvar <- cbind(colSums(outPoint$iid_favorable^2),
+            ##                        colSums(outPoint$iid_unfavorable^2),
+            ##                        colSums(outPoint$iid_favorable * outPoint$iid_unfavorable),
+            ##                        colSums((outPoint$iid_favorable - outPoint$iid_unfavorable)^2),
+            ##                        colSums((iidRatio1 + iidRatio2)^2))
         }
 
 
@@ -661,6 +660,8 @@ BuyseTest <- function(formula,
     }
 
     ## ** Computation
+    iidNuisance <- (is.null(envir$outArgs$model.tte) && any(envir$outArgs$method.score==3))
+
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
                      censoring = envir$outArgs$M.censoring,
                      indexC = ls.indexC,
@@ -686,15 +687,17 @@ BuyseTest <- function(formula,
                      list_lastSurv = outSurv$lastSurv,
                      p_C = outSurv$p.C,
                      p_T = outSurv$p.T,
+                     iid_survJumpC = outSurv$iid$survJumpC,
+                     iid_survJumpT = outSurv$iid$survJumpT,
                      correctionUninf = envir$outArgs$correction.uninf,
                      hierarchical = envir$outArgs$hierarchical,
                      hprojection = envir$outArgs$order.Hprojection,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                      reserve = TRUE,
-                     returnIID = iid
+                     returnIID = iid + iid*iidNuisance
                      ) 
-    
+
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 

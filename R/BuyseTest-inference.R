@@ -556,11 +556,10 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
                     Uindex.x <- sort(unique(index.x))
                     Uindex.yPtau <- sort(unique(index.yPtau))
                     Uindex.yMtau <- sort(unique(index.yMtau))
-
                     ##  favorable
                     EdSurv.T["favorable",Uindex.yPtau] <- EdSurv.T["favorable",Uindex.yPtau] + tapply(1/Sx, index.yPtau, sum)/iN.pairs
                     EdSurv.T["favorable",Uindex.x] <- EdSurv.T["favorable",Uindex.x] + tapply(-SyPtau/Sx^2, index.x, sum)/iN.pairs
-
+                    
                     ## unfavorable
                     EdSurv.T["unfavorable",Uindex.yMtau] <- EdSurv.T["unfavorable",Uindex.yMtau] + tapply(-1/Sx, index.yMtau, sum)/iN.pairs
                     EdSurv.T["unfavorable",Uindex.x] <- EdSurv.T["unfavorable",Uindex.x] + tapply(SyMtau/Sx^2, index.x, sum)/iN.pairs

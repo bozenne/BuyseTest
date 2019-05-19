@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 16 2019 (17:24) 
+## last-updated: maj 19 2019 (15:19) 
 ##           By: Brice Ozenne
-##     Update #: 119
+##     Update #: 120
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -178,9 +178,9 @@ test_that("Bootstrap", {
                          data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "bootstrap", n.resampling = 20)
     BT.bootT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
-                                           data = dt.sim, scoring.rule = method, seed = 10, 
+                                           data = dt.sim, scoring.rule = method, seed = 10,
                                            method.inference = "studentized bootstrap", n.resampling = 20))
-
+    
     ## same point estimate with or without computation of the variance
     expect_equal(BT.boot@Delta.netBenefit,BT.bootT@Delta.netBenefit)
     expect_equal(BT.boot@Delta.winRatio,BT.bootT@Delta.winRatio)

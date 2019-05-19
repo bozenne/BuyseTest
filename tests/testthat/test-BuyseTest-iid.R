@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: apr  3 2019 (09:44) 
+## Last-Updated: maj 19 2019 (14:37) 
 ##           By: Brice Ozenne
-##     Update #: 46
+##     Update #: 47
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -237,7 +237,7 @@ test_that("iid: two endpoints (no strata - first order)", {
 })
 
 BuyseTest.options(order.Hprojection = 2)
-test_that("iid: two endpoints (no strata - first order)", {
+test_that("iid: two endpoints (no strata - second order)", {
     ## different endpoints
     e.BT <- BuyseTest(Treatment ~  bin(toxicity) + cont(score, threshold = 1),
                       data = d, keep.pairScore = FALSE,

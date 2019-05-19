@@ -42,8 +42,8 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
+GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

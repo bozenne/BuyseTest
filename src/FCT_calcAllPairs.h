@@ -17,11 +17,11 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		       arma::colvec deltaC, arma::colvec deltaT, 
 		       arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 		       double lastSurvC, double lastSurvT, 
-		       int method, int correctionUninf,
+		       int method, int correctionUninf, int p_C, int p_T,
 		       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 		       std::vector< int >& index_control, std::vector< int >& index_treatment, 
 		       arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-			   arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+		       arma::mat& MC_iid, arma::mat& MT_iid, arma::mat& EdSurvC, arma::mat& EdSurvT, int returnIID,
 		       bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve);
 
 arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double threshold, 
@@ -30,11 +30,11 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 			  double lastSurvC, double lastSurvT,						  
 			  const std::vector< int >& index_control_M1, const vector<int>& index_treatment_M1,						  
 			  const arma::vec& cumWeight_M1, const std::vector< arma::mat >& lsScore_UTTE, int index_UTTE, const std::vector< bool >& isStored_UTTE,
-			  int method, int correctionUninf,
+			  int method, int correctionUninf, int p_C, int p_T,
 			  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 			  std::vector< int >& index_control, std::vector< int >& index_treatment, 
 			  arma::vec& weight, arma::uvec& index_weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-			  arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+			  arma::mat& MC_iid, arma::mat& MT_iid, arma::mat& EdSurvC, arma::mat& EdSurvT, int returnIID,
 			  bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve);
 
 void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_uninfT, 
@@ -48,14 +48,14 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 		     const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
 		     const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, std::vector< double >& wUninf, const std::vector< int >& index_wUninf,
 		     std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
-		     arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+		     arma::mat& MC_iid, arma::mat& MT_iid, int returnIID,
 		     bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore);
 
 void correctionIPW(double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 		   const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
 		   const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, 
 		   std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
-		   arma::mat& MC_iid, arma::mat& MT_iid, bool returnIID,
+		   arma::mat& MC_iid, arma::mat& MT_iid, int returnIID,
 		   bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore);
 
 void mergeVectors(const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
@@ -68,15 +68,15 @@ void mergeVectors(const std::vector< int >& index_neutralC, const std::vector< i
 // * calcAllPairs
 // perform pairwise comparisons over all possible pairs for a continuous endpoints
 arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
-					   arma::colvec deltaC, arma::colvec deltaT, 
-					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-					   double lastSurvC, double lastSurvT, 
-					   int method, int correctionUninf,
-					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					   std::vector< int >& index_control, std::vector< int >& index_treatment, 
-					   arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-					   arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
-					   bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
+		       arma::colvec deltaC, arma::colvec deltaT, 
+		       arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
+		       double lastSurvC, double lastSurvT, 
+		       int method, int correctionUninf, int p_C, int p_T,
+		       double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+		       std::vector< int >& index_control, std::vector< int >& index_treatment, 
+		       arma::vec& weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
+		       arma::mat& partialCount_C, arma::mat& partialCount_T, arma::mat& EdSurvC, arma::mat& EdSurvT, int returnIID,
+		       bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
 
   // ** initialize
   int n_Treatment = Treatment.size(); // number of patients from the treatment arm
@@ -117,19 +117,25 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
     }
   }
 
-  if(returnIID){
+  if(returnIID > 0){
     partialCount_C.resize(n_Control, 3);
     partialCount_C.fill(0.0);
 
     partialCount_T.resize(n_Treatment, 3);
     partialCount_T.fill(0.0);
   }
+  if(returnIID > 1 && method == 3){
+    EdSurvC.resize(p_C, 2);
+    EdSurvC.fill(0.0);
+    EdSurvT.resize(p_T, 2);
+    EdSurvT.fill(0.0);
+  }
   
   // score    
   std::vector< double > iScore(4); // temporary store results
   arma::mat matPairScore; // score of all pairs
   if(keepScore){
-	matPairScore.resize(n_pair, 11); // store results from all scores
+    matPairScore.resize(n_pair, 11); // store results from all scores
   }
 
   // other
@@ -138,127 +144,127 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   // ** loop over the pairs
   int iter_pair = 0;
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
-	for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
-	  // Rcout << iter_pair << endl;
-	  // score
-	  if(method == 1){
-		iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
-	  }else if(method == 2){
-		iScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
-	  }else if(method == 3){
-		iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
-									   deltaC[iter_C], deltaT[iter_T], threshold,
-									   survTimeC.row(iter_C), survTimeT.row(iter_T),
-									   survJumpC, survJumpT, lastSurvC, lastSurvT,
-									   returnIID);
+    for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
+      // Rcout << iter_pair << endl;
+      // score
+      if(method == 1){
+	iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
+      }else if(method == 2){
+	iScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
+      }else if(method == 3){
+	iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
+				       deltaC[iter_C], deltaT[iter_T], threshold,
+				       survTimeC.row(iter_C), survTimeT.row(iter_T),
+				       survJumpC, survJumpT, lastSurvC, lastSurvT,
+				       EdSurvC, EdSurvT, returnIID);
 
-		if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
-		  // store for future endpoints
-		  vecFavorable.push_back(iScore[0]);
-		  vecUnfavorable.push_back(iScore[1]);
-		}
-	
-	  }	
-
-	  // store results
-	  if(iScore[0] > zeroPlus){
-		count_favorable += iScore[0];
-		if(returnIID){
-		  partialCount_C(iter_C,0) += iScore[0];
-		  partialCount_T(iter_T,0) += iScore[0];
-		}
+	if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
+	  // store for future endpoints
+	  vecFavorable.push_back(iScore[0]);
+	  vecUnfavorable.push_back(iScore[1]);
 	}
-	if(iScore[1] > zeroPlus){
-	  count_unfavorable += iScore[1];
-	  if(returnIID){
+	
+      }	
+
+      // store results
+      if(iScore[0] > zeroPlus){
+	count_favorable += iScore[0];
+	if(returnIID > 0){
+	  partialCount_C(iter_C,0) += iScore[0];
+	  partialCount_T(iter_T,0) += iScore[0];
+	}
+      }
+      if(iScore[1] > zeroPlus){
+	count_unfavorable += iScore[1];
+	if(returnIID > 0){
 	  partialCount_C(iter_C,1) += iScore[1];
 	  partialCount_T(iter_T,1) += iScore[1];
-	  }
 	}
-	if(iScore[2] > zeroPlus){
-	  count_neutral += iScore[2];
-	  if(updateIndexNeutral){
-	    index_neutralC.push_back(iter_C);     
-	    index_neutralT.push_back(iter_T);
-	    wNeutral.push_back(iScore[2]);
-	  }
+      }
+      if(iScore[2] > zeroPlus){
+	count_neutral += iScore[2];
+	if(updateIndexNeutral){
+	  index_neutralC.push_back(iter_C);     
+	  index_neutralT.push_back(iter_T);
+	  wNeutral.push_back(iScore[2]);
 	}
-	if(iScore[3] > zeroPlus){
-	  count_uninf += iScore[3];
-	  if(returnIID){
+      }
+      if(iScore[3] > zeroPlus){
+	count_uninf += iScore[3];
+	if(returnIID > 0){
 	  partialCount_C(iter_C,2) += iScore[3];
 	  partialCount_T(iter_T,2) += iScore[3];
-	  }
-	  if(updateIndexUninf){
-	    index_uninfC.push_back(iter_C);     
-	    index_uninfT.push_back(iter_T);
-	    wUninf.push_back(iScore[3]); 
-	  }
-	}	
-
-	if(keepScore){
-	  matPairScore.row(iter_pair) = rowvec({(double)iter_C, (double)iter_T, // indexC, indexT
-			iScore[0], // favorable
-			iScore[1], // unfavorable
-			iScore[2], // neutral
-			iScore[3], // uninformative
-			1.0, // weight
-			iScore[0], iScore[1], iScore[2], iScore[3] // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
-			});		
 	}
-
-	if(iter_pair % 65536 == 0){
-	  R_CheckUserInterrupt();
+	if(updateIndexUninf){
+	  index_uninfC.push_back(iter_C);     
+	  index_uninfT.push_back(iter_T);
+	  wUninf.push_back(iScore[3]); 
 	}
+      }	
 
-	iter_pair++;
-      }    
-    }
+      if(keepScore){
+	matPairScore.row(iter_pair) = rowvec({(double)iter_C, (double)iter_T, // indexC, indexT
+					      iScore[0], // favorable
+					      iScore[1], // unfavorable
+					      iScore[2], // neutral
+					      iScore[3], // uninformative
+					      1.0, // weight
+					      iScore[0], iScore[1], iScore[2], iScore[3] // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
+	  });		
+      }
+
+      if(iter_pair % 65536 == 0){
+	R_CheckUserInterrupt();
+      }
+
+      iter_pair++;
+    }    
+  }
   
-    R_CheckUserInterrupt();
+  R_CheckUserInterrupt();
 
-    // ** merge neutral and uninformative pairs + correction
-    bool firstEndpoint = true;
-    arma::uvec index_weight; // empty, just for calling functions
-    std::vector< int > index_wNeutral; // empty, just for calling functions
-    std::vector< int > index_wUninf; // empty, just for calling functions
+  // ** merge neutral and uninformative pairs + correction
+  bool firstEndpoint = true;
+  arma::uvec index_weight; // empty, just for calling functions
+  std::vector< int > index_wNeutral; // empty, just for calling functions
+  std::vector< int > index_wUninf; // empty, just for calling functions
 
-    // Rcout << "start merge " << endl;
+  // Rcout << "start merge " << endl;
 
-    if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
-      // correction possible: if there are uninformative paris and if there are informative pairs
-      if(correctionUninf == 1){
-		correctionPairs(count_favorable, count_unfavorable, count_neutral, count_uninf,
-						index_uninfC, index_uninfT, 
-						index_neutralC, index_neutralT, 
-						wNeutral, index_wNeutral, wUninf, index_wUninf,
-						index_control, index_treatment, weight, index_weight,
-						partialCount_C, partialCount_T, returnIID,
-						firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
-		// update by reference
+  if(correctionUninf > 0 && count_uninf > 0 && (count_favorable + count_unfavorable + count_neutral) > 0){
+    // correction possible: if there are uninformative paris and if there are informative pairs
+    if(correctionUninf == 1){
+      correctionPairs(count_favorable, count_unfavorable, count_neutral, count_uninf,
+		      index_uninfC, index_uninfT, 
+		      index_neutralC, index_neutralT, 
+		      wNeutral, index_wNeutral, wUninf, index_wUninf,
+		      index_control, index_treatment, weight, index_weight,
+		      partialCount_C, partialCount_T, returnIID,
+		      firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
+      // update by reference
       
-      }else if(correctionUninf == 2){
-		correctionIPW(count_favorable, count_unfavorable, count_neutral, count_uninf,
-					  index_neutralC, index_neutralT,
-					  wNeutral, index_wNeutral,
-					  index_control, index_treatment, weight, index_weight,
-					  partialCount_C, partialCount_T, returnIID,
-					  firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
-		// updated by reference      
-      }
-    }else{
-      if(moreEndpoint){
-		noCorrection(index_uninfC, index_uninfT, 
-					 index_neutralC, index_neutralT,
-					 wNeutral, index_wNeutral, wUninf, index_wUninf,
-					 index_control, index_treatment, weight, index_weight,
-					 method, firstEndpoint, neutralAsUninf);
-      }
+    }else if(correctionUninf == 2){
+      correctionIPW(count_favorable, count_unfavorable, count_neutral, count_uninf,
+		    index_neutralC, index_neutralT,
+		    wNeutral, index_wNeutral,
+		    index_control, index_treatment, weight, index_weight,
+		    partialCount_C, partialCount_T, returnIID,
+		    firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
+      // updated by reference      
     }
-    // Rcout << "end merge " << endl;
+  }else{
+    if(moreEndpoint){
+      noCorrection(index_uninfC, index_uninfT, 
+		   index_neutralC, index_neutralT,
+		   wNeutral, index_wNeutral, wUninf, index_wUninf,
+		   index_control, index_treatment, weight, index_weight,
+		   method, firstEndpoint, neutralAsUninf);
+    }
+  }
+  // Rcout << "end merge " << endl;
 
-    // ** export
-    return matPairScore;
+  // ** export
+  return matPairScore;
   
 }
 
@@ -266,17 +272,17 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 // * calcSubsetPairs
 // perform pairwise comparisons over the neutral and uniformative pairs for a given endpoint 
 arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double threshold, 
-						  arma::colvec deltaC, arma::colvec deltaT, 
-						  arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-						  double lastSurvC, double lastSurvT,						  
-						  const std::vector< int >& index_control_M1, const vector<int>& index_treatment_M1,						  
-						  const arma::vec& cumWeight_M1, const std::vector< arma::mat >& lsScore_UTTE, int index_UTTE, const std::vector< bool >& isStored_UTTE,
-						  int method, int correctionUninf,
-						  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-						  std::vector< int >& index_control, std::vector< int >& index_treatment, 
-						  arma::vec& weight, arma::uvec& index_weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
-						  arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID, 
-						  bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
+			  arma::colvec deltaC, arma::colvec deltaT, 
+			  arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
+			  double lastSurvC, double lastSurvT,						  
+			  const std::vector< int >& index_control_M1, const vector<int>& index_treatment_M1,						  
+			  const arma::vec& cumWeight_M1, const std::vector< arma::mat >& lsScore_UTTE, int index_UTTE, const std::vector< bool >& isStored_UTTE,
+			  int method, int correctionUninf, int p_C, int p_T,
+			  double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
+			  std::vector< int >& index_control, std::vector< int >& index_treatment, 
+			  arma::vec& weight, arma::uvec& index_weight, std::vector< double >& vecFavorable, std::vector< double >& vecUnfavorable,
+			  arma::mat& partialCount_C, arma::mat& partialCount_T, arma::mat& EdSurvC, arma::mat& EdSurvT, int returnIID, 
+			  bool neutralAsUninf, bool keepScore, bool moreEndpoint, bool reAnalyzed, bool reserve){
   // Rcout << "start calcSubsetPairs " << endl;
   
   // ** initialize
@@ -322,12 +328,18 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     }
   }
 
-  if(returnIID){
-  partialCount_C.resize(n_Control, 3);
-  partialCount_C.fill(0.0);
+  if(returnIID > 0){
+    partialCount_C.resize(n_Control, 3);
+    partialCount_C.fill(0.0);
 
-  partialCount_T.resize(n_Treatment, 3);
-  partialCount_T.fill(0.0);
+    partialCount_T.resize(n_Treatment, 3);
+    partialCount_T.fill(0.0);
+  }
+  if(returnIID > 1 && method == 3){
+    EdSurvC.resize(p_C, 2);
+    EdSurvC.fill(0.0);
+    EdSurvT.resize(p_T, 2);
+    EdSurvT.fill(0.0);
   }
   
   // store the score of all pairs
@@ -350,7 +362,7 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     alreadyAnalyzed = false;
   }
   // matWeight.print("matWeight:");
-
+  
   // ** loop over the pairs
   for(int iter_pair=0; iter_pair<n_pair ; iter_pair++){
     // Rcout << iter_pair << "/" << n_pair << " ";
@@ -366,19 +378,19 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
       iScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
     }else if(method == 3){
       iScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
-									 deltaC[iter_C], deltaT[iter_T], threshold,
-									 survTimeC.row(iter_C), survTimeT.row(iter_T),
-									 survJumpC, survJumpT, lastSurvC, lastSurvT,
-									 returnIID);
+				     deltaC[iter_C], deltaT[iter_T], threshold,
+				     survTimeC.row(iter_C), survTimeT.row(iter_T),
+				     survJumpC, survJumpT, lastSurvC, lastSurvT,
+				     EdSurvC, EdSurvT, returnIID);
 
       if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
-		// store for future endpoints
-		vecFavorable.push_back(iScore[0]);
-		vecUnfavorable.push_back(iScore[1]);
+	// store for future endpoints
+	vecFavorable.push_back(iScore[0]);
+	vecUnfavorable.push_back(iScore[1]);
       }
       if(alreadyAnalyzed){
-		iScoreM1[0] = lsScore_UTTE[index_UTTE](iter_pair,0);
-		iScoreM1[1] = lsScore_UTTE[index_UTTE](iter_pair,1);
+	iScoreM1[0] = lsScore_UTTE[index_UTTE](iter_pair,0);
+	iScoreM1[1] = lsScore_UTTE[index_UTTE](iter_pair,1);
       }
     }	
 
@@ -393,51 +405,51 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     // *** store results
     if(weight_favorable > zeroPlus){
       count_favorable += weight_favorable;
-	  if(returnIID){
-      partialCount_C(iter_C,0) += weight_favorable;
-      partialCount_T(iter_T,0) += weight_favorable;
-	  }
+      if(returnIID > 0){
+	partialCount_C(iter_C,0) += weight_favorable;
+	partialCount_T(iter_T,0) += weight_favorable;
+      }
     }
     if(weight_unfavorable > zeroPlus){
       count_unfavorable += weight_unfavorable;
-	  if(returnIID){
-		partialCount_C(iter_C,1) += weight_unfavorable;
-		partialCount_T(iter_T,1) += weight_unfavorable;
-	  }
+      if(returnIID > 0){
+	partialCount_C(iter_C,1) += weight_unfavorable;
+	partialCount_T(iter_T,1) += weight_unfavorable;
+      }
     }
 
     if(weight_neutral > zeroPlus){
       count_neutral += weight_neutral;
       if(updateIndexNeutral){
-		index_neutralC.push_back(iter_C); // index of the pair relative to Control         
-		index_neutralT.push_back(iter_T); // index of the pair relative to Treatment
-		index_wNeutral.push_back(iter_pair); // index of the pair relative to cumWeight_M1
-		wNeutral.push_back(iScore[2]); // not weight_neutral since the product is done in BuyseTest.cpp
+	index_neutralC.push_back(iter_C); // index of the pair relative to Control         
+	index_neutralT.push_back(iter_T); // index of the pair relative to Treatment
+	index_wNeutral.push_back(iter_pair); // index of the pair relative to cumWeight_M1
+	wNeutral.push_back(iScore[2]); // not weight_neutral since the product is done in BuyseTest.cpp
       }
     }
     if(weight_uninformative > zeroPlus){
       count_uninf += weight_uninformative;
-	  if(returnIID){
-		partialCount_C(iter_C,2) += weight_uninformative;
-		partialCount_T(iter_T,2) += weight_uninformative;
-	  }
+      if(returnIID > 0){
+	partialCount_C(iter_C,2) += weight_uninformative;
+	partialCount_T(iter_T,2) += weight_uninformative;
+      }
       if(updateIndexUninf){
-		index_uninfC.push_back(iter_C); // index of the pair relative to Control    
-		index_uninfT.push_back(iter_T); // index of the pair relative to Treatment
-		index_wUninf.push_back(iter_pair); // index of the pair relative to cumWeight_M1
-		wUninf.push_back(iScore[3]); // not weight_uninformative since the product is done in BuyseTest.cpp
+	index_uninfC.push_back(iter_C); // index of the pair relative to Control    
+	index_uninfT.push_back(iter_T); // index of the pair relative to Treatment
+	index_wUninf.push_back(iter_pair); // index of the pair relative to cumWeight_M1
+	wUninf.push_back(iScore[3]); // not weight_uninformative since the product is done in BuyseTest.cpp
       }
     }
 
     if(keepScore){
       matPairScore.row(iter_pair) = rowvec({(double)iter_C, (double)iter_T, // indexC, indexT
-			iScore[0] - iScoreM1[0], // favorable
-			iScore[1] - iScoreM1[1], // unfavorable
-			iScore[2], // neutral
-			iScore[3], // uninformative
-			cumWeight_M1(iter_pair), // weight
-			weight_favorable, weight_unfavorable, weight_neutral, weight_uninformative // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
-			});
+					    iScore[0] - iScoreM1[0], // favorable
+					    iScore[1] - iScoreM1[1], // unfavorable
+					    iScore[2], // neutral
+					    iScore[3], // uninformative
+					    cumWeight_M1(iter_pair), // weight
+					    weight_favorable, weight_unfavorable, weight_neutral, weight_uninformative // favorable corrected, unfavorable corrected, neutral corrected, uninformative corrected
+	});
     }
 
     if(iter_pair % 65536 == 0){
@@ -457,30 +469,30 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 
     if(correctionUninf == 1){
       correctionPairs(count_favorable, count_unfavorable, count_neutral, count_uninf,
-					  index_uninfC, index_uninfT, 
-					  index_neutralC, index_neutralT, 
-					  wNeutral, index_wNeutral, wUninf, index_wUninf,
-					  index_control, index_treatment, weight, index_weight,
-					  partialCount_C, partialCount_T, returnIID,
-					  firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
+		      index_uninfC, index_uninfT, 
+		      index_neutralC, index_neutralT, 
+		      wNeutral, index_wNeutral, wUninf, index_wUninf,
+		      index_control, index_treatment, weight, index_weight,
+		      partialCount_C, partialCount_T, returnIID,
+		      firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
       // updated by reference
     }else if(correctionUninf == 2){
       correctionIPW(count_favorable, count_unfavorable, count_neutral, count_uninf,
-					index_neutralC, index_neutralT,
-					wNeutral, index_wNeutral,
-					index_control, index_treatment, weight, index_weight,
-					partialCount_C, partialCount_T, returnIID,
-					firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
+		    index_neutralC, index_neutralT,
+		    wNeutral, index_wNeutral,
+		    index_control, index_treatment, weight, index_weight,
+		    partialCount_C, partialCount_T, returnIID,
+		    firstEndpoint, neutralAsUninf, moreEndpoint, keepScore, matPairScore);
       // updated by reference      
     }
   }else{
 
     if(moreEndpoint){
       noCorrection(index_uninfC, index_uninfT, 
-				   index_neutralC, index_neutralT,
-				   wNeutral, index_wNeutral, wUninf, index_wUninf,
-				   index_control, index_treatment, weight, index_weight,
-				   method, firstEndpoint, neutralAsUninf);
+		   index_neutralC, index_neutralT,
+		   wNeutral, index_wNeutral, wUninf, index_wUninf,
+		   index_control, index_treatment, weight, index_weight,
+		   method, firstEndpoint, neutralAsUninf);
     }
     // Rcout << " | " << index_control.size() << " " << index_treatment.size() << " " << weight.size() << " " << index_weight.size() << endl;
   }
@@ -495,10 +507,10 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
 
 // * noCorrection
 void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_uninfT, 
-				  std::vector< int >& index_neutralC, std::vector< int >& index_neutralT,
-				  const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, const std::vector< double >& wUninf, const std::vector< int >& index_wUninf,
-				  std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
-				  int method, bool firstEndpoint, bool neutralAsUninf){
+		  std::vector< int >& index_neutralC, std::vector< int >& index_neutralT,
+		  const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, const std::vector< double >& wUninf, const std::vector< int >& index_wUninf,
+		  std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
+		  int method, bool firstEndpoint, bool neutralAsUninf){
 
   int nNeutral = index_neutralC.size();
   int nUninf = index_uninfC.size();
@@ -517,13 +529,13 @@ void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_un
 
       weight.resize(nUninf);
       if(firstEndpoint==false){
-		index_weight.resize(nUninf);
+	index_weight.resize(nUninf);
       }
       for(int iIndex=0; iIndex<nUninf; iIndex++){
-		weight(iIndex) = wUninf[iIndex];
-		if(firstEndpoint==false){
-		  index_weight(iIndex) = index_wUninf[iIndex];
-		}
+	weight(iIndex) = wUninf[iIndex];
+	if(firstEndpoint==false){
+	  index_weight(iIndex) = index_wUninf[iIndex];
+	}
       }
     }else if(method!=3){
       // a pair can only be neutral or uninf
@@ -535,31 +547,31 @@ void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_un
       int size = nNeutral + nUninf;	  
       weight.resize(size);
       if(firstEndpoint==false){
-		index_weight.resize(size);
+	index_weight.resize(size);
       }
 	  
       for(int iIndex=0; iIndex<size; iIndex++){
-		if(iIndex < nNeutral){
-		  weight(iIndex) = wNeutral[iIndex];
-		  if(firstEndpoint==false){
-			index_weight(iIndex) = index_wNeutral[iIndex];
-		  }
-		}else{
-		  weight(iIndex) = wUninf[iIndex-nNeutral];
-		  if(firstEndpoint==false){
-			index_weight(iIndex) = index_wUninf[iIndex-nNeutral];
-		  }
-		}
+	if(iIndex < nNeutral){
+	  weight(iIndex) = wNeutral[iIndex];
+	  if(firstEndpoint==false){
+	    index_weight(iIndex) = index_wNeutral[iIndex];
+	  }
+	}else{
+	  weight(iIndex) = wUninf[iIndex-nNeutral];
+	  if(firstEndpoint==false){
+	    index_weight(iIndex) = index_wUninf[iIndex-nNeutral];
+	  }
+	}
       }
 	  	  
     }else{
       bool updateIndex = (firstEndpoint == false);
       mergeVectors(index_neutralC, index_neutralT,
-				   index_uninfC, index_uninfT, 
-				   wNeutral, index_wNeutral,
-				   wUninf, index_wUninf,
-				   index_control, index_treatment, weight, index_weight,
-				   updateIndex);
+		   index_uninfC, index_uninfT, 
+		   wNeutral, index_wNeutral,
+		   wUninf, index_wUninf,
+		   index_control, index_treatment, weight, index_weight,
+		   updateIndex);
     }
   }
 }
@@ -568,12 +580,12 @@ void noCorrection(std::vector< int >& index_uninfC, std::vector< int >& index_un
 // * correctionPairs
 // perform pairwise comparisons over the neutral and uniformative pairs for a TTE endpoint
 void correctionPairs(double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-					 const std::vector< int >& index_uninfC, const std::vector< int >& index_uninfT, 
-					 const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
-					 const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, std::vector< double >& wUninf, const std::vector< int >& index_wUninf,
-					 std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
-					 arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
-					 bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore){
+		     const std::vector< int >& index_uninfC, const std::vector< int >& index_uninfT, 
+		     const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
+		     const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, std::vector< double >& wUninf, const std::vector< int >& index_wUninf,
+		     std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
+		     arma::mat& partialCount_C, arma::mat& partialCount_T, int returnIID,
+		     bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore){
 
   // compute factor
   double factorFavorable = (count_favorable)/(count_favorable + count_unfavorable + count_neutral); 
@@ -586,11 +598,11 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
   count_neutral += factorNeutral * count_uninf;   
   count_uninf = 0;
 
-  if(returnIID){
-	partialCount_C.col(0) += factorFavorable * partialCount_C.col(2);
-	partialCount_C.col(1) += factorUnfavorable * partialCount_C.col(2);
-	partialCount_T.col(0) += factorFavorable * partialCount_T.col(2);
-	partialCount_T.col(1) += factorUnfavorable * partialCount_T.col(2);
+  if(returnIID > 0){
+    partialCount_C.col(0) += factorFavorable * partialCount_C.col(2);
+    partialCount_C.col(1) += factorUnfavorable * partialCount_C.col(2);
+    partialCount_T.col(0) += factorFavorable * partialCount_T.col(2);
+    partialCount_T.col(1) += factorUnfavorable * partialCount_T.col(2);
   }
   
   // new index/weights
@@ -601,10 +613,10 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
     }
     bool updateIndex = (firstEndpoint == false);
     mergeVectors(index_neutralC, index_neutralT, index_uninfC, index_uninfT, 
-				 wNeutral, index_wNeutral,
-				 wUninf, index_wUninf,
-				 index_control, index_treatment, weight, index_weight,
-				 updateIndex);
+		 wNeutral, index_wNeutral,
+		 wUninf, index_wUninf,
+		 index_control, index_treatment, weight, index_weight,
+		 updateIndex);
 	
     // Rcout << "size: " << index_control.size() << " " << index_treatment.size() << " " << weight.size() << endl;
   }
@@ -620,11 +632,11 @@ void correctionPairs(double& count_favorable, double& count_unfavorable, double&
 
 // * correctionIPW
 void correctionIPW(double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
-				   const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
-				   const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, 
-				   std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
-				   arma::mat& partialCount_C, arma::mat& partialCount_T, bool returnIID,
-				   bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore){
+		   const std::vector< int >& index_neutralC, const std::vector< int >& index_neutralT,
+		   const std::vector< double >& wNeutral, const std::vector< int >& index_wNeutral, 
+		   std::vector< int >& index_control, std::vector< int >& index_treatment, arma::vec& weight, arma::uvec& index_weight,
+		   arma::mat& partialCount_C, arma::mat& partialCount_T, int returnIID,
+		   bool firstEndpoint, bool neutralAsUninf, bool moreEndpoint, bool keepScore, arma::mat& matPairScore){
 
   // compute factor
   double factor = (count_favorable + count_unfavorable + count_neutral + count_uninf)/(count_favorable + count_unfavorable + count_neutral);
@@ -634,9 +646,9 @@ void correctionIPW(double& count_favorable, double& count_unfavorable, double& c
   count_neutral *= factor;   
   count_uninf = 0;
 
-  if(returnIID){
-	partialCount_C *= factor;
-	partialCount_T *= factor;
+  if(returnIID > 0){
+    partialCount_C *= factor;
+    partialCount_T *= factor;
   }
   
   // new index/weights
