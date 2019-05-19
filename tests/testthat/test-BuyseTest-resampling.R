@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 19 2019 (15:19) 
+## last-updated: maj 19 2019 (17:25) 
 ##           By: Brice Ozenne
-##     Update #: 120
+##     Update #: 121
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -266,6 +266,13 @@ test_that("Bootstrap", {
 
         expect_equal(as.double(iBT.boot@covariance),
                      as.double(BT.bootT@covarianceResampling[iResample,,]))
+
+        ## iBT.boot@covariance
+        
+        ## BT.bootT@covarianceResampling[1,,]
+        ## BT.bootT@covarianceResampling[2,,]
+        ## BT.bootT@covariance
+        
     }
 })
 
@@ -278,7 +285,7 @@ test_that("Stratified bootstrap", {
                          method.inference = "stratified bootstrap", n.resampling = 20)
     BT.bootT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
                                            data = dt.sim, scoring.rule = method, seed = 10, 
-                                           method.inference = "studentized stratified bootstrap", n.resampling = 20))
+                                           method.inference = "studentized stratified bootstrap", n.resampling = 1))
 
     ## same point estimate with or without computation of the variance
     expect_equal(BT.boot@Delta.netBenefit,BT.bootT@Delta.netBenefit)
@@ -286,13 +293,13 @@ test_that("Stratified bootstrap", {
     expect_true(sum(dim(BT.boot@covarianceResampling))==0)
     expect_true(sum(dim(BT.bootT@covarianceResampling))!=0)
 
-    ## ** check bootsrap
+    ## ** check bootstrap
     set.seed(10)
     for(iResample in 1:2){ ## iResample <- 1
         dt.boot <- copy(dt.sim)
         setkeyv(dt.boot, cols = c("strata","Treatment"))
         dt.boot <- dt.boot[, .SD[sample.int(.N, size = .N, replace = TRUE)], by = "strata"]
-        
+
         ## BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
         iBT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
                                           data = dt.boot, scoring.rule = method,

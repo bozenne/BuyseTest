@@ -30,6 +30,8 @@
 #' @param list_lastSurv A list of matrix containing the last survival estimate in each strata (rows) and treatment group (columns).
 #' @param p_C Number of nuisance parameter in the survival model for the control group, for each endpoint and strata
 #' @param p_T Number of nuisance parameter in the survival model for the treatment group, for each endpoint and strata
+#' @param iid_survJumpC A list of matrix containing the iid of the survival estimates in the control group.
+#' @param iid_survJumpT A list of matrix containing the iid of the survival estimates in the treatment group.
 #' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 #' @param hierarchical Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 #' @param hprojection Order of the H-projection used to compute the variance.

@@ -562,6 +562,7 @@ initializePeron <- function(data,
     . <- NULL ## for CRAN check
         
     ## ** prepare
+    setkeyv(data, c(treatment,"..strata.."))
     if(n.strata == 1){
         ls.indexC <- list(which(data[[treatment]]==0))
         ls.indexT <- list(which(data[[treatment]]==1))

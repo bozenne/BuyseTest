@@ -48,6 +48,7 @@ setClass(
       covarianceResampling = "array",
       weight = "numeric",
       iid = "list",
+      iidNuisance = "list",
       tablePairScore = "list",
       tableSurvival = "list"
       )
@@ -88,6 +89,8 @@ methods::setMethod(
                                    weight,
                                    iid_favorable,
                                    iid_unfavorable,
+                                   iidNuisance_favorable,
+                                   iidNuisance_unfavorable,
                                    tablePairScore,
                                    tableSurvival,
                                    args){
@@ -166,7 +169,9 @@ methods::setMethod(
                  }
                  if(!is.null(.Object@iid[[2]])){
                      colnames(.Object@iid[[2]]) <- name.endpoint
-                 }                 
+                 }
+                 .Object@iidNuisance <- list(favorable = iidNuisance_favorable,
+                                             unfavorable = iidNuisance_unfavorable)
                  .Object@tablePairScore <- tablePairScore
                  .Object@tableSurvival <- tableSurvival
                  

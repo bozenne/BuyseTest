@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: maj  7 2019 (15:36) 
+## Last-Updated: maj 19 2019 (16:50) 
 ##           By: Brice Ozenne
-##     Update #: 467
+##     Update #: 468
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -485,8 +485,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             endpoint = endpoint,
             level.treatment = level.treatment,
             scoring.rule = switch(as.character(scoring.rule),
-                                "0" = "Gehan",
-                                "1" = "Peron"),
+                                  "0" = "Gehan",
+                                  "1" = "Peron"),
             hierarchical = hierarchical,
             correction.uninf = correction.uninf,
             method.inference = method.inference,
@@ -503,6 +503,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             weight = weight,
             iid_favorable = NULL,
             iid_unfavorable = NULL,
+            iidNuisance_favorable = NULL,
+            iidNuisance_unfavorable = NULL,
             tablePairScore = list(),
             tableSurvival = list()
         )

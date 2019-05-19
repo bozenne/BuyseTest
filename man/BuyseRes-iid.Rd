@@ -7,9 +7,9 @@
 \alias{iid,BuyseRes-method}
 \title{Extract the H-decomposition of the Estimator}
 \usage{
-iid(object, endpoint = NULL, order = 1)
+iid(object, endpoint = NULL, type = "all")
 
-\S4method{iid}{BuyseRes}(object, endpoint = NULL)
+\S4method{iid}{BuyseRes}(object, endpoint = NULL, type = "all")
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
@@ -17,8 +17,10 @@ iid(object, endpoint = NULL, order = 1)
 \item{endpoint}{[character] for which endpoint(s) the H-decomposition should be output?
 If \code{NULL} returns the sum of the H-decomposition over all endpoints.}
 
-\item{order}{[integer 1,2] which order of the H-decomposition should be output?
-Can be the first or second order. \code{NULL} output a list containing all terms.}
+\item{type}{[character] type of iid to be output.
+Can be only for the nuisance parameters (\code{"nuisance"}),
+or for the u-statistic given the nuisance parameters (\code{"u-statistic"}),
+or both.}
 }
 \description{
 Extract the H-decomposition of the GPC estimator.

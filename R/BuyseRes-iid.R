@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: apr  8 2019 (19:49) 
+## Last-Updated: maj 19 2019 (16:58) 
 ##           By: Brice Ozenne
-##     Update #: 41
+##     Update #: 59
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,9 +27,11 @@
 #' @param object an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}
 #' @param endpoint [character] for which endpoint(s) the H-decomposition should be output?
 #' If \code{NULL} returns the sum of the H-decomposition over all endpoints.
-#' @param order [integer 1,2] which order of the H-decomposition should be output?
-#' Can be the first or second order. \code{NULL} output a list containing all terms.
-#'  
+#' @param type [character] type of iid to be output.
+#' Can be only for the nuisance parameters (\code{"nuisance"}),
+#' or for the u-statistic given the nuisance parameters (\code{"u-statistic"}),
+#' or both.
+#' 
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #' \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
@@ -42,7 +44,8 @@
 setMethod(f = "iid",
           signature = "BuyseRes",
           definition = function(object,
-                                endpoint = NULL){
+                                endpoint = NULL,
+                                type = "all"){
 
 
               ## ** check arguments              
@@ -54,16 +57,31 @@ setMethod(f = "iid",
                                valid.length = NULL,
                                method = "iid[BuyseTest]")
                   endpoint <- valid.endpoint[endpoint]
-              }
+              }   
               validCharacter(endpoint, valid.length = 1:length(valid.endpoint), valid.values = valid.endpoint, refuse.NULL = FALSE)
-
-              ## ** extract H-decomposition
-              object.iid <- object@iid
+              validCharacter(endpoint, valid.length = 1, valid.values = c("all","nuisance","u-statistic"), refuse.NULL = FALSE)
               if(object@method.inference != "u-statistic"){
                   stop("No H-decomposition in the object \n",
                        "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
               }
 
+              ## ** extract H-decomposition
+              n.endpoint <- length(valid.endpoint)
+
+              n.obs <- NROW(object@iid$favorable)
+              if(type %in% c("all","u-statistic")){
+                  object.iid <- object@iid
+              }else{
+                  object.iid <- list(favorable = matrix(0, nrow = n.obs, ncol = n.endpoint,
+                                                        dimnames = list(NULL, valid.endpoint)),
+                                     unfavorable = matrix(0, nrow = n.obs, ncol = n.endpoint,
+                                                          dimnames = list(NULL, valid.endpoint))
+                                     )
+              }
+              if(type %in% c("all","nuisance") && (object@scoring.rule=="Peron")){
+                  object.iid$favorable <- object.iid$favorable + object@iidNuisance$favorable
+                  object.iid$unfavorable <- object.iid$unfavorable + object@iidNuisance$unfavorable
+              }
               ## ** accumulate H-decomposition
               if(is.null(endpoint)){                  
                   ## iid decomposition over all endpoints

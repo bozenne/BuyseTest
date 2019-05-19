@@ -372,63 +372,6 @@ BuyseTest <- function(formula,
         ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
         ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
         ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
-        if(outArgs$scoring.rule==1 && outArgs$keep.survival && outArgs$keep.pairScore){
-
-            ## extraIID <- .iid_correctionPeron(                
-            ##     pairScore = outPoint$tablePairScore,
-            ##     M.endpoint = outArgs$M.endpoint,
-            ##     M.censoring = outArgs$M.censoring,
-            ##     endpoint = outArgs$endpoint,
-            ##     censoring = outArgs$censoring,
-            ##     threshold = outArgs$threshold,
-            ##     level.strata = outArgs$level.strata,
-            ##     n.pairs = outPoint$n_pairs,
-            ##     survTimeC = outPoint$tableSurvival$survTimeC,
-            ##     survTimeT = outPoint$tableSurvival$survTimeT,
-            ##     survJumpC = outPoint$tableSurvival$survJumpC,
-            ##     survJumpT = outPoint$tableSurvival$survJumpT,
-            ##     lastSurv = outPoint$tableSurvival$lastSurv,
-            ##     iid_survJumpC = outPoint$tableSurvival$iid$survJumpC,
-            ##     iid_dSurvJumpC = outPoint$tableSurvival$iid$dSurvJumpC,
-            ##     iid_survJumpT = outPoint$tableSurvival$iid$survJumpT,
-            ##     iid_dSurvJumpT = outPoint$tableSurvival$iid$dSurvJumpT)
-
-            ## extraIID <- .iid_correctionPeron2(                
-            ##     pairScore = outPoint$tablePairScore,
-            ##     M.endpoint = outArgs$M.endpoint,
-            ##     M.censoring = outArgs$M.censoring,
-            ##     endpoint = outArgs$endpoint,
-            ##     censoring = outArgs$censoring,
-            ##     threshold = outArgs$threshold,
-            ##     level.strata = outArgs$level.strata,
-            ##     n.pairs = outPoint$n_pairs,
-            ##     survTimeC = outPoint$tableSurvival$survTimeC,
-            ##     survTimeT = outPoint$tableSurvival$survTimeT,
-            ##     survJumpC = outPoint$tableSurvival$survJumpC,
-            ##     survJumpT = outPoint$tableSurvival$survJumpT,
-            ##     lastSurv = outPoint$tableSurvival$lastSurv,
-            ##     iid_survJumpC = outPoint$tableSurvival$iid$survJumpC,
-            ##     iid_dSurvJumpC = outPoint$tableSurvival$iid$dSurvJumpC,
-            ##     iid_survJumpT = outPoint$tableSurvival$iid$survJumpT,
-            ##     iid_dSurvJumpT = outPoint$tableSurvival$iid$dSurvJumpT)
-
-            ## range(extraIID$favorable - outPoint$iidNuisance_favorable)
-            ## range(extraIID$unfavorable - outPoint$iidNuisance_unfavorable)
-
-            ## sumFavorable <- colSums(outPoint$count_favorable)/sum(outPoint$n_pairs)
-            ## sumUnfavorable <- colSums(outPoint$count_unfavorable)/sum(outPoint$n_pairs)
-            ## iidRatio1 <- sweep(outPoint$iid_favorable, MARGIN = 2, FUN = "/", STATS = sumUnfavorable)
-            ## iidRatio2 <- - sweep(outPoint$iid_unfavorable, MARGIN = 2, FUN = "*", STATS = sumFavorable/sumUnfavorable^2)
-
-            ## outPoint$Mvar <- cbind(colSums(outPoint$iid_favorable^2),
-            ##                        colSums(outPoint$iid_unfavorable^2),
-            ##                        colSums(outPoint$iid_favorable * outPoint$iid_unfavorable),
-            ##                        colSums((outPoint$iid_favorable - outPoint$iid_unfavorable)^2),
-            ##                        colSums((iidRatio1 + iidRatio2)^2))
-        }
-
-
-        
     }else if(outArgs$method.inference == "u-statistic-bebu"){
         if(outArgs$keep.pairScore == FALSE){
             stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"u-statistic-bebu\" \n")
@@ -463,7 +406,7 @@ BuyseTest <- function(formula,
     }
     scoring.rule <- c("Gehan","Peron")[outArgs$scoring.rule+1]
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
-
+    
     BuyseRes.object <- BuyseRes(
         count.favorable = outPoint$count_favorable,      
         count.unfavorable = outPoint$count_unfavorable,
@@ -494,13 +437,15 @@ BuyseTest <- function(formula,
         weight = outArgs$weight,
         iid_favorable = outPoint$iid_favorable,
         iid_unfavorable = outPoint$iid_unfavorable,
+        iidNuisance_favorable = outPoint$iidNuisance_favorable,
+        iidNuisance_unfavorable = outPoint$iidNuisance_unfavorable,
         tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
         tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
     )
     if(outArgs$trace > 1){
         cat("\n")
     }
-
+    
     ## ** export
     return(BuyseRes.object)
 }
@@ -658,7 +603,7 @@ BuyseTest <- function(formula,
                                    iid = iid,
                                    out = envir$outArgs$outSurv)
     }
-
+    
     ## ** Computation
     iidNuisance <- (is.null(envir$outArgs$model.tte) && any(envir$outArgs$method.score==3))
 
@@ -696,7 +641,7 @@ BuyseTest <- function(formula,
                      keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                      reserve = TRUE,
                      returnIID = iid + iid*iidNuisance
-                     ) 
+                     )
 
     ## ** export
     if(pointEstimation){

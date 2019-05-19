@@ -381,7 +381,8 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
     return(M.cov)
 }
 
-## * .iid_correctionPeron
+## * correction for Peron scoring rule
+## ** .iid_correctionPeron
 .iid_correctionPeron <- function(pairScore, M.endpoint, M.censoring, endpoint, censoring, threshold, level.strata, n.pairs,
                                  survTimeC, survTimeT, survJumpC, survJumpT, lastSurv,
                                  iid_survJumpC, iid_dSurvJumpC, iid_survJumpT, iid_dSurvJumpT){
@@ -486,7 +487,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
     return(ls.iid)
 }
 
-## * .iid_correctionPeron2
+## ** .iid_correctionPeron2
 .iid_correctionPeron2 <- function(pairScore, M.endpoint, M.censoring, endpoint, censoring, threshold, level.strata, n.pairs,
                                  survTimeC, survTimeT, survJumpC, survJumpT, lastSurv,
                                  iid_survJumpC, iid_dSurvJumpC, iid_survJumpT, iid_dSurvJumpT){
@@ -607,4 +608,54 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
             }
     }
     return(ls.iid)
+}
+
+## ** example
+if(FALSE){
+    library(data.table)
+
+    set.seed(10)
+    dt <- simBuyseTest(100)
+    dt[Treatment == "T", status := 1]
+    BuyseTest.options(keep.survival=TRUE,
+                      order.Hprojection = 1)
+    BT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime, threshold = 0, censoring = status),
+                                     data = dt, scoring.rule = "Gehan", seed = 10, trace = 0, keep.pairScore = TRUE,
+                                     method.inference = "u-statistic"))
+    extraIID <- .iid_correctionPeron2(                
+        pairScore = BT@tablePairScore,
+        M.endpoint = as.matrix(dt[,.SD, .SDcols = BT@endpoint]),
+        M.censoring = as.matrix(dt[,.SD, .SDcols = "status"]),
+        endpoint = BT@endpoint,
+        censoring = "status",
+        threshold = BT@threshold,
+        level.strata = BT@level.strata,
+        n.pairs = BT@n.pairs,
+        survTimeC = BT@tableSurvival$survTimeC,
+        survTimeT = BT@tableSurvival$survTimeT,
+        survJumpC = BT@tableSurvival$survJumpC,
+        survJumpT = BT@tableSurvival$survJumpT,
+        lastSurv = BT@tableSurvival$lastSurv,
+        iid_survJumpC = BT@tableSurvival$iid$survJumpC,
+        iid_dSurvJumpC = BT@tableSurvival$iid$dSurvJumpC,
+        iid_survJumpT = BT@tableSurvival$iid$survJumpT,
+        iid_dSurvJumpT = BT@tableSurvival$iid$dSurvJumpT)
+
+    extraIID$favorable <- extraIID$favorable + BT@iid$favorable
+    extraIID$unfavorable <- extraIID$unfavorable + BT@iid$unfavorable
+    
+    sumFavorable <- colSums(BT@count.favorable)/sum(BT@n.pairs)
+    sumUnfavorable <- colSums(BT@count.unfavorable)/sum(BT@n.pairs)
+    iidRatio1 <- sweep(extraIID$favorable, MARGIN = 2, FUN = "/", STATS = sumUnfavorable)
+    iidRatio2 <- - sweep(extraIID$unfavorable, MARGIN = 2, FUN = "*", STATS = sumFavorable/sumUnfavorable^2)
+
+    Mvar <- cbind(colSums(extraIID$favorable^2),
+                  colSums(extraIID$unfavorable^2),
+                  colSums(extraIID$favorable * extraIID$unfavorable),
+                  colSums((extraIID$favorable - extraIID$unfavorable)^2),
+                  colSums((iidRatio1 + iidRatio2)^2))
+    Mvar - BT@covariance
+
+    ## crossprod(iid(BT))
+
 }

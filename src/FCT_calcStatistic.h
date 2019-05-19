@@ -103,15 +103,22 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
     arma::vec sigmaC_mixed = zeros<vec>(D);
     arma::vec sigmaT_mixed = zeros<vec>(D);
 
+    arma::mat iidTot_favorable = iid_favorable;
+    arma::mat iidTot_unfavorable = iid_unfavorable;
+    if(returnIID>1){
+      iidTot_favorable += iidNuisance_favorable;
+      iidTot_unfavorable += iidNuisance_unfavorable;
+    }
+    
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
-      sigmaC_favorable += conv_to<vec>::from( ntot_control * sum(pow(iid_favorable.rows(posC[iter_strata]),2),0) );
-      sigmaT_favorable += conv_to<vec>::from( ntot_treatment * sum(pow(iid_favorable.rows(posT[iter_strata]),2),0) );
+      sigmaC_favorable += conv_to<vec>::from( ntot_control * sum(pow(iidTot_favorable.rows(posC[iter_strata]),2),0) );
+      sigmaT_favorable += conv_to<vec>::from( ntot_treatment * sum(pow(iidTot_favorable.rows(posT[iter_strata]),2),0) );
 	
-      sigmaC_unfavorable += conv_to<vec>::from(ntot_control * sum(pow(iid_unfavorable.rows(posC[iter_strata]),2),0) );
-      sigmaT_unfavorable += conv_to<vec>::from(ntot_treatment * sum(pow(iid_unfavorable.rows(posT[iter_strata]),2),0) );
+      sigmaC_unfavorable += conv_to<vec>::from(ntot_control * sum(pow(iidTot_unfavorable.rows(posC[iter_strata]),2),0) );
+      sigmaT_unfavorable += conv_to<vec>::from(ntot_treatment * sum(pow(iidTot_unfavorable.rows(posT[iter_strata]),2),0) );
 	
-      sigmaC_mixed += conv_to<vec>::from(ntot_control * sum(iid_favorable.rows(posC[iter_strata]) % iid_unfavorable.rows(posC[iter_strata]),0) );
-      sigmaT_mixed += conv_to<vec>::from(ntot_treatment * sum(iid_favorable.rows(posT[iter_strata]) % iid_unfavorable.rows(posT[iter_strata]),0) );
+      sigmaC_mixed += conv_to<vec>::from(ntot_control * sum(iidTot_favorable.rows(posC[iter_strata]) % iidTot_unfavorable.rows(posC[iter_strata]),0) );
+      sigmaT_mixed += conv_to<vec>::from(ntot_treatment * sum(iidTot_favorable.rows(posT[iter_strata]) % iidTot_unfavorable.rows(posT[iter_strata]),0) );
     }
 
     Mvar.col(0) = sigmaC_favorable/ntot_control + sigmaT_favorable/ntot_treatment;

@@ -62,6 +62,10 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 
 \item{p_T}{Number of nuisance parameter in the survival model for the treatment group, for each endpoint and strata}
 
+\item{iid_survJumpC}{A list of matrix containing the iid of the survival estimates in the control group.}
+
+\item{iid_survJumpT}{A list of matrix containing the iid of the survival estimates in the treatment group.}
+
 \item{correctionUninf}{Should the uninformative weight be re-distributed to favorable and unfavorable?}
 
 \item{hierarchical}{Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).}
