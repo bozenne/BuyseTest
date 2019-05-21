@@ -208,6 +208,8 @@ List GPC_cpp(arma::mat endpoint,
   int iNpairs;
   
   // ** loop over strata
+  // Wscheme.print("Wscheme:");
+  // Rcout << "start" << endl;
   for(unsigned int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
 
     for(unsigned int iter_d=0 ; iter_d < D; iter_d++){
@@ -225,7 +227,6 @@ List GPC_cpp(arma::mat endpoint,
       if((iter_d > 0) && hierarchical){
         // Rcout << " compute cumweight: ";
 	// matWeight.print("matWeight:");
-	// Wscheme.print("Wscheme:");
 	// initialize iCumWeight_M1
 	iCumWeight_M1.resize(matWeight.n_rows);
 	iCumWeight_M1.fill(1.0);

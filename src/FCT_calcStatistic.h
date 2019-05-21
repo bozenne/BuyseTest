@@ -105,11 +105,11 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
 
     arma::mat iidTot_favorable = iid_favorable;
     arma::mat iidTot_unfavorable = iid_unfavorable;
-    if(returnIID>1){
+	if(returnIID>1){
       iidTot_favorable += iidNuisance_favorable;
       iidTot_unfavorable += iidNuisance_unfavorable;
     }
-    
+  
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
       sigmaC_favorable += conv_to<vec>::from( ntot_control * sum(pow(iidTot_favorable.rows(posC[iter_strata]),2),0) );
       sigmaT_favorable += conv_to<vec>::from( ntot_treatment * sum(pow(iidTot_favorable.rows(posT[iter_strata]),2),0) );

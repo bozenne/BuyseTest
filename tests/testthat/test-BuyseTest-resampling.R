@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 19 2019 (17:25) 
+## last-updated: maj 21 2019 (20:29) 
 ##           By: Brice Ozenne
-##     Update #: 121
+##     Update #: 123
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -285,7 +285,7 @@ test_that("Stratified bootstrap", {
                          method.inference = "stratified bootstrap", n.resampling = 20)
     BT.bootT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
                                            data = dt.sim, scoring.rule = method, seed = 10, 
-                                           method.inference = "studentized stratified bootstrap", n.resampling = 1))
+                                           method.inference = "studentized stratified bootstrap", n.resampling = 20))
 
     ## same point estimate with or without computation of the variance
     expect_equal(BT.boot@Delta.netBenefit,BT.bootT@Delta.netBenefit)
@@ -295,7 +295,7 @@ test_that("Stratified bootstrap", {
 
     ## ** check bootstrap
     set.seed(10)
-    for(iResample in 1:2){ ## iResample <- 1
+    for(iResample in 1:2){ ## iResample <- 2
         dt.boot <- copy(dt.sim)
         setkeyv(dt.boot, cols = c("strata","Treatment"))
         dt.boot <- dt.boot[, .SD[sample.int(.N, size = .N, replace = TRUE)], by = "strata"]

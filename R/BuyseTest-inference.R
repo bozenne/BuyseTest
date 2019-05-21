@@ -24,7 +24,7 @@ inferenceResampling <- function(envir){
         }
         ls.resampling <- do.call(method.loop,
                                   args = list(X = 1:n.resampling,
-                                              FUN = function(iB){                                                  
+                                              FUN = function(iB){
                                                   .BuyseTest(envir = envir,
                                                              iid = iid,
                                                              method.inference = method.inference,

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: apr  2 2019 (13:17) 
+## Last-Updated: maj 21 2019 (15:35) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 10
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@ if(FALSE){
 context("Check the iid for prodlim")
 
 library(riskRegression)
-library(survival)
+suppressWarnings(library(survival))
 
 set.seed(10)
 dt <- simBuyseTest(100)

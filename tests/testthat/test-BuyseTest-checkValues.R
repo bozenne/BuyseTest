@@ -169,6 +169,12 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                             correction.uninf = FALSE
                             )
         
+        BT.1tte <- BuyseTest(Treatment ~ tte(eventtime1, 0.25, status1),
+                            data = dt.sim,
+                            scoring.rule = method,
+                            correction.uninf = FALSE
+                            )
+
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
                          censoring = c("status1","status1","status1"),
@@ -178,7 +184,16 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                          scoring.rule = method,
                          correction.uninf = FALSE
                          )
-    
+
+        ## *** compatibility between BuyseTests
+        expect_equal(BT.tte, BT2)
+        expect_equal(sum(BT.tte@count.favorable),BT.1tte@count.favorable[1])
+        expect_equal(sum(BT.tte@count.unfavorable),BT.1tte@count.unfavorable[1])
+        expect_equal(BT.tte@count.neutral[3],BT.1tte@count.neutral[1])
+        expect_equal(BT.tte@count.uninf[3],BT.1tte@count.uninf[1])
+        expect_equal(BT.tte@Delta.netBenefit[3],BT.1tte@Delta.netBenefit[1])
+        expect_equal(BT.tte@Delta.winRatio[3],BT.1tte@Delta.winRatio[1])
+
         ## *** test against fixed value
         test <- list(favorable = as.double(BT.tte@count.favorable),
                      unfavorable = as.double(BT.tte@count.unfavorable),
@@ -206,7 +221,6 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
         }
 
         expect_equal(test, GS, tolerance = 1e-6, scale = 1)
-        expect_equal(BT.tte, BT2)
 
         ## *** count pairs
         tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
@@ -276,7 +290,6 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 }
 
 ## ** Strata - same endpoint
-if(FALSE){
 method <- "Peron"
 test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
     
@@ -293,14 +306,14 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
                      winRatio = as.double(BT.tte@Delta.winRatio)
                      )
 
-        GS <- list(favorable = c(2443.4624501, 2443.4624501, 2443.4624501, 979.4863859, 979.4863859, 979.4863859, 629.9051792, 629.9051792, 629.9051792) ,
-                   unfavorable = c(1395.1839846, 1395.1839846, 1395.1839846, 1113.5745081, 1113.5745081, 1113.5745081, 723.5751254, 723.5751254, 723.5751254) ,
-                   neutral = c(1931, 1931, 1931, 1294, 1294, 1294, 789, 789, 789) ,
-                   uninf = c(3230.3535653, 3230.3535653, 3230.3535653, 1774.2926713, 1774.2926713, 1774.2926713, 925.8123667, 925.8123667, 925.8123667) ,
-                   netChange = c(0.1164754, 0.1015767, 0.0911689) ,
-                   winRatio = c(1.751355, 1.3643995, 1.2538477) )
-
-        expect_equal(GS, test, tol = 1e-6, scale = 1)
+        ## butils::object2script(test, digit = 5)
+        GS <- list(favorable = c(2443.46245, 2443.46245, 2443.46245, 979.48639, 979.48639, 979.48639, 629.90518, 629.90518, 629.90518) ,
+                   unfavorable = c(1395.18398, 1395.18398, 1395.18398, 1113.57451, 1113.57451, 1113.57451, 723.57513, 723.57513, 723.57513) ,
+                   neutral = c(5161.35357, 5161.35357, 5161.35357, 3068.29267, 3068.29267, 3068.29267, 1714.81237, 1714.81237, 1714.81237) ,
+                   uninf = c(0, 0, 0, 0, 0, 0, 0, 0, 0) ,
+                   netChange = c(0.11648, 0.10158, 0.09117) ,
+                   winRatio = c(1.75136, 1.3644, 1.25385) )
+        expect_equal(GS, test, tol = 1e-4, scale = 1)
         
         ## *** same result for each pair
         tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
@@ -314,11 +327,9 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
                      unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
                      tolerance = 1e-1, scale = 1) ## inexact for Peron
 })
-}
 
 ## * Mixed endpoints 
-## for(method in c("Gehan","Peron")){ ## method <- "Peron"
-for(method in c("Gehan")){ ## method <- "Peron"
+for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - mixed (",method,", no strata)"),{ 
     
         BT.mixed <- BuyseTest(Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5),
@@ -352,8 +363,8 @@ for(method in c("Gehan")){ ## method <- "Peron"
         }else if(method == "Peron"){
             GS <- list(favorable = c(3422.94883599, 523.83682056, 486.58403996, 179.36802198, 84.40050237) ,
                        unfavorable = c(2508.75849267, 940.43278022, 311.753946, 189.11524727, 118.87398395) ,
-                       neutral = c(1294, 1604.02307056, 805.6850846, 186, 233.92732904) ,
-                       uninf = c(1774.29267133, 0, 0, 251.20181536, 0) ,
+                       neutral = c(3068.29267133, 1604.02307056, 805.6850846, 437.20181536, 233.92732904) ,
+                       uninf = c(0, 0, 0, 0, 0) ,
                        netChange = c(0.1015767, 0.05528826, 0.07471383, 0.07363081, 0.06980042) ,
                        winRatio = c(1.3643995, 1.14426407, 1.17879135, 1.16776382, 1.15439024) )
         }
@@ -371,6 +382,15 @@ for(method in c("Gehan")){ ## method <- "Peron"
     })
 }
 
+
+test_that("ordering does not matter", {
+    BT.mixed1 <- BuyseTest(Treatment ~ tte(eventtime1, 0.25, status1) + cont(score1, 1),
+                           data = dt.sim, scoring.rule = method)
+    BT.mixed2 <- BuyseTest(Treatment ~ tte(eventtime1, 0.5, status1) +  tte(eventtime1, 0.25, status1) + cont(score1, 1),
+                           data = dt.sim, scoring.rule = method)
+    expect_equal(BT.mixed2@Delta.netBenefit[2:3],BT.mixed1@Delta.netBenefit)
+    expect_equal(BT.mixed2@Delta.winRatio[2:3],BT.mixed1@Delta.winRatio)
+})
 
 ## * dataset [save]
 ## dt.sim <- data.table("Treatment" = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 

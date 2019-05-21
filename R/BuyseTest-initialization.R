@@ -327,7 +327,7 @@ initializeData <- function(data, type, endpoint, scoring.rule, censoring, operat
         ## 3 Peron survival
         ## 4 Peron CR
     }
-    
+
     ## ** export
     return(list(data = data[,.SD,.SDcols =  c(treatment,"..strata..")],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
@@ -351,25 +351,24 @@ initializeData <- function(data, type, endpoint, scoring.rule, censoring, operat
 buildWscheme <- function(scoring.rule, endpoint, D.TTE, D, n.strata,
                          type, threshold){
 
-    Wscheme <- matrix(0,nrow=D,ncol=D) # design matrix indicating to combine the weights obtained at differents endpoints
+    Wscheme <- matrix(NA,nrow=D,ncol=D) # design matrix indicating to combine the weights obtained at differents endpoints
     rownames(Wscheme) <- paste("weigth of ",endpoint,"(",threshold,")",sep="")
     colnames(Wscheme) <- paste("for ",endpoint,"(",threshold,")",sep="")
-    Wscheme[upper.tri(Wscheme)] <- 1 ## only previous endpoint can contribute to the current weights
-    Wscheme[lower.tri(Wscheme)] <- NA ## do not look at future endpoint 
-        
-    ## take care of repeated survival endpoints
-    if(D.TTE>1 && scoring.rule > 0){
 
-        index.TTE <- which(type == 3)
-        indexDuplicated.TTE <- which(duplicated(endpoint[index.TTE]))
-
-        for(iEndpoint in indexDuplicated.TTE){    ## iEndpoint <- indexDuplicated.endpoint.TTE[1]
-            iEndpoint2 <- index.TTE[iEndpoint] ## position of the current endpoint relative to all endpoint
-            iEndpoint2_M1 <- which(endpoint[1:(iEndpoint2-1)] == endpoint[iEndpoint2])  ## position of the previous endpoint(s) relative to all endpoints
-            Wscheme[iEndpoint2_M1,iEndpoint2] <- 0
+    ## if(scoring.rule == 1){
+    ## Wscheme[upper.tri(Wscheme)] <- 1
+    ## }else
+    if(D>1){
+        for(iEndpoint in 2:D){ ## iEndpoint <- 5
+            iIndex.previousEndpoint <- 1:(iEndpoint-1)
+            iName.Endpoint <- endpoint[c(iIndex.previousEndpoint,iEndpoint)]
+            iTest.duplicated <- rev(!duplicated(rev(iName.Endpoint))[-1])
+            iTest.duplicated[type[iIndex.previousEndpoint]!=3] <- TRUE ## necessary for IPW
+            Wscheme[iIndex.previousEndpoint,iEndpoint] <- iTest.duplicated
         }
     }
-
+    Wscheme[] <- as.numeric(Wscheme[])
+    
     ## skeleton
     skeleton <- lapply(1:D, function(iE){
         lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})
@@ -377,7 +376,7 @@ buildWscheme <- function(scoring.rule, endpoint, D.TTE, D, n.strata,
 
     ## unique tte endpoint
     endpoint.UTTE <- unique(endpoint[type==3])
-    
+
     ## export
     return(list(Wscheme = Wscheme,
                 endpoint.UTTE = endpoint.UTTE,
@@ -562,7 +561,6 @@ initializePeron <- function(data,
     . <- NULL ## for CRAN check
         
     ## ** prepare
-    setkeyv(data, c(treatment,"..strata.."))
     if(n.strata == 1){
         ls.indexC <- list(which(data[[treatment]]==0))
         ls.indexT <- list(which(data[[treatment]]==1))
@@ -577,7 +575,6 @@ initializePeron <- function(data,
             ls.indexT[[iStrata]] <- intersect(indexT,iIndex.strata)
         }
     }            
-    
     zeroPlus <- 1e-12
 
     ## ** unique tte endpoints
@@ -885,8 +882,19 @@ initializePeron <- function(data,
     names(out$iid) <- c("survJumpC","dSurvJumpC","survJumpT","dSurvJumpT")
 
     if(iid){
+        restaureOrder <- unlist(lapply(1:n.strata,function(iStrata){
+            c(ls.indexC[[iStrata]],ls.indexT[[iStrata]])
+        }))
+        
         iid.model.tte <- lapply(model.tte, function(iModel){ ## iModel <- model.tte[[1]]
             iOut <- iidProdlim(iModel, add0 = TRUE)
+
+            if(is.unsorted(restaureOrder)){
+                iOut$IFsurvival <- lapply(iOut$IFsurvival, function(iIF){
+                    iIF[restaureOrder,,drop=FALSE]
+                })
+            }
+            
             iOut$IFsurvival.control <- iOut$IFsurvival[which(iOut$X[,treatment]==0)]
             iOut$IFsurvival.treatment <- iOut$IFsurvival[which(iOut$X[,treatment]==1)]
             return(iOut)
@@ -896,21 +904,32 @@ initializePeron <- function(data,
             iIndex.associatedEndpoint <- which(endpoint == iEndpoint.UTTE.name)
 
             for(iStrata in 1:n.strata){  ## iStrata <- 1
+
                 iIID.control <- iid.model.tte[[iEndpoint]]$IFsurvival.control[[iStrata]]
                 iIID.treatment <- iid.model.tte[[iEndpoint]]$IFsurvival.treatment[[iStrata]]
+
                 ## iid.model.tte[[iEndpoint]]$time
                 out$iid$survJumpC[[iEndpoint]][[iStrata]] <- iIID.control
-                out$iid$dSurvJumpC[[iEndpoint]][[iStrata]] <- iIID.control - cbind(0,iIID.control[,1:(NCOL(iIID.control)-1)])
+                if(NCOL(iIID.control)>1){
+                    out$iid$dSurvJumpC[[iEndpoint]][[iStrata]] <- iIID.control - cbind(0,iIID.control[,1:(NCOL(iIID.control)-1),drop=FALSE])
+                }else{
+                    out$iid$dSurvJumpC[[iEndpoint]][[iStrata]] <- iIID.control
+                }
+                
                 out$iid$survJumpT[[iEndpoint]][[iStrata]] <- iIID.treatment
-                out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <- iIID.treatment - cbind(0,iIID.treatment[,1:(NCOL(iIID.treatment)-1)])
-
+                if(NCOL(iIID.treatment)>1){
+                    out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <-  iIID.treatment - cbind(0,iIID.treatment[,1:(NCOL(iIID.treatment)-1),drop=FALSE])
+                }else{
+                    out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <-  iIID.treatment
+                }
+                
                 out$p.C[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.control)
                 out$p.T[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.treatment)
             }
         }
         
     }
-    
+
     ## ** export
     return(out)
     

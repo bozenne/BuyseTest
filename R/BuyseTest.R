@@ -395,7 +395,6 @@ BuyseTest <- function(formula,
             outPoint$iid_unfavorable <- NULL
         }
     }
-    
     if((outArgs$method.inference != "none") && (outArgs$trace > 1)){
         cat("\n")
     }
@@ -567,21 +566,20 @@ BuyseTest <- function(formula,
         ls.posT <- ls.indexT
     }else if(attr(method.inference,"bootstrap") || attr(method.inference,"permutation")){
         ## new position in the dataset
-        new.cumn.C <- c(0,cumsum(sapply(ls.indexC,length)))
-        new.cumn.T <- c(tail(new.cumn.C,1),tail(new.cumn.C,1)+cumsum(sapply(ls.indexT,length)))
+        new.cumn <- c(0,cumsum(sapply(ls.indexC,length))+cumsum(sapply(ls.indexT,length)))
         ls.posC <- vector(mode = "list", length = n.strata)
         ls.posT <- vector(mode = "list", length = n.strata)
+        index.tempo <- 0
         for(iStrata in 1:n.strata){
-            ls.posC[[iStrata]] <- new.cumn.C[iStrata] + 0:(length(ls.indexC[[iStrata]])-1)
-            ls.posT[[iStrata]] <- new.cumn.T[iStrata] + 0:(length(ls.indexT[[iStrata]])-1)
+            ls.posC[[iStrata]] <- new.cumn[iStrata] + 0:(length(ls.indexC[[iStrata]])-1)
+            ls.posT[[iStrata]] <- new.cumn[iStrata] + length(ls.indexC[[iStrata]]) + 0:(length(ls.indexT[[iStrata]])-1)
         }
-
         ## Check valid resampling
         if (any(c(sapply(ls.indexC,length),sapply(ls.indexT,length))==0)) {
             return(NULL)
         }
     }
-    
+
     ## *** Update survival
     if(scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$outSurv
@@ -606,6 +604,18 @@ BuyseTest <- function(formula,
     
     ## ** Computation
     iidNuisance <- (is.null(envir$outArgs$model.tte) && any(envir$outArgs$method.score==3))
+
+    ## df.restaureOrder <-  do.call(rbind,lapply(1:n.strata, function(iS){
+    ##     rbind(data.frame(index = ls.indexC[[iS]]+1, strata = iS, treatment = "C", stringsAsFactors = FALSE),
+    ##           data.frame(index = ls.indexT[[iS]]+1, strata = iS, treatment = "T", stringsAsFactors = FALSE))
+    ## }))
+    ## envir$outArgs$M.endpoint <- envir$outArgs$M.endpoint[df.restaureOrder$index,,drop=FALSE]
+    ## envir$outArgs$M.censoring <- envir$outArgs$M.censoring[df.restaureOrder$index,,drop=FALSE]
+    ## df.restaureOrder$newIndex <- 1:NROW(df.restaureOrder)
+    ## ls.indexC <- tapply(df.restaureOrder[df.restaureOrder$treatment=="C","newIndex"]-1,df.restaureOrder[df.restaureOrder$treatment=="C","strata"],list)
+    ## ls.indexT <- tapply(df.restaureOrder[df.restaureOrder$treatment=="T","newIndex"]-1,df.restaureOrder[df.restaureOrder$treatment=="T","strata"],list)
+    ## ls.posC <- ls.indexC
+    ## ls.posT <- ls.indexT
 
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
                      censoring = envir$outArgs$M.censoring,

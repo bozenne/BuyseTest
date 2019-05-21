@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: maj 16 2019 (17:23) 
+## Last-Updated: maj 21 2019 (16:04) 
 ##           By: Brice Ozenne
-##     Update #: 84
+##     Update #: 87
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -145,11 +145,11 @@ iidProdlim <- function(object, add0 = FALSE){
         IFhazard[[iStrata]][iSubsetObs,] <- - iRatio + iIndEvent
          
         ## cumulative hazard
-        IFcumhazard[[iStrata]][iSubsetObs,] <- t(apply(IFhazard[[iStrata]][iSubsetObs,],1,cumsum))
+        IFcumhazard[[iStrata]][iSubsetObs,] <- t(apply(IFhazard[[iStrata]][iSubsetObs,,drop=FALSE],1,cumsum))
 
         ## survival
         ## note use exp(-surv) instead of product limit for consistency with riskRegression
-        IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = exp(-cumsum(iTableHazard$hazard)), MARGIN = 2)
+        IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], FUN = "*", STATS = exp(-cumsum(iTableHazard$hazard)), MARGIN = 2)
         ## IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = iTableHazard$survival, MARGIN = 2)
     }
 

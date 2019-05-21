@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj 16 2019 (17:08) 
+## Last-Updated: maj 21 2019 (15:31) 
 ##           By: Brice Ozenne
-##     Update #: 101
+##     Update #: 103
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -258,7 +258,7 @@ test_that("Wscheme: 3 times the same endpoint",{
                                     threshold = threshold)
 
     ## butils::object2script(Wtest$Wscheme)
-    GS <- list(Wscheme = matrix(c(0, NA, NA, 0, 0, NA, 0, 0, 0),
+    GS <- list(Wscheme = matrix(c(NA, NA, NA, 0, NA, NA, 0, 0, NA),
                                 nrow = 3, ncol = 3,
                                 dimnames = list(c("weigth of time(3)", "weigth of time(2)", "weigth of time(1)"),
                                                 c("for time(3)", "for time(2)", "for time(1)")) ),
@@ -286,7 +286,7 @@ test_that("Wscheme: 6 tte endpoint",{
                                     threshold = threshold)
 
     ## butils::object2script(Wtest)
-    GS <- list(Wscheme = matrix(c(0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, 0, 1, 0, NA, NA, NA, 0, 1, 0, 0, NA, NA, 1, 1, 1, 1, 0, NA, 1, 0, 1, 1, 1, 0), 
+    GS <- list(Wscheme = matrix(c(NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 0, 1, NA, NA, NA, NA, 0, 1, 0, NA, NA, NA, 0, 1, 0, 1, NA, NA, 0, 0, 0, 1, 1, NA), 
                                 nrow = 6, 
                                 ncol = 6, 
                                 dimnames = list(c("weigth of time(6)", "weigth of time1(5)", "weigth of time(4)", "weigth of time(3)", "weigth of time2(2)", "weigth of time1(1)"),
@@ -316,7 +316,7 @@ test_that("Wscheme: 6 mixed endpoint",{
                                     threshold = threshold)
 
     ## butils::object2script(Wtest)
-    GS <- list(Wscheme = matrix(c(0, NA, NA, NA, NA, NA, 1, 0, NA, NA, NA, NA, 1, 1, 0, NA, NA, NA, 0, 1, 1, 0, NA, NA, 1, 1, 1, 1, 0, NA, 0, 1, 1, 0, 1, 0), 
+    GS <- list(Wscheme = matrix(c(NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, 1, NA, NA, NA, NA, 0, 1, 1, NA, NA, NA, 0, 1, 1, 1, NA, NA, 0, 1, 1, 0, 1, NA), 
                                 nrow = 6, 
                                 ncol = 6, 
                                 dimnames = list(c("weigth of time(6)", "weigth of bin(5)", "weigth of bin(4)", "weigth of time(3)", "weigth of bin(2)", "weigth of time(1)"),
