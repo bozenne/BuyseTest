@@ -376,7 +376,7 @@ buildWscheme <- function(scoring.rule, endpoint, D.TTE, D, n.strata,
 
     ## unique tte endpoint
     endpoint.UTTE <- unique(endpoint[type==3])
-
+    
     ## export
     return(list(Wscheme = Wscheme,
                 endpoint.UTTE = endpoint.UTTE,

@@ -51,14 +51,14 @@ inferenceResampling <- function(envir){
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","initializeSurvival_Peron")
-
+        toExport <- c(".BuyseTest","initializePeron")
         iB <- NULL ## [:forCRANcheck:] foreach        
         ls.resampling <- foreach::`%dopar%`(
-                                       foreach::foreach(iB=1:n.resampling,
-                                                        .export = toExport),                                            
-                                       {                                           
-                                           if(trace>0){utils::setTxtProgressBar(pb, iB)}
+                                      foreach::foreach(iB=1:n.resampling,
+                                                       .export = toExport,
+                                                       .packages = "data.table"),                                            
+                                      {                                           
+                                          if(trace>0){utils::setTxtProgressBar(pb, iB)}
 
                                            return(.BuyseTest(envir = envir,
                                                              iid = iid,

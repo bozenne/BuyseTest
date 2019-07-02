@@ -484,7 +484,7 @@ BuyseTest <- function(formula,
 
         ## rebuild dataset
         if(scoring.rule>0){
-            data <- data.table(envir$outArgs$data,envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
+            data <- data.table::data.table(envir$outArgs$data,envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
         }
         
     }else if(attr(method.inference, "permutation")){
@@ -515,9 +515,9 @@ BuyseTest <- function(formula,
 
         ## rebuild dataset
         if(scoring.rule>0){
-            data <- data.table(envir$outArgs$data[[treatment]][index.resampling],
-                               "..strata.." = envir$outArgs$data[["..strata.."]],
-                               envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
+            data <- data.table::data.table(envir$outArgs$data[[treatment]][index.resampling],
+                                           "..strata.." = envir$outArgs$data[["..strata.."]],
+                                           envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
             data.table::setnames(data, old = names(data)[1], new = treatment)
         }
         
@@ -555,8 +555,8 @@ BuyseTest <- function(formula,
         
         ## rebuild dataset
         if(scoring.rule>0){
-            data <- data.table(envir$outArgs$data,
-                               envir$outArgs$M.endpoint,envir$outArgs$M.censoring)[index.resampling]
+            data <- data.table::data.table(envir$outArgs$data,
+                                           envir$outArgs$M.endpoint,envir$outArgs$M.censoring)[index.resampling]
         }
     }
 
