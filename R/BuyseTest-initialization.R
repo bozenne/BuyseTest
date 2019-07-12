@@ -32,8 +32,7 @@
 
 ## * initializeArgs
 #' @rdname internal-initialization
-initializeArgs <- function(alternative,
-                           censoring,
+initializeArgs <- function(censoring,
                            correction.uninf = NULL,
                            cpus = NULL,
                            data,
@@ -67,8 +66,8 @@ initializeArgs <- function(alternative,
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
     if(is.null(trace)){ trace <- option$trace }
-    if(is.null(alternative)){ alternative <- option$alternative }
-
+    alternative <- option$alternative
+    
     ## ** convert formula into separate arguments
     if(!missing(formula)){
         ## the missing is for BuysePower where the arguments are not necessarily specified
@@ -201,9 +200,6 @@ initializeArgs <- function(alternative,
         model.tte <- NULL
     }
 
-    ## ** alternative
-    alternative <- tolower(alternative)
-    
     ## ** cpu
     if (cpus == "all") { 
         cpus <- parallel::detectCores() # this function detect the number of CPU cores 

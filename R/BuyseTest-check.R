@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr  2 2019 (11:45) 
+## Last-Updated: jul 12 2019 (10:04) 
 ##           By: Brice Ozenne
-##     Update #: 152
+##     Update #: 155
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -252,10 +252,11 @@ testArgs <- function(alternative,
     }
 
     if(iid){
-        if(scoring.rule > 0){
+        if(is.null(model.tte) && scoring.rule > 0){
             warning("The current implementation of the asymptotic distribution is not valid for scoring.rule=\"Peron\" \n",
                     "Standard errors / confidence intervals / p-values should not be trusted \n")
-        }else if(correction.uninf > 0 && attr(method.inference,"hprojection")>1){
+        }
+        if(correction.uninf > 0 && attr(method.inference,"hprojection")>1){
             warning("The current implementation of the second order H-projection is not valid when a correction is used \n")
         }
     }

@@ -4,102 +4,142 @@
 #' @aliases BuyseTest
 #' 
 #' @description Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event endpoints.
-#' @param formula [formula] a symbolic description of the model to be fitted. The response variable should be a binary variable defining the treatment arms. 
-#' The rest of the formula should indicate the strata variables (if any) and the endpoints by order of priority. 
+#' @param formula [formula] a symbolic description of the GPC model,
+#' typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
+#' See Details, section "Specification of the GPC model".
+#' @param treatment,endpoint,type,threshold,censoring,operator,strata Alternative to \code{formula} for describing the GPC model.
+#' See Details, section "Specification of the GPC model".
 #' @param data [data.frame] dataset.
-#' @param treatment [character] the name of the treatment variable identifying the control and the experimental group.
-#' Disregarded if the argument \code{formula} is defined.
-#' @param endpoint [character vector] the name of the endpoint variable(s).
-#' Disregarded if the argument \code{formula} is defined.
-#' @param operator [character vector] the sign defining a favorable endpoint:
-#' ">0" indicates that higher values are favorable while "<0" indicates the opposite.
-#' Disregarded if the argument \code{formula} is defined.
-#' @param threshold [numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
-#' There must be one threshold for each endpoint variable.
-#' Disregarded if the argument \code{formula} is defined.
-#' @param strata [numeric vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
-#' Disregarded if the argument \code{formula} is defined.
-#' @param censoring [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
-#' There must be one threshold for each endpoint variable.
-#' Must value \code{NA} when the endpoint is not a time to event.
-#' Disregarded if the argument \code{formula} is defined.
-#' @param weight [numeric vector] the weights (associated to each endpoint) used to cumulating the pairwise scores over the endpoints.
-#' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
-#' @param type [character vector] the type of each endpoint: \code{"binary"}, \code{"continuous"} or \code{"timeToEvent"}.
-#' @param scoring.rule [character] defines the method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
-#' Can be \code{"Gehan"} or \code{"Peron"}. \code{"Gehan"} only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral.
-#' \code{"Peron"} uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified (see Peron et al. for more details).
-#' Default value read from \code{BuyseTest.options()}.
+#' @param scoring.rule [character] method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
+#' Can be \code{"Gehan"} or \code{"Peron"}.
+#' See Details, section "Handling missing values".
 #' @param correction.uninf [integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
-#' 0 indicates no correction, 1 impute the average score of the informative pair, and 2 performs inverse probability of censoring weights.
-#' Default value read from \code{BuyseTest.options()}.
+#' 0 indicates no correction, 1 impute the average score of the informative pairs, and 2 performs IPCW.
+#' See Details, section "Handling missing values".
 #' @param model.tte [list] optional survival models relative to each time to each time to event endpoint.
-#' Models must \code{prodlim} objects and stratified on the treatment and strata variable.
+#' Models must \code{prodlim} objects and stratified on the treatment and strata variable. When used, the uncertainty from the estimates of these survival models is ignored.
 #' @param method.inference [character] method used to compute confidence intervals and p-values.
-#' When set to \code{"none"} confidence intervals / p-values are not computed.
-#' When set to \code{"u-statistic"} the variance / confidence intervals / p-values are computed using an H-decomposition. 
-#' When set to \code{"permutation"} or \code{"stratified permutation"} a permutation test is performed to compute p-values.
-#' When set to \code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"}, bootstrap resampling is used
-#' to compute p-values and confidence intervals. See the detail section for more precisions.
-#' Default value read from \code{BuyseTest.options()}.
+#' Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"stratified permutation"}, \code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"}.
+#' See Details, section "Statistical inference".
+#' @param n.resampling [integer] the number of permutations/samples used for computing the confidence intervals and the p.values. 
+#' See Details, section "Statistical inference".
+#' @param hierarchical [logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)?
+#' Otherwise all pairs will be compaired for all endpoint (full GPC).
+#' @param weight [numeric vector] weights used to cumulating the pairwise scores over the endpoints.
+#' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
 #' @param neutral.as.uninf [logical] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
-#' Default value read from \code{BuyseTest.options()}.
-#' @param n.resampling [integer] the number of simulations used for computing the confidence interval and the p.values. See details.
-#' Default value read from \code{BuyseTest.options()}.
+#' See Details, section "Handling missing values".
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
-#' @param hierarchical [logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
-#' @param alternative [character] the alternative hypothesis.
-#' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.
-#' Default value read from \code{BuyseTest.options()}.
 #' @param seed [integer, >0] the seed to consider for the permutation test.
 #' If \code{NULL} no seed is set.
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
-#' Default value read from \code{BuyseTest.options()}.
+#' See Details, section "Statistical inference".
 #' @param trace [integer] should the execution of the function be traced ? \code{0} remains silent
 #' and \code{1}-\code{3} correspond to a more and more verbose output in the console.
-#' Default value read from \code{BuyseTest.options()}.
 #' @param keep.comparison Obsolete. Alias for 'keep.pairScore'.
 #' @param method.tte Obsolete. Alias for 'scoring.rule'.
 #' 
-#' @details 
-#' \bold{treatment:} The variable corresponding to \code{treatment} in data must have only two levels (e.g. \code{0} and \code{1}). \cr
-#' \bold{endpoint, threshold, censoring, operator, and type:}  they must have the same length. \cr
-#' \code{threshold} must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. \cr
-#' \code{censoring} must be \code{NA} for binary or continuous endpoints and indicate a variable in data for time to event endpoints. 
-#' Short forms for endpoint \code{type} are \code{"bin"} (binary endpoint), \code{"cont"} (continuous endpoint), \
-#' code{"TTE"} (time-to-event endpoint). 
-#' \bold{operator:} when the operator is set to \code{"<0"} the corresponding column in the dataset is multiplied by \code{-1}.
-#' 
-#' \bold{n.resampling:} The number of permutation replications must be specified to enable the computation of the confidence intervals and the p.value. 
-#' A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details. 
-#' 
-#' \bold{cpus parallelization:} Argument \code{cpus} can be set to \code{"all"} to use all available cpus.
-#' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package .
-#' 
-#' \bold{Dealing with neutral or uninformative pairs:} Neutral pairs correspond to pairs for which the difference between the endpoint of the control observation and the endpoint of the treatment observation is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint.\cr
-#' Uninformative pairs correspond to pairs for which the censoring prevent from classifying them into favorable, unfavorable or neutral. Neutral or uninformative pairs for an endpoint with priority \code{l} are, when available, analyzed on the endpoint with priority \code{l-1}.
-#' 
-#' \bold{scoring.rule:} the \code{scoring.rule="Peron"} is recommended in presence of right censored observations since it gives a more efficient estimator than \code{scoring.rule="Gehan"}.
-#' 
-#' \bold{method.inference:} the \code{method.inference="u-statistic"} uses a Gaussian approximation to compute the confidence intervals and p-values. This approximation is asymptotically exact. By default a second order H-projection is used to compute the variance which should yield an unbiased estimator of the variance.
-#' The current implementation of the H-projection is not valid when using \code{scoring.rule="Peron"}, \code{correction.uninf=1}, or \code{correction.uninf=2}.
-#' When stratified, permutation and bootstrap are performed separately in each strata level (and not each treatment group). This is therefore only relevant for stratified analyses.
+#' @details
 #'
-#' \bold{correction.uninf:} in presence of uninformative pairs, the proportion of favorable, unfavorable, or neutral pairs is underestimated.
-#' Inverse probability of censoring weights (\code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
-#' Imputing the average score of the informative pairs (\code{correction.uninf=1}) gives equivalent results at the first endpoint but better behaves at latter endpoints.
+#' \bold{Specification of the GPC model}: \cr
+#' There are two way to specify the GPC model in \code{BuyseTest}.
+#' A \emph{Formula interface} via the argument \code{formula} where the response variable should be a binary variable defining the treatment arms. 
+#' The rest of the formula should indicate the endpoints by order of priority and the strata variables (if any).
+#' A \emph{Vector interface} using  the following arguments \itemize{
+#'   \item \code{treatment}: [character] name of the treatment variable identifying the control and the experimental group.
+#' Must have only two levels (e.g. \code{0} and \code{1}).
+#'   \item \code{endpoint}: [character vector] the name of the endpoint variable(s).
+#'   \item \code{threshold}: [numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
+#' There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
+#'   \item \code{censoring}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
+#' Must value \code{NA} when the endpoint is not a time to event.
+#'   \item \code{operator}: [character vector] the sign defining a favorable endpoint.
+#' \code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
+#' When the operator is set to \code{"<0"} the corresponding column in the dataset is internally multiplied by \code{-1}.#' 
+#'   \item \code{type}: [character vector] indicates whether it is
+#' a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
+#' a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
+#' or a time to event outcome  (\code{"t"}, \code{"tte"}, \code{"time"}, or \code{"timetoevent"})
+#'   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
+#' }
+#' The formula interface can be more concise, especially when considering few outcomes, but may be more difficult to apprehend for new users.
+#' Note that arguments \code{endpoint}, \code{threshold}, \code{censoring}, \code{operator}, and \code{type} must have the same length. 
+#' \cr \cr \cr
+#'
+#' \bold{GPC procedure} \cr
+#' The GPC procedure form all pairs of observations, one belonging to the experimental group and the other to the control group, and class them in 4 categories: \itemize{
+#'  \item \emph{Favorable pair}: the endpoint is better for the observation in the experimental group.
+#'  \item \emph{Unfavorable pair}: the endpoint is better for the observation in the control group.
+#'  \item \emph{Neutral pair}: the difference between the endpoints of the two observations is (in absolute value) below the threshold. When \code{threshold=0}, neutral pairs correspond to pairs with equal endpoint. Lower-priority outcomes (if any) are then used to classified the pair into favorable/unfavorable.
+#'  \item \emph{Uninformative pair}: censoring/missingness prevents from classifying into favorable, unfavorable or neutral.
+#' }
+#' With complete data, pairs can be decidely classified as favorable/unfavorable/neutral.
+#' In presence of missing values, the GPC procedure uses the scoring rule (argument \code{scoring.rule}) and the correction for uninformative pairs (argument \code{correction.uninf}) to classify the pairs.
+#' The classification may not be 0,1, e.g. the probability that the pair is favorable/unfavorable/neutral with the Peron's scoring rule.
+#' To export the classification of each pair set the argument code{keep.pairScore} to \code{TRUE} and call the function \code{getPairScore} on the result of the \code{BuyseTest} function.
+#' \cr \cr \cr
+#' 
+#' \bold{Handling missing values}
+#' \itemize{
+#'   \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints.
+#' The Gehan's scoring rule (argument \code{scoring.rule="Gehan"}) only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral
+#' while the "Peron"'s scoring rule (argument \code{scoring.rule="Peron"}) uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified.
+#' The Peron's scoring rule is the recommanded scoring rule.
+#'   \item \code{correction.uninf}: indicates how to handle missing values that could not be classified by the scoring rule. \code{0} treat them as uninformative:
+#' if \code{neutral.as.uninf=FALSE}  - this is an equivalent to complete case analysis -
+#' while for \code{neutral.as.uninf=TRUE} uninformative pairs are treated as neutral, i.e., analyzed at the following endpoint (if any).
+#' However both will (in general) lead to biased estimates for the proportion of favorable, unfavorable, or neutral pairs.
+#' Inverse probability of censoring weights (IPCW, \code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
+#' Imputing the average score of the informative pairs (\code{correction.uninf=1}) is the recommanded approach.
 #' Note that both corrections will convert the whole proportion of uninformative pairs of a given endpoint into favorable, unfavorable, or neutral pairs.
+#' }
+#' \cr \cr
+#'
+#' \bold{Statistical inference} \cr
+#' The argument \code{method.inference} defines how to approximate the distribution of the GPC estimators and so how standard errors, confidence intervals, and p-values are computed.
+#' Available methods are:
+#' \itemize{
+#'   \item argument \code{method.inference="none"}: only the point estimate is computed which makes the execution of the \code{BuyseTest} faster than with the other methods.
+#'   \item argument \code{method.inference="u-statistic"}: uses a Gaussian approximation to obtain the distribution of the GPC estimators.
+#' The U-statistic theory indicates that this approximation is asymptotically exact.
+#' The variance is computed using a H-projection of order 1 (default option), which is a consistent but downward biased estimator.
+#' An unbiased estimator can be obtained using a H-projection of order 2 (only available for the uncorrected Gehan's scoring rule, see \code{BuyseTest.options}).
+#' \bold{WARNING}: the current implementation of the H-projection is not valid when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}) and the Peron scoring rule (\code{scoring.rule="Peron"}).
+#'   \item argument \code{method.inference="permutation"} or \code{method.inference="stratified permutation"}:
+#'   \item argument \code{method.inference="bootstrap"} or \code{method.inference="stratified bootstrap"}:
+#' }
+#' Additional arguments for permutation and bootstrap resampling:
+#' \itemize{
+#'    \item when stratified, permutation and bootstrap are performed separately in each strata level (and not each treatment group).
+#' This is therefore only relevant for stratified analyses.
+#'    \item \code{n.resampling} set the number of permutations/samples used.
+#' A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details.
+#'    \item \code{cpus} indicates whether the resampling procedure can be splitted on several cpus to save time. Can be set to \code{"all"} to use all available cpus.
+#' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. 
+#' }
+#'\cr \cr
+#'
+#' \bold{Default values} \cr
+#' The default of the arguments
+#' \code{scoring.rule}, \code{correction.uninf}, \code{method.inference}, \code{n.resampling},
+#' \code{hierarchical}, \code{neutral.as.uninf}, \code{keep.pairScore}, \code{n.resampling},
+#' \code{cpus}, \code{trace} is read from \code{BuyseTest.options()}. \r
+#' Additional (hidden) arguments are \itemize{
+#'  \item \code{alternative} [character] the alternative hypothesis. Must be one of "two.sided", "greater" or "less" (used by \code{confint}).
+#'  \item \code{conf.level} [numeric] level for the confidence intervals (used by \code{confint}).
+#'  \item \code{keep.survival} [logical] export the survival values used by the Peron's scoring rule.
+#'  \item \code{order.Hprojection} [1 or 2] the order of the H-projection used to compute the variance when \code{method.inference="u-statistic"}. 
+#' }
 #' 
 #' @return An \R object of class \code{\linkS4class{BuyseRes}}.
 #' 
 #' @references 
-#' J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239  \cr 
-#' D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-#' I. Bebu, J. M. Lachin (2015). \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
-#' Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
-#' Efron B (1967). \bold{The two sample problem with censored data}. \emph{Proceedings of the Fifth Berkeley Symposium on Mathematical Statistics and Probability} 4:831-583 \cr
-#' Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
+#' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+#' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
+#' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239  \cr 
+#' On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
+#' On inference in GPC using the U-statistic theory: I. Bebu, J. M. Lachin (2015). \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
 #'
 #' @seealso 
 #' \code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
@@ -219,7 +259,6 @@ BuyseTest <- function(formula,
                       weight = NULL,
                       operator = NULL,
                       strata = NULL, 
-                      alternative = NULL, 
                       seed = 10,
                       cpus = NULL,
                       trace = NULL,
@@ -245,8 +284,7 @@ BuyseTest <- function(formula,
 
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
-    outArgs <- initializeArgs(alternative = alternative,
-                              censoring = censoring,
+    outArgs <- initializeArgs(censoring = censoring,
                               correction.uninf = correction.uninf,
                               cpus = cpus,
                               data = data,
