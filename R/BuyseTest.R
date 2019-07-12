@@ -124,7 +124,7 @@
 #' The default of the arguments
 #' \code{scoring.rule}, \code{correction.uninf}, \code{method.inference}, \code{n.resampling},
 #' \code{hierarchical}, \code{neutral.as.uninf}, \code{keep.pairScore}, \code{n.resampling},
-#' \code{cpus}, \code{trace} is read from \code{BuyseTest.options()}. \r
+#' \code{cpus}, \code{trace} is read from \code{BuyseTest.options()}. \cr
 #' Additional (hidden) arguments are \itemize{
 #'  \item \code{alternative} [character] the alternative hypothesis. Must be one of "two.sided", "greater" or "less" (used by \code{confint}).
 #'  \item \code{conf.level} [numeric] level for the confidence intervals (used by \code{confint}).
@@ -249,19 +249,19 @@ BuyseTest <- function(formula,
                       method.inference = NULL,
                       n.resampling = NULL,
                       hierarchical = NULL,
+                      weight = NULL,
                       neutral.as.uninf = NULL,
                       keep.pairScore = NULL,
+                      seed = 10,
+                      cpus = NULL,
+                      trace = NULL,
                       treatment = NULL,
                       endpoint = NULL,
                       type = NULL,
                       threshold = NULL,                      
                       censoring = NULL,
-                      weight = NULL,
                       operator = NULL,
                       strata = NULL, 
-                      seed = 10,
-                      cpus = NULL,
-                      trace = NULL,
                       keep.comparison,
                       method.tte){
 

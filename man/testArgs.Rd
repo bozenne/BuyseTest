@@ -4,10 +4,10 @@
 \alias{testArgs}
 \title{Check Arguments Passed to BuyseTest}
 \usage{
-testArgs(alternative, name.call, censoring, correction.uninf, cpus, data,
-  endpoint, formula, iid, keep.pairScore, scoring.rule, model.tte,
-  method.inference, n.resampling, hierarchical, neutral.as.uninf, operator,
-  seed, strata, threshold, trace, treatment, type, weight, ...)
+testArgs(name.call, censoring, correction.uninf, cpus, data, endpoint,
+  formula, iid, keep.pairScore, scoring.rule, model.tte, method.inference,
+  n.resampling, hierarchical, neutral.as.uninf, operator, seed, strata,
+  threshold, trace, treatment, type, weight, ...)
 }
 \description{
 Check the validity of the argument passed the BuyseTest function by the user.

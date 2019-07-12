@@ -51,8 +51,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calcIntegralScore_cpp
-std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv);
-RcppExport SEXP _BuyseTest_calcIntegralScore_cpp(SEXP survivalSEXP, SEXP startSEXP, SEXP lastSurvSEXP, SEXP lastdSurvSEXP) {
+std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv, bool returnDeriv, int column, arma::mat& derivSurv, arma::mat& derivSurvD);
+RcppExport SEXP _BuyseTest_calcIntegralScore_cpp(SEXP survivalSEXP, SEXP startSEXP, SEXP lastSurvSEXP, SEXP lastdSurvSEXP, SEXP returnDerivSEXP, SEXP columnSEXP, SEXP derivSurvSEXP, SEXP derivSurvDSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -60,14 +60,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type start(startSEXP);
     Rcpp::traits::input_parameter< double >::type lastSurv(lastSurvSEXP);
     Rcpp::traits::input_parameter< double >::type lastdSurv(lastdSurvSEXP);
-    rcpp_result_gen = Rcpp::wrap(calcIntegralScore_cpp(survival, start, lastSurv, lastdSurv));
+    Rcpp::traits::input_parameter< bool >::type returnDeriv(returnDerivSEXP);
+    Rcpp::traits::input_parameter< int >::type column(columnSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type derivSurv(derivSurvSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type derivSurvD(derivSurvDSEXP);
+    rcpp_result_gen = Rcpp::wrap(calcIntegralScore_cpp(survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 34},
-    {"_BuyseTest_calcIntegralScore_cpp", (DL_FUNC) &_BuyseTest_calcIntegralScore_cpp, 4},
+    {"_BuyseTest_calcIntegralScore_cpp", (DL_FUNC) &_BuyseTest_calcIntegralScore_cpp, 8},
     {NULL, NULL, 0}
 };
 

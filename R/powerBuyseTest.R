@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: maj 19 2019 (16:50) 
+## Last-Updated: jul 12 2019 (16:20) 
 ##           By: Brice Ozenne
-##     Update #: 468
+##     Update #: 469
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,9 +33,6 @@
 #' @param null [numeric vector] the null hypothesis to be tested for the net benefit (first element) and the win ratio (second element).
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
-#' Default value read from \code{BuyseTest.options()}.
-#' @param alternative [character] the alternative hypothesis.
-#' Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 #' Default value read from \code{BuyseTest.options()}.
 #' @param seed [integer, >0] the seed to consider for the simulation study.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
@@ -74,7 +71,7 @@
 ##' @rdname powerBuyseTest
 ##' @export
 powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL, n.rep, null = c(0,1), cpus = 1,                          
-                           alternative = NULL, seed = 10, conf.level = NULL, order.Hprojection = NULL, transformation = NULL, trace = 1,
+                           seed = 10, conf.level = NULL, order.Hprojection = NULL, transformation = NULL, trace = 1,
                            ...){
 
     call <- match.call()$sim
@@ -91,10 +88,8 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     if(is.null(conf.level)){
         conf.level <- option$conf.level
     }
-    if(is.null(alternative)){
-        alternative <- option$alternative
-    }
     alpha <- 1 - conf.level
+    alternative <- option$alternative
     
     if("keep.pairScore" %in% name.call){
         stop("\'keep.pairScore\' is not an argument of powerBuyseTest \n")
@@ -135,7 +130,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
-    outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, alternative = alternative,
+    outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
                               data = NULL, model.tte = NULL, keep.pairScore = TRUE, ...)
     if(outArgs$scoring.rule==1 && n.sample.size > 1){
         stop("Peron correction not compatible with powerBuyseTest for more than one sample size\n")
@@ -195,7 +190,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     ## ** define environment
     name.copy <- c("call", "sim", "option",
                    "outArgs", "sample.sizeTmax", "sample.sizeCmax", "n.sample.size",
-                   "sample.size", "sample.sizeC", "sample.sizeT", "n.rep", "alternative", "seed")
+                   "sample.size", "sample.sizeC", "sample.sizeT", "n.rep", "seed")
     envirBT <- new.env()
     for(iObject in name.copy){ ## iObject <- name.copy[1]
         envirBT[[iObject]] <- eval(parse(text = iObject))

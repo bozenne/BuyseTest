@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: maj 13 2019 (16:22) 
+## Last-Updated: jul 12 2019 (12:32) 
 ##           By: Brice Ozenne
-##     Update #: 570
+##     Update #: 572
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -199,8 +199,9 @@ setMethod(f = "confint",
               alpha <- 1-conf.level
 
               ## safety
+              test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
               if(method.inference %in% c("u-statistic","u-statistic-bebu")){
-                  if(object@scoring.rule == "Peron"){
+                  if(!test.model.tte && object@scoring.rule == "Peron"){
                       warning("The current implementation of the asymptotic distribution is not valid for scoring.rule=\"Peron\" \n",
                               "Standard errors / confidence intervals / p-values will not be displayed \n")
                   }else if(object@correction.uninf > 0 && attr(object@method.inference,"hprojection")>1){

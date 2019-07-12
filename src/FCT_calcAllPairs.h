@@ -129,6 +129,9 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
     EdSurvC.fill(0.0);
     EdSurvT.resize(p_T, 2);
     EdSurvT.fill(0.0);
+  }else{
+    EdSurvC.resize(0, 0);
+    EdSurvT.resize(0, 0);
   }
   
   // score    
@@ -146,6 +149,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   for(int iter_T=0; iter_T<n_Treatment ; iter_T++){ // over treatment patients
     for(int iter_C=0; iter_C<n_Control ; iter_C++){ // over control patients
       // Rcout << iter_pair << endl;
+
       // score
       if(method == 1){
 		iScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
@@ -340,6 +344,9 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     EdSurvC.fill(0.0);
     EdSurvT.resize(p_T, 2);
     EdSurvT.fill(0.0);
+  }else{
+    EdSurvC.resize(0, 0);
+    EdSurvT.resize(0, 0);
   }
   
   // store the score of all pairs

@@ -55,13 +55,17 @@ GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, 
 #' @param survival [matrix] Contains the jump times in the first column,
 #' the survival in the other arm at times plus threshold in the second column,
 #' and the jump in survival in the third column.
-#' @param start [numeric] Time at which to start the integral.
+#' @param start [integer] time at which to start the integral.
 #' @param lastSurv [numeric,>0] last survival value for the survival function in the second column.
 #' @param lastdSurv [numeric,>0] last survival value for the survival function in the third column.
+#' @param returnDeriv [logical] should the derivative regarding the survival parameters be return. 
+#' @param column [integer] column of \code{derivSurv} and \code{derivSurvD} to be filled.
+#' @param derivSurv [matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival.
+#' @param derivSurvD [matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival used to compute the jumps.
 #'
 #' @keywords function Cpp internal
 #' @export
-calcIntegralScore_cpp <- function(survival, start, lastSurv, lastdSurv) {
-    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start, lastSurv, lastdSurv)
+calcIntegralScore_cpp <- function(survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD) {
+    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD)
 }
 

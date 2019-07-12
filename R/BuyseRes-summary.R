@@ -362,7 +362,12 @@ setMethod(f = "summary",
                       }else if(attr(method.inference,"bootstrap")){
                           txt.method <- "bootstrap resampling"
                       }else if(attr(method.inference,"ustatistic")){
+                          test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
                           txt.method <- paste0("H-projection of order ",attr(method.inference,"hprojection"),"\n")
+                          if(test.model.tte){
+                              txt.method <- paste0(txt.method,"                     (ignoring the uncertainty of the nuisance parameters)")
+                          }
+                      
                       }
 
                       if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap") ){

@@ -8,12 +8,12 @@
 \alias{initializePeron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
-initializeArgs(alternative, censoring, correction.uninf = NULL,
-  cpus = NULL, data, endpoint, formula, hierarchical = NULL,
-  keep.pairScore = NULL, method.inference = NULL,
-  scoring.rule = NULL, model.tte, n.resampling = NULL, name.call,
-  neutral.as.uninf = NULL, operator, option, seed = NULL, strata,
-  threshold, trace = NULL, treatment, type, weight)
+initializeArgs(censoring, correction.uninf = NULL, cpus = NULL, data,
+  endpoint, formula, hierarchical = NULL, keep.pairScore = NULL,
+  method.inference = NULL, scoring.rule = NULL, model.tte,
+  n.resampling = NULL, name.call, neutral.as.uninf = NULL, operator,
+  option, seed = NULL, strata, threshold, trace = NULL, treatment,
+  type, weight)
 
 initializeData(data, type, endpoint, scoring.rule, censoring, operator,
   strata, treatment, copy)

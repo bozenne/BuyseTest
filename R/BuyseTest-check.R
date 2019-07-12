@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jul 12 2019 (10:04) 
+## Last-Updated: jul 12 2019 (14:28) 
 ##           By: Brice Ozenne
-##     Update #: 155
+##     Update #: 156
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,8 +20,7 @@
 ##' @description Check the validity of the argument passed the BuyseTest function by the user.
 ##'
 ##' @keywords internal
-testArgs <- function(alternative,
-                     name.call,
+testArgs <- function(name.call,
                      censoring,
                      correction.uninf,
                      cpus,
@@ -85,12 +84,6 @@ testArgs <- function(alternative,
     }
 
     
-    ## ** alternative
-    validCharacter(alternative,
-                   valid.length = 1,
-                   valid.values = c("two.sided", "less", "greater"),
-                   method = "BuyseTest")
-
     ## ** censoring
     if(length(censoring) != D){
         stop("BuyseTest: \'censoring\' does not match \'endpoint\' size \n",

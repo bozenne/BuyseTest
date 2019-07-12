@@ -207,7 +207,6 @@ initializeArgs <- function(censoring,
 
     ## ** export
     return(list(
-        alternative = alternative,
         name.call = name.call,
         censoring = censoring,
         correction.uninf = correction.uninf,
@@ -735,35 +734,40 @@ initializePeron <- function(data,
             }
 
             }else{
+                ## jump times
                 iIndexJumpC <- intersect(index.jump,iIndex.startC:iIndex.stopC)
                 iIndexJumpT <- intersect(index.jump,iIndex.startT:iIndex.stopT)
                     
                 iJumpC <- model.tte[[iEndpoint.UTTE]]$time[iIndexJumpC]
                 iJumpT <- model.tte[[iEndpoint.UTTE]]$time[iIndexJumpT]
 
+                ## last survival times
                 iLast.survC <- model.tte[[iEndpoint.UTTE]]$surv[iIndex.stopC]
                 iLast.survT <- model.tte[[iEndpoint.UTTE]]$surv[iIndex.stopT]
 
-                ## note: -Inf to deal with negative times that occurs when taking T-tau for large tau
-                if(iLast.survC!=0){
-                    iSurvTimeC <- c(-1e12, iJumpC, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopC] + 1e-12)
-                    iSurvC <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpC],NA)
-                    iDSurvC <- diff(iSurvC[1:(length(iSurvC)-1)])
-                }else{
-                    iSurvTimeC <- c(-1e12,iJumpC)
-                    iSurvC <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpC])
-                    iDSurvC <- diff(iSurvC)
+                ## survival at each jump
+                iSurvTimeC <- c(-1e12,iJumpC)
+                iSurvC <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpC])
+                if(iLast.survC!=0){ ## just after last event is unknown when the survival curve does not ends at 0
+                    iSurvTimeC <- c(iSurvTimeC, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopC] + 1e-12)
+                    iSurvC <- c(iSurvC,NA)
                 }
 
-                if(iLast.survT!=0){
-                    iSurvTimeT <- c(-1e12, iJumpT, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopT] + 1e-12)
-                    iSurvT <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpT],NA)
-                    iDSurvT <- diff(iSurvT[1:(length(iSurvT)-1)])
-                }else{
-                    iSurvTimeT <- c(-1e12,iJumpT)
-                    iSurvT <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpT])
-                    iDSurvT <- diff(iSurvT)
+                iSurvTimeT <- c(-1e12,iJumpT)
+                iSurvT <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpT])
+                if(iLast.survT!=0){ ## just after last event is unknown when the survival curve does not ends at 0
+                    iSurvTimeT <- c(iSurvTimeT, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopT] + 1e-12)
+                    iSurvT <- c(iSurvT, NA)
                 }
+                
+                ## dSurvival at each jump
+                iIndexSurvivalC.JumpCm <- prodlim::sindex(iSurvTimeC, iJumpC - 1e-12)
+                iIndexSurvivalC.JumpCp <- prodlim::sindex(iSurvTimeC, iJumpC + 1e-12)
+                iDSurvC <- iSurvC[iIndexSurvivalC.JumpCp] - iSurvC[iIndexSurvivalC.JumpCm]
+
+                iIndexSurvivalT.JumpTm <- prodlim::sindex(iSurvTimeT, iJumpT - 1e-12)
+                iIndexSurvivalT.JumpTp <- prodlim::sindex(iSurvTimeT, iJumpT + 1e-12)
+                iDSurvT <- iSurvT[iIndexSurvivalT.JumpTp] - iSurvT[iIndexSurvivalT.JumpTm]
 
                 ## independent of the threshold i.e. of the priority
                 ## avoid repeated calculation when the same endpoint is used several times with different thresholds
@@ -789,9 +793,14 @@ initializePeron <- function(data,
                     out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(time = iJumpC,
                                                                    survival = iSurvT[iIndexSurvivalT.JumpCpTau],
                                                                    dSurvival = iDSurvC)
+
                     if(iid){
                         out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(out$survJumpC[[iEndpoint]][[iStrata]],
-                                                                       index.survival = iIndexSurvivalT.JumpCpTau - 1)
+                                                                       index.survival = iIndexSurvivalT.JumpCpTau - 1,
+                                                                       index.dSurvival1 = iIndexSurvivalC.JumpCm - 1,
+                                                                       index.dSurvival2 = iIndexSurvivalC.JumpCp - 1)
+                        ## iSurvT[iIndexSurvivalT.JumpCpTau]
+                        ## iSurvC[iIndexSurvivalC.JumpCm]
                     }
                 }else{
                     out$survJumpC[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 3,
@@ -805,7 +814,9 @@ initializePeron <- function(data,
                                                                    dSurvival = iDSurvT)
                     if(iid){
                         out$survJumpT[[iEndpoint]][[iStrata]] <- cbind(out$survJumpT[[iEndpoint]][[iStrata]],
-                                                                       index.survival = iIndexSurvivalC.JumpTpTau - 1)
+                                                                       index.survival = iIndexSurvivalC.JumpTpTau - 1,
+                                                                       index.dSurvival1 = iIndexSurvivalT.JumpTm - 1,
+                                                                       index.dSurvival2 = iIndexSurvivalT.JumpTp - 1)
                     }
                 }else{
                     out$survJumpT[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 3,
