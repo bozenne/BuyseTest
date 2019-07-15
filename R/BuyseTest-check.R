@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jul 12 2019 (14:28) 
+## Last-Updated: jul 15 2019 (23:22) 
 ##           By: Brice Ozenne
-##     Update #: 156
+##     Update #: 163
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -242,6 +242,9 @@ testArgs <- function(name.call,
                                         "bootstrap","stratified bootstrap","studentized bootstrap","studentized stratified bootstrap",
                                         "permutation","stratified permutation"),
                        method = "BuyseTest")
+    }
+    if(method.inference != "none" && any(table(data[[treatment]])<2) ){
+        warning("P-value/confidence intervals based on u-statistic theory will not be valid with one observation \n")
     }
 
     if(iid){

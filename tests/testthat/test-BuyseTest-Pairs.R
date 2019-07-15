@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: mar 28 2019 (15:09) 
+## Last-Updated: jul 15 2019 (08:19) 
 ##           By: Brice Ozenne
-##     Update #: 153
+##     Update #: 154
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -424,7 +424,8 @@ test_that("check neutral - time to event",{
 test_that("check NA - time to event",{
     ## censored after the event in the other arm
     data <- data.frame(time = c(2,1), Treatment = c(1,0), status = c(0,1))
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data)
+    BT <- BuyseTest(Treatment ~ tte(time, censoring = status),
+                    data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)

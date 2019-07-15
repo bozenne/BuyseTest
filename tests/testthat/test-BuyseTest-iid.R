@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: maj 19 2019 (14:37) 
+## Last-Updated: jul 15 2019 (23:23) 
 ##           By: Brice Ozenne
-##     Update #: 47
+##     Update #: 48
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,12 +73,12 @@ d.bis <- data.table(id = 1:4, group = c("C","T","T","T"), toxicity = c(1,1,1,0))
 test_that("iid: binary and no strata (unbalanced groups)", {
     ## first order
     BuyseTest.options(order.Hprojection = 1)
-    e.BT <- BuyseTest(group ~ bin(toxicity),
-                      data = d.bis, 
-                      method.inference = "u-statistic")
-    e2.BT <- BuyseTest(group ~ bin(toxicity),
+    suppressWarnings(e.BT <- BuyseTest(group ~ bin(toxicity),
+                                       data = d.bis, 
+                                       method.inference = "u-statistic"))
+    suppressWarnings(e2.BT <- BuyseTest(group ~ bin(toxicity),
                        data = d.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
+                       method.inference = "u-statistic-bebu"))
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0) )
@@ -88,15 +88,15 @@ test_that("iid: binary and no strata (unbalanced groups)", {
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
-    e.BT <- BuyseTest(group ~ bin(toxicity),
+    suppressWarnings(e.BT <- BuyseTest(group ~ bin(toxicity),
                       data = d.bis, keep.pairScore = FALSE,
-                      method.inference = "u-statistic")
-    e1.BT <- BuyseTest(group ~ bin(toxicity),
+                      method.inference = "u-statistic"))
+    suppressWarnings(e1.BT <- BuyseTest(group ~ bin(toxicity),
                        data = d.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic")
-    e2.BT <- BuyseTest(group ~ bin(toxicity),
+                       method.inference = "u-statistic"))
+    suppressWarnings(e2.BT <- BuyseTest(group ~ bin(toxicity),
                        data = d.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
+                       method.inference = "u-statistic-bebu"))
     
     expect_equal(e1.BT@tablePairScore[[1]]$index.pair,1:3) ## correct ordering of the pairs
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms

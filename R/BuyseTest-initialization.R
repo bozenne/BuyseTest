@@ -759,16 +759,20 @@ initializePeron <- function(data,
                     iSurvTimeT <- c(iSurvTimeT, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopT] + 1e-12)
                     iSurvT <- c(iSurvT, NA)
                 }
-                
+
                 ## dSurvival at each jump
-                iIndexSurvivalC.JumpCm <- prodlim::sindex(iSurvTimeC, iJumpC - 1e-12)
-                iIndexSurvivalC.JumpCp <- prodlim::sindex(iSurvTimeC, iJumpC + 1e-12)
-                iDSurvC <- iSurvC[iIndexSurvivalC.JumpCp] - iSurvC[iIndexSurvivalC.JumpCm]
-
-                iIndexSurvivalT.JumpTm <- prodlim::sindex(iSurvTimeT, iJumpT - 1e-12)
-                iIndexSurvivalT.JumpTp <- prodlim::sindex(iSurvTimeT, iJumpT + 1e-12)
-                iDSurvT <- iSurvT[iIndexSurvivalT.JumpTp] - iSurvT[iIndexSurvivalT.JumpTm]
-
+                if(length(iJumpC)>0){
+                    iIndexSurvivalC.JumpCm <- prodlim::sindex(iSurvTimeC, iJumpC - 1e-12)
+                    iIndexSurvivalC.JumpCp <- prodlim::sindex(iSurvTimeC, iJumpC + 1e-12)
+                    iDSurvC <- iSurvC[iIndexSurvivalC.JumpCp] - iSurvC[iIndexSurvivalC.JumpCm]
+                }
+                
+                if(length(iJumpT)>0){
+                    iIndexSurvivalT.JumpTm <- prodlim::sindex(iSurvTimeT, iJumpT - 1e-12)
+                    iIndexSurvivalT.JumpTp <- prodlim::sindex(iSurvTimeT, iJumpT + 1e-12)
+                    iDSurvT <- iSurvT[iIndexSurvivalT.JumpTp] - iSurvT[iIndexSurvivalT.JumpTm]
+                }
+                
                 ## independent of the threshold i.e. of the priority
                 ## avoid repeated calculation when the same endpoint is used several times with different thresholds
                 iIndexSurvivalC.timeC <- prodlim::sindex(iSurvTimeC, iTimeC)

@@ -64,9 +64,9 @@
 #'   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 #' }
 #' The formula interface can be more concise, especially when considering few outcomes, but may be more difficult to apprehend for new users.
-#' Note that arguments \code{endpoint}, \code{threshold}, \code{censoring}, \code{operator}, and \code{type} must have the same length. 
-#' \cr \cr \cr
+#' Note that arguments \code{endpoint}, \code{threshold}, \code{censoring}, \code{operator}, and \code{type} must have the same length. \cr \cr \cr
 #'
+#' 
 #' \bold{GPC procedure} \cr
 #' The GPC procedure form all pairs of observations, one belonging to the experimental group and the other to the control group, and class them in 4 categories: \itemize{
 #'  \item \emph{Favorable pair}: the endpoint is better for the observation in the experimental group.
@@ -77,8 +77,8 @@
 #' With complete data, pairs can be decidely classified as favorable/unfavorable/neutral.
 #' In presence of missing values, the GPC procedure uses the scoring rule (argument \code{scoring.rule}) and the correction for uninformative pairs (argument \code{correction.uninf}) to classify the pairs.
 #' The classification may not be 0,1, e.g. the probability that the pair is favorable/unfavorable/neutral with the Peron's scoring rule.
-#' To export the classification of each pair set the argument code{keep.pairScore} to \code{TRUE} and call the function \code{getPairScore} on the result of the \code{BuyseTest} function.
-#' \cr \cr \cr
+#' To export the classification of each pair set the argument code{keep.pairScore} to \code{TRUE} and call the function \code{getPairScore} on the result of the \code{BuyseTest} function. \cr \cr \cr
+#' 
 #' 
 #' \bold{Handling missing values}
 #' \itemize{
@@ -92,9 +92,9 @@
 #' However both will (in general) lead to biased estimates for the proportion of favorable, unfavorable, or neutral pairs.
 #' Inverse probability of censoring weights (IPCW, \code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
 #' Imputing the average score of the informative pairs (\code{correction.uninf=1}) is the recommanded approach.
-#' Note that both corrections will convert the whole proportion of uninformative pairs of a given endpoint into favorable, unfavorable, or neutral pairs.
+#' Note that both corrections will convert the whole proportion of uninformative pairs of a given endpoint into favorable, unfavorable, or neutral pairs. \cr \cr
 #' }
-#' \cr \cr
+#' 
 #'
 #' \bold{Statistical inference} \cr
 #' The argument \code{method.inference} defines how to approximate the distribution of the GPC estimators and so how standard errors, confidence intervals, and p-values are computed.
@@ -116,9 +116,9 @@
 #'    \item \code{n.resampling} set the number of permutations/samples used.
 #' A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details.
 #'    \item \code{cpus} indicates whether the resampling procedure can be splitted on several cpus to save time. Can be set to \code{"all"} to use all available cpus.
-#' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. 
+#' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. \cr \cr
 #' }
-#'\cr \cr
+#'
 #'
 #' \bold{Default values} \cr
 #' The default of the arguments

@@ -5,9 +5,9 @@
 \title{Performing simulation studies with BuyseTest}
 \usage{
 powerBuyseTest(sim, sample.size, sample.sizeC = NULL,
-  sample.sizeT = NULL, n.rep, null = c(0, 1), cpus = 1,
-  alternative = NULL, seed = 10, conf.level = NULL,
-  order.Hprojection = NULL, transformation = NULL, trace = 1, ...)
+  sample.sizeT = NULL, n.rep, null = c(0, 1), cpus = 1, seed = 10,
+  conf.level = NULL, order.Hprojection = NULL, transformation = NULL,
+  trace = 1, ...)
 }
 \arguments{
 \item{sim}{[function] take two arguments:
@@ -27,10 +27,6 @@ Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} a
 
 \item{cpus}{[integer, >0] the number of CPU to use.
 Only the permutation test can use parallel computation.
-Default value read from \code{BuyseTest.options()}.}
-
-\item{alternative}{[character] the alternative hypothesis.
-Must be one of \code{"two.sided"}, \code{"greater"} or \code{"less"}. 
 Default value read from \code{BuyseTest.options()}.}
 
 \item{seed}{[integer, >0] the seed to consider for the simulation study.}
