@@ -7,7 +7,8 @@
 #' Run \code{citation("BuyseTest")} in R for how to cite this package in scientific publications.
 #' See the section reference below for examples of application in clinical studies.
 #'
-#' @details The Generalized Pairwise Comparisons form all possible pairs of observations,
+#' @details
+#' The Generalized Pairwise Comparisons form all possible pairs of observations,
 #' one observation being taken from the intervention group and the other is taken from the control group,
 #' and compare the value of their endpoints.
 #'
@@ -18,7 +19,7 @@
 #' 
 #' Simultaneously analysis of several endpoints is performed by prioritizing the endpoints, assigning the highest priority to the endpoint considered the most clinically relevant.
 #' The endpoint with highest priority is analyzed first, and neutral and uninformative pair are analyzed regarding endpoint of lower priority.
-#' 
+#'
 #' @references Examples of application in clinical studies: \cr 
 #' J. Peron, P. Roy, K. Ding, W. R. Parulekar, L. Roche, M. Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalized pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 #' J. Peron, P. Roy, T. Conroy, F. Desseigne, M. Ychou, S. Gourgou-Bourgade, T. Stanbury, L. Roche, B. Ozenne, M. Buyse (2016). \bold{An assessment of the benefit-risk balance of FOLFORINOX in metastatic pancreatic adenocarcinoma}. \emph{Oncotarget} 7:82953-60, 2016. \cr

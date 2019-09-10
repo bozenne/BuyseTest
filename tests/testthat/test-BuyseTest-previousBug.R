@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj 21 2019 (15:31) 
+## Last-Updated: sep 10 2019 (10:34) 
 ##           By: Brice Ozenne
-##     Update #: 103
+##     Update #: 106
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -402,3 +402,14 @@ test_that("BuyseTest without variability", {
     confintTempo <- suppressMessages(confint(e.BT_boot, transformation = FALSE))
     expect_equal(unname(confintTempo[,"p.value"]),1:0)
 })
+
+## * graemeleehickey (issue #2 on Github): 8 september 2019 p-value bootstrap
+test_that("Boostrap - issue in the summary", {
+    data(veteran,package="survival")
+    BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
+                         data = veteran, keep.pairScore = TRUE, scoring.rule = "Gehan", 
+                         trace = 0, method.inference = "bootstrap", n.resampling = 20, seed = 10)
+    summary(BT.keep, statistic = "winRatio")
+})
+
+

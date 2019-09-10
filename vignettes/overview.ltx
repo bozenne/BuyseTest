@@ -1,4 +1,4 @@
-% Created 2019-04-01 ma 19:20
+% Created 2019-09-10 ti 11:01
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -128,7 +128,7 @@ utils::packageVersion("BuyseTest")
 \end{lstlisting}
 
 \begin{verbatim}
-[1] '1.7.5'
+[1] '1.7.8'
 \end{verbatim}
 
 \vfill
@@ -137,7 +137,7 @@ utils::packageVersion("BuyseTest")
 \clearpage
 
 \section{Example data}
-\label{sec:org1a5df33}
+\label{sec:org02430c2}
 For this overview we will used the \texttt{veteran} dataset from the
 \textbf{survival} package:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -161,7 +161,7 @@ See \texttt{?veteran} for a presentation of the database.
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:orgb058f6a}
+\label{sec:org7e5418d}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -243,7 +243,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org543e541}
+\label{sec:org9e6a201}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -305,10 +305,12 @@ endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
 
 Since we have set the argument \texttt{n.permutation} to 0 (i.e. no
 permutation test) in the stratified analysis, we do not get confidence
-intervals or p.values when calling the \texttt{summary} method.
+intervals or p.values when calling the \texttt{summary} method. See
+\texttt{help(BuyseRes-summary)} for more detailed explanations about the
+\texttt{summary} method.
 
 \subsection{Using multiple endpoints}
-\label{sec:org20a6866}
+\label{sec:org8a049c8}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, just add
 another endpoint at then end of the formula:
@@ -343,7 +345,7 @@ BT.multi3 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", wei
 This has been refered as the O’Brien test in the litterature.
 
 \subsection{What if smaller is better?}
-\label{sec:orgc246e2c}
+\label{sec:org0573d48}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -370,13 +372,13 @@ try(BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "
 \end{lstlisting}
 
 \begin{verbatim}
-Error in (function (alternative, name.call, censoring, correction.uninf,  : 
+Error in (function (name.call, censoring, correction.uninf, cpus, data,  : 
   Cannot have different operator for the same endpoint used at different priorities
 \end{verbatim}
 
 
 \subsection{Stratified GPC}
-\label{sec:org4fc659c}
+\label{sec:orgc7d4ed5}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -433,7 +435,7 @@ empirical proportion of pairs for each strata.
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org1b83453}
+\label{sec:org0993dcf}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -499,19 +501,18 @@ endpoint threshold total favorable unfavorable neutral uninf delta Delta
 So in this case no pair is analyzed at second priority.
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org9d4516b}
+\label{sec:org0fe419d}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
 \item \textbf{permutation test} setting the argument \texttt{method.inference} to
-\texttt{"permutation"}. This approach gives valid p-values but not valid
-confidence intervals.
+\texttt{"permutation"}. This approach gives valid p-values.
 \end{itemize}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
 					  data = veteran, trace = 0, method.inference = "permutation",
-					  n.resampling = 25) 
+					  scoring.rule = "Gehan") 
 summary(BT.perm)
 \end{lstlisting}
 
@@ -521,13 +522,14 @@ summary(BT.perm)
 > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > confidence level: 0.95 
-> inference       : permutation test with 25 samples 
+> inference       : permutation test with 1000 samples 
                     confidence intervals/p-values computed using the quantiles of the empirical distribution 
 > treatment groups: 1 (control) vs. 2 (treatment) 
-> censored pairs  : use Kaplan Meier survival curves to compute the score
+> censored pairs  : uninformative pairs
+> uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
 > results
 endpoint threshold total favorable unfavorable neutral uninf   delta   Delta p.value 
-    time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877    0.32
+    time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916   0.322
 \end{verbatim}
 
 \begin{itemize}
@@ -539,8 +541,8 @@ p-values and confidence intervals.
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
-					  data = veteran, trace = 0, method.inference = "bootstrap",
-					  n.resampling = 25) 
+					 data = veteran, trace = 0, method.inference = "bootstrap",
+					 scoring.rule = "Gehan") 
 summary(BT.perm)
 \end{lstlisting}
 
@@ -550,20 +552,21 @@ summary(BT.perm)
 > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > confidence level: 0.95 
-> inference       : bootstrap resampling with 25 samples 
+> inference       : bootstrap resampling with 1000 samples 
                     confidence intervals/p-values computed using the quantiles of the empirical distribution 
 > treatment groups: 1 (control) vs. 2 (treatment) 
-> censored pairs  : use Kaplan Meier survival curves to compute the score
+> censored pairs  : uninformative pairs
+> uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
 > results
 endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-    time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
- CI [2.5 ; 97.5] p.value 
-[-0.1802;0.0248]     0.2
+    time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916
+CI [2.5 ; 97.5] p.value 
+[-0.283;0.0888]   0.349
 \end{verbatim}
 
 \begin{itemize}
 \item normal approximation setting the argument \texttt{method.inference} to
-\texttt{"u-statistic"}. In large enougth samples and for the Gehan scoring rule, this approach gives valid
+\texttt{"u-statistic"}. In large enough samples and for the Gehan scoring rule, this approach gives valid
 p-values and confidence intervals.
 \end{itemize}
 
@@ -601,7 +604,7 @@ each of these samples. The number of samples is set using the arugment
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org16085aa}
+\label{sec:orge0ea715}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -610,7 +613,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orge080cb7}
+\label{sec:org03a0e5d}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -708,7 +711,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org4e57998}
+\label{sec:org5727269}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -753,7 +756,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org4f879de}
+\label{sec:org4bb798c}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -852,7 +855,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:orgfa63520}
+\label{sec:org03200b1}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -906,16 +909,26 @@ as:
 p_F &= -\frac{1}{S_T(x)S_C(y)}\int_{t>y} S_T(t+\tau) dS_C(t) \\
 p_{UF} &= -\frac{1}{S_T(x)S_C(y)}\int_{t>x} S_C(t+\tau) dS_T(t)
 \end{align*}
-where \(x=87\) and \(y=100\). We obtain:
+where \(x=87\) and \(y=100\). To ease the call of \texttt{calcIntegralScore\_cpp} we create a warper:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+calcInt <- function(...){ ## here we don't need to return the functionnal derivative of the score 
+	calcIntegralScore_cpp(..., 
+						  returnDeriv = FALSE, column = 0,
+						  derivSurv = matrix(0), derivSurvD = matrix(0))
+}
+\end{lstlisting}
+
+and then call it to compute the probabilities:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 denom <- as.double(outSurv$survTimeT[3,"SurvivalT_0"] * outSurv$survTimeC[10,"SurvivalC_0"])
-M <- cbind("favorable" = -calcIntegralScore_cpp(outSurv$survJumpC, start = 100, 
-												lastSurv = outSurv$lastSurv[2],
-												lastdSurv = outSurv$lastSurv[1])/denom,
-		   "unfavorable" = -calcIntegralScore_cpp(outSurv$survJumpT, start = 87, 
-												  lastSurv = outSurv$lastSurv[1],
-												  lastdSurv = outSurv$lastSurv[2])/denom)
+M <- cbind("favorable" = -calcInt(outSurv$survJumpC, start = 100, 
+								  lastSurv = outSurv$lastSurv[2],
+								  lastdSurv = outSurv$lastSurv[1])/denom,
+		   "unfavorable" = -calcInt(outSurv$survJumpT, start = 87, 
+									lastSurv = outSurv$lastSurv[1],
+									lastdSurv = outSurv$lastSurv[2])/denom)
 rownames(M) <- c("lowerBound","upperBound")
 M
 \end{lstlisting}
@@ -929,7 +942,7 @@ upperBound 0.5058685   0.3770426
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:orgd5e55a0}
+\label{sec:org1d99f72}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -943,7 +956,8 @@ following dataset:
 \begin{lstlisting}
 set.seed(10)
 dt <- simBuyseTest(5e2, latent = TRUE, argsCont = NULL,
-				   argsTTE = list(rates.T = 2, rates.C = 1, rates.Censoring = 3))
+				   argsTTE = list(rates.T = 2, rates.C = 1,
+								  rates.Censoring.C = 3, rates.Censoring.T = 3))
 dt[, status1 := 1]
 head(dt)
 \end{lstlisting}
@@ -998,7 +1012,7 @@ eventtime         1 0.1363 0.1363
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:org76c50de}
+\label{sec:org7886a02}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -1065,7 +1079,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:org4b9596f}
+\label{sec:org35da05f}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1126,7 +1140,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orgcfebcfe}
+\label{sec:orgb5e68da}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1186,7 +1200,7 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Modifying default options}
-\label{sec:org706e631}
+\label{sec:org6f17d0e}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1216,7 +1230,7 @@ BuyseTest.options(reinitialise = TRUE)
 
 
 \section{Information about the R session used for this document}
-\label{sec:org91dbe96}
+\label{sec:orga652ed7}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1236,19 +1250,26 @@ locale:
 [5] LC_TIME=Danish_Denmark.1252    
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods  
+[9] base     
 
 other attached packages:
-[1] data.table_1.12.0  BuyseTest_1.7.5    Rcpp_1.0.0         prodlim_2018.04.18
+[1] lava_1.6.5         doParallel_1.0.14  iterators_1.0.10   foreach_1.4.4     
+[5] data.table_1.12.2  BuyseTest_1.7.8    Rcpp_1.0.1         prodlim_2018.04.18
 
 loaded via a namespace (and not attached):
- [1] magrittr_1.5         splines_3.5.1        MASS_7.3-50          lattice_0.20-35     
- [5] R6_2.3.0             rlang_0.3.1          multcomp_1.4-8       stringr_1.3.1       
- [9] tools_3.5.1          parallel_3.5.1       grid_3.5.1           KernSmooth_2.23-15  
-[13] TH.data_1.0-9        htmltools_0.3.6      survival_2.42-6      yaml_2.2.0          
-[17] digest_0.6.17        Matrix_1.2-14        lava_1.6.4           codetools_0.2-15    
-[21] profvis_0.3.5        microbenchmark_1.4-5 htmlwidgets_1.3      testthat_2.0.0      
-[25] sandwich_2.5-0       stringi_1.2.4        compiler_3.5.1       stats4_3.5.1        
-[29] jsonlite_1.5         mvtnorm_1.0-8        zoo_1.8-4
+ [1] compiler_3.5.1            prettyunits_1.0.2         base64enc_0.1-3          
+ [4] remotes_2.0.2             tools_3.5.1               testthat_2.0.0           
+ [7] digest_0.6.17             pkgbuild_1.0.2            pkgload_1.0.2            
+[10] memoise_1.1.0             butils.base_1.2           lattice_0.20-35          
+[13] rlang_0.3.1               Matrix_1.2-14             cli_1.0.1                
+[16] RcppArmadillo_0.9.400.3.0 withr_2.1.2               desc_1.2.0               
+[19] fs_1.2.6                  devtools_2.0.1            rprojroot_1.3-2          
+[22] grid_3.5.1                glue_1.3.0                R6_2.3.0                 
+[25] processx_3.2.0            survival_2.44-1.1         sessioninfo_1.1.1        
+[28] callr_3.0.0               magrittr_1.5              codetools_0.2-15         
+[31] backports_1.1.2           ps_1.1.0                  splines_3.5.1            
+[34] usethis_1.4.0             assertthat_0.2.0          KernSmooth_2.23-15       
+[37] crayon_1.3.4
 \end{verbatim}
 \end{document}

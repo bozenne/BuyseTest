@@ -36,15 +36,40 @@ Default value read from \code{BuyseTest.options()}.}
 Summarize the results from the \code{\link{BuyseTest}} function.
 }
 \details{
-When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
-Thus the confidence interval may not be valid if the null hypothesis is false. \cr
-More precisely, the quantiles of the distribution of the statistic are computed under the null hypothesis and then shifted by the point estimate of the statistic.
-Therefore it is possible that the limits of the confidence interval
-are estimated outside of the interval of definition of the statistic (e.g. outside [-1,1] for the proportion in favor of treatment). \cr \cr
+\bold{Content of the output} \cr
+The "results" table in the output show the result of the GPC at each endpoint, as well as its contribution to the global statistics.
+More precisely, the column:
+\itemize{
+  \item \code{endpoint} lists the endpoints, by order of priority.
+  \item \code{threshold} lists the threshold associated to each endpoint.
+  \item \code{total} lists the total number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) to be analyzed at the current priority.
+  \item \code{favorable} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) classified in favor of the treatment at the current priority.
+  \item \code{unfavorable} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) classified in favor of the control at the current priority.
+  \item \code{neutral} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) classified as neutral at the current priority.
+  \item \code{uninf} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) that could not be classified at the current priority (due to missing values/censoring).
+  \item \code{delta} lists the value of the statistic (i.e. net benefit or win ratio) computed on the pairs analyzed at the current priority only.
+  \item \code{Delta} lists the value of the statistic (i.e. net benefit or win ratio) computed on all the pairs analyzed up to the current priority.
+  \item \code{CI} Confidence interval for the value of \code{Delta} (performed independently at each priority, no adjustment for multiple comparison).
+  \item \code{p.value} p-value for the test \code{Delta=0} (performed independently at each priority, no adjustment for multiple comparison).
+  \item \code{resampling} number of samples used to compute the confidence intervals or p-values from permutations or bootstrap samples.
+Some bootstrap samples can be discarded if, for example, they did not lead to sample any case or control.
+}
+ 
+\bold{Statistical inference} \cr
+When the interest is in obtaining p-values, we recommand the use of a permutation test.
+However, when using a permutation test confidence intervals are not displayed in the summary.
+This is because there is no (to the best of our knowledge) straightforward way to obtain good confidence intervals with permutations. 
+An easy way consist in using the quantiles of the permutation distribution and then shift by the point estimate of the statistic.
+This is what is output by \code{confint} method.
+However this approach leads to a much too high coverage when the null hypothesis is false.
+The limits of the confidence interval can also end up being outside of the interval of definition of the statistic
+(e.g. outside [-1,1] for the proportion in favor of treatment).
+Therefore, for obtaining confidence intervals, we recommand the boostrap method or the u-statistic method.
 
-Note: For the win ratio, the proposed implementation enables the use of thresholds and endpoints that are not time to events
+\bold{Win ratio} \cr
+For the win ratio, the proposed implementation enables the use of thresholds and endpoints that are not time to events
 as well as the correction proposed in Peron et al. (2016) to account for censoring. 
-These development have not been examined by Wang et al. (2016), or in other papers (at out knowledge).
+These development have not been examined by Wang et al. (2016), or in other papers (to the best of our knowledge).
 They are only provided here by implementation convenience.
 }
 \examples{

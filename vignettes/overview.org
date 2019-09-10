@@ -43,7 +43,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '1.7.5'
+: [1] '1.7.8'
 
 \vfill
 
@@ -205,7 +205,9 @@ summary(BT, statistic = "winRatio")
 
 Since we have set the argument =n.permutation= to 0 (i.e. no
 permutation test) in the stratified analysis, we do not get confidence
-intervals or p.values when calling the =summary= method.
+intervals or p.values when calling the =summary= method. See
+=help(BuyseRes-summary)= for more detailed explanations about the
+=summary= method.
 
 ** Using multiple endpoints
 More than one endpoint can be considered by indicating a vector of
@@ -267,7 +269,7 @@ try(BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "
 #+END_SRC
 
 #+RESULTS:
-: Error in (function (alternative, name.call, censoring, correction.uninf,  : 
+: Error in (function (name.call, censoring, correction.uninf, cpus, data,  : 
 :   Cannot have different operator for the same endpoint used at different priorities
 
 
@@ -391,12 +393,11 @@ So in this case no pair is analyzed at second priority.
 
 Several methods are available in =BuyseTest= to perform statistical inference:
 - *permutation test* setting the argument =method.inference= to
-  ="permutation"=. This approach gives valid p-values but not valid
-  confidence intervals.
+  ="permutation"=. This approach gives valid p-values.
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
                       data = veteran, trace = 0, method.inference = "permutation",
-                      n.resampling = 25) 
+                      scoring.rule = "Gehan") 
 summary(BT.perm)
 #+END_SRC
 
@@ -407,13 +408,14 @@ summary(BT.perm)
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > confidence level: 0.95 
- > inference       : permutation test with 25 samples 
+ > inference       : permutation test with 1000 samples 
                      confidence intervals/p-values computed using the quantiles of the empirical distribution 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > censored pairs  : uninformative pairs
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta p.value 
-     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877    0.32
+     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916   0.322
 #+end_example
 
 - bootstrap resampling setting the argument =method.inference= to
@@ -422,8 +424,8 @@ summary(BT.perm)
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
-                      data = veteran, trace = 0, method.inference = "bootstrap",
-                      n.resampling = 25) 
+                     data = veteran, trace = 0, method.inference = "bootstrap",
+                     scoring.rule = "Gehan") 
 summary(BT.perm)
 #+END_SRC
 
@@ -434,19 +436,20 @@ summary(BT.perm)
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > confidence level: 0.95 
- > inference       : bootstrap resampling with 25 samples 
+ > inference       : bootstrap resampling with 1000 samples 
                      confidence intervals/p-values computed using the quantiles of the empirical distribution 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : use Kaplan Meier survival curves to compute the score
+ > censored pairs  : uninformative pairs
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
  > results
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
-  CI [2.5 ; 97.5] p.value 
- [-0.1802;0.0248]     0.2
+     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916
+ CI [2.5 ; 97.5] p.value 
+ [-0.283;0.0888]   0.349
 #+end_example
 
 - normal approximation setting the argument =method.inference= to
-  ="u-statistic"=. In large enougth samples and for the Gehan scoring rule, this approach gives valid
+  ="u-statistic"=. In large enough samples and for the Gehan scoring rule, this approach gives valid
   p-values and confidence intervals.
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -762,15 +765,25 @@ p_F &= -\frac{1}{S_T(x)S_C(y)}\int_{t>y} S_T(t+\tau) dS_C(t) \\
 p_{UF} &= -\frac{1}{S_T(x)S_C(y)}\int_{t>x} S_C(t+\tau) dS_T(t)
 \end{align*}
 #+END_EXPORT
-where \(x=87\) and \(y=100\). We obtain:
+where \(x=87\) and \(y=100\). To ease the call of =calcIntegralScore_cpp= we create a warper:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+calcInt <- function(...){ ## here we don't need to return the functionnal derivative of the score 
+    calcIntegralScore_cpp(..., 
+                          returnDeriv = FALSE, column = 0,
+                          derivSurv = matrix(0), derivSurvD = matrix(0))
+}
+#+END_SRC
+
+#+RESULTS:
+and then call it to compute the probabilities:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 denom <- as.double(outSurv$survTimeT[3,"SurvivalT_0"] * outSurv$survTimeC[10,"SurvivalC_0"])
-M <- cbind("favorable" = -calcIntegralScore_cpp(outSurv$survJumpC, start = 100, 
-                                                lastSurv = outSurv$lastSurv[2],
-                                                lastdSurv = outSurv$lastSurv[1])/denom,
-           "unfavorable" = -calcIntegralScore_cpp(outSurv$survJumpT, start = 87, 
-                                                  lastSurv = outSurv$lastSurv[1],
-                                                  lastdSurv = outSurv$lastSurv[2])/denom)
+M <- cbind("favorable" = -calcInt(outSurv$survJumpC, start = 100, 
+                                  lastSurv = outSurv$lastSurv[2],
+                                  lastdSurv = outSurv$lastSurv[1])/denom,
+           "unfavorable" = -calcInt(outSurv$survJumpT, start = 87, 
+                                    lastSurv = outSurv$lastSurv[1],
+                                    lastdSurv = outSurv$lastSurv[2])/denom)
 rownames(M) <- c("lowerBound","upperBound")
 M
 #+END_SRC
@@ -795,7 +808,8 @@ following dataset:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
 dt <- simBuyseTest(5e2, latent = TRUE, argsCont = NULL,
-                   argsTTE = list(rates.T = 2, rates.C = 1, rates.Censoring = 3))
+                   argsTTE = list(rates.T = 2, rates.C = 1,
+                                  rates.Censoring.C = 3, rates.Censoring.T = 3))
 dt[, status1 := 1]
 head(dt)
 #+END_SRC
@@ -1069,20 +1083,27 @@ locale:
 [5] LC_TIME=Danish_Denmark.1252    
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods  
+[9] base     
 
 other attached packages:
-[1] data.table_1.12.0  BuyseTest_1.7.5    Rcpp_1.0.0         prodlim_2018.04.18
+[1] lava_1.6.5         doParallel_1.0.14  iterators_1.0.10   foreach_1.4.4     
+[5] data.table_1.12.2  BuyseTest_1.7.8    Rcpp_1.0.1         prodlim_2018.04.18
 
 loaded via a namespace (and not attached):
- [1] magrittr_1.5         splines_3.5.1        MASS_7.3-50          lattice_0.20-35     
- [5] R6_2.3.0             rlang_0.3.1          multcomp_1.4-8       stringr_1.3.1       
- [9] tools_3.5.1          parallel_3.5.1       grid_3.5.1           KernSmooth_2.23-15  
-[13] TH.data_1.0-9        htmltools_0.3.6      survival_2.42-6      yaml_2.2.0          
-[17] digest_0.6.17        Matrix_1.2-14        lava_1.6.4           codetools_0.2-15    
-[21] profvis_0.3.5        microbenchmark_1.4-5 htmlwidgets_1.3      testthat_2.0.0      
-[25] sandwich_2.5-0       stringi_1.2.4        compiler_3.5.1       stats4_3.5.1        
-[29] jsonlite_1.5         mvtnorm_1.0-8        zoo_1.8-4
+ [1] compiler_3.5.1            prettyunits_1.0.2         base64enc_0.1-3          
+ [4] remotes_2.0.2             tools_3.5.1               testthat_2.0.0           
+ [7] digest_0.6.17             pkgbuild_1.0.2            pkgload_1.0.2            
+[10] memoise_1.1.0             butils.base_1.2           lattice_0.20-35          
+[13] rlang_0.3.1               Matrix_1.2-14             cli_1.0.1                
+[16] RcppArmadillo_0.9.400.3.0 withr_2.1.2               desc_1.2.0               
+[19] fs_1.2.6                  devtools_2.0.1            rprojroot_1.3-2          
+[22] grid_3.5.1                glue_1.3.0                R6_2.3.0                 
+[25] processx_3.2.0            survival_2.44-1.1         sessioninfo_1.1.1        
+[28] callr_3.0.0               magrittr_1.5              codetools_0.2-15         
+[31] backports_1.1.2           ps_1.1.0                  splines_3.5.1            
+[34] usethis_1.4.0             assertthat_0.2.0          KernSmooth_2.23-15       
+[37] crayon_1.3.4
 #+end_example
 
 
