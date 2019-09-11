@@ -209,10 +209,10 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		}else {
 		  // score[1] = 0.0 // (lower bound)
 		  upperUnfavorable = lastSurvC/survTimeC(2); // (upper bound)
-		  if(returnIID > 1){
-			EdSurvC(EdSurvC.n_rows - 1,1) += 1/survTimeC(2); // derivative regarding Sc(x_i+tau)
-			EdSurvC(survTimeC(8),1) -= lastSurvC/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
-		  }
+		  // if(returnIID > 1){
+			// EdSurvC(EdSurvC.n_rows - 1,2) += 1/survTimeC(2); // derivative regarding Sc(x_i+tau)
+			// EdSurvC(survTimeC(8),2) -= lastSurvC/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
+		  // }
 		}
       }
 
@@ -237,10 +237,10 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		}else{
 		  // score[0] = 0.0 // lower bound
 		  upperFavorable = lastSurvT/survTimeT(5); // upper bound
-		  if(returnIID > 1){
-			EdSurvT(EdSurvT.n_rows - 1,0) += 1/survTimeT(5); // derivative regarding St(y_j+tau)
-			EdSurvT(survTimeT(11),0) -= lastSurvT/pow(survTimeT(5),2); // derivative regarding St(x_i)
-		  }
+		  // if(returnIID > 1){
+			// EdSurvT(EdSurvT.n_rows - 1,2) += 1/survTimeT(5); // derivative regarding St(y_j+tau)
+			// EdSurvT(survTimeT(11),2) -= lastSurvT/pow(survTimeT(5),2); // derivative regarding St(x_i)
+		  // }
 		}
       }
 
