@@ -62,44 +62,59 @@ outcome \(l\) is analyzed then \(h(\tau_l)=+\infty\)). The values of
 each outcomes are assumed to be ordered such that we are able to
 define a partial ordering for any two realizations of the \(l\)-th
 outcome in each group \( x_k \succ y_k = \Ind[x_k \geq y_k + \tau_k]
-\) where \(\Ind[.]\) denotes the indicator function. We can then
-denote by:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\nu_k = 1- (x_k \succ y_k + y_k \succ x_k) = \Ind[|x_k - y_k| < \tau_k] 
-\end{align*}
-#+END_EXPORT
-the neutral score of the pair \((x_k,y_k)\). Then the weights:
-#+BEGIN_EXPORT latex
-\begin{align*}
-w_k = \left\{ \begin{array}{c} 1\text{, if } k = 1 \\ \prod_{k'=1}^{k-1} \nu_{k'} \text{, otherwise} \end{array} \right.
-\end{align*}
-#+END_EXPORT
-indicates whether the pair has been ordered at one of the previous
-outcomes. The net benefit is then defined as:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Delta_{\Vtau} = \Prob[\VX \succ \VY + \Vtau] - \Prob[\VY \succ \VX + \Vtau]
-\end{align*}
-#+END_EXPORT
-where \(\Prob[\VX \succ \VY + \Vtau] = \sum_{k=1}^K \Prob[(w_k=1) \cap
-(X_k \geq Y_k + \tau_k)] \). 
+\) where \(\Ind[.]\) denotes the indicator function. 
 
-Note that when an outcome is used several times we can also use the
-following definitions:
-#+BEGIN_EXPORT latex
-\begin{align*}
-\Prob[\VX \succ \VY + \Vtau] &= \sum_{k=1}^K \Prob\left[(w_k=1) \cap
-\left(X_k \in [Y_k + \tau_k;Y_k + h(\tau_k)[ \right)\right] \\
-\text{where } w_k &= \left\{ \begin{array}{c} 1\text{, if } k = 1 \\ \prod_{k' \in S_{k}} \nu_{k'} \text{, otherwise} \end{array} \right.
-\end{align*}
-#+END_EXPORT
-where \(S_{k}\) indexes all the previous outcomes distinct from the
-\(k\)-th outcome. 
 
 \bigskip
 
-In the following we focus, when possible, on the univariate case to
+We also introduce the weights \(\VW = (W_1,\ldots,W_K)\) indicating
+whether the pair could be classified at the previous priorities with
+distinct outcome.
+- *General case*: for \(k \in \{1,\ldots,K\}\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+W_k = \left\{ \begin{array}{c} 
+1\text{, if } k = 1 \\ 
+\prod_{k' \in S_k } \left(\left|X_{k'} - Y_{k'}\right| < \tau_{k'}\right) \text{, otherwise} 
+\end{array} \right.
+\end{align*}
+#+END_EXPORT
+where \(S_k=\left\{k \text{ such that }  k \in \{1,\ldots,k-1\} \text{ and } \left(X_k,Y_k\right) \neq
+\left(X_{k'},Y_{k'}\right)\right\}\), i.e. the indexes of the previous
+outcomes that are distinct from the \(k\)-th outcome.
+
+- *Distinct outcomes*: for \(k \in \{1,\ldots,K\}\):
+#+BEGIN_EXPORT latex
+\begin{align*}
+W_k = \left\{ \begin{array}{c} 
+1\text{, if } k = 1 \\ 
+\prod_{k'=1}^{k-1} \left(\left|X_{k'} - Y_{k'}\right| < \tau_{k'}\right) \text{, otherwise} 
+\end{array} \right.
+\end{align*}
+#+END_EXPORT
+
+\clearpage
+
+The net benefit is then defined as \(\Delta_{\Vtau} = \Prob[\VX \succ \VY + \Vtau] - \Prob[\VY \succ \VX + \Vtau]\)
+
+- *General case*: 
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[\VX \succ \VY + \Vtau] = \sum_{k=1}^K \Prob\left[\left(W_k=1\right) \cap
+\left(X_k \in [Y_k + \tau_k;Y_k + \tau_k + h(\tau_k)[ \right) \right] 
+\end{align*}
+#+END_EXPORT
+- *Distinct outcomes*:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\Prob[\VX \succ \VY + \Vtau] = \sum_{k=1}^K
+  \Prob\left[\left(W_k=1\right) \cap \left(X_k \geq Y_k + \tau_k\right) \right]
+\end{align*}
+#+END_EXPORT
+
+\bigskip
+
+Note: In the following we focus, when possible, on the univariate case to
 simplify the notations and the exposition.
 
 \clearpage
@@ -671,13 +686,13 @@ Let's consider the following random variables:
 - \(X\) the time to the occurrence of the event in the experimental group.
 - \(\Xobs\) the censored event time in the experimental group,
   i.e. \(\Xobs = X \wedge C_X\) where \(C_X\) denotes the censoring time in the experimental group.
-- \(\CensT = \Ind[X \leq C_X]\) the event time indicator in the experimental group.
+- \(\CensT = \Ind[X \leq C_X]\) the event indicator in the experimental group.
 - \(Y\) the time to the occurrence of the event in the control group.
 - \(\Yobs\) the censored event time in the control group,
   i.e. \(\Yobs = X \wedge C_Y\) where \(C_Y\) denotes the censoring time in the control group.
-- \(\CensC = \Ind[Y \leq C_Y]\) the event time indicator in the control group.
+- \(\CensC = \Ind[Y \leq C_Y]\) the event indicator in the control group.
 
-We denote by \(\sample_{ij}=\left(\xobs_i, \yobs_j, \censT_i, \censC_j
+We denote by \(\sample_{ij}=\left(\xobs_{i}, \yobs_{j}, \censT_i, \censC_j
 \right)\) one realization of the random variables \(\left(\Xobs,
 \Yobs, \censT, \censC \right)\). We use the short notation \(x \wedge
 y = \min(x,y)\), \(x \vee y = \max(x,y)\), and \(\sample =
@@ -706,11 +721,13 @@ In a similar fashion we can express the neutral score by:
 and the weights are defined by:
 #+BEGIN_EXPORT latex
 \begin{align*}
-w_k = \left\{ \begin{array}{c} 1\text{, if } k = 1 \\ \prod_{k' \in S_{k}} \nu_{k'} \text{, otherwise} \end{array} \right.
+w_k = \left\{ \begin{array}{c} 1\text{, if } k = 1 \\ \prod_{k' \in S_k} \nu_{k'} \text{, otherwise} \end{array} \right.
 \end{align*}
 #+END_EXPORT
 
-** Gehan scoring rule :noexport:
+** Gehan scoring rule 
+TO BE DONE
+
 ** Peron scoring rule when the survival curve is known
 
 We use the following estimator for the probability to be in favor of
@@ -731,8 +748,11 @@ the following approximation:
 \end{align*}
 #+END_EXPORT
 
+TO BE CONTINUED
 
 ** Peron scoring rule when the survival curve is estimated
+
+TO BE DONE
 
 ** Scoring rule in presence of censoring :noexport:
 
@@ -1042,40 +1062,45 @@ where we used the law of total expectation (first line) and the independence bet
 
 * Asymptotic distribution
 
-In this section we restrict ourself to the GPC as defined in
-citep:buyse2010generalized, i.e. we do not consider Peron scoring rule
-nor any correction (like inverse probability weighting).
-
-** Theory
-
 We consider two independent samples \(x_1,x_2,\ldots,x_m\) and
 \(y_1,y_2,\ldots,y_n\) where the first one contains iid realisations
 of a random variable \(X\) and the second one contains iid
-realisations of a second variable \(Y\). For each realisation we
-observe \(p\) endpoints.
-
-\bigskip
-
-
-The estimator of the net benefit can be written as the difference
-between two estimators:
+realisations of a second variable \(Y\). To simplify the notation
+\(x_1\) represent all the information relative to the first
+observation in the treatment group (e.g. the right-censored time to
+event and event type indicator). For each realisation we observe \(p\)
+endpoints. The estimator of the net benefit can be written as the
+difference between two estimators:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\hat{\Delta}_\tau = \widehat{\Prob}[X \geq Y+\tau] - \widehat{\Prob}[Y \geq Y+\tau]
+\hat{\Delta}_\tau = \widehat{\Prob}[X \geq Y+\tau] - \widehat{\Prob}[Y \geq X+\tau]
 \end{align*}
 #+END_EXPORT
-We denote by \(\phi_k\) the scoring rule relative to \(\Prob[X \geq
-Y+\tau]\) for the endpoint \(k\),
-e.g. \(\phi_k(x_1,y_1)=\Ind[x_1>y_1]\) for a binary endpoint. The
-scoring rule may depend of additional arguments, e.g. a threshold
-\(\tau\) but this will be ignored for the moment. Finally, we denote
+These two estimators are symmetric so it is sufficient to study one of
+them. Indeed, we will see that each of them can be express as the sum
+of iid terms, so they are jointly normally distributed. The iid terms
+will enable us to estimate the variance-covariance matrix between the
+two estimators and therefore to obtain the variance of the estimator
+of the net benefit.
+
+** Gehan scoring rule
+*** \Hajek projection
+
+In this section we restrict ourself to the GPC as defined in
+citep:buyse2010generalized, i.e. we do not consider Peron scoring rule
+nor any correction (like inverse probability weighting). We denote by
+\(\phi_{k}\) the scoring rule relative to \(\Prob[X \geq Y+\tau]\) for
+the endpoint \(k\), e.g. \(\phi_{k}(x_{1},y_{1})=\Ind\left[x_{1k} \geq
+y_{1k}+\tau_k\right]\) for a binary endpoint. The scoring rule may
+depend of additional arguments, e.g. the threshold \(\tau_k\) but this
+will be ignored (since their are known quantities). Finally, we denote
 by \(k_{ij}\) the endpoint at which the pair \((i,j)\) is classified
 as favorable or unfavorable. If this does not happen then
 \(k_{ij}=p\). With this notations, the estimator \(\widehat{\Prob}[X
 \geq Y+\tau]\) can be written as a U-statistic:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\widehat{\Prob}[X \geq Y+\tau] = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \phi_{k_{ij}}(x_1,y_1)
+\widehat{\Prob}[X \geq Y+\tau] = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \phi_{k_{ij}}(x_i,y_j)
 \end{align*}
 #+END_EXPORT
 This is a two sample U-statistic of order (1,1) with kernel
@@ -1083,7 +1108,7 @@ This is a two sample U-statistic of order (1,1) with kernel
 separately). From the U-statistic theory (e.g. see appendix
 [[#SM:Ustat]]), it follows that \(\widehat{\Prob}[X \geq Y+\tau]\) is
 unbiased, normally distributed, and its iid decomposition is the
-H\(\'{a}\)jek projection:
+\Hajek projection:
 #+BEGIN_EXPORT latex
 \begin{align*}
 H^{(1)}(\widehat{\Prob}[X \geq Y+\tau]) &= \frac{1}{m} \sum_{i=1}^m \left( \Esp[\phi_{k_{ij}}(x_i,y_j) \bigg| x_i] - \Prob[X \geq Y+\tau] \right) \\
@@ -1105,14 +1130,13 @@ H^{(1)}_i(\widehat{\Prob}[X \geq Y + \tau]) & = \frac{\Esp[\phi_{k_{ij}}(x_i,y) 
 #+END_EXPORT
 where \(p_y\) is the proportion of 1 in the control group.
 
+*** Variance estimator based on the \Hajek projection
 
-** Variance estimator based on the first order H-decomposition
-
-The H\(\'{a}\)jek projection can be used to estimate the variance of \(\widehat{\Prob}[X \geq Y+\tau]\).
+The \Hajek projection can be used to estimate the variance of \(\widehat{\Prob}[X \geq Y+\tau]\).
 Indeed, since:
 #+BEGIN_EXPORT latex
 \begin{align*}
-\widehat{\Prob}[X \geq Y+\tau] = H^{(1)}(\widehat{\Prob}[X \geq Y + \tau]) + o_p \left( n^{-\half} \right)
+\left(\widehat{\Prob}[X \geq Y+\tau] - \Prob[X \geq Y+\tau] \right) = H^{(1)}(\widehat{\Prob}[X \geq Y + \tau]) + o_p \left( n^{-\half} \right)
 \end{align*}
 #+END_EXPORT
 We obtain that asymptotically:
@@ -1131,7 +1155,7 @@ Similarly we obtain:
 \end{align*}
 #+END_EXPORT
 
-** Variance estimator based on the second order H-decomposition
+*** Variance estimator based on a second order H-decomposition
 
 An better estimator (i.e. unbiased) of the variance of
 \(\widehat{\Prob}[X \geq Y+\tau]\) can be obtained using a second
@@ -1152,7 +1176,7 @@ Y+\tau]\Prob[Y \geq X+\tau]\) because \(\Ind[x_i \geq y_j +
 
 \clearpage
 
-** Example
+*** Example
 
 Let's consider a case with 2 observations per group:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -1295,6 +1319,54 @@ e.BT@covariance
 
 
 \clearpage
+
+** Peron scoring rule
+*** Decomposition in iid terms
+
+The Peron scoring rule involve survival probabilities that are
+estimated via a Kaplan Meier estimator in each group. These estimators
+admit the following expansion:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\sqrt{m}\left( \SurvThat - \SurvT \right) &= \frac{1}{\sqrt{m}} \sum_{i=1}^m \psi_{\SurvT}(x_i) + o_p(1)  \\
+\sqrt{n}\left( \SurvChat - \SurvC \right) &= \frac{1}{\sqrt{n}} \sum_{j=1}^n \psi_{\SurvC}(y_j) + o_p(1)
+\end{align*}
+#+END_EXPORT
+Denoting by \(F\) the cumulative distribution function (cdf) relative
+to \(X\) and \(G\) the one relative to \(Y\). We will denote by
+\(F_n\) and \(G_n\) their empirical counterpart. Then we can re-write
+\(\widehat{\Prob}[X \geq Y+\tau]\) as
+\(\Delta_{\tau}(F_n,G_n,\SurvChat,\SurvThat)\) and obtain the
+following decomposition:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\sqrt{N}\left(\Delta_{\tau}(F_n,G_n,\SurvChat,\SurvThat)-\Delta_{\tau}(F,G,\SurvC,\SurvT) \right) \\
+&=  \sqrt{N}\left(\Delta_{\tau}(F_n,G_n,\SurvChat,\SurvThat)-\Delta_{\tau}(F_n,G_n,\SurvC,\SurvT) \right)
++  \sqrt{N}\left(\Delta_{\tau}(F_n,G_n,\SurvC,\SurvT)-\Delta_{\tau}(F,G,\SurvC,\SurvT) \right)
+\end{align*}
+#+END_EXPORT
+The second term has been treated in the previous section, so we can focus on the first term. 
+#+BEGIN_EXPORT latex
+\begin{align*}
+\sqrt{N}\left(\Delta_{\tau}(F_n,G_n,\SurvChat,\SurvThat)-\Delta_{\tau}(F_n,G_n,\SurvC,\SurvT) \right)
+&= \frac{\sqrt{N}}{nm} \sum_{i=1}^m \sum_{j=1}^n \phi(x_i,y_j,\SurvChat,\SurvThat) - \phi(x_i,y_j,\SurvC,\SurvT) \\
+\end{align*}
+#+END_EXPORT
+So for uncensored observations this term is 0. For censored
+observations, we need to take look term by term.
+- if \(\phi(x_i,y_j,\SurvC,\SurvT) = 1-\frac{\SurvC(\xobs-\tau)}{\SurvC(\yobs)}\) then:
+#+BEGIN_EXPORT latex
+\begin{align*}
+\phi(x_i,y_j,\SurvChat,\SurvThat) - \phi(x_i,y_j,\SurvC,\SurvT) &= -\left( \frac{\SurvChat(\xobs_i-\tau)}{\SurvChat(\yobs_j)} - \frac{\SurvC(\xobs_i-\tau)}{\SurvC(\yobs_j)} \right) \\
+&= -\left( \frac{\SurvChat(\xobs_i-\tau)}{\SurvChat(\yobs_j)} - \frac{\SurvC(\xobs_i-\tau)}{\SurvChat(\yobs_j)} + \frac{\SurvC(\xobs_i-\tau)}{\SurvChat(\yobs_j)} - \frac{\SurvC(\xobs_i-\tau)}{\SurvC(\yobs_j)} \right)  \\
+&= -\left( \frac{\SurvChat(\xobs_i-\tau)-\SurvC(\xobs_i-\tau)}{\SurvChat(\yobs_j)} - \frac{\SurvC(\xobs_i-\tau)(\SurvChat(\yobs_j)-\SurvC(\yobs_j))}{\SurvChat(\yobs_j)\SurvC(\yobs_j)} \right)  \\
+&= -\left( \frac{1}{\SurvC(\yobs_j)} \frac{1}{n} \sum_{k=1}^n \psi_{\SurvC,k}(\xobs_i-\tau) - \frac{\SurvC(\xobs_i-\tau)}{\SurvC^2(\yobs_j)} \frac{1}{m} \sum_{k=1}^m \psi_{\SurvT,m}(\yobs_j)\right)  \\
+\end{align*}
+#+END_EXPORT
+
+
+
+*** Example
 
 ** Type 1 error in finite sample
 
@@ -1841,7 +1913,7 @@ We can now define the H-decomposition as the projection of
 \right)^{\perp} \). Here \(A^{\perp}\) indicates the space orthogonal
 to \(A\). So the first term of the H-decomposition, denoted
 \(H^{(1)}\), is the projection of \(\hat{U}-U\) on
-\(\mathcal{L}_2^{(1)}\); this is also called the H\(\'{a}\)jek
+\(\mathcal{L}_2^{(1)}\); this is also called the \Hajek
 projection. Clearly all terms of the projection are mutually
 orthogonal (or uncorrelated), they are unique (it is a projection) and
 they correspond to U-statistics of increasing degree (from \(1\) to
@@ -1931,7 +2003,7 @@ the U-statistic.
 \bigskip
 
 \textsc{Example 1}: Sample mean @@latex:\\@@
-We first compute the H\(\'{a}\)jek projection of the mean:
+We first compute the \Hajek projection of the mean:
 #+BEGIN_EXPORT latex
 \begin{align*}
 H^{(1)}_{\hat{\mu}} = \frac{1}{n} \sum_{i=1}^n \Esp[x_i|x_i]-\mu = \frac{1}{n}  \sum_{i=1}^n x_i-\mu
@@ -1947,7 +2019,7 @@ And then compute the asymptotic variance as:
 \clearpage
 
 \textsc{Example 2}: Sample variance @@latex:\\@@
-We first compute the H\(\'{a}\)jek projection of the variance:
+We first compute the \Hajek projection of the variance:
 #+BEGIN_EXPORT latex
 \begin{align*}
 H^{(1)}_{\hat{\sigma}^2} &= \frac{2}{n} \sum_{i=1}^n  \Esp[\frac{(x_i-X_2)^2}{2} \bigg|x_i]  - \sigma^2 = \frac{1}{n} \sum_{i=1}^n \Esp[x_i^2 - 2 x_i X_2 + X_2^2 \big|x_i]  - \sigma^2 \\
@@ -1978,7 +2050,7 @@ approximation is sufficient.
 \bigskip
 
 \textsc{Example 3}: Signed rank statistic @@latex:\\@@
-We first compute the H\(\'{a}\)jek projection of the signed rank statistic:
+We first compute the \Hajek projection of the signed rank statistic:
 #+BEGIN_EXPORT latex
 \begin{align*}
  H^{(1)}_{\hat{U}} &=   \frac{2}{n} \sum_{i=1}^n \Esp\left[ \Ind[x_i+X_2>0] \big|x_i \right] - U = \frac{2}{n} \sum_{i=1}^n \Prob[ X_{2} > -x_i \big|x_i] - \Prob[X_{2}> - X_{1}] \\
@@ -2030,7 +2102,7 @@ where \(\alpha\) (resp. \(\beta\)) is the set of all possible
 \bigskip
 
 Many results for U-statistics extends to two sample U-statistics. For
-instance the H\(\'{a}\)jek projection of \(\hat{U}-U\) becomes:
+instance the \Hajek projection of \(\hat{U}-U\) becomes:
 #+BEGIN_EXPORT latex
 \begin{align*}
 H^{(1)} = \frac{k_x}{m} \sum_{i=1}^{m} \left( \Esp[h(x_1,x_2,\ldots,x_{k_x},y_1,\ldots,y_{k_y}) \big| x_i] - U \right) + \frac{k_y}{n} \sum_{j=1}^{n} \left( \Esp[h(x_1,\ldots,x_{k_x},y_1,y_2,\ldots,y_{k_y}) \big| y_j] - U \right)
@@ -2078,7 +2150,7 @@ If our parameter of interest is \(\Prob[X \leq Y]\) then the estimator:
 \end{align*}
 #+END_EXPORT
 is a U-statistic of order \(k_x=1\) and \(k_y=1\) with kernel \(h(x,y)=\Ind[x \leq y]\)
-We first compute the H\(\'{a}\)jek projection of the signed rank statistic:
+We first compute the \Hajek projection of the signed rank statistic:
 #+BEGIN_EXPORT latex
 \begin{align*}
 H_{\hat{U}}^{(1)} &= \frac{1}{m} \sum_{i=1}^m \left( \Esp\left[\Ind[x_i \leq y] \big| x_i\right] - U \right)
@@ -2143,7 +2215,7 @@ give the general formal for the variance that becomes in the case of a two sampl
 #+END_EXPORT
 where \(\sigma^2_{1,1} = \Prob[x \leq y](1-\Prob[x \leq y])\). Indeed the second
 term of the H-decomposition would be the projection of \(\Ind[X \leq
-Y]\) on \(X,Y\) where we substract components of the H\(\'{a}\)jek
+Y]\) on \(X,Y\) where we substract components of the \Hajek
 projection to get the orthogonality between \(H_{\hat{U}}^{(1)}\) and
 \(H_{\hat{U}}^{(2)}\) (see formula 11 page 33 of cite:lee1990u for a
 generic formula):
@@ -2298,16 +2370,17 @@ loaded via a namespace (and not attached):
 #+LATEX_HEADER: \newcommand\Yobs{\tilde{Y}}
 #+LATEX_HEADER: \newcommand\xobs{\tilde{x}}
 #+LATEX_HEADER: \newcommand\yobs{\tilde{y}}
-#+LATEX_HEADER: \newcommand\CensT{\varepsilon_X}
-#+LATEX_HEADER: \newcommand\CensC{\varepsilon_Y}
-#+LATEX_HEADER: \newcommand\censT{e_X}
-#+LATEX_HEADER: \newcommand\censC{e_Y}
+#+LATEX_HEADER: \newcommand\CensT{\varepsilon^X}
+#+LATEX_HEADER: \newcommand\CensC{\varepsilon^Y}
+#+LATEX_HEADER: \newcommand\censT{e^X}
+#+LATEX_HEADER: \newcommand\censC{e^Y}
 
 #+LATEX_HEADER: \newcommand\sample{\chi}
 
 
 #+LATEX_HEADER: \newcommand\VX{\mathbf{X}}
 #+LATEX_HEADER: \newcommand\VY{\mathbf{Y}}
+#+LATEX_HEADER: \newcommand\VW{\mathbf{W}}
 #+LATEX_HEADER: \newcommand\Vtau{\boldsymbol{\tau}}
 
 ** Image
@@ -2380,6 +2453,9 @@ loaded via a namespace (and not attached):
 #+LATEX_HEADER: \newcommandx\SurvT[1][1=]{\defOperator{#1}{}{S_T}{}{(}{)}{}}
 #+LATEX_HEADER: \newcommandx\SurvC[1][1=]{\defOperator{#1}{}{S_C}{}{(}{)}{}}
 
+#+LATEX_HEADER: \newcommandx\SurvThat[1][1=]{\defOperator{#1}{}{\hat{S}_T}{}{(}{)}{}}
+#+LATEX_HEADER: \newcommandx\SurvChat[1][1=]{\defOperator{#1}{}{\hat{S}_C}{}{(}{)}{}}
+
 **** Operators
 #+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
@@ -2430,3 +2506,5 @@ loaded via a namespace (and not attached):
 #+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
 #+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
 #+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+
+#+LATEX_HEADER: \newcommandx\Hajek{H\'{a}jek\xspace}

@@ -30,7 +30,7 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
 
-\item{...}{arguments to be passed to \code{confint}}
+\item{...}{arguments to be passed to \code{\link{BuyseRes-confint}}}
 }
 \description{
 Summarize the results from the \code{\link{BuyseTest}} function.
@@ -52,15 +52,16 @@ More precisely, the column:
   \item \code{CI} Confidence interval for the value of \code{Delta} (performed independently at each priority, no adjustment for multiple comparison).
   \item \code{p.value} p-value for the test \code{Delta=0} (performed independently at each priority, no adjustment for multiple comparison).
   \item \code{resampling} number of samples used to compute the confidence intervals or p-values from permutations or bootstrap samples.
-Some bootstrap samples can be discarded if, for example, they did not lead to sample any case or control.
+Only displayed if some bootstrap samples have been discarded, for example, they did not lead to sample any case or control.
 }
- 
+Note: when using the Peron scoring rule or a correction for uninformative pairs, the columns \code{total}, \code{favorable}, \code{unfavorable}, \code{neutral}, and \code{uninf} are computing by summing the contribution of the pairs. This may lead to a decimal value.
+
 \bold{Statistical inference} \cr
 When the interest is in obtaining p-values, we recommand the use of a permutation test.
 However, when using a permutation test confidence intervals are not displayed in the summary.
 This is because there is no (to the best of our knowledge) straightforward way to obtain good confidence intervals with permutations. 
 An easy way consist in using the quantiles of the permutation distribution and then shift by the point estimate of the statistic.
-This is what is output by \code{confint} method.
+This is what is output by \code{\link{BuyseRes-confint}}.
 However this approach leads to a much too high coverage when the null hypothesis is false.
 The limits of the confidence interval can also end up being outside of the interval of definition of the statistic
 (e.g. outside [-1,1] for the proportion in favor of treatment).
@@ -90,7 +91,8 @@ dt <- simBuyseTest(1e2, n.strata = 3)
 }
 \seealso{
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
-  \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object.
+  \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
+  \code{\link{BuyseRes-confint}} to output confidence interval and p-values in a matrix format.
 }
 \keyword{BuyseRes-method}
 \keyword{summary}
