@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jul 12 2019 (16:20) 
+## Last-Updated: sep 11 2019 (17:18) 
 ##           By: Brice Ozenne
-##     Update #: 469
+##     Update #: 470
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,8 +70,18 @@
 ## * powerBuyseTest (code)
 ##' @rdname powerBuyseTest
 ##' @export
-powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT = NULL, n.rep, null = c(0,1), cpus = 1,                          
-                           seed = 10, conf.level = NULL, order.Hprojection = NULL, transformation = NULL, trace = 1,
+powerBuyseTest <- function(sim,
+                           sample.size,
+                           sample.sizeC = NULL,
+                           sample.sizeT = NULL,
+                           n.rep,
+                           null = c(0,1),
+                           cpus = 1,                          
+                           seed = 10,
+                           conf.level = NULL,
+                           order.Hprojection = NULL,
+                           transformation = NULL,
+                           trace = 1,
                            ...){
 
     call <- match.call()$sim
@@ -114,7 +124,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                  valid.length = 2,
                  method = "BuyseTest")
     names(null) <- c("netBenefit","winRatio")
-        
+    
     n.sample.size <- length(sample.sizeT)
     grid.inference <- expand.grid(order = order.Hprojection,
                                   index.sample.size = 1:n.sample.size,
@@ -154,7 +164,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
     outArgs$n.strata <- 1
     outArgs$level.strata <- "1"
     outArgs$allstrata <- NULL
-        
+    
     ## ** create weights matrix for survival endpoints
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed","outSurv")
@@ -184,7 +194,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             sep = "")
         cat(" \n")
 
-     
+        
         
     }
     ## ** define environment
@@ -258,7 +268,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
             if(length(order.Hprojection)==2 && iOrder==1){
                 BT.tempo@covariance <- attr(BT.tempo@covariance,"first.order")
             }
-                
+            
             for(iStatistic in c("netBenefit","winRatio")){ ## iStatistic <- "winRatio"
 
                 outCI <- suppressWarnings(confint(BT.tempo, transformation = iTransformation, statistic = iStatistic))
@@ -274,7 +284,7 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
 
         return(iOut)
     }
-            
+    
 
     
 
@@ -336,11 +346,11 @@ powerBuyseTest <- function(sim, sample.size, sample.sizeC = NULL, sample.sizeT =
                                           if(trace>0){utils::setTxtProgressBar(pb, i)}
                                           ls.out <- list()
                                           for(j in 1:rep.perBlock[i]){
-                                            ls.out[[j]] <- warper(i = j + cumsum.rep.perBlock[i], envir = envirBT)
+                                              ls.out[[j]] <- warper(i = j + cumsum.rep.perBlock[i], envir = envirBT)
                                           }
                                           return(do.call(rbind, ls.out))
-                      
-                                       })
+                                          
+                                      })
 
         parallel::stopCluster(cl)
         if(trace>0){close(pb)}

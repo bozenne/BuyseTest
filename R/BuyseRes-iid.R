@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: maj 19 2019 (16:58) 
+## Last-Updated: sep 12 2019 (09:22) 
 ##           By: Brice Ozenne
-##     Update #: 59
+##     Update #: 63
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -58,8 +58,14 @@ setMethod(f = "iid",
                                method = "iid[BuyseTest]")
                   endpoint <- valid.endpoint[endpoint]
               }   
-              validCharacter(endpoint, valid.length = 1:length(valid.endpoint), valid.values = valid.endpoint, refuse.NULL = FALSE)
-              validCharacter(endpoint, valid.length = 1, valid.values = c("all","nuisance","u-statistic"), refuse.NULL = FALSE)
+              validCharacter(endpoint,
+                             valid.length = 1:length(valid.endpoint),
+                             valid.values = valid.endpoint,
+                             refuse.NULL = FALSE)
+              validCharacter(type,
+                             valid.length = 1,
+                             valid.values = c("all","nuisance","u-statistic"),
+                             refuse.NULL = FALSE)
               if(object@method.inference != "u-statistic"){
                   stop("No H-decomposition in the object \n",
                        "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")

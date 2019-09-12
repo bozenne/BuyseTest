@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: jul 15 2019 (23:23) 
+## Last-Updated: sep 12 2019 (15:25) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 54
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,8 +22,10 @@ if(FALSE){
 }
 
 context("Check correct computation of the variance \n")
+var2 <- function(x){var(x)*(length(x)-1)/length(x)}
+cov2 <- function(x,y){cov(x,y)*(length(x)-1)/length(x)}
 
-## * settings
+## * Settings
 BuyseTest.options(check = TRUE,
                   keep.pairScore = FALSE,
                   trace = 0)
@@ -183,6 +185,100 @@ test_that("iid: binary and no strata (unbalanced groups)", {
     
     expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0)/3 )
 })
+
+## * Continuous variable
+
+test_that("Manual calculation of second order H projection (no strata)",{
+    n <- 5
+    set.seed(10)
+    dt <- simBuyseTest(n)
+
+    BuyseTest.options(order.Hprojection = 1)
+    e.BT_c1 <- BuyseTest(Treatment ~ cont(score),
+                         data = dt, trace = 0, 
+                         method.inference = "u-statistic")
+    BuyseTest.options(order.Hprojection = 2)
+    e.BT_c2 <- BuyseTest(Treatment ~ cont(score),
+                         data = dt, trace = 0, 
+                         method.inference = "u-statistic")
+    e.BT_c3 <- BuyseTest(Treatment ~ cont(score),
+                         data = dt, trace = 0, keep.pairScore = TRUE, 
+                         method.inference = "u-statistic")
+
+    ## manual calculation
+    dt.pair <- getPairScore(e.BT_c3)[[1]][,.(index.C,index.T,favorable,unfavorable)]
+    dt.pair[, H1C.favorable := mean(favorable), by = index.C]
+    dt.pair[, H1T.favorable := mean(favorable), by = index.T]
+    dt.pair[, H1C.favorable := H1C.favorable - mean(favorable)]
+    dt.pair[, H1T.favorable := H1T.favorable - mean(favorable)]
+
+    dt.pair[, H1C.unfavorable := mean(unfavorable), by = index.C]
+    dt.pair[, H1T.unfavorable := mean(unfavorable), by = index.T]
+    dt.pair[, H1C.unfavorable := H1C.unfavorable - mean(unfavorable)]
+    dt.pair[, H1T.unfavorable := H1T.unfavorable - mean(unfavorable)]
+
+    dt.pair[, H2.favorable := favorable - H1C.favorable - H1T.favorable]
+    dt.pair[, H2.unfavorable := unfavorable - H1C.unfavorable - H1T.unfavorable]
+
+    ## check H1
+    expect_true(all(abs(dt.pair[!duplicated(index.C),.(H1C.favorable/.N,H1C.unfavorable/.N)]-iid(e.BT_c3)[1:n,])<1e-6))
+    expect_true(all(abs(dt.pair[!duplicated(index.T),.(H1T.favorable/.N,H1T.unfavorable/.N)]-iid(e.BT_c3)[(n+1):(2*n),])<1e-6))
+        
+    ## check H2
+    manual <- dt.pair[,.(favorable = var2(H2.favorable)/.N,
+                         unfavorable = var2(H2.unfavorable)/.N,
+                         covariance = cov2(H2.favorable,H2.unfavorable)/.N)]
+    expect_equal(as.double(manual), as.double((e.BT_c2@covariance - e.BT_c1@covariance)[1,c("favorable","unfavorable","covariance")]))
+    expect_equal(as.double(manual), c(0.002304, 0.002304, -0.002304), tol = 1e-5)   
+})
+
+test_that("Manual calculation of second order H projection (strata)",{
+    n <- 5
+    set.seed(10)
+    dt <- simBuyseTest(n)
+    dtS <- rbind(cbind(S = 1, dt), cbind(S = 2, dt), cbind(S = 3, dt))
+    
+    BuyseTest.options(order.Hprojection = 1)
+    e.BT_c1 <- BuyseTest(Treatment ~ cont(score) + S,
+                         data = dtS, trace = 0, 
+                         method.inference = "u-statistic")
+    BuyseTest.options(order.Hprojection = 2)
+    e.BT_c2 <- BuyseTest(Treatment ~ cont(score) + S,
+                         data = dtS, trace = 0, 
+                         method.inference = "u-statistic")
+    e.BT_c3 <- BuyseTest(Treatment ~ cont(score) + S,
+                         data = dtS, trace = 0, keep.pairScore = TRUE, 
+                         method.inference = "u-statistic")
+
+    ## manual calculation
+    dt.pair <- getPairScore(e.BT_c3)[[1]][,.(strata,index.C,index.T,favorable,unfavorable)]
+    dt.pair[, H1C.favorable := mean(favorable), by = index.C]
+    dt.pair[, H1T.favorable := mean(favorable), by = index.T]
+    dt.pair[, H1C.favorable := H1C.favorable - mean(favorable), by = "strata"]
+    dt.pair[, H1T.favorable := H1T.favorable - mean(favorable), by = "strata"]
+
+    dt.pair[, H1C.unfavorable := mean(unfavorable), by = index.C]
+    dt.pair[, H1T.unfavorable := mean(unfavorable), by = index.T]
+    dt.pair[, H1C.unfavorable := H1C.unfavorable - mean(unfavorable), by = "strata"]
+    dt.pair[, H1T.unfavorable := H1T.unfavorable - mean(unfavorable), by = "strata"]
+
+    dt.pair[, H2.favorable := favorable - H1C.favorable - H1T.favorable]
+    dt.pair[, H2.unfavorable := unfavorable - H1C.unfavorable - H1T.unfavorable]
+
+    ## check H1
+    expect_true(all(abs(dt.pair[!duplicated(index.C),.(H1C.favorable/.N,H1C.unfavorable/.N)]-iid(e.BT_c3)[which(dtS$Treatment=="C"),])<1e-6))
+    expect_true(all(abs(dt.pair[!duplicated(index.T),.(H1T.favorable/.N,H1T.unfavorable/.N)]-iid(e.BT_c3)[which(dtS$Treatment=="T"),])<1e-6))
+        
+    ## check H2
+    manual <- dt.pair[,.(favorable = var2(H2.favorable)/.N,
+                         unfavorable = var2(H2.unfavorable)/.N,
+                         covariance = cov2(H2.favorable,H2.unfavorable)/.N)]
+    expect_equal(as.double(manual), as.double((e.BT_c2@covariance - e.BT_c1@covariance)[1,c("favorable","unfavorable","covariance")]))
+    expect_equal(as.double(manual), c(0.000768,  0.000768, -0.000768), tol = 1e-5)
+})
+
+
+
 
 ## * Two endpoints
 ## ** no strata
@@ -354,6 +450,8 @@ test_that("iid: two endpoints (strata)", {
 
 
 
+
+
 ## * iid Peron
 if(FALSE){
     library(data.table)
@@ -381,6 +479,7 @@ if(FALSE){
     scoreFavorable <- getSurvival(e.BT)$survTimeC[[1]][[1]][7]/getSurvival(e.BT)$survTimeT[[1]][[1]][5]
     scoreUnfavorable <- 1 - getSurvival(e.BT)$survTimeC[[1]][[1]][5]/getSurvival(e.BT)$survTimeT[[1]][[1]][5]
 }
+
 
 ######################################################################
 ### test-BuyseTest-iid.R ends here

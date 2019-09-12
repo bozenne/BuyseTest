@@ -271,8 +271,8 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
       double denom = survTimeT(5)*survTimeC(2);
       std::vector< double > intFavorable; 
       std::vector< double > intUnfavorable;
-   	  arma::mat intEdSurvC(EdSurvC.n_rows,2,fill::zeros);
-	  arma::mat intEdSurvT(EdSurvT.n_rows,2,fill::zeros);
+   	  arma::mat intEdSurvC(EdSurvC.n_rows,3,fill::zeros);
+	  arma::mat intEdSurvT(EdSurvT.n_rows,3,fill::zeros);
 
 	  // favorable
 		if(diff >= threshold){

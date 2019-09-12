@@ -17,10 +17,10 @@ using namespace arma ;
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
                    arma::mat& iid_favorable, arma::mat& iid_unfavorable, const arma::mat& iidNuisance_favorable, const arma::mat& iidNuisance_unfavorable,
-		   arma::mat& Mvar, int returnIID,
-		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
+				   arma::mat& Mvar, int returnIID,
+				   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
-		   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
+				   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
   
   // ** total number of pairs and patients in each arm
   double ntot_pair = 0;
@@ -130,45 +130,62 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
 
     // second order
     if(hprojection==2){
-      // compute variance at the pair level
-      arma::vec varUijF,varUijUF,covUijFUF;
 
-      if(keepScore){	  
-	arma::mat pairScoreF(ntot_pair,D,fill::zeros);
-	arma::mat pairScoreUF(ntot_pair,D,fill::zeros);
-	arma::uvec indexRemainingPair;
-	arma::uvec iUvec_iter_d(1);
-	arma::vec n_cumcontrol = cumsum(n_control);
-	arma::vec n_cumpairs = cumsum(n_pairs);
-	for(unsigned int iter_d=0; iter_d<D; iter_d++){
-	  if(iter_d==0){
-	    pairScoreF.col(0) = lsScore[0].col(11);
-	    pairScoreUF.col(0) = lsScore[0].col(12);
-	  }else{
-	    iUvec_iter_d = {iter_d};
-	    indexRemainingPair = conv_to<uvec>::from(lsScore[iter_d].col(3));
-	    pairScoreF.submat(indexRemainingPair, iUvec_iter_d) = lsScore[iter_d].col(11);
-	    pairScoreUF.submat(indexRemainingPair, iUvec_iter_d) = lsScore[iter_d].col(12);
-	  }
-	}
-	pairScoreF.each_row() %= rowweight;
-	pairScoreUF.each_row() %= rowweight;
-	pairScoreF = cumsum(pairScoreF,1);
-	pairScoreUF = cumsum(pairScoreUF,1);
+      if(keepScore){
 
-	varUijF = conv_to<vec>::from(sum(pow(pairScoreF,2),0)/ntot_pair) - pow(cumWdelta_favorable,2);
-	varUijUF = conv_to<vec>::from(sum(pow(pairScoreUF,2),0)/ntot_pair) - pow(cumWdelta_unfavorable,2);
-	covUijFUF = conv_to<vec>::from(sum(pairScoreF % pairScoreUF,0)/ntot_pair) - (cumWdelta_favorable % cumWdelta_unfavorable);
-      }else{ // only ok for binary scores i.e. win neutral or loss
-	varUijF = cumWdelta_favorable % (1-cumWdelta_favorable);
-	varUijUF = cumWdelta_unfavorable % (1-cumWdelta_unfavorable);
-	covUijFUF = - cumWdelta_favorable % cumWdelta_unfavorable;
+		// reconstruct individual score
+		arma::mat pairScoreF(ntot_pair,D,fill::zeros);
+		arma::mat pairScoreUF(ntot_pair,D,fill::zeros);
+		arma::uvec indexRemainingPair;
+		arma::uvec iUvec_iter_d(1);
+		arma::vec n_cumcontrol = cumsum(n_control);
+		arma::vec n_cumpairs = cumsum(n_pairs);
+		for(unsigned int iter_d=0; iter_d<D; iter_d++){
+		  if(iter_d==0){
+			pairScoreF.col(0) = lsScore[0].col(11);
+			pairScoreUF.col(0) = lsScore[0].col(12);
+		  }else{
+			iUvec_iter_d = {iter_d};
+			indexRemainingPair = conv_to<uvec>::from(lsScore[iter_d].col(3));
+			pairScoreF.submat(indexRemainingPair, iUvec_iter_d) = lsScore[iter_d].col(11);
+			pairScoreUF.submat(indexRemainingPair, iUvec_iter_d) = lsScore[iter_d].col(12);
+		  }
+		}
+		pairScoreF.each_row() %= rowweight;
+		pairScoreUF.each_row() %= rowweight;
+		pairScoreF = cumsum(pairScoreF,1);
+		pairScoreUF = cumsum(pairScoreUF,1);
+
+		// compute second order h-projection and corresponding moments
+		rowvec H2_favorable, H2_unfavorable;
+		arma::mat H2_moments(5,D,fill::zeros);
+		int iter_strata, iter_C, iter_T;
+		
+		for(int iter_pair=0; iter_pair<ntot_pair ; iter_pair++){ 
+		  iter_strata = lsScore[0](iter_pair,0);
+		  iter_C = lsScore[0](iter_pair,4); // index within strata
+		  iter_T = lsScore[0](iter_pair,5); // index within strata
+		  H2_favorable = pairScoreF.row(iter_pair) - ntot_control * iidTot_favorable.row(posC[iter_strata][iter_C]) - ntot_treatment * iidTot_favorable.row(posT[iter_strata][iter_T]);
+		  H2_unfavorable = pairScoreUF.row(iter_pair) - ntot_control * iidTot_unfavorable.row(posC[iter_strata][iter_C]) - ntot_treatment * iidTot_unfavorable.row(posT[iter_strata][iter_T]);
+
+		  H2_moments.row(0) += H2_favorable;
+		  H2_moments.row(1) += H2_unfavorable;
+		  H2_moments.row(2) += pow(H2_favorable,2.0);
+		  H2_moments.row(3) += pow(H2_unfavorable,2.0);
+		  H2_moments.row(4) += H2_favorable % H2_unfavorable;		  
+		}
+		H2_moments /= ntot_pair;
+
+		// update variance:  Var(H2) = Var( 1/mn \sum_i,j H2_ij) = 1/mn Var(H2_ij)
+		Mvar.col(0) += (H2_moments.row(2) - pow(H2_moments.row(0),2))/(ntot_pair);
+		Mvar.col(1) += (H2_moments.row(3) - pow(H2_moments.row(1),2))/(ntot_pair);
+		Mvar.col(2) += (H2_moments.row(4) - H2_moments.row(0) % H2_moments.row(1))/(ntot_pair);
+		
+	  }else{ // only ok for binary scores i.e. win neutral or loss
+		Mvar.col(0) += (cumWdelta_favorable % (1-cumWdelta_favorable) - sigmaC_favorable - sigmaT_favorable)/(ntot_pair);
+		Mvar.col(1) += (cumWdelta_unfavorable % (1-cumWdelta_unfavorable) - sigmaC_unfavorable - sigmaT_unfavorable)/(ntot_pair);
+		Mvar.col(2) += (- cumWdelta_favorable % cumWdelta_unfavorable - sigmaC_mixed - sigmaT_mixed)/(ntot_pair);
       }
-
-      // compute global variance
-      Mvar.col(0) += (varUijF - sigmaC_favorable - sigmaT_favorable)/(ntot_pair);
-      Mvar.col(1) += (varUijUF - sigmaC_unfavorable - sigmaT_unfavorable)/(ntot_pair);
-      Mvar.col(2) += (covUijFUF - sigmaC_mixed - sigmaT_mixed)/(ntot_pair);
     }
     // Rcout << endl << "delta method" << endl;  
     // delta method

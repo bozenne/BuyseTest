@@ -125,9 +125,9 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
     partialCount_T.fill(0.0);
   }
   if(returnIID > 1 && method == 3){
-    EdSurvC.resize(p_C, 2);
+    EdSurvC.resize(p_C, 3);
     EdSurvC.fill(0.0);
-    EdSurvT.resize(p_T, 2);
+    EdSurvT.resize(p_T, 3);
     EdSurvT.fill(0.0);
   }else{
     EdSurvC.resize(0, 0);
@@ -340,9 +340,9 @@ arma::mat calcSubsetPairs(arma::colvec Control, arma::colvec Treatment, double t
     partialCount_T.fill(0.0);
   }
   if(returnIID > 1 && method == 3){
-    EdSurvC.resize(p_C, 2);
+    EdSurvC.resize(p_C, 3);
     EdSurvC.fill(0.0);
-    EdSurvT.resize(p_T, 2);
+    EdSurvT.resize(p_T, 3);
     EdSurvT.fill(0.0);
   }else{
     EdSurvC.resize(0, 0);

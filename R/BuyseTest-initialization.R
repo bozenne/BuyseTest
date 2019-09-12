@@ -123,24 +123,6 @@ initializeArgs <- function(censoring,
     
     D.TTE <- sum(type == 3) # number of time to event endpoints
 
-    ## ** method.inference
-    method.inference <- tolower(method.inference)    
-    attr(method.inference,"permutation") <- grepl("permutation",method.inference)
-    attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
-    attr(method.inference,"studentized") <- grepl("studentized",method.inference)
-    attr(method.inference,"stratified") <- grepl("stratified",method.inference)
-    attr(method.inference,"ustatistic") <- grepl("u-statistic",method.inference)
-    iid <- any(c(attr(method.inference,"studentized"), method.inference == "u-statistic"))
-    if(iid){
-        attr(method.inference,"hprojection") <- option$order.Hprojection
-    }else{
-        attr(method.inference,"hprojection") <- NA
-    }
-    if(is.null(strata) && length(grep("stratified ",method.inference))>0){ ## remove stratified if no strata variable
-        method.inference <- gsub("stratified ","",method.inference)
-        attr(method.inference,"stratified") <- FALSE
-    }
-
     ## ** censoring
     if(D.TTE==0){
         censoring <- rep("..NA..", D)
@@ -186,6 +168,26 @@ initializeArgs <- function(censoring,
         }
     }
 
+    ## ** method.inference
+    method.inference <- tolower(method.inference)    
+    attr(method.inference,"permutation") <- grepl("permutation",method.inference)
+    attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
+    attr(method.inference,"studentized") <- grepl("studentized",method.inference)
+    attr(method.inference,"stratified") <- grepl("stratified",method.inference)
+    attr(method.inference,"ustatistic") <- grepl("u-statistic",method.inference)
+    iid <- any(c(attr(method.inference,"studentized"), method.inference == "u-statistic"))
+    if(iid){
+        attr(method.inference,"hprojection") <- option$order.Hprojection
+        if(attr(method.inference,"hprojection")==2 & identical(scoring.rule,1)){
+            keep.pairScore <- TRUE ## need the detail of the score to perform the 2nd order projection
+        }
+    }else{
+        attr(method.inference,"hprojection") <- NA
+    }
+    if(is.null(strata) && length(grep("stratified ",method.inference))>0){ ## remove stratified if no strata variable
+        method.inference <- gsub("stratified ","",method.inference)
+        attr(method.inference,"stratified") <- FALSE
+    }
 
     ## ** correction.uninf
     correction.uninf <- as.numeric(correction.uninf)

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jul 12 2019 (12:32) 
+## Last-Updated: sep 12 2019 (15:30) 
 ##           By: Brice Ozenne
-##     Update #: 572
+##     Update #: 577
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -201,11 +201,9 @@ setMethod(f = "confint",
               ## safety
               test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
               if(method.inference %in% c("u-statistic","u-statistic-bebu")){
-                  if(!test.model.tte && object@scoring.rule == "Peron"){
-                      warning("The current implementation of the asymptotic distribution is not valid for scoring.rule=\"Peron\" \n",
-                              "Standard errors / confidence intervals / p-values will not be displayed \n")
-                  }else if(object@correction.uninf > 0 && attr(object@method.inference,"hprojection")>1){
-                      warning("The current implementation of the second order H-projection is not valid when a correction is used \n")
+                  if(!test.model.tte && D>1 && object@scoring.rule == "Peron"){
+                      warning("The current implementation of the asymptotic distribution does not support several outcomes when scoring.rule=\"Peron\" \n",
+                              "Standard errors / confidence intervals / p-values should not be trusted \n")
                   }
               }
               
