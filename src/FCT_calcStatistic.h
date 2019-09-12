@@ -177,17 +177,17 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
 		H2_moments /= ntot_pair;
 
 		// update variance:  Var(H2) = Var( 1/mn \sum_i,j H2_ij) = 1/mn Var(H2_ij)
-		Mvar.col(0) += (H2_moments.row(2) - pow(H2_moments.row(0),2))/(ntot_pair);
-		Mvar.col(1) += (H2_moments.row(3) - pow(H2_moments.row(1),2))/(ntot_pair);
-		Mvar.col(2) += (H2_moments.row(4) - H2_moments.row(0) % H2_moments.row(1))/(ntot_pair);
+		Mvar.col(0) += trans((H2_moments.row(2) - pow(H2_moments.row(0),2))/(ntot_pair));
+		Mvar.col(1) += trans((H2_moments.row(3) - pow(H2_moments.row(1),2))/(ntot_pair));
+		Mvar.col(2) += trans((H2_moments.row(4) - H2_moments.row(0) % H2_moments.row(1))/(ntot_pair));
 		
 	  }else{ // only ok for binary scores i.e. win neutral or loss
 		Mvar.col(0) += (cumWdelta_favorable % (1-cumWdelta_favorable) - sigmaC_favorable - sigmaT_favorable)/(ntot_pair);
 		Mvar.col(1) += (cumWdelta_unfavorable % (1-cumWdelta_unfavorable) - sigmaC_unfavorable - sigmaT_unfavorable)/(ntot_pair);
 		Mvar.col(2) += (- cumWdelta_favorable % cumWdelta_unfavorable - sigmaC_mixed - sigmaT_mixed)/(ntot_pair);
-      }
-    }
-    // Rcout << endl << "delta method" << endl;  
+	  }
+	}
+	// Rcout << endl << "delta method" << endl;  
     // delta method
     // var(A-B) = var(A) + var(B) - 2 * cov(A,B)
     // indeed (A-B)' = A' - B' so (A-B)^'2 = A'A' + B'B'  - 2*A'B'
