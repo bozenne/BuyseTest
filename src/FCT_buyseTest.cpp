@@ -130,11 +130,9 @@ List GPC_cpp(arma::mat endpoint,
 
     // iid Pn
     iid_favorable.resize(n_obs,D);
-    iid_favorable.fill(0.0);
+	iid_favorable.fill(0.0);
     iid_unfavorable.resize(n_obs,D);
-    iid_favorable.fill(0.0);
-    iid_unfavorable.resize(n_obs,D);
-    iid_favorable.fill(0.0);
+	iid_unfavorable.fill(0.0);
 
     // variance
     Mvar.resize(D,5);
@@ -145,9 +143,7 @@ List GPC_cpp(arma::mat endpoint,
       iidNuisance_favorable.resize(n_obs,D);
       iidNuisance_favorable.fill(0.0);
       iidNuisance_unfavorable.resize(n_obs,D);
-      iidNuisance_favorable.fill(0.0);
-      iidNuisance_unfavorable.resize(n_obs,D);
-      iidNuisance_favorable.fill(0.0);
+      iidNuisance_unfavorable.fill(0.0);
     }
   }
 
@@ -162,10 +158,8 @@ List GPC_cpp(arma::mat endpoint,
   std::vector< double > iVecUnfavorable;
 
   // for which unique tte endpoint calculation have been stored
-  std::vector< bool > isStored_UTTE(n_UTTE);
-  std::fill(isStored_UTTE.begin(),isStored_UTTE.end(),false);
-  std::vector< bool > isStored2_UTTE(n_UTTE);
-  std::fill(isStored2_UTTE.begin(),isStored2_UTTE.end(),false);
+  uvec isStored_UTTE = zeros<arma::uvec>(n_UTTE); // weights
+  uvec isStored2_UTTE = zeros<arma::uvec>(n_UTTE); // iid
   
   // *** for a given strata/endpoint
   // index of the pairs
@@ -291,7 +285,7 @@ List GPC_cpp(arma::mat endpoint,
 	
 
       // **** update iid
-      // Rcout << " update iid" << endl;
+      // Rcout << " update iid (" << returnIID << ")" << endl;
       if(returnIID>0){
 		iUvec_iter_d = {iter_d};
 		iid_favorable.submat(posC[iter_strata], iUvec_iter_d) = iPartialCount_C.col(0);
@@ -300,28 +294,38 @@ List GPC_cpp(arma::mat endpoint,
 		iid_unfavorable.submat(posC[iter_strata], iUvec_iter_d) = iPartialCount_C.col(1);
 		iid_unfavorable.submat(posT[iter_strata], iUvec_iter_d) = iPartialCount_T.col(1);
 
-		if(returnIID>1 && iMethod == 3){
-		  iEdSurvC /= n_pairs[iter_strata];
-		  iEdSurvT /= n_pairs[iter_strata];
-		  iIIDNuisance_favorable = iid_survJumpC[iter_d][iter_strata] * iEdSurvC.col(0) + iid_survJumpT[iter_d][iter_strata] * iEdSurvT.col(0);
-		  iIIDNuisance_unfavorable = iid_survJumpC[iter_d][iter_strata] * iEdSurvC.col(1) + iid_survJumpT[iter_d][iter_strata] * iEdSurvT.col(1);
-
+		if(returnIID>1){
 		  // new score is w_old * favorable so IF = IF_old * favorable + w_old * IF_favorable
-		  iidNuisance_favorable.col(iter_d) += iIIDNuisance_favorable % iCumWeight_M1;
-		  iidNuisance_unfavorable.col(iter_d) += iIIDNuisance_unfavorable % iCumWeight_M1;
+		  // Rcout << "iid nuisance " << endl;
+		  if(iMethod == 3){  // w_old * IF_favorable
+			iEdSurvC /= n_pairs[iter_strata];
+			iEdSurvT /= n_pairs[iter_strata];
+			iIIDNuisance_favorable = iid_survJumpC[iIndex_UTTE][iter_strata] * iEdSurvC.col(0) + iid_survJumpT[iIndex_UTTE][iter_strata] * iEdSurvT.col(0);
+			iIIDNuisance_unfavorable = iid_survJumpC[iIndex_UTTE][iter_strata] * iEdSurvC.col(1) + iid_survJumpT[iIndex_UTTE][iter_strata] * iEdSurvT.col(1);
+
+			if(isStored2_UTTE[iIndex_UTTE] && hierarchical){
+			  iidNuisance_favorable.col(iter_d) += (iIIDNuisance_favorable - iidUTTE_favorable.col(iIndex_UTTE));
+			  iidNuisance_unfavorable.col(iter_d) += iIIDNuisance_unfavorable - iidUTTE_unfavorable.col(iIndex_UTTE);
+			}else{ // first time it is analyzed
+			  iidNuisance_favorable.col(iter_d) += iIIDNuisance_favorable;
+			  iidNuisance_unfavorable.col(iter_d) += iIIDNuisance_unfavorable;
+			}
+		  }
+		  
+		  // IF_old * favorable
 		  for(int iter_d2=0; iter_d2 < n_UTTE; iter_d2++){
-			if(isStored2_UTTE[iter_d2]){
-			  iUvec_iter_d2 = {iter_d2};
+			if(isStored2_UTTE[iter_d2] && iter_d2 != iIndex_UTTE){
+			  iUvec_iter_d2 = {(unsigned int) iter_d2};
 					
 			  iUvec = arma::conv_to<arma::uvec>::from(iIndex_control_M1);			  
-			  iidNuisance_favorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_C.col(0) / matWeight.submat(iUvec,iUvec_iter_d2);
-			  iidNuisance_unfavorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_C.col(1) / matWeight.submat(iUvec,iUvec_iter_d2);
+			  iidNuisance_favorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_C.col(0);
+			  iidNuisance_unfavorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_C.col(1);
 			  
 			  iUvec = arma::conv_to<arma::uvec>::from(iIndex_treatment_M1);
-			  iidNuisance_favorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_T.col(0) / matWeight.submat(iUvec,iUvec_iter_d2);
-			  iidNuisance_unfavorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_T.col(1) / matWeight.submat(iUvec,iUvec_iter_d2);
+			  iidNuisance_favorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_T.col(0);
+			  iidNuisance_unfavorable.submat(iUvec,iUvec_iter_d) += iidUTTE_favorable.submat(iUvec,iUvec_iter_d2) % iPartialCount_T.col(1);
 			}
-		  }		  
+		  }
 		}
 	  }      
 	  
@@ -378,7 +382,7 @@ List GPC_cpp(arma::mat endpoint,
 		}
 		// reshape scores estimated at the previous endpoints
 		for(int iter_d2=0; iter_d2 < n_UTTE; iter_d2++){
-		  if(isStored_UTTE[iter_d2] && iIndex_UTTE!=iter_d2){ // if scores have already been stored and that it is not hte current endpoint
+		  if(isStored_UTTE[iter_d2] && iIndex_UTTE!=iter_d2){ // if scores have already been stored and that it is not the current endpoint
 			// Rcout << "| " << iter_d2 << " " << iIndex_UTTE << endl;
 			lsScore_UTTE[iter_d2] = lsScore_UTTE[iter_d2].rows(iIndexWeight_pair);
 		  }		  
@@ -386,25 +390,22 @@ List GPC_cpp(arma::mat endpoint,
 
 		// **** update iid associated to the remaining pairs
 		if(returnIID>1){
-		  // reshape iid estimated at the previous endpoints
-		  for(int iter_d2=0; iter_d2 < n_UTTE; iter_d2++){
-			if(isStored2_UTTE[iter_d2] && iIndex_UTTE!=iter_d2){ // if scores have already been stored and that it is not hte current endpoint
-			  iidUTTE_favorable = iidUTTE_favorable.rows(iIndexWeight_pair);
-			  iidUTTE_unfavorable = iidUTTE_unfavorable.rows(iIndexWeight_pair);
-			}		  
-		  }
-
+		  Rcout << "update iid " << endl;
 		  // add iid estimated at the current endpoint
+		  Rcout << "- step 1,: ";
 		  if(iMethod==3){
 			if(isStored2_UTTE[iIndex_UTTE]){
-			  iidUTTE_favorable.col(iIndex_UTTE) = - iIIDNuisance_favorable;
-			  iidUTTE_unfavorable.col(iIndex_UTTE) = - iIIDNuisance_unfavorable;
+			  Rcout << "*";
+			  iidUTTE_favorable.col(iIndex_UTTE) = iIIDNuisance_favorable;
+			  iidUTTE_unfavorable.col(iIndex_UTTE) = iIIDNuisance_unfavorable;
 			}else{
-			  iidUTTE_favorable.insert_cols(iIndex_UTTE, - iIIDNuisance_favorable);
-			  iidUTTE_unfavorable.insert_cols(iIndex_UTTE, - iIIDNuisance_unfavorable);
+			  Rcout << "/";
+			  iidUTTE_favorable.insert_cols(iIndex_UTTE, iIIDNuisance_favorable);
+			  iidUTTE_unfavorable.insert_cols(iIndex_UTTE, iIIDNuisance_unfavorable);
 			  isStored2_UTTE[iIndex_UTTE] = true;
 			}
 		  }
+		  Rcout << endl;
 		}
 	   
 		// **** update elements for the next step

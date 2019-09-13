@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: maj 15 2019 (18:29) 
+## Last-Updated: sep 13 2019 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 53
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -45,13 +45,13 @@ dt.sim[eventtime1 >= 1, time1 := 1]
 
 
 ## * test against tableComparison (no correction)
-formula <- Treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
+formula <- treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
 test_that("Full data - no correction", {
 
     BT.mixed <- BuyseTest(formula, data = dt.sim, scoring.rule = "Peron", correction.uninf = FALSE)
 
     expect_equal(as.double(BT.mixed@n.pairs),
-                 prod(table(dt.sim$Treatment)))
+                 prod(table(dt.sim$treatment)))
 
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){
@@ -77,7 +77,7 @@ test_that("Full data - no correction", {
 })
 
 ## * test against tableComparison (correction)
-formula <- Treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
+formula <- treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
 
 test_that("Full data", {
 
@@ -85,7 +85,7 @@ test_that("Full data", {
                           data = dt.sim, scoring.rule = "Peron", correction.uninf = TRUE)
 
     expect_equal(as.double(BT.mixed@n.pairs),
-                 prod(table(dt.sim$Treatment)))
+                 prod(table(dt.sim$treatment)))
 
     manualScore <- NULL
     for(iEndpoint in 1:length(BT.mixed@endpoint)){

@@ -1,5 +1,14 @@
 # -*- mode: org -*-
 
+* Version 1.8
+** User visble changes
+- method.inference="u-statistic" gives valid results when using scoring.rule="Peron" 
+- The group variable in simBuyseTest is treatment instead of Treatment.
+
+** Internal change
+- Second order H-projection for scoring.rule="Peron" has been fixed.
+- fix bug
+
 * Version 1.7
 ** User visble changes
 - method.inference="asymptotic" becomes method.inference="u-statistic"

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: maj 21 2019 (16:04) 
+## Last-Updated: sep 13 2019 (09:27) 
 ##           By: Brice Ozenne
-##     Update #: 87
+##     Update #: 88
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,9 +42,9 @@
 #' 
 #' set.seed(10)
 #' dt <- simBuyseTest(10)
-#' setkeyv(dt, "Treatment")
+#' setkeyv(dt, "treatment")
 #' 
-#' e.KM <- prodlim(Hist(eventtime,status)~Treatment, data = dt)
+#' e.KM <- prodlim(Hist(eventtime,status)~treatment, data = dt)
 #' iidProdlim(e.KM)
 #'
 #'

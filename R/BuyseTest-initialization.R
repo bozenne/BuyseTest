@@ -112,7 +112,7 @@ initializeArgs <- function(censoring,
     if(!is.numeric(type)){
         validType1 <- c("b","bin","binary")
         validType2 <- c("c","cont","continuous")
-        validType3 <- c("t","tte","time","timetoevent")
+        validType3 <- c("t","tte","time","timetoevent") ## [if modified, remember to change the corresponding vector in initFormula]
         type <- tolower(type)
 
         type[grep(paste(validType1,collapse="|"), type)] <- "1" 
@@ -414,8 +414,10 @@ initializeFormula <- function(x){
   
     ## remove all blancks
     x.rhs <- gsub("[[:blank:]]", "", x.rhs)
-    vec.x.rhs <- unlist(strsplit(x.rhs, split = "+", fixed = TRUE))
-
+    vec.x.rhs <- unlist(strsplit(x.rhs, split = ")+", fixed = TRUE))
+    if(length(vec.x.rhs)>1){
+        vec.x.rhs[1:(length(vec.x.rhs)-1)] <- paste0(vec.x.rhs[1:(length(vec.x.rhs)-1)],")")
+    }
     ## find all element in the vector corresponding to endpoints (i.e. ...(...) )
     ## \\w* any letter/number
     ## [[:print:]]* any letter/number/punctuation/space
@@ -443,7 +445,7 @@ initializeFormula <- function(x){
     endpoint <- rep(NA, n.endpoint)
     operator <- rep(">0", n.endpoint)
     weight <- rep(1, n.endpoint)
-    validArgs <- c("endpoint","threshold","censoring","operator","weight")
+    validArgs <- c("endpoint","censoring","threshold","operator","weight")
 
     ## split around parentheses
     ls.x.endpoint <- strsplit(vec.x.endpoint, split = "(", fixed = TRUE)
@@ -451,8 +453,15 @@ initializeFormula <- function(x){
     type <- character(length = n.endpoint)
     for(iE in 1:n.endpoint){
         ## extract type
-        type[iE] <- ls.x.endpoint[[iE]][1]
-
+        type[iE] <- tolower(ls.x.endpoint[[iE]][1])
+        if(type[iE] %in% c("b","bin","binary")){
+            iValidArgs <- setdiff(validArgs,c("censoring","threshold"))
+        }else if(type[iE] %in% c("c","cont","continuous")){
+            iValidArgs <- setdiff(validArgs,"censoring")
+        }else{ ## if(type[iE] %in% c("t","tte","time","timetoevent"))
+            iValidArgs <- validArgs
+        }
+        
         ## get each argument
         iVec.args <- strsplit(gsub(")", replacement = "",ls.x.endpoint[[iE]][2]),
                               split = ",", fixed = TRUE)[[1]]
@@ -478,9 +487,9 @@ initializeFormula <- function(x){
         if(length(iIndex.name)>0){
             iiName <- gsub("=[[:print:]]*$","",iVec.args[iIndex.name])
             iName[iIndex.name] <- iiName
-            if(any(iiName %in% validArgs == FALSE)){
+            if(any(iiName %in% iValidArgs == FALSE)){
                 stop("initFormula: invalid formula \n",
-                     vec.x.rhs[iE]," contains arguments that are not endpoint, threshold, censoring \n")
+                     vec.x.rhs[iE]," contains arguments that are not \"",paste0(iValidArgs,sep = "\" \""),"\" \n")
             }
             if( any(duplicated(iiName)) ){
                 stop("initFormula: invalid formula \n",
@@ -493,7 +502,7 @@ initializeFormula <- function(x){
         ## add missing names
         n.missingNames <- n.args - length(iiName) 
         if(n.missingNames>0){
-            iName[setdiff(1:n.args,iIndex.name)] <- setdiff(validArgs,iiName)[1:n.missingNames]
+            iName[setdiff(1:n.args,iIndex.name)] <- setdiff(iValidArgs,iiName)[1:n.missingNames]
         }
 
         ## extract arguments

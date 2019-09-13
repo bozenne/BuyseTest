@@ -16,7 +16,7 @@ using namespace arma ;
 // * calcStatistic
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
-                   arma::mat& iid_favorable, arma::mat& iid_unfavorable, const arma::mat& iidNuisance_favorable, const arma::mat& iidNuisance_unfavorable,
+                   arma::mat& iid_favorable, arma::mat& iid_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
 				   arma::mat& Mvar, int returnIID,
 				   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
@@ -95,6 +95,14 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
     iid_unfavorable.each_row() %= rowweight;
     iid_unfavorable = cumsum(iid_unfavorable,1);
 
+	if(returnIID>1){
+	  iidNuisance_favorable.each_row() %= rowweight;
+	  iidNuisance_favorable = cumsum(iidNuisance_favorable,1);
+  
+	  iidNuisance_unfavorable.each_row() %= rowweight;
+	  iidNuisance_unfavorable = cumsum(iidNuisance_unfavorable,1);
+	}
+	
     // *** sufficient statistics
     arma::vec sigmaC_favorable = zeros<vec>(D);
     arma::vec sigmaT_favorable = zeros<vec>(D);

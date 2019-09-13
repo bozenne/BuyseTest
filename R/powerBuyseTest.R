@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: sep 11 2019 (17:18) 
+## Last-Updated: sep 13 2019 (09:27) 
 ##           By: Brice Ozenne
-##     Update #: 470
+##     Update #: 471
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,7 +52,7 @@
 ##' 
 ##' ## using simBuyseTest
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
-##'                formula = Treatment ~ bin(toxicity),
+##'                formula = treatment ~ bin(toxicity),
 ##'                method.inference = "u-statistic", trace = 4)
 ##'
 ##' ## using user defined simulation function

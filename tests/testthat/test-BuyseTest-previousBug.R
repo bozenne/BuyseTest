@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 10 2019 (10:34) 
+## Last-Updated: sep 13 2019 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 106
+##     Update #: 107
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -355,7 +355,7 @@ set.seed(1)
 dt <- simBuyseTest(50)
 
 test_that("same p.value (permutation test) for winRatio and net Benefit", {
-    e.perm <- BuyseTest(Treatment ~ bin(toxicity), data = dt,
+    e.perm <- BuyseTest(treatment ~ bin(toxicity), data = dt,
                         method.inference = "permutation", n.resampling = 100)
     netBenefit.perm <- confint(e.perm, statistic = "netBenefit")
     winRatio.perm <- confint(e.perm, statistic = "winRatio")

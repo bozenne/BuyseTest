@@ -834,7 +834,7 @@ dt[,mean(status==0)]
 
 We would like to be able to recover the net benefit estimated with the uncensored event times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest(Treatment ~ tte(eventtimeUncensored, status1, threshold = 1),
+BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 1),
           data = dt,
           scoring.rule = "Gehan", method.inference = "none", trace = 0)
 #+END_SRC
@@ -845,7 +845,7 @@ BuyseTest(Treatment ~ tte(eventtimeUncensored, status1, threshold = 1),
 
 using the censored survival times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
+BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
           data = dt,
           scoring.rule = "Gehan", method.inference = "none", trace = 0)
 #+END_SRC
@@ -863,7 +863,7 @@ the informative pairs. This is only a good strategy when there are no
 neutral pairs or there are no lower priority endpoints. This gives an
 estimate much closer to the true net benefit:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT <- BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
+BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
                 data = dt, keep.pairScore = TRUE, trace = 0,
                 scoring.rule = "Gehan", method.inference = "none", correction.uninf = 2)
 summary(BT)
@@ -925,7 +925,7 @@ Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
 probability observed on the sample:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT <- BuyseTest(Treatment ~ tte(eventtime, status, threshold = 1),
+BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
                 data = dt, keep.pairScore = TRUE, trace = 0,
                 scoring.rule = "Gehan", method.inference = "none", correction.uninf = TRUE)
 summary(BT)

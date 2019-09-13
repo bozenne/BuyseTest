@@ -30,12 +30,12 @@ dtS.sim <- rbind(cbind(dt.sim, strata = 1),
 ## * Binary endpoint
 ## ** No strata
 test_that("BuyseTest - binary (no strata)", {
-    BT.bin <- BuyseTest(Treatment ~ bin(toxicity1),
+    BT.bin <- BuyseTest(treatment ~ bin(toxicity1),
                         data = dt.sim)
     
     BT2 <- BuyseTest(data = dt.sim,
                      endpoint = "toxicity1",
-                     treatment = "Treatment",
+                     treatment = "treatment",
                      type = "bin")
     
     ## *** test against fixed value
@@ -58,7 +58,7 @@ test_that("BuyseTest - binary (no strata)", {
     expect_equal(test, GS, tol = 1e-6, scale = 1)
     expect_equal(BT.bin,BT2)
 
-    ## fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$Treatment))
+    ## fisherP <- fisher.test(table(dt.sim$toxicity1,dt.sim$treatment))
 
     ## *** count pairs
     tableS <- summary(BT.bin, print = FALSE, percentage = FALSE)$table
@@ -71,7 +71,7 @@ test_that("BuyseTest - binary (no strata)", {
 ## ** Strata
 test_that("BuyseTest - binary (strata)", {
 
-    BT.bin <- BuyseTest(Treatment ~ bin(toxicity1) + strata,
+    BT.bin <- BuyseTest(treatment ~ bin(toxicity1) + strata,
                         data = dtS.sim)
 
     tableS <- summary(BT.bin, print = FALSE, percentage = FALSE)$table
@@ -95,12 +95,12 @@ test_that("BuyseTest - binary (strata)", {
 ## * Continuous endpoint
 ## ** No strata
 test_that("BuyseTest - continuous (no strata)", {
-    BT.cont <- BuyseTest(Treatment ~ cont(score1, 1) + cont(score2, 0),
+    BT.cont <- BuyseTest(treatment ~ cont(score1, 1) + cont(score2, 0),
                          data = dt.sim)
     
     BT2 <- BuyseTest(data = dt.sim,
                      endpoint = c("score1","score2"),
-                     treatment = "Treatment",
+                     treatment = "treatment",
                      type = c("cont","cont"),
                      threshold = c(1,0)
                      )
@@ -135,7 +135,7 @@ test_that("BuyseTest - continuous (no strata)", {
 ## ** Strata
 test_that("BuyseTest - continuous (strata)", {
 
-    BT.cont <- BuyseTest(Treatment ~ cont(score1, 1) + cont(score2, 0) + strata,
+    BT.cont <- BuyseTest(treatment ~ cont(score1, 1) + cont(score2, 0) + strata,
                          data = dtS.sim)
 
     tableS <- summary(BT.cont, print = FALSE, percentage = FALSE)$table
@@ -163,13 +163,13 @@ test_that("BuyseTest - continuous (strata)", {
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
 
-        BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
+        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
                             data = dt.sim,
                             scoring.rule = method,
                             correction.uninf = FALSE
                             )
         
-        BT.1tte <- BuyseTest(Treatment ~ tte(eventtime1, 0.25, status1),
+        BT.1tte <- BuyseTest(treatment ~ tte(eventtime1, 0.25, status1),
                             data = dt.sim,
                             scoring.rule = method,
                             correction.uninf = FALSE
@@ -178,7 +178,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
                          censoring = c("status1","status1","status1"),
-                         treatment = "Treatment",
+                         treatment = "treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
                          scoring.rule = method,
@@ -237,14 +237,14 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
-        BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),
+        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),
                             data = dt.sim, scoring.rule = method,
                             correction.uninf = FALSE)
 
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime2","eventtime3"),
                          censoring = c("status1","status2","status3"),
-                         treatment = "Treatment",
+                         treatment = "treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
                          scoring.rule = method,
@@ -293,7 +293,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 method <- "Peron"
 test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
     
-        BT.tte <- BuyseTest(Treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1) + strata,
+        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1) + strata,
                             data = dtS.sim, scoring.rule = method)
 
 
@@ -332,13 +332,13 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - mixed (",method,", no strata)"),{ 
     
-        BT.mixed <- BuyseTest(Treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5),
+        BT.mixed <- BuyseTest(treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5),
                               data = dt.sim, scoring.rule = method)
 
         BT2 <- BuyseTest(data=dt.sim,
                          endpoint=c("eventtime1","score1","toxicity1","eventtime1","score1"),
                          censoring=c("status1","..NA..","..NA..","status1","..NA.."),
-                         treatment="Treatment",
+                         treatment="treatment",
                          type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                          threshold=c(0.5,1,NA,0.25,0.5),
                          scoring.rule=method)
@@ -384,16 +384,16 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 
 
 test_that("ordering does not matter", {
-    BT.mixed1 <- BuyseTest(Treatment ~ tte(eventtime1, 0.25, status1) + cont(score1, 1),
+    BT.mixed1 <- BuyseTest(treatment ~ tte(eventtime1, 0.25, status1) + cont(score1, 1),
                            data = dt.sim, scoring.rule = method)
-    BT.mixed2 <- BuyseTest(Treatment ~ tte(eventtime1, 0.5, status1) +  tte(eventtime1, 0.25, status1) + cont(score1, 1),
+    BT.mixed2 <- BuyseTest(treatment ~ tte(eventtime1, 0.5, status1) +  tte(eventtime1, 0.25, status1) + cont(score1, 1),
                            data = dt.sim, scoring.rule = method)
     expect_equal(BT.mixed2@Delta.netBenefit[2:3],BT.mixed1@Delta.netBenefit)
     expect_equal(BT.mixed2@Delta.winRatio[2:3],BT.mixed1@Delta.winRatio)
 })
 
 ## * dataset [save]
-## dt.sim <- data.table("Treatment" = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
+## dt.sim <- data.table("treatment" = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
            ## "toxicity1" = c(1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0), 
            ## "toxicity2" = c(1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), 
            ## "score1" = c(1.42551309377198, 1.64350003512817, -0.360306143503514, 0.801493893596806, 1.61930267687538, 3.06820960503683, 0.69471524580275, 1.28124561222986, 1.6913173367059, 1.04636143814332, 1.11302936162596, 1.99533187428913, 0.318848638678352, -0.277057246687689, -0.468697749831084, 0.686525933464132, -0.703659492663314, -0.350514656137706, -0.102093677209163, -0.0995430145293483, 2.21551377619565, 1.33087648510414, 2.39027511927468, 1.87204698502111, -0.08081702266027, 1.49582159144654, 2.05262755621631, -0.274649950151283, 0.806333271576621, -0.295083642553369, 1.14188028467865, 2.26171505198662, 0.568499671930355, -0.822712589501818, 1.35254395875311, -0.348451441473781, 1.70768831790743, 0.589109063201221, 0.553954820077755, -0.041156301668746, 0.670775283845987, 0.717178375867647, 1.43242912549535, 0.692392904936584, 0.943363692110682, 1.73351542020027, 1.09731161966518, 2.63089173658816, 1.5606106990022, 2.32956476445216, 0.721176504365539, -0.266731544140915, 0.750851605959735, 1.0179884145688, 1.37707272711033, 1.79600855752744, 0.159322582901431, -1.20547175082621, -0.128055991062489, -0.341309958802449, 2.60511404288097, 1.74442372848854, 1.86208220595338, 1.3951558154762, 1.50911869633033, 0.877449874169367, 1.09258464717828, 0.64212008566637, 0.640344775652989, 2.02857072088428, 2.07789259245098, 1.9317812152325, -0.460793866977601, 0.0939244237506571, 0.319652168607585, 2.06316603678904, 0.307586847873846, -0.133628265290896, -0.0946154337972172, -0.0129036188367304, 1.41027732588589, 1.47774044192679, -1.32987954506654, 1.01625546517674, 1.98035352314648, 1.80634826481736, 1.1196008888913, -1.43661560431758, 1.03102247612239, 0.664253302000163, 0.0153403509437263, 1.02263407077062, 1.78533003266096, -0.179189524250798, 2.91079077756379, 0.461998505080422, 1.88427642902339, 1.14730963670884, -0.00842736285689183, 1.83818899220759, -0.168239137404789, 1.45431813292, 1.21257286750447, 0.446913652570444, 1.02343002517967, 1.64817889039139, -0.742794735203855, 1.59516266091186, 0.121470987016807, 1.64443757129211, 0.370901497333396, 0.901799810316161, 1.68421769916776, -0.384686030990408, 2.55494558598051, 0.185658658115434, 0.156368914107435, 2.02492742587361, 1.11570337639616, 1.2414940398728, -0.390816141686847, 2.52606084457092, 1.0465162367214, 2.23998235965392, 1.30857263546279, 1.78562760450207, 2.11747870473614, 0.995017727655611, 0.821581789809814, 1.69622906894708, 1.52179720849355, 0.552173409756539, 1.40540060404469, 0.263035575330592, 1.25574801441047, 0.715066495066433, 0.968878675006656, 0.51414111303988, 0.864911915844152, -0.480718722837506, 2.2563691256856, 1.20904164990957, 1.31315678959013, 2.07514823866383, 0.713374825429577, 0.9680225725685, 0.257266603361191, 3.0852201921514, 1.85489041041, 2.00044599614444, -0.184117910085318, -0.541102555123778, 0.788266999239183, 1.17035256996267, 0.30922262556707, 2.69772073903203, 0.927310037394132, 0.282391143710711, 0.583485561692142, 3.19358676105577, 1.54234782578152, 2.0236676089818, 1.81282610871047, 2.30102707741098, 1.56795641094836, 0.879928557736952, 0.507997293741287, 1.20077197539334, 1.16479929880001, 1.69365769622557, 1.13332425333661, 0.26053684136928, 0.602481184752218, 1.25715863936297, 0.719826080855816, 2.00796759211016, 2.15521962402319, 0.797205050866595, 0.67859045291761, -0.621053917060514, 1.56810525899318, 1.67128024717795, 2.46025952177705, -0.637719374286223, 2.29850108220997, 0.846300171205857, 2.57914884558458, 3.05523518552608, 2.28448665087213, 1.41740331727998), 

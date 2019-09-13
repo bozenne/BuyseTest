@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: maj 21 2019 (15:35) 
+## Last-Updated: sep 13 2019 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 10
+##     Update #: 11
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,13 +30,13 @@ dt <- simBuyseTest(100)
 
 
 test_that("iid with 1 strata variable", {
-    e.prodlim <- prodlim(Hist(eventtime,status)~Treatment, data = dt)
-    e.survival <- coxph(Surv(eventtime,status)~strata(Treatment), data = dt, x = TRUE, y = TRUE)
+    e.prodlim <- prodlim(Hist(eventtime,status)~treatment, data = dt)
+    e.survival <- coxph(Surv(eventtime,status)~strata(treatment), data = dt, x = TRUE, y = TRUE)
 
     iid.BT <- iidProdlim(e.prodlim)
     iid.RR <- iidCox(e.survival)
-    iid.RR$IFsurvival <- list(t(predictCox(e.survival, newdata = dt[dt$Treatment == "C",][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[1,,]),
-                              t(predictCox(e.survival, newdata = dt[dt$Treatment == "T",][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[1,,]))
+    iid.RR$IFsurvival <- list(t(predictCox(e.survival, newdata = dt[dt$treatment == "C",][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[1,,]),
+                              t(predictCox(e.survival, newdata = dt[dt$treatment == "T",][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[1,,]))
 
     expect_equal(unname(iid.BT$IFhazard[[1]]), unname(iid.RR$IFhazard[[1]]))
     expect_equal(unname(iid.BT$IFhazard[[2]]), unname(iid.RR$IFhazard[[2]]))
@@ -50,13 +50,13 @@ test_that("iid with 1 strata variable", {
 ## profvis::profvis(iidProdlim(e.prodlim))
 
 test_that("iid with 2 strata variables", {
-    e.prodlim <- prodlim(Hist(eventtime,status)~Treatment+toxicity, data = dt)
-    e.survival <- coxph(Surv(eventtime,status)~strata(Treatment)+strata(toxicity), data = dt, x = TRUE, y = TRUE)
+    e.prodlim <- prodlim(Hist(eventtime,status)~treatment+toxicity, data = dt)
+    e.survival <- coxph(Surv(eventtime,status)~strata(treatment)+strata(toxicity), data = dt, x = TRUE, y = TRUE)
 
     iid.BT <- iidProdlim(e.prodlim)
     iid.RR <- iidCox(e.survival)
-    iid.RR$IFsurvival <- list(t(predictCox(e.survival, newdata = dt[dt$Treatment == "C" & toxicity == 0,][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[1,,]),
-                              t(predictCox(e.survival, newdata = dt[dt$Treatment == "T" & toxicity == 0,][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[1,,]))
+    iid.RR$IFsurvival <- list(t(predictCox(e.survival, newdata = dt[dt$treatment == "C" & toxicity == 0,][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[1,,]),
+                              t(predictCox(e.survival, newdata = dt[dt$treatment == "T" & toxicity == 0,][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[1,,]))
 
     expect_equal(unname(iid.BT$IFhazard[[1]]), unname(iid.RR$IFhazard[[1]]))
     expect_equal(unname(iid.BT$IFhazard[[3]]), unname(iid.RR$IFhazard[[2]]))

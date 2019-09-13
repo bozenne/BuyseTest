@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 22 2017 (18:37) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:34) 
+## Last-Updated: sep 13 2019 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 25
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,12 +34,12 @@ dt <- simBuyseTest(10)
 ## * binary outcomes
 test_that("Only accept NA or 1/2 for binary outcomes", {
 
-    test <- BuyseTest(Treatment ~ bin(toxicity, threshold = 0.5) + bin(status),
+    test <- BuyseTest(treatment ~ bin(toxicity, threshold = 0.5) + bin(status),
                       data = dt,
                       method.inference = "none", trace = 0)
     expect_true(all(test@threshold==0.5))
     
-    expect_error(BuyseTest(Treatment ~ bin(toxicity, threshold = 1),
+    expect_error(BuyseTest(treatment ~ bin(toxicity, threshold = 1),
                            data = dt,
                            method.inference = "none", trace = 0))
 })
@@ -48,14 +48,14 @@ test_that("Only accept NA or 1/2 for binary outcomes", {
 
 test_that("Reject non-decreasing thresholds", {
 
-    expect_error(BuyseTest(Treatment ~ cont(score, threshold = 1) + cont(score, threshold = 2),
+    expect_error(BuyseTest(treatment ~ cont(score, threshold = 1) + cont(score, threshold = 2),
                       data = dt,
                       method.inference = "none", trace = 0))
 
 })
 
 test_that("convert 0 to 1e-12 - threshold",{
-    test <- BuyseTest(Treatment ~ cont(score, threshold = 1) + cont(score),
+    test <- BuyseTest(treatment ~ cont(score, threshold = 1) + cont(score),
                       data = dt,
                       method.inference = "none", trace = 0)
 
@@ -66,11 +66,11 @@ test_that("convert 0 to 1e-12 - threshold",{
 
 test_that("Reject non-decreasing thresholds", {
 
-    expect_error(BuyseTest(Treatment ~ cont(score, threshold = 1) + cont(score, threshold = 2),
+    expect_error(BuyseTest(treatment ~ cont(score, threshold = 1) + cont(score, threshold = 2),
                       data = dt,
                       method.inference = "none", trace = 0))
 
-    expect_error(BuyseTest(Treatment ~ tte(eventtime, censoring = status, threshold = 1) + tte(eventtime, censoring = status, threshold = 2),
+    expect_error(BuyseTest(treatment ~ tte(eventtime, censoring = status, threshold = 1) + tte(eventtime, censoring = status, threshold = 2),
                            data = dt,
                            method.inference = "none", trace = 0))
     
@@ -78,7 +78,7 @@ test_that("Reject non-decreasing thresholds", {
 })
 
 test_that("convert 0 to 1e-12 - threshold",{
-    test <- BuyseTest(Treatment ~ cont(score, threshold = 1) + cont(score),
+    test <- BuyseTest(treatment ~ cont(score, threshold = 1) + cont(score),
                       data = dt,
                       method.inference = "none", trace = 0)
 

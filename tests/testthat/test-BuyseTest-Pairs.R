@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: jul 15 2019 (08:19) 
+## Last-Updated: sep 13 2019 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 154
+##     Update #: 155
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,8 +34,8 @@ BuyseTest.options(check = TRUE,
 test_that("check favorable - 1 Binary",{
     
     ## one pair
-    data <- data.frame(toxicity1 = c(1,0), Treatment = c(1,0))
-    BT <- BuyseTest(Treatment ~ bin(toxicity1), data=data)
+    data <- data.frame(toxicity1 = c(1,0), treatment = c(1,0))
+    BT <- BuyseTest(treatment ~ bin(toxicity1), data=data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -44,7 +44,7 @@ test_that("check favorable - 1 Binary",{
 
     ## several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ bin(toxicity1), data = data2)
+    BT <- BuyseTest(treatment ~ bin(toxicity1), data = data2)
     expect_equal(as.double(BT@count.favorable),4)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -53,7 +53,7 @@ test_that("check favorable - 1 Binary",{
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ bin(toxicity1) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(4,4))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -65,8 +65,8 @@ test_that("check favorable - 1 Binary",{
 ## ** unfavorable
 test_that("check unfavorable - 1 Binary",{
     ## one pair
-    data <- data.frame(toxicity1 = c(0,1), Treatment = c(1,0))
-    BT <- BuyseTest(Treatment ~ bin(toxicity1), data = data)
+    data <- data.frame(toxicity1 = c(0,1), treatment = c(1,0))
+    BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
     expect_equal(as.double(BT@count.neutral),0)
@@ -74,7 +74,7 @@ test_that("check unfavorable - 1 Binary",{
 
     ## several pairs
     data2 <- rbind(data,data)
-    BT <- BuyseTest(Treatment ~ bin(toxicity1), data = data2)
+    BT <- BuyseTest(treatment ~ bin(toxicity1), data = data2)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),4)
     expect_equal(as.double(BT@count.neutral),0)
@@ -82,7 +82,7 @@ test_that("check unfavorable - 1 Binary",{
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ bin(toxicity1) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -94,8 +94,8 @@ test_that("check unfavorable - 1 Binary",{
 ## ** neutral
 test_that("check neutral - 1 Binary",{
     ## 1 pair
-    data <- data.frame(toxicity1 = c(1,1), Treatment = c(1,0))
-    BT <- BuyseTest(Treatment ~ bin(toxicity1), data = data)
+    data <- data.frame(toxicity1 = c(1,1), treatment = c(1,0))
+    BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),1)
@@ -103,7 +103,7 @@ test_that("check neutral - 1 Binary",{
 
     ## several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ bin(toxicity1), data = data2)
+    BT <- BuyseTest(treatment ~ bin(toxicity1), data = data2)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),4)
@@ -111,7 +111,7 @@ test_that("check neutral - 1 Binary",{
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ bin(toxicity1) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
@@ -121,8 +121,8 @@ test_that("check neutral - 1 Binary",{
 
 ## ** NA as uninformative
 test_that("check NA - 1 Binary",{
-  data <- data.frame(toxicity1 = c(NA, 1, 1), Treatment = c(1, 1, 0))
-  BT <- BuyseTest(Treatment ~ bin(toxicity1), data = data)
+  data <- data.frame(toxicity1 = c(NA, 1, 1), treatment = c(1, 1, 0))
+  BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
   expect_equal(as.double(BT@count.favorable),0)
   expect_equal(as.double(BT@count.unfavorable),0)
   expect_equal(as.double(BT@count.neutral),1)
@@ -130,7 +130,7 @@ test_that("check NA - 1 Binary",{
 
   ## with strata
   data2 <- rbind(cbind(data, strata = 0), cbind(data, strata = 1))
-  BT <- BuyseTest(Treatment ~ bin(toxicity1) + strata, data = data2)
+  BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data2)
   expect_equal(as.double(BT@count.favorable),c(0,0))
   expect_equal(as.double(BT@count.unfavorable),c(0,0))
   expect_equal(as.double(BT@count.neutral),c(1,1))
@@ -140,11 +140,11 @@ test_that("check NA - 1 Binary",{
 ## * two binary endpoints
 ## ** unfavorable
 test_that("check unfavorable - 2 Binary",{
-    dt <- data.table(Treatment = 1:2,
+    dt <- data.table(treatment = 1:2,
                      toxicity1 = 0,
                      toxicity2 = c(1,0),
                      Id = 1:10)
-    BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt)
+    BT <- BuyseTest(treatment ~ bin(toxicity1) + bin(toxicity2), data = dt)
     ## getPairScore(BT)
 
     ## total pairs: 25
@@ -162,10 +162,10 @@ test_that("check unfavorable - 2 Binary",{
 
 ## ** mixed
 test_that("check mixed - 2 Binary",{
-    dt <- data.table(Treatment = c(1,1,2,2),
+    dt <- data.table(treatment = c(1,1,2,2),
                      toxicity1 = 0,
                      toxicity2 = c(1,0,1,0))
-    BT <- BuyseTest(Treatment ~ bin(toxicity1) + bin(toxicity2), data = dt,
+    BT <- BuyseTest(treatment ~ bin(toxicity1) + bin(toxicity2), data = dt,
                     keep.pairScore = TRUE)
     ## getPairScore(BT)
 
@@ -185,8 +185,8 @@ test_that("check mixed - 2 Binary",{
 ## ** favorable
 test_that("check favorable - continous",{
     ## one pair
-    data <- data.frame(size = c(1,0), Treatment = c(1,0))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1), data = data)
+    data <- data.frame(size = c(1,0), treatment = c(1,0))
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -194,7 +194,7 @@ test_that("check favorable - continous",{
 
     ## several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1), data = data2)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data2)
     expect_equal(as.double(BT@count.favorable),4)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -202,7 +202,7 @@ test_that("check favorable - continous",{
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(4,4))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -212,8 +212,8 @@ test_that("check favorable - continous",{
 ## ** unfavorable
 test_that("check unfavorable - continous",{
     ## one pair
-    data <- data.frame(size = c(-1,0), Treatment = c(1,0))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1), data = data)
+    data <- data.frame(size = c(-1,0), treatment = c(1,0))
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
     expect_equal(as.double(BT@count.neutral),0)
@@ -221,7 +221,7 @@ test_that("check unfavorable - continous",{
 
     ## several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1), data = data2)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data2)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),4)
     expect_equal(as.double(BT@count.neutral),0)
@@ -229,7 +229,7 @@ test_that("check unfavorable - continous",{
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -239,9 +239,9 @@ test_that("check unfavorable - continous",{
 ## ** neutral
 test_that("check neutral - continous",{
     ## one pair, 0 threshold
-    data <- data.frame(size = c(1,1), Treatment = c(1,0))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 0), data=data)
-    BT.bis <- BuyseTest(Treatment ~ continuous(size), data=data)
+    data <- data.frame(size = c(1,1), treatment = c(1,0))
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data=data)
+    BT.bis <- BuyseTest(treatment ~ continuous(size), data=data)
     expect_equal(BT.bis,BT)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -250,7 +250,7 @@ test_that("check neutral - continous",{
 
     ## several pairs, 0 threshold
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1), data = data2)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data2)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),4)
@@ -258,15 +258,15 @@ test_that("check neutral - continous",{
 
     ## with strata, 0 threshold
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 1) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 1) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
     expect_equal(as.double(BT@count.uninf),c(0,0))
 
     ## 1 pair, non 0 threshold 
-    data <- data.frame(size = c(1,0), Treatment = c(1,0))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 2), data=data)
+    data <- data.frame(size = c(1,0), treatment = c(1,0))
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 2), data=data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),1)
@@ -274,7 +274,7 @@ test_that("check neutral - continous",{
 
     ## several pairs, non 0 threshold
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 2), data = data2)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 2), data = data2)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),4)
@@ -282,7 +282,7 @@ test_that("check neutral - continous",{
 
     ## with strata, non 0 threshold
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 2) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 2) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
@@ -291,8 +291,8 @@ test_that("check neutral - continous",{
 
 ## ** NA as uninformative
 test_that("check NA - continuous",{
-    data <- data.frame(size = c(NA, 1, 1), Treatment = c(1, 1, 0))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 0), data = data)
+    data <- data.frame(size = c(NA, 1, 1), treatment = c(1, 1, 0))
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),1)
@@ -300,7 +300,7 @@ test_that("check NA - continuous",{
 
     ## more pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 0), data = data2)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data = data2)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),4)
@@ -308,7 +308,7 @@ test_that("check NA - continuous",{
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ continuous(size, threshold = 0) + strata, data = data3)
+    BT <- BuyseTest(treatment ~ continuous(size, threshold = 0) + strata, data = data3)
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
@@ -319,8 +319,8 @@ test_that("check NA - continuous",{
 ## ** favorable
 test_that("check favorable - time to event",{
     ## 0 threshold, 1 pair
-    data <- data.frame(time = c(1,0), Treatment = c(1,0), status = 1)
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data)
+    data <- data.frame(time = c(1,0), treatment = c(1,0), status = 1)
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -328,7 +328,7 @@ test_that("check favorable - time to event",{
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data2)    
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data2)    
     expect_equal(as.double(BT@count.favorable),4)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -336,14 +336,14 @@ test_that("check favorable - time to event",{
 
     ## 0 threshold, strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(4,4))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
 
     ## 1 threshold, strata
-    BT <- BuyseTest(Treatment ~ tte(time, threshold = 1, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, threshold = 1, censoring = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(4,4))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -353,8 +353,8 @@ test_that("check favorable - time to event",{
 ## ** unfavorable
 test_that("check unfavorable - time to event",{
     ## 0 threshold, 1 pair
-    data <- data.frame(time = c(0,1), Treatment = c(1,0), status = 1)
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data)
+    data <- data.frame(time = c(0,1), treatment = c(1,0), status = 1)
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
     expect_equal(as.double(BT@count.neutral),0)
@@ -362,7 +362,7 @@ test_that("check unfavorable - time to event",{
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data2)    
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data2)    
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),4)
     expect_equal(as.double(BT@count.neutral),0)
@@ -370,14 +370,14 @@ test_that("check unfavorable - time to event",{
 
     ## 0 threshold strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
     
     ## 1 threshold, strata
-    BT <- BuyseTest(Treatment ~ tte(time, threshold = 1, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, threshold = 1, censoring = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -387,8 +387,8 @@ test_that("check unfavorable - time to event",{
 ## ** neutral
 test_that("check neutral - time to event",{
     ## 0 threshold, 1 pair
-    data <- data.frame(time = c(1,1), Treatment = c(1,0), status = 1)
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data)
+    data <- data.frame(time = c(1,1), treatment = c(1,0), status = 1)
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),1)
@@ -396,7 +396,7 @@ test_that("check neutral - time to event",{
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data2)    
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data2)    
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),4)
@@ -404,7 +404,7 @@ test_that("check neutral - time to event",{
 
     ## 0 threshold strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
@@ -412,8 +412,8 @@ test_that("check neutral - time to event",{
     
     ## 1 threshold, strata
     data4 <- data3
-    data4[data4$Treatment==1,"time"] <- 2
-    BT <- BuyseTest(Treatment ~ tte(time, threshold = 3, censoring = status) + strata, data = data4)    
+    data4[data4$treatment==1,"time"] <- 2
+    BT <- BuyseTest(treatment ~ tte(time, threshold = 3, censoring = status) + strata, data = data4)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
@@ -423,8 +423,8 @@ test_that("check neutral - time to event",{
 ## ** NA as uninformative
 test_that("check NA - time to event",{
     ## censored after the event in the other arm
-    data <- data.frame(time = c(2,1), Treatment = c(1,0), status = c(0,1))
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status),
+    data <- data.frame(time = c(2,1), treatment = c(1,0), status = c(0,1))
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status),
                     data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -432,8 +432,8 @@ test_that("check NA - time to event",{
     expect_equal(as.double(BT@count.uninf),0)
 
     ## censored at the same time as the event in the other arm
-    data <- data.frame(time = c(1,2,1), Treatment = c(1,1,0), status = c(0,1,1))
-    BT <- BuyseTest(Treatment ~ tte(time, censoring = status), data = data)
+    data <- data.frame(time = c(1,2,1), treatment = c(1,1,0), status = c(0,1,1))
+    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
     expect_equal(as.double(BT@count.favorable),2)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)

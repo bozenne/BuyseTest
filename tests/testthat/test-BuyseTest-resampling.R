@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 21 2019 (20:29) 
+## last-updated: sep 13 2019 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 123
+##     Update #: 124
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -43,7 +43,7 @@ dt.sim <- simBuyseTest(n.T = n.patients,
 
 ## * Permutation
 test_that("permutation", {
-    BT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+    BT.perm <- BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
                          data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "permutation", n.resampling = 20)
 
@@ -96,12 +96,12 @@ test_that("permutation", {
     set.seed(10)
     for(iResample in 1:2){ ## iResample <- 1
         dt.perm <- copy(dt.sim)
-        setkeyv(dt.perm, cols = c("strata","Treatment"))
+        setkeyv(dt.perm, cols = c("strata","treatment"))
 
-        dt.perm[, Treatment := Treatment[sample.int(.N, size = .N, replace = FALSE)] ]
-        expect_equal(table(dt.perm$Treatment), table(dt.sim$Treatment))
+        dt.perm[, treatment := treatment[sample.int(.N, size = .N, replace = FALSE)] ]
+        expect_equal(table(dt.perm$treatment), table(dt.sim$treatment))
 
-        iBT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+        iBT.perm <- BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
                               data = dt.perm, scoring.rule = method,
                               method.inference = "none")
 
@@ -120,7 +120,7 @@ test_that("permutation", {
 
 ## * Stratified permutation
 test_that("stratified permutation", {
-    BT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+    BT.perm <- BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
                          data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "stratified permutation", n.resampling = 10)
 
@@ -152,11 +152,11 @@ test_that("stratified permutation", {
     set.seed(10)
     for(iResample in 1:2){ ## iResample <- 1 
         dt.perm <- copy(dt.sim)
-        setkeyv(dt.perm, cols = c("strata","Treatment"))
+        setkeyv(dt.perm, cols = c("strata","treatment"))
         
-        dt.perm[, Treatment := Treatment[sample.int(.N, size = .N, replace = FALSE)], by = "strata"]
+        dt.perm[, treatment := treatment[sample.int(.N, size = .N, replace = FALSE)], by = "strata"]
 
-        iBT.perm <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+        iBT.perm <- BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
                              data = dt.perm, scoring.rule = method,
                              method.inference = "none")
 
@@ -174,10 +174,10 @@ test_that("stratified permutation", {
 ## * Bootstrap
 test_that("Bootstrap", {
 
-    BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
+    BT.boot <- BuyseTest(treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
                          data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "bootstrap", n.resampling = 20)
-    BT.bootT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
+    BT.bootT <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
                                            data = dt.sim, scoring.rule = method, seed = 10,
                                            method.inference = "studentized bootstrap", n.resampling = 20))
     
@@ -247,11 +247,11 @@ test_that("Bootstrap", {
     set.seed(10)
     for(iResample in 1:2){ ## iResample <- 1
         dt.boot <- copy(dt.sim)
-        setkeyv(dt.boot, cols = c("strata","Treatment"))
+        setkeyv(dt.boot, cols = c("strata","treatment"))
         dt.boot <- dt.boot[sample.int(.N, size = .N, replace = TRUE)]
         
-        ## BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-        iBT.boot <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+        ## BT.boot <- BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+        iBT.boot <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
                                                data = dt.boot, scoring.rule = method,                                               
                                                method.inference = "u-statistic"))
 
@@ -279,11 +279,11 @@ test_that("Bootstrap", {
 
 ## * Stratified bootstrap
 test_that("Stratified bootstrap", {
-    ## BT <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-    BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
+    ## BT <- BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+    BT.boot <- BuyseTest(treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
                          data = dt.sim, scoring.rule = method, seed = 10, 
                          method.inference = "stratified bootstrap", n.resampling = 20)
-    BT.bootT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
+    BT.bootT <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime1, 0, status1)  + bin(toxicity1) + strata,
                                            data = dt.sim, scoring.rule = method, seed = 10, 
                                            method.inference = "studentized stratified bootstrap", n.resampling = 20))
 
@@ -297,11 +297,11 @@ test_that("Stratified bootstrap", {
     set.seed(10)
     for(iResample in 1:2){ ## iResample <- 2
         dt.boot <- copy(dt.sim)
-        setkeyv(dt.boot, cols = c("strata","Treatment"))
+        setkeyv(dt.boot, cols = c("strata","treatment"))
         dt.boot <- dt.boot[, .SD[sample.int(.N, size = .N, replace = TRUE)], by = "strata"]
 
-        ## BT.boot <- BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
-        iBT <- suppressWarnings(BuyseTest(Treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+        ## BT.boot <- BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
+        iBT <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime1, 0, status1) + bin(toxicity1) + strata,
                                           data = dt.boot, scoring.rule = method,
                                           method.inference = "u-statistic"))
 
