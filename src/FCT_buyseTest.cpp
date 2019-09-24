@@ -390,22 +390,22 @@ List GPC_cpp(arma::mat endpoint,
 
 		// **** update iid associated to the remaining pairs
 		if(returnIID>1){
-		  Rcout << "update iid " << endl;
+		  // Rcout << "update iid " << endl;
 		  // add iid estimated at the current endpoint
-		  Rcout << "- step 1,: ";
+		  // Rcout << "- step 1,: ";
 		  if(iMethod==3){
 			if(isStored2_UTTE[iIndex_UTTE]){
-			  Rcout << "*";
+			  // Rcout << "*";
 			  iidUTTE_favorable.col(iIndex_UTTE) = iIIDNuisance_favorable;
 			  iidUTTE_unfavorable.col(iIndex_UTTE) = iIIDNuisance_unfavorable;
 			}else{
-			  Rcout << "/";
+			  // Rcout << "/";
 			  iidUTTE_favorable.insert_cols(iIndex_UTTE, iIIDNuisance_favorable);
 			  iidUTTE_unfavorable.insert_cols(iIndex_UTTE, iIIDNuisance_unfavorable);
 			  isStored2_UTTE[iIndex_UTTE] = true;
 			}
 		  }
-		  Rcout << endl;
+		  // Rcout << endl;
 		}
 	   
 		// **** update elements for the next step

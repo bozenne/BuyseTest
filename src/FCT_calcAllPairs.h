@@ -171,12 +171,12 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 									   survJumpC, survJumpT, lastSurvC, lastSurvT,
 									   iEdSurvC, iEdSurvT, returnIID);
 
-		Rcout << iEdSurvC << endl;
+		// Rcout << iEdSurvC << endl;
 		// Rcout << EdSurvC << endl;
-		if(returnIID > 1){
-		  EdSurvC += iEdSurvC;
-		  EdSurvT += iEdSurvT;
-		}
+		// if(returnIID > 1){
+		  // EdSurvC += iEdSurvC;
+		  // EdSurvT += iEdSurvT;
+		// }
 
 		if(reAnalyzed && ((updateIndexNeutral && iScore[2] > zeroPlus) || (updateIndexUninf && iScore[3] > zeroPlus)) ){
 		  // store for future endpoints
@@ -192,10 +192,10 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		if(returnIID > 0){
 		  partialCount_C(iter_C,0) += iScore[0];
 		  partialCount_T(iter_T,0) += iScore[0];
-		  // if(returnIID > 1){
-		  // 	EdSurvC.col(0) += iEdSurvC.col(0);
-		  // 	EdSurvT.col(0) += iEdSurvT.col(0);
-		  // }
+		  if(returnIID > 1){
+		  	EdSurvC.col(0) += iEdSurvC.col(0);
+		  	EdSurvT.col(0) += iEdSurvT.col(0);
+		  }
 		}
       }
 
@@ -204,10 +204,10 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		if(returnIID > 0){
 		  partialCount_C(iter_C,1) += iScore[1];
 		  partialCount_T(iter_T,1) += iScore[1];
-		  // if(returnIID > 1){
-		  // 	EdSurvC.col(1) += iEdSurvC.col(1);
-		  // 	EdSurvT.col(1) += iEdSurvT.col(1);
-		  // }
+		  if(returnIID > 1){
+		  	EdSurvC.col(1) += iEdSurvC.col(1);
+		  	EdSurvT.col(1) += iEdSurvT.col(1);
+		  }
 		}
       }
       if(iScore[2] > zeroPlus){

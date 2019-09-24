@@ -182,14 +182,14 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeT(1))==false){
 		  score[0] = 1.0 - survTimeT(1)/survTimeC(2); // 1-[Sc(x_i-tau)/Sc(y_j)]
 		  upperFavorable = score[0];
-		  if((returnIID>1) && (survTimeT(1)>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (survTimeT(1)>0)){
 			EdSurvC(survTimeT(7),0) -= 1/survTimeC(2); // derivative regarding Sc(x_i-tau)
 			EdSurvC(survTimeC(8),0) += survTimeT(1)/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
 		  }
 		}else{
 		  score[0] = 1.0 - lastSurvC/survTimeC(2); // 1-[Sc(max)/Sc(y_j)] (lower bound)
 		  upperFavorable = 1.0;  // (upper bound)
-		  if((returnIID>1) && (lastSurvC>0)){
+		  if(returnIID>1){ //if((returnIID>1) && (lastSurvC>0)){
 			EdSurvC(EdSurvC.n_rows - 1,0) -= 1/survTimeC(2); // derivative regarding Sc(max)
 			EdSurvC(survTimeC(8),0) += lastSurvC/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
 		  }
@@ -207,7 +207,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeT(3))==false){
 		  score[1] = survTimeT(3)/survTimeC(2); //  [Sc(x_i+tau)/Sc(y_j)]
 		  upperUnfavorable = score[1];
-		  if((returnIID>1) && (survTimeT(3)>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (survTimeT(3)>0)){
 			EdSurvC(survTimeT(9),1) += 1/survTimeC(2); // derivative regarding Sc(x_i+tau)
 			EdSurvC(survTimeC(8),1) -= survTimeT(3)/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
 		  }
@@ -235,7 +235,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeC(6))==false){
 		  score[0] = survTimeC(6)/survTimeT(5); // [St(y_j+tau)/St(x_i)]
 		  upperFavorable = score[0];
-		  if((returnIID>1) && (survTimeC(6)>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (survTimeC(6)>0)){
 			EdSurvT(survTimeC(12),0) += 1/survTimeT(5); // derivative regarding St(y_j+tau)
 			EdSurvT(survTimeT(11),0) -= survTimeC(6)/pow(survTimeT(5),2); // derivative regarding St(x_i)
 		  }
@@ -254,14 +254,14 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeC(4))==false){
 		  score[1] = 1.0 - survTimeC(4)/survTimeT(5); // 1-[St(y_j-tau)/St(x_i)]
 		  upperUnfavorable = score[1];
-		  if((returnIID>1) && (survTimeC(4)>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (survTimeC(4)>0)){
 			EdSurvT(survTimeC(10),1) -= 1/survTimeT(5); // derivative regarding St(y_j-tau)
 			EdSurvT(survTimeT(11),1) += survTimeC(4)/pow(survTimeT(5),2); // derivative regarding St(x_i)
 		  }
 		}else{
 		  score[1] = 1.0 - lastSurvT/survTimeT(5); // 1-[St(max)/St(x_i)] (lower bound)
 		  upperUnfavorable = 1.0; // (upper bound)
-		  if((returnIID>1) && (lastSurvT>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (lastSurvT>0)){
 			EdSurvT(EdSurvT.n_rows - 1, 1) -= 1/survTimeT(5); // derivative regarding St(max)
 			EdSurvT(survTimeT(11),1) += lastSurvT/pow(survTimeT(5),2); // derivative regarding St(x_i)
 		  }
@@ -288,20 +288,20 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeT(1))==false){
 		  score[0] = 1.0 - survTimeT(1)/survTimeC(2) - intFavorable[0] / denom; // (lower bound)
 		  upperFavorable = 1.0 - survTimeT(1)/survTimeC(2) - intFavorable[1] / denom; // (upper bound)
-		  if((returnIID>1) && (survTimeT(1)>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (survTimeT(1)>0)){
 			  EdSurvC(survTimeT(7),0) -= 1/survTimeC(2); // derivative regarding Sc(x_i-tau)
 			  EdSurvC(survTimeC(8),0) += survTimeT(1)/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
 		  }
 		}else{
 		  score[0] = 1.0 - lastSurvC/survTimeC(2) - intFavorable[0] / denom; // (lower bound)
 		  upperFavorable = 1.0 - intFavorable[1] / denom; // (upper bound)
-		  if((returnIID>1) && (lastSurvC>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (lastSurvC>0)){
 			  EdSurvC(EdSurvC.n_rows - 1,0) -= 1/survTimeC(2); // derivative regarding Sc(max)
 			  EdSurvC(survTimeC(8),0) += lastSurvC/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
 		  }
 		}
 
-		if(returnIID > 1 && intFavorable[0]>0){
+		if(returnIID > 1){ //		  if(returnIID > 1 && intFavorable[0]>0){
 		  EdSurvC(survTimeC(8),0) += intFavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
 		  EdSurvT(survTimeT(10),0) += intFavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  EdSurvC -= intEdSurvC/denom;
@@ -317,7 +317,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		  
 		score[0] = -intFavorable[0] / denom; // (lower bound)
 		upperFavorable = -intFavorable[1] / denom; // (upper bound)
-		if((returnIID>1) && (intFavorable[0]>0)){
+		if(returnIID>1){ //		if((returnIID>1) && (intFavorable[0]>0)){
 		  EdSurvC(survTimeC(8),0) += intFavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
 		  EdSurvT(survTimeT(10),0) += intFavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  EdSurvC -= intEdSurvC/denom;
@@ -336,20 +336,20 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		if(R_IsNA(survTimeC(4))==false){
 		  score[1] = 1.0 - survTimeC(4)/survTimeT(5) - intUnfavorable[0] / denom; // (lower bound)
 		  upperUnfavorable = 1.0 - survTimeC(4)/survTimeT(5) - intUnfavorable[1] / denom; // (upper bound)
-		  if((returnIID>1) && (survTimeC(4)>0)){
+		  if(returnIID>1){ // if((returnIID>1) && (survTimeC(4)>0)){
 			  EdSurvT(survTimeC(10),1) -= 1/survTimeT(5); // derivative regarding St(y_j-tau)
 			  EdSurvT(survTimeT(11),1) += survTimeC(4)/pow(survTimeT(5),2); // derivative regarding St(x_i)
 		  }
 		}else{
 		  score[1] = 1.0 - lastSurvT/survTimeT(5) - intUnfavorable[0] / denom; // (lower bound)
 		  upperUnfavorable = 1.0 - intUnfavorable[1] / denom; // (upper bound)
-		  if((returnIID>1) && (lastSurvT>0)){
+		  if(returnIID>1){ //		  if((returnIID>1) && (lastSurvT>0)){
 			EdSurvT(EdSurvT.n_rows - 1,1) -= 1/survTimeT(5); // derivative regarding St(y_j-tau)
 			EdSurvT(survTimeT(11),1) += lastSurvT/pow(survTimeT(5),2); // derivative regarding St(x_i)
 		  }
 		}
 
-		if((returnIID>1) && (intUnfavorable[0]>0)){
+		if(returnIID>1){ //		if((returnIID>1) && (intUnfavorable[0]>0)){
 		  EdSurvT(survTimeT(11),1) += intUnfavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  EdSurvC(survTimeC(8),1) += intUnfavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
 		  EdSurvC -= intEdSurvC/denom;
@@ -365,7 +365,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		
 		score[1]= -intUnfavorable[0] / denom; // (lower bound)
 		upperUnfavorable = -intUnfavorable[1] / denom;  // (upper bound)
-		if((returnIID>1) && (intUnfavorable[0]>0)){
+		if(returnIID>1){ //		if((returnIID>1) && (intUnfavorable[0]>0)){
 		  EdSurvT(survTimeT(11),1) += intUnfavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  EdSurvC(survTimeC(8),1) += intUnfavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
 		  EdSurvC -= intEdSurvC/denom;
@@ -430,7 +430,7 @@ std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double st
       if(R_IsNA(survival(iter_time,1))){
 		// Rcout << "stop1" ;
 		integral[1] = integral[0] + lastSurv*survival(iter_time,2); // upper bound
-		if(returnDeriv && (lastSurv*survival(iter_time,2) > 0)){
+		if(returnDeriv){ // 		if(returnDeriv && (lastSurv*survival(iter_time,2) > 0)){
 		  derivSurv(derivSurv.n_rows-1, column) += survival(iter_time,2); // derivative regarding S(t+tau)
    		  derivSurvD(survival(iter_time,4), column) -= lastSurv; // derivative regarding dS(t-)
 		  derivSurvD(survival(iter_time,5), column) += lastSurv; // derivative regarding dS(t+)
@@ -451,7 +451,7 @@ std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double st
 	
     if(stopdSurv){
       integral[1] = integral[0] - survival(nJump-1,1)*lastdSurv; // upper bound (minus because dSurv = (0 - surv(tmax))
-	  if(returnDeriv && (survival(nJump-1,1)*lastdSurv) ){
+	  if(returnDeriv){ //	  if(returnDeriv && (survival(nJump-1,1)*lastdSurv) ){
 		derivSurv(survival(nJump-1,3), column) += lastdSurv; // derivative regarding S(t+tau)
 		derivSurvD(derivSurvD.n_rows-1, column) += survival(nJump-1,1); // derivative regarding dS(t)
 	  }
