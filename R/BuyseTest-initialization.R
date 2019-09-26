@@ -412,16 +412,20 @@ initializeFormula <- function(x){
     ## ** restrict to the right side of the formula
     x.rhs <- as.character(x)[3]
   
-    ## remove all blancks
+    ## remove all blanks
     x.rhs <- gsub("[[:blank:]]", "", x.rhs)
-    vec.x.rhs <- unlist(strsplit(x.rhs, split = ")+", fixed = TRUE))
-    if(length(vec.x.rhs)>1){
-        vec.x.rhs[1:(length(vec.x.rhs)-1)] <- paste0(vec.x.rhs[1:(length(vec.x.rhs)-1)],")")
-    }
+
+    ## find endpoints
+    ## https://stackoverflow.com/questions/35347537/using-strsplit-in-r-ignoring-anything-in-parentheses/35347645
+    ## (*SKIP)(*FAIL): ignore
+    ## \\( \\): inside brackets
+    ## [^()]*: anything but ()
+    magic.formula <- "\\([^()]*\\)(*SKIP)(*FAIL)|\\h*\\+\\h*"
+    vec.x.rhs <- unlist(strsplit(x.rhs, split = magic.formula, perl = TRUE))
     ## find all element in the vector corresponding to endpoints (i.e. ...(...) )
     ## \\w* any letter/number
     ## [[:print:]]* any letter/number/punctuation/space
-    index.endpoint <- grep("^\\w*\\([[:print:]]*\\)$", vec.x.rhs)
+    index.endpoint <- grep("\\w*\\([[:print:]]*\\)$", vec.x.rhs)
     index.strata <- setdiff(1:length(vec.x.rhs), index.endpoint)
 
     ## ** strata variables
@@ -508,8 +512,12 @@ initializeFormula <- function(x){
         ## extract arguments
         endpoint[iE] <- gsub("\"","",iArg[iName=="endpoint"])
         if("threshold" %in% iName){
-            thresholdTempo <- eval(expr = parse(text = iArg[iName=="threshold"]))
-
+            thresholdTempo <- try(eval(expr = parse(text = iArg[iName=="threshold"])), silent = TRUE)
+            if(inherits(thresholdTempo,"try-error")){
+                stop(iArg[iName=="threshold"]," does not refer to a valid threshold \n",
+                     "Should be numeric or the name of a variable in the global workspace \n")
+            }
+                
             if(inherits(thresholdTempo, "function")){
                 packageTempo <- environmentName(environment(thresholdTempo))
                 if(nchar(packageTempo)>0){

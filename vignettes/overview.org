@@ -4,7 +4,7 @@
 #+LaTeX_HEADER: %\VignetteEngine{R.rsp::tex}
 #+LaTeX_HEADER: %\VignetteKeyword{R}
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
-options(width = 90)
+options(width = 94)
 #+END_SRC
 
 #+RESULTS:
@@ -43,7 +43,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '1.7.8'
+: [1] '1.7.9'
 
 \vfill
 
@@ -115,8 +115,8 @@ Settings
    - 1 endpoint: 
        priority endpoint type           operator             threshold censoring
        1        time     time to event  higher is favorable  20        status   
-   - management of neutral pairs: re-analyzed using endpoints of lower priority (if any) 
-   - management of censored survival pairs: use Kaplan Meier survival curves to compute the score 
+   - neutral pairs: re-analyzed using lower priority endpoints 
+   - right-censored pairs: probabilistic score based on the survival curves 
 
 Point estimation
 
@@ -162,10 +162,10 @@ summary(BT)
 :  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 :  > null hypothesis : Delta == 0 
 :  > treatment groups: 1 (control) vs. 2 (treatment) 
-:  > censored pairs  : use Kaplan Meier survival curves to compute the score
+:  > right-censored pairs: probabilistic score based on the survival curves
 :  > results
-:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-:      time        20   100     37.78       46.54   15.68     0 -0.0877 -0.0877
+:  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+:      time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
 
  To display the number of pairs instead of the percentage of pairs
 that are favorable/unfavorable/neutral/uniformative, set the argument
@@ -185,6 +185,8 @@ summary(BT, percentage = FALSE)
 :  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
 :      time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
 
+\clearpage
+
 By default =summary= displays results relative to the net benefit. To
 get results for the win ratio set the argument =statistic= to
 "winRatio":
@@ -200,49 +202,92 @@ summary(BT, statistic = "winRatio")
 :  > treatment groups: 1 (control) vs. 2 (treatment) 
 :  > censored pairs  : use Kaplan Meier survival curves to compute the score
 :  > results
-:  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
-:      time        20   100     37.78       46.54   15.68     0 0.8117 0.8117
+:  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
+:      time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
 
 Since we have set the argument =n.permutation= to 0 (i.e. no
 permutation test) in the stratified analysis, we do not get confidence
 intervals or p.values when calling the =summary= method. See
 =help(BuyseRes-summary)= for more detailed explanations about the
-=summary= method.
+=summary= method and its output.
 
 ** Using multiple endpoints
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, just add
 another endpoint at then end of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.multi <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status",) + cont(karno, threshold = 0),
-                      data = veteran, method.inference = "none", trace = 0)
+ff2 <- trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0)
+BT.H <- BuyseTest(ff2, data = veteran, 
+                  method.inference = "none", trace = 0)
+summary(BT.H)
 #+END_SRC
 
 #+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 2 prioritized endpoints
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > right-censored pairs: probabilistic score based on the survival curves
+ > neutral pairs   : ignored at lower priority endpoints
+ > results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20   100.00        37.78          46.54      15.68        0 -0.0877 -0.0877
+    karno     1e-12    15.68         5.78           7.11       2.78        0 -0.0133 -0.1009
+#+end_example
 
 The hierarchy of the endpoint is defined from left (most important
 endpoint, here =time=) to right (least important endpoint, here
 =karno=). It is also possible to perform the comparisons on all
 endpoints setting the argument =hierarchical= to =FALSE=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.multi2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status",) + cont(karno, threshold = 0),
-                      hierarchical = FALSE,
-                      data = veteran, method.inference = "none", trace = 0)
+BT.nH <- BuyseTest(ff2, hierarchical = FALSE, data = veteran, 
+                   method.inference = "none", trace = 0)
+summary(BT.nH)
 #+END_SRC
 
 #+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 2 endpoints
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > right-censored pairs: probabilistic score based on the survival curves
+ > neutral pairs   : ignored at lower priority endpoints
+ > results
+ endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20      1      100        37.78          46.54      15.68        0 -0.0877 -0.0877
+    karno     1e-12      1      100        41.82          44.95      13.24        0 -0.0313 -0.1190
+#+end_example
 
 In that case the score of a pair is the weighted sum of the score
 relative to each endpoint. By default the weights are all set to 1 but
 this behavior can be changed by setting the argument =weight= when
 calling =BuyseTest=, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.multi3 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", weight = 0.8) + cont(karno, threshold = 0, weight = 0.2),
-                      hierarchical = FALSE,
-                      data = veteran, method.inference = "none", trace = 0)
+ff2w <- trt ~ tte(time, threshold = 20, censoring = "status", weight = 0.8)
+ff2w <- update.formula(ff2w, . ~ . + cont(karno, threshold = 0, weight = 0.2))
+BT.nHw <- BuyseTest(ff2w, hierarchical = FALSE, data = veteran, 
+                    method.inference = "none", trace = 0)
+summary(BT.nHw)
 #+END_SRC
 
 #+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 2 endpoints
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > right-censored pairs: probabilistic score based on the survival curves
+ > neutral pairs   : ignored at lower priority endpoints
+ > results
+ endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20    0.8      100        37.78          46.54      15.68        0 -0.0877 -0.0701
+    karno     1e-12    0.2      100        41.82          44.95      13.24        0 -0.0313 -0.0764
+#+end_example
 This has been refered as the O’Brien test in the litterature.
 
 ** What if smaller is better?
@@ -250,8 +295,9 @@ By default =BuyseTest= will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying =operator = "<0"=
 for an endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BTinv <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "<0"),
-                   data = veteran, method.inference = "none", trace = 0)
+ffop <- trt ~ tte(time, censoring = "status", threshold = 20, operator = "<0")
+BTinv <- BuyseTest(ffop, data = veteran, 
+                   method.inference = "none", trace = 0)
 BTinv
 #+END_SRC
 
@@ -264,14 +310,14 @@ to ensure that lower values are considered as favorable. A direct
 consequence is that =BuyseTest= will not accept an endpoint with
 different operators:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-try(BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status", operator = "<0") + tte(time, 10, "status", ">0"),
-              data = veteran, method.inference = "none", trace = 0))
+ffop2 <- update(ffop, . ~ . + tte(time, "status", 10, ">0"))
+try(BuyseTest(ffop2, data = veteran, 
+              method.inference = "none", trace = 0))
 #+END_SRC
 
 #+RESULTS:
 : Error in (function (name.call, censoring, correction.uninf, cpus, data,  : 
 :   Cannot have different operator for the same endpoint used at different priorities
-
 
 ** Stratified GPC
 
@@ -285,8 +331,9 @@ time and the investigator would like to only compare patients that
 have the same celltype. In the formula interface this is achieved by
 adding a single variable in the right hand side of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0) + celltype,
-                 data = veteran, trace = 0, method.inference = "none")
+ff2strata <- update(ff2, . ~ . + celltype)
+BT2 <- BuyseTest(ff2strata, data = veteran, 
+                 trace = 0, method.inference = "none")
 #+END_SRC
 
 #+RESULTS:
@@ -306,20 +353,21 @@ summary(BT2)
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : use Kaplan Meier survival curves to compute the score
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > right-censored pairs: probabilistic score based on the survival curves
+ > neutral pairs   : ignored at lower priority endpoints
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
  > results
- endpoint threshold    strata  total favorable unfavorable neutral uninf   delta   Delta
-     time        20    global 100.00     36.06       45.77   17.33  0.85 -0.0971 -0.0971
-                     squamous  25.38     14.33        8.77    2.28  0.00  0.2193        
-                    smallcell  45.69     12.69       20.88   11.27  0.85 -0.1792        
-                        adeno  13.71      4.74        6.15    2.81  0.00 -0.1034        
-                        large  15.23      4.30        9.97    0.96  0.00 -0.3722        
-    karno     1e-12    global  18.17      6.72        8.07    3.38  0.00 -0.0135 -0.1106
-                     squamous   2.28      0.76        0.94    0.59  0.00 -0.0071        
-                    smallcell  12.12      4.33        5.75    2.03  0.00 -0.0311        
-                        adeno   2.81      1.46        0.85    0.51  0.00  0.0448        
-                        large   0.96      0.17        0.54    0.25  0.00 -0.0241
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20   100.00        36.06          45.77      17.33     0.85 -0.0971 -0.0971
+                       25.38        14.33           8.77       2.28     0.00  0.2193        
+                       45.69        12.69          20.88      11.27     0.85 -0.1792        
+                       13.71         4.74           6.15       2.81     0.00 -0.1034        
+                       15.23         4.30           9.97       0.96     0.00 -0.3722        
+    karno     1e-12    18.17         6.72           8.07       3.38     0.00 -0.0135 -0.1106
+                        2.28         0.76           0.94       0.59     0.00 -0.0071        
+                       12.12         4.33           5.75       2.03     0.00 -0.0311        
+                        2.81         1.46           0.85       0.51     0.00  0.0448        
+                        0.96         0.17           0.54       0.25     0.00 -0.0241
 #+end_example
 
 Note that here the numbers in the
@@ -327,8 +375,6 @@ favorable/unfavorable/neutral/uniformative columns are relative to the
 overall sample while the delta is only relative to the strata. The
 global delta is a sum of the strata specific delta weighted by the
 empirical proportion of pairs for each strata.
-
-\clearpage
 
 ** Stopping comparison for neutral pairs
 In presence of neutral pairs, =BuyseTest= will, by default, continue
@@ -356,15 +402,18 @@ summary(BT.pair)
 #+END_SRC
 
 #+RESULTS:
-:        Generalized pairwise comparisons with 2 prioritized endpoints
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: 0 (control) vs. 1 (treatment) 
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
-:     tumor       0.5   100         0           0     100     0     0     0
-:      size     1e-12   100       100           0       0     0     1     1
+#+begin_example
+       Generalized pairwise comparisons with 2 prioritized endpoints
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 0 (control) vs. 1 (treatment) 
+ > neutral pairs   : ignored at lower priority endpoints
+ > results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
+    tumor       0.5      100            0              0        100        0     0     0
+     size     1e-12      100          100              0          0        0     1     1
+#+end_example
 
 the outcome of the comparison is neutral for the first priority, but
 favorable for the second priority. If we set the argument
@@ -377,15 +426,18 @@ summary(BT.pair2)
 #+END_SRC
 
 #+RESULTS:
-:        Generalized pairwise comparisons with 2 prioritized endpoints
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: 0 (control) vs. 1 (treatment) 
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf delta Delta
-:     tumor       0.5   100         0           0     100     0     0     0
-:      size     1e-12     0         0           0       0     0     0     0
+#+begin_example
+       Generalized pairwise comparisons with 2 prioritized endpoints
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > treatment groups: 0 (control) vs. 1 (treatment) 
+ > neutral pairs   : re-analyzed using lower priority endpoints
+ > results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
+    tumor       0.5      100            0              0        100        0     0     0
+     size     1e-12        0            0              0          0        0     0     0
+#+end_example
 
 So in this case no pair is analyzed at second priority.
 
@@ -411,11 +463,13 @@ summary(BT.perm)
  > inference       : permutation test with 1000 samples 
                      confidence intervals/p-values computed using the quantiles of the empirical distribution 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : uninformative pairs
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > right-censored pairs: deterministic score or uninformative
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
  > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta p.value 
-     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916   0.322
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20      100        34.93           44.1         15     5.97 -0.0916 -0.0916
+ p.value 
+   0.322
 #+end_example
 
 - bootstrap resampling setting the argument =method.inference= to
@@ -439,13 +493,13 @@ summary(BT.perm)
  > inference       : bootstrap resampling with 1000 samples 
                      confidence intervals/p-values computed using the quantiles of the empirical distribution 
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : uninformative pairs
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > right-censored pairs: deterministic score or uninformative
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
  > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916
- CI [2.5 ; 97.5] p.value 
- [-0.283;0.0888]   0.349
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20      100        34.93           44.1         15     5.97 -0.0916 -0.0916
+ p.value  CI [2.5 ; 97.5]
+   0.349  [-0.283;0.0888]
 #+end_example
 
 - normal approximation setting the argument =method.inference= to
@@ -468,13 +522,13 @@ summary(BT.ustat)
  > confidence level: 0.95 
  > inference       : H-projection of order 1
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > censored pairs  : uninformative pairs
- > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints (if any)
+ > right-censored pairs: deterministic score or uninformative
+ > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
  > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-     time        20   100     34.93        44.1      15  5.97 -0.0916 -0.0916
-  CI [2.5 ; 97.5] p.value 
- [-0.2708;0.0936]  0.3323
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20      100        34.93           44.1         15     5.97 -0.0916 -0.0916
+ p.value   CI [2.5 ; 97.5]
+ 0.33233  [-0.2708;0.0936]
 #+end_example
 
 The last method is the fastest since it requires very little extra
@@ -639,10 +693,10 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[91]
 #+END_SRC
 
 #+RESULTS:
-:    index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable
-: 1:      22      71                  22                   2         0   0.6950827
-:      neutral uninf weight favorableC unfavorableC  neutralC uninfC
-: 1: 0.3049173     0      1          0    0.6950827 0.3049173      0
+:    index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable   neutral uninf
+: 1:      22      71                  22                   2         0   0.6950827 0.3049173     0
+:    weight favorableC unfavorableC  neutralC uninfC
+: 1:      1          0    0.6950827 0.3049173      0
 
 In the dataset this corresponds to:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -667,10 +721,10 @@ iSurv
 #+END_SRC 
 
 #+RESULTS:
-:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold 
-:          97.0000000           0.5615232           0.5171924           0.4235463 
-: SurvivalT-threshold         SurvivalT_0 SurvivalT+threshold 
-:           0.4558824           0.3643277           0.2827500
+:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold SurvivalT-threshold 
+:          97.0000000           0.5615232           0.5171924           0.4235463           0.4558824 
+:         SurvivalT_0 SurvivalT+threshold 
+:           0.3643277           0.2827500
 
 Since we are interested in the survival in the control arm exactly at the event time:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -691,10 +745,10 @@ iSurv
 #+END_SRC
 
 #+RESULTS:
-:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold 
-:         112.0000000           0.5319693           0.4549201           0.3594915 
-: SurvivalT-threshold         SurvivalT_0 SurvivalT+threshold 
-:           0.3801681           0.2827500           0.2827500
+:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold SurvivalT-threshold 
+:         112.0000000           0.5319693           0.4549201           0.3594915           0.3801681 
+:         SurvivalT_0 SurvivalT+threshold 
+:           0.2827500           0.2827500
 
 Since we are interested in the survival in the control arm at the event time plus threshold:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -742,10 +796,10 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[148]
 #+END_SRC
 
 #+RESULTS:
-:    index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable
-: 1:      10      72                  10                   3 0.5058685   0.3770426
-:      neutral uninf weight favorableC unfavorableC  neutralC uninfC
-: 1: 0.1170889     0      1  0.5058685    0.3770426 0.1170889      0
+:    index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable   neutral uninf
+: 1:      10      72                  10                   3 0.5058685   0.3770426 0.1170889     0
+:    weight favorableC unfavorableC  neutralC uninfC
+: 1:      1  0.5058685    0.3770426 0.1170889      0
 
 which corresponds to the observations:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -815,7 +869,7 @@ head(dt)
 #+END_SRC
 
 #+RESULTS:
-:    Treatment toxicity eventtimeUncensored eventtimeCensoring eventtime status status1
+:    treatment toxicity eventtimeUncensored eventtimeCensoring eventtime status status1
 : 1:         C        0           0.1588268          2.6268101 0.1588268      1       1
 : 2:         C        1           1.7204676          0.2000192 0.2000192      0       1
 : 3:         C        1           0.4900490          0.5747995 0.4900490      1       1
@@ -879,8 +933,8 @@ summary(BT)
  > censored pairs  : uninformative pairs
  > uninformative pairs: no contribution, their weight is passed to the informative pairs using IPCW
  > results
-  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
- eventtime         1   100     37.11       12.34   50.54     0 0.2477 0.2477
+  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
+ eventtime         1      100        37.11          12.34      50.54        0 0.2477 0.2477
 #+end_example
 
 
@@ -941,8 +995,8 @@ summary(BT)
  > censored pairs  : uninformative pairs
  > uninformative pairs: score equals the averaged score of all informative pairs
  > results
-  endpoint threshold total favorable unfavorable neutral uninf  delta  Delta
- eventtime         1   100     37.11       12.34   50.54     0 0.2477 0.2477
+  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
+ eventtime         1      100        37.11          12.34      50.54        0 0.2477 0.2477
 #+end_example
 
 
@@ -986,7 +1040,7 @@ simBuyseTest(n.T = 5, n.C = 5)
 
 #+RESULTS:
 #+begin_example
-    Treatment toxicity       score eventtime status
+    treatment toxicity       score eventtime status
  1:         C        1  0.54361539 1.8252132      0
  2:         C        1 -0.70762484 2.9489056      1
  3:         C        1 -0.36944577 0.7213402      0
@@ -1016,7 +1070,7 @@ dt
 
 #+RESULTS:
 #+begin_example
-    Treatment toxicity tumorSize     score eventtime status
+    treatment toxicity tumorSize     score eventtime status
  1:         C        1  9.010394 10.667415 0.2729620      0
  2:         C        0  9.965152 11.691755 0.5562477      0
  3:         C        0 10.847160 10.001261 0.8040608      0
@@ -1053,6 +1107,24 @@ BuyseTest.options(trace = 0)
 
 #+RESULTS:
 
+To change what the results output by the summary function use:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(summary.display = list(c("endpoint","threshold","delta","Delta","information(%)")))
+summary(BT)
+#+END_SRC
+
+#+RESULTS:
+:        Generalized pairwise comparisons with 1 endpoint
+: 
+:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+:  > null hypothesis : Delta == 0 
+:  > treatment groups: 1 (control) vs. 2 (treatment) 
+:  > right-censored pairs: probabilistic score based on the survival curves
+:  > results
+:  endpoint threshold   delta   Delta information(%)
+:      time        20 -0.0877 -0.0877            100
+
+
 To restore the original default options do:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(reinitialise = TRUE)
@@ -1071,6 +1143,13 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
+Warning messages:
+1: package 'doParallel' was built under R version 3.5.3 
+2: package 'foreach' was built under R version 3.5.3 
+3: package 'iterators' was built under R version 3.5.3 
+4: package 'lava' was built under R version 3.5.3 
+5: In normalizePath(path.expand(path), winslash, mustWork) :
+  path[1]="C:/Users/hpl802/Documents/GitHub/BuyseTest/src/../inst/include": The system cannot find the file specified
 R version 3.5.1 (2018-07-02)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 7 x64 (build 7601) Service Pack 1
@@ -1078,17 +1157,15 @@ Running under: Windows 7 x64 (build 7601) Service Pack 1
 Matrix products: default
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
-[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.1252    
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252    LC_MONETARY=Danish_Denmark.1252
+[4] LC_NUMERIC=C                    LC_TIME=Danish_Denmark.1252    
 
 attached base packages:
-[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods  
-[9] base     
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] lava_1.6.5         doParallel_1.0.14  iterators_1.0.10   foreach_1.4.4     
-[5] data.table_1.12.2  BuyseTest_1.7.8    Rcpp_1.0.1         prodlim_2018.04.18
+[1] lava_1.6.5         doParallel_1.0.15  iterators_1.0.12   foreach_1.4.7      data.table_1.12.2 
+[6] BuyseTest_1.7.9    Rcpp_1.0.1         prodlim_2018.04.18
 
 loaded via a namespace (and not attached):
  [1] compiler_3.5.1            prettyunits_1.0.2         base64enc_0.1-3          
@@ -1101,8 +1178,8 @@ loaded via a namespace (and not attached):
 [22] grid_3.5.1                glue_1.3.0                R6_2.3.0                 
 [25] processx_3.2.0            survival_2.44-1.1         sessioninfo_1.1.1        
 [28] callr_3.0.0               magrittr_1.5              codetools_0.2-15         
-[31] backports_1.1.2           ps_1.1.0                  splines_3.5.1            
-[34] usethis_1.4.0             assertthat_0.2.0          KernSmooth_2.23-15       
+[31] backports_1.1.4           ps_1.1.0                  splines_3.5.1            
+[34] usethis_1.4.0             assertthat_0.2.1          KernSmooth_2.23-15       
 [37] crayon_1.3.4
 #+end_example
 
@@ -1125,7 +1202,7 @@ loaded via a namespace (and not attached):
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
 
 ** Display 
-#+LaTeX_HEADER: \geometry{a4paper, left=15mm, right=15mm}
+#+LaTeX_HEADER: \geometry{a4paper, left=10mm, right=10mm}
 
 #+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
 #+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer

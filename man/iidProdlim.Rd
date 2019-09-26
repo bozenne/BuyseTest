@@ -24,9 +24,9 @@ library(prodlim)
 
 set.seed(10)
 dt <- simBuyseTest(10)
-setkeyv(dt, "Treatment")
+setkeyv(dt, "treatment")
 
-e.KM <- prodlim(Hist(eventtime,status)~Treatment, data = dt)
+e.KM <- prodlim(Hist(eventtime,status)~treatment, data = dt)
 iidProdlim(e.KM)
 
 

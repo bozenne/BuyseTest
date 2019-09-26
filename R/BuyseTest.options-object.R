@@ -32,13 +32,19 @@ setClass(
       n.resampling = "numeric",
       neutral.as.uninf = "logical",
       order.Hprojection = "numeric",
+      print.display = "character",
       statistic = "character",
+      summary.display = "list",
       trace = "numeric",
       transformation = "logical"
   ),
 
 ### ** Check validity of the object
   validity = function(object){
+      validNames.summary <- c("endpoint","threshold","weight","total","favorable","unfavorable","neutral","uninf","information(%)",
+                              "delta","Delta","Delta(%)",
+                              "p.value","CI","significance")
+      
       validCharacter(object@alternative,
                      name1 = "@alternative",
                      valid.values = c("two.sided","greater","less"),
@@ -104,11 +110,21 @@ setClass(
                    max = 2,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
+      validCharacter(object@print.display,
+                     name1 = "@print.display",
+                     valid.values = validNames.summary,
+                     valid.length = NULL,
+                     method = "Class BuyseTest.options")
       validCharacter(object@statistic,
                      name1 = "@statistic",
                      valid.values = c("netBenefit","winRatio"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
+      lapply(object@summary.display,validCharacter,
+             name1 = "@summary.display",
+             valid.values = validNames.summary,
+             valid.length = NULL,
+             method = "Class BuyseTest.options")
       validInteger(object@trace,
                    name1 = "@trace",
                    min = 0, max = 2,
@@ -140,13 +156,13 @@ setMethod(f = "alloc",
             name.field <- names(field)
             n.field <- length(field)
             
-            for (iField in 1:n.field) {
-              slot(object, name.field[iField]) <- field[[iField]]
-            }
-            
-            return(object)
+              for (iField in 1:n.field) {
+                  slot(object, name.field[iField]) <- field[[iField]]
+              }
+              validObject(object)
+              return(object)
           }
-)
+          )
 
 ## * Select BuyseTest.options
 #' @rdname BuyseTest.options-methods

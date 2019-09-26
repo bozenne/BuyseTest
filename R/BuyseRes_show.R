@@ -21,14 +21,28 @@
 setMethod(f = "show",
           signature = "BuyseRes",
           definition = function(object){
-            outSummary <- summary(object, conf.level = NA, print = FALSE, percentage = NA, strata = "global")
 
-            table.print <- outSummary$table.print
-            exclude.col <- c("CI [NA ; NA]","p.value","","n.resampling")
-            table.print <- table.print[,setdiff(names(table.print), exclude.col)]
+              ## compute summary statistics
+              outSummary <- summary(object, print = FALSE, strata = "global")$table.print
+
+              ## only keep certain columns
+              type.display <- BuyseTest.options()$print.display
+              vec.tfunu <- c("total","favorable","unfavorable","neutral","uninformative")
+              if(any(vec.tfunu %in% type.display)){
+                  type.display[type.display %in% vec.tfunu] <- paste0(type.display[type.display %in% vec.tfunu],"(%)")
+              }
+              if("CI" %in% type.display){
+                  type.display <- c(setdiff(type.display,"CI"),grep("^CI",names(outSummary),value=TRUE))
+              }
+              type.display <- intersect(names(outSummary),type.display)
               
-            print(table.print, row.names = FALSE)
+              ## display
+              table.print <- outSummary[,type.display,drop=FALSE]
+              if("significance" %in% names(table.print)){
+                  names(table.print)[names(table.print) == "significance"] <- ""
+              }
+              print(table.print, row.names = FALSE)
            
-            return(invisible(NULL))
+              return(invisible(NULL))
           }
           )

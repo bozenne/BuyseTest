@@ -205,9 +205,9 @@
 #' summary(BT)
 #' 
 #' #### several endpoints with a strata variable
-#' f <- treatment ~ strata + T(eventtime, 1, status) + B(toxicity) 
+#' f <- treatment ~ strata + T(eventtime, status, 1) + B(toxicity) 
 #' f <- update(f, 
-#'             ~. + T(eventtime, 0.5, status) + C(score, 1) + T(eventtime, 0.25, status))
+#'             ~. + T(eventtime, status, 0.5) + C(score, 1) + T(eventtime, status, 0.25))
 #' 
 #' BT <- BuyseTest(f, data=df.data)
 #' summary(BT)
@@ -311,6 +311,11 @@ BuyseTest <- function(formula,
     ## ** test arguments
     if(option$check){
         outTest <- do.call(testArgs, args = outArgs)
+        if((attr(outArgs$method.inference,"ustatistic") || attr(outArgs$method.inference,"studentized")) & outArgs$scoring.rule==1 & length(outArgs$endpoint>1)){
+            warning("Computation of the standard error with the Peron scoring rule for several endpoints is still under development\n",
+                    "Will probably fail or give incorrect results\n",
+                    "Wait future version of the package (aim: december 2020)\n.")
+        }
     }
 
     ## ** initialization data
@@ -459,6 +464,7 @@ BuyseTest <- function(formula,
         level.treatment = outArgs$level.treatment,
         scoring.rule = scoring.rule,
         hierarchical = outArgs$hierarchical,
+        neutral.as.uninf = outArgs$neutral.as.uninf,
         correction.uninf = outArgs$correction.uninf,
         method.inference = outArgs$method.inference,
         strata = outArgs$strata,

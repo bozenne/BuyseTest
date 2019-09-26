@@ -35,6 +35,7 @@ setClass(
       level.strata = "vector",
       scoring.rule = "character",
       hierarchical = "logical",
+      neutral.as.uninf = "logical",
       correction.uninf = "numeric",
       method.inference = "character",
       strata = "vector",
@@ -75,6 +76,7 @@ methods::setMethod(
                                    level.treatment,
                                    scoring.rule,
                                    hierarchical,
+                                   neutral.as.uninf,
                                    correction.uninf,
                                    method.inference,
                                    strata,
@@ -138,6 +140,7 @@ methods::setMethod(
                  .Object@level.treatment <- level.treatment
                  .Object@scoring.rule <- scoring.rule
                  .Object@hierarchical <- hierarchical
+                 .Object@neutral.as.uninf <- neutral.as.uninf
                  .Object@correction.uninf <- correction.uninf
                  .Object@method.inference <- method.inference
                  .Object@strata <- strata

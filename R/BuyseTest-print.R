@@ -79,17 +79,19 @@ printGeneral <- function(censoring,
         cat("   - ", n.strata, " strata with levels: ",paste(level.strata, collapse = " ") , "\n", sep = "")
         cat("                ",txt.variable,": ",paste(strata, collapse = " ")," \n", sep = "")
     }
-    cat("   - management of neutral pairs: ")
-    if(neutral.as.uninf){
-        cat("re-analyzed using endpoints of lower priority (if any) \n")
-    }else{
-        cat("ignore endpoints of lower priority \n")
+    if(D>1){
+        cat("   - neutral pairs: ")
+        if(neutral.as.uninf){
+            cat("re-analyzed using lower priority endpoints \n")
+        }else{
+            cat("ignored at lower priority endpoints \n")
+        }
     }
     if(D.TTE>0){
-        cat("   - management of censored survival pairs: ")
+        cat("   - right-censored pairs: ")
         switch(as.character(scoring.rule),
-               "0" = cat("uninformative pairs \n"),
-               "1" = cat("use Kaplan Meier survival curves to compute the score \n")
+               "0" = cat("deterministic score or uninformative \n"),
+               "1" = cat("probabilistic score based on the survival curves \n")
                )
     }
     ## if(trace>2){

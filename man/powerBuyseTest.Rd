@@ -53,7 +53,7 @@ library(data.table)
 
 ## using simBuyseTest
 powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
-               formula = Treatment ~ bin(toxicity),
+               formula = treatment ~ bin(toxicity),
                method.inference = "u-statistic", trace = 4)
 
 ## using user defined simulation function

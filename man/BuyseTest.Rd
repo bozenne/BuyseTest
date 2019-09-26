@@ -174,12 +174,12 @@ df.data <- simBuyseTest(1e2, n.strata = 2)
 
                                        # display 
 if(require(prodlim)){
-   resKM_tempo <- prodlim(Hist(eventtime,status)~Treatment, data = df.data)
+   resKM_tempo <- prodlim(Hist(eventtime,status)~treatment, data = df.data)
    plot(resKM_tempo)
 }
 
 #### one time to event endpoint ####
-BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data= df.data)
+BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data= df.data)
 
 summary(BT) # net benefit
 summary(BT, percentage = FALSE)  
@@ -187,11 +187,11 @@ summary(BT, statistic = "winRatio") # win Ratio
 
 ## bootstrap to compute the CI
 \dontrun{
-    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+    BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3)
 }
 \dontshow{
-    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+    BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e1, trace = 0)
 }
 summary(BT, statistic = "netBenefit") ## default
@@ -199,28 +199,28 @@ summary(BT, statistic = "winRatio")
 
 ## parallel bootstrap
 \dontrun{
-    BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+    BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)
     summary(BT)
 }
 
 ## method Gehan is much faster but does not optimally handle censored observations
-BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status), data=df.data,
+BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
                 scoring.rule = "Gehan", trace = 0)
 summary(BT)
 
 #### one time to event endpoint: only differences in survival over 1 unit ####
-BT <- BuyseTest(Treatment ~ TTE(eventtime, threshold = 1, censoring = status), data=df.data)
+BT <- BuyseTest(treatment ~ TTE(eventtime, threshold = 1, censoring = status), data=df.data)
 summary(BT)
 
 #### one time to event endpoint with a strata variable
-BT <- BuyseTest(Treatment ~ strata + TTE(eventtime, censoring = status), data=df.data)
+BT <- BuyseTest(treatment ~ strata + TTE(eventtime, censoring = status), data=df.data)
 summary(BT)
 
 #### several endpoints with a strata variable
-f <- Treatment ~ strata + T(eventtime, 1, status) + B(toxicity) 
+f <- treatment ~ strata + T(eventtime, status, 1) + B(toxicity) 
 f <- update(f, 
-            ~. + T(eventtime, 0.5, status) + C(score, 1) + T(eventtime, 0.25, status))
+            ~. + T(eventtime, status, 0.5) + C(score, 1) + T(eventtime, status, 0.25))
 
 BT <- BuyseTest(f, data=df.data)
 summary(BT)

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:32) 
+## Last-Updated: sep 26 2019 (12:03) 
 ##           By: Brice Ozenne
-##     Update #: 53
+##     Update #: 55
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -45,7 +45,7 @@ dt.sim[eventtime1 >= 1, time1 := 1]
 
 
 ## * test against tableComparison (no correction)
-formula <- treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
+formula <- treatment ~ tte(time1, status1, threshold = 0.5) + cont(score1, 1) + bin(toxicity1) + tte(time1, status1, threshold = 0.25) + cont(score1, 0.5)
 test_that("Full data - no correction", {
 
     BT.mixed <- BuyseTest(formula, data = dt.sim, scoring.rule = "Peron", correction.uninf = FALSE)
@@ -77,7 +77,7 @@ test_that("Full data - no correction", {
 })
 
 ## * test against tableComparison (correction)
-formula <- treatment ~ tte(time1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(time1, 0.25, status1) + cont(score1, 0.5)
+formula <- treatment ~ tte(time1, status1, threshold = 0.5) + cont(score1, 1) + bin(toxicity1) + tte(time1, status1, threshold = 0.25) + cont(score1, 0.5)
 
 test_that("Full data", {
 

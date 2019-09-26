@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:27) 
+## Last-Updated: sep 26 2019 (15:24) 
 ##           By: Brice Ozenne
-##     Update #: 471
+##     Update #: 496
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -186,9 +186,14 @@ powerBuyseTest <- function(sim,
                 do.call(printInference, args = outArgs)
             }
         }
-        
+        if(!missing(sample.size) && !is.null(sample.size)){
+            text.sample.size <- paste0("   - sample size: ",paste(sample.size, collapse = " "),"\n")
+        }else{
+            text.sample.size <- paste0("   - sample size: ",paste(sample.sizeC, collapse = " ")," (control)\n",
+                                       "                : ",paste(sample.sizeT, collapse = " ")," (treatment)\n")
+        }
         cat("Simulation\n",
-            "   - sample size: ",paste(sample.size, collapse = " "),"\n",
+            text.sample.size,
             "   - repetitions: ",n.rep,"\n",
             "   - cpus       : ",cpus,"\n",
             sep = "")
@@ -198,14 +203,14 @@ powerBuyseTest <- function(sim,
         
     }
     ## ** define environment
-    name.copy <- c("call", "sim", "option",
-                   "outArgs", "sample.sizeTmax", "sample.sizeCmax", "n.sample.size",
-                   "sample.size", "sample.sizeC", "sample.sizeT", "n.rep", "seed")
     envirBT <- new.env()
-    for(iObject in name.copy){ ## iObject <- name.copy[1]
+    ## envirBT[[deparse(call)]] <- sim
+    name.copy <- c("sim", "option",
+                   "outArgs", "sample.sizeTmax", "sample.sizeCmax", "n.sample.size",
+                   "sample.sizeC", "sample.sizeT", "n.rep", "seed")
+    for(iObject in name.copy){ ## iObject <- name.copy[2]
         envirBT[[iObject]] <- eval(parse(text = iObject))
     }
-
     ## ** warper
     warper <- function(i, envir){
         iOut <- matrix(NA, nrow = n.inference, ncol = 14,
@@ -221,7 +226,7 @@ powerBuyseTest <- function(sim,
                       "index.endpoint","index.censoring","level.treatment","level.strata", "method.score",
                       "n.strata","n.obs","n.obsStrata","cumn.obsStrata")
 
-        envir$outArgs[out.name] <- initializeData(data = do.call(eval(envir$call), args = list(n.T = sample.sizeTmax, n.C = sample.sizeCmax)),
+        envir$outArgs[out.name] <- initializeData(data = sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax),
                                                   type = envir$outArgs$type,
                                                   endpoint = envir$outArgs$endpoint,
                                                   scoring.rule = envir$outArgs$scoring.rule,
@@ -245,6 +250,7 @@ powerBuyseTest <- function(sim,
                               scoring.rule = envir$outArgs$scoring.rule,
                               method.inference = envir$outArgs$method.inference,
                               hierarchical = envir$outArgs$hierarchical,
+                              neutral.as.uninf = envir$outArgs$neutral.as.uninf,
                               correction.uninf = envir$outArgs$correction.uninf,
                               threshold = envir$outArgs$threshold,
                               weight = envir$outArgs$weight,
@@ -299,6 +305,7 @@ powerBuyseTest <- function(sim,
         }else{
             method.loop <- lapply
         }
+        
         ls.simulation <- do.call(method.loop,
                                  args = list(X = 1:n.rep,
                                              FUN = function(X){
@@ -336,11 +343,12 @@ powerBuyseTest <- function(sim,
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","initializeData","pairScore2dt","inferenceUstatistic","confint_Ustatistic", ".iid2cov", "validNumeric")
+        toExport <- c(".BuyseTest",".createSubBT","BuyseRes","initializeData","pairScore2dt","inferenceUstatistic","confint_Ustatistic", ".iid2cov", "validNumeric")
         
         i <- NULL ## [:forCRANcheck:] foreach
         ls.simulation <- foreach::`%dopar%`(
                                       foreach::foreach(i=1:n.block,
+                                                       .packages = "data.table",
                                                        .export = toExport),                                            
                                       {                                           
                                           if(trace>0){utils::setTxtProgressBar(pb, i)}
@@ -372,7 +380,7 @@ powerBuyseTest <- function(sim,
 
 ## * .createSubBT
 .createSubBT <- function(object, order,
-                         type, endpoint, level.treatment, scoring.rule, method.inference, hierarchical, correction.uninf,
+                         type, endpoint, level.treatment, scoring.rule, method.inference, hierarchical, neutral.as.uninf, correction.uninf,
                          threshold, weight,
                          sample.sizeT, sample.sizeC, n.sample.size){
 
@@ -493,6 +501,7 @@ powerBuyseTest <- function(sim,
                                   "0" = "Gehan",
                                   "1" = "Peron"),
             hierarchical = hierarchical,
+            neutral.as.uninf = neutral.as.uninf,
             correction.uninf = correction.uninf,
             method.inference = method.inference,
             strata = NULL,

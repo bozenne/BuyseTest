@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:32) 
+## Last-Updated: sep 26 2019 (14:23) 
 ##           By: Brice Ozenne
-##     Update #: 107
+##     Update #: 119
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,39 +52,40 @@ test_that("number of pairs - argument neutral.as.uninf", {
         BTS.F <- as.data.table(summary(BT.F, print = FALSE, percentage = FALSE)$table)
 
         ## neutral.as.uninf does not impact the results for first endpoint
-        expect_equal(BTS.T[1,],BTS.F[1,])
+        expect_equal(BTS.T[1,c("favorable","unfavorable","neutral","uninf","delta","Delta")],
+                     BTS.F[1,c("favorable","unfavorable","neutral","uninf","delta","Delta")])
 
         ## check consistency of the number of pairs
         ## neutral.as.uninf = TRUE
         ## summary(BT.T)
-        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
-                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total])
-        expect_equal(BTS.T[endpoint == "timeOS" & strata == "global", n.neutral+n.uninf],
-                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total])
-        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.total],
-                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf])
+        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf],
+                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", total])
+        expect_equal(BTS.T[endpoint == "timeOS" & strata == "global", neutral+uninf],
+                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", total])
+        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", total],
+                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf])
 
         ## neutral.as.uninf = FALSE
-        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf],
-                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
-        expect_equal(BTS.F[endpoint == "timeOS" & strata == "global", n.uninf],
-                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total])
-        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.total],
-                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", n.favorable+n.unfavorable+n.neutral+n.uninf])
+        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf],
+                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", total])
+        expect_equal(BTS.F[endpoint == "timeOS" & strata == "global", uninf],
+                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", total])
+        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", total],
+                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf])
 
         ## compared to known value
         if(iCorrection == FALSE){
-            keep.col <- c("endpoint","threshold","strata","weight","pc.total","pc.favorable","pc.unfavorable","pc.neutral","pc.uninf","delta","Delta")
+            keep.col <- c("endpoint","threshold","strata","weight","total","favorable","unfavorable","neutral","uninf","delta","Delta")
             test <- as.data.table(summary(BT.T, print = FALSE)$table[,keep.col])
             GS <- data.table("endpoint" = c("timeOS", "timeOS", "Mgrade.tox", "Mgrade.tox"), 
                              "threshold" = c(1e-12, 1e-12, 1e-12, 1e-12), 
                              "strata" = c("global", "1", "global", "1"),
                              "weight" = c(1, 1, 1, 1), 
-                             "pc.total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
-                             "pc.favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
-                             "pc.unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                             "pc.neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                             "pc.uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
+                             "total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
+                             "favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
+                             "unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                             "neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
+                             "uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
                              "delta" = c(0.3333333, 0.3333333, 0.1111111, 0.1111111), 
                              "Delta" = c(0.3333333, NA, 0.4444444, NA))
             ##    butils::object2script(test)
@@ -213,8 +214,8 @@ test_that("Multiple thresholds",{
     resS <- as.data.table(summary(BuyseresPer, print = FALSE)$table)
 
     ## pairs are correctly transfered from one endpoint to another
-    expect_equal(resS[strata == "global" & threshold > tail(threshold,1), pc.neutral +  pc.uninf],
-                 resS[strata == "global" & threshold < threshold[1], pc.total], tol = 1e-2)
+    expect_equal(resS[strata == "global" & threshold > tail(threshold,1), neutral + uninf],
+                 resS[strata == "global" & threshold < threshold[1], total], tol = 1e-2)
 
     ## butils::object2script(as.double(BuyseresPer@count.favorable), digit = 2)
     GS <- c(260.64, 35.93, 37.33, 147.32, 272.14, 263.6, 235.7, 213.21, 390.29, 408.73, 514.7, 514.34, 744.78, 865.21, 1095.26)
@@ -356,7 +357,7 @@ dt <- simBuyseTest(50)
 
 test_that("same p.value (permutation test) for winRatio and net Benefit", {
     e.perm <- BuyseTest(treatment ~ bin(toxicity), data = dt,
-                        method.inference = "permutation", n.resampling = 100)
+                        method.inference = "permutation", n.resampling = 100, trace = 0)
     netBenefit.perm <- confint(e.perm, statistic = "netBenefit")
     winRatio.perm <- confint(e.perm, statistic = "winRatio")
 
@@ -392,10 +393,10 @@ df <- rbind(data.frame(score = rep(1,5),
 
 test_that("BuyseTest without variability", {
     e.BT_ustat <- BuyseTest(group ~ bin(tox) + cont(score), data = df,
-                            method.inference = "u-statistic")
+                            method.inference = "u-statistic", trace = 0)
     e.BT_boot <- BuyseTest(group ~ bin(tox) + cont(score), data = df,
                            method.inference = "studentized bootstrap",
-                           n.resampling = 10)
+                           n.resampling = 10, trace = 0)
 
     confintTempo <- confint(e.BT_ustat)
     expect_equal(unname(confintTempo[,"p.value"]),1:0)
@@ -410,6 +411,40 @@ test_that("Boostrap - issue in the summary", {
                          data = veteran, keep.pairScore = TRUE, scoring.rule = "Gehan", 
                          trace = 0, method.inference = "bootstrap", n.resampling = 20, seed = 10)
     summary(BT.keep, statistic = "winRatio")
+})
+
+## * graemeleehickey (issue #3 on Github): 22 september 2019 BuysePower
+test_that("BuysePower - error in print", {
+    simFCT <- function(n.C, n.T){
+        out <- data.table(Y=rnorm(n.C+n.T),
+                          T=c(rep(1,n.C),rep(0,n.T))
+                          )
+        return(out)
+    }
+
+    ## the error was when setting trace to 4
+    xx <- powerBuyseTest(sim = simFCT, sample.sizeC = c(100), sample.sizeT = c(100), n.rep = 2,
+                   formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4)
+
+    yy <- powerBuyseTest(sim = function(n.C, n.T){
+        out <- data.table(Y=rnorm(n.C+n.T),
+                          T=c(rep(1,n.C),rep(0,n.T))
+                          )
+        return(out)
+    }, sample.sizeC = c(100), sample.sizeT = c(100), n.rep = 2,
+    formula = T ~ cont(Y), method.inference = "u-statistic", trace = 0)
+
+    expect_equal(xx,yy)
+
+    ## xx <- powerBuyseTest(sim = simFCT,
+    ##                      sample.sizeC = c(100),
+    ##                      sample.sizeT = c(100),
+    ##                      n.rep = 10,
+    ##                      cpus = 3,
+    ##                      formula = T ~ cont(Y),
+    ##                      method.inference = "u-statistic",
+    ##                      trace = 4)
+
 })
 
 

@@ -9,7 +9,7 @@
 \S4method{summary}{BuyseRes}(object, print = TRUE, percentage = TRUE,
   statistic = NULL, conf.level = NULL, strata = if
   (length(object@level.strata) == 1) {     "global" } else {     NULL },
-  digit = c(2, 4), ...)
+  type.display = 1, digit = c(2, 4, 5), ...)
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}
@@ -28,6 +28,10 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{strata}{[character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.}
 
+\item{type.display}{[numeric or character] the results/summary statistics to be displayed.
+Either an integer indicating refering to a type of display in \code{BuyseTest.options()}
+or the name of the column to be output (e.g. \code{c("strata","Delta","p.value")}).}
+
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
 
 \item{...}{arguments to be passed to \code{\link{BuyseRes-confint}}}
@@ -42,13 +46,20 @@ More precisely, the column:
 \itemize{
   \item \code{endpoint} lists the endpoints, by order of priority.
   \item \code{threshold} lists the threshold associated to each endpoint.
-  \item \code{total} lists the total number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) to be analyzed at the current priority.
-  \item \code{favorable} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) classified in favor of the treatment at the current priority.
-  \item \code{unfavorable} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) classified in favor of the control at the current priority.
-  \item \code{neutral} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) classified as neutral at the current priority.
-  \item \code{uninf} lists the number of pairs (argument \code{percentage=FALSE}) or the percentage of pairs (argument \code{percentage=TRUE}) that could not be classified at the current priority (due to missing values/censoring).
+  \item \code{total} lists the total number of pairs to be analyzed at the current priority.
+  \item \code{total(\%)} lists the total percentage of pairs to be analyzed at the current priority.
+  \item \code{favorable} lists the number of pairs classified in favor of the treatment at the current priority.
+  \item \code{favorable(\%)} lists the number of pairs classified in favor of the treatment at the current priority.
+  \item \code{unfavorable} lists the number of pairs classified in favor of the control at the current priority.
+  \item \code{unfavorable(\%)} lists the percentage of pairs classified in favor of the control at the current priority.
+  \item \code{neutral} lists the number of pairs classified as neutral at the current priority.
+  \item \code{neutral(\%)} lists the percentage of pairs classified as neutral at the current priority.
+  \item \code{uninf} lists the number of pairs that could not be classified at the current priority (due to missing values/censoring).
+  \item \code{uninf(\%)} lists the percentage of pairs that could not be classified at the current priority (due to missing values/censoring).
   \item \code{delta} lists the value of the statistic (i.e. net benefit or win ratio) computed on the pairs analyzed at the current priority only.
   \item \code{Delta} lists the value of the statistic (i.e. net benefit or win ratio) computed on all the pairs analyzed up to the current priority.
+  \item \code{Delta(\%)} lists the  net benefit or win ratio fraction (i.e. statistic up to the current priority divided by the final statistic).
+  \item \code{information(\%)} lists the information fraction (i.e. number of favorable and unfavorable pairs up to the current priority divided by the final number of favorable and unfavorable pairs).
   \item \code{CI} Confidence interval for the value of \code{Delta} (performed independently at each priority, no adjustment for multiple comparison).
   \item \code{p.value} p-value for the test \code{Delta=0} (performed independently at each priority, no adjustment for multiple comparison).
   \item \code{resampling} number of samples used to compute the confidence intervals or p-values from permutations or bootstrap samples.
@@ -79,10 +90,10 @@ library(data.table)
 dt <- simBuyseTest(1e2, n.strata = 3)
 
  \dontrun{
- BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
+ BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
  }
  \dontshow{
- BT <- BuyseTest(Treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.resampling = 10, trace = 0)
+ BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.resampling = 10, trace = 0)
  }
  summary(BT)
  summary(BT, percentage = FALSE)

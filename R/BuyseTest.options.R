@@ -47,8 +47,11 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    n.resampling = 1000,
                    neutral.as.uninf = TRUE,
                    order.Hprojection = 1,
+                   print.display = c("endpoint","threshold","delta","Delta"),
                    statistic = "netBenefit",               
-                   transformation = TRUE,               
+                   summary.display = list(c("endpoint","threshold","weight","total","favorable","unfavorable","neutral","uninf","delta","Delta","CI","p.value","significance"),
+                                          c("endpoint","threshold","weight","favorable","unfavorable","delta","Delta","Delta(%)","information(%)")),
+                   transformation = TRUE,
                    trace = 2), 
                envir = BuyseTest.env)
     

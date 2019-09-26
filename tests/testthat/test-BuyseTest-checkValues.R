@@ -63,8 +63,8 @@ test_that("BuyseTest - binary (no strata)", {
     ## *** count pairs
     tableS <- summary(BT.bin, print = FALSE, percentage = FALSE)$table
     dt.tableS <- as.data.table(tableS)[strata == "global"]
-    expect_equal(dt.tableS[,n.total],
-                 unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf])
+    expect_equal(dt.tableS[,total],
+                 unname(dt.tableS[,favorable + unfavorable + neutral + uninf])
                  )
 })
 
@@ -78,14 +78,14 @@ test_that("BuyseTest - binary (strata)", {
     dt.tableS <- as.data.table(tableS)
     
     ## *** count pairs
-    expect_equal(dt.tableS[,n.total],
-                 unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]
+    expect_equal(dt.tableS[,total],
+                 unname(dt.tableS[,favorable + unfavorable + neutral + uninf]
                  ))
-    expect_equal(dt.tableS[,n.total], c(27000,9000,9000,9000))
-    expect_equal(dt.tableS[,n.favorable], c(8568, 2856, 2856, 2856))
-    expect_equal(dt.tableS[,n.unfavorable], c(5148, 1716, 1716, 1716))
-    expect_equal(dt.tableS[,n.neutral], c(13284, 4428, 4428, 4428))
-    expect_equal(dt.tableS[,n.uninf], c(0, 0, 0, 0))
+    expect_equal(dt.tableS[,total], c(27000,9000,9000,9000))
+    expect_equal(dt.tableS[,favorable], c(8568, 2856, 2856, 2856))
+    expect_equal(dt.tableS[,unfavorable], c(5148, 1716, 1716, 1716))
+    expect_equal(dt.tableS[,neutral], c(13284, 4428, 4428, 4428))
+    expect_equal(dt.tableS[,uninf], c(0, 0, 0, 0))
 
     ## *** test summary statistic
     expect_equal(dt.tableS[,delta], c(0.1266667, 0.1266667, 0.1266667, 0.1266667), tol = 1e-6)
@@ -127,8 +127,8 @@ test_that("BuyseTest - continuous (no strata)", {
     ## *** count pairs
     tableS <- summary(BT.cont, print = FALSE, percentage = FALSE)$table
     dt.tableS <- as.data.table(tableS)[strata == "global"]
-    expect_equal(dt.tableS[,n.total],
-                 unname(dt.tableS[, n.favorable + n.unfavorable + n.neutral + n.uninf]
+    expect_equal(dt.tableS[,total],
+                 unname(dt.tableS[, favorable + unfavorable + neutral + uninf]
                  ))
 })
 
@@ -142,14 +142,14 @@ test_that("BuyseTest - continuous (strata)", {
     dt.tableS <- as.data.table(tableS)
 
         ## *** count pairs
-    expect_equal(dt.tableS[,n.total],
-                 unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]
+    expect_equal(dt.tableS[,total],
+                 unname(dt.tableS[,favorable + unfavorable + neutral + uninf]
                  ))
-    expect_equal(dt.tableS[,n.total], c(27000, 9000, 9000, 9000, 14244, 4748, 4748, 4748))
-    expect_equal(dt.tableS[,n.favorable], c(4686, 1562, 1562, 1562, 7008, 2336, 2336, 2336))
-    expect_equal(dt.tableS[,n.unfavorable], c(8070, 2690, 2690, 2690, 7236, 2412, 2412, 2412))
-    expect_equal(dt.tableS[,n.neutral], c(14244, 4748, 4748, 4748, 0, 0, 0, 0))
-    expect_equal(dt.tableS[,n.uninf], c(0, 0, 0, 0, 0, 0, 0, 0))
+    expect_equal(dt.tableS[,total], c(27000, 9000, 9000, 9000, 14244, 4748, 4748, 4748))
+    expect_equal(dt.tableS[,favorable], c(4686, 1562, 1562, 1562, 7008, 2336, 2336, 2336))
+    expect_equal(dt.tableS[,unfavorable], c(8070, 2690, 2690, 2690, 7236, 2412, 2412, 2412))
+    expect_equal(dt.tableS[,neutral], c(14244, 4748, 4748, 4748, 0, 0, 0, 0))
+    expect_equal(dt.tableS[,uninf], c(0, 0, 0, 0, 0, 0, 0, 0))
 
     ## *** test summary statistic
     expect_equal(dt.tableS[,delta], c(-0.1253333, -0.1253333, -0.1253333, -0.1253333, -0.0084444, -0.0084444, -0.0084444, -0.0084444), tol = 1e-6)
@@ -163,13 +163,13 @@ test_that("BuyseTest - continuous (strata)", {
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
 
-        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1),
+        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime1, status1, threshold = 0.5) + tte(eventtime1, status1, threshold = 0.25),
                             data = dt.sim,
                             scoring.rule = method,
                             correction.uninf = FALSE
                             )
         
-        BT.1tte <- BuyseTest(treatment ~ tte(eventtime1, 0.25, status1),
+        BT.1tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 0.25),
                             data = dt.sim,
                             scoring.rule = method,
                             correction.uninf = FALSE
@@ -225,8 +225,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
         ## *** count pairs
         tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
         dt.tableS <- as.data.table(tableS)[strata == "global"]
-        expect_equal(dt.tableS[,n.total],
-                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
+        expect_equal(dt.tableS[,total],
+                     unname(dt.tableS[,favorable + unfavorable + neutral + uninf]),
                      tolerance = 1e-1, scale = 1) ## inexact for Peron
                      
     })
@@ -237,7 +237,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
-        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, 1, status1) + tte(eventtime2, 0.5, status2) + tte(eventtime3, 0.25, status3),
+        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime2, status2, threshold = 0.5) + tte(eventtime3, status3, threshold = 0.25),
                             data = dt.sim, scoring.rule = method,
                             correction.uninf = FALSE)
 
@@ -283,8 +283,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
         ## *** count pairs
         tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
         dt.tableS <- as.data.table(tableS)[strata == "global"]
-        expect_equal(dt.tableS[,n.total],
-                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
+        expect_equal(dt.tableS[,total],
+                     unname(dt.tableS[,favorable + unfavorable + neutral + uninf]),
                      tolerance = 1e-1, scale = 1) ## inexact for Peron
     })
 }
@@ -293,7 +293,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 method <- "Peron"
 test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
     
-        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, 1, status1) + tte(eventtime1, 0.5, status1) + tte(eventtime1, 0.25, status1) + strata,
+        BT.tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime1, status1, threshold = 0.5) + tte(eventtime1, status1, threshold = 0.25) + strata,
                             data = dtS.sim, scoring.rule = method)
 
 
@@ -323,8 +323,8 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
         
         ## *** count pairs
         dt.tableS <- as.data.table(tableS)[strata == "global"]
-        expect_equal(dt.tableS[,n.total],
-                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf]),
+        expect_equal(dt.tableS[,total],
+                     unname(dt.tableS[,favorable + unfavorable + neutral + uninf]),
                      tolerance = 1e-1, scale = 1) ## inexact for Peron
 })
 
@@ -332,7 +332,7 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - mixed (",method,", no strata)"),{ 
     
-        BT.mixed <- BuyseTest(treatment ~ tte(eventtime1, 0.5, status1) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, 0.25, status1) + cont(score1, 0.5),
+        BT.mixed <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 0.5) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, status1, threshold = 0.25) + cont(score1, 0.5),
                               data = dt.sim, scoring.rule = method)
 
         BT2 <- BuyseTest(data=dt.sim,
@@ -375,8 +375,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
         ## *** count pairs
         tableS <- summary(BT.mixed, print = FALSE, percentage = FALSE)$table
         dt.tableS <- as.data.table(tableS)[strata == "global"]
-        expect_equal(dt.tableS[,n.total],
-                     unname(dt.tableS[,n.favorable + n.unfavorable + n.neutral + n.uninf])
+        expect_equal(dt.tableS[,total],
+                     unname(dt.tableS[,favorable + unfavorable + neutral + uninf])
                      )
 
     })
@@ -384,9 +384,9 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 
 
 test_that("ordering does not matter", {
-    BT.mixed1 <- BuyseTest(treatment ~ tte(eventtime1, 0.25, status1) + cont(score1, 1),
+    BT.mixed1 <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 0.25) + cont(score1, 1),
                            data = dt.sim, scoring.rule = method)
-    BT.mixed2 <- BuyseTest(treatment ~ tte(eventtime1, 0.5, status1) +  tte(eventtime1, 0.25, status1) + cont(score1, 1),
+    BT.mixed2 <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 0.5) +  tte(eventtime1, status1, threshold = 0.25) + cont(score1, 1),
                            data = dt.sim, scoring.rule = method)
     expect_equal(BT.mixed2@Delta.netBenefit[2:3],BT.mixed1@Delta.netBenefit)
     expect_equal(BT.mixed2@Delta.winRatio[2:3],BT.mixed1@Delta.winRatio)

@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: maj 19 2019 (14:55) 
+## last-updated: sep 26 2019 (12:02) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 53
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -49,7 +49,7 @@ dt.dataNA[1,memory := NA]
 ## * neutral.as.uninf = TRUE (default)
 ## the neutral observations are analysed using the following endpoints
 test_that("continue after NA (no NA)", {
-    BT.TRUE <- BuyseTest(treat ~ cont(memory) + TTE(time, 0, status),
+    BT.TRUE <- BuyseTest(treat ~ cont(memory) + TTE(time, status, threshold = 0),
                          data = dt.data,
                          neutral.as.uninf = TRUE)
     
@@ -61,7 +61,7 @@ test_that("continue after NA (no NA)", {
 })
 
 test_that("continue after NA (NA)", {
-    BT.TRUE_NA <- BuyseTest(treat ~ Cont(memory) + TTE(time, 0, status),
+    BT.TRUE_NA <- BuyseTest(treat ~ Cont(memory) + TTE(time, status, threshold = 0),
                             data = dt.dataNA, scoring.rule = "Peron",
                             neutral.as.uninf = TRUE)
     ## summary(BT.TRUE_NA, percentage = FALSE)
@@ -75,7 +75,7 @@ test_that("continue after NA (NA)", {
 ## * neutral.as.uninf = FALSE
 ## the neutral observations are not analysed using the following endpoints
 test_that("stop after NA (no NA)", {
-    BT.FALSE <- BuyseTest(treat ~ Cont(memory) + TTE(time, 0, status),
+    BT.FALSE <- BuyseTest(treat ~ Cont(memory) + TTE(time, status, threshold = 0),
                           data = dt.data,
                           neutral.as.uninf = FALSE)
     
@@ -87,7 +87,7 @@ test_that("stop after NA (no NA)", {
 })
 
 test_that("stop after NA (NA)", {
-    BT.FALSE <- BuyseTest(treat ~ Cont(memory) + TTE(time, 0, status),
+    BT.FALSE <- BuyseTest(treat ~ Cont(memory) + TTE(time, status, threshold = 0),
                           data = dt.dataNA,
                           neutral.as.uninf = FALSE)
     

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 22 2017 (18:37) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:32) 
+## Last-Updated: sep 26 2019 (12:19) 
 ##           By: Brice Ozenne
-##     Update #: 25
+##     Update #: 26
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,13 +32,7 @@ set.seed(10)
 dt <- simBuyseTest(10)
 
 ## * binary outcomes
-test_that("Only accept NA or 1/2 for binary outcomes", {
-
-    test <- BuyseTest(treatment ~ bin(toxicity, threshold = 0.5) + bin(status),
-                      data = dt,
-                      method.inference = "none", trace = 0)
-    expect_true(all(test@threshold==0.5))
-    
+test_that("Do not accept threshold argument for binary outcomes", {
     expect_error(BuyseTest(treatment ~ bin(toxicity, threshold = 1),
                            data = dt,
                            method.inference = "none", trace = 0))

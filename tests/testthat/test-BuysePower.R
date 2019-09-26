@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:32) 
+## Last-Updated: sep 26 2019 (10:54) 
 ##           By: Brice Ozenne
-##     Update #: 7
+##     Update #: 8
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,6 +40,7 @@ test_that("binary endpoint", {
     expect_true(all(e.powerBT@results[,.SD$winRatio.upper[1]==.SD$winRatio.upper[1],by="simulation"][[2]]))
     expect_true(all(e.powerBT@results[,.SD$winRatio.p.value[1]==.SD$winRatio.p.value[1],by="simulation"][[2]]))
 })
+
 
 ######################################################################
 ### test-BuysePower.R ends here
