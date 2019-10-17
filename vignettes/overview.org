@@ -19,7 +19,7 @@ The *BuyseTest* package contains five functions that are relevant for the user:
   the argument of the =BuyseTest= function. These default values can
   be changed to better match the user needs.
 
-Two additional function are presented in this document: =simBuyseTest=
+Two additional functions are presented in this document: =simBuyseTest=
 that can be used to quickly simulate data and =getSurvival= that is
 useful to reproduce the results output by =BuyseTest=.
 
