@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:32) 
+## Last-Updated: okt 18 2019 (16:57) 
 ##           By: Brice Ozenne
-##     Update #: 60
+##     Update #: 66
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -277,8 +277,38 @@ test_that("Manual calculation of second order H projection (strata)",{
     expect_equal(as.double(manual), c(0.000768,  0.000768, -0.000768), tol = 1e-5)
 })
 
+## * TTE variable
+test_that("iid with nuisance parameters",{
+    BuyseTest.options(order.Hprojection = 1)
 
+    n <- 5
+    set.seed(10)
+    dt <- simBuyseTest(n)
+    ## dt
 
+    e.BT_tte1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
+                           data = dt, trace = 0, 
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+    e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
+                           data = dt, trace = 0, 
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+    e.BT_tte3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
+                           data = dt, trace = 0,
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+
+    expect_equal(confint(e.BT_tte1)[1,],
+                 confint(e.BT_tte2)[2,],
+                 tol = 1e-6)
+    expect_equal(confint(e.BT_tte1)[1,],
+                 confint(e.BT_tte3)[1,],
+                 tol = 1e-6)
+    expect_equal(confint(e.BT_tte3)[1,],
+                 confint(e.BT_tte3)[2,],
+                 tol = 1e-6)
+})
 
 ## * Two endpoints
 ## ** no strata

@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // GPC_cpp
-List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > posC, std::vector< arma::uvec > indexT, std::vector< arma::uvec > posT, std::vector< double > threshold, arma::vec weight, std::vector< int > method, unsigned int D, unsigned int n_strata, unsigned int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_endpoint, std::vector<int> index_censoring, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, arma::mat p_C, arma::mat p_T, std::vector< std::vector< arma::mat > > iid_survJumpC, std::vector< std::vector< arma::mat > > iid_survJumpT, int correctionUninf, bool hierarchical, int hprojection, bool neutralAsUninf, bool keepScore, bool reserve, int returnIID);
-RcppExport SEXP _BuyseTest_GPC_cpp(SEXP endpointSEXP, SEXP censoringSEXP, SEXP indexCSEXP, SEXP posCSEXP, SEXP indexTSEXP, SEXP posTSEXP, SEXP thresholdSEXP, SEXP weightSEXP, SEXP methodSEXP, SEXP DSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP n_UTTESEXP, SEXP WschemeSEXP, SEXP index_endpointSEXP, SEXP index_censoringSEXP, SEXP index_UTTESEXP, SEXP reanalyzedSEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP list_lastSurvSEXP, SEXP p_CSEXP, SEXP p_TSEXP, SEXP iid_survJumpCSEXP, SEXP iid_survJumpTSEXP, SEXP correctionUninfSEXP, SEXP hierarchicalSEXP, SEXP hprojectionSEXP, SEXP neutralAsUninfSEXP, SEXP keepScoreSEXP, SEXP reserveSEXP, SEXP returnIIDSEXP) {
+List GPC_cpp(arma::mat endpoint, arma::mat censoring, std::vector< arma::uvec > indexC, std::vector< arma::uvec > posC, std::vector< arma::uvec > indexT, std::vector< arma::uvec > posT, std::vector< double > threshold, std::vector< int > indexEndpoint_M1, arma::vec weight, std::vector< int > method, unsigned int D, unsigned int n_strata, unsigned int n_TTE, int n_UTTE, arma::mat Wscheme, std::vector<int> index_endpoint, std::vector<int> index_censoring, std::vector<int> index_UTTE, std::vector<bool> reanalyzed, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, arma::mat p_C, arma::mat p_T, std::vector< std::vector< arma::mat > > iid_survJumpC, std::vector< std::vector< arma::mat > > iid_survJumpT, int correctionUninf, bool hierarchical, int hprojection, bool neutralAsUninf, bool keepScore, bool reserve, int returnIID);
+RcppExport SEXP _BuyseTest_GPC_cpp(SEXP endpointSEXP, SEXP censoringSEXP, SEXP indexCSEXP, SEXP posCSEXP, SEXP indexTSEXP, SEXP posTSEXP, SEXP thresholdSEXP, SEXP indexEndpoint_M1SEXP, SEXP weightSEXP, SEXP methodSEXP, SEXP DSEXP, SEXP n_strataSEXP, SEXP n_TTESEXP, SEXP n_UTTESEXP, SEXP WschemeSEXP, SEXP index_endpointSEXP, SEXP index_censoringSEXP, SEXP index_UTTESEXP, SEXP reanalyzedSEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP list_lastSurvSEXP, SEXP p_CSEXP, SEXP p_TSEXP, SEXP iid_survJumpCSEXP, SEXP iid_survJumpTSEXP, SEXP correctionUninfSEXP, SEXP hierarchicalSEXP, SEXP hprojectionSEXP, SEXP neutralAsUninfSEXP, SEXP keepScoreSEXP, SEXP reserveSEXP, SEXP returnIIDSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -19,6 +19,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector< arma::uvec > >::type indexT(indexTSEXP);
     Rcpp::traits::input_parameter< std::vector< arma::uvec > >::type posT(posTSEXP);
     Rcpp::traits::input_parameter< std::vector< double > >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< std::vector< int > >::type indexEndpoint_M1(indexEndpoint_M1SEXP);
     Rcpp::traits::input_parameter< arma::vec >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< std::vector< int > >::type method(methodSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type D(DSEXP);
@@ -46,7 +47,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type keepScore(keepScoreSEXP);
     Rcpp::traits::input_parameter< bool >::type reserve(reserveSEXP);
     Rcpp::traits::input_parameter< int >::type returnIID(returnIIDSEXP);
-    rcpp_result_gen = Rcpp::wrap(GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID));
+    rcpp_result_gen = Rcpp::wrap(GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, indexEndpoint_M1, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -70,7 +71,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 34},
+    {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 35},
     {"_BuyseTest_calcIntegralScore_cpp", (DL_FUNC) &_BuyseTest_calcIntegralScore_cpp, 8},
     {NULL, NULL, 0}
 };

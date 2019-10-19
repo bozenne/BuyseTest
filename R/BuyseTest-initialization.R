@@ -150,6 +150,13 @@ initializeArgs <- function(censoring,
             threshold[which(abs(threshold)<10^{-12})] <- 10^{-12}
         }
     }
+    indexEndpoint_M1 <- sapply(1:D, function(iE){
+        if(iE==1 || sum(endpoint[iE]==endpoint[1:(iE-1)])==0){return(-100)
+        }else{
+            index.previous <- which(endpoint[iE]==endpoint[1:(iE-1)])
+            return(utils::tail(index.previous,1)-1)
+        }
+    })
     
     ## ** scoring.rule
     ## WARNING: choices must be lower cases
@@ -232,6 +239,7 @@ initializeArgs <- function(censoring,
         seed = seed,
         strata = strata,
         threshold = threshold,
+        indexEndpoint_M1 = indexEndpoint_M1,
         trace = trace,
         treatment = treatment,
         type = type,

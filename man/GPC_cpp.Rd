@@ -4,11 +4,11 @@
 \alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
-  method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint,
-  index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC,
-  iid_survJumpT, correctionUninf, hierarchical, hprojection,
+GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold,
+  indexEndpoint_M1, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme,
+  index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC,
+  list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T,
+  iid_survJumpC, iid_survJumpT, correctionUninf, hierarchical, hprojection,
   neutralAsUninf, keepScore, reserve, returnIID)
 }
 \arguments{
@@ -25,6 +25,8 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 \item{posT}{A list containing, for each strata, the unique identifier of each treatment observations.}
 
 \item{threshold}{Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints.}
+
+\item{indexEndpoint_M1}{Store the position of the previous occurence of the endpoint. Must have length D. Only used for time to event endpoints and when method is Peron.}
 
 \item{weight}{Store the weight associated to each endpoint. Must have length D.}
 

@@ -378,11 +378,26 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 
   // ** compute neutral and uninformative
   // neutral
-  score[2] = std::max(1 - upperFavorable - upperUnfavorable, 0.0);
+  double lowerNeutral = 1 - upperFavorable - upperUnfavorable;
+  if(lowerNeutral >= 0.0){
+	score[2] = lowerNeutral;
+	if(returnIID>1){
+	  EdSurvT.col(2) = - EdSurvT.col(0) - EdSurvT.col(1);
+	  EdSurvC.col(2) = - EdSurvC.col(0) - EdSurvC.col(1);
+	}
+  }
 
+ 
   // uninformative
-  score[3] = std::max(1 - (score[0] + score[1] + score[2]), 0.0);
-
+  double upperUninformative = 1 - (score[0] + score[1] + score[2]);
+  if(upperUninformative >= 0.0){
+	score[3] = upperUninformative;
+	if(returnIID>1){
+	  EdSurvT.col(3) = - EdSurvT.col(0) - EdSurvT.col(1) - EdSurvT.col(2);
+	  EdSurvC.col(3) = - EdSurvC.col(0) - EdSurvC.col(1) - EdSurvT.col(2);
+	}
+  }
+  
   // ** export
   // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << " (upper) " << upperFavorable << " " << upperUnfavorable << endl;
   return(score);  

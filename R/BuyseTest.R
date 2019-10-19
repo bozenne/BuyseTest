@@ -311,7 +311,7 @@ BuyseTest <- function(formula,
     ## ** test arguments
     if(option$check){
         outTest <- do.call(testArgs, args = outArgs)
-        if((attr(outArgs$method.inference,"ustatistic") || attr(outArgs$method.inference,"studentized")) & outArgs$scoring.rule==1 & length(outArgs$endpoint>1)){
+        if((attr(outArgs$method.inference,"ustatistic") || attr(outArgs$method.inference,"studentized")) & outArgs$scoring.rule==1 & length(outArgs$endpoint)>1){
             warning("Computation of the standard error with the Peron scoring rule for several endpoints is still under development\n",
                     "Will probably fail or give incorrect results\n",
                     "Wait future version of the package (aim: december 2020)\n.")
@@ -668,6 +668,7 @@ BuyseTest <- function(formula,
                      indexT = ls.indexT,                     
                      posT = ls.posT,                     
                      threshold = envir$outArgs$threshold,
+                     indexEndpoint_M1 = envir$outArgs$indexEndpoint_M1,
                      weight = envir$outArgs$weight,
                      method = envir$outArgs$method.score,
                      D = D,
