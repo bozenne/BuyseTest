@@ -105,9 +105,6 @@ initializeArgs <- function(censoring,
         }
     }
     
-    ## ** endpoint
-    D <- length(endpoint) 
-    
     ## ** type
     if(!is.numeric(type)){
         validType1 <- c("b","bin","binary")
@@ -122,7 +119,42 @@ initializeArgs <- function(censoring,
     }
     
     D.TTE <- sum(type == 3) # number of time to event endpoints
+ 
+    ## ** scoring.rule
+    ## WARNING: choices must be lower cases
+    ##          remember to update check scoring.rule (in BuyseTest-check.R)
+    scoring.rule <- tolower(scoring.rule)
+    scoring.rule <- switch(scoring.rule,
+                         "gehan" = 0,
+                         "peron" = 1,
+                         NA
+                         )
 
+    if (D.TTE == 0) {
+        scoring.rule <- 0
+        if ("scoring.rule" %in% name.call && trace > 0) {
+            message("NOTE : there is no survival endpoint, \'scoring.rule\' argument is ignored \n")
+        }
+    }
+
+    ## ** endpoint
+    D <- length(endpoint) 
+
+    ## previous TTE endpoint (only for Peron scoring rule)
+    endpointTTE <- unique(endpoint[type==3])
+
+    D.UTTE.M1 <- sapply(1:D, function(iE){
+        if(iE==1){
+            return(0)
+        }else{
+            sum(endpoint[1:(iE-1)] %in% endpointTTE) * (scoring.rule==1)
+        }
+    })
+    
+    D.UTTE <- sapply(1:D, function(iE){
+        sum(endpoint[1:iE] %in% endpointTTE) * (scoring.rule==1)
+    })
+    
     ## ** censoring
     if(D.TTE==0){
         censoring <- rep("..NA..", D)
@@ -148,30 +180,6 @@ initializeArgs <- function(censoring,
         }
         if(any(abs(stats::na.omit(threshold))<10^{-12})){
             threshold[which(abs(threshold)<10^{-12})] <- 10^{-12}
-        }
-    }
-    indexEndpoint_M1 <- sapply(1:D, function(iE){
-        if(iE==1 || sum(endpoint[iE]==endpoint[1:(iE-1)])==0){return(-100)
-        }else{
-            index.previous <- which(endpoint[iE]==endpoint[1:(iE-1)])
-            return(utils::tail(index.previous,1)-1)
-        }
-    })
-    
-    ## ** scoring.rule
-    ## WARNING: choices must be lower cases
-    ##          remember to update check scoring.rule (in BuyseTest-check.R)
-    scoring.rule <- tolower(scoring.rule)
-    scoring.rule <- switch(scoring.rule,
-                         "gehan" = 0,
-                         "peron" = 1,
-                         NA
-                         )
-
-    if (D.TTE == 0) {
-        scoring.rule <- 0
-        if ("scoring.rule" %in% name.call && trace > 0) {
-            message("NOTE : there is no survival endpoint, \'scoring.rule\' argument is ignored \n")
         }
     }
 
@@ -222,6 +230,8 @@ initializeArgs <- function(censoring,
         cpus = cpus,
         D = length(endpoint),
         D.TTE = sum(type == 3),
+        D.UTTE.M1 = D.UTTE.M1,
+        D.UTTE = D.UTTE,
         data = data,
         endpoint = endpoint,
         formula = formula,
@@ -239,7 +249,6 @@ initializeArgs <- function(censoring,
         seed = seed,
         strata = strata,
         threshold = threshold,
-        indexEndpoint_M1 = indexEndpoint_M1,
         trace = trace,
         treatment = treatment,
         type = type,
@@ -381,13 +390,12 @@ buildWscheme <- function(scoring.rule, endpoint, D.TTE, D, n.strata,
 
     ## unique tte endpoint
     endpoint.UTTE <- unique(endpoint[type==3])
-    
+
     ## export
     return(list(Wscheme = Wscheme,
                 endpoint.UTTE = endpoint.UTTE,
-                index.UTTE = match(endpoint, endpoint.UTTE, nomatch = 0) - 1,
+                index.UTTE = match(endpoint, endpoint.UTTE, nomatch = -99) - 1,
                 D.UTTE = length(endpoint.UTTE),
-                reanalyzed = rev(duplicated(rev(endpoint))),
                 outSurv = list(survTimeC = skeleton,
                                survTimeT = skeleton,
                                survJumpC = skeleton,
