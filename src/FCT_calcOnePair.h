@@ -379,7 +379,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
   // ** compute neutral and uninformative
   // neutral
   double lowerNeutral = 1 - upperFavorable - upperUnfavorable;
-  if(lowerNeutral >= 0.0){
+  if(lowerNeutral >= 0.0){ // otherwise 0
 	score[2] = lowerNeutral;
 	if(returnIID>1){
 	  Dscore_Dnuisance_T.col(2) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1);
@@ -390,7 +390,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
  
   // uninformative
   double upperUninformative = 1 - (score[0] + score[1] + score[2]);
-  if(upperUninformative >= 0.0){
+  if(upperUninformative >= 0.0){ // otherwise 0
 	score[3] = upperUninformative;
 	if(returnIID>1){
 	  Dscore_Dnuisance_T.col(3) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1) - Dscore_Dnuisance_T.col(2);
