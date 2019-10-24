@@ -173,8 +173,8 @@ List GPC_cpp(arma::mat endpoint,
   arma::mat iCount_obsT; // contribution of an observation from the treatment group to favorbale/unfavorable score
   
   // dScore_dNuisance 
-  arma::mat iDscore_Dnuisance_C; // sum over pairs of the partial derivative regarding the nuisance parameters of the survival curve for the control group [current endpoint]
-  arma::mat iDscore_Dnuisance_T; // sum over pairs of the partial derivative regarding the nuisance parameters of the survival curve for the treatment group [current endpoint]
+  arma::mat iDscore_Dnuisance_C(n_UTTE); // sum over pairs of the partial derivative regarding the nuisance parameters of the survival curve for the control group
+  arma::mat iDscore_Dnuisance_T(n_UTTE); // sum over pairs of the partial derivative regarding the nuisance parameters of the survival curve for the treatment group
 
   // store iid nuisance parameters: endpoint favorable/unfavorable/neutral (pair,nuisance)
   std::vector< std::vector< arma::mat > > RP_Dscore_Dnuisance_C(n_UTTE); // partial derivative regarding the nuisance parameters for the residual pairs [all TTE endpoint]
@@ -184,8 +184,8 @@ List GPC_cpp(arma::mat endpoint,
 	RP_Dscore_Dnuisance_T[iter_UTTE].resize(3);
   }
 
-  std::vector< arma::mat > iRP_Dscore_Dnuisance_C;
-  std::vector< arma::mat > iRP_Dscore_Dnuisance_T;
+  std::vector< arma::mat > iRP_Dscore_Dnuisance_C(3);
+  std::vector< arma::mat > iRP_Dscore_Dnuisance_T(3);
 
   // ***  object necessary to store the score of each pair over the endpoints
   // global
