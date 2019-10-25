@@ -142,16 +142,16 @@ initializeArgs <- function(censoring,
 
     ## previous TTE endpoint (only for Peron scoring rule)
     endpointTTE <- unique(endpoint[type==3])
-
-    D.UTTE.M1 <- sapply(1:D, function(iE){
-        if(iE==1){
-            return(0)
-        }else{
-            sum(endpoint[1:(iE-1)] %in% endpointTTE) * (scoring.rule==1)
+    M.previousUTTE <- do.call(cbind,lapply(1:D, function(iE){ ## iE <- 2
+        iOut <- rep(-100,D)
+        iIndex.previousUTTE <- setdiff(which(rev(!duplicated(rev(endpoint[1:iE]))) * (type[1:iE] == 3) > 0), iE)
+        if((length(iIndex.previousUTTE)>0) && (scoring.rule == 1)){
+            iOut[iIndex.previousUTTE] <- match(endpoint[iIndex.previousUTTE], endpointTTE)-1
         }
-    })
+        return(iOut)
+    }))
     
-    D.UTTE <- sapply(1:D, function(iE){
+    vecD.UTTE <- sapply(1:D, function(iE){
         sum(endpoint[1:iE] %in% endpointTTE) * (scoring.rule==1)
     })
     
@@ -230,8 +230,8 @@ initializeArgs <- function(censoring,
         cpus = cpus,
         D = length(endpoint),
         D.TTE = sum(type == 3),
-        D.UTTE.M1 = D.UTTE.M1,
-        D.UTTE = D.UTTE,
+        M.previousUTTE = M.previousUTTE,
+        vecD.UTTE = vecD.UTTE,
         data = data,
         endpoint = endpoint,
         formula = formula,
