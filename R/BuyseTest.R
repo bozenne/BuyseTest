@@ -322,29 +322,20 @@ BuyseTest <- function(formula,
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("data","M.endpoint","M.censoring",
                   "index.C","index.T","index.strata",
-                  "index.endpoint","index.censoring","level.treatment","level.strata",
-                  "method.score",
-                  "n.strata","n.obs","n.obsStrata","cumn.obsStrata")
+                  "level.treatment","level.strata", "method.score",
+                  "n.strata","n.obs","n.obsStrata","cumn.obsStrata","skeletonPeron")
     outArgs[out.name] <- initializeData(data = outArgs$data,
                                         type = outArgs$type,
-                                        scoring.rule = outArgs$scoring.rule,
                                         endpoint = outArgs$endpoint,
+                                        Uendpoint = outArgs$Uendpoint,
+                                        D = outArgs$D,
+                                        scoring.rule = outArgs$scoring.rule,
                                         censoring = outArgs$censoring,
+                                        Ucensoring = outArgs$Ucensoring,
                                         operator = outArgs$operator,
                                         strata = outArgs$strata,
                                         treatment = outArgs$treatment,
                                         copy = TRUE)
-
-    ## ** create weights matrix for survival endpoints
-    ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","outSurv")
-    outArgs[out.name] <- buildWscheme(scoring.rule = outArgs$scoring.rule,
-                                      endpoint = outArgs$endpoint,
-                                      D = outArgs$D,
-                                      D.TTE = outArgs$D.TTE,
-                                      n.strata = outArgs$n.strata,
-                                      type = outArgs$type,
-                                      threshold = outArgs$threshold)
     
     ## ** Display
     if (outArgs$trace > 1) {
@@ -626,7 +617,7 @@ BuyseTest <- function(formula,
 
     ## *** Update survival
     if(scoring.rule == 0){ ## Gehan
-        outSurv <- envir$outArgs$outSurv
+        outSurv <- envir$outArgs$skeletonPeron
     }else{ ## Peron 
         outSurv <- initializePeron(data = data,
                                    model.tte = envir$outArgs$model.tte,
@@ -634,6 +625,7 @@ BuyseTest <- function(formula,
                                    treatment = treatment,
                                    level.treatment = envir$outArgs$level.treatment,
                                    endpoint = endpoint,
+                                   endpoint.TTE = envir$outArgs$endpoint.TTE,
                                    endpoint.UTTE = envir$outArgs$endpoint.UTTE,
                                    censoring = censoring,
                                    D.TTE = D.TTE,
@@ -647,20 +639,6 @@ BuyseTest <- function(formula,
     }
     
     ## ** Computation
-    iidNuisance <- (is.null(envir$outArgs$model.tte) && any(envir$outArgs$method.score==3))
-
-    ## df.restaureOrder <-  do.call(rbind,lapply(1:n.strata, function(iS){
-    ##     rbind(data.frame(index = ls.indexC[[iS]]+1, strata = iS, treatment = "C", stringsAsFactors = FALSE),
-    ##           data.frame(index = ls.indexT[[iS]]+1, strata = iS, treatment = "T", stringsAsFactors = FALSE))
-    ## }))
-    ## envir$outArgs$M.endpoint <- envir$outArgs$M.endpoint[df.restaureOrder$index,,drop=FALSE]
-    ## envir$outArgs$M.censoring <- envir$outArgs$M.censoring[df.restaureOrder$index,,drop=FALSE]
-    ## df.restaureOrder$newIndex <- 1:NROW(df.restaureOrder)
-    ## ls.indexC <- tapply(df.restaureOrder[df.restaureOrder$treatment=="C","newIndex"]-1,df.restaureOrder[df.restaureOrder$treatment=="C","strata"],list)
-    ## ls.indexT <- tapply(df.restaureOrder[df.restaureOrder$treatment=="T","newIndex"]-1,df.restaureOrder[df.restaureOrder$treatment=="T","strata"],list)
-    ## ls.posC <- ls.indexC
-    ## ls.posT <- ls.indexT
-
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
                      censoring = envir$outArgs$M.censoring,
                      indexC = ls.indexC,
@@ -671,10 +649,9 @@ BuyseTest <- function(formula,
                      weight = envir$outArgs$weight,
                      method = envir$outArgs$method.score,
                      D = D,
+                     D_UTTE = envir$outArgs$D.UTTE,
                      n_strata = n.strata,
-                     M_UTTE_M1 = envir$outArgs$M.previousUTTE,
-                     vecn_UTTE = envir$outArgs$vecD.UTTE,
-                     Wscheme = envir$outArgs$Wscheme,
+                     nUTTE_analyzed_M1 = envir$outArgs$nUTTE.analyzedPeron_M1,
                      index_endpoint = envir$outArgs$index.endpoint,
                      index_censoring = envir$outArgs$index.censoring,
                      index_UTTE = envir$outArgs$index.UTTE,
@@ -687,12 +664,13 @@ BuyseTest <- function(formula,
                      p_T = outSurv$p.T,
                      iid_survJumpC = outSurv$iid$survJumpC,
                      iid_survJumpT = outSurv$iid$survJumpT,
+                     zeroPlus = 1e-8,
                      correctionUninf = envir$outArgs$correction.uninf,
                      hierarchical = envir$outArgs$hierarchical,
                      hprojection = envir$outArgs$order.Hprojection,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
-                     reserve = TRUE,
+                     reserve = 1e4,
                      returnIID = iid + iid*iidNuisance
                      )
 

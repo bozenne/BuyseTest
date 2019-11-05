@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:32) 
+## Last-Updated: nov  5 2019 (09:28) 
 ##           By: Brice Ozenne
-##     Update #: 155
+##     Update #: 156
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -145,8 +145,7 @@ test_that("check unfavorable - 2 Binary",{
                      toxicity2 = c(1,0),
                      Id = 1:10)
     BT <- BuyseTest(treatment ~ bin(toxicity1) + bin(toxicity2), data = dt)
-    ## getPairScore(BT)
-
+    
     ## total pairs: 25
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,25))

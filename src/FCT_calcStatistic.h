@@ -13,6 +13,14 @@ using namespace Rcpp ;
 using namespace std ;
 using namespace arma ;
 
+void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio,
+                   const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
+                   arma::mat& iidAverage_favorable, arma::mat& iid_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
+				   arma::mat& Mvar, int returnIID,
+				   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
+                   const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
+				   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
+
 // * calcStatistic
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
