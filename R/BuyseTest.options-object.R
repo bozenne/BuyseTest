@@ -24,12 +24,14 @@ setClass(
       conf.level = "numeric",
       correction.uninf = "numeric",
       cpus = "numeric",
+      debug = "numeric",
       hierarchical = "logical",
       keep.pairScore = "logical",
       keep.survival = "logical",      
       method.inference = "character",
       scoring.rule = "character",
       n.resampling = "numeric",
+      strata.resampling = "character",
       neutral.as.uninf = "logical",
       order.Hprojection = "numeric",
       print.display = "character",
@@ -71,6 +73,10 @@ setClass(
                    min = 1,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
+      validInteger(object@debug,
+                   name1 = "@debug",
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
       validLogical(object@hierarchical,
                    name1 = "@hierarchical",
                    valid.length = 1,
@@ -98,6 +104,11 @@ setClass(
       validInteger(object@n.resampling,
                    name1 = "@n.resampling",
                    min = 0,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validCharacter(object@strata.resampling,
+                   name1 = "@n.resampling",
+                   valid.values = c(as.character(NA),"treatment","strata"),
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       validLogical(object@neutral.as.uninf,

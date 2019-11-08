@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: okt 18 2019 (16:57) 
+## Last-Updated: nov  8 2019 (15:29) 
 ##           By: Brice Ozenne
-##     Update #: 66
+##     Update #: 72
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,8 +30,9 @@ BuyseTest.options(check = TRUE,
                   keep.pairScore = FALSE,
                   trace = 0)
 
-## * Binary case
-## ** no strata
+## * iid average
+## ** 1 binary variable
+## *** no strata
 ## equal number in each group
 d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
 
@@ -107,7 +108,7 @@ test_that("iid: binary and no strata (unbalanced groups)", {
 })
 
 
-## ** strata
+## *** strata
 d2 <- rbind(cbind(d, strata = 1),
             cbind(d, strata = 2),
             cbind(d, strata = 3))
@@ -186,7 +187,7 @@ test_that("iid: binary and no strata (unbalanced groups)", {
     expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0)/3 )
 })
 
-## * Continuous variable
+## ** 1 continuous variable
 
 test_that("Manual calculation of second order H projection (no strata)",{
     n <- 5
@@ -206,7 +207,7 @@ test_that("Manual calculation of second order H projection (no strata)",{
                          method.inference = "u-statistic")
 
     ## manual calculation
-    dt.pair <- getPairScore(e.BT_c3)[[1]][,.(index.C,index.T,favorable,unfavorable)]
+    dt.pair <- getPairScore(e.BT_c3)[,.(index.C,index.T,favorable,unfavorable)]
     dt.pair[, H1C.favorable := mean(favorable), by = index.C]
     dt.pair[, H1T.favorable := mean(favorable), by = index.T]
     dt.pair[, H1C.favorable := H1C.favorable - mean(favorable)]
@@ -251,7 +252,7 @@ test_that("Manual calculation of second order H projection (strata)",{
                          method.inference = "u-statistic")
 
     ## manual calculation
-    dt.pair <- getPairScore(e.BT_c3)[[1]][,.(strata,index.C,index.T,favorable,unfavorable)]
+    dt.pair <- getPairScore(e.BT_c3)[,.(strata,index.C,index.T,favorable,unfavorable)]
     dt.pair[, H1C.favorable := mean(favorable), by = index.C]
     dt.pair[, H1T.favorable := mean(favorable), by = index.T]
     dt.pair[, H1C.favorable := H1C.favorable - mean(favorable), by = "strata"]
@@ -277,8 +278,8 @@ test_that("Manual calculation of second order H projection (strata)",{
     expect_equal(as.double(manual), c(0.000768,  0.000768, -0.000768), tol = 1e-5)
 })
 
-## * TTE variable
-test_that("iid with nuisance parameters",{
+## ** 1 TTE variable
+test_that("iid: TTE and no strata",{
     BuyseTest.options(order.Hprojection = 1)
 
     n <- 5
@@ -289,14 +290,17 @@ test_that("iid with nuisance parameters",{
     e.BT_tte1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
                            data = dt, trace = 0, 
                            keep.pairScore = TRUE,
+                           scoring.rule = "Gehan",
                            method.inference = "u-statistic")
     e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
                            data = dt, trace = 0, 
                            keep.pairScore = TRUE,
+                           scoring.rule = "Gehan",
                            method.inference = "u-statistic")
     e.BT_tte3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
                            data = dt, trace = 0,
                            keep.pairScore = TRUE,
+                           scoring.rule = "Gehan",
                            method.inference = "u-statistic")
 
     expect_equal(confint(e.BT_tte1)[1,],
@@ -310,8 +314,8 @@ test_that("iid with nuisance parameters",{
                  tol = 1e-6)
 })
 
-## * Two endpoints
-## ** no strata
+## ** Two endpoints
+## *** no strata
 set.seed(10)
 d <- simBuyseTest(50)
 
@@ -428,7 +432,7 @@ test_that("iid: two endpoints (no strata - second order)", {
                  c(0.0019582080,  0.0014531264, -0.0002877952,  0.0039869248,  0.3897334933), tol = 1e-6 )
 })
 
-## ** strata
+## *** strata
 d2 <- rbind(cbind(d, strata = 1),
             cbind(d, strata = 2))
 d2$score1 <- d2$score
@@ -483,32 +487,42 @@ test_that("iid: two endpoints (strata)", {
 
 
 ## * iid Peron
-if(FALSE){
-    library(data.table)
-    library(prodlim)
-    butils.base:::sourcePackage("BuyseTest", c.code = TRUE)
-    dtAllC <- data.table(time = 1:10,
-                         status = 1,
-                         group = "C")
-    dtAllT <- data.table(time = (1:10) + 0.5,
-                         status = 1,
-                         group = "T")
-    dtAll <-  rbind(dtAllC, dtAllT)
-    e.tte <- prodlim(Hist(time,status)~group, data = dtAll)
 
-    BuyseTest.options(keep.survival = TRUE)
-    e.BT <- BuyseTest(group ~ tte(time,status,threshold = 0.1),
-                      data = data.frame(time = c(2.1,2.3),
-                                        status = c(0,1),
-                                        group = c("T","C")),
-                      method.inference = "none",
-                      model.tte = e.tte,
-                      scoring.rule = "Peron",
-                      keep.pairScore = TRUE)
-    getPairScore(e.BT)
-    scoreFavorable <- getSurvival(e.BT)$survTimeC[[1]][[1]][7]/getSurvival(e.BT)$survTimeT[[1]][[1]][5]
-    scoreUnfavorable <- 1 - getSurvival(e.BT)$survTimeC[[1]][[1]][5]/getSurvival(e.BT)$survTimeT[[1]][[1]][5]
-}
+## ** 1 TTE variable
+test_that("iid with nuisance parameters",{
+    BuyseTest.options(order.Hprojection = 1)
+
+    n <- 5
+    set.seed(10)
+    dt <- simBuyseTest(n)
+    ## dt
+
+    e.BT_tte1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
+                           data = dt, trace = 0, 
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+    e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
+                           data = dt, trace = 0, 
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+    e.BT_tte3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
+                           data = dt, trace = 0,
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+
+    expect_equal(confint(e.BT_tte1)[1,],
+                 confint(e.BT_tte2)[2,],
+                 tol = 1e-6)
+    expect_equal(confint(e.BT_tte1)[1,],
+                 confint(e.BT_tte3)[1,],
+                 tol = 1e-6)
+    expect_equal(confint(e.BT_tte2)[2,],
+                 confint(e.BT_tte3)[2,],
+                 tol = 1e-6)
+    expect_equal(confint(e.BT_tte3)[1,],
+                 confint(e.BT_tte3)[2,],
+                 tol = 1e-6)
+})
 
 
 ######################################################################

@@ -119,8 +119,10 @@ printInference <- function(method.inference, n.resampling, cpus, seed, ...){
             txt.type <- paste0("permutation test with ",n.resampling," permutations")
         }
 
-        if(attr(method.inference,"stratified")){
-            txt.type <- paste0("stratified ",txt.type)
+        if(attr(method.inference,"resampling-strata:treatment")){
+            txt.type <- paste0(txt.type, "(stratified by treatment group)")
+        }else if(attr(method.inference,"resampling-strata:strata")){
+            txt.type <- paste0(txt.type, "(stratified by strata group)")
         }
 
         ## display

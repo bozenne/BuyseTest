@@ -1,5 +1,7 @@
 * Tests
 
+** test-BuysePower
+Just check that powerBuyseTest runs in a simple setting.
 ** test-BuyseTest-checkValues
 Check against known output when considering many pairs (binary,
 continuous, time to event, mixed endpoint) with and without strata.
@@ -9,12 +11,18 @@ method.tte="Peron".
 ** test-BuyseTest-CR
 Check that using competing risks is equivalent to using the pseudo
 survival times.
+** test-BuyseTest-iid
+Check the computation of the variance based on the asymptotic theory (i.e. method.inference="u-statisitc")
+- for scoring.rule="Gehan"
+- for scoring.rule="Peron"
 ** test-BuyseTest-neutralAsUnif
 Test whether the argument neutral.as.uninf works:
 - on an example without NA
 - on an example with NA
 ** test-BuyseTest-operator
 Test whether the argument operator="<0" and operator=">0" works on a simple example.
+** test-BuyseTest-PairScore
+Check tableComparison matches the summary of BuyseTest objects
 ** test-BuyseTest-Pairs
 Test BuyseTest on tractable examples:
 - count of positive, negative, neutral, uniformative pairs
@@ -23,8 +31,9 @@ Test BuyseTest on tractable examples:
 Check that issues that have been reported are indeed fixed.
 ** test-BuyseTest-resampling
 Check permutation and bootstrap resampling
-** test-BuyseTest-PairScore
-Check tableComparison matches the summary of BuyseTest objects
+** test-iid-prodlim
+Check the computation of the iid decomposition of the Kaplan-Meier estimator:
+- compare to the one obtained with the riskRegression package (without and with strata)
 ** test-initSurvival
 Check the computation of the survival using Kaplan Meier:
 - no strata: Check jump at t- and no jump at t+ in the estimated survival by KM.

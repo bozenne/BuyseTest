@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: nov  5 2019 (09:28) 
+## Last-Updated: nov  6 2019 (14:12) 
 ##           By: Brice Ozenne
-##     Update #: 156
+##     Update #: 157
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,8 +31,7 @@ BuyseTest.options(check = TRUE,
 
 ## * one binary endpoint
 ## ** favorable
-test_that("check favorable - 1 Binary",{
-    
+test_that("check favorable - 1 Binary",{    
     ## one pair
     data <- data.frame(toxicity1 = c(1,0), treatment = c(1,0))
     BT <- BuyseTest(treatment ~ bin(toxicity1), data=data)
@@ -59,7 +58,6 @@ test_that("check favorable - 1 Binary",{
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
     ## getPairScore(BT)
-
 })
 
 ## ** unfavorable
@@ -88,7 +86,6 @@ test_that("check unfavorable - 1 Binary",{
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
     ## getPairScore(BT)
-
 })
 
 ## ** neutral
@@ -167,7 +164,7 @@ test_that("check mixed - 2 Binary",{
     BT <- BuyseTest(treatment ~ bin(toxicity1) + bin(toxicity2), data = dt,
                     keep.pairScore = TRUE)
     ## getPairScore(BT)
-
+    
     expect_equal(as.double(BT@count.favorable),c(0,1))
     expect_equal(as.double(BT@count.unfavorable),c(0,1))
     expect_equal(as.double(BT@count.neutral),c(4,2))
@@ -451,7 +448,7 @@ dt.2pairs <- data.table(id = 1:4,
 ## *** Gehan
 test_that("2 pairs - Gehan - no correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    scoring.rule="Gehan", correction.uninf = FALSE)
+                    scoring.rule = "Gehan", correction.uninf = FALSE)
   
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),2)
@@ -467,7 +464,7 @@ test_that("2 pairs - Gehan - no correction",{
 
 test_that("2 pairs - Gehan - correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    scoring.rule="Gehan", correction.uninf = TRUE)
+                    scoring.rule = "Gehan", correction.uninf = TRUE)
   
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),4)
@@ -484,7 +481,7 @@ test_that("2 pairs - Gehan - correction",{
 ## *** Peron
 test_that("2 pairs - Peron - no correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    scoring.rule="Peron", correction.uninf = FALSE)
+                    scoring.rule = "Peron", correction.uninf = FALSE)
   
     ## different survival curve per groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)
@@ -511,7 +508,7 @@ test_that("2 pairs - Peron - no correction",{
 
 test_that("2 pairs - Peron - correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
-                    scoring.rule="Peron", correction.uninf = TRUE)
+                    scoring.rule = "Peron", correction.uninf = TRUE)
   
     ## different survival curve per groups (denoting S survival time and T group)
     ## P[T>=t|T=0,S>=10] = 1 (t=<12), 0 (t>12)

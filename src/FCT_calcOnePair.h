@@ -276,8 +276,8 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
       double denom = survTimeT(5)*survTimeC(2);
       std::vector< double > intFavorable; 
       std::vector< double > intUnfavorable;
-   	  arma::mat intDscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows,2); // initialized in calcIntegralScore_cpp
-	  arma::mat intDscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows,2); // initialized in calcIntegralScore_cpp
+   	  arma::mat intDscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows,4); // initialized in calcIntegralScore_cpp
+	  arma::mat intDscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows,4); // initialized in calcIntegralScore_cpp
 
 	  // favorable
 	  if(diff >= threshold){
@@ -350,8 +350,8 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		}
 
 		if(returnIID>1){ //		if((returnIID>1) && (intUnfavorable[0]>0)){
-		  Dscore_Dnuisance_T(survTimeT(11),1) += intUnfavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  Dscore_Dnuisance_C(survTimeC(8),1) += intUnfavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
+		  Dscore_Dnuisance_T(survTimeT(11),1) += intUnfavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  Dscore_Dnuisance_C -= intDscore_Dnuisance_C/denom;
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
@@ -366,8 +366,8 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		score[1]= -intUnfavorable[0] / denom; // (lower bound)
 		upperUnfavorable = -intUnfavorable[1] / denom;  // (upper bound)
 		if(returnIID>1){ //		if((returnIID>1) && (intUnfavorable[0]>0)){
-		  Dscore_Dnuisance_T(survTimeT(11),1) += intUnfavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  Dscore_Dnuisance_C(survTimeC(8),1) += intUnfavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
+		  Dscore_Dnuisance_T(survTimeT(11),1) += intUnfavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  Dscore_Dnuisance_C -= intDscore_Dnuisance_C/denom;
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
@@ -376,14 +376,15 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 	  // Rcout << endl;
     }}
 
+  // Rcout << "before" << endl;
   // ** compute neutral and uninformative
   // neutral
   double lowerNeutral = 1 - upperFavorable - upperUnfavorable;
   if(lowerNeutral >= 0.0){ // otherwise 0
 	score[2] = lowerNeutral;
 	if(returnIID>1){
-	  Dscore_Dnuisance_T.col(2) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1);
 	  Dscore_Dnuisance_C.col(2) = - Dscore_Dnuisance_C.col(0) - Dscore_Dnuisance_C.col(1);
+	  Dscore_Dnuisance_T.col(2) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1);
 	}
   }
 
@@ -393,10 +394,11 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
   if(upperUninformative >= 0.0){ // otherwise 0
 	score[3] = upperUninformative;
 	if(returnIID>1){
+	  Dscore_Dnuisance_C.col(3) = - Dscore_Dnuisance_C.col(0) - Dscore_Dnuisance_C.col(1) - Dscore_Dnuisance_C.col(2);
 	  Dscore_Dnuisance_T.col(3) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1) - Dscore_Dnuisance_T.col(2);
-	  Dscore_Dnuisance_C.col(3) = - Dscore_Dnuisance_C.col(0) - Dscore_Dnuisance_C.col(1) - Dscore_Dnuisance_T.col(2);
 	}
   }
+  // Rcout << "after" << endl;
   
   // ** export
   // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << " (upper) " << upperFavorable << " " << upperUnfavorable << endl;

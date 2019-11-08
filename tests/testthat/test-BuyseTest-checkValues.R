@@ -21,6 +21,7 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
                        argsTTE = list(rates.T = 1:3, rates.Censoring.T = rep(1,3)))
 ## butils::object2script(dt.sim)
+dt.sim$status1.noC <- 1
 
 dtS.sim <- rbind(cbind(dt.sim, strata = 1),
                  cbind(dt.sim, strata = 2),
@@ -160,7 +161,7 @@ test_that("BuyseTest - continuous (strata)", {
 ## * Time to event endpoint
 ## ** No strata - same endpoint
 ## for(method in c("Gehan","Peron")){ ## method <- "Peron"
-for(method in c("Gehan","Peron")){ ## method <- "Peron"
+for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (same, ",method,", no strata)"),{ 
 
         BT.tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime1, status1, threshold = 0.5) + tte(eventtime1, status1, threshold = 0.25),
@@ -290,12 +291,11 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 }
 
 ## ** Strata - same endpoint
-method <- "Peron"
-test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
+for(method in c("Gehan","Peron")){ ## method <- "Peron"  ## method <- "Gehan"
+    test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{ 
     
         BT.tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime1, status1, threshold = 0.5) + tte(eventtime1, status1, threshold = 0.25) + strata,
                             data = dtS.sim, scoring.rule = method)
-
 
         ## *** test against fixed value
         test <- list(favorable = as.double(BT.tte@count.favorable),
@@ -306,14 +306,23 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
                      winRatio = as.double(BT.tte@Delta.winRatio)
                      )
 
-        ## butils::object2script(test, digit = 5)
-        GS <- list(favorable = c(2443.46245, 2443.46245, 2443.46245, 979.48639, 979.48639, 979.48639, 629.90518, 629.90518, 629.90518) ,
-                   unfavorable = c(1395.18398, 1395.18398, 1395.18398, 1113.57451, 1113.57451, 1113.57451, 723.57513, 723.57513, 723.57513) ,
-                   neutral = c(5161.35357, 5161.35357, 5161.35357, 3068.29267, 3068.29267, 3068.29267, 1714.81237, 1714.81237, 1714.81237) ,
-                   uninf = c(0, 0, 0, 0, 0, 0, 0, 0, 0) ,
-                   netChange = c(0.11648, 0.10158, 0.09117) ,
-                   winRatio = c(1.75136, 1.3644, 1.25385) )
-        expect_equal(GS, test, tol = 1e-4, scale = 1)
+        if(method == "Gehan"){
+            GS <- list(favorable = c(353, 353, 353, 649, 649, 649, 524, 524, 524) ,
+                       unfavorable = c(394, 394, 394, 601, 601, 601, 490, 490, 490) ,
+                       neutral = c(1931, 1931, 1931, 1294, 1294, 1294, 789, 789, 789) ,
+                       uninf = c(6322, 6322, 6322, 5709, 5709, 5709, 5200, 5200, 5200) ,
+                       netChange = c(-0.00456, 0.00078, 0.00456) ,
+                       winRatio = c(0.89594, 1.00704, 1.02761) )
+        } else if(method == "Peron"){
+            GS <- list(favorable = c(2443.46245, 2443.46245, 2443.46245, 979.48639, 979.48639, 979.48639, 629.90518, 629.90518, 629.90518) ,
+                       unfavorable = c(1395.18398, 1395.18398, 1395.18398, 1113.57451, 1113.57451, 1113.57451, 723.57513, 723.57513, 723.57513) ,
+                       neutral = c(5161.35357, 5161.35357, 5161.35357, 3068.29267, 3068.29267, 3068.29267, 1714.81237, 1714.81237, 1714.81237) ,
+                       uninf = c(0, 0, 0, 0, 0, 0, 0, 0, 0) ,
+                       netChange = c(0.11648, 0.10158, 0.09117) ,
+                       winRatio = c(1.75136, 1.3644, 1.25385) )
+            expect_equal(GS, test, tol = 1e-4, scale = 1)
+            ## butils::object2script(test, digit = 5)
+        }
         
         ## *** same result for each pair
         tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table
@@ -327,6 +336,7 @@ test_that(paste0("BuyseTest - tte (same, ",method,", strata)"),{
                      unname(dt.tableS[,favorable + unfavorable + neutral + uninf]),
                      tolerance = 1e-1, scale = 1) ## inexact for Peron
 })
+}
 
 ## * Mixed endpoints 
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
@@ -390,6 +400,17 @@ test_that("ordering does not matter", {
                            data = dt.sim, scoring.rule = method)
     expect_equal(BT.mixed2@Delta.netBenefit[2:3],BT.mixed1@Delta.netBenefit)
     expect_equal(BT.mixed2@Delta.winRatio[2:3],BT.mixed1@Delta.winRatio)
+})
+
+test_that(paste0("BuyseTest - Peron scoring rule with 2 TTE, one without censoring"),{ 
+    
+    BT.mixed <- BuyseTest(treatment ~ tte(eventtime2, status2, threshold = 0.5) + tte(eventtime1, status1.noC, threshold = 0),
+                          data = dt.sim, scoring.rule = "Peron")
+    ## summary(BT.mixed)
+    BT.mixed <- BuyseTest(treatment ~ tte(eventtime1, status1.noC, threshold = 0) + tte(eventtime2, status2, threshold = 0.5),
+                          data = dt.sim, scoring.rule = "Peron")
+    ## summary(BT.mixed)
+
 })
 
 ## * dataset [save]

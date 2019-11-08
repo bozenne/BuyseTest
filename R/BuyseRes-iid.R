@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: sep 13 2019 (14:06) 
+## Last-Updated: nov  8 2019 (13:24) 
 ##           By: Brice Ozenne
-##     Update #: 66
+##     Update #: 67
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -74,9 +74,9 @@ setMethod(f = "iid",
               ## ** extract H-decomposition
               n.endpoint <- length(valid.endpoint)
 
-              n.obs <- NROW(object@iid$favorable)
+              n.obs <- NROW(object@iidAverage$favorable)
               if(type %in% c("all","u-statistic")){
-                  object.iid <- object@iid
+                  object.iid <- object@iidAverage
               }else{
                   object.iid <- list(favorable = matrix(0, nrow = n.obs, ncol = n.endpoint,
                                                         dimnames = list(NULL, valid.endpoint)),

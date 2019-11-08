@@ -48,7 +48,7 @@ setClass(
       covariance = "matrix",
       covarianceResampling = "array",
       weight = "numeric",
-      iid = "list",
+      iidAverage = "list",
       iidNuisance = "list",
       tablePairScore = "list",
       tableSurvival = "list"
@@ -89,8 +89,8 @@ methods::setMethod(
                                    covariance,
                                    covarianceResampling,
                                    weight,
-                                   iid_favorable,
-                                   iid_unfavorable,
+                                   iidAverage_favorable,
+                                   iidAverage_unfavorable,
                                    iidNuisance_favorable,
                                    iidNuisance_unfavorable,
                                    tablePairScore,
@@ -165,13 +165,13 @@ methods::setMethod(
                  }
                  .Object@weight <- weight
                  
-                 .Object@iid <- list(favorable = iid_favorable,
-                                     unfavorable = iid_unfavorable)
-                 if(!is.null(.Object@iid[[1]])){
-                     colnames(.Object@iid[[1]]) <- name.endpoint
+                 .Object@iidAverage <- list(favorable = iidAverage_favorable,
+                                            unfavorable = iidAverage_unfavorable)
+                 if(!is.null(.Object@iidAverage[[1]])){
+                     colnames(.Object@iidAverage[[1]]) <- name.endpoint
                  }
-                 if(!is.null(.Object@iid[[2]])){
-                     colnames(.Object@iid[[2]]) <- name.endpoint
+                 if(!is.null(.Object@iidAverage[[2]])){
+                     colnames(.Object@iidAverage[[2]]) <- name.endpoint
                  }
                  .Object@iidNuisance <- list(favorable = iidNuisance_favorable,
                                              unfavorable = iidNuisance_unfavorable)

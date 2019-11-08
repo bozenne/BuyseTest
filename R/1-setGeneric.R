@@ -19,9 +19,9 @@ setGeneric(name = "getCount",
 #' @rdname BuyseRes-getPairScore
 #' @exportMethod getPairScore
 setGeneric(name = "getPairScore",
-           def = function(object, endpoint = NULL, strata = NULL,
+           def = function(object, endpoint = NULL, strata = NULL, sum = FALSE,
                           rm.withinStrata = TRUE, rm.strata = is.na(object@strata),
-                          rm.indexPair = TRUE, rm.weight = FALSE,
+                          rm.indexPair = TRUE, rm.weight = FALSE, rm.corrected = (object@correction.uninf==0),
                           unlist = TRUE, trace = 1){
                standardGeneric("getPairScore")
            }

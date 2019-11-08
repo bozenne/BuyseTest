@@ -44,6 +44,7 @@ initializeArgs <- function(censoring,
                            scoring.rule = NULL,
                            model.tte,
                            n.resampling = NULL,
+                           strata.resampling = NULL,
                            name.call,
                            neutral.as.uninf = NULL,
                            operator,
@@ -64,6 +65,7 @@ initializeArgs <- function(censoring,
     if(is.null(correction.uninf)){ correction.uninf <- option$correction.uninf }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
+    if(is.null(strata.resampling)){ strata.resampling <- option$strata.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
     if(is.null(trace)){ trace <- option$trace }
     alternative <- option$alternative
@@ -114,23 +116,48 @@ initializeArgs <- function(censoring,
 
         type[grep(paste(validType1,collapse="|"), type)] <- "1" 
         type[grep(paste(validType2,collapse="|"), type)] <- "2" 
-        type[grep(paste(validType3,collapse="|"), type)] <- "3" 
-        type <- switch(type,
-                       "1" = 1, ## binary endpoint
-                       "2" = 2, ## continuous endpoint
-                       "3" = 3, ## time to event endpoint
-                       NA)
+        type[grep(paste(validType3,collapse="|"), type)] <- "3"
+        type <- sapply(type, function(iType){
+            switch(iType,
+                   "1" = 1, ## binary endpoint
+                   "2" = 2, ## continuous endpoint
+                   "3" = 3, ## time to event endpoint
+                   NA)})
     }
  
+    ## ** endpoint
+    index.type3 <- which(type==3)
+    
+    D <- length(endpoint)
+    Uendpoint <- unique(endpoint)
+    
+    ## time to event endpoints 
+    endpoint.TTE <- endpoint[index.type3]
+    threshold.TTE <- threshold[index.type3]
+    D.TTE <- length(endpoint.TTE) 
+
+    ## ** censoring
+    if(D.TTE==0){
+        censoring <- rep("..NA..", D)
+    }else if(length(censoring) == D.TTE){
+        censoring.save <- censoring
+        censoring <- rep("..NA..", D)
+        censoring[index.type3] <- censoring.save 
+    }
+    Ucensoring <- unique(censoring)
+    censoring.TTE <- censoring[index.type3]
+    ## from now, censoring contains for each endpoint the name of variable indicating censoring (0) or event (1) or NA
+    
+    
     ## ** scoring.rule
     ## WARNING: choices must be lower cases
     ##          remember to update check scoring.rule (in BuyseTest-check.R)
     scoring.rule <- tolower(scoring.rule)
     scoring.rule <- switch(scoring.rule,
-                         "gehan" = 0,
-                         "peron" = 1,
-                         NA
-                         )
+                           "gehan" = 0,
+                           "peron" = 1,
+                           NA
+                           )
 
     if (D.TTE == 0) {
         scoring.rule <- 0
@@ -139,35 +166,6 @@ initializeArgs <- function(censoring,
         }
     }
 
-    ## ** endpoint
-    index.type3 <- which(type==3)
-    
-    D <- length(endpoint)
-    Uendpoint <- unique(endpoint)
-    Ucensoring <- unique(censoring)
-    
-    ## time to event endpoints 
-    endpoint.TTE <- endpoint[index.type3]
-    threshold.TTE <- threshold[index.type3]
-    D.TTE <- length(endpoint) 
-
-    ## distinct time to event endpoints
-    endpoint.UTTE <- unique(endpoint.TTE)
-    D.UTTE <- length(endpoint.UTTE)
-
-    ## correspondance endpoint, TTE endpoint (non TTEe endpoint are set to -100)
-    index.UTTE = match(endpoint, endpoint.UTTE, nomatch = -99) - 1
-    
-    ## ** censoring
-    if(D.TTE==0){
-        censoring <- rep("..NA..", D)
-    }else if(length(censoring) == D.TTE){
-        censoring.save <- censoring
-        censoring <- rep("..NA..", D)
-        censoring[index.type3] <- censoring.save 
-    }    
-    ## from now, censoring contains for each endpoint the name of variable indicating censoring (0) or event (1) or NA
-    
     ## ** threshold
     if(is.null(threshold)){
         threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
@@ -191,21 +189,32 @@ initializeArgs <- function(censoring,
     attr(method.inference,"permutation") <- grepl("permutation",method.inference)
     attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
     attr(method.inference,"studentized") <- grepl("studentized",method.inference)
-    attr(method.inference,"stratified") <- grepl("stratified",method.inference)
     attr(method.inference,"ustatistic") <- grepl("u-statistic",method.inference)
-    if(is.null(strata) && length(grep("stratified ",method.inference))>0){ ## remove stratified if no strata variable
-        method.inference <- gsub("stratified ","",method.inference)
-        attr(method.inference,"stratified") <- FALSE
+    if(identical(strata.resampling,"treatment")){
+        attr(method.inference,"resampling-strata:treatment") <- TRUE
+        attr(method.inference,"resampling-strata:strata") <- FALSE
+    }else if(identical(strata.resampling,"strata")){
+        attr(method.inference,"resampling-strata:treatment") <- FALSE
+        attr(method.inference,"resampling-strata:strata") <- TRUE
+    }else if(is.na(strata.resampling) || length(strata.resampling)== 0){
+        attr(method.inference,"resampling-strata:treatment") <- FALSE
+        attr(method.inference,"resampling-strata:strata") <- FALSE
+    }else{
+        attr(method.inference,"resampling-strata:treatment") <- NA
+        attr(method.inference,"resampling-strata:strata") <- NA
     }
-
+    
     ## ** correction.uninf
     correction.uninf <- as.numeric(correction.uninf)
 
     ## ** model.tte
     if(identical(scoring.rule,1)){
-        if((!is.null(model.tte)) && (D.TTE == 1) && inherits(model.tte, "prodlim")){
+        if((!is.null(model.tte)) && (length(unique(endpoint.TTE)) == 1) && inherits(model.tte, "prodlim")){
+            attr.save <- attr(model.tte,"iidNuisance")
+            
             model.tte <- list(model.tte)
-            names(model.tte) <- endpoint.TTE
+            names(model.tte) <- unique(endpoint.TTE)
+            attr(model.tte,"iidNuisance") <- attr.save
         }
     }else{
         model.tte <- NULL
@@ -221,52 +230,35 @@ initializeArgs <- function(censoring,
     }else{
         attr(method.inference,"hprojection") <- NA
     }
-    iidNuisance <- iid && identical(scoring.rule,1) && is.null(model.tte)
+    iidNuisance <- iid && identical(scoring.rule,1) && (is.null(model.tte) || identical(attr(model.tte,"iidNuisance"),TRUE))
 
     ## ** cpu
     if (cpus == "all") { 
         cpus <- parallel::detectCores() # this function detect the number of CPU cores 
     }
 
-    ## ** previously analyzed distinct TTE endpoints
-    if(any(na.omit(scoring.rule)==1)){ ## only relevant when using Peron scoring rule
-        ## number of distinct, previously analyzed, TTE endpoints
-        nUTTE.analyzedPeron_M1 <- sapply(1:D, function(iE){
-            if(iE>1){
-                sum(endpoint.UTTE %in% endpoint[1:(iE-1)])
-            }else{
-                return(0)
-            }
-        })
-    }else{
-        nUTTE.analyzedPeron_M1 <- rep(0,D)
-    }
-
     ## ** export
     return(list(
         name.call = name.call,
         censoring = censoring,
+        censoring.TTE = censoring.TTE,
         correction.uninf = correction.uninf,
         cpus = cpus,
         D = D,
         D.TTE = D.TTE,
-        D.UTTE = D.UTTE,
         data = data,
         endpoint = endpoint,
         endpoint.TTE = endpoint.TTE,
-        endpoint.UTTE = endpoint.UTTE,
         formula = formula,
         iid = iid,
         iidNuisance = iidNuisance,
         index.endpoint = match(endpoint, Uendpoint) - 1,
         index.censoring = match(censoring, Ucensoring) - 1,
-        index.UTTE = index.UTTE, 
         keep.pairScore = keep.pairScore,
         keep.survival = option$keep.survival,
         scoring.rule = scoring.rule,
         model.tte = model.tte,
         method.inference = method.inference,
-        nUTTE.analyzedPeron_M1 = nUTTE.analyzedPeron_M1,
         n.resampling = n.resampling,
         hierarchical = hierarchical,
         neutral.as.uninf = neutral.as.uninf,
@@ -280,13 +272,15 @@ initializeArgs <- function(censoring,
         type = type,
         Uendpoint = Uendpoint,
         Ucensoring = Ucensoring,
-        weight = weight
+        weight = weight,
+        debug = option$debug
     ))
 }
 
 ## * initializeData
 #' @rdname internal-initialization
-initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, censoring, Ucensoring, operator, strata, treatment, copy){
+initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, censoring, Ucensoring, method.inference, operator, strata, treatment, hierarchical, copy,
+                           endpoint.TTE, censoring.TTE, iidNuisance){
 
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
@@ -331,11 +325,9 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
         data[ , c("..strata..") := interaction(.SD, drop = TRUE, lex.order = FALSE, sep = "."), .SDcols = strata]
         level.strata <- levels(data[["..strata.."]])        
         data[ , c("..strata..") := as.numeric(.SD[["..strata.."]])] # convert to numeric
-        data.table::setkeyv(data, cols = c("..strata..", treatment)) ## important to first sort by strata when doing the resampling
         
         n.obsStrata <- data[,.N, by = "..strata.."][,setNames(.SD[[1]],.SD[[2]]),.SD = c("N","..strata..")]
     }else{
-        data.table::setkeyv(data, cols = treatment)
         
         data[ , c("..strata..") := 1]
         n.obsStrata <- n.obs
@@ -357,32 +349,82 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
         data[,c("..NA..") := as.numeric(NA)]
     }
 
+    ## ** TTE with censoring
+    if(scoring.rule>0){
+        test.censoring <- sapply(censoring.TTE, function(iC){any(data[[iC]]==0)})
+        if(all(test.censoring==FALSE)){
+            scoring.rule <- 0
+            iidNuisance <- FALSE
+        }        
+
+        ## distinct time to event endpoints
+        endpoint.UTTE <- unique(endpoint.TTE[test.censoring])
+        censoring.UTTE <- unique(censoring.TTE[test.censoring])
+        D.UTTE <- length(endpoint.UTTE)
+
+        ## correspondance endpoint, TTE endpoint (non TTEe endpoint are set to -100)
+        index.UTTE = match(endpoint, endpoint.UTTE, nomatch = -99) - 1
+    }else{
+        endpoint.UTTE <- numeric(0)
+        censoring.UTTE <- numeric(0)
+        D.UTTE <- 0
+        index.UTTE <- rep(-100, D)
+    }
+    
     ## ** scoring method for each endpoint
+    ## check if censoring
     method.score <- 1 + (type==3) ## 1 binary/continuous and 2 Gehan
     if(scoring.rule > 0){ ## if Peron
         test.CR <- sapply(Ucensoring, function(iC){max(data[[iC]])>1})[censoring]
-        method.score[type == 3] <- method.score[type == 3] + 1 + test.CR[type == 3]
+        method.score[type == 3] <- method.score[type == 3] + test.censoring * (1 + test.CR[type == 3])
         ## 3 Peron survival
         ## 4 Peron CR
     }
 
+
+    ## ** previously analyzed distinct TTE endpoints
+    if((scoring.rule==1) && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
+        ## number of distinct, previously analyzed, TTE endpoints
+        nUTTE.analyzedPeron_M1 <- sapply(1:D, function(iE){
+            if(iE>1){
+                sum(endpoint.UTTE %in% endpoint[1:(iE-1)])
+            }else{
+                return(0)
+            }
+        })
+    }else{
+        nUTTE.analyzedPeron_M1 <- rep(0,D)
+    }
+
+    ## ** number of observations per strata used when resampling
+    index.C <- which(data[[treatment]] == 0)
+    index.T <- which(data[[treatment]] == 1)
+    
+    if(attr(method.inference,"resampling-strata:treatment")){
+        n.obsStrataResampling <- c(length(index.C), length(index.T))
+    }else if(attr(method.inference,"resampling-strata:strata")){
+        n.obsStrataResampling <- n.obsStrata
+    }else{
+        n.obsStrataResampling <- n.obs
+    }
+    
     ## ** skeleton for survival proba (only relevant for Peron scoring rule)
-    seletonPeron <- list(survTimeC = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
-                         survTimeT = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
-                         survJumpC = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
-                         survJumpT = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
-                         lastSurv = lapply(1:D, function(iS){matrix(nrow = n.strata, ncol = 4)}), ## 4 for competing risk setting, 2 is enough for survival
-                         p.C = matrix(NA, nrow = n.strata, ncol = D),
-                         p.T = matrix(NA, nrow = n.strata, ncol = D)
-                         )
+    skeletonPeron <- list(survTimeC = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
+                          survTimeT = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
+                          survJumpC = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
+                          survJumpT = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
+                          lastSurv = lapply(1:D, function(iS){matrix(nrow = n.strata, ncol = 4)}), ## 4 for competing risk setting, 2 is enough for survival
+                          p.C = matrix(NA, nrow = n.strata, ncol = D),
+                          p.T = matrix(NA, nrow = n.strata, ncol = D)
+                          )
 
 
     ## ** export
     return(list(data = data[,.SD,.SDcols =  c(treatment,"..strata..")],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
                 M.censoring = as.matrix(data[, .SD, .SDcols = Ucensoring]),
-                index.C = which(data[[treatment]] == 0),
-                index.T = which(data[[treatment]] == 1),
+                index.C = index.C,
+                index.T = index.T,
                 index.strata = tapply(data[["..rowIndex.."]], data[["..strata.."]], list),
                 level.treatment = level.treatment,
                 level.strata = level.strata,
@@ -390,8 +432,15 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
                 n.strata = n.strata,
                 n.obs = n.obs,
                 n.obsStrata = n.obsStrata,
-                cumn.obsStrata = cumsum(c(0,n.obsStrata))[1:n.strata],
-                skeletonPeron = skeletonPeron
+                n.obsStrataResampling = n.obsStrataResampling,
+                skeletonPeron = skeletonPeron,
+                scoring.rule = scoring.rule,
+                iidNuisance = iidNuisance,
+                nUTTE.analyzedPeron_M1 = nUTTE.analyzedPeron_M1,
+                endpoint.UTTE = endpoint.UTTE,
+                censoring.UTTE = censoring.UTTE,
+                D.UTTE = D.UTTE,
+                index.UTTE = index.UTTE
                 ))
 }
 
@@ -569,13 +618,15 @@ initializePeron <- function(data,
                             endpoint.TTE,
                             endpoint.UTTE,
                             censoring,
+                            censoring.TTE,
+                            censoring.UTTE,
                             D.TTE,
                             D.UTTE,
                             type,
                             strata,
                             threshold,
                             n.strata,
-                            iid,
+                            iidNuisance,
                             out){
 
     ## ** prepare
@@ -595,10 +646,6 @@ initializePeron <- function(data,
     }            
     zeroPlus <- 1e-12
 
-    ## ** unique tte endpoints
-    censoring.TTE <- censoring[type==3]
-    censoring.UTTE <- censoring.TTE[which(!duplicated(endpoint.TTE))]
-
     ## ** estimate cumulative incidence function (survival case or competing risk case)
     if(is.null(model.tte)){        
         model.tte <- vector(length = D.UTTE, mode = "list")
@@ -609,24 +656,25 @@ initializePeron <- function(data,
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.UTTE <- 1
             model.tte[[iEndpoint.UTTE]] <- prodlim::prodlim(as.formula(txt.modelUTTE[iEndpoint.UTTE]),
                                                             data = data)
+            model.tte[[iEndpoint.UTTE]]$XX <- model.tte[[iEndpoint.UTTE]]$X
         }
         
     }else{
-        iid <- FALSE
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
             ## convert treatment to numeric
-            model.tte[[iEndpoint.UTTE]]$X[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.UTTE]]$X[[treatment]], levels = level.treatment))-1
-            p <- NCOL(model.tte[[iEndpoint.UTTE]]$X)
+            model.tte[[iEndpoint.UTTE]]$XX <- model.tte[[iEndpoint.UTTE]]$X
+            model.tte[[iEndpoint.UTTE]]$XX[[treatment]] <- as.numeric(factor(model.tte[[iEndpoint.UTTE]]$XX[[treatment]], levels = level.treatment))-1
+            p <- NCOL(model.tte[[iEndpoint.UTTE]]$XX)
 
             ## create ..strata..
             if(p==1){
-                model.tte[[iEndpoint.UTTE]]$X <- cbind(model.tte[[iEndpoint.UTTE]]$X,
-                                                       "..strata.." = 1)
+                model.tte[[iEndpoint.UTTE]]$XX <- cbind(model.tte[[iEndpoint.UTTE]]$XX,
+                                                        "..strata.." = 1)
             }else{
-                col.strata <- setdiff(1:p,which(colnames(model.tte[[iEndpoint.UTTE]]$X)==treatment))
-                value.strata <- apply(model.tte[[iEndpoint.UTTE]]$X[,col.strata],1,paste0,collapse="")
-                model.tte[[iEndpoint.UTTE]]$X <- cbind(model.tte[[iEndpoint.UTTE]]$X,
-                                                       "..strata.." = as.numeric(as.factor(value.strata)))
+                col.strata <- setdiff(1:p,which(colnames(model.tte[[iEndpoint.UTTE]]$XX)==treatment))
+                value.strata <- apply(model.tte[[iEndpoint.UTTE]]$XX[,col.strata],1,paste0,collapse="")
+                model.tte[[iEndpoint.UTTE]]$XX <- cbind(model.tte[[iEndpoint.UTTE]]$XX,
+                                                        "..strata.." = as.numeric(as.factor(value.strata)))
 
             }
         }
@@ -646,16 +694,16 @@ initializePeron <- function(data,
             index.jump <- which(model.tte[[iEndpoint.UTTE]]$hazard>0)
         }
         
-        indexX.C <- which(model.tte[[iEndpoint.UTTE]]$X[[treatment]]==0)
-        indexX.T <- which(model.tte[[iEndpoint.UTTE]]$X[[treatment]]==1)
+        indexX.C <- which(model.tte[[iEndpoint.UTTE]]$XX[[treatment]]==0)
+        indexX.T <- which(model.tte[[iEndpoint.UTTE]]$XX[[treatment]]==1)
 
         
         for(iStrata in 1:n.strata){ ## iStrata <- 1
             iNcontrol <- length(ls.indexC[[iStrata]])
             iNtreatment <- length(ls.indexT[[iStrata]])
 
-            if("..strata.." %in% colnames(model.tte[[iEndpoint.UTTE]]$X)){
-                indexX.strata <- which(model.tte[[iEndpoint.UTTE]]$X[["..strata.."]]==iStrata)
+            if("..strata.." %in% colnames(model.tte[[iEndpoint.UTTE]]$XX)){
+                indexX.strata <- which(model.tte[[iEndpoint.UTTE]]$XX[["..strata.."]]==iStrata)
                 indexX.strataC <- intersect(indexX.C,indexX.strata)
                 indexX.strataT <- intersect(indexX.T,indexX.strata)
             }
@@ -818,7 +866,7 @@ initializePeron <- function(data,
                                                                    survival = iSurvT[iIndexSurvivalT.JumpCpTau],
                                                                    dSurvival = iDSurvC)
 
-                    if(iid){
+                    if(iidNuisance){
                         out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(out$survJumpC[[iEndpoint]][[iStrata]],
                                                                        index.survival = iIndexSurvivalT.JumpCpTau - 1,
                                                                        index.dSurvival1 = iIndexSurvivalC.JumpCm - 1,
@@ -836,7 +884,7 @@ initializePeron <- function(data,
                     out$survJumpT[[iEndpoint]][[iStrata]] <- cbind(time = iJumpT,
                                                                    survival = iSurvC[iIndexSurvivalC.JumpTpTau],
                                                                    dSurvival = iDSurvT)
-                    if(iid){
+                    if(iidNuisance){
                         out$survJumpT[[iEndpoint]][[iStrata]] <- cbind(out$survJumpT[[iEndpoint]][[iStrata]],
                                                                        index.survival = iIndexSurvivalC.JumpTpTau - 1,
                                                                        index.dSurvival1 = iIndexSurvivalT.JumpTm - 1,
@@ -860,7 +908,7 @@ initializePeron <- function(data,
                                                                "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeCmTau],
                                                                "SurvivalT_0" = iSurvivalT.timeC,
                                                                "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeCpTau])
-                if(iid){                    
+                if(iidNuisance){                    
                     out$survTimeC[[iEndpoint]][[iStrata]] <- cbind(out$survTimeC[[iEndpoint]][[iStrata]],
                                                                    "index.SurvivalC-threshold" = iIndexSurvivalC.timeCmTau - 1,
                                                                    "index.SurvivalC_0" = iIndexSurvivalC.timeC - 1,
@@ -884,7 +932,7 @@ initializePeron <- function(data,
                                                                "SurvivalT_0" = iSurvivalT.timeT,
                                                                "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeTpTau]
                                                                )
-                if(iid){
+                if(iidNuisance){
                     out$survTimeT[[iEndpoint]][[iStrata]] <- cbind(out$survTimeT[[iEndpoint]][[iStrata]],
                                                                    "index.SurvivalC-threshold" = iIndexSurvivalC.timeTmTau - 1,
                                                                    "index.SurvivalC_0" = iIndexSurvivalC.timeT - 1,
@@ -912,20 +960,9 @@ initializePeron <- function(data,
     out$iid <- lapply(out$iid, function(x){template})
     names(out$iid) <- c("survJumpC","dSurvJumpC","survJumpT","dSurvJumpT")
 
-    if(iid){
-        restaureOrder <- unlist(lapply(1:n.strata,function(iStrata){
-            c(ls.indexC[[iStrata]],ls.indexT[[iStrata]])
-        }))
-        
+    if(iidNuisance){
         iid.model.tte <- lapply(model.tte, function(iModel){ ## iModel <- model.tte[[1]]
             iOut <- iidProdlim(iModel, add0 = TRUE)
-
-            if(is.unsorted(restaureOrder)){
-                iOut$IFsurvival <- lapply(iOut$IFsurvival, function(iIF){
-                    iIF[restaureOrder,,drop=FALSE]
-                })
-            }
-            
             iOut$IFsurvival.control <- iOut$IFsurvival[which(iOut$X[,treatment]==0)]
             iOut$IFsurvival.treatment <- iOut$IFsurvival[which(iOut$X[,treatment]==1)]
             return(iOut)
@@ -935,7 +972,6 @@ initializePeron <- function(data,
             iIndex.associatedEndpoint <- which(endpoint == iEndpoint.UTTE.name)
 
             for(iStrata in 1:n.strata){  ## iStrata <- 1
-
                 iIID.control <- iid.model.tte[[iEndpoint]]$IFsurvival.control[[iStrata]]
                 iIID.treatment <- iid.model.tte[[iEndpoint]]$IFsurvival.treatment[[iStrata]]
 
@@ -953,14 +989,13 @@ initializePeron <- function(data,
                 }else{
                     out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <-  iIID.treatment
                 }
-                
                 out$p.C[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.control)
                 out$p.T[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.treatment)
             }
         }
         
     }
-
+    
     ## ** export
     return(out)
     

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 26 2019 (14:23) 
+## Last-Updated: nov  8 2019 (13:07) 
 ##           By: Brice Ozenne
-##     Update #: 119
+##     Update #: 121
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,7 +40,7 @@ dt.sim <- data.table(
 
 test_that("number of pairs - argument neutral.as.uninf", {
 
-    for(iCorrection in c(FALSE,TRUE)){ ## iCorrection <- FALSE
+    for(iCorrection in c(FALSE,TRUE)){ ## iCorrection <- TRUE
         BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,censoring=eventOS) + cont(Mgrade.tox,threshold=0),
                           data = dt.sim,
                           neutral.as.uninf = TRUE, scoring.rule = "Gehan", correction.uninf = iCorrection)
@@ -96,12 +96,6 @@ test_that("number of pairs - argument neutral.as.uninf", {
             ## class(GS[["n.resampling"]])
         }
     }
-
-
-
-    
-
-    
 })
 
 ## * Emeline T: samedi 26 mai 2018 à 14:39 (Version 1.0)
@@ -236,101 +230,6 @@ test_that("Multiple thresholds",{
     GS <- c(Inf, Inf, 5.35344, 5.74093, 6.19986, 7.57457, 5.08161, 2.02241, 1.95291, 1.2073, 1.2624, 0.98564, 1.35904, 1.10508, 1.16666)
     expect_equal(as.double(BuyseresPer@delta.winRatio), GS, tol = 1e-3)
 })
-
-
-## * Brice: 12/10/18 3:02 (Wscheme)
-
-BuyseTest_buildWscheme <- BuyseTest:::buildWscheme
-## BuyseTest_buildWscheme <- buildWscheme
-
-endpoint <- c("time","time","time")
-threshold <- c(3:1)
-D <- length(endpoint)
-type <- rep(3, D)
-D.TTE <- sum(type==3)
-
-test_that("Wscheme: 3 times the same endpoint",{
-    Wtest <- BuyseTest_buildWscheme(scoring.rule = 1,
-                                    endpoint = endpoint,
-                                    D.TTE = D.TTE,
-                                    D = D,
-                                    type = type,
-                                    n.strata = 1,
-                                    threshold = threshold)
-
-    ## butils::object2script(Wtest$Wscheme)
-    GS <- list(Wscheme = matrix(c(NA, NA, NA, 0, NA, NA, 0, 0, NA),
-                                nrow = 3, ncol = 3,
-                                dimnames = list(c("weigth of time(3)", "weigth of time(2)", "weigth of time(1)"),
-                                                c("for time(3)", "for time(2)", "for time(1)")) ),
-               endpoint.UTTE = "time",
-               index.UTTE = c(0,0,0),
-               D.UTTE = 1,
-               reanalyzed = c(TRUE, TRUE, FALSE) )
-
-    expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
-})
-
-endpoint <- c("time","time1","time","time","time2","time1")
-threshold <- c(6:1)
-D <- length(endpoint)
-type <- rep(3, D)
-D.TTE <- sum(type==3)
-
-test_that("Wscheme: 6 tte endpoint",{
-    Wtest <- BuyseTest_buildWscheme(scoring.rule = 1,
-                                    endpoint = endpoint,
-                                    D.TTE = D.TTE,
-                                    D = D,
-                                    type = type,
-                                    n.strata = 1,
-                                    threshold = threshold)
-
-    ## butils::object2script(Wtest)
-    GS <- list(Wscheme = matrix(c(NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 0, 1, NA, NA, NA, NA, 0, 1, 0, NA, NA, NA, 0, 1, 0, 1, NA, NA, 0, 0, 0, 1, 1, NA), 
-                                nrow = 6, 
-                                ncol = 6, 
-                                dimnames = list(c("weigth of time(6)", "weigth of time1(5)", "weigth of time(4)", "weigth of time(3)", "weigth of time2(2)", "weigth of time1(1)"),
-                                                c("for time(6)", "for time1(5)", "for time(4)", "for time(3)", "for time2(2)", "for time1(1)")) 
-                                ),
-               endpoint.UTTE = c("time","time1","time2"),
-               index.UTTE = c(0,1,0,0,2,1),
-               D.UTTE = 3,
-               reanalyzed = c(TRUE, TRUE, TRUE, FALSE, FALSE, FALSE) )
-
-    expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
-})
-
-endpoint <- c("time","bin","bin","time","bin","time")
-threshold <- c(6:1)
-D <- length(endpoint)
-type <- 1+(endpoint=="time")*2
-D.TTE <- sum(type==3)
-
-test_that("Wscheme: 6 mixed endpoint",{
-    Wtest <- BuyseTest_buildWscheme(scoring.rule = 1,
-                                    endpoint = endpoint,
-                                    D.TTE = D.TTE,
-                                    D = D,
-                                    type = type,
-                                    n.strata = 1,
-                                    threshold = threshold)
-
-    ## butils::object2script(Wtest)
-    GS <- list(Wscheme = matrix(c(NA, NA, NA, NA, NA, NA, 1, NA, NA, NA, NA, NA, 1, 1, NA, NA, NA, NA, 0, 1, 1, NA, NA, NA, 0, 1, 1, 1, NA, NA, 0, 1, 1, 0, 1, NA), 
-                                nrow = 6, 
-                                ncol = 6, 
-                                dimnames = list(c("weigth of time(6)", "weigth of bin(5)", "weigth of bin(4)", "weigth of time(3)", "weigth of bin(2)", "weigth of time(1)"),
-                                                c("for time(6)", "for bin(5)", "for bin(4)", "for time(3)", "for bin(2)", "for time(1)")) 
-                                ),
-               endpoint.UTTE = "time",
-               index.UTTE = c(0,-1,-1,0,-1,0),
-               D.UTTE = 1,
-               reanalyzed = c(TRUE, TRUE, TRUE, TRUE, FALSE, FALSE) )
-
-    expect_equal(Wtest[c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed")], GS)
-})
-
 
 ## * Brice: 30/10/18 4:36 Neutral pairs with 0 threshold
 df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),

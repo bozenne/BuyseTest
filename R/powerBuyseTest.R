@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: sep 26 2019 (15:24) 
+## Last-Updated: nov  8 2019 (13:22) 
 ##           By: Brice Ozenne
-##     Update #: 496
+##     Update #: 500
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -165,17 +165,6 @@ powerBuyseTest <- function(sim,
     outArgs$level.strata <- "1"
     outArgs$allstrata <- NULL
     
-    ## ** create weights matrix for survival endpoints
-    ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    out.name <- c("Wscheme","endpoint.UTTE","index.UTTE","D.UTTE","reanalyzed","outSurv")
-    outArgs[out.name] <- buildWscheme(scoring.rule = outArgs$scoring.rule,
-                                      endpoint = outArgs$endpoint,
-                                      D = outArgs$D,
-                                      D.TTE = outArgs$D.TTE,
-                                      n.strata = outArgs$n.strata,
-                                      type = outArgs$type,
-                                      threshold = outArgs$threshold)
-
     ## ** Display
     if (trace > 1) {
         cat("         Simulation study with BuyseTest \n\n")
@@ -223,18 +212,28 @@ powerBuyseTest <- function(sim,
         ## *** Initialize data
         out.name <- c("data","M.endpoint","M.censoring",
                       "index.C","index.T","index.strata",
-                      "index.endpoint","index.censoring","level.treatment","level.strata", "method.score",
-                      "n.strata","n.obs","n.obsStrata","cumn.obsStrata")
+                      "level.treatment","level.strata", "method.score",
+                      "n.strata","n.obs","n.obsStrata","cumn.obsStrata",
+                      "skeletonPeron","scoring.rule","iidNuisance","nUTTE.analyzedPeron_M1",
+                      "endpoint.UTTE","censoring.UTTE","D.UTTE","index.UTTE")
 
         envir$outArgs[out.name] <- initializeData(data = sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax),
                                                   type = envir$outArgs$type,
                                                   endpoint = envir$outArgs$endpoint,
+                                                  Uendpoint = envir$outArgs$Uendpoint,
+                                                  D = envir$outArgs$D,
                                                   scoring.rule = envir$outArgs$scoring.rule,
                                                   censoring = envir$outArgs$censoring,
+                                                  Ucensoring = envir$outArgs$Ucensoring,
                                                   operator = envir$outArgs$operator,
                                                   strata = envir$outArgs$strata,
                                                   treatment = envir$outArgs$treatment,
-                                                  copy = FALSE)
+                                                  hierarchical = envir$outArgs$hierarchical,
+                                                  copy = FALSE,
+                                                  endpoint.TTE = envir$outArgs$endpoint.TTE,
+                                                  censoring.TTE = envir$outArgs$censoring.TTE,
+                                                  iidNuisance = envir$outArgs$iidNuisance)
+        
 
         ## *** Point estimate
         outPoint <- .BuyseTest(envir = envir,
@@ -515,8 +514,8 @@ powerBuyseTest <- function(sim,
             covarianceResampling = array(NA, dim = c(0,0,0)),
             covariance = iSigma,
             weight = weight,
-            iid_favorable = NULL,
-            iid_unfavorable = NULL,
+            iidAverage_favorable = NULL,
+            iidAverage_unfavorable = NULL,
             iidNuisance_favorable = NULL,
             iidNuisance_unfavorable = NULL,
             tablePairScore = list(),

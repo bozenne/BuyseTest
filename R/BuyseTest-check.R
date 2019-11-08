@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:29) 
+## Last-Updated: nov  8 2019 (18:09) 
 ##           By: Brice Ozenne
-##     Update #: 169
+##     Update #: 176
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,7 @@ testArgs <- function(name.call,
                      model.tte,
                      method.inference,
                      n.resampling,
+                     strata.resampling,
                      hierarchical,
                      neutral.as.uninf,
                      operator,
@@ -238,15 +239,18 @@ testArgs <- function(name.call,
     if(method.inference != "u-statistic-bebu"){ ## asympototic bebu - hidden value only for debugging
         validCharacter(method.inference,
                        valid.length = 1,
-                       valid.values = c("none","u-statistic",
-                                        "bootstrap","stratified bootstrap","studentized bootstrap","studentized stratified bootstrap",
-                                        "permutation","stratified permutation"),
+                       valid.values = c("none","u-statistic","permutation","bootstrap","studentized bootstrap"),
                        method = "BuyseTest")
     }
     if(method.inference != "none" && any(table(data[[treatment]])<2) ){
-        warning("P-value/confidence intervals based on u-statistic theory will not be valid with one observation \n")
+        warning("P-value/confidence intervals will not be valid with only one observation \n")
     }
-
+    if(is.na(attr(method.inference,"resampling-strata:treatment")) || is.na(attr(method.inference,"resampling-strata:strata"))){
+        stop("Incorrect value for argument \'strata.resampling\': can only be as.character(NA), \"treatment\", or \"strata\" \n")
+    }
+    if(attr(method.inference,"resampling-strata:strata") && is.null(strata)){
+        stop("Argument \'strata.resampling\' cannot be \"strata\" when there is no strata variable \n")
+    }
     if(iid){
         if(is.null(model.tte) && D>1 && scoring.rule > 0){
             warning("The current implementation of the asymptotic distribution does not support several outcomes when scoring.rule=\"Peron\" \n",

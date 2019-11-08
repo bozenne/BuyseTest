@@ -7,6 +7,7 @@ inferenceResampling <- function(envir){
     iid <- envir$outArgs$iid
     level.strata <- envir$outArgs$level.strata
     method.inference <- envir$outArgs$method.inference
+
     n.resampling <- envir$outArgs$n.resampling
     n.strata <- envir$outArgs$n.strata
     seed <- envir$outArgs$seed

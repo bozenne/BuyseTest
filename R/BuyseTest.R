@@ -19,9 +19,11 @@
 #' @param model.tte [list] optional survival models relative to each time to each time to event endpoint.
 #' Models must \code{prodlim} objects and stratified on the treatment and strata variable. When used, the uncertainty from the estimates of these survival models is ignored.
 #' @param method.inference [character] method used to compute confidence intervals and p-values.
-#' Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"stratified permutation"}, \code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"}.
+#' Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"bootstrap"}, \code{"bootstrap"}, \code{"studentized bootstrap"}.
 #' See Details, section "Statistical inference".
 #' @param n.resampling [integer] the number of permutations/samples used for computing the confidence intervals and the p.values. 
+#' See Details, section "Statistical inference".
+#' @param strata.resampling [character] the variable on which the permutation/sampling should be stratified. 
 #' See Details, section "Statistical inference".
 #' @param hierarchical [logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)?
 #' Otherwise all pairs will be compaired for all endpoint (full GPC).
@@ -106,13 +108,14 @@
 #' The variance is computed using a H-projection of order 1 (default option), which is a consistent but downward biased estimator.
 #' An unbiased estimator can be obtained using a H-projection of order 2 (only available for the uncorrected Gehan's scoring rule, see \code{BuyseTest.options}).
 #' \bold{WARNING}: the current implementation of the H-projection is not valid when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}) and the Peron scoring rule (\code{scoring.rule="Peron"}).
-#'   \item argument \code{method.inference="permutation"} or \code{method.inference="stratified permutation"}:
-#'   \item argument \code{method.inference="bootstrap"} or \code{method.inference="stratified bootstrap"}:
+#'   \item argument \code{method.inference="permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio).
+#'   \item argument \code{method.inference="bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio).
+#'   \item argument \code{method.inference=" studentized bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimator.
 #' }
 #' Additional arguments for permutation and bootstrap resampling:
 #' \itemize{
-#'    \item when stratified, permutation and bootstrap are performed separately in each strata level (and not each treatment group).
-#' This is therefore only relevant for stratified analyses.
+#'    \item \code{strata.resampling} If \code{NA} or of length 0, the permutation/non-parametric boostrap will be performed by resampling in the whole sample.
+#' When set to \code{"treatment"} (resp. \code{"strata")), the permutation/non-parametric boostrap will be performed within treatment group (resp. strata).
 #'    \item \code{n.resampling} set the number of permutations/samples used.
 #' A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details.
 #'    \item \code{cpus} indicates whether the resampling procedure can be splitted on several cpus to save time. Can be set to \code{"all"} to use all available cpus.
@@ -123,7 +126,7 @@
 #' \bold{Default values} \cr
 #' The default of the arguments
 #' \code{scoring.rule}, \code{correction.uninf}, \code{method.inference}, \code{n.resampling},
-#' \code{hierarchical}, \code{neutral.as.uninf}, \code{keep.pairScore}, \code{n.resampling},
+#' \code{hierarchical}, \code{neutral.as.uninf}, \code{keep.pairScore}, \code{strata.resampling},
 #' \code{cpus}, \code{trace} is read from \code{BuyseTest.options()}. \cr
 #' Additional (hidden) arguments are \itemize{
 #'  \item \code{alternative} [character] the alternative hypothesis. Must be one of "two.sided", "greater" or "less" (used by \code{confint}).
@@ -248,6 +251,7 @@ BuyseTest <- function(formula,
                       model.tte = NULL,
                       method.inference = NULL,
                       n.resampling = NULL,
+                      strata.resampling = NULL,
                       hierarchical = NULL,
                       weight = NULL,
                       neutral.as.uninf = NULL,
@@ -296,6 +300,7 @@ BuyseTest <- function(formula,
                               scoring.rule = scoring.rule,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
+                              strata.resampling = strata.resampling,
                               name.call = name.call,
                               neutral.as.uninf = neutral.as.uninf,
                               operator = operator,
@@ -323,7 +328,8 @@ BuyseTest <- function(formula,
     out.name <- c("data","M.endpoint","M.censoring",
                   "index.C","index.T","index.strata",
                   "level.treatment","level.strata", "method.score",
-                  "n.strata","n.obs","n.obsStrata","cumn.obsStrata","skeletonPeron")
+                  "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","skeletonPeron",
+                  "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "censoring.UTTE", "D.UTTE","index.UTTE")
     outArgs[out.name] <- initializeData(data = outArgs$data,
                                         type = outArgs$type,
                                         endpoint = outArgs$endpoint,
@@ -332,10 +338,15 @@ BuyseTest <- function(formula,
                                         scoring.rule = outArgs$scoring.rule,
                                         censoring = outArgs$censoring,
                                         Ucensoring = outArgs$Ucensoring,
+                                        method.inference = outArgs$method.inference,
                                         operator = outArgs$operator,
                                         strata = outArgs$strata,
                                         treatment = outArgs$treatment,
-                                        copy = TRUE)
+                                        hierarchical = outArgs$hierarchical,
+                                        copy = TRUE,
+                                        endpoint.TTE = outArgs$endpoint.TTE,
+                                        censoring.TTE = outArgs$censoring.TTE,
+                                        iidNuisance = outArgs$iidNuisance)
     
     ## ** Display
     if (outArgs$trace > 1) {
@@ -354,6 +365,7 @@ BuyseTest <- function(formula,
     if (outArgs$trace > 1) {
         cat("Point estimation")
     }
+
     outPoint <- .BuyseTest(envir = envirBT,
                            iid = outArgs$iid,
                            method.inference = "none",
@@ -398,8 +410,8 @@ BuyseTest <- function(formula,
 
     if(outArgs$method.inference == "none"){
         outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
-        outPoint$iid_favorable <- NULL
-        outPoint$iid_unfavorable <- NULL
+        outPoint$iidAverage_favorable <- NULL
+        outPoint$iidAverage_unfavorable <- NULL
     }else if(outArgs$method.inference == "u-statistic"){
         ## done in the C++ code
         ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
@@ -418,15 +430,15 @@ BuyseTest <- function(formula,
                                                  n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                   level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
 
         outPoint$Mvar <- outCovariance$Sigma
-        outPoint$iid_favorable <- NULL
-        outPoint$iid_unfavorable <- NULL
+        outPoint$iidAverage_favorable <- NULL
+        outPoint$iidAverage_unfavorable <- NULL
         attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
     }else if(grepl("bootstrap|permutation",outArgs$method.inference)){
         outResampling <- inferenceResampling(envirBT)
         if(outArgs$iid==FALSE){
             outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
-            outPoint$iid_favorable <- NULL
-            outPoint$iid_unfavorable <- NULL
+            outPoint$iidAverage_favorable <- NULL
+            outPoint$iidAverage_unfavorable <- NULL
         }
     }
     if((outArgs$method.inference != "none") && (outArgs$trace > 1)){
@@ -469,8 +481,8 @@ BuyseTest <- function(formula,
         covarianceResampling = outResampling$covariance,
         covariance = outPoint$Mvar,
         weight = outArgs$weight,
-        iid_favorable = outPoint$iid_favorable,
-        iid_unfavorable = outPoint$iid_unfavorable,
+        iidAverage_favorable = outPoint$iidAverage_favorable,
+        iidAverage_unfavorable = outPoint$iidAverage_unfavorable,
         iidNuisance_favorable = outPoint$iidNuisance_favorable,
         iidNuisance_unfavorable = outPoint$iidNuisance_unfavorable,
         tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
@@ -499,11 +511,10 @@ BuyseTest <- function(formula,
     D.TTE <- envir$outArgs$D.TTE ## to simplify code
     D <- envir$outArgs$D ## to simplify code
 
-
     ## ** Resampling
     ls.indexC <- vector(mode = "list", length = n.strata)
     ls.indexT <- vector(mode = "list", length = n.strata)
-   
+
     if(method.inference == "none"){
 
         ## find groups
@@ -523,17 +534,14 @@ BuyseTest <- function(formula,
         }
         
     }else if(attr(method.inference, "permutation")){
-
+        browser()
         ## permute
-        if(attr(method.inference, "stratified")){
-            index.resampling <- NULL
-            for(iStrata in 1:n.strata){ ## iStrata <- 1  
-                index.resampling <- c(index.resampling,envir$outArgs$cumn.obsStrata[iStrata] + sample.int(envir$outArgs$n.obsStrata[iStrata], replace = FALSE))
-            }
-        }else{
-            index.resampling <- sample.int(envir$outArgs$n.obs, replace = FALSE)
-
+        index.resampling <- NULL
+        for(iSR in 1:length(envir$outArgs$n.obsStrataResampling)){ ## iStrata <- 1
+            ## tofix 
+            index.resampling <- c(index.resampling, envir$outArgs$cumn.obsStrata[iStrata] + sample.int(envir$outArgs$n.obsStrataResampling[iStrata], replace = FALSE))
         }
+        
         ## find groups
         if(n.strata==1){        
             ls.indexC[[1]] <- which(index.resampling %in% envir$outArgs$index.C) - 1
@@ -628,14 +636,16 @@ BuyseTest <- function(formula,
                                    endpoint.TTE = envir$outArgs$endpoint.TTE,
                                    endpoint.UTTE = envir$outArgs$endpoint.UTTE,
                                    censoring = censoring,
+                                   censoring.TTE = envir$outArgs$censoring.TTE,
+                                   censoring.UTTE = envir$outArgs$censoring.UTTE,
                                    D.TTE = D.TTE,
                                    D.UTTE = envir$outArgs$D.UTTE,
                                    type = type,
                                    threshold = envir$outArgs$threshold,
                                    n.strata = n.strata,
                                    strata = envir$outArgs$strata,
-                                   iid = iid,
-                                   out = envir$outArgs$outSurv)
+                                   iidNuisance = envir$outArgs$iidNuisance * iid,
+                                   out = envir$outArgs$skeletonPeron)
     }
     
     ## ** Computation
@@ -651,7 +661,7 @@ BuyseTest <- function(formula,
                      D = D,
                      D_UTTE = envir$outArgs$D.UTTE,
                      n_strata = n.strata,
-                     nUTTE_analyzed_M1 = envir$outArgs$nUTTE.analyzedPeron_M1,
+                     nUTTE_analyzedPeron_M1 = envir$outArgs$nUTTE.analyzedPeron_M1,
                      index_endpoint = envir$outArgs$index.endpoint,
                      index_censoring = envir$outArgs$index.censoring,
                      index_UTTE = envir$outArgs$index.UTTE,
@@ -671,7 +681,8 @@ BuyseTest <- function(formula,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                      reserve = 1e4,
-                     returnIID = iid + iid*iidNuisance
+                     returnIID = iid + iid*envir$outArgs$iidNuisance,
+                     debug = envir$outArgs$debug
                      )
 
     ## ** export
