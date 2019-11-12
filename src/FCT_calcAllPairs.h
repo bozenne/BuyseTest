@@ -225,12 +225,18 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		if(returnIID > 1){
 		  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
 			Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[0] * iWeight;
+			Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[0] * iWeight;
 		  }
 		  if(method == 3){
 			Dscore_Dnuisance_C.col(0) += iDscore_Dnuisance_C.col(0) * iWeight;
 			Dscore_Dnuisance_T.col(0) += iDscore_Dnuisance_T.col(0) * iWeight;
 		  }
 		}
+	  }
+	}else if(returnIID > 1){
+	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+		(Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
+		(Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
 	  }
 	}
 
@@ -247,12 +253,18 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		if(returnIID > 1){
 		  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
             Dweight_Dnuisance_C[1][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[1] * iWeight;
+            Dweight_Dnuisance_T[1][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[1] * iWeight;
           }
 		  if(method == 3){
 			Dscore_Dnuisance_C.col(1) += iDscore_Dnuisance_C.col(1) * iWeight;
 			Dscore_Dnuisance_T.col(1) += iDscore_Dnuisance_T.col(1) * iWeight;
 		  }
 		}
+	  }
+	}else if(returnIID > 1){
+	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+		(Dweight_Dnuisance_C[1][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
+		(Dweight_Dnuisance_T[1][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
 	  }
 	}
 
@@ -270,12 +282,18 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		if(returnIID > 1){
 		  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
             Dweight_Dnuisance_C[2][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[2] * iWeight;
+            Dweight_Dnuisance_T[2][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[2] * iWeight;
           }
 		  if(method == 3){
 			Dscore_Dnuisance_C.col(2) += iDscore_Dnuisance_C.col(2) * iWeight;
 			Dscore_Dnuisance_T.col(2) += iDscore_Dnuisance_T.col(2) * iWeight;
 		  }
 		}
+	  }
+	}else if(returnIID > 1){
+	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+		(Dweight_Dnuisance_C[2][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
+		(Dweight_Dnuisance_T[2][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
 	  }
 	}
 
@@ -293,12 +311,18 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		if(returnIID > 1){
 		  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
             Dweight_Dnuisance_C[3][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[3] * iWeight;
+            Dweight_Dnuisance_T[3][activeUTTE[iter_UTTE]].row(iter_pair) *= iPairScore[3] * iWeight;
           }
 		  if(method == 3){
 			Dscore_Dnuisance_C.col(3) += iDscore_Dnuisance_C.col(3) * iWeight;
 			Dscore_Dnuisance_T.col(3) += iDscore_Dnuisance_T.col(3) * iWeight;
 		  }
 		}
+	  }
+	}else if(returnIID > 1){
+	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+		(Dweight_Dnuisance_C[3][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
+		(Dweight_Dnuisance_T[3][activeUTTE[iter_UTTE]].row(iter_pair)).fill(0.0);
 	  }
 	}
 

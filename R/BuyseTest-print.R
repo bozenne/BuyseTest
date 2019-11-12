@@ -69,15 +69,14 @@ printGeneral <- function(censoring,
     
     ## ** Display
     cat("Settings \n")
-    cat("   - treatment groups: Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
+    cat("   - 2 groups   : Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
     cat("   - ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
     if(n.strata>1){
         txt.variable <- switch(as.character(length(strata)),
-                               "0" = " variable",
+                               "1" = "variable",
                                "variables")        
-        cat("   - ", n.strata, " strata with levels: ",paste(level.strata, collapse = " ") , "\n", sep = "")
-        cat("                ",txt.variable,": ",paste(strata, collapse = " ")," \n", sep = "")
+        cat("   - ", n.strata, " strata   : levels ",paste(level.strata, collapse = " ") , " (",txt.variable,": ",paste(strata, collapse = " "),") \n", sep = "")
     }
     if(D>1){
         cat("   - neutral pairs: ")
@@ -118,11 +117,8 @@ printInference <- function(method.inference, n.resampling, cpus, seed, ...){
         }else if(attr(method.inference,"permutation")){
             txt.type <- paste0("permutation test with ",n.resampling," permutations")
         }
-
-        if(attr(method.inference,"resampling-strata:treatment")){
-            txt.type <- paste0(txt.type, "(stratified by treatment group)")
-        }else if(attr(method.inference,"resampling-strata:strata")){
-            txt.type <- paste0(txt.type, "(stratified by strata group)")
+        if(!is.na(attr(method.inference,"resampling-strata"))){
+            txt.type <- paste0(txt.type, " (stratified by \"",paste(attr(method.inference,"resampling-strata"),sep="\" \""),"\")")
         }
 
         ## display

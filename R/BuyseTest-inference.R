@@ -13,17 +13,13 @@ inferenceResampling <- function(envir){
     seed <- envir$outArgs$seed
     trace <- envir$outArgs$trace
 
-    test.strataTreatment <- attr(method.inference,"resampling-strata:treatment")
-    test.strataStrata <- attr(method.inference,"resampling-strata:treatment")
-    if(test.strataTreatment||test.strataStrata){
+    ## re-order dataset according to the strata used when resampling
+    if(!is.na(attr(method.inference,"resampling-strata"))){
         envir$outArgs$data[,c("..rowIndex..") := 1:.N]
-        if(test.strataTreatment){
-            data.table::setkeyv(envir$outArgs$data, cols = envir$outArgs$treatment)
-        }else if(test.strataStrata){
-            data.table::setkeyv(envir$outArgs$data, cols = "..strata..")
-        }
-        envir$outArgs$M.endpoint <- envir$outArgs$M.endpoint[envir$outArgs$data[["..index.."]],,drop=FALSE]
-        envir$outArgs$M.censoring <- envir$outArgs$M.censoring[envir$outArgs$data[["..index.."]],,drop=FALSE]
+        data.table::setkeyv(envir$outArgs$data, cols = attr(method.inference,"resampling-strata"))
+
+        envir$outArgs$M.endpoint <- envir$outArgs$M.endpoint[envir$outArgs$data[["..rowIndex.."]],,drop=FALSE]
+        envir$outArgs$M.censoring <- envir$outArgs$M.censoring[envir$outArgs$data[["..rowIndex.."]],,drop=FALSE]
         envir$outArgs$index.C <- which(envir$outArgs$data$treatment == 0)
         envir$outArgs$index.T <- which(envir$outArgs$data$treatment == 1)
         envir$outArgs$index.strata <- tapply(1:NROW(envir$outArgs$data), envir$outArgs$data[["..strata.."]], list)
@@ -69,7 +65,7 @@ inferenceResampling <- function(envir){
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","initializePeron")
+        toExport <- c(".BuyseTest","calcSurvPeron")
         iB <- NULL ## [:forCRANcheck:] foreach        
         ls.resampling <- foreach::`%dopar%`(
                                       foreach::foreach(iB=1:n.resampling,

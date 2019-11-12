@@ -424,19 +424,19 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
   if(returnIID>1){
 
 	// *** iid of the weights
-	colvec iDweight_Dnuisance_C;
-	colvec iDweight_Dnuisance_T;
+	arma::rowvec iDweight_Dnuisance_C;
+	arma::rowvec iDweight_Dnuisance_T;
 	
 	for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
-	  iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[0][activeUTTE[iter_UTTE]],0) / vecn_pairs[iter_strata];
-	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDweight_Dnuisance_C;
-	  iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[0][activeUTTE[iter_UTTE]],0) / vecn_pairs[iter_strata];
-	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDweight_Dnuisance_T;
+	  iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[0][activeUTTE[iter_UTTE]],0);
+	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * arma::trans(iDweight_Dnuisance_C) / vecn_pairs[iter_strata];
+	  iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[0][activeUTTE[iter_UTTE]],0);
+	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[activeUTTE[iter_UTTE]][iter_strata] * arma::trans(iDweight_Dnuisance_T) / vecn_pairs[iter_strata];
 	  
-	  iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[1][activeUTTE[iter_UTTE]],0) / vecn_pairs[iter_strata];
-	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDweight_Dnuisance_C;
-	  iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[1][activeUTTE[iter_UTTE]],0) / vecn_pairs[iter_strata];
-	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDweight_Dnuisance_T;
+	  iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[1][activeUTTE[iter_UTTE]],0);
+	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * arma::trans(iDweight_Dnuisance_C) / vecn_pairs[iter_strata];
+	  iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[1][activeUTTE[iter_UTTE]],0);
+	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[activeUTTE[iter_UTTE]][iter_strata] * arma::trans(iDweight_Dnuisance_T) / vecn_pairs[iter_strata];
 	}
 
 	// *** iid of the proba/score

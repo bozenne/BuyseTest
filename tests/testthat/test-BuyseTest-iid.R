@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov  8 2019 (15:29) 
+## Last-Updated: nov 12 2019 (18:25) 
 ##           By: Brice Ozenne
-##     Update #: 72
+##     Update #: 76
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -489,26 +489,59 @@ test_that("iid: two endpoints (strata)", {
 ## * iid Peron
 
 ## ** 1 TTE variable
-test_that("iid with nuisance parameters",{
+test_that("iid with nuisance parameters: 1 TTE",{
     BuyseTest.options(order.Hprojection = 1)
 
     n <- 5
     set.seed(10)
     dt <- simBuyseTest(n)
-    ## dt
+    dt$X0 <- 0
+    dt$treatment2 <- 1-as.numeric(dt$treatment)
+    ## dt <- data.table("treatment" = c("C", "C", "C", "C", "C", "T", "T", "T", "T", "T"), 
+    ##                  "toxicity" = c(1, 1, 1, 1, 1, 1, 1, 0, 1, 0), 
+    ##                  "score" = c( 0.54361539, -0.70762484, -0.36944577, -1.32197565,  1.28059746,  0.01874617, -0.18425254, -1.37133055, -0.59916772,  0.29454513), 
+    ##                  "eventtime" = c(1.8252132, 2.9489056, 0.7213402, 0.6322603, 0.2212117, 0.1453481, 0.4855601, 0.2547505, 1.0340368, 0.3579324), 
+    ##                  "status" = c(0, 1, 0, 1, 0, 0, 0, 0, 0, 1))
 
     e.BT_tte1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
                            data = dt, trace = 0, 
                            keep.pairScore = TRUE,
                            method.inference = "u-statistic")
+    e.BT_tte1.bis <- BuyseTest(treatment2 ~ tte(eventtime, status, threshold = 1),
+                               data = dt, trace = 0, 
+                               keep.pairScore = TRUE,
+                               method.inference = "u-statistic")
+        
     e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
                            data = dt, trace = 0, 
                            keep.pairScore = TRUE,
                            method.inference = "u-statistic")
+
     e.BT_tte3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
                            data = dt, trace = 0,
                            keep.pairScore = TRUE,
                            method.inference = "u-statistic")
+
+    e.BT_tte4 <- BuyseTest(treatment ~ bin(X0) + tte(eventtime, status, threshold = 1),
+                           data = dt, trace = 0, 
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+
+    e.BT_tte5 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 2) + bin(X0) + tte(eventtime, status, threshold = 1),
+                           data = dt, trace = 0, 
+                           keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+    e.BT_tte5.bis <- BuyseTest(treatment2 ~ tte(eventtime, status, threshold = 2) + bin(X0) + tte(eventtime, status, threshold = 1),
+                               data = dt, trace = 0, 
+                               keep.pairScore = TRUE,
+                               method.inference = "u-statistic")
+
+    ## unchanged when switching around the group
+    expect_equal(e.BT_tte1@count.unfavorable,e.BT_tte1.bis@count.favorable)
+    expect_equal(e.BT_tte1@covariance["unfavorable"],e.BT_tte1.bis@covariance["favorable"])
+
+    expect_equal(e.BT_tte5@count.unfavorable,e.BT_tte5.bis@count.favorable)
+    expect_equal(e.BT_tte5@covariance["unfavorable"],e.BT_tte5.bis@covariance["favorable"])
 
     expect_equal(confint(e.BT_tte1)[1,],
                  confint(e.BT_tte2)[2,],
@@ -522,8 +555,39 @@ test_that("iid with nuisance parameters",{
     expect_equal(confint(e.BT_tte3)[1,],
                  confint(e.BT_tte3)[2,],
                  tol = 1e-6)
+    expect_equal(confint(e.BT_tte1)[1,],
+                 confint(e.BT_tte4)[2,],
+                 tol = 1e-6)
+    expect_equal(confint(e.BT_tte1)[1,],
+                 confint(e.BT_tte5)[3,],
+                 tol = 1e-6)
+    
 })
 
 
+## ** 1 TTE variable and 1 binary
+test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
+    BuyseTest.options(order.Hprojection = 1)
+    
+    n <- 5
+    set.seed(10)
+    dt <- simBuyseTest(n)
+    dt$bin0 <- 0
+    dt$binF <- 1-as.numeric(dt$treatment)
+    
+    ## dt
+    e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(bin),
+                             data = dt, trace = 0, 
+                             keep.pairScore = TRUE,
+                             method.inference = "u-statistic")
+
+    e.BT_tte0 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0),
+                             data = dt, trace = 0, 
+                             keep.pairScore = TRUE,
+                             method.inference = "u-statistic")
+    e.BT_tte0@covariance
+    e.BT_ttebin@covariance
+    e.BT_ttebin@iidNuisance$unfavorable
+}
 ######################################################################
 ### test-BuyseTest-iid.R ends here

@@ -303,7 +303,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 
 		if(returnIID > 1){ //		  if(returnIID > 1 && intFavorable[0]>0){
 		  Dscore_Dnuisance_C(survTimeC(8),0) += intFavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
-		  Dscore_Dnuisance_T(survTimeT(10),0) += intFavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
+		  Dscore_Dnuisance_T(survTimeT(11),0) += intFavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  Dscore_Dnuisance_C -= intDscore_Dnuisance_C/denom;
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
@@ -319,7 +319,7 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 		upperFavorable = -intFavorable[1] / denom; // (upper bound)
 		if(returnIID>1){ //		if((returnIID>1) && (intFavorable[0]>0)){
 		  Dscore_Dnuisance_C(survTimeC(8),0) += intFavorable[0] / (denom * survTimeC(2)); // derivative regarding Sc(y_j)
-		  Dscore_Dnuisance_T(survTimeT(10),0) += intFavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
+		  Dscore_Dnuisance_T(survTimeT(11),0) += intFavorable[0] / (denom * survTimeT(5)); // derivative regarding St(x_i)
 		  Dscore_Dnuisance_C -= intDscore_Dnuisance_C/denom;
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
@@ -376,7 +376,6 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 	  // Rcout << endl;
     }}
 
-  // Rcout << "before" << endl;
   // ** compute neutral and uninformative
   // neutral
   double lowerNeutral = 1 - upperFavorable - upperUnfavorable;
@@ -398,7 +397,6 @@ inline std::vector< double > calcOneScore_TTEperon(double endpoint_C, double end
 	  Dscore_Dnuisance_T.col(3) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1) - Dscore_Dnuisance_T.col(2);
 	}
   }
-  // Rcout << "after" << endl;
   
   // ** export
   // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << " (upper) " << upperFavorable << " " << upperUnfavorable << endl;
@@ -445,7 +443,6 @@ std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double st
     for(int iter_time=0 ; iter_time<nJump ; iter_time++){
 	  // Rcout << iter_time / nJump << " " ;
       if(R_IsNA(survival(iter_time,1))){
-		// Rcout << "stop1" ;
 		integral[1] = integral[0] + lastSurv*survival(iter_time,2); // upper bound
 		if(returnDeriv){ // 		if(returnDeriv && (lastSurv*survival(iter_time,2) > 0)){
 		  derivSurv(derivSurv.n_rows-1, column) += survival(iter_time,2); // derivative regarding S(t+tau)

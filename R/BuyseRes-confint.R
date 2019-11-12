@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: sep 12 2019 (15:30) 
+## Last-Updated: nov 12 2019 (11:21) 
 ##           By: Brice Ozenne
-##     Update #: 577
+##     Update #: 581
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -200,11 +200,10 @@ setMethod(f = "confint",
 
               ## safety
               test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
-              if(method.inference %in% c("u-statistic","u-statistic-bebu")){
-                  if(!test.model.tte && D>1 && object@scoring.rule == "Peron"){
-                      warning("The current implementation of the asymptotic distribution does not support several outcomes when scoring.rule=\"Peron\" \n",
-                              "Standard errors / confidence intervals / p-values should not be trusted \n")
-                  }
+              if(method.inference %in% c("u-statistic","u-statistic-bebu") && object@correction.uninf > 0){
+                  warning("The current implementation of the asymptotic distribution has not been validated when using a correction. \n",
+                          "Standard errors / confidence intervals / p-values may not be correct. \n",
+                          "Consider using a resampling approach or checking the control of the type 1 error with powerBuyseTest. \n")
               }
               
               ## ** null hypothesis

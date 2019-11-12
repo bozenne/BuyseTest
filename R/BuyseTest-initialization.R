@@ -26,8 +26,6 @@
 #' Merge the strata into one with the interaction variable.
 #' Extract for each strata the index of the observations within each group.
 #'
-#' \code{initializePeron}: Compute the survival via KM.
-#' 
 #' @keywords function internal BuyseTest
 
 ## * initializeArgs
@@ -190,18 +188,10 @@ initializeArgs <- function(censoring,
     attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
     attr(method.inference,"studentized") <- grepl("studentized",method.inference)
     attr(method.inference,"ustatistic") <- grepl("u-statistic",method.inference)
-    if(identical(strata.resampling,"treatment")){
-        attr(method.inference,"resampling-strata:treatment") <- TRUE
-        attr(method.inference,"resampling-strata:strata") <- FALSE
-    }else if(identical(strata.resampling,"strata")){
-        attr(method.inference,"resampling-strata:treatment") <- FALSE
-        attr(method.inference,"resampling-strata:strata") <- TRUE
-    }else if(is.na(strata.resampling) || length(strata.resampling)== 0){
-        attr(method.inference,"resampling-strata:treatment") <- FALSE
-        attr(method.inference,"resampling-strata:strata") <- FALSE
+    if(is.na(strata.resampling) || length(strata.resampling)== 0){
+        attr(method.inference,"resampling-strata") <- as.character(NA)
     }else{
-        attr(method.inference,"resampling-strata:treatment") <- NA
-        attr(method.inference,"resampling-strata:strata") <- NA
+        attr(method.inference,"resampling-strata") <- strata.resampling
     }
     
     ## ** correction.uninf
@@ -399,11 +389,8 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
     ## ** number of observations per strata used when resampling
     index.C <- which(data[[treatment]] == 0)
     index.T <- which(data[[treatment]] == 1)
-    
-    if(attr(method.inference,"resampling-strata:treatment")){
-        n.obsStrataResampling <- c(length(index.C), length(index.T))
-    }else if(attr(method.inference,"resampling-strata:strata")){
-        n.obsStrataResampling <- n.obsStrata
+    if(!is.na(attr(method.inference,"resampling-strata"))){
+        n.obsStrataResampling <- table(data[,interaction(.SD), .SDcols = attr(method.inference,"resampling-strata")])
     }else{
         n.obsStrataResampling <- n.obs
     }
@@ -420,7 +407,9 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
 
 
     ## ** export
-    return(list(data = data[,.SD,.SDcols =  c(treatment,"..strata..")],
+    keep.cols <- union(c(treatment, "..strata.."),
+                       na.omit(attr(method.inference,"resampling-strata")))
+    return(list(data = data[,.SD,.SDcols = keep.cols],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
                 M.censoring = as.matrix(data[, .SD, .SDcols = Ucensoring]),
                 index.C = index.C,
