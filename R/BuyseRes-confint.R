@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: nov 12 2019 (11:21) 
+## Last-Updated: nov 13 2019 (11:08) 
 ##           By: Brice Ozenne
-##     Update #: 581
+##     Update #: 582
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -128,7 +128,7 @@ setMethod(f = "confint",
                   }else if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
                       stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap has been performed\n",
                            "Consider setting \'method.ci.resampling\' to \"percentile\" or \"gaussian\" \n",
-                           "or setting \'method.inference\' to \"studentized bootstrap\" or \"studentized stratified bootstrap\" when calling BuyseTest. \n")
+                           "or setting \'method.inference\' to \"studentized bootstrap\" when calling BuyseTest. \n")
                   }
               }
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: nov 12 2019 (11:20) 
+## Last-Updated: nov 13 2019 (09:25) 
 ##           By: Brice Ozenne
-##     Update #: 184
+##     Update #: 188
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -211,6 +211,7 @@ testArgs <- function(name.call,
 
     ## ** endpoint
     validNames(data,
+               name1 = "data",
                required.values = endpoint,
                valid.length = NULL,
                method = "BuyseTest")
@@ -297,7 +298,7 @@ testArgs <- function(name.call,
      ## ** strata
     if (!is.null(strata)) {
         validNames(data,
-                   name1 = "strata",
+                   name1 = "data",
                    required.values = strata,
                    valid.length = NULL,
                    method = "BuyseTest")
@@ -355,6 +356,7 @@ testArgs <- function(name.call,
                    method = "BuyseTest")
 
     validNames(data,
+               name1 = "data",          
                required.values = treatment,
                valid.length = NULL,
                method = "BuyseTest")

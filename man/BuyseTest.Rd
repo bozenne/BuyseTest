@@ -6,11 +6,11 @@
 \usage{
 BuyseTest(formula, data, scoring.rule = NULL, correction.uninf = NULL,
   model.tte = NULL, method.inference = NULL, n.resampling = NULL,
-  hierarchical = NULL, weight = NULL, neutral.as.uninf = NULL,
-  keep.pairScore = NULL, seed = 10, cpus = NULL, trace = NULL,
-  treatment = NULL, endpoint = NULL, type = NULL, threshold = NULL,
-  censoring = NULL, operator = NULL, strata = NULL, keep.comparison,
-  method.tte)
+  strata.resampling = NULL, hierarchical = NULL, weight = NULL,
+  neutral.as.uninf = NULL, keep.pairScore = NULL, seed = 10,
+  cpus = NULL, trace = NULL, treatment = NULL, endpoint = NULL,
+  type = NULL, threshold = NULL, censoring = NULL, operator = NULL,
+  strata = NULL, keep.comparison, method.tte)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the GPC model,
@@ -31,10 +31,13 @@ See Details, section "Handling missing values".}
 Models must \code{prodlim} objects and stratified on the treatment and strata variable. When used, the uncertainty from the estimates of these survival models is ignored.}
 
 \item{method.inference}{[character] method used to compute confidence intervals and p-values.
-Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"stratified permutation"}, \code{"bootstrap"}, \code{"stratified bootstrap"}, \code{"studentized bootstrap"}, or \code{"studentized stratified bootstrap"}.
+Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"bootstrap"}, \code{"bootstrap"}, \code{"studentized bootstrap"}.
 See Details, section "Statistical inference".}
 
 \item{n.resampling}{[integer] the number of permutations/samples used for computing the confidence intervals and the p.values. 
+See Details, section "Statistical inference".}
+
+\item{strata.resampling}{[character] the variable on which the permutation/sampling should be stratified. 
 See Details, section "Statistical inference".}
 
 \item{hierarchical}{[logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)?
@@ -135,14 +138,15 @@ Available methods are:
 The U-statistic theory indicates that this approximation is asymptotically exact.
 The variance is computed using a H-projection of order 1 (default option), which is a consistent but downward biased estimator.
 An unbiased estimator can be obtained using a H-projection of order 2 (only available for the uncorrected Gehan's scoring rule, see \code{BuyseTest.options}).
-\bold{WARNING}: the current implementation of the H-projection is not valid when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}) and the Peron scoring rule (\code{scoring.rule="Peron"}).
-  \item argument \code{method.inference="permutation"} or \code{method.inference="stratified permutation"}:
-  \item argument \code{method.inference="bootstrap"} or \code{method.inference="stratified bootstrap"}:
+\bold{WARNING}: the current implementation of the H-projection has not been validated when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}).
+  \item argument \code{method.inference="permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio).
+  \item argument \code{method.inference="bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio).
+  \item argument \code{method.inference=" studentized bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimator.
 }
 Additional arguments for permutation and bootstrap resampling:
 \itemize{
-   \item when stratified, permutation and bootstrap are performed separately in each strata level (and not each treatment group).
-This is therefore only relevant for stratified analyses.
+   \item \code{strata.resampling} If \code{NA} or of length 0, the permutation/non-parametric boostrap will be performed by resampling in the whole sample.
+Otherwise, the permutation/non-parametric boostrap will be performed separately for each level that the variable defined in \code{strata.resampling} take.
    \item \code{n.resampling} set the number of permutations/samples used.
 A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details.
    \item \code{cpus} indicates whether the resampling procedure can be splitted on several cpus to save time. Can be set to \code{"all"} to use all available cpus.
@@ -153,7 +157,7 @@ The detection of the number of cpus relies on the \code{detectCores} function fr
 \bold{Default values} \cr
 The default of the arguments
 \code{scoring.rule}, \code{correction.uninf}, \code{method.inference}, \code{n.resampling},
-\code{hierarchical}, \code{neutral.as.uninf}, \code{keep.pairScore}, \code{n.resampling},
+\code{hierarchical}, \code{neutral.as.uninf}, \code{keep.pairScore}, \code{strata.resampling},
 \code{cpus}, \code{trace} is read from \code{BuyseTest.options()}. \cr
 Additional (hidden) arguments are \itemize{
  \item \code{alternative} [character] the alternative hypothesis. Must be one of "two.sided", "greater" or "less" (used by \code{confint}).

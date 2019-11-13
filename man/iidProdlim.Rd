@@ -28,11 +28,6 @@ setkeyv(dt, "treatment")
 
 e.KM <- prodlim(Hist(eventtime,status)~treatment, data = dt)
 iidProdlim(e.KM)
-
-
-
-
-
 }
 \references{
 Brice Ozenne, Anne Lyngholm Sorensen, Thomas Scheike, Christian Torp-Pedersen and Thomas Alexander Gerds.

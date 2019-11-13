@@ -107,7 +107,7 @@
 #' The U-statistic theory indicates that this approximation is asymptotically exact.
 #' The variance is computed using a H-projection of order 1 (default option), which is a consistent but downward biased estimator.
 #' An unbiased estimator can be obtained using a H-projection of order 2 (only available for the uncorrected Gehan's scoring rule, see \code{BuyseTest.options}).
-#' \bold{WARNING}: the current implementation of the H-projection is not valid when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}) and the Peron scoring rule (\code{scoring.rule="Peron"}).
+#' \bold{WARNING}: the current implementation of the H-projection has not been validated when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}).
 #'   \item argument \code{method.inference="permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio).
 #'   \item argument \code{method.inference="bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio).
 #'   \item argument \code{method.inference=" studentized bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimator.
@@ -358,7 +358,12 @@ BuyseTest <- function(formula,
     
     ## ** Point estimation
     if (outArgs$trace > 1) {
-        cat("Point estimation")
+        if(outArgs$iid){
+            cat("Point estimation and calculation of the iid decomposition")
+        }else{
+            cat("Point estimation")
+        }
+        
     }
 
     outPoint <- .BuyseTest(envir = envirBT,
@@ -500,7 +505,8 @@ BuyseTest <- function(formula,
 
     ## ** Resampling
     outSample <- calcSample(envir = envir, method.inference = method.inference)
-    
+    if(is.null(outSample)){return(NULL)}
+
     ## ** Estimate survival curves with its iid
     if(envir$outArgs$scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$skeletonPeron
@@ -562,7 +568,7 @@ BuyseTest <- function(formula,
                      returnIID = iid + iid*envir$outArgs$iidNuisance,
                      debug = envir$outArgs$debug
                      )
-
+    
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
@@ -751,8 +757,8 @@ calcSurvPeron <- function(data,
         txt.modelUTTE <- paste0("prodlim::Hist(",endpoint.UTTE,",",censoring.UTTE,") ~ ",treatment," + ..strata..")
 
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.UTTE <- 1
-            model.tte[[iEndpoint.UTTE]] <- prodlim::prodlim(as.formula(txt.modelUTTE[iEndpoint.UTTE]),
-                                                            data = data)
+            model.tte[[iEndpoint.UTTE]] <- try(prodlim::prodlim(as.formula(txt.modelUTTE[iEndpoint.UTTE]),
+                                                                data = data), silent = TRUE)
             model.tte[[iEndpoint.UTTE]]$XX <- model.tte[[iEndpoint.UTTE]]$X
         }
         
@@ -950,11 +956,10 @@ calcSurvPeron <- function(data,
                 iSurvivalT.timeC <- iSurvT[iIndexSurvivalT.timeC]
                 iSurvivalT.timeT <- iSurvT[iIndexSurvivalT.timeT]
                 
-            for(iEndpoint in iIndex.associatedEndpoint){ ## iEndpoint <- 1
-                iThreshold <- threshold[iEndpoint]
-
-                ## **** last survival
-                out$lastSurv[[iEndpoint]][iStrata,1:2] <- c(iLast.survC, iLast.survT)
+                for(iEndpoint in iIndex.associatedEndpoint){ ## iEndpoint <- 1
+                    iThreshold <- threshold[iEndpoint]
+                    ## **** last survival
+                    out$lastSurv[[iEndpoint]][iStrata,1:2] <- c(iLast.survC, iLast.survT)
 
                 ## **** survival at jump times
                 if(length(iJumpC)>0){                    
@@ -1042,10 +1047,6 @@ calcSurvPeron <- function(data,
             }
 
             }
-            
-            
-
-
         }
     }
 
@@ -1064,27 +1065,27 @@ calcSurvPeron <- function(data,
             iOut$IFsurvival.treatment <- iOut$IFsurvival[which(iOut$X[,treatment]==1)]
             return(iOut)
         })
-        for(iEndpoint in 1:D.UTTE){  ## iEndpoint <- 1
+        for(iEndpoint.UTTE in 1:D.UTTE){  ## iEndpoint <- 1
             iEndpoint.UTTE.name <- endpoint.UTTE[iEndpoint.UTTE]
             iIndex.associatedEndpoint <- which(endpoint == iEndpoint.UTTE.name)
 
             for(iStrata in 1:n.strata){  ## iStrata <- 1
-                iIID.control <- iid.model.tte[[iEndpoint]]$IFsurvival.control[[iStrata]]
-                iIID.treatment <- iid.model.tte[[iEndpoint]]$IFsurvival.treatment[[iStrata]]
+                iIID.control <- iid.model.tte[[iEndpoint.UTTE]]$IFsurvival.control[[iStrata]]
+                iIID.treatment <- iid.model.tte[[iEndpoint.UTTE]]$IFsurvival.treatment[[iStrata]]
 
                 ## iid.model.tte[[iEndpoint]]$time
-                out$iid$survJumpC[[iEndpoint]][[iStrata]] <- iIID.control
+                out$iid$survJumpC[[iEndpoint.UTTE]][[iStrata]] <- iIID.control
                 if(NCOL(iIID.control)>1){
-                    out$iid$dSurvJumpC[[iEndpoint]][[iStrata]] <- iIID.control - cbind(0,iIID.control[,1:(NCOL(iIID.control)-1),drop=FALSE])
+                    out$iid$dSurvJumpC[[iEndpoint.UTTE]][[iStrata]] <- iIID.control - cbind(0,iIID.control[,1:(NCOL(iIID.control)-1),drop=FALSE])
                 }else{
-                    out$iid$dSurvJumpC[[iEndpoint]][[iStrata]] <- iIID.control
+                    out$iid$dSurvJumpC[[iEndpoint.UTTE]][[iStrata]] <- iIID.control
                 }
                 
-                out$iid$survJumpT[[iEndpoint]][[iStrata]] <- iIID.treatment
+                out$iid$survJumpT[[iEndpoint.UTTE]][[iStrata]] <- iIID.treatment
                 if(NCOL(iIID.treatment)>1){
-                    out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <-  iIID.treatment - cbind(0,iIID.treatment[,1:(NCOL(iIID.treatment)-1),drop=FALSE])
+                    out$iid$dSurvJumpT[[iEndpoint.UTTE]][[iStrata]] <-  iIID.treatment - cbind(0,iIID.treatment[,1:(NCOL(iIID.treatment)-1),drop=FALSE])
                 }else{
-                    out$iid$dSurvJumpT[[iEndpoint]][[iStrata]] <-  iIID.treatment
+                    out$iid$dSurvJumpT[[iEndpoint.UTTE]][[iStrata]] <-  iIID.treatment
                 }
                 out$p.C[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.control)
                 out$p.T[iStrata, iIndex.associatedEndpoint] <- NCOL(iIID.treatment)

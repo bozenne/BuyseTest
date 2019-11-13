@@ -73,6 +73,7 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::mat >& iRP_Dscore_Dnuisan
 //' @param keepScore Should the result of each pairwise comparison be kept?
 //' @param reserve Increment of rows by which matrices will be increased when storing the iid decomposition of the remaining pairs? (instead of adding one row at a time, add multiple row to save time)
 //' @param returnIID Should the iid be computed?
+//' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 //' @keywords function Cpp BuyseTest
 
 // * Function GPC_cpp
@@ -279,7 +280,7 @@ List GPC_cpp(arma::mat endpoint,
 									   iRP_Dscore_Dnuisance_C_M1, iRP_Dscore_Dnuisance_T_M1,
 									   iPairDweight_Dnuisance_C_M1, iPairDweight_Dnuisance_T_M1,								
 									   zeroPlus, reserve,
-									   iMethod, returnIID, p_C(iter_strata, iter_d-1), p_T(iter_strata, iter_d-1),
+									   iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
 									   false, true, false, false, keepScore, correctionUninf, neutralAsUninf,
 									   debug);
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov 12 2019 (18:25) 
+## Last-Updated: nov 13 2019 (14:16) 
 ##           By: Brice Ozenne
-##     Update #: 76
+##     Update #: 90
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -536,13 +536,14 @@ test_that("iid with nuisance parameters: 1 TTE",{
                                keep.pairScore = TRUE,
                                method.inference = "u-statistic")
 
-    ## unchanged when switching around the group
+    ## unchanged when switching around the groups
     expect_equal(e.BT_tte1@count.unfavorable,e.BT_tte1.bis@count.favorable)
     expect_equal(e.BT_tte1@covariance["unfavorable"],e.BT_tte1.bis@covariance["favorable"])
 
     expect_equal(e.BT_tte5@count.unfavorable,e.BT_tte5.bis@count.favorable)
     expect_equal(e.BT_tte5@covariance["unfavorable"],e.BT_tte5.bis@covariance["favorable"])
 
+    ## results does not depend on previously used thresholds
     expect_equal(confint(e.BT_tte1)[1,],
                  confint(e.BT_tte2)[2,],
                  tol = 1e-6)
@@ -572,22 +573,73 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     n <- 5
     set.seed(10)
     dt <- simBuyseTest(n)
-    dt$bin0 <- 0
-    dt$binF <- 1-as.numeric(dt$treatment)
     
-    ## dt
-    e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(bin),
-                             data = dt, trace = 0, 
+    e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
+                             data = dt, 
                              keep.pairScore = TRUE,
                              method.inference = "u-statistic")
 
-    e.BT_tte0 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0),
-                             data = dt, trace = 0, 
-                             keep.pairScore = TRUE,
-                             method.inference = "u-statistic")
-    e.BT_tte0@covariance
-    e.BT_ttebin@covariance
-    e.BT_ttebin@iidNuisance$unfavorable
-}
+    test <- confint(e.BT_ttebin)
+    attr(test,"n.resampling") <- NULL
+    GS <- matrix(c(-0.25, -0.45, 0.1716352, 0.2235767, -0.5471036, -0.77557548, 0.10304552, 0.06467924, 0.1629835, 0.08382162), 
+                 nrow = 2, 
+                 ncol = 5, 
+                 dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ) 
+    expect_equal(test,GS, tol = 1e-6)
+
+    ## GS <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
+                    ## data = dt, 
+                    ## keep.pairScore = TRUE,
+                    ## method.inference = "bootstrap")
+})
+
+## ** 2 TTE variables
+test_that("iid with nuisance parameters: 2 TTE",{
+
+    n.patients <- c(20,20)
+    set.seed(10)
+    dt.sim <- simBuyseTest(n.T = n.patients[1],
+                           n.C = n.patients[2],
+                           argsBin = list(p.T = c(0.5,0.75)),
+                           argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
+                           argsTTE = list(rates.T = 1:3, rates.Censoring.T = rep(1,3)))
+    setkeyv(dt.sim,c("treatment","eventtime1"))
+    dt.sim[,status1.bis := c(status1[1:(.N-1)],1),by="treatment"] ## make sure last observation is a case
+
+    ## plot(prodlim(Hist(eventtime1,status1.bis) ~ treatment, data = dt.sim))
+    e.BT_tte1 <- BuyseTest(treatment ~ tte(eventtime2, status2, threshold = 1),
+                           data = dt.sim, 
+                           method.inference = "u-statistic")
+    e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime1, status1.bis, threshold = 1e5) + tte(eventtime2, status2, threshold = 1),
+                           data = dt.sim, 
+                           method.inference = "u-statistic")
+    e.BT_tte3 <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1e5) + tte(eventtime2, status2, threshold = 1),
+                           data = dt.sim, 
+                           method.inference = "u-statistic")
+
+    expect_equal(e.BT_tte1@count.favorable[1], e.BT_tte2@count.favorable[2])
+    expect_equal(e.BT_tte1@count.unfavorable[1], e.BT_tte2@count.unfavorable[2])
+    expect_equal(e.BT_tte1@count.neutral[1], e.BT_tte2@count.neutral[2])
+    expect_equal(e.BT_tte1@count.uninf[1], e.BT_tte2@count.uninf[2])
+
+    expect_equal(e.BT_tte1@covariance[1,],e.BT_tte2@covariance[2,], tol = 1e-6)
+    ## only approx because of the uncertainty related to the incomplete knoweldge of the survival curves
+    expect_equal(e.BT_tte1@covariance[1,],e.BT_tte3@covariance[2,], tol = 1e-3)
+
+
+    e.BT_tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime2, status2, threshold = 1) + bin(toxicity1),
+                          data = dt.sim, 
+                          method.inference = "u-statistic")
+    test <- confint(e.BT_tte)
+    attr(test,"n.resampling") <- NULL
+    GS <- matrix(c(-0.25168271, -0.11821275, -0.15513379, 0.14101332, 0.21861747, 0.21603064, -0.50222756, -0.50300659, -0.53007553, 0.03784555, 0.30569245, 0.27054988, 0.08755073, 0.59218176, 0.47985706), 
+                 nrow = 3, 
+                 ncol = 5, 
+                 dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 )
+    expect_equal(test,GS, tol = 1e-6)
+
+})
 ######################################################################
 ### test-BuyseTest-iid.R ends here

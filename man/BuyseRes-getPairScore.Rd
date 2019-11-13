@@ -7,14 +7,17 @@
 \alias{getPairScore,BuyseRes-method}
 \title{Extract the Score of Each Pair}
 \usage{
-getPairScore(object, endpoint = NULL, strata = NULL,
+getPairScore(object, endpoint = NULL, strata = NULL, sum = FALSE,
   rm.withinStrata = TRUE, rm.strata = is.na(object@strata),
-  rm.indexPair = TRUE, rm.weight = FALSE, unlist = TRUE, trace = 1)
+  rm.indexPair = TRUE, rm.weight = FALSE,
+  rm.corrected = (object@correction.uninf == 0), unlist = TRUE,
+  trace = 1)
 
 \S4method{getPairScore}{BuyseRes}(object, endpoint = NULL,
-  strata = NULL, rm.withinStrata = TRUE,
+  strata = NULL, sum = FALSE, rm.withinStrata = TRUE,
   rm.strata = is.na(object@strata), rm.indexPair = TRUE,
-  rm.weight = FALSE, unlist = TRUE, trace = 1)
+  rm.weight = FALSE, rm.corrected = (object@correction.uninf == 0),
+  unlist = TRUE, trace = 1)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
@@ -23,6 +26,8 @@ getPairScore(object, endpoint = NULL, strata = NULL,
 
 \item{strata}{[integer/character vector] the strata for which the scores should be output.}
 
+\item{sum}{[logical] should the scores be cumulated over endpoints?}
+
 \item{rm.withinStrata}{[logical] should the columns indicating the position of each member of the pair
 within each treatment group be removed?}
 
@@ -30,7 +35,9 @@ within each treatment group be removed?}
 
 \item{rm.indexPair}{[logical] should the column containing the number associated to each pair be removed from the output?}
 
-\item{rm.weight}{[logical] should the column weight be remove from the output?}
+\item{rm.weight}{[logical] should the column weight be removed from the output?}
+
+\item{rm.corrected}{[logical] should the columns corresponding to the scores after weighting be removed from the output?}
 
 \item{unlist}{[logical] should the structure of the output be simplified when possible?}
 

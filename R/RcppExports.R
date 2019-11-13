@@ -12,18 +12,15 @@
 #' @param indexT A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the treatment observations. Not unique when bootstraping.
 #' @param posT A list containing, for each strata, the unique identifier of each treatment observations.
 #' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
-#' @param indexEndpoint_M1 Store the position of the previous occurence of the endpoint. Must have length D. Only used for time to event endpoints and when method is Peron.
 #' @param weight Store the weight associated to each endpoint. Must have length D. 
 #' @param method The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.
 #' @param D The number of endpoints.
+#' @param D_UTTE The number of distinct time to event endpoints.
 #' @param n_strata The number of strata. 
-#' @param n_TTE The number of time-to-event endpoints. 
-#' @param n_UTTE The number of unique time-to-event endpoints.
-#' @param Wscheme The matrix describing the weighting strategy. For each endpoint (except the first) in column, weights of each pair are initialized at 1 and multiplied by the weight of the endpoints in rows where there is a 1. Must have D lines and D columns.
+#' @param nUTTE_analyzedPeron_M1 The number of unique time-to-event endpoints that have been analyzed the Peron scoring rule before the current endpoint. Must have length D.
 #' @param index_endpoint The position of the endpoint at each priority in the argument endpoint. Must have length D. 
 #' @param index_censoring The position of the censoring at each priority in the argument censoring. Must have length D. 
 #' @param index_UTTE The position, among all the unique tte endpoints, of the TTE endpoints. Equals -1 for non tte endpoints. Must have length n_TTE. 
-#' @param reanalyzed Will this endpoint be re-analyzed latter with a different threshold.
 #' @param list_survTimeC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows).
 #' @param list_survTimeT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows).
 #' @param list_survJumpC A list of matrix containing the survival estimates and survival jumps when the survival for the control arm jumps.
@@ -33,20 +30,22 @@
 #' @param p_T Number of nuisance parameter in the survival model for the treatment group, for each endpoint and strata
 #' @param iid_survJumpC A list of matrix containing the iid of the survival estimates in the control group.
 #' @param iid_survJumpT A list of matrix containing the iid of the survival estimates in the treatment group.
+#' @param zeroPlus Value under which doubles are considered 0?
 #' @param correctionUninf Should the uninformative weight be re-distributed to favorable and unfavorable?
 #' @param hierarchical Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 #' @param hprojection Order of the H-projection used to compute the variance.
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 #' @param keepScore Should the result of each pairwise comparison be kept?
-#' @param reserve Should vector storing neutral pairs and uninformative pairs be initialized at their maximum possible length?
+#' @param reserve Increment of rows by which matrices will be increased when storing the iid decomposition of the remaining pairs? (instead of adding one row at a time, add multiple row to save time)
 #' @param returnIID Should the iid be computed?
+#' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 #' @keywords function Cpp BuyseTest
 NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, indexEndpoint_M1, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, indexEndpoint_M1, weight, method, D, n_strata, n_TTE, n_UTTE, Wscheme, index_endpoint, index_censoring, index_UTTE, reanalyzed, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID)
+GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_censoring, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID, debug) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_censoring, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID, debug)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

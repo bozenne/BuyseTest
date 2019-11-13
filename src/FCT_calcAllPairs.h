@@ -132,7 +132,6 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 
     iDscore_Dnuisance_C.resize(p_C, 4); // initialized in calcOneScore_TTEperon
 	iDscore_Dnuisance_T.resize(p_T, 4); // initialized in calcOneScore_TTEperon
-
 	for(int iType=0; iType<4; iType++){
 	  if(evalM1){
 		RP_Dscore_Dnuisance_C[iType] = arma::trans(RP_Dscore_Dnuisance_C[iType]);
@@ -146,7 +145,6 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
     Dscore_Dnuisance_C.resize(0, 0);
     Dscore_Dnuisance_T.resize(0, 0);
   }
-  
   // pairScore  
   std::vector< double > iPairScore(4); // temporary store results
   arma::mat matPairScore; // score of all pairs

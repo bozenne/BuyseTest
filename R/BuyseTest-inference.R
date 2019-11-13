@@ -65,7 +65,7 @@ inferenceResampling <- function(envir){
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","calcSurvPeron")
+        toExport <- c(".BuyseTest","calcSurvPeron","calcSample")
         iB <- NULL ## [:forCRANcheck:] foreach        
         ls.resampling <- foreach::`%dopar%`(
                                       foreach::foreach(iB=1:n.resampling,
