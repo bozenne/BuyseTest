@@ -2,12 +2,18 @@
 
 * Version 1.8
 ** User visble changes
-- method.inference="u-statistic" gives valid results when using scoring.rule="Peron" 
+- method.inference="u-statistic" gives valid results when using
+  scoring.rule="Peron"
 - The group variable in simBuyseTest is treatment instead of Treatment.
+- The stratification of the resampling procedure is now defined via
+  the argument strata.resampling. In particular this enables to
+  performed a bootstrap stratified on the treatment variable.
 
 ** Internal change
 - Second order H-projection for scoring.rule="Peron" has been fixed.
-- fix bug
+- To a large extend, the C++ code performing the GPC has been
+  re-written to be able to compute the iid decomposition for the
+  scores when using the Peron's scoring rule.
 
 * Version 1.7
 ** User visble changes
