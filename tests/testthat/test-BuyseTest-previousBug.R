@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: nov  8 2019 (13:07) 
+## Last-Updated: nov 13 2019 (16:34) 
 ##           By: Brice Ozenne
-##     Update #: 121
+##     Update #: 126
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -346,4 +346,14 @@ test_that("BuysePower - error in print", {
 
 })
 
+## * brice ozenne: 11/13/19 4:11 hierachical in BuyseTest
+test_that("BuyseTest - hierarchical", {
+    data(veteran, package = "survival")
+    BT.nH <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0),
+                       hierarchical = FALSE, data = veteran, 
+                       method.inference = "none", trace = 0)
+    expect_equal(coef(BT.nH),
+                 c("time_20" = -0.08765836, "karno_1e-12" = -0.11898828),
+                 tol = 1e-6)
 
+})

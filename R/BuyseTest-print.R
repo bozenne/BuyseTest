@@ -68,7 +68,7 @@ printGeneral <- function(censoring,
     
     ## ** Display
     cat("Settings \n")
-    cat("   - 2 groups   : Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
+    cat("   - 2 groups  ",if(D>1){" "},": Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
     cat("   - ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
     if(n.strata>1){

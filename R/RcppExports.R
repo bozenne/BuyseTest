@@ -36,7 +36,6 @@
 #' @param hprojection Order of the H-projection used to compute the variance.
 #' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 #' @param keepScore Should the result of each pairwise comparison be kept?
-#' @param reserve Increment of rows by which matrices will be increased when storing the iid decomposition of the remaining pairs? (instead of adding one row at a time, add multiple row to save time)
 #' @param returnIID Should the iid be computed?
 #' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 #' @keywords function Cpp BuyseTest
@@ -44,8 +43,8 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_censoring, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID, debug) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_censoring, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, reserve, returnIID, debug)
+GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_censoring, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_censoring, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method. 

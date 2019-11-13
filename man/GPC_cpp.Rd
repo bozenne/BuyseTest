@@ -9,7 +9,7 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
   index_censoring, index_UTTE, list_survTimeC, list_survTimeT,
   list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC,
   iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection,
-  neutralAsUninf, keepScore, reserve, returnIID, debug)
+  neutralAsUninf, keepScore, returnIID, debug)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
@@ -73,8 +73,6 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?}
 
 \item{keepScore}{Should the result of each pairwise comparison be kept?}
-
-\item{reserve}{Increment of rows by which matrices will be increased when storing the iid decomposition of the remaining pairs? (instead of adding one row at a time, add multiple row to save time)}
 
 \item{returnIID}{Should the iid be computed?}
 

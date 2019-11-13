@@ -564,7 +564,6 @@ BuyseTest <- function(formula,
                      hprojection = envir$outArgs$order.Hprojection,
                      neutralAsUninf = envir$outArgs$neutral.as.uninf,
                      keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
-                     reserve = 1e4,
                      returnIID = iid + iid*envir$outArgs$iidNuisance,
                      debug = envir$outArgs$debug
                      )

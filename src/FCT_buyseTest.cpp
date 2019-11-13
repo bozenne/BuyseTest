@@ -71,7 +71,6 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::mat >& iRP_Dscore_Dnuisan
 //' @param hprojection Order of the H-projection used to compute the variance.
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
 //' @param keepScore Should the result of each pairwise comparison be kept?
-//' @param reserve Increment of rows by which matrices will be increased when storing the iid decomposition of the remaining pairs? (instead of adding one row at a time, add multiple row to save time)
 //' @param returnIID Should the iid be computed?
 //' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 //' @keywords function Cpp BuyseTest
@@ -111,7 +110,6 @@ List GPC_cpp(arma::mat endpoint,
 			 int hprojection,
 			 bool neutralAsUninf,
 			 bool keepScore,
-			 int reserve,
 			 int returnIID,
 			 int debug){
 
@@ -240,6 +238,7 @@ List GPC_cpp(arma::mat endpoint,
 	  if(debug>0){Rcout << " - score("<< iFirstEndpoint <<")" << endl;}
       arma::uvec iUvec_endpoint = {index_endpoint[iter_d]};
       arma::uvec iUvec_censoring = {index_censoring[iter_d]};
+
 	  iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
 								censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
 								list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
@@ -251,7 +250,7 @@ List GPC_cpp(arma::mat endpoint,
 								iCount_obsC, iCount_obsT, iDscore_Dnuisance_C, iDscore_Dnuisance_T,
 								iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
 								iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
-								zeroPlus, reserve,
+								zeroPlus, 
 								iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
 								iFirstEndpoint, false, iUpdateIndexNeutral, iUpdateIndexUninf, keepScore, correctionUninf, neutralAsUninf,
 								debug);
@@ -279,7 +278,7 @@ List GPC_cpp(arma::mat endpoint,
 									   iCount_obsC_M1, iCount_obsT_M1, iDscore_Dnuisance_C_M1, iDscore_Dnuisance_T_M1,
 									   iRP_Dscore_Dnuisance_C_M1, iRP_Dscore_Dnuisance_T_M1,
 									   iPairDweight_Dnuisance_C_M1, iPairDweight_Dnuisance_T_M1,								
-									   zeroPlus, reserve,
+									   zeroPlus, 
 									   iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
 									   false, true, false, false, keepScore, correctionUninf, neutralAsUninf,
 									   debug);
@@ -344,21 +343,19 @@ List GPC_cpp(arma::mat endpoint,
 						vecn_control, vecn_cumpairsM1, iter_d);
       }
     
-      // *** end if no remaining pairs to be analyzed
-      iSize_RP = iRP_score.n_rows;
-      if(iSize_RP < zeroPlus){
-		break;
-      }
-
-	  // *** store scores (and iid) relative to the remaining pairs
-      if(hierarchical && iMoreEndpoint){
+      // *** store scores (and iid) relative to the remaining pairs
+      if(iMoreEndpoint){
+		// end if no remaining pairs to be analyzed
+		iSize_RP = iRP_score.n_rows;
+		if(iSize_RP < zeroPlus){break;}
+		
 		// update position of the remaining pairs among the controls / treated
 		iIndex_control = iRP_score.col(1);
 		iIndex_treatment = iRP_score.col(2);
 
 		// update iPairWeight_nPeron, RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
 		// and re-initialize iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T
-		if(debug>0){Rcout << " update score/iid remaing pairs("<< nUTTE_analyzedPeron_M1[iter_d+1] <<") " << endl;}
+		if(debug>0){Rcout << " update score/iid for the remaing pairs("<< nUTTE_analyzedPeron_M1[iter_d+1] <<") " << endl;}
 		updateRP(iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
 				 RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
 				 iPairWeight_nPeron, iSize_RP, neutralAsUninf, iter_d, correctionUninf,

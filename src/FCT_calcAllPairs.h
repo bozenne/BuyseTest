@@ -24,7 +24,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 					   arma::mat& count_obsC, arma::mat& count_obsT, arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
 					   std::vector< arma::mat >& RP_Dscore_Dnuisance_C, std::vector< arma::mat >& RP_Dscore_Dnuisance_T,
 					   std::vector<std::vector< arma::mat >>& Dweight_Dnuisance_C, std::vector<std::vector< arma::mat >>& Dweight_Dnuisance_T,
-					   double zeroPlus, int reserve,
+					   double zeroPlus, 
 					   int method, int returnIID, int p_C, int p_T, 
 					   bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, int correctionUninf, bool neutralAsUninf,
 					   int debug);
@@ -74,7 +74,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 					   arma::mat& count_obsC, arma::mat& count_obsT, arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
 					   std::vector< arma::mat >& RP_Dscore_Dnuisance_C, std::vector< arma::mat >& RP_Dscore_Dnuisance_T,
 					   std::vector<std::vector< arma::mat >>& Dweight_Dnuisance_C, std::vector<std::vector< arma::mat >>& Dweight_Dnuisance_T,
-					   double zeroPlus, int reserve,
+					   double zeroPlus, 
 					   int method, int returnIID, int p_C, int p_T, 
 					   bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, int correctionUninf, bool neutralAsUninf,
 					   int debug){
@@ -92,8 +92,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   }else{
 	n_pair = weight.size();
   }
-  reserve = min(reserve, n_pair);
-
+  
   double iWeight=1;
   bool iUpdateRPNeutral;
   bool iUpdateRPUninf;
@@ -103,6 +102,20 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   count_unfavorable = 0;
   count_neutral = 0;
   count_uninf = 0;
+
+  // pairScore  
+  std::vector< double > iPairScore(4); // temporary store results
+  arma::mat matPairScore; // score of all pairs
+  if(keepScore){
+    matPairScore.resize(n_pair, 11); // store results from all scores
+  }
+  vector<int> vec_indexPair(0);
+  vector<int> vec_indexC(0);
+  vector<int> vec_indexT(0);
+  vector<double> vec_favorable(0);
+  vector<double> vec_unfavorable(0);
+  vector<double> vec_neutral(0);
+  vector<double> vec_uninformative(0);
 
   // residual pairs (neutral and uninformative)
   int n_RP=0;
@@ -122,8 +135,8 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   // iid nuisance
   arma::mat iDscore_Dnuisance_C;
   arma::mat iDscore_Dnuisance_T;
-  int space = 0;
-  if(returnIID > 1 && method == 3){
+  int reserve = 0; 
+ if(returnIID > 1 && method == 3){
     Dscore_Dnuisance_C.resize(p_C, 4);
     Dscore_Dnuisance_C.fill(0.0);
 
@@ -132,33 +145,51 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 
     iDscore_Dnuisance_C.resize(p_C, 4); // initialized in calcOneScore_TTEperon
 	iDscore_Dnuisance_T.resize(p_T, 4); // initialized in calcOneScore_TTEperon
-	for(int iType=0; iType<4; iType++){
-	  if(evalM1){
+
+	if(evalM1){	
+	  for(int iType=0; iType<4; iType++){
 		RP_Dscore_Dnuisance_C[iType] = arma::trans(RP_Dscore_Dnuisance_C[iType]);
 		RP_Dscore_Dnuisance_T[iType] = arma::trans(RP_Dscore_Dnuisance_T[iType]);
-	  }else{
-		RP_Dscore_Dnuisance_C[iType].resize(0,0);
-		RP_Dscore_Dnuisance_T[iType].resize(0,0);
+	  }
+	}else{
+	  // find the number of RP by running simplified GPC
+	  int iter_CC = -1;
+	  int iter_TT = 0;
+	  for(int iter_pair=0; iter_pair<n_pair ; iter_pair++){
+		if(firstEndpoint){
+		  if(iter_CC < (n_Control-1)){
+			iter_CC ++;
+		  }else if(iter_T < (n_Treatment-1)){
+			iter_CC = 0;
+			iter_TT ++;
+		  }else{
+			break;
+		  }
+		}else{
+		  iter_CC = index_control[iter_pair];
+		  iter_TT = index_treatment[iter_pair];
+		  iWeight = weight(iter_pair);
+		}
+		
+		if(method == 1){
+		  iPairScore = calcOnePair_Continuous(Treatment[iter_TT] - Control[iter_CC], threshold);
+		}else{
+		  iPairScore = calcOnePair_TTEgehan(Treatment[iter_TT] - Control[iter_CC], deltaC[iter_CC], deltaT[iter_TT], threshold);
+		}
+		if(((iPairScore[2] > zeroPlus) && updateIndexNeutral) || ((iPairScore[3] > zeroPlus) && updateIndexUninf)){
+		  reserve++;
+		}
+	  }
+	  for(int iType=0; iType<4; iType++){
+		RP_Dscore_Dnuisance_C[iType].resize(reserve,p_C);
+		RP_Dscore_Dnuisance_T[iType].resize(reserve,p_T);
 	  }
 	}
   }else{
     Dscore_Dnuisance_C.resize(0, 0);
     Dscore_Dnuisance_T.resize(0, 0);
   }
-  // pairScore  
-  std::vector< double > iPairScore(4); // temporary store results
-  arma::mat matPairScore; // score of all pairs
-  if(keepScore){
-    matPairScore.resize(n_pair, 11); // store results from all scores
-  }
-  vector<int> vec_indexPair(0);
-  vector<int> vec_indexC(0);
-  vector<int> vec_indexT(0);
-  vector<double> vec_favorable(0);
-  vector<double> vec_unfavorable(0);
-  vector<double> vec_neutral(0);
-  vector<double> vec_uninformative(0);
-
+  
   // ** loop over the pairs
   for(int iter_pair=0; iter_pair<n_pair ; iter_pair++){
 	if(debug>1){Rcout << iter_pair << "/" << n_pair << " ";}
@@ -337,20 +368,10 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	  vec_uninformative.push_back(iPairScore[3]);
 
 	  if((returnIID > 1) && (method == 3) && (evalM1 == false)){
-
-		if(space==0){
-		  for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){
-			RP_Dscore_Dnuisance_C[iter_typeRP].resize(n_RP+reserve,p_C);
-			RP_Dscore_Dnuisance_T[iter_typeRP].resize(n_RP+reserve,p_T);
-		  }
-		  space = reserve;
-		}
-			
 		for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){		
 		  RP_Dscore_Dnuisance_C[iter_typeRP].row(n_RP) = arma::trans(iDscore_Dnuisance_C.col(iter_typeRP));
 		  RP_Dscore_Dnuisance_T[iter_typeRP].row(n_RP) = arma::trans(iDscore_Dnuisance_T.col(iter_typeRP));
 		}
-		space --;		
 	  }
 	  n_RP++;
 	}
@@ -373,15 +394,17 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   } // end  iter_pair
   
   R_CheckUserInterrupt();
-  if((returnIID > 1) && (method == 3) && (space > 0) && (evalM1==false)){
+
+  // ** resize RP_Dscore_Dnuisance for the case where Peron could decidedly classify the pair
+  if((returnIID > 1) && (method == 3) && (evalM1==false) && (n_RP != reserve)){	
 	for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){
 	  RP_Dscore_Dnuisance_C[iter_typeRP].resize(n_RP,p_C);
 	  RP_Dscore_Dnuisance_T[iter_typeRP].resize(n_RP,p_T);
 	}
   }
-
+ 
   // ** merge information about the residual pairs
-  if(debug>0){Rcout << "start merge " << endl;}
+  if(debug>0){Rcout << "collect RP from vectors to matrix " << endl;}
   if((n_RP>0) && (evalM1==false)){
 	RP_score.resize(n_RP,7);
 	RP_score.col(0) = conv_to<colvec>::from(vec_indexPair);
