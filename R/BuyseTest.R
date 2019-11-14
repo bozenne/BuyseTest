@@ -927,7 +927,7 @@ calcSurvPeron <- function(data,
                 iSurvT <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpT])
                 if(iLast.survT!=0){ ## just after last event is unknown when the survival curve does not ends at 0
                     iSurvTimeT <- c(iSurvTimeT, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopT] + 1e-12)
-                    iSurvT <- c(iSurvT, NA)
+                    iSurvT <- c(iSurvT,NA)
                 }
 
                 ## dSurvival at each jump

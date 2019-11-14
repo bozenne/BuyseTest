@@ -1,4 +1,4 @@
-% Created 2019-11-13 on 16:50
+% Created 2019-11-14 to 11:05
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -90,23 +90,43 @@ emphstyle=\color{blue}
 \begin{document}
 
 \maketitle
-The \textbf{BuyseTest} package contains five functions that are relevant for the user:
+This vignette describes the main functionalities of the \textbf{BuyseTest}
+package. This package implements the Generalized Pairwise Comparisons
+(GPC) as defined in \cite{buyse2010generalized} for complete
+observations, and extended in \cite{peron2018extension} to deal with
+right-censoring. It is assumed that the reader is familar with the GPC
+terminology \footnote{if not, \cite{buyse2010generalized} is a good place to
+start.}, e.g. prioritized endpoints, pair, net benefit, win ratio,
+threshold of clinical relevance, \ldots, since this vignette focuses
+on the software aspect of the \textbf{BuyseTest} package (not on the
+underlying statistical model).
+
+\bigskip
+
+The \textbf{BuyseTest} package contains three main functions:
 \begin{itemize}
-\item the \texttt{BuyseTest} function to compute the net benefit/win ratio. It is
-the main function of the package.
-\item a \texttt{summary} function to display the results computed by the \texttt{BuyseTest} function.
-\item a \texttt{confint} function to extract estimates, confidence intervals, and p.values.
-\item the \texttt{getPairScore} method to extract the contribution of each pair to the net benefit/win ratio.
-\item the \texttt{BuyseTest.options} function the contain the default values for
-the argument of the \texttt{BuyseTest} function. These default values can
-be changed to better match the user needs.
+\item the function \texttt{BuyseTest} is the main function of the package. It
+performs the GPC, estimates the net benefit/win ratio, and output a
+\emph{BuyseRes} object. The user can interact with \emph{BuyseRes} objects using:
+\begin{itemize}
+\item \texttt{summary} to obtain a nice display of the results
+\item \texttt{coef} to extract the estimates.
+\item \texttt{confint} to extract estimates, confidence intervals, and p.values.
+\item \texttt{iid} to extract the iid decomposition of the estimator.
+\item \texttt{getCount} to extract the number of favorable, unfavorable, neutral, and uninformative pairs.
+\item \texttt{getPairScore} to extract the contribution of each pair to the net benefit/win ratio.
+\item \texttt{getSurvival} to extract the estimates of the survival (only relevant for right-censored endpoints).
+\end{itemize}
+\item the \texttt{powerBuyseTest} function performs simulation studies,
+e.g. to estimate the statistical power or assess the bias / type 1
+error rate of a test for a specific design.
+\item the \texttt{BuyseTest.options} function enables the user to display the
+default values used in the \textbf{BuyseTest} package (essentially used by
+the \texttt{BuyseTest} function). function. The function can also change
+the default values to better match the user needs.
 \end{itemize}
 
-Two additional functions are presented in this document: \texttt{simBuyseTest}
-that can be used to quickly simulate data and \texttt{getSurvival} that is
-useful to reproduce the results output by \texttt{BuyseTest}.
-
-\vfill
+\clearpage
 
 Before going further we need to load the \textbf{BuyseTest} package in the R
 session:
@@ -116,30 +136,8 @@ library(BuyseTest)
 library(data.table)
 \end{lstlisting}
 
-\bigskip
-
-The \textbf{BuyseTest} package is under active development. Newer package
-versions may include additional functionalities and fix previous
-bugs. To get the current version of the package use
-\texttt{utils::packageVersion}:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-utils::packageVersion("BuyseTest")
-\end{lstlisting}
-
-\begin{verbatim}
-[1] '1.8'
-\end{verbatim}
-
-\vfill
-
-
-\clearpage
-
-\section{Example data}
-\label{sec:orgfa93f7d}
-For this overview we will used the \texttt{veteran} dataset from the
-\textbf{survival} package:
+To illustrate the functionalities of the package, we will used the
+\texttt{veteran} dataset from the \textbf{survival} package:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 data(veteran,package="survival")
@@ -158,14 +156,64 @@ head(veteran)
 
 See \texttt{?veteran} for a presentation of the database.
 
+\bigskip
+
+\uline{Note:} the \textbf{BuyseTest} package is under active development. Newer
+package versions may include additional functionalities and fix
+previous bugs. The version of the package that is being is:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+utils::packageVersion("BuyseTest")
+\end{lstlisting}
+
+\begin{verbatim}
+[1] '1.8'
+\end{verbatim}
+
+For completness, the details of the R session used to generate this
+document are:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+sessionInfo()
+\end{lstlisting}
+
+\begin{verbatim}
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
+[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] data.table_1.12.2  BuyseTest_1.8      Rcpp_1.0.1         prodlim_2018.04.18
+
+loaded via a namespace (and not attached):
+ [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
+ [5] survival_2.44-1.1  KernSmooth_2.23-15 splines_3.5.1      grid_3.5.1        
+ [9] lava_1.6.5         stats4_3.5.1       lattice_0.20-35
+\end{verbatim}
+
+
+
+
+
+
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org8dda242}
+\label{sec:orgdde8732}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
-\item an where the data are stored \hfill - argument \texttt{data}
+\item where the data are stored \hfill - argument \texttt{data}
 \item the name of the endpoints \hfill - argument \texttt{endpoint}
 \item the type of each endpoint \hfill - argument \texttt{type}
 \item the variable defining the two treatment groups \hfill - argument
@@ -173,8 +221,8 @@ To perform generalized pairwise comparisons, the \texttt{BuyseTest} function nee
 \end{itemize}
 The \texttt{BuyseTest} function has many optional arguments to specify for example:
 \begin{itemize}
-\item the threshold associated to each endpoint (default\(=10^{-12}\))  \hfill - argument \texttt{threshold}
-\item the censoring associated to each endpoint (for time to event endpoint) \hfill - argument \texttt{censoring}
+\item the threshold of clinical relevance associated to each endpoint \hfill - argument \texttt{threshold}
+\item the censoring associated to each endpoint (for time to event endpoints) \hfill - argument \texttt{censoring}
 \item how to compute the distribution of the statistic of interest \hfill - argument \texttt{method.inference}
 \end{itemize}
 
@@ -182,11 +230,11 @@ The \texttt{BuyseTest} function has many optional arguments to specify for examp
 
 There are two equivalent ways to define the GPC: 
 \begin{itemize}
-\item using a separate argument for each element\footnote{we set the argument \texttt{method.inference} to "none" to diseable
-the computation of p-values and confidence intervals. This makes the
-execution of \texttt{BuyseTest} much faster.}:
+\item using a separate argument for each element\footnote{the argument
+\texttt{method.inference} is set to "none" to diseable the computation of
+p-values and confidence intervals. This makes the execution of
+\texttt{BuyseTest} much faster.}:
 \end{itemize}
-
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -242,7 +290,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:orgb98e50b}
+\label{sec:orgf13b6fa}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -304,17 +352,15 @@ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  del
     time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
 \end{verbatim}
 
-Since we have set the argument \texttt{n.permutation} to 0 (i.e. no
-permutation test) in the stratified analysis, we do not get confidence
-intervals or p.values when calling the \texttt{summary} method. See
-\texttt{help(BuyseRes-summary)} for more detailed explanations about the
+See \texttt{help(BuyseRes-summary)} for more detailed explanations about the
 \texttt{summary} method and its output.
 
 \subsection{Using multiple endpoints}
-\label{sec:orgf96ac5d}
+\label{sec:orgd8df64a}
 More than one endpoint can be considered by indicating a vector of
-endpoints, types, and thresholds. In the formula interface, just add
-another endpoint at then end of the formula:
+endpoints, types, and thresholds. In the formula interface, the
+different endpoints must be separated with a "+" on the right hand
+side of the formula:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 ff2 <- trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0)
@@ -394,10 +440,13 @@ endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(
 -0.0701
 -0.0764
 \end{verbatim}
-This has been refered as the O’Brien test in the litterature.
+This has been refered as the O’Brien test in the litterature
+(\cite{verbeeck2019generalized}, section 3.2).
+
+\clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:org20e29d5}
+\label{sec:orge7cbbed}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -431,7 +480,7 @@ Error in (function (name.call, censoring, correction.uninf, cpus, data,  :
 \end{verbatim}
 
 \subsection{Stratified GPC}
-\label{sec:org3a77a5e}
+\label{sec:org159a38b}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -450,9 +499,14 @@ BT2 <- BuyseTest(ff2strata, data = veteran,
 \end{lstlisting}
 
 The fact the it is not wrapped by \texttt{bin}, \texttt{cont} or \texttt{tte} indicates
-differentiate it from endpoint variables. When doing a stratified
-analysis, the summary method displays the global results as well as
-the results within each strata:
+differentiate it from endpoint variables. 
+
+\clearpage
+
+When doing a stratified analysis, the summary method displays the
+global results as well as the results within each strata\footnote{the
+strata-specific results can be removed by setting the argument
+\texttt{strata} to \texttt{"global"} when calling \texttt{summary}.}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 summary(BT2)
@@ -488,7 +542,7 @@ global delta is a sum of the strata specific delta weighted by the
 empirical proportion of pairs for each strata.
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org86a8d60}
+\label{sec:org7071380}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -507,7 +561,9 @@ dt.sim
 2:  2        No   Yes   20
 \end{verbatim}
 
-If we perform we GPC with tumor as the first endpoint and size as the
+\clearpage
+
+If we use the GPC with tumor as the first endpoint and size as the
 second endpoint:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -555,13 +611,17 @@ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delt
 
 So in this case no pair is analyzed at second priority.
 
+\clearpage
+
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org7fdee1a}
+\label{sec:orgf4a9d89}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
 \item \textbf{permutation test} setting the argument \texttt{method.inference} to
-\texttt{"permutation"}. This approach gives valid p-values.
+\texttt{"permutation"}. This approach gives valid p-values, regardless to
+the sample size, for testing the absence of a difference between the
+groups.
 \end{itemize}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -675,7 +735,7 @@ lack of free memory.
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org6aceb6a}
+\label{sec:org92658fe}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -684,7 +744,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orgb959161}
+\label{sec:org67f639a}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -770,7 +830,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org256ae25}
+\label{sec:org437ab47}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -815,7 +875,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org3c5dc7a}
+\label{sec:orgc0156b1}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -914,7 +974,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org825d02c}
+\label{sec:org12cf510}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1001,7 +1061,7 @@ upperBound 0.5058685   0.3770426
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:orga7f1d3e}
+\label{sec:orgb21a20e}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -1071,7 +1131,7 @@ eventtime         1 0.1363 0.1363
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:org75c0c70}
+\label{sec:org769c7e9}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -1138,7 +1198,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:org0f3af76}
+\label{sec:orgd66f96a}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1199,7 +1259,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:org63f05a1}
+\label{sec:orgfb5cf8c}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1259,7 +1319,7 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Modifying default options}
-\label{sec:orgac13271}
+\label{sec:org4c2640a}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1309,35 +1369,11 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 
-\section{Information about the R session used for this document}
-\label{sec:orged23c10}
-
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-sessionInfo()
-\end{lstlisting}
-
-\begin{verbatim}
-R version 3.5.1 (2018-07-02)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 7 x64 (build 7601) Service Pack 1
-
-Matrix products: default
-
-locale:
-[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
-[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.1252    
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
-[1] data.table_1.12.2  BuyseTest_1.8      Rcpp_1.0.1         prodlim_2018.04.18
-
-loaded via a namespace (and not attached):
- [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
- [5] survival_2.44-1.1  KernSmooth_2.23-15 splines_3.5.1      grid_3.5.1        
- [9] lava_1.6.5         stats4_3.5.1       lattice_0.20-35
-\end{verbatim}
+\section*{References}
+\label{sec:org25ca390}
+\begingroup
+\renewcommand{\section}[2]{}
+\bibliographystyle{apalike}
+\bibliography{bibliography}
+\endgroup
 \end{document}

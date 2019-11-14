@@ -74,6 +74,7 @@ For time to event endpoint an additional weighting may be performed to avoid a p
 }
 \examples{
 library(data.table)
+library(prodlim)
 
 ## run BuyseTest
 data(veteran,package="survival")

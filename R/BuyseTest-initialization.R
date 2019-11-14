@@ -336,7 +336,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
 
     ## ** unique censoring
     if(any(censoring == "..NA..")){
-        data[,c("..NA..") := as.numeric(NA)]
+        data[,c("..NA..") := -100]
     }
 
     ## ** TTE with censoring
@@ -401,8 +401,8 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
                           survJumpC = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
                           survJumpT = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
                           lastSurv = lapply(1:D, function(iS){matrix(nrow = n.strata, ncol = 4)}), ## 4 for competing risk setting, 2 is enough for survival
-                          p.C = matrix(NA, nrow = n.strata, ncol = D),
-                          p.T = matrix(NA, nrow = n.strata, ncol = D)
+                          p.C = matrix(-100, nrow = n.strata, ncol = D),
+                          p.T = matrix(-100, nrow = n.strata, ncol = D)
                           )
 
 

@@ -9,21 +9,39 @@ options(width = 94)
 
 #+RESULTS:
 
-The *BuyseTest* package contains five functions that are relevant for the user:
-- the =BuyseTest= function to compute the net benefit/win ratio. It is
-  the main function of the package.
-- a =summary= function to display the results computed by the =BuyseTest= function.
-- a =confint= function to extract estimates, confidence intervals, and p.values.
-- the =getPairScore= method to extract the contribution of each pair to the net benefit/win ratio.
-- the =BuyseTest.options= function the contain the default values for
-  the argument of the =BuyseTest= function. These default values can
-  be changed to better match the user needs.
+This vignette describes the main functionalities of the *BuyseTest*
+package. This package implements the Generalized Pairwise Comparisons
+(GPC) as defined in cite:buyse2010generalized for complete
+observations, and extended in cite:peron2018extension to deal with
+right-censoring. It is assumed that the reader is familar with the GPC
+terminology [fn::if not, cite:buyse2010generalized is a good place to
+start.], e.g. prioritized endpoints, pair, net benefit, win ratio,
+threshold of clinical relevance, \ldots, since this vignette focuses
+on the software aspect of the *BuyseTest* package (not on the
+underlying statistical model).
 
-Two additional functions are presented in this document: =simBuyseTest=
-that can be used to quickly simulate data and =getSurvival= that is
-useful to reproduce the results output by =BuyseTest=.
+\bigskip
 
-\vfill
+The *BuyseTest* package contains three main functions:
+- the function =BuyseTest= is the main function of the package. It
+  performs the GPC, estimates the net benefit/win ratio, and output a
+  /BuyseRes/ object. The user can interact with /BuyseRes/ objects using:
+    + =summary= to obtain a nice display of the results
+    + =coef= to extract the estimates.
+    + =confint= to extract estimates, confidence intervals, and p.values.
+    + =iid= to extract the iid decomposition of the estimator.
+    + =getCount= to extract the number of favorable, unfavorable, neutral, and uninformative pairs.
+    + =getPairScore= to extract the contribution of each pair to the net benefit/win ratio.
+    + =getSurvival= to extract the estimates of the survival (only relevant for right-censored endpoints).
+- the =powerBuyseTest= function performs simulation studies,
+  e.g. to estimate the statistical power or assess the bias / type 1
+  error rate of a test for a specific design.
+- the =BuyseTest.options= function enables the user to display the
+  default values used in the *BuyseTest* package (essentially used by
+  the =BuyseTest= function). function. The function can also change
+  the default values to better match the user needs.
+
+\clearpage
 
 Before going further we need to load the *BuyseTest* package in the R
 session:
@@ -32,27 +50,8 @@ library(BuyseTest)
 library(data.table)
 #+END_SRC
 
-\bigskip
-
-The *BuyseTest* package is under active development. Newer package
-versions may include additional functionalities and fix previous
-bugs. To get the current version of the package use
-=utils::packageVersion=:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-utils::packageVersion("BuyseTest")
-#+END_SRC
-
-#+RESULTS:
-: [1] '1.8'
-
-\vfill
-
-
-\clearpage
-
-* Example data
-For this overview we will used the =veteran= dataset from the
-*survival* package:
+To illustrate the functionalities of the package, we will used the
+=veteran= dataset from the *survival* package:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 data(veteran,package="survival")
 head(veteran)
@@ -69,31 +68,76 @@ head(veteran)
 
 See =?veteran= for a presentation of the database.
 
+\bigskip
+
+_Note:_ the *BuyseTest* package is under active development. Newer
+package versions may include additional functionalities and fix
+previous bugs. The version of the package that is being is:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+utils::packageVersion("BuyseTest")
+#+END_SRC
+
+#+RESULTS:
+: [1] '1.8'
+
+For completness, the details of the R session used to generate this
+document are:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+sessionInfo()
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+R version 3.5.1 (2018-07-02)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
+[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] data.table_1.12.2  BuyseTest_1.8      Rcpp_1.0.1         prodlim_2018.04.18
+
+loaded via a namespace (and not attached):
+ [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
+ [5] survival_2.44-1.1  KernSmooth_2.23-15 splines_3.5.1      grid_3.5.1        
+ [9] lava_1.6.5         stats4_3.5.1       lattice_0.20-35
+#+end_example
+
+
+
+
+
+
 \clearpage
 
 * Performing generalized pairwise comparisons (GPC) using the =BuyseTest= function
 
 To perform generalized pairwise comparisons, the =BuyseTest= function needs:
-- an where the data are stored \hfill - argument =data=
+- where the data are stored \hfill - argument =data=
 - the name of the endpoints \hfill - argument =endpoint=
 - the type of each endpoint \hfill - argument =type=
 - the variable defining the two treatment groups \hfill - argument
   =treatment=
 The =BuyseTest= function has many optional arguments to specify for example:
-- the threshold associated to each endpoint (default\(=10^{-12}\))  \hfill - argument =threshold=
-- the censoring associated to each endpoint (for time to event endpoint) \hfill - argument =censoring=
+- the threshold of clinical relevance associated to each endpoint \hfill - argument =threshold=
+- the censoring associated to each endpoint (for time to event endpoints) \hfill - argument =censoring=
 - how to compute the distribution of the statistic of interest \hfill - argument =method.inference=
 
 \bigskip
 
 There are two equivalent ways to define the GPC: 
-- using a separate argument for each element[fn:1]:
-
-
-[fn:1] we set the argument =method.inference= to "none" to diseable
-the computation of p-values and confidence intervals. This makes the
-execution of =BuyseTest= much faster.
-
+- using a separate argument for each element[fn::the argument
+  =method.inference= is set to "none" to diseable the computation of
+  p-values and confidence intervals. This makes the execution of
+  =BuyseTest= much faster.]:
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT <- BuyseTest(data = veteran, 
@@ -204,16 +248,14 @@ summary(BT, statistic = "winRatio")
 :  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
 :      time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
 
-Since we have set the argument =n.permutation= to 0 (i.e. no
-permutation test) in the stratified analysis, we do not get confidence
-intervals or p.values when calling the =summary= method. See
-=help(BuyseRes-summary)= for more detailed explanations about the
+See =help(BuyseRes-summary)= for more detailed explanations about the
 =summary= method and its output.
 
 ** Using multiple endpoints
 More than one endpoint can be considered by indicating a vector of
-endpoints, types, and thresholds. In the formula interface, just add
-another endpoint at then end of the formula:
+endpoints, types, and thresholds. In the formula interface, the
+different endpoints must be separated with a "+" on the right hand
+side of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ff2 <- trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0)
 BT.H <- BuyseTest(ff2, data = veteran, 
@@ -293,7 +335,10 @@ summary(BT.nHw)
  -0.0701
  -0.0764
 #+end_example
-This has been refered as the O’Brien test in the litterature.
+This has been refered as the O’Brien test in the litterature
+(cite:verbeeck2019generalized, section 3.2).
+
+\clearpage
 
 ** What if smaller is better?
 By default =BuyseTest= will always assume that higher values of an
@@ -344,9 +389,14 @@ BT2 <- BuyseTest(ff2strata, data = veteran,
 #+RESULTS:
 
 The fact the it is not wrapped by =bin=, =cont= or =tte= indicates
-differentiate it from endpoint variables. When doing a stratified
-analysis, the summary method displays the global results as well as
-the results within each strata:
+differentiate it from endpoint variables. 
+
+\clearpage
+
+When doing a stratified analysis, the summary method displays the
+global results as well as the results within each strata[fn::the
+strata-specific results can be removed by setting the argument
+=strata= to ="global"= when calling =summary=.]:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(BT2)
 #+END_SRC
@@ -398,7 +448,9 @@ dt.sim
 : 1:  1       Yes   Yes   15
 : 2:  2        No   Yes   20
 
-If we perform we GPC with tumor as the first endpoint and size as the
+\clearpage
+
+If we use the GPC with tumor as the first endpoint and size as the
 second endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.pair <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
@@ -446,11 +498,15 @@ summary(BT.pair2)
 
 So in this case no pair is analyzed at second priority.
 
+\clearpage
+
 ** What about p-value and confidence intervals?
 
 Several methods are available in =BuyseTest= to perform statistical inference:
 - *permutation test* setting the argument =method.inference= to
-  ="permutation"=. This approach gives valid p-values.
+  ="permutation"=. This approach gives valid p-values, regardless to
+  the sample size, for testing the absence of a difference between the
+  groups.
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
                      data = veteran, trace = 0, method.inference = "permutation") 
@@ -1143,36 +1199,21 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 
-* Information about the R session used for this document
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
 
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-sessionInfo()
-#+END_SRC
+#+BEGIN_EXPORT latex
+\begingroup
+\renewcommand{\section}[2]{}
+#+END_EXPORT
+bibliographystyle:apalike
+[[bibliography:bibliography.bib]]
+#+BEGIN_EXPORT latex
+\endgroup
+#+END_EXPORT
 
-#+RESULTS:
-#+begin_example
-R version 3.5.1 (2018-07-02)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 7 x64 (build 7601) Service Pack 1
-
-Matrix products: default
-
-locale:
-[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
-[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.1252    
-
-attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
-
-other attached packages:
-[1] data.table_1.12.2  BuyseTest_1.8      Rcpp_1.0.1         prodlim_2018.04.18
-
-loaded via a namespace (and not attached):
- [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
- [5] survival_2.44-1.1  KernSmooth_2.23-15 splines_3.5.1      grid_3.5.1        
- [9] lava_1.6.5         stats4_3.5.1       lattice_0.20-35
-#+end_example
 
 
 
