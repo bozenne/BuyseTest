@@ -12,5 +12,8 @@ A \code{\link{powerBuyseTest}} output is reported in a \code{BuyseSim} object.
 \code{\link{powerBuyseTest}} for the function computing generalized pairwise comparisons. \cr
 \code{\link{BuyseSim-summary}} for the summary of the BuyseTest function results
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseSim-class}
 \keyword{classes}

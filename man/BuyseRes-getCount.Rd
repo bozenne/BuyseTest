@@ -22,5 +22,8 @@ A \code{"vector"} containing the number of pairs
 \description{
 Extract the number of favorable, unfavorable, neutral, uninformative pairs.
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-method}
 \keyword{get}

@@ -42,5 +42,8 @@ The argument \code{type} can take any of the following values:
 \item \code{"lastSurv"}: survival at the last event time.
 }
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-method}
 \keyword{get}

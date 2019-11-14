@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: mar 28 2019 (15:33) 
+## Last-Updated: nov 14 2019 (14:45) 
 ##           By: Brice Ozenne
-##     Update #: 257
+##     Update #: 258
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,7 @@
 #' @param increasing [logical] is the function fn increasing?
 #' @param check [logical] should the program check that fn takes a different sign for the first vs. the last value of the grid?
 #' @param tol [numeric] the absolute convergence tolerance.
-#'
+#' @author Brice Ozenne
 
 ## * discreteRoot
 #' @rdname discreteRoot

@@ -27,6 +27,7 @@
 #' Extract for each strata the index of the observations within each group.
 #'
 #' @keywords function internal BuyseTest
+#' @author Brice Ozenne
 
 ## * initializeArgs
 #' @rdname internal-initialization

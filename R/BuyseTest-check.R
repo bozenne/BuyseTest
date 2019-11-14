@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: nov 13 2019 (09:25) 
+## Last-Updated: nov 14 2019 (14:43) 
 ##           By: Brice Ozenne
-##     Update #: 188
+##     Update #: 189
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,6 +20,7 @@
 ##' @description Check the validity of the argument passed the BuyseTest function by the user.
 ##'
 ##' @keywords internal
+##' @author Brice Ozenne
 testArgs <- function(name.call,
                      censoring,
                      correction.uninf,

@@ -35,5 +35,8 @@ Summarize the results from the \code{\link{powerBuyseTest}} function.
 \seealso{
 \code{\link{powerBuyseTest}} for performing a simulation study for generalized pairwise comparison. \cr
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseSim-method}
 \keyword{summary}

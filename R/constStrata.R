@@ -36,6 +36,7 @@
 #' table(veteran$strata2) # numeric strata variable
 #' 
 #' @keywords function
+#' @author Brice Ozenne
 
 ## * Function constStrata
 #' @rdname constStrata

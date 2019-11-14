@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: nov 13 2019 (11:08) 
+## Last-Updated: nov 14 2019 (14:41) 
 ##           By: Brice Ozenne
-##     Update #: 582
+##     Update #: 584
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -60,6 +60,7 @@
 #' }
 #' 
 #' @keywords confint BuyseRes-method
+#' @author Brice Ozenne
 
 ## * Method - confint
 #' @rdname BuyseRes-confint

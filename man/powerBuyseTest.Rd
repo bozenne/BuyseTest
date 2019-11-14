@@ -68,3 +68,6 @@ powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
               formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4)
 
 }
+\author{
+Brice Ozenne
+}

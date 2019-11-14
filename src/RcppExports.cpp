@@ -49,9 +49,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// calcIntegralScore_cpp
-std::vector< double > calcIntegralScore_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv, bool returnDeriv, int column, arma::mat& derivSurv, arma::mat& derivSurvD);
-RcppExport SEXP _BuyseTest_calcIntegralScore_cpp(SEXP survivalSEXP, SEXP startSEXP, SEXP lastSurvSEXP, SEXP lastdSurvSEXP, SEXP returnDerivSEXP, SEXP columnSEXP, SEXP derivSurvSEXP, SEXP derivSurvDSEXP) {
+// calcIntegralSurv_cpp
+std::vector< double > calcIntegralSurv_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv, bool returnDeriv, int column, arma::mat& derivSurv, arma::mat& derivSurvD);
+RcppExport SEXP _BuyseTest_calcIntegralSurv_cpp(SEXP survivalSEXP, SEXP startSEXP, SEXP lastSurvSEXP, SEXP lastdSurvSEXP, SEXP returnDerivSEXP, SEXP columnSEXP, SEXP derivSurvSEXP, SEXP derivSurvDSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -63,14 +63,31 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type column(columnSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type derivSurv(derivSurvSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type derivSurvD(derivSurvDSEXP);
-    rcpp_result_gen = Rcpp::wrap(calcIntegralScore_cpp(survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD));
+    rcpp_result_gen = Rcpp::wrap(calcIntegralSurv_cpp(survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calcIntegralCif_cpp
+double calcIntegralCif_cpp(const arma::mat& cif, double start_val, double stop_val, double CIF_t, double lastCIF, int type);
+RcppExport SEXP _BuyseTest_calcIntegralCif_cpp(SEXP cifSEXP, SEXP start_valSEXP, SEXP stop_valSEXP, SEXP CIF_tSEXP, SEXP lastCIFSEXP, SEXP typeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type cif(cifSEXP);
+    Rcpp::traits::input_parameter< double >::type start_val(start_valSEXP);
+    Rcpp::traits::input_parameter< double >::type stop_val(stop_valSEXP);
+    Rcpp::traits::input_parameter< double >::type CIF_t(CIF_tSEXP);
+    Rcpp::traits::input_parameter< double >::type lastCIF(lastCIFSEXP);
+    Rcpp::traits::input_parameter< int >::type type(typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(calcIntegralCif_cpp(cif, start_val, stop_val, CIF_t, lastCIF, type));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 33},
-    {"_BuyseTest_calcIntegralScore_cpp", (DL_FUNC) &_BuyseTest_calcIntegralScore_cpp, 8},
+    {"_BuyseTest_calcIntegralSurv_cpp", (DL_FUNC) &_BuyseTest_calcIntegralSurv_cpp, 8},
+    {"_BuyseTest_calcIntegralCif_cpp", (DL_FUNC) &_BuyseTest_calcIntegralCif_cpp, 6},
     {NULL, NULL, 0}
 };
 

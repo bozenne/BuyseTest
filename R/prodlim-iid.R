@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: nov  8 2019 (16:17) 
+## Last-Updated: nov 14 2019 (14:45) 
 ##           By: Brice Ozenne
-##     Update #: 100
+##     Update #: 101
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,7 +32,7 @@
 #' riskRegression: Predicting the Risk of an Event using Cox Regression Models.
 #' The R Journal (2017) 9:2, pages 440-460.
 #'
-#'
+#' @author Brice Ozenne
 
 ## * iidProdlim - examples
 #' @rdname iidProdlim

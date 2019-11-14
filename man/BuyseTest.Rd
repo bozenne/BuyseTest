@@ -267,5 +267,8 @@ On inference in GPC using the U-statistic theory: I. Bebu, J. M. Lachin (2015). 
 \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
 \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
 }
-\keyword{BuyseTest}
+\author{
+Brice Ozenne
+}
+\keyword{BuyseTes}
 \keyword{function}

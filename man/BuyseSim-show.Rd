@@ -18,5 +18,8 @@ Display the main results stored in a \code{\link{BuyseSim}} object.
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
   \code{\link{BuyseSim-summary}} for a more detailed presentation of the \code{BuyseSim} object.
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseSim-method}
 \keyword{summary}

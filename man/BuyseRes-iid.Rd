@@ -29,5 +29,8 @@ Extract the H-decomposition of the GPC estimator.
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-method}
 \keyword{iid}

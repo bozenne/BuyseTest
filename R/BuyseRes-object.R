@@ -10,7 +10,7 @@
 #' \code{\link{BuyseRes-summary}} for the summary of the BuyseTest function results
 #' 
 #' @keywords classes BuyseRes-class
-#' 
+#' @author Brice Ozenne
 
 ## * Class BuyseRes
 #' @rdname BuyseRes-class

@@ -77,7 +77,7 @@
 #'         
 #' 
 #' @keywords function simulations
-#'
+#' @author Brice Ozenne
 
 ## * Function simBuyseTest
 #' @rdname simulation

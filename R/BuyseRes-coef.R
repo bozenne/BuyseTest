@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: maj 13 2019 (16:27) 
+## Last-Updated: nov 14 2019 (14:41) 
 ##           By: Brice Ozenne
-##     Update #: 37
+##     Update #: 38
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,6 +47,7 @@
 #' \item \code{"pc.uninf"}: returns the percentage of uninformative pairs.
 #' }
 #' @keywords coef BuyseRes-method
+#' @author Brice Ozenne
 
 ## * method - coef
 #' @rdname BuyseRes-coef

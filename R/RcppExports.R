@@ -39,6 +39,7 @@
 #' @param returnIID Should the iid be computed?
 #' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 #' @keywords function Cpp BuyseTest
+#' @author Brice Ozenne
 NULL
 
 #' @name GPC_cpp
@@ -47,9 +48,9 @@ GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, 
     .Call(`_BuyseTest_GPC_cpp`, endpoint, censoring, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_censoring, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug)
 }
 
-#' @title C++ Function Computing the Integral Terms for the Peron Method. 
+#' @title C++ Function Computing the Integral Terms for the Peron Method in the survival case. 
 #' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
-#' @name calcIntegralScore_cpp
+#' @name calcIntegralSurv_cpp
 #' 
 #' @param survival [matrix] Contains the jump times in the first column,
 #' the survival in the other arm at times plus threshold in the second column,
@@ -63,8 +64,30 @@ GPC_cpp <- function(endpoint, censoring, indexC, posC, indexT, posT, threshold, 
 #' @param derivSurvD [matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival used to compute the jumps.
 #'
 #' @keywords function Cpp internal
+#' @author Brice Ozenne
 #' @export
-calcIntegralScore_cpp <- function(survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD) {
-    .Call(`_BuyseTest_calcIntegralScore_cpp`, survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD)
+calcIntegralSurv_cpp <- function(survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD) {
+    .Call(`_BuyseTest_calcIntegralSurv_cpp`, survival, start, lastSurv, lastdSurv, returnDeriv, column, derivSurv, derivSurvD)
+}
+
+#' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR).
+#' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
+#' @name calcIntegralCif_cpp
+#'
+#' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
+#' T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).
+#' @param start_val [numeric] Time at which to start the integral.
+#' @param stop_val [numeric] Time at which to stop the integral.
+#' @param CIF_t [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
+#' @param lastCIF [numeric, >0] last value of CIF of event type 1 in group T.
+#' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two
+#' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with
+#' t+tau and t-tau).
+#'
+#' @keywords function Cpp internal
+#' @author Eva Cantagallo
+#' @export
+calcIntegralCif_cpp <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) {
+    .Call(`_BuyseTest_calcIntegralCif_cpp`, cif, start_val, stop_val, CIF_t, lastCIF, type)
 }
 

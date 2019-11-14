@@ -57,5 +57,8 @@ More precisely, the quantiles of the distribution of the statistic are computed 
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-method}
 \keyword{confint}

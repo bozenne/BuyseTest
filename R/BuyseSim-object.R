@@ -10,7 +10,7 @@
 #' \code{\link{BuyseSim-summary}} for the summary of the BuyseTest function results
 #' 
 #' @keywords classes BuyseSim-class
-#' 
+#' @author Brice Ozenne 
 
 ## * Class BuyseSim
 #' @rdname BuyseSim-class

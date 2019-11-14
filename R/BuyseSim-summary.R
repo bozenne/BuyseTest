@@ -22,6 +22,7 @@
 #'   \code{\link{powerBuyseTest}} for performing a simulation study for generalized pairwise comparison. \cr
 #' 
 #' @keywords summary BuyseSim-method
+#' @author Brice Ozenne
 
 ## * method - summary
 #' @rdname BuyseSim-summary

@@ -120,5 +120,8 @@ if(require(testthat)){
    testthat::expect_equal(pN, pScore[91, neutral])
 }
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-method}
 \keyword{get}

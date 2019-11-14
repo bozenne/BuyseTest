@@ -1,4 +1,4 @@
-% Created 2019-11-14 to 14:06
+% Created 2019-11-14 to 14:23
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -206,7 +206,7 @@ loaded via a namespace (and not attached):
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:orge6746c4}
+\label{sec:orga3920d9}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -287,7 +287,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:orgc4814ba}
+\label{sec:org3c2d7f3}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -353,7 +353,7 @@ See \texttt{help(BuyseRes-summary)} for more detailed explanations about the
 \texttt{summary} method and its output.
 
 \subsection{Using multiple endpoints}
-\label{sec:org3bee821}
+\label{sec:org99181b5}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -443,7 +443,7 @@ This has been refered as the O’Brien test in the litterature
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:orgaab0aa0}
+\label{sec:org941a60e}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -477,7 +477,7 @@ Error in (function (name.call, censoring, correction.uninf, cpus, data,  :
 \end{verbatim}
 
 \subsection{Stratified GPC}
-\label{sec:orge9e9da2}
+\label{sec:org87cf7cd}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -539,7 +539,7 @@ global delta is a sum of the strata specific delta weighted by the
 empirical proportion of pairs for each strata.
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org7a4167a}
+\label{sec:orgaacefa5}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -611,7 +611,7 @@ So in this case no pair is analyzed at second priority.
 \clearpage
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org259179f}
+\label{sec:org527bec9}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
@@ -732,7 +732,7 @@ lack of free memory.
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:orga511f0d}
+\label{sec:orge186eec}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -741,7 +741,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:org6e533d9}
+\label{sec:org2a7ab8d}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -827,7 +827,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org0dfcf36}
+\label{sec:org3911780}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -872,7 +872,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org9ebfdb5}
+\label{sec:org1a0964c}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -971,7 +971,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org31a180c}
+\label{sec:orgd5568a4}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1058,7 +1058,7 @@ upperBound 0.5058685   0.3770426
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org62d52e0}
+\label{sec:org76104b1}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -1128,7 +1128,7 @@ eventtime         1 0.1363 0.1363
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:orgf4988fd}
+\label{sec:org6e0a164}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -1195,7 +1195,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:org07c585d}
+\label{sec:org2eaed0f}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1256,7 +1256,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:org8cc28a2}
+\label{sec:org8e1e287}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1316,7 +1316,7 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Modifying default options}
-\label{sec:org949b46e}
+\label{sec:orgf38f589}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1367,7 +1367,7 @@ BuyseTest.options(reinitialise = TRUE)
 
 
 \section*{References}
-\label{sec:org9c311f7}
+\label{sec:org7f440ad}
 \begingroup
 \renewcommand{\section}[2]{}
 

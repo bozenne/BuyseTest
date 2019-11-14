@@ -14,6 +14,7 @@
 #'   \code{\link{BuyseSim-summary}} for a more detailed presentation of the \code{BuyseSim} object.
 #'  
 #' @keywords summary BuyseSim-method
+#' @author Brice Ozenne
 
 ## * Method - show
 #' @rdname BuyseSim-show

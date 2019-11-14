@@ -81,6 +81,9 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 \description{
 \code{GPC_cpp} call for each endpoint and each strata the pairwise comparison function suited to the type of endpoint and store the results.
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseTest}
 \keyword{Cpp}
 \keyword{function}

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: nov 12 2019 (11:09) 
+## Last-Updated: nov 14 2019 (14:45) 
 ##           By: Brice Ozenne
-##     Update #: 504
+##     Update #: 505
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -43,7 +43,7 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param order.Hprojection [integer 1,2] the order of the H-project to be used to compute the variance of the net benefit/win ratio.
 #' @param ... parameters from \code{BuyseTest}.
-#' 
+#' @author Brice Ozenne
 
 ## * powerBuyseTest (examples)
 ##' @rdname powerBuyseTest

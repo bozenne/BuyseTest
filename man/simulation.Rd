@@ -92,5 +92,8 @@ simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
         
 
 }
+\author{
+Brice Ozenne
+}
 \keyword{function}
 \keyword{simulations}

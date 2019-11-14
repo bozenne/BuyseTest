@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: nov  8 2019 (13:24) 
+## Last-Updated: nov 14 2019 (15:25) 
 ##           By: Brice Ozenne
-##     Update #: 67
+##     Update #: 68
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,6 +37,7 @@
 #' \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
 #' 
 #' @keywords iid BuyseRes-method
+#' @author Brice Ozenne
 
 ## * Method - iid
 #' @rdname BuyseRes-iid

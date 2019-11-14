@@ -16,7 +16,7 @@ using namespace arma ;
 arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
 					   arma::colvec deltaC, arma::colvec deltaT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-					   double lastSurvC, double lastSurvT, 					   
+					   arma::rowvec lastSurv, 					   
 					   arma::vec index_control, arma::vec index_treatment, arma::vec weight,					   
 					   vector<int> activeUTTE, int D_activeUTTE,
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,					   
@@ -63,10 +63,11 @@ void correctionIPW(int method, double zeroPlus,
 //         count_obsC, count_obsT, Dscore_Dnuisance_C, Dscore_Dnuisance_T
 //         RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T
 //         matPairScore
+// author Brice Ozenne
 arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
 					   arma::colvec deltaC, arma::colvec deltaT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
-					   double lastSurvC, double lastSurvT, 					   
+					   arma::rowvec lastSurv,
 					   arma::vec index_control, arma::vec index_treatment, arma::vec weight,					   
 					   vector<int> activeUTTE, int D_activeUTTE,
 					   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,					   
@@ -136,15 +137,15 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   arma::mat iDscore_Dnuisance_C;
   arma::mat iDscore_Dnuisance_T;
   int reserve = 0; 
- if(returnIID > 1 && method == 3){
+  if(returnIID > 1 && method == 3){
     Dscore_Dnuisance_C.resize(p_C, 4);
     Dscore_Dnuisance_C.fill(0.0);
 
     Dscore_Dnuisance_T.resize(p_T, 4);
     Dscore_Dnuisance_T.fill(0.0);
 
-    iDscore_Dnuisance_C.resize(p_C, 4); // initialized in calcOneScore_TTEperon
-	iDscore_Dnuisance_T.resize(p_T, 4); // initialized in calcOneScore_TTEperon
+    iDscore_Dnuisance_C.resize(p_C, 4); // initialized in calcOneScore_SurvPeron
+	iDscore_Dnuisance_T.resize(p_T, 4); // initialized in calcOneScore_SurvPeron
 
 	if(evalM1){	
 	  for(int iType=0; iType<4; iType++){
@@ -219,7 +220,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	  iPairScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
 	}else if(method == 2){
 	  iPairScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], deltaC[iter_C], deltaT[iter_T], threshold);
-	}else if(method == 3){
+	}else if(method > 2){
 	  if(evalM1){
 		iPairScore[0] = RP_score(iter_pair,0);
 		iPairScore[1] = RP_score(iter_pair,1);
@@ -231,12 +232,17 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 			iDscore_Dnuisance_T.col(iType) = RP_Dscore_Dnuisance_T[iType].col(iter_pair);
 		  }
 		}
-	  }else{
-		iPairScore = calcOneScore_TTEperon(Control[iter_C], Treatment[iter_T], 
-										   deltaC[iter_C], deltaT[iter_T], threshold,
-										   survTimeC.row(iter_C), survTimeT.row(iter_T),
-										   survJumpC, survJumpT, lastSurvC, lastSurvT,
-										   iDscore_Dnuisance_C, iDscore_Dnuisance_T, returnIID);
+	  }else if(method == 3){
+		iPairScore = calcOneScore_SurvPeron(Control[iter_C], Treatment[iter_T], 
+											deltaC[iter_C], deltaT[iter_T], threshold,
+											survTimeC.row(iter_C), survTimeT.row(iter_T),
+											survJumpC, survJumpT, lastSurv(0), lastSurv(1),
+											iDscore_Dnuisance_C, iDscore_Dnuisance_T, returnIID);
+	  }else if(method == 4){
+		iPairScore = calcOnePair_CRPeron(Control[iter_C], Treatment[iter_T],
+										 deltaC[iter_C], deltaT[iter_T], threshold,
+										 survTimeC.row(iter_C), survTimeT.row(iter_T), survJumpC,
+										 lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3));
 	  }
 	}	
 
@@ -418,27 +424,27 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   
   // ** correction for uninformative pairs
   if(count_uninf > 0){
-	  if(correctionUninf == 1){
-		if(debug>0){Rcout << "correction(pair level)" << endl;}
-		correctionPairs(method, zeroPlus,
-						count_favorable, count_unfavorable, count_neutral, count_uninf,
-						RP_score, matPairScore,
-						count_obsC, count_obsT, Dscore_Dnuisance_C, Dscore_Dnuisance_T,
-						activeUTTE, D_activeUTTE, Dweight_Dnuisance_C, Dweight_Dnuisance_T, 
-						RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T, returnIID,
-						neutralAsUninf, keepScore, updateIndexNeutral && (evalM1==false));
-      
-	  }else if(correctionUninf == 2){
-		if(debug>0){Rcout << "correction(trial level)" << endl;}
-		correctionIPW(method, zeroPlus,
+	if(correctionUninf == 1){
+	  if(debug>0){Rcout << "correction(pair level)" << endl;}
+	  correctionPairs(method, zeroPlus,
 					  count_favorable, count_unfavorable, count_neutral, count_uninf,
 					  RP_score, matPairScore,
 					  count_obsC, count_obsT, Dscore_Dnuisance_C, Dscore_Dnuisance_T,
 					  activeUTTE, D_activeUTTE, Dweight_Dnuisance_C, Dweight_Dnuisance_T, 
 					  RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T, returnIID,
 					  neutralAsUninf, keepScore, updateIndexNeutral && (evalM1==false));
-	  }
+      
+	}else if(correctionUninf == 2){
+	  if(debug>0){Rcout << "correction(trial level)" << endl;}
+	  correctionIPW(method, zeroPlus,
+					count_favorable, count_unfavorable, count_neutral, count_uninf,
+					RP_score, matPairScore,
+					count_obsC, count_obsT, Dscore_Dnuisance_C, Dscore_Dnuisance_T,
+					activeUTTE, D_activeUTTE, Dweight_Dnuisance_C, Dweight_Dnuisance_T, 
+					RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T, returnIID,
+					neutralAsUninf, keepScore, updateIndexNeutral && (evalM1==false));
 	}
+  }
 
   // ** export
   return matPairScore;
@@ -446,6 +452,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 }
 
 // * prepareWeight
+// author Brice Ozenne
 void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::mat >>& iPairDweight_Dnuisance_C, std::vector<std::vector< arma::mat >>& iPairDweight_Dnuisance_T,
 				   std::vector<int>& activeUTTE, int& D_activeUTTE,
 				   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
@@ -510,6 +517,7 @@ void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::mat >>
 //         RP_score, matPairScore,
 //         count_obsC, count_obsT, Dscore_Dnuisance_C, Dscore_Dnuisance_T, Dweight_Dnuisance_C, Dweight_Dnuisance_T
 //         RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T
+// author Brice Ozenne
 void correctionPairs(int method, double zeroPlus,
 					 double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 					 arma::mat& RP_score, arma::mat& matPairScore,
@@ -621,6 +629,7 @@ void correctionPairs(int method, double zeroPlus,
 }
 
 // * correctionIPW
+// author Brice Ozenne
 void correctionIPW(int method, double zeroPlus,
 				   double& count_favorable, double& count_unfavorable, double& count_neutral, double& count_uninf,
 				   arma::mat& RP_score, arma::mat& matPairScore,

@@ -14,6 +14,7 @@
 #'   \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
 #'  
 #' @keywords summary BuyseRes-method
+#' @author Brice Ozenne
 
 ## * Method - show
 #' @rdname BuyseRes-show

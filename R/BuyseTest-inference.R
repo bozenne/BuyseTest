@@ -1,4 +1,5 @@
 ## * inferenceResampling
+## author Brice Ozenne
 inferenceResampling <- function(envir){
 
     cpus <- envir$outArgs$cpus
@@ -65,7 +66,7 @@ inferenceResampling <- function(envir){
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest","calcSurvPeron","calcSample")
+        toExport <- c(".BuyseTest","calcPeron","calcSample")
         iB <- NULL ## [:forCRANcheck:] foreach        
         ls.resampling <- foreach::`%dopar%`(
                                       foreach::foreach(iB=1:n.resampling,

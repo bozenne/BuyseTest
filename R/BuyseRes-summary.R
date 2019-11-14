@@ -89,6 +89,7 @@
 #'  summary(BT, statistic = "winRatio")
 #' 
 #' @keywords summary BuyseRes-method
+#' @author Brice Ozenne
 
 ## * method - summary
 #' @rdname BuyseRes-summary

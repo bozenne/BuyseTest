@@ -21,3 +21,6 @@ discreteRoot(fn, grid, increasing = TRUE, check = TRUE,
 \description{
 Find the root of a monotone function on a discrete grid of value using dichotomic search
 }
+\author{
+Brice Ozenne
+}

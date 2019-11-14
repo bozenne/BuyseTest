@@ -13,6 +13,7 @@
 #'   A \code{"vector"} containing the number of pairs
 #'
 #' @keywords get BuyseRes-method
+#' @author Brice Ozenne
 
 ## * getCount (code)
 #' @rdname BuyseRes-getCount
@@ -85,6 +86,7 @@ setMethod(f = "getCount",
 #' (i.e. the weight of the pair that was not informative at the previous endpoint). This is always performed.
 #' For time to event endpoint an additional weighting may be performed to avoid a possible bias in presence of censoring.
 #' @keywords get BuyseRes-method
+#' @author Brice Ozenne
 
 ## * getPairScore (examples)
 #' @rdname BuyseRes-getPairScore
@@ -268,6 +270,7 @@ setMethod(f = "getPairScore",
 #' }
 #'
 #' @keywords get BuyseRes-method
+#' @author Brice Ozenne
 
 ## * getSurvival (code)
 #' @rdname BuyseRes-getSurvival

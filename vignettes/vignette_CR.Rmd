@@ -1,0 +1,74 @@
+---
+title: "Dealing with CR"
+author: "Eva Cantagallo"
+date: "3 avril 2019"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA)
+library(survival)
+library(BuyseTest)
+```
+
+\section{Dealing with competing risks}
+GPC can be used to analyze time-to-event endpoints subject to competing risks. Only two competing risks can be handled for each endpoint so far : the event of interest and one competing event. The former should be denoted by 1 in the corresponding censoring variable while the latter should be denoted by 2. Note that no competing event should be present without an event of interest. As an example, let us analyze the time to an event of interest, say death due to cancer, with death due to other causes being a competing event, in the following dataset:
+
+```{r}
+set.seed(2)
+dt.CR <- simBuyseTest(5e2, argsCont = NULL, argsTTE = list(CR = TRUE, rates.T = 0.8, 
+                                                           rates.C = 0.5, rates.CR = 0.6))
+head(dt.CR)
+```
+
+The \texttt{censoring} variable, called status in the dataset, contains the following levels:
+
+```{r}
+levels(as.factor(dt.CR[,status]))
+```
+
+with 0 indicating a censored observation, 1 an event of interest (time to death due to cancer is observed) and 2 a competing event (time to death due to other causes is observed). We perform the GPC analysis on this time-to-event endpoint with a threshold of 1 year setting \texttt{scoring.rule} to \texttt{"Peron"}. In the presence of competing risks, the \texttt{"Peron"} method uses the estimate of the cumulative incidence functions to compute the pairs' score:
+
+```{r}
+BT.CR <- BuyseTest(treatment ~ tte(eventtime, threshold = 1, censoring = "status"), 
+                   data = dt.CR, trace = 0, method.inference = "none",  
+                   scoring.rule = "Peron", keep.pairScore = T)
+summary(BT.CR)
+```
+
+If we display the score of some pairs:
+
+```{r}
+getPairScore(BT.CR)
+```
+
+We see that the first pair, composed of observations 1 and 501, is classified as favorable. If we look closer at these two observations:
+
+```{r}
+dt.CR[c(1,501),]
+```
+
+The treatment patient of the pair experienced the competing event while the control patient experienced the event of interest. In the GPC method it is considered that a patient experiencing the competing event will never experience the event of interest at a later time, and his time to the event of interest is thus considered infinite. In the present case, the treatment patient will never experience the event of interest and his time to the event of interest is thus considered infinite. The pair is therefore classified as favorable as the treatment patient has a longer time to the event of interest than the control patient. Similarly, pairs with the control patient having the competing event and the treatment patient having the event of interest are classified as unfavorable. Finally, pairs with two competing events are classified as neutral as both patients have an infinite time to the event of interest. 
+
+In this example, the net benefit is estimated to 0.1408. This positive value indicates that the probability to have a larger time to death due to cancer with the treatment compared to the control is larger than the probability to have a larger time to death due to cancer with the control compared to the treatment. This therefore suggests a beneficial effect of the treatment compared to the control regarding the event of interest.
+
+
+\textbf{What about the competing event ?} 
+
+The net benefit focuses on the time to the event of interest of the patients of the two treatment groups. The time to the competing event in both groups should therefore be analyzed too, to avoid missing important information about the experimental treatment and its effect on the competing event. This can be done by performing a log-rank test to determine whether there is a significant difference between the cause-specific hazards of the competing event in the two groups.
+
+\textbf{What about censoring ?} 
+
+As in the absence of competing risks, censoring can be handled in several ways. The first one consists in applying the \texttt{Peron} scoring rule instead of the \texttt{Gehan} scoring rule in order to use the cumulative incidence functions estimate to compute the pairs' score (see above example). Other ways are the use of a correction, either the IPCW correction or the correction at the pair level, to remove completely the uninformative pairs:
+
+```{r}
+BT.CR.corr <- BuyseTest(treatment ~ tte(eventtime, threshold = 1, censoring = "status"), 
+                   data = dt.CR, trace = 0, method.inference = "none",  
+                   scoring.rule = "Peron", correction.uninf = 1)
+summary(BT.CR.corr)
+```
+
+Note that in this particular example, the effect of the correction at the pair level is really moderate as the original proportion of uninformative pairs was small. 

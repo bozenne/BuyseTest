@@ -6,7 +6,7 @@
 \alias{initializeData}
 \alias{initializeFormula}
 \alias{calcSample}
-\alias{calcSurvPeron}
+\alias{calcPeron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
 initializeArgs(censoring, correction.uninf = NULL, cpus = NULL, data,
@@ -24,7 +24,7 @@ initializeFormula(x)
 
 calcSample(envir, method.inference)
 
-calcSurvPeron(data, model.tte, method.score, treatment, level.treatment,
+calcPeron(data, model.tte, method.score, treatment, level.treatment,
   endpoint, endpoint.TTE, endpoint.UTTE, censoring, censoring.TTE,
   censoring.UTTE, D.TTE, D.UTTE, type, strata, threshold, n.strata,
   iidNuisance, out)
@@ -52,6 +52,9 @@ from the formula. \cr \cr
 \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
 Merge the strata into one with the interaction variable.
 Extract for each strata the index of the observations within each group.
+}
+\author{
+Brice Ozenne
 }
 \keyword{BuyseTest}
 \keyword{function}

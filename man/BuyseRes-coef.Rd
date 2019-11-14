@@ -40,5 +40,8 @@ One of the following statistic can be specified:
 \item \code{"pc.uninf"}: returns the percentage of uninformative pairs.
 }
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-method}
 \keyword{coef}

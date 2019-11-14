@@ -4,6 +4,7 @@
 #' @description Functions called by \code{\link{BuyseTest}} to display the settings.
 #' 
 #' @keywords internal
+#' @author Brice Ozenne
 
 ## * Function printGeneral
 #' @rdname internal-print

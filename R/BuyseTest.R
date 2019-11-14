@@ -148,7 +148,8 @@
 #' \code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
 #' \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
 #' \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
-#' @keywords function BuyseTest
+#' @keywords function BuyseTes
+#' @author Brice Ozenne
 
 ## * BuyseTest (example)
 #' @rdname BuyseTest
@@ -354,7 +355,7 @@ BuyseTest <- function(formula,
     envirBT <- environment()
     envirBT$.BuyseTest <- .BuyseTest
     envirBT$initializeData <- initializeData
-    envirBT$calcSurvPeron <- calcSurvPeron
+    envirBT$calcPeron <- calcPeron
     
     ## ** Point estimation
     if (outArgs$trace > 1) {
@@ -511,25 +512,25 @@ BuyseTest <- function(formula,
     if(envir$outArgs$scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$skeletonPeron
     }else{ ## Peron 
-        outSurv <- calcSurvPeron(data = outSample$data,
-                                 model.tte = envir$outArgs$model.tte,
-                                 method.score = envir$outArgs$method.score,
-                                 treatment = envir$outArgs$treatment,
-                                 level.treatment = envir$outArgs$level.treatment,
-                                 endpoint = envir$outArgs$endpoint,
-                                 endpoint.TTE = envir$outArgs$endpoint.TTE,
-                                 endpoint.UTTE = envir$outArgs$endpoint.UTTE,
-                                 censoring = envir$outArgs$censoring,
-                                 censoring.TTE = envir$outArgs$censoring.TTE,
-                                 censoring.UTTE = envir$outArgs$censoring.UTTE,
-                                 D.TTE = envir$outArgs$D.TTE,
-                                 D.UTTE = envir$outArgs$D.UTTE,
-                                 type = envir$outArgs$type,
-                                 threshold = envir$outArgs$threshold,
-                                 n.strata = envir$outArgs$n.strata,
-                                 strata = envir$outArgs$strata,
-                                 iidNuisance = envir$outArgs$iidNuisance * iid,
-                                 out = envir$outArgs$skeletonPeron)
+        outSurv <- calcPeron(data = outSample$data,
+                             model.tte = envir$outArgs$model.tte,
+                             method.score = envir$outArgs$method.score,
+                             treatment = envir$outArgs$treatment,
+                             level.treatment = envir$outArgs$level.treatment,
+                             endpoint = envir$outArgs$endpoint,
+                             endpoint.TTE = envir$outArgs$endpoint.TTE,
+                             endpoint.UTTE = envir$outArgs$endpoint.UTTE,
+                             censoring = envir$outArgs$censoring,
+                             censoring.TTE = envir$outArgs$censoring.TTE,
+                             censoring.UTTE = envir$outArgs$censoring.UTTE,
+                             D.TTE = envir$outArgs$D.TTE,
+                             D.UTTE = envir$outArgs$D.UTTE,
+                             type = envir$outArgs$type,
+                             threshold = envir$outArgs$threshold,
+                             n.strata = envir$outArgs$n.strata,
+                             strata = envir$outArgs$strata,
+                             iidNuisance = envir$outArgs$iidNuisance * iid,
+                             out = envir$outArgs$skeletonPeron)
     }
     
     ## ** Perform GPC
@@ -709,27 +710,27 @@ calcSample <- function(envir, method.inference){
 
 
 
-## * calcSurvPeron
+## * calcPeron
 #' @rdname internal-initialization
-calcSurvPeron <- function(data,
-                          model.tte,
-                          method.score,
-                          treatment,
-                          level.treatment,
-                          endpoint,
-                          endpoint.TTE,
-                          endpoint.UTTE,
-                          censoring,
-                          censoring.TTE,
-                          censoring.UTTE,
-                          D.TTE,
-                          D.UTTE,
-                          type,
-                          strata,
-                          threshold,
-                          n.strata,
-                          iidNuisance,
-                          out){
+calcPeron <- function(data,
+                      model.tte,
+                      method.score,
+                      treatment,
+                      level.treatment,
+                      endpoint,
+                      endpoint.TTE,
+                      endpoint.UTTE,
+                      censoring,
+                      censoring.TTE,
+                      censoring.UTTE,
+                      D.TTE,
+                      D.UTTE,
+                      type,
+                      strata,
+                      threshold,
+                      n.strata,
+                      iidNuisance,
+                      out){
 
     ## ** prepare
     if(n.strata == 1){
@@ -774,7 +775,7 @@ calcSurvPeron <- function(data,
                                                         "..strata.." = 1)
             }else{
                 col.strata <- setdiff(1:p,which(colnames(model.tte[[iEndpoint.UTTE]]$XX)==treatment))
-                value.strata <- apply(model.tte[[iEndpoint.UTTE]]$XX[,col.strata],1,paste0,collapse="")
+                value.strata <- apply(model.tte[[iEndpoint.UTTE]]$XX[,col.strata,drop=FALSE],1,paste0,collapse="")
                 model.tte[[iEndpoint.UTTE]]$XX <- cbind(model.tte[[iEndpoint.UTTE]]$XX,
                                                         "..strata.." = as.numeric(as.factor(value.strata)))
 

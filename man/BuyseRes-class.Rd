@@ -12,5 +12,8 @@ A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
 \code{\link{BuyseTest}} for the function computing generalized pairwise comparisons. \cr
 \code{\link{BuyseRes-summary}} for the summary of the BuyseTest function results
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-class}
 \keyword{classes}

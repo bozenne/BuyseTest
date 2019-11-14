@@ -12,4 +12,7 @@ testArgs(name.call, censoring, correction.uninf, cpus, data, endpoint,
 \description{
 Check the validity of the argument passed the BuyseTest function by the user.
 }
+\author{
+Brice Ozenne
+}
 \keyword{internal}

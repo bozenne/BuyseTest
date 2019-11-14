@@ -48,4 +48,7 @@ veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"), as.numeric
 table(veteran$strata2) # numeric strata variable
 
 }
+\author{
+Brice Ozenne
+}
 \keyword{function}

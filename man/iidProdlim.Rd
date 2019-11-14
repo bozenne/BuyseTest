@@ -34,3 +34,6 @@ Brice Ozenne, Anne Lyngholm Sorensen, Thomas Scheike, Christian Torp-Pedersen an
 riskRegression: Predicting the Risk of an Event using Cox Regression Models.
 The R Journal (2017) 9:2, pages 440-460.
 }
+\author{
+Brice Ozenne
+}

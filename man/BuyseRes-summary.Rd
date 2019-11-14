@@ -105,5 +105,8 @@ dt <- simBuyseTest(1e2, n.strata = 3)
   \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
   \code{\link{BuyseRes-confint}} to output confidence interval and p-values in a matrix format.
 }
+\author{
+Brice Ozenne
+}
 \keyword{BuyseRes-method}
 \keyword{summary}

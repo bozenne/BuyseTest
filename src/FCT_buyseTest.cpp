@@ -75,6 +75,7 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::mat >& iRP_Dscore_Dnuisan
 //' @param returnIID Should the iid be computed?
 //' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 //' @keywords function Cpp BuyseTest
+//' @author Brice Ozenne
 
 // * Function GPC_cpp
 //' @name GPC_cpp
@@ -243,7 +244,7 @@ List GPC_cpp(arma::mat endpoint,
 	  iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
 								censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
 								list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-								list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), 
+								list_lastSurv[iter_d].row(iter_strata),
 								iIndex_control, iIndex_treatment, iPairWeight,
 								activeUTTE, D_activeUTTE,
 								Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
@@ -271,7 +272,7 @@ List GPC_cpp(arma::mat endpoint,
 		arma::mat iPairScore_M1 = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
 									   censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
 									   list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-									   list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), 
+									   list_lastSurv[iter_d].row(iter_strata), 
 									   iIndex_control, iIndex_treatment, iPairWeight,
 									   activeUTTE, D_activeUTTE,
 									   iCount_favorable_M1, iCount_unfavorable_M1, iCount_neutral_M1, iCount_uninf_M1,
@@ -400,6 +401,7 @@ List GPC_cpp(arma::mat endpoint,
 }
 
 // * updateIID
+// author Brice Ozenne
 void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, 
 			   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
 			   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
@@ -453,6 +455,7 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
 
 
 // * updatePairScore
+// author Brice Ozenne
 void updatePairScore(std::vector< arma::mat >& pairScore, arma::mat& iPairScore,
 					 unsigned int iter_strata, const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
 					 const arma::vec& vecn_control, const arma::vec& vecn_cumpairsM1, unsigned int iter_d){
@@ -481,6 +484,7 @@ void updatePairScore(std::vector< arma::mat >& pairScore, arma::mat& iPairScore,
 }
 
 // * updateRP
+// author Brice Ozenne
 void updateRP(arma::mat& iRP_score, std::vector< arma::mat >& iRP_Dscore_Dnuisance_C, std::vector< arma::mat >& iRP_Dscore_Dnuisance_T,
 			  std::vector<arma::mat>& RP_score, std::vector< std::vector< arma::mat > >& RP_Dscore_Dnuisance_C, std::vector< std::vector< arma::mat > >& RP_Dscore_Dnuisance_T,
 			  arma::vec& iPairWeight_nPeron, int iSize_RP, bool neutralAsUninf, int iter_d, int correctionUninf,

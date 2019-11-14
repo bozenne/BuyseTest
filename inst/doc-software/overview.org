@@ -832,7 +832,7 @@ Sc132/Sc97
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
 integral. This integral can be computed using the function
-=calcIntegralScore\_cpp= that takes as argument a matrix containing the
+=calcIntegralSurv\_cpp= that takes as argument a matrix containing the
 survival and the jumps in survival, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 head(outSurv$survJumpT)
@@ -880,9 +880,9 @@ p_{UF} &= -\frac{1}{S_T(x)S_C(y)}\int_{t>x} S_C(t+\tau) dS_T(t)
 where \(x=87\) and \(y=100\). To ease the call of =calcIntegralScore_cpp= we create a warper:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 calcInt <- function(...){ ## here we don't need to return the functionnal derivative of the score 
-    calcIntegralScore_cpp(..., 
-                          returnDeriv = FALSE, column = 0,
-                          derivSurv = matrix(0), derivSurvD = matrix(0))
+    calcIntegralSurv_cpp(..., 
+                         returnDeriv = FALSE, column = 0,
+                         derivSurv = matrix(0), derivSurvD = matrix(0))
 }
 #+END_SRC
 

@@ -16,4 +16,7 @@ printInference(method.inference, n.resampling, cpus, seed, ...)
 \description{
 Functions called by \code{\link{BuyseTest}} to display the settings.
 }
+\author{
+Brice Ozenne
+}
 \keyword{internal}
