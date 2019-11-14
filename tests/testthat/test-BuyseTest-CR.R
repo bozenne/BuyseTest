@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: nov 14 2019 (15:17) 
+## Last-Updated: nov 14 2019 (17:20) 
 ##           By: Brice Ozenne
-##     Update #: 15
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,6 +20,7 @@ if(FALSE){
     library(BuyseTest)
     library(data.table)
 }
+library(prodlim)
 
 context("Check that BuyseTest with competing risks \n")
 
@@ -101,8 +102,8 @@ test_that("BuyseTest package and Eva's R code give the same results with one end
   BT = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5), data = df2)
   
   ## Test
-  expect_equal(as.double(delta.R), as.double(BT@Delta.netBenefit))
-  expect_equal(as.double(delta.R), as.double(BT@delta.netBenefit))
+  expect_equal(as.double(delta.R), as.double(BT@Delta.netBenefit), tol = 1e-5)
+  expect_equal(as.double(delta.R), as.double(BT@delta.netBenefit), tol = 1e-5)
   
 })
 
@@ -136,23 +137,23 @@ test_that("New package version gives the same results as previous one", {
   BT23.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@Delta.netBenefit
 
   #### Tests
-  expect_equal(delta11, as.double(BT11.d))
-  expect_equal(Delta11, as.double(BT11.D))
-  expect_equal(delta13, as.double(BT13.d))
-  expect_equal(Delta13, as.double(BT13.D))
-  expect_equal(delta21, as.double(BT21.d))
-  expect_equal(Delta21, as.double(BT21.D))
-  expect_equal(delta23[1,], as.double(BT23.d[1,]))
-  expect_equal(delta23[2,], as.double(BT23.d[2,]))
-  expect_equal(delta23[3,], as.double(BT23.d[3,]))
-  expect_equal(Delta23, as.double(BT23.D))
+  expect_equal(delta11, as.double(BT11.d), tol = 1e-5)
+  expect_equal(Delta11, as.double(BT11.D), tol = 1e-5)
+  expect_equal(delta13, as.double(BT13.d), tol = 1e-5)
+  expect_equal(Delta13, as.double(BT13.D), tol = 1e-5)
+  expect_equal(delta21, as.double(BT21.d), tol = 1e-5)
+  expect_equal(Delta21, as.double(BT21.D), tol = 1e-5)
+  expect_equal(delta23[1,], as.double(BT23.d[1,]), tol = 1e-5)
+  expect_equal(delta23[2,], as.double(BT23.d[2,]), tol = 1e-5)
+  expect_equal(delta23[3,], as.double(BT23.d[3,]), tol = 1e-5)
+  expect_equal(Delta23, as.double(BT23.D), tol = 1e-5)
   
 })
 
 test_that("Package give the same results when model.tte is (not) provided as an argument", {
   
   ## Create prodlim object to be inserted as an argument
-  fit = prodlim(Hist(time, status) ~ treatment + strata, data = df2)
+  fit = prodlim::prodlim(Hist(time, status) ~ treatment + strata, data = df2)
   #fit = prodlim(Hist(time, status) ~ treatment + strata + strata2, data = df2)
   
   ## Net benefit without passing model.tte
