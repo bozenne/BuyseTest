@@ -1,0 +1,48 @@
+\BOOKMARK [1][-]{section.1}{Parameter of interest}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Univariate case}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{Multivariate case}{section.1}% 3
+\BOOKMARK [1][-]{section.2}{Relationship between the net benefit and classical summary statistics}{}% 4
+\BOOKMARK [2][-]{subsection.2.1}{Binary variable}{section.2}% 5
+\BOOKMARK [3][-]{subsubsection.2.1.1}{Relationship between + and the prevalence}{subsection.2.1}% 6
+\BOOKMARK [3][-]{subsubsection.2.1.2}{In R}{subsection.2.1}% 7
+\BOOKMARK [2][-]{subsection.2.2}{Continuous variable}{section.2}% 8
+\BOOKMARK [3][-]{subsubsection.2.2.1}{Relationship between + and Cohen's d}{subsection.2.2}% 9
+\BOOKMARK [3][-]{subsubsection.2.2.2}{In R}{subsection.2.2}% 10
+\BOOKMARK [2][-]{subsection.2.3}{Time to event variable \(survival\)}{section.2}% 11
+\BOOKMARK [3][-]{subsubsection.2.3.1}{Relationship between + and the hazard ratio}{subsection.2.3}% 12
+\BOOKMARK [3][-]{subsubsection.2.3.2}{In R}{subsection.2.3}% 13
+\BOOKMARK [2][-]{subsection.2.4}{Time to event variable \(competing risks\)}{section.2}% 14
+\BOOKMARK [3][-]{subsubsection.2.4.1}{Relationship between + and the hazard function}{subsection.2.4}% 15
+\BOOKMARK [3][-]{subsubsection.2.4.2}{In R}{subsection.2.4}% 16
+\BOOKMARK [1][-]{section.3}{Scoring rules in the survival case}{}% 17
+\BOOKMARK [2][-]{subsection.3.1}{Partial ordering in presence of right-censored data}{section.3}% 18
+\BOOKMARK [2][-]{subsection.3.2}{Gehan scoring rule}{section.3}% 19
+\BOOKMARK [2][-]{subsection.3.3}{Peron scoring rule when the survival curve is known}{section.3}% 20
+\BOOKMARK [2][-]{subsection.3.4}{Peron scoring rule when the survival curve is estimated}{section.3}% 21
+\BOOKMARK [1][-]{section.4}{Scoring rules in the competing risk case}{}% 22
+\BOOKMARK [1][-]{section.5}{Corrections for uninformative pairs}{}% 23
+\BOOKMARK [2][-]{subsection.5.1}{Inverse probability weighting}{section.5}% 24
+\BOOKMARK [1][-]{section.6}{Asymptotic distribution}{}% 25
+\BOOKMARK [2][-]{subsection.6.1}{Gehan scoring rule}{section.6}% 26
+\BOOKMARK [3][-]{subsubsection.6.1.1}{H\341jek projection}{subsection.6.1}% 27
+\BOOKMARK [3][-]{subsubsection.6.1.2}{Variance estimator based on the H\341jek projection}{subsection.6.1}% 28
+\BOOKMARK [3][-]{subsubsection.6.1.3}{Variance estimator based on a second order H-decomposition}{subsection.6.1}% 29
+\BOOKMARK [3][-]{subsubsection.6.1.4}{Example}{subsection.6.1}% 30
+\BOOKMARK [2][-]{subsection.6.2}{Peron scoring rule}{section.6}% 31
+\BOOKMARK [3][-]{subsubsection.6.2.1}{Decomposition in iid terms}{subsection.6.2}% 32
+\BOOKMARK [3][-]{subsubsection.6.2.2}{Example}{subsection.6.2}% 33
+\BOOKMARK [2][-]{subsection.6.3}{Type 1 error in finite sample}{section.6}% 34
+\BOOKMARK [3][-]{subsubsection.6.3.1}{Binary endpoint}{subsection.6.3}% 35
+\BOOKMARK [3][-]{subsubsection.6.3.2}{Continuous endpoint}{subsection.6.3}% 36
+\BOOKMARK [3][-]{subsubsection.6.3.3}{Time to event endpoint \(Gehan method\)}{subsection.6.3}% 37
+\BOOKMARK [3][-]{subsubsection.6.3.4}{Time to event endpoint \(Peron method\)}{subsection.6.3}% 38
+\BOOKMARK [1][-]{section.7}{References}{}% 39
+\BOOKMARK [1][-]{appendix.A}{Recall on the U-statistic theory}{}% 40
+\BOOKMARK [2][-]{subsection.A.1}{Motivating example}{appendix.A}% 41
+\BOOKMARK [2][-]{subsection.A.2}{Estimate, estimator, and functionnal}{appendix.A}% 42
+\BOOKMARK [2][-]{subsection.A.3}{Aim}{appendix.A}% 43
+\BOOKMARK [2][-]{subsection.A.4}{Definition of a U-statistic and examples}{appendix.A}% 44
+\BOOKMARK [2][-]{subsection.A.5}{A major result from the U-statistic theory}{appendix.A}% 45
+\BOOKMARK [2][-]{subsection.A.6}{The first term of the H-decomposition}{appendix.A}% 46
+\BOOKMARK [2][-]{subsection.A.7}{Two sample U-statistics}{appendix.A}% 47
+\BOOKMARK [1][-]{appendix.B}{Information about the R session used for this document}{}% 48

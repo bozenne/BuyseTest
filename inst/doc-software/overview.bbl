@@ -1,0 +1,22 @@
+\begin{thebibliography}{}
+
+\bibitem[Buyse, 2010]{buyse2010generalized}
+Buyse, M. (2010).
+\newblock Generalized pairwise comparisons of prioritized outcomes in the
+  two-sample problem.
+\newblock {\em Statistics in medicine}, 29(30):3245--3257.
+
+\bibitem[P{\'e}ron et~al., 2018]{peron2018extension}
+P{\'e}ron, J., Buyse, M., Ozenne, B., Roche, L., and Roy, P. (2018).
+\newblock An extension of generalized pairwise comparisons for prioritized
+  outcomes in the presence of censoring.
+\newblock {\em Statistical methods in medical research}, 27(4):1230--1239.
+
+\bibitem[Verbeeck et~al., 2019]{verbeeck2019generalized}
+Verbeeck, J., Spitzer, E., de~Vries, T., van Es, G., Anderson, W., Van~Mieghem,
+  N., Leon, M., Molenberghs, G., and Tijssen, J. (2019).
+\newblock Generalized pairwise comparison methods to analyze (non) prioritized
+  composite endpoints.
+\newblock {\em Statistics in medicine}.
+
+\end{thebibliography}

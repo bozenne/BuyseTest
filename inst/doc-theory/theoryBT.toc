@@ -1,0 +1,48 @@
+\contentsline {section}{\numberline {1}Parameter of interest}{3}{section.1}
+\contentsline {subsection}{\numberline {1.1}Univariate case}{3}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Multivariate case}{3}{subsection.1.2}
+\contentsline {section}{\numberline {2}Relationship between the net benefit and classical summary statistics}{5}{section.2}
+\contentsline {subsection}{\numberline {2.1}Binary variable}{5}{subsection.2.1}
+\contentsline {subsubsection}{\numberline {2.1.1}Relationship between \(\Delta _+\) and the prevalence}{5}{subsubsection.2.1.1}
+\contentsline {subsubsection}{\numberline {2.1.2}In R}{5}{subsubsection.2.1.2}
+\contentsline {subsection}{\numberline {2.2}Continuous variable}{6}{subsection.2.2}
+\contentsline {subsubsection}{\numberline {2.2.1}Relationship between \(\Delta _+\) and Cohen's d}{6}{subsubsection.2.2.1}
+\contentsline {subsubsection}{\numberline {2.2.2}In R}{6}{subsubsection.2.2.2}
+\contentsline {subsection}{\numberline {2.3}Time to event variable (survival)}{7}{subsection.2.3}
+\contentsline {subsubsection}{\numberline {2.3.1}Relationship between \(\Delta _+\) and the hazard ratio}{7}{subsubsection.2.3.1}
+\contentsline {subsubsection}{\numberline {2.3.2}In R}{8}{subsubsection.2.3.2}
+\contentsline {subsection}{\numberline {2.4}Time to event variable (competing risks)}{9}{subsection.2.4}
+\contentsline {subsubsection}{\numberline {2.4.1}Relationship between \(\Delta _+\) and the hazard function}{9}{subsubsection.2.4.1}
+\contentsline {subsubsection}{\numberline {2.4.2}In R}{11}{subsubsection.2.4.2}
+\contentsline {section}{\numberline {3}Scoring rules in the survival case}{15}{section.3}
+\contentsline {subsection}{\numberline {3.1}Partial ordering in presence of right-censored data}{15}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Gehan scoring rule}{15}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Peron scoring rule when the survival curve is known}{15}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}Peron scoring rule when the survival curve is estimated}{16}{subsection.3.4}
+\contentsline {section}{\numberline {4}Scoring rules in the competing risk case}{16}{section.4}
+\contentsline {section}{\numberline {5}Corrections for uninformative pairs}{17}{section.5}
+\contentsline {subsection}{\numberline {5.1}Inverse probability weighting}{17}{subsection.5.1}
+\contentsline {section}{\numberline {6}Asymptotic distribution}{18}{section.6}
+\contentsline {subsection}{\numberline {6.1}Gehan scoring rule}{18}{subsection.6.1}
+\contentsline {subsubsection}{\numberline {6.1.1}H\'{a}jek\xspace projection}{18}{subsubsection.6.1.1}
+\contentsline {subsubsection}{\numberline {6.1.2}Variance estimator based on the H\'{a}jek\xspace projection}{19}{subsubsection.6.1.2}
+\contentsline {subsubsection}{\numberline {6.1.3}Variance estimator based on a second order H-decomposition}{19}{subsubsection.6.1.3}
+\contentsline {subsubsection}{\numberline {6.1.4}Example}{20}{subsubsection.6.1.4}
+\contentsline {subsection}{\numberline {6.2}Peron scoring rule}{23}{subsection.6.2}
+\contentsline {subsubsection}{\numberline {6.2.1}Decomposition in iid terms}{23}{subsubsection.6.2.1}
+\contentsline {subsubsection}{\numberline {6.2.2}Example}{23}{subsubsection.6.2.2}
+\contentsline {subsection}{\numberline {6.3}Type 1 error in finite sample}{23}{subsection.6.3}
+\contentsline {subsubsection}{\numberline {6.3.1}Binary endpoint}{23}{subsubsection.6.3.1}
+\contentsline {subsubsection}{\numberline {6.3.2}Continuous endpoint}{25}{subsubsection.6.3.2}
+\contentsline {subsubsection}{\numberline {6.3.3}Time to event endpoint (Gehan method)}{26}{subsubsection.6.3.3}
+\contentsline {subsubsection}{\numberline {6.3.4}Time to event endpoint (Peron method)}{27}{subsubsection.6.3.4}
+\contentsline {section}{\numberline {7}References}{28}{section.7}
+\contentsline {section}{\numberline {A}Recall on the U-statistic theory}{29}{appendix.A}
+\contentsline {subsection}{\numberline {A.1}Motivating example}{29}{subsection.A.1}
+\contentsline {subsection}{\numberline {A.2}Estimate, estimator, and functionnal}{29}{subsection.A.2}
+\contentsline {subsection}{\numberline {A.3}Aim}{30}{subsection.A.3}
+\contentsline {subsection}{\numberline {A.4}Definition of a U-statistic and examples}{31}{subsection.A.4}
+\contentsline {subsection}{\numberline {A.5}A major result from the U-statistic theory}{32}{subsection.A.5}
+\contentsline {subsection}{\numberline {A.6}The first term of the H-decomposition}{33}{subsection.A.6}
+\contentsline {subsection}{\numberline {A.7}Two sample U-statistics}{37}{subsection.A.7}
+\contentsline {section}{\numberline {B}Information about the R session used for this document}{41}{appendix.B}
