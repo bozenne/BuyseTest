@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov 13 2019 (14:16) 
+## Last-Updated: nov 15 2019 (09:46) 
 ##           By: Brice Ozenne
-##     Update #: 90
+##     Update #: 94
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -317,7 +317,7 @@ test_that("iid: TTE and no strata",{
 ## ** Two endpoints
 ## *** no strata
 set.seed(10)
-d <- simBuyseTest(50)
+d <- simBuyseTest(50, argsTTE = list(rates.T = 1/2, rates.Censoring.T = 1))
 
 BuyseTest.options(order.Hprojection = 1)
 test_that("iid: two endpoints (no strata - first order)", {
@@ -572,7 +572,7 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     
     n <- 5
     set.seed(10)
-    dt <- simBuyseTest(n)
+    dt <- simBuyseTest(n, argsTTE = list(rates.T = 1/2, rates.Censoring.T = 1))
     
     e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
                              data = dt, 
@@ -603,7 +603,7 @@ test_that("iid with nuisance parameters: 2 TTE",{
                            n.C = n.patients[2],
                            argsBin = list(p.T = c(0.5,0.75)),
                            argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
-                           argsTTE = list(rates.T = 1:3, rates.Censoring.T = rep(1,3)))
+                           argsTTE = list(rates.T = 1/(1:3), rates.Censoring.T = rep(1,3)))
     setkeyv(dt.sim,c("treatment","eventtime1"))
     dt.sim[,status1.bis := c(status1[1:(.N-1)],1),by="treatment"] ## make sure last observation is a case
 

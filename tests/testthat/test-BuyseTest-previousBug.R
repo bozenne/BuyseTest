@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: nov 13 2019 (16:34) 
+## Last-Updated: nov 15 2019 (09:47) 
 ##           By: Brice Ozenne
-##     Update #: 126
+##     Update #: 133
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -356,4 +356,27 @@ test_that("BuyseTest - hierarchical", {
                  c("time_20" = -0.08765836, "karno_1e-12" = -0.11898828),
                  tol = 1e-6)
 
+})
+
+## * graemeleehickey (issue #4 on Github): 6 october 2019 simBuyseTest
+test_that("simBuyseTest - rate vs. scale", {
+    n <- 1e5
+    rate <- 5
+
+    args <- list(rates.T = rate, rates.Censoring.T = rate+1,
+                 rates.C = rate, rates.Censoring.C = rate+1,
+                 rates.CR =  rate)
+    set.seed(10)
+    test <- simBuyseTest(1e4, argsBin = NULL, argsCont = NULL, argsTTE = args,
+                       latent = TRUE)
+    
+    set.seed(10)
+    GS <- rexp(n, rate = rate)
+    GS1 <- rexp(n, rate = rate+1)
+
+    expect_equal(mean(GS),mean(test[treatment == "C", mean(eventtimeUncensored)]), tol = 1e-2)
+    expect_equal(mean(GS),mean(test[treatment == "T", mean(eventtimeUncensored)]), tol = 1e-2)
+
+    expect_equal(mean(GS1),mean(test[treatment == "C", mean(eventtimeCensoring)]), tol = 1e-2)
+    expect_equal(mean(GS1),mean(test[treatment == "T", mean(eventtimeCensoring)]), tol = 1e-2)
 })

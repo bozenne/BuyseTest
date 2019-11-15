@@ -5,9 +5,10 @@
 \title{Check Arguments Passed to BuyseTest}
 \usage{
 testArgs(name.call, censoring, correction.uninf, cpus, data, endpoint,
-  formula, iid, keep.pairScore, scoring.rule, model.tte, method.inference,
-  n.resampling, strata.resampling, hierarchical, neutral.as.uninf,
-  operator, seed, strata, threshold, trace, treatment, type, weight, ...)
+  formula, iid, iidNuisance, keep.pairScore, scoring.rule, model.tte,
+  method.inference, n.resampling, strata.resampling, hierarchical,
+  neutral.as.uninf, operator, seed, strata, threshold, trace, treatment,
+  type, weight, ...)
 }
 \description{
 Check the validity of the argument passed the BuyseTest function by the user.

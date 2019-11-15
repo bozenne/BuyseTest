@@ -340,20 +340,20 @@ simBuyseTest_TTE <- function(modelT,
             stop("simBuyseTest_TTE: variable already in the LVM \n",
                  "variable: ",paste(allvarE[allvarE %in% lava::vars(modelT)], collapse = " "),"\n")
         }
-        lava::distribution(modelT, name0[iterE]) <- lava::coxExponential.lvm(rate=rates.T[iterE])
-        lava::distribution(modelT, nameC[iterE]) <- lava::coxExponential.lvm(rate=rates.Censoring.T[iterE])
+        lava::distribution(modelT, name0[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.T[iterE]) ## coxExponential is parametrized using 1/rate instead of rate
+        lava::distribution(modelT, nameC[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.Censoring.T[iterE])
         if(CR){
-            lava::distribution(modelT, nameCR[iterE]) <- lava::coxExponential.lvm(rate=rates.CR[iterE])
+            lava::distribution(modelT, nameCR[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.CR[iterE])
             txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
         }        
         modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), nameCensoring[iterE])
 
-        lava::distribution(modelC, name0[iterE]) <- lava::coxExponential.lvm(rate=rates.C[iterE])
-        lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(rate=rates.Censoring.C[iterE])
+        lava::distribution(modelC, name0[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.C[iterE])
+        lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.Censoring.C[iterE])
         if(CR){
-            lava::distribution(modelC, nameCR[iterE]) <- lava::coxExponential.lvm(rate=rates.CR[iterE])
+            lava::distribution(modelC, nameCR[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.CR[iterE])
             txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
