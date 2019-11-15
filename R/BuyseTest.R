@@ -343,7 +343,14 @@ BuyseTest <- function(formula,
                                         endpoint.TTE = outArgs$endpoint.TTE,
                                         censoring.TTE = outArgs$censoring.TTE,
                                         iidNuisance = outArgs$iidNuisance)
-    
+
+    if(option$check){
+        if(outArgs$iidNuisance && any(outArgs$method.score == 4)){
+            stop("Inference via the asymptotic theory is not implemented for competing risks when using the Peron's scoring rule \n",
+                 "Consider setting \'method.inference\' to \"none\", \"bootstrap\", or \"permutation\" \n")
+        }
+    }
+
     ## ** Display
     if (outArgs$trace > 1) {
         cat("\n         Generalized Pairwise Comparisons\n\n")
@@ -451,6 +458,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a BuyseRes object \n")
     }
     scoring.rule <- c("Gehan","Peron")[outArgs$scoring.rule+1]
+    attr(scoring.rule,"method.score") <- outArgs$method.score
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
     
     BuyseRes.object <- BuyseRes(

@@ -154,8 +154,8 @@ BT <- BuyseTest(data = veteran,
 Settings 
    - 2 groups  : Control = 1 and Treatment = 2
    - 1 endpoint: 
-       priority endpoint type           operator             threshold censoring
-       1        time     time to event  higher is favorable  20        status   
+       priority endpoint type           operator             threshold event       
+       1        time     time to event  higher is favorable  20        status (0 1)
    - right-censored pairs: probabilistic score based on the survival curves 
 
 Point estimation

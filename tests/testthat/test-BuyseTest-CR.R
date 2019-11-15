@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: nov 15 2019 (10:01) 
+## Last-Updated: nov 15 2019 (10:36) 
 ##           By: Brice Ozenne
-##     Update #: 20
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -97,13 +97,15 @@ test_that("BuyseTest package and Eva's R code give the same results with one end
   
   ## Net benefit computed with Eva's R code (see inst/Code/reproduce-results-CR.R)
   delta.R = 0.04377023
-  
+
   ## Apply GPC with BuyseTest package
   BT = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5), data = df2)
   
   ## Test
   expect_equal(as.double(delta.R), as.double(BT@Delta.netBenefit), tol = 1e-5)
   expect_equal(as.double(delta.R), as.double(BT@delta.netBenefit), tol = 1e-5)
+  expect_error(BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5),
+                         data = df2, method.inference = "u-statistic"))
   
 })
 
@@ -277,5 +279,7 @@ test_that("The relationship between net benefit and subdistribution hazard ratio
     }
 })
 }
+
+
 ######################################################################
 ### test-BuyseTest-CR.R ends here

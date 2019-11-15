@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: nov 15 2019 (10:00) 
+## Last-Updated: nov 15 2019 (10:11) 
 ##           By: Brice Ozenne
-##     Update #: 197
+##     Update #: 199
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -258,10 +258,6 @@ testArgs <- function(name.call,
         warning("The current implementation of the asymptotic distribution has not been validated when using a correction. \n",
                 "Standard errors / confidence intervals / p-values may not be correct. \n",
                 "Consider using a resampling approach or checking the control of the type 1 error with powerBuyseTest. \n")
-    }
-    if(iidNuisance && (scoring.rule == 1)){
-        stop("Inference via the asymptotic theory is not implemented for competing risks when using the Peron's scoring rule \n",
-             "Consider setting \'method.inference\' to \"none\", \"bootstrap\", or \"permutation\" \n")
     }
     
     ## ** n.resampling

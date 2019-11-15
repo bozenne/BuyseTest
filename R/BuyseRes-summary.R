@@ -67,6 +67,13 @@
 #' as well as the correction proposed in Peron et al. (2016) to account for censoring. 
 #' These development have not been examined by Wang et al. (2016), or in other papers (to the best of our knowledge).
 #' They are only provided here by implementation convenience.
+#'
+#' \bold{Competing risks} \cr
+#' In presence of competing risks, looking at the net benefit/win ratio computed with respect to the event of interest
+#' will likely not give a full picture of the difference between the two groups.
+#' For instance a treatment may decrease the risk of the event of interest (i.e. increase the net benefit for this event)
+#' by increasing the risk of the competing event. If the competing event is death, this is not desirable. It is therefore advised to
+#' taking into consideration the risk of the competing event, e.g. by re-running BuyseTest where cause 1 and 2 have been inverted.
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -432,10 +439,19 @@ setMethod(f = "summary",
                   
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
                   if(any(object@type == "TimeToEvent")){
+                      
+                      if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==4)){
+                          txt.Peron <- "cif"
+                      }else if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==3)){
+                          txt.Peron <- "survival"
+                      }else{
+                          txt.Peron <- "survival/cif"
+                      }
+
                       txt.scoring.rule <- switch(object@scoring.rule,
-                                               "Gehan" = "deterministic score or uninformative",
-                                               "Peron" = "probabilistic score based on the survival curves"
-                                               )
+                                                 "Gehan" = "deterministic score or uninformative",
+                                                 "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
+                                                 )
 
                       cat(" > right-censored pairs: ",txt.scoring.rule,"\n", sep = "")
                   }

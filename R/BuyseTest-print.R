@@ -17,6 +17,7 @@ printGeneral <- function(censoring,
                          level.strata,
                          level.treatment,
                          scoring.rule,
+                         M.censoring,
                          neutral.as.uninf,
                          correction.uninf,
                          operator,
@@ -37,7 +38,7 @@ printGeneral <- function(censoring,
 
     ## ** Prepare
     ## endpoint
-    name.col <- c("NA", "endpoint","type","operator","threshold","censoring")
+    name.col <- c("NA", "endpoint","type","operator","threshold","event")
     df.endpoint <- data.frame(matrix(NA, nrow = D, ncol = 6,
                                      dimnames = list(NULL, name.col)
                                      ))
@@ -52,8 +53,9 @@ printGeneral <- function(censoring,
     df.endpoint$type <- c("binary","continuous","time to event")[type]
     df.endpoint$operator <- c("lower is favorable","higher is favorable")[1 + (operator == ">0")]
     df.endpoint$threshold[type!=1] <- threshold[type!=1]
-    df.endpoint$censoring[type==3] <- censoring[type==3]
-
+    df.endpoint$event[type==3] <- censoring[type==3]
+    
+    
     ## add white space
     df.endpoint$endpoint <- paste0(df.endpoint$endpoint," ")
     df.endpoint$type <- paste0(df.endpoint$type," ")
@@ -61,10 +63,15 @@ printGeneral <- function(censoring,
     df.endpoint$threshold <- paste0(df.endpoint$threshold," ")
 
     if(all(type!=3)){
-        df.endpoint$censoring <- NULL
+        df.endpoint$event <- NULL
         if(all(type!=2)){
             df.endpoint$threshold <- NULL
         }
+    }else{
+        txt.eventType <- sapply(censoring[type==3], function(iC){
+            return(paste0(" (",paste(sort(unique(M.censoring[,iC])), collapse = " "),")"))
+        })
+        df.endpoint$event[type==3] <- paste0(df.endpoint$event[type==3],txt.eventType)
     }
     
     ## ** Display
@@ -88,9 +95,19 @@ printGeneral <- function(censoring,
     }
     if(D.TTE>0){
         cat("   - right-censored pairs: ")
+
+        n.CR <- sum(grep("2", txt.eventType))
+        if(n.CR==D.TTE){
+            txt.Peron <- "cif"
+        }else if(n.CR==0){
+            txt.Peron <- "survival"
+        }else{
+            txt.Peron <- "survival/cif"
+        }
+        
         switch(as.character(scoring.rule),
                "0" = cat("deterministic score or uninformative \n"),
-               "1" = cat("probabilistic score based on the survival curves \n")
+               "1" = cat("probabilistic score based on the ",txt.Peron," curves \n",sep="")
                )
     }
     ## if(trace>2){
