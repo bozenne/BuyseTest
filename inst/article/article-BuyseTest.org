@@ -1,0 +1,102 @@
+#+TITLE: BuyseTest: An \proglang{R} package for performing Generalized Pairwise Comparisons
+
+# #+begin_src emacs-lisp
+# (setq org-latex-with-hyperref nil)
+# #+end_src
+
+A first citation cite:buyse2010generalized
+
+
+\clearpage
+
+* Reference :ignore:
+
+bibliography:bibliography.bib
+
+* CONFIG :noexport:
+#+LANGUAGE:  en
+#+LaTeX_CLASS: jss-article
+#+LaTeX_CLASS_OPTIONS: [12pt]
+#+OPTIONS: author:nil
+#+OPTIONS: toc:nil
+#+OPTIONS: todo:nil
+#+OPTIONS: date:nil
+#+OPTIONS: H:3 num:t 
+#+OPTIONS: TeX:t LaTeX:t
+#+STARTUP: customtime
+# Local Variables:
+# org-latex-with-hyperref: nil
+# End:
+
+** Packages
+#+LaTeX_HEADER: %% recommended packages
+#+LaTeX_HEADER: \usepackage{thumbpdf,lmodern}
+
+#+LaTeX_HEADER: %% other packages
+#+LATEX_HEADER: \usepackage{ifthen}
+#+LATEX_HEADER: \usepackage{xifthen}
+#+LATEX_HEADER: \usepackage{xargs}
+#+LATEX_HEADER: \usepackage{xspace}
+
+** Code
+# Documentation at https://org-babel.readthedocs.io/en/latest/header-args/#results
+# :tangle (yes/no/filename) extract source code with org-babel-tangle-file, see http://orgmode.org/manual/Extracting-source-code.html 
+# :cache (yes/no)
+# :eval (yes/no/never)
+# :results (value/output/silent/graphics/raw/latex)
+# :export (code/results/none/both)
+#+PROPERTY: header-args :session *R* :tangle yes :cache no ## extra argument need to be on the same line as :session *R*
+
+** Latex command
+#+LaTeX_HEADER: %% -- latex commands -------------------------
+#+LaTeX_HEADER: 
+#+LaTeX_HEADER: %% new custom commands
+#+LaTeX_HEADER: \newcommand{\class}[1]{`\code{#1}'}
+#+LaTeX_HEADER: \newcommand{\fct}[1]{\code{#1()}}
+
+** Authors
+#+LaTeX_HEADER:
+#+LaTeX_HEADER: %% -- Article metainformation (author, title, ...) -----------------------------
+
+#+LaTeX_HEADER: \author{Brice Ozenne \\University of Copenhagen
+#+LaTeX_HEADER: \And Julien P\'{e}ron \\Hospices Civils de Lyon
+#+LaTeX_HEADER: \AND Eva Cantagallo \\EORTC
+#+LaTeX_HEADER: \And Marc Buyse \\International Drug Development Institute}
+#+LaTeX_HEADER: \Plainauthor{Brice Ozenne, Julien P\'{e}ron, Eva Cantagallo, Marc Buyse}
+
+#+LaTeX_HEADER: \Address{
+#+LaTeX_HEADER:   Brice Ozenne\\
+#+LaTeX_HEADER:   Department of Biostatistics, University of Copenhagen\\
+#+LaTeX_HEADER:   \emph{and} Neurobiology Research Unit, University Hospital of Copenhagen, Rigshospitalet\\
+#+LaTeX_HEADER:   \O{}ster Farimagsgade 5, Entrance B, 2nd floor, 1014 Copenhagen K, Denmark\\
+#+LaTeX_HEADER:   E-mail: \email{brice.ozenne@nru.dk}\\
+#+LaTeX_HEADER:   URL: \url{https://bozenne.github.io/} \\
+#+LaTeX_HEADER:  \\
+#+LaTeX_HEADER:   Julien P\'eron\\
+#+LaTeX_HEADER:   CNRS, UMR 5558, Laboratoire de Biom\'etrie et Biologie Evolutive, Equipe Biostatistique-Sant\'e, Universit\'e Lyon 1 \\
+#+LaTeX_HEADER:   \emph{and} Service de Biostatistique et Bioinformatique, Hospices Civils de Lyon\\
+#+LaTeX_HEADER:   \emph{and} Oncology department, Hospices Civils de Lyon\\
+#+LaTeX_HEADER:   Chemin du Grand Revoyet 165, 69310 Pierre B\'enite, France \\
+#+LaTeX_HEADER:  \\
+#+LaTeX_HEADER: Eva Cantagallo \\
+#+LaTeX_HEADER: Statistics Department, European Organisation for Research and Treatment of Cancer (EORTC) \\
+#+LaTeX_HEADER: Avenue Emmanuel Mounier 83/11, 1200 Brussels, Belgium \\
+#+LaTeX_HEADER: \\
+#+LaTeX_HEADER: Marc Buyse
+#+LaTeX_HEADER: International Drug Development Institute (IDDI) \\ 
+#+LaTeX_HEADER: \emph{and} Interuniversity Institute for Biostatistics and Statistical Bioinformatics (I-BioStat), Hasselt University \\
+#+LaTeX_HEADER: Avenue Provinciale 30, 1341 Louvain-la-Neuve, Belgium
+#+LaTeX_HEADER: }
+
+** Abstract
+#+LaTeX_HEADER: \Abstract{
+#+LaTeX_HEADER: xx
+#+LaTeX_HEADER: }
+
+** Keywords
+#+LaTeX_HEADER: \Keywords{Generalized Pairwise Comparisons, \proglang{R}}
+#+LaTeX_HEADER: \Plainkeywords{Generalized Pairwise Comparisons, R}
+
+** Title
+#+LaTeX_HEADER: \Plaintitle{BuyseTest: An R for Generalized Pairwise Comparisons}
+#+LaTeX_HEADER: \Shorttitle{BuyseTest: An \proglang{R} for Generalized Pairwise Comparisons}

@@ -3,8 +3,8 @@ vers <- paste("R package version", meta$Version)
 
 citHeader(paste("To cite the 'BuyseTest' package in publications use the citation from ",year,".\n
                  To cite the statistical method used by BuyseTes 'BuyseTest' package, use the citation from:
-        (2010) when using BuyseTest binary/continous endpoint or time to event endpoints with method.tte=\"Gehan\",
-        (2016) when using BuyseTest with time to event endpoint with method.tte=\"Peron\".",sep=""))
+        (2010) when using BuyseTest binary/continous endpoint or time to event endpoints with scoring.rule=\"Gehan\",
+        (2016) when using BuyseTest with time to event endpoint with scoring.rule=\"Peron\".",sep=""))
 
 
 
