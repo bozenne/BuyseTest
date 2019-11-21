@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov 15 2019 (09:46) 
+## Last-Updated: nov 21 2019 (11:56) 
 ##           By: Brice Ozenne
-##     Update #: 94
+##     Update #: 95
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -353,10 +353,10 @@ test_that("iid: two endpoints (no strata - first order)", {
                  c(0.00190759, 0.002360218, -0.001708275, 0.007684358, 0.088893573), tol = 1e-6 )
 
     ## same endpoint tte
-    e.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, censoring = status) + tte(eventtime, threshold = 0, censoring = status),
+    e.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, status = status) + tte(eventtime, threshold = 0, status = status),
                                        data = d, scoring.rule = "Gehan",
                                        method.inference = "u-statistic")
-    e2.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, censoring = status) + tte(eventtime, threshold = 0, censoring = status),
+    e2.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, status = status) + tte(eventtime, threshold = 0, status = status),
                                         data = d, keep.pairScore = TRUE, scoring.rule = "Gehan",
                                         method.inference = "u-statistic-bebu")
     expect_equal(e.BT@covariance, e2.BT@covariance)
@@ -411,13 +411,13 @@ test_that("iid: two endpoints (no strata - second order)", {
                  c(0.001935052, 0.002390279, -0.001695749, 0.007716830, 0.089279985), tol = 1e-6 )
 
     ## same endpoint tte
-    e.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, censoring = status) + tte(eventtime, threshold = 0, censoring = status),
+    e.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, status = status) + tte(eventtime, threshold = 0, status = status),
                       data = d, scoring.rule = "Gehan", keep.pairScore = FALSE,
                       method.inference = "u-statistic")
-    e1.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, censoring = status) + tte(eventtime, threshold = 0, censoring = status),
+    e1.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, status = status) + tte(eventtime, threshold = 0, status = status),
                       data = d, scoring.rule = "Gehan", keep.pairScore = TRUE,
                       method.inference = "u-statistic")
-    e2.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, censoring = status) + tte(eventtime, threshold = 0, censoring = status),
+    e2.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, status = status) + tte(eventtime, threshold = 0, status = status),
                        data = d, keep.pairScore = TRUE, scoring.rule = "Gehan",
                        method.inference = "u-statistic-bebu")
 

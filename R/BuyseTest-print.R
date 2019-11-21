@@ -8,7 +8,7 @@
 
 ## * Function printGeneral
 #' @rdname internal-print
-printGeneral <- function(censoring,
+printGeneral <- function(status,
                          D,
                          D.TTE,
                          data,
@@ -17,7 +17,7 @@ printGeneral <- function(censoring,
                          level.strata,
                          level.treatment,
                          scoring.rule,
-                         M.censoring,
+                         M.status,
                          neutral.as.uninf,
                          correction.uninf,
                          operator,
@@ -53,7 +53,7 @@ printGeneral <- function(censoring,
     df.endpoint$type <- c("binary","continuous","time to event")[type]
     df.endpoint$operator <- c("lower is favorable","higher is favorable")[1 + (operator == ">0")]
     df.endpoint$threshold[type!=1] <- threshold[type!=1]
-    df.endpoint$event[type==3] <- censoring[type==3]
+    df.endpoint$event[type==3] <- status[type==3]
     
     
     ## add white space
@@ -68,8 +68,8 @@ printGeneral <- function(censoring,
             df.endpoint$threshold <- NULL
         }
     }else{
-        txt.eventType <- sapply(censoring[type==3], function(iC){
-            return(paste0(" (",paste(sort(unique(M.censoring[,iC])), collapse = " "),")"))
+        txt.eventType <- sapply(status[type==3], function(iC){
+            return(paste0(" (",paste(sort(unique(M.status[,iC])), collapse = " "),")"))
         })
         df.endpoint$event[type==3] <- paste0(df.endpoint$event[type==3],txt.eventType)
     }

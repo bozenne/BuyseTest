@@ -9,8 +9,8 @@ BuyseTest(formula, data, scoring.rule = NULL, correction.uninf = NULL,
   strata.resampling = NULL, hierarchical = NULL, weight = NULL,
   neutral.as.uninf = NULL, keep.pairScore = NULL, seed = 10,
   cpus = NULL, trace = NULL, treatment = NULL, endpoint = NULL,
-  type = NULL, threshold = NULL, censoring = NULL, operator = NULL,
-  strata = NULL, keep.comparison, method.tte)
+  type = NULL, threshold = NULL, status = NULL, operator = NULL,
+  censoring = NULL, strata = NULL, keep.comparison, method.tte)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the GPC model,
@@ -61,7 +61,7 @@ See Details, section "Statistical inference".}
 \item{trace}{[integer] should the execution of the function be traced ? \code{0} remains silent
 and \code{1}-\code{3} correspond to a more and more verbose output in the console.}
 
-\item{treatment, endpoint, type, threshold, censoring, operator, strata}{Alternative to \code{formula} for describing the GPC model.
+\item{treatment, endpoint, type, threshold, status, operator, censoring, strata}{Alternative to \code{formula} for describing the GPC model.
 See Details, section "Specification of the GPC model".}
 
 \item{keep.comparison}{Obsolete. Alias for 'keep.pairScore'.}
@@ -85,7 +85,7 @@ Must have only two levels (e.g. \code{0} and \code{1}).
   \item \code{endpoint}: [character vector] the name of the endpoint variable(s).
   \item \code{threshold}: [numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
 There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
-  \item \code{censoring}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
+  \item \code{status}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
 Must value \code{NA} when the endpoint is not a time to event.
   \item \code{operator}: [character vector] the sign defining a favorable endpoint.
 \code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
@@ -94,10 +94,11 @@ When the operator is set to \code{"<0"} the corresponding column in the dataset 
 a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
 or a time to event outcome  (\code{"t"}, \code{"tte"}, \code{"time"}, or \code{"timetoevent"})
+  \item \code{censoring}: [character vector] is the endpoint subject to right or left censoring (\code{"left"} or \code{"right"}). The default is right-censoring.
   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 }
 The formula interface can be more concise, especially when considering few outcomes, but may be more difficult to apprehend for new users.
-Note that arguments \code{endpoint}, \code{threshold}, \code{censoring}, \code{operator}, and \code{type} must have the same length. \cr \cr \cr
+Note that arguments \code{endpoint}, \code{threshold}, \code{status}, \code{operator},  \code{type}, and \code{censoring} must have the same length. \cr \cr \cr
 
 
 \bold{GPC procedure} \cr
@@ -118,7 +119,7 @@ To export the classification of each pair set the argument code{keep.pairScore} 
   \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints.
 The Gehan's scoring rule (argument \code{scoring.rule="Gehan"}) only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral
 while the "Peron"'s scoring rule (argument \code{scoring.rule="Peron"}) uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified.
-The Peron's scoring rule is the recommanded scoring rule.
+The Peron's scoring rule is the recommanded scoring rule but only handles right-censoring.
   \item \code{correction.uninf}: indicates how to handle missing values that could not be classified by the scoring rule. \code{0} treat them as uninformative:
 if \code{neutral.as.uninf=FALSE}  - this is an equivalent to complete case analysis -
 while for \code{neutral.as.uninf=TRUE} uninformative pairs are treated as neutral, i.e., analyzed at the following endpoint (if any).
@@ -183,7 +184,7 @@ if(require(prodlim)){
 }
 
 #### one time to event endpoint ####
-BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data= df.data)
+BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data= df.data)
 
 summary(BT) # net benefit
 summary(BT, percentage = FALSE)  
@@ -191,11 +192,11 @@ summary(BT, statistic = "winRatio") # win Ratio
 
 ## bootstrap to compute the CI
 \dontrun{
-    BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+    BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3)
 }
 \dontshow{
-    BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+    BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e1, trace = 0)
 }
 summary(BT, statistic = "netBenefit") ## default
@@ -203,22 +204,22 @@ summary(BT, statistic = "winRatio")
 
 ## parallel bootstrap
 \dontrun{
-    BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+    BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)
     summary(BT)
 }
 
 ## method Gehan is much faster but does not optimally handle censored observations
-BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                 scoring.rule = "Gehan", trace = 0)
 summary(BT)
 
 #### one time to event endpoint: only differences in survival over 1 unit ####
-BT <- BuyseTest(treatment ~ TTE(eventtime, threshold = 1, censoring = status), data=df.data)
+BT <- BuyseTest(treatment ~ TTE(eventtime, threshold = 1, status = status), data=df.data)
 summary(BT)
 
 #### one time to event endpoint with a strata variable
-BT <- BuyseTest(treatment ~ strata + TTE(eventtime, censoring = status), data=df.data)
+BT <- BuyseTest(treatment ~ strata + TTE(eventtime, status = status), data=df.data)
 summary(BT)
 
 #### several endpoints with a strata variable
@@ -238,7 +239,7 @@ if(require(survival)){
   data(veteran,package="survival")
  
   ## scoring.rule = "Gehan"
-  BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+  BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
                         data=veteran, scoring.rule="Gehan",
                         method.inference = "permutation", n.resampling = 1e3)
   
@@ -246,7 +247,7 @@ if(require(survival)){
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
   ## scoring.rule = "Peron"
-  BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+  BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
                         data=veteran, scoring.rule="Peron",
                         method.inference = "permutation", n.resampling = 1e3)
 

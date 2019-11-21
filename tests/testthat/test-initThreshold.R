@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 22 2017 (18:37) 
 ## Version: 
-## Last-Updated: sep 26 2019 (12:19) 
+## Last-Updated: nov 21 2019 (14:40) 
 ##           By: Brice Ozenne
-##     Update #: 26
+##     Update #: 27
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -64,7 +64,7 @@ test_that("Reject non-decreasing thresholds", {
                       data = dt,
                       method.inference = "none", trace = 0))
 
-    expect_error(BuyseTest(treatment ~ tte(eventtime, censoring = status, threshold = 1) + tte(eventtime, censoring = status, threshold = 2),
+    expect_error(BuyseTest(treatment ~ tte(eventtime, status = status, threshold = 1) + tte(eventtime, censoring = status, threshold = 2),
                            data = dt,
                            method.inference = "none", trace = 0))
     

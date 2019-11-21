@@ -4,23 +4,23 @@
 \alias{GPC_cpp}
 \title{C++ function performing the pairwise comparison over several endpoints.}
 \usage{
-GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
+GPC_cpp(endpoint, status, indexC, posC, indexT, posT, threshold, weight,
   method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint,
-  index_censoring, index_UTTE, list_survTimeC, list_survTimeT,
-  list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC,
-  iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection,
-  neutralAsUninf, keepScore, returnIID, debug)
+  index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC,
+  list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT,
+  zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf,
+  keepScore, returnIID, debug)
 }
 \arguments{
 \item{endpoint}{A matrix containing the values of each endpoint (in columns) for each observation (in rows).}
 
-\item{censoring}{A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows).}
+\item{status}{A matrix containing the values of the status variables relative to each endpoint (in columns) for each observation (in rows).}
 
-\item{indexC}{A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the control observations. Not unique when bootstraping.}
+\item{indexC}{A list containing, for each strata, which rows of the endpoint and status matrices corresponds to the control observations. Not unique when bootstraping.}
 
 \item{posC}{A list containing, for each strata, the unique identifier of each control observations.}
 
-\item{indexT}{A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the treatment observations. Not unique when bootstraping.}
+\item{indexT}{A list containing, for each strata, which rows of the endpoint and status matrices corresponds to the treatment observations. Not unique when bootstraping.}
 
 \item{posT}{A list containing, for each strata, the unique identifier of each treatment observations.}
 
@@ -40,7 +40,7 @@ GPC_cpp(endpoint, censoring, indexC, posC, indexT, posT, threshold, weight,
 
 \item{index_endpoint}{The position of the endpoint at each priority in the argument endpoint. Must have length D.}
 
-\item{index_censoring}{The position of the censoring at each priority in the argument censoring. Must have length D.}
+\item{index_status}{The position of the status at each priority in the argument status. Must have length D.}
 
 \item{index_UTTE}{The position, among all the unique tte endpoints, of the TTE endpoints. Equals -1 for non tte endpoints. Must have length n_TTE.}
 

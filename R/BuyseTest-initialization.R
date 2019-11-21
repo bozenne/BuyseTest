@@ -11,7 +11,7 @@
 #' \item scoring.rule, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 #' \item formula: call \code{initializeFormula} to extract arguments.
 #' \item type: convert to numeric.
-#' \item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
+#' \item status: only keep status relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
 #' \item threshold: set default threshold to 1e-12 expect for binary variable where it is set to 1/2.
 #' the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12.
 #' When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
@@ -19,7 +19,7 @@
 #' \item scoring.rule: convert to numeric.
 #' }
 #'
-#' \code{initializeFormula}:  extract \code{treatment}, \code{type}, \code{endpoint}, \code{threshold}, \code{censoring}, \code{operator}, and \code{strata}
+#' \code{initializeFormula}:  extract \code{treatment}, \code{type}, \code{endpoint}, \code{threshold}, \code{status}, \code{operator}, and \code{strata}
 #' from the formula. \cr \cr
 #'
 #' \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.
@@ -31,7 +31,7 @@
 
 ## * initializeArgs
 #' @rdname internal-initialization
-initializeArgs <- function(censoring,
+initializeArgs <- function(status,
                            correction.uninf = NULL,
                            cpus = NULL,
                            data,
@@ -47,6 +47,7 @@ initializeArgs <- function(censoring,
                            name.call,
                            neutral.as.uninf = NULL,
                            operator,
+                           censoring,
                            option,
                            seed = NULL,
                            strata,
@@ -72,9 +73,10 @@ initializeArgs <- function(censoring,
     ## ** convert formula into separate arguments
     if(!missing(formula)){
         ## the missing is for BuysePower where the arguments are not necessarily specified
-        test.null <- c(censoring = !missing(censoring) && !is.null(censoring),
+        test.null <- c(status = !missing(status) && !is.null(status),
                        endpoint = !missing(endpoint) && !is.null(endpoint),
                        operator = !missing(operator) && !is.null(operator),
+                       censoring = !missing(censoring) && !is.null(censoring),
                        strata = !missing(strata) && !is.null(strata),
                        threshold = !missing(threshold) && !is.null(threshold),
                        treatment = !missing(treatment) && !is.null(treatment),
@@ -92,20 +94,15 @@ initializeArgs <- function(censoring,
         type <- resFormula$type
         endpoint <- resFormula$endpoint
         threshold <- resFormula$threshold
-        censoring <- resFormula$censoring
+        status <- resFormula$status
         weight <- resFormula$weight
         operator <- resFormula$operator
+        censoring <- resFormula$censoring
         strata <- resFormula$strata
     }else{
-        if(is.null(operator)){
-            operator <- rep(">0",length(endpoint))
-        }
         formula <- NULL
-        if(is.null(weight)){
-            weight <- rep(1,length(endpoint))
-        }
     }
-    
+
     ## ** type
     if(!is.numeric(type)){
         validType1 <- c("b","bin","binary")
@@ -123,30 +120,65 @@ initializeArgs <- function(censoring,
                    "3" = 3, ## time to event endpoint
                    NA)})
     }
- 
+
     ## ** endpoint
-    index.type3 <- which(type==3)
-    
-    D <- length(endpoint)
-    Uendpoint <- unique(endpoint)
-    
-    ## time to event endpoints 
+    index.type3 <- which(type==3)    
     endpoint.TTE <- endpoint[index.type3]
     threshold.TTE <- threshold[index.type3]
-    D.TTE <- length(endpoint.TTE) 
+
+    D <- length(endpoint)
+    D.TTE <- length(endpoint.TTE)
+    
+    Uendpoint <- unique(endpoint)
+    
+    ## ** default values 
+    if(is.null(formula)){
+
+        if(is.null(operator)){
+            operator <- rep(">0",D)
+        }
+        if(is.null(weight)){
+            weight <- rep(1,D)
+        }
+        if(is.null(status)){
+            status <- rep("..NA..",D)
+        }else if(length(status) != D && length(status) == D.TTE){
+            status.save <- status
+            status <- rep("..NA..", D)
+            status[index.type3] <- status.save             
+        }
+        
+        if(is.null(censoring)){
+            censoring <- rep("right",D)
+        }else if(length(status) != D && length(status) == D.TTE){
+            censoring.save <- status
+            censoring <- rep("right", D)
+            censoring[index.type3] <- status.save             
+        }
+    }
+
+    ## ** status
+    Ustatus <- unique(status)
+    status.TTE <- status[index.type3]
+    ## from now, status contains for each endpoint the name of variable indicating status (0) or event (1) or NA
 
     ## ** censoring
-    if(D.TTE==0){
-        censoring <- rep("..NA..", D)
-    }else if(length(censoring) == D.TTE){
-        censoring.save <- censoring
-        censoring <- rep("..NA..", D)
-        censoring[index.type3] <- censoring.save 
-    }
-    Ucensoring <- unique(censoring)
-    censoring.TTE <- censoring[index.type3]
-    ## from now, censoring contains for each endpoint the name of variable indicating censoring (0) or event (1) or NA
-    
+    ## if(any(type %in% 1:2)){
+    ##     censoring[type %in% 1:2] <- as.character(NA)
+    ## }
+    censoring.save <- censoring
+    censoring <- sapply(unname(censoring),function(iC){
+        if(identical(iC,"NA")){
+            return(0)
+        }else if(identical(iC,"right")){
+            return(1)
+        }else if(identical(iC,"left")){
+            return(2)
+        }else{
+            return(NA)
+        }
+    })
+    attr(censoring,"original") <- censoring.save
     
     ## ** scoring.rule
     ## WARNING: choices must be lower cases
@@ -231,8 +263,8 @@ initializeArgs <- function(censoring,
     ## ** export
     return(list(
         name.call = name.call,
-        censoring = censoring,
-        censoring.TTE = censoring.TTE,
+        status = status,
+        status.TTE = status.TTE,
         correction.uninf = correction.uninf,
         cpus = cpus,
         D = D,
@@ -244,7 +276,7 @@ initializeArgs <- function(censoring,
         iid = iid,
         iidNuisance = iidNuisance,
         index.endpoint = match(endpoint, Uendpoint) - 1,
-        index.censoring = match(censoring, Ucensoring) - 1,
+        index.status = match(status, Ustatus) - 1,
         keep.pairScore = keep.pairScore,
         keep.survival = option$keep.survival,
         scoring.rule = scoring.rule,
@@ -254,6 +286,7 @@ initializeArgs <- function(censoring,
         hierarchical = hierarchical,
         neutral.as.uninf = neutral.as.uninf,
         operator = operator,
+        censoring = censoring,
         order.Hprojection = option$order.Hprojection,
         seed = seed,
         strata = strata,
@@ -262,7 +295,7 @@ initializeArgs <- function(censoring,
         treatment = treatment,
         type = type,
         Uendpoint = Uendpoint,
-        Ucensoring = Ucensoring,
+        Ustatus = Ustatus,
         weight = weight,
         debug = option$debug
     ))
@@ -270,8 +303,8 @@ initializeArgs <- function(censoring,
 
 ## * initializeData
 #' @rdname internal-initialization
-initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, censoring, Ucensoring, method.inference, operator, strata, treatment, hierarchical, copy,
-                           endpoint.TTE, censoring.TTE, iidNuisance){
+initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, operator, censoring, strata, treatment, hierarchical, copy,
+                           endpoint.TTE, status.TTE, iidNuisance){
 
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
@@ -335,44 +368,48 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
     ## ** rowIndex
     data[,c("..rowIndex..") := 1:.N]
 
-    ## ** unique censoring
-    if(any(censoring == "..NA..")){
+    ## ** unique status
+    if(any(status == "..NA..")){
         data[,c("..NA..") := -100]
     }
 
-    ## ** TTE with censoring
+    ## ** TTE with status
     if(scoring.rule>0){
-        test.censoring <- sapply(censoring.TTE, function(iC){any(data[[iC]]==0)})
-        if(all(test.censoring==FALSE)){
+        test.status <- sapply(status.TTE, function(iC){any(data[[iC]]==0)})
+        if(all(test.status==FALSE)){
             scoring.rule <- 0
             iidNuisance <- FALSE
         }        
 
         ## distinct time to event endpoints
-        endpoint.UTTE <- unique(endpoint.TTE[test.censoring])
-        censoring.UTTE <- unique(censoring.TTE[test.censoring])
+        endpoint.UTTE <- unique(endpoint.TTE[test.status])
+        status.UTTE <- unique(status.TTE[test.status])
         D.UTTE <- length(endpoint.UTTE)
 
         ## correspondance endpoint, TTE endpoint (non TTEe endpoint are set to -100)
-        index.UTTE = match(endpoint, endpoint.UTTE, nomatch = -99) - 1
+        index.UTTE <- match(endpoint, endpoint.UTTE, nomatch = -99) - 1
     }else{
         endpoint.UTTE <- numeric(0)
-        censoring.UTTE <- numeric(0)
+        status.UTTE <- numeric(0)
         D.UTTE <- 0
         index.UTTE <- rep(-100, D)
     }
     
     ## ** scoring method for each endpoint
-    ## check if censoring
-    method.score <- 1 + (type==3) ## 1 binary/continuous and 2 Gehan
-    if(scoring.rule > 0){ ## if Peron
-        test.CR <- sapply(Ucensoring, function(iC){max(data[[iC]])>1})[censoring]
-        method.score[type == 3] <- method.score[type == 3] + test.censoring * (1 + test.CR[type == 3])
-        ## 3 Peron survival
-        ## 4 Peron CR
-    }
+    ## check if status
+    test.CR <- sapply(Ustatus, function(iC){max(data[[iC]])>1})[status]
+    test.censoring <- sapply(Ustatus, function(iC){any(data[[iC]]==0)})[status]
 
-
+    method.score <- sapply(1:D, function(iE){ ## iE <- 1
+        if(type[iE] %in% 1:2 || (test.censoring[iE]==FALSE && test.CR[iE]==FALSE)){
+            return(1) ## 1 binary/continuous
+        }else if(scoring.rule == 0){ ## 2/3 Gehan (right/left censoring)
+            return(1 + censoring[iE])
+        }else{
+            return(4 + test.CR[iE]) ## 4/5 Peron (survival/competing risks)
+        }
+    })
+    
     ## ** previously analyzed distinct TTE endpoints
     if((scoring.rule==1) && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
         ## number of distinct, previously analyzed, TTE endpoints
@@ -410,9 +447,10 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
     ## ** export
     keep.cols <- union(c(treatment, "..strata.."),
                        na.omit(attr(method.inference,"resampling-strata")))
+
     return(list(data = data[,.SD,.SDcols = keep.cols],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
-                M.censoring = as.matrix(data[, .SD, .SDcols = Ucensoring]),
+                M.status = as.matrix(data[, .SD, .SDcols = Ustatus]),
                 index.C = index.C,
                 index.T = index.T,
                 index.strata = tapply(data[["..rowIndex.."]], data[["..strata.."]], list),
@@ -429,7 +467,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, cen
                 iidNuisance = iidNuisance,
                 nUTTE.analyzedPeron_M1 = nUTTE.analyzedPeron_M1,
                 endpoint.UTTE = endpoint.UTTE,
-                censoring.UTTE = censoring.UTTE,
+                status.UTTE = status.UTTE,
                 D.UTTE = D.UTTE,
                 index.UTTE = index.UTTE
                 ))
@@ -485,16 +523,17 @@ initializeFormula <- function(x){
     n.endpoint <- length(vec.x.endpoint)
     if(n.endpoint==0){
         stop("initFormula: x must contain endpoints \n",
-             "nothing of the form type(endpoint,threshold,censoring) found in the formula \n")
+             "nothing of the form type(endpoint,threshold,status) found in the formula \n")
     }
 
     ## ** extract endpoints and additional arguments 
     threshold <- rep(NA, n.endpoint)
-    censoring <- rep("..NA..", n.endpoint)
+    status <- rep("..NA..", n.endpoint)
     endpoint <- rep(NA, n.endpoint)
     operator <- rep(">0", n.endpoint)
+    censoring <- rep("right", n.endpoint)
     weight <- rep(1, n.endpoint)
-    validArgs <- c("endpoint","censoring","threshold","operator","weight")
+    validArgs <- c("endpoint","status","threshold","operator","weight","censoring")
 
     ## split around parentheses
     ls.x.endpoint <- strsplit(vec.x.endpoint, split = "(", fixed = TRUE)
@@ -504,9 +543,9 @@ initializeFormula <- function(x){
         ## extract type
         type[iE] <- tolower(ls.x.endpoint[[iE]][1])
         if(type[iE] %in% c("b","bin","binary")){
-            iValidArgs <- setdiff(validArgs,c("censoring","threshold"))
+            iValidArgs <- setdiff(validArgs,c("status","threshold"))
         }else if(type[iE] %in% c("c","cont","continuous")){
-            iValidArgs <- setdiff(validArgs,"censoring")
+            iValidArgs <- setdiff(validArgs,"status")
         }else{ ## if(type[iE] %in% c("t","tte","time","timetoevent"))
             iValidArgs <- validArgs
         }
@@ -524,7 +563,7 @@ initializeFormula <- function(x){
         }        
         if(n.args>4){
             stop("initFormula: invalid formula \n",
-                 x[iE]," has too many arguments (maximum 4: endpoint, threshold, censoring variable, operator) \n")
+                 x[iE]," has too many arguments (maximum 4: endpoint, threshold, status variable, operator) \n")
         }
 
         ## extract name of each argument
@@ -576,14 +615,17 @@ initializeFormula <- function(x){
             
             threshold[iE] <- as.numeric(thresholdTempo)
         }
-        if("censoring" %in% iName){
-            censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])
+        if("status" %in% iName){
+            status[iE] <- gsub("\"","",iArg[iName=="status"])
         }
         if("operator" %in% iName){
             operator[iE] <- gsub("\"","",iArg[iName=="operator"])
         }
         if("weight" %in% iName){
             weight[iE] <- as.numeric(eval(expr = parse(text = iArg[iName=="weight"])))
+        }
+        if("censoring" %in% iName){
+            censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])
         }
     }
 
@@ -592,9 +634,10 @@ initializeFormula <- function(x){
                 type = type,
                 endpoint = endpoint,
                 threshold = threshold,
-                censoring = censoring,
+                status = status,
                 operator = operator,
                 weight = weight,
+                censoring = censoring,
                 strata = strata))
 }
 

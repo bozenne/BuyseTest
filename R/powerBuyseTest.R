@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: nov 14 2019 (14:45) 
+## Last-Updated: nov 21 2019 (11:50) 
 ##           By: Brice Ozenne
-##     Update #: 505
+##     Update #: 506
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -210,19 +210,19 @@ powerBuyseTest <- function(sim,
         iOut[,"simulation"] <- i
 
         ## *** Initialize data
-        out.name <- c("data","M.endpoint","M.censoring",
+        out.name <- c("data","M.endpoint","M.status",
                       "index.C","index.T","index.strata",
                       "level.treatment","level.strata", "method.score",
                       "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
-                      "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "censoring.UTTE", "D.UTTE","index.UTTE")
+                      "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE")
         envir$outArgs[out.name] <- initializeData(data = sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax),
                                                   type = envir$outArgs$type,
                                                   endpoint = envir$outArgs$endpoint,
                                                   Uendpoint = envir$outArgs$Uendpoint,
                                                   D = envir$outArgs$D,
                                                   scoring.rule = envir$outArgs$scoring.rule,
-                                                  censoring = envir$outArgs$censoring,
-                                                  Ucensoring = envir$outArgs$Ucensoring,
+                                                  status = envir$outArgs$status,
+                                                  Ustatus = envir$outArgs$Ustatus,
                                                   method.inference = envir$outArgs$method.inference,
                                                   operator = envir$outArgs$operator,
                                                   strata = envir$outArgs$strata,
@@ -230,7 +230,7 @@ powerBuyseTest <- function(sim,
                                                   hierarchical = envir$outArgs$hierarchical,
                                                   copy = FALSE,
                                                   endpoint.TTE = envir$outArgs$endpoint.TTE,
-                                                  censoring.TTE = envir$outArgs$censoring.TTE,
+                                                  status.TTE = envir$outArgs$status.TTE,
                                                   iidNuisance = envir$outArgs$iidNuisance)
         
 

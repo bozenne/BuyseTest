@@ -7,7 +7,7 @@
 #' @param formula [formula] a symbolic description of the GPC model,
 #' typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
 #' See Details, section "Specification of the GPC model".
-#' @param treatment,endpoint,type,threshold,censoring,operator,strata Alternative to \code{formula} for describing the GPC model.
+#' @param treatment,endpoint,type,threshold,status,operator,censoring,strata Alternative to \code{formula} for describing the GPC model.
 #' See Details, section "Specification of the GPC model".
 #' @param data [data.frame] dataset.
 #' @param scoring.rule [character] method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
@@ -54,7 +54,7 @@
 #'   \item \code{endpoint}: [character vector] the name of the endpoint variable(s).
 #'   \item \code{threshold}: [numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
 #' There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
-#'   \item \code{censoring}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
+#'   \item \code{status}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
 #' Must value \code{NA} when the endpoint is not a time to event.
 #'   \item \code{operator}: [character vector] the sign defining a favorable endpoint.
 #' \code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
@@ -63,10 +63,11 @@
 #' a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 #' a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
 #' or a time to event outcome  (\code{"t"}, \code{"tte"}, \code{"time"}, or \code{"timetoevent"})
+#'   \item \code{censoring}: [character vector] is the endpoint subject to right or left censoring (\code{"left"} or \code{"right"}). The default is right-censoring.
 #'   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 #' }
 #' The formula interface can be more concise, especially when considering few outcomes, but may be more difficult to apprehend for new users.
-#' Note that arguments \code{endpoint}, \code{threshold}, \code{censoring}, \code{operator}, and \code{type} must have the same length. \cr \cr \cr
+#' Note that arguments \code{endpoint}, \code{threshold}, \code{status}, \code{operator},  \code{type}, and \code{censoring} must have the same length. \cr \cr \cr
 #'
 #' 
 #' \bold{GPC procedure} \cr
@@ -87,7 +88,7 @@
 #'   \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints.
 #' The Gehan's scoring rule (argument \code{scoring.rule="Gehan"}) only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral
 #' while the "Peron"'s scoring rule (argument \code{scoring.rule="Peron"}) uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified.
-#' The Peron's scoring rule is the recommanded scoring rule.
+#' The Peron's scoring rule is the recommanded scoring rule but only handles right-censoring.
 #'   \item \code{correction.uninf}: indicates how to handle missing values that could not be classified by the scoring rule. \code{0} treat them as uninformative:
 #' if \code{neutral.as.uninf=FALSE}  - this is an equivalent to complete case analysis -
 #' while for \code{neutral.as.uninf=TRUE} uninformative pairs are treated as neutral, i.e., analyzed at the following endpoint (if any).
@@ -170,7 +171,7 @@
 #' }
 #'
 #' #### one time to event endpoint ####
-#' BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data= df.data)
+#' BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data= df.data)
 #'
 #' summary(BT) # net benefit
 #' summary(BT, percentage = FALSE)  
@@ -178,11 +179,11 @@
 #' 
 #' ## bootstrap to compute the CI
 #' \dontrun{
-#'     BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#'     BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
 #'                     method.inference = "permutation", n.resampling = 1e3)
 #' }
 #' \dontshow{
-#'     BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#'     BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
 #'                     method.inference = "permutation", n.resampling = 1e1, trace = 0)
 #' }
 #' summary(BT, statistic = "netBenefit") ## default
@@ -190,22 +191,22 @@
 #' 
 #' ## parallel bootstrap
 #' \dontrun{
-#'     BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#'     BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
 #'                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)
 #'     summary(BT)
 #' }
 #' 
 #' ## method Gehan is much faster but does not optimally handle censored observations
-#' BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status), data=df.data,
+#' BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
 #'                 scoring.rule = "Gehan", trace = 0)
 #' summary(BT)
 #' 
 #' #### one time to event endpoint: only differences in survival over 1 unit ####
-#' BT <- BuyseTest(treatment ~ TTE(eventtime, threshold = 1, censoring = status), data=df.data)
+#' BT <- BuyseTest(treatment ~ TTE(eventtime, threshold = 1, status = status), data=df.data)
 #' summary(BT)
 #' 
 #' #### one time to event endpoint with a strata variable
-#' BT <- BuyseTest(treatment ~ strata + TTE(eventtime, censoring = status), data=df.data)
+#' BT <- BuyseTest(treatment ~ strata + TTE(eventtime, status = status), data=df.data)
 #' summary(BT)
 #' 
 #' #### several endpoints with a strata variable
@@ -225,7 +226,7 @@
 #'   data(veteran,package="survival")
 #'  
 #'   ## scoring.rule = "Gehan"
-#'   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+#'   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
 #'                         data=veteran, scoring.rule="Gehan",
 #'                         method.inference = "permutation", n.resampling = 1e3)
 #'   
@@ -233,7 +234,7 @@
 #'   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
 #'   
 #'   ## scoring.rule = "Peron"
-#'   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,censoring=status), 
+#'   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
 #'                         data=veteran, scoring.rule="Peron",
 #'                         method.inference = "permutation", n.resampling = 1e3)
 #' 
@@ -264,8 +265,9 @@ BuyseTest <- function(formula,
                       endpoint = NULL,
                       type = NULL,
                       threshold = NULL,                      
-                      censoring = NULL,
+                      status = NULL,
                       operator = NULL,
+                      censoring = NULL,
                       strata = NULL, 
                       keep.comparison,
                       method.tte){
@@ -289,7 +291,7 @@ BuyseTest <- function(formula,
 
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
-    outArgs <- initializeArgs(censoring = censoring,
+    outArgs <- initializeArgs(status = status,
                               correction.uninf = correction.uninf,
                               cpus = cpus,
                               data = data,
@@ -305,6 +307,7 @@ BuyseTest <- function(formula,
                               name.call = name.call,
                               neutral.as.uninf = neutral.as.uninf,
                               operator = operator,
+                              censoring = censoring,
                               option = option,
                               seed = seed,
                               strata = strata,
@@ -321,31 +324,32 @@ BuyseTest <- function(formula,
 
     ## ** initialization data
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
-    out.name <- c("data","M.endpoint","M.censoring",
+    out.name <- c("data","M.endpoint","M.status",
                   "index.C","index.T","index.strata",
                   "level.treatment","level.strata", "method.score",
                   "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
-                  "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "censoring.UTTE", "D.UTTE","index.UTTE")
+                  "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE")
     outArgs[out.name] <- initializeData(data = outArgs$data,
                                         type = outArgs$type,
                                         endpoint = outArgs$endpoint,
                                         Uendpoint = outArgs$Uendpoint,
                                         D = outArgs$D,
                                         scoring.rule = outArgs$scoring.rule,
-                                        censoring = outArgs$censoring,
-                                        Ucensoring = outArgs$Ucensoring,
+                                        status = outArgs$status,
+                                        Ustatus = outArgs$Ustatus,
                                         method.inference = outArgs$method.inference,
                                         operator = outArgs$operator,
+                                        censoring = outArgs$censoring,
                                         strata = outArgs$strata,
                                         treatment = outArgs$treatment,
                                         hierarchical = outArgs$hierarchical,
                                         copy = TRUE,
                                         endpoint.TTE = outArgs$endpoint.TTE,
-                                        censoring.TTE = outArgs$censoring.TTE,
+                                        status.TTE = outArgs$status.TTE,
                                         iidNuisance = outArgs$iidNuisance)
 
     if(option$check){
-        if(outArgs$iidNuisance && any(outArgs$method.score == 4)){
+        if(outArgs$iidNuisance && any(outArgs$method.score == 5)){
             stop("Inference via the asymptotic theory is not implemented for competing risks when using the Peron's scoring rule \n",
                  "Consider setting \'method.inference\' to \"none\", \"bootstrap\", or \"permutation\" \n")
         }
@@ -519,7 +523,7 @@ BuyseTest <- function(formula,
     ## ** Estimate survival curves with its iid
     if(envir$outArgs$scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$skeletonPeron
-    }else{ ## Peron 
+    }else{ ## Peron
         outSurv <- calcPeron(data = outSample$data,
                              model.tte = envir$outArgs$model.tte,
                              method.score = envir$outArgs$method.score,
@@ -528,9 +532,9 @@ BuyseTest <- function(formula,
                              endpoint = envir$outArgs$endpoint,
                              endpoint.TTE = envir$outArgs$endpoint.TTE,
                              endpoint.UTTE = envir$outArgs$endpoint.UTTE,
-                             censoring = envir$outArgs$censoring,
-                             censoring.TTE = envir$outArgs$censoring.TTE,
-                             censoring.UTTE = envir$outArgs$censoring.UTTE,
+                             status = envir$outArgs$status,
+                             status.TTE = envir$outArgs$status.TTE,
+                             status.UTTE = envir$outArgs$status.UTTE,
                              D.TTE = envir$outArgs$D.TTE,
                              D.UTTE = envir$outArgs$D.UTTE,
                              type = envir$outArgs$type,
@@ -543,7 +547,7 @@ BuyseTest <- function(formula,
     
     ## ** Perform GPC
     resBT <- GPC_cpp(endpoint = envir$outArgs$M.endpoint,
-                     censoring = envir$outArgs$M.censoring,
+                     status = envir$outArgs$M.status,
                      indexC = outSample$ls.indexC,
                      posC = outSample$ls.posC,
                      indexT = outSample$ls.indexT,                     
@@ -556,7 +560,7 @@ BuyseTest <- function(formula,
                      n_strata = envir$outArgs$n.strata,
                      nUTTE_analyzedPeron_M1 = envir$outArgs$nUTTE.analyzedPeron_M1,
                      index_endpoint = envir$outArgs$index.endpoint,
-                     index_censoring = envir$outArgs$index.censoring,
+                     index_status = envir$outArgs$index.status,
                      index_UTTE = envir$outArgs$index.UTTE,
                      list_survTimeC = outSurv$survTimeC,
                      list_survTimeT = outSurv$survTimeT,
@@ -597,7 +601,7 @@ BuyseTest <- function(formula,
 calcSample <- function(envir, method.inference){
 
     ## ** initialization
-    out <- list(## rows in M.endpoint/M.censoring corresponding to observations from the control/treatment group (not unique when boostraping)
+    out <- list(## rows in M.endpoint/M.status corresponding to observations from the control/treatment group (not unique when boostraping)
         ls.indexC = vector(mode = "list", length = envir$outArgs$n.strata), 
         ls.indexT = vector(mode = "list", length = envir$outArgs$n.strata),
         ## identifier for each observation from the control/treatment group (unique even when boostrap)
@@ -621,7 +625,7 @@ calcSample <- function(envir, method.inference){
         out$ls.posT <- out$ls.indexT
 
         if(envir$outArgs$scoring.rule>0){
-            out$data <- data.table::data.table(envir$outArgs$data,envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
+            out$data <- data.table::data.table(envir$outArgs$data,envir$outArgs$M.endpoint,envir$outArgs$M.status)
         }
     }else{
 
@@ -701,11 +705,11 @@ calcSample <- function(envir, method.inference){
             if(method.inference == "permutation"){
                 out$data <- data.table::data.table(envir$outArgs$data[[envir$outArgs$treatment]][index.resampling],
                                                    "..strata.." = envir$outArgs$data[["..strata.."]],
-                                                   envir$outArgs$M.endpoint,envir$outArgs$M.censoring)
+                                                   envir$outArgs$M.endpoint,envir$outArgs$M.status)
                 data.table::setnames(out$data, old = names(out$data)[1], new = envir$outArgs$treatment)
             }else{
                 out$data <- data.table::data.table(envir$outArgs$data,
-                                                   envir$outArgs$M.endpoint,envir$outArgs$M.censoring)[index.resampling]
+                                                   envir$outArgs$M.endpoint,envir$outArgs$M.status)[index.resampling]
             }
         }
     }
@@ -728,9 +732,9 @@ calcPeron <- function(data,
                       endpoint,
                       endpoint.TTE,
                       endpoint.UTTE,
-                      censoring,
-                      censoring.TTE,
-                      censoring.UTTE,
+                      status,
+                      status.TTE,
+                      status.UTTE,
                       D.TTE,
                       D.UTTE,
                       type,
@@ -762,7 +766,7 @@ calcPeron <- function(data,
         model.tte <- vector(length = D.UTTE, mode = "list")
         names(model.tte) <- endpoint.UTTE
 
-        txt.modelUTTE <- paste0("prodlim::Hist(",endpoint.UTTE,",",censoring.UTTE,") ~ ",treatment," + ..strata..")
+        txt.modelUTTE <- paste0("prodlim::Hist(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")
 
         for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.UTTE <- 1
             model.tte[[iEndpoint.UTTE]] <- try(prodlim::prodlim(as.formula(txt.modelUTTE[iEndpoint.UTTE]),
@@ -796,7 +800,7 @@ calcPeron <- function(data,
     for(iEndpoint.UTTE in 1:D.UTTE){ ## iEndpoint.TTE <- 1
         iEndpoint.UTTE.name <- endpoint.UTTE[iEndpoint.UTTE]
         iIndex.associatedEndpoint <- which(endpoint == iEndpoint.UTTE.name)
-        iTest.CR <- method.score[iIndex.associatedEndpoint[1]]==4
+        iTest.CR <- method.score[iIndex.associatedEndpoint[1]]==5
 
         if(iTest.CR){
             index.jump1 <- which(model.tte[[iEndpoint.UTTE]]$cause.hazard[[1]]>0)
@@ -841,7 +845,7 @@ calcPeron <- function(data,
 
                 sumCifC = iLast.cif1C + iLast.cif2C
                 sumCifT = iLast.cif1T + iLast.cif2T
-            
+
                 iPredCif1C <- stats::approxfun(x = model.tte[[iEndpoint.UTTE]]$time[iIndex.startC:iIndex.stopC], 
                                                y = model.tte[[iEndpoint.UTTE]]$cuminc[[1]][iIndex.startC:iIndex.stopC],
                                                yleft = 0, yright = switch(as.character(sumCifC == 1),

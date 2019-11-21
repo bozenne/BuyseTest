@@ -178,7 +178,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
 
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
-                         censoring = c("status1","status1","status1"),
+                         status = c("status1","status1","status1"),
                          treatment = "treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
@@ -244,7 +244,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime2","eventtime3"),
-                         censoring = c("status1","status2","status3"),
+                         status = c("status1","status2","status3"),
                          treatment = "treatment",
                          type = c("tte","tte","tte"),
                          threshold = c(1,0.5,0.25),
@@ -347,7 +347,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
 
         BT2 <- BuyseTest(data=dt.sim,
                          endpoint=c("eventtime1","score1","toxicity1","eventtime1","score1"),
-                         censoring=c("status1","..NA..","..NA..","status1","..NA.."),
+                         status=c("status1","..NA..","..NA..","status1","..NA.."),
                          treatment="treatment",
                          type=c("timeToEvent","continuous","binary","timeToEvent","continuous"),
                          threshold=c(0.5,1,NA,0.25,0.5),
@@ -411,6 +411,31 @@ test_that(paste0("BuyseTest - Peron scoring rule with 2 TTE, one without censori
                           data = dt.sim, scoring.rule = "Peron")
     ## summary(BT.mixed)
 
+})
+
+## * Left censoring
+test_that("BuyseTest - left vs. right censoring", {
+
+    BT.right <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "right", operator = "<0"),
+                          data = dt.sim,
+                          scoring.rule = "Gehan")
+    BT.left <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "left"),
+                         data = dt.sim,
+                         scoring.rule = "Gehan")
+
+    expect_equal(coef(BT.right), -coef(BT.left))
+    expect_equal(unname(coef(BT.right)), 1/15)
+
+    BT.right <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "right", operator = "<0"),
+                          data = dt.sim,
+                          scoring.rule = "Gehan",
+                          correction.uninf = TRUE)
+    BT.left <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "left"),
+                         data = dt.sim,
+                         scoring.rule = "Gehan",
+                         correction.uninf = TRUE)
+
+    expect_equal(coef(BT.right), -coef(BT.left))
 })
 
 ## * dataset [save]

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: nov 15 2019 (10:36) 
+## Last-Updated: nov 21 2019 (11:56) 
 ##           By: Brice Ozenne
-##     Update #: 24
+##     Update #: 25
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,7 +47,7 @@ df$event <- (df$time2<df$time1)+1 ## type of event
 
 ## ** test
 test_that("tte = 2 is equivalent to continuous with infty when cause=2", {
-    e.BT <- BuyseTest(group ~ tte(time, censoring = event), data = df,
+    e.BT <- BuyseTest(group ~ tte(time, status = event), data = df,
                       method.inference = "none", scoring.rule = "Gehan",
                       trace = 0)
     ## summary(e.BT)
@@ -99,12 +99,12 @@ test_that("BuyseTest package and Eva's R code give the same results with one end
   delta.R = 0.04377023
 
   ## Apply GPC with BuyseTest package
-  BT = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5), data = df2)
+  BT = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)
   
   ## Test
   expect_equal(as.double(delta.R), as.double(BT@Delta.netBenefit), tol = 1e-5)
   expect_equal(as.double(delta.R), as.double(BT@delta.netBenefit), tol = 1e-5)
-  expect_error(BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5),
+  expect_error(BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5),
                          data = df2, method.inference = "u-statistic"))
   
 })
@@ -123,20 +123,20 @@ test_that("New package version gives the same results as previous one", {
   
   #### Apply GPC with new version of BuyseTest package
   ## One outcome, one stratum
-  BT11.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5), data = df2)@delta.netBenefit
-  BT11.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5), data = df2)@Delta.netBenefit
+  BT11.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)@delta.netBenefit
+  BT11.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)@Delta.netBenefit
 
   ## One outcome, 3 strata
-  BT13.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df2)@delta.netBenefit
-  BT13.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df2)@Delta.netBenefit
+  BT13.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata, data = df2)@delta.netBenefit
+  BT13.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata, data = df2)@Delta.netBenefit
 
   ## Two outcomes, one stratum
-  BT21.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity), data = df2)@delta.netBenefit
-  BT21.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity), data = df2)@Delta.netBenefit
+  BT21.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity), data = df2)@delta.netBenefit
+  BT21.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity), data = df2)@Delta.netBenefit
 
   ## Two outcomes, 3 strata
-  BT23.d = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@delta.netBenefit
-  BT23.D = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@Delta.netBenefit
+  BT23.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@delta.netBenefit
+  BT23.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@Delta.netBenefit
 
   #### Tests
   expect_equal(delta11, as.double(BT11.d), tol = 1e-5)
@@ -159,12 +159,12 @@ test_that("Package give the same results when model.tte is (not) provided as an 
   #fit = prodlim(Hist(time, status) ~ treatment + strata + strata2, data = df2)
   
   ## Net benefit without passing model.tte
-  B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df2) 
-  #B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df2) 
+  B = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata, data = df2) 
+  #B = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata + strata2, data = df2) 
   
   ## Net benefit with model.tte passed as an argument
-  B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata, data = df2, model.tte = fit)
-  #B.model = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5) + strata + strata2, data = df2, model.tte = fit) 
+  B.model = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata, data = df2, model.tte = fit)
+  #B.model = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata + strata2, data = df2, model.tte = fit) 
   
   ## Tests
   expect_equal(as.double(B@delta.netBenefit), as.double(B.model@delta.netBenefit))
@@ -175,10 +175,10 @@ test_that("Package give the same results when model.tte is (not) provided as an 
 test_that("When TTE endpoints are analyzed several times with different thresholds, the results are the same than those when analyzed once with lowest threshold", {
 
   ## Endpoint analyzed once with threshold = 0.5
-  B1 = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0.5), data = df2) 
+  B1 = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2) 
   
   ## Endpoint analyzed twice with threshold = c(1, 0.75, 0.5)
-  B2 = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 1) + tte(time, censoring = status, threshold = 0.75) + tte(time, censoring = status, threshold = 0.5),
+  B2 = BuyseTest(treatment ~ tte(time, status = status, threshold = 1) + tte(time, status = status, threshold = 0.75) + tte(time, status = status, threshold = 0.5),
                  data = df2) 
   
   ## Tests
@@ -272,7 +272,7 @@ test_that("The relationship between net benefit and subdistribution hazard ratio
         sHR.data = data.frame(time = event.time, status = event.type, treatment = treatment)
   
         ## Compute net benefit with BuyseTest package
-        B = BuyseTest(treatment ~ tte(time, censoring = status, threshold = 0), data = sHR.data, method.tte = "Gehan", keep.pairScore = FALSE) 
+        B = BuyseTest(treatment ~ tte(time, status = status, threshold = 0), data = sHR.data, method.tte = "Gehan", keep.pairScore = FALSE) 
   
         ## Tests
         expect_equal(true.Delta[q], as.double(B@Delta.netBenefit), tolerance = 1e-2) # tolerance because of the too small dataset  

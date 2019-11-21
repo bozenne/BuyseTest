@@ -125,7 +125,7 @@ To perform generalized pairwise comparisons, the =BuyseTest= function needs:
   =treatment=
 The =BuyseTest= function has many optional arguments to specify for example:
 - the threshold of clinical relevance associated to each endpoint \hfill - argument =threshold=
-- the censoring associated to each endpoint (for time to event endpoints) \hfill - argument =censoring=
+- the censoring associated to each endpoint (for time to event endpoints) \hfill - argument =status=
 - how to compute the distribution of the statistic of interest \hfill - argument =method.inference=
 
 \bigskip
@@ -141,7 +141,7 @@ BT <- BuyseTest(data = veteran,
                 endpoint = "time", 
                 type = "timeToEvent", 
                 treatment = "trt", 
-                censoring = "status", 
+                status = "status", 
                 threshold = 20,
                 method.inference = "none")
 #+END_SRC
@@ -174,7 +174,7 @@ Gather the results in a BuyseRes object
     + time to event (=t=, =tte=, or =timetoevent=)
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
+BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                   data = veteran, trace = 0, method.inference = "none")
 #+END_SRC
 
@@ -254,7 +254,7 @@ endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
 side of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ff2 <- trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno, threshold = 0)
+ff2 <- trt ~ tte(time, threshold = 20, status = "status") + cont(karno, threshold = 0)
 BT.H <- BuyseTest(ff2, data = veteran, 
                   method.inference = "none", trace = 0)
 summary(BT.H)
@@ -308,7 +308,7 @@ relative to each endpoint. By default the weights are all set to 1 but
 this behavior can be changed by setting the argument =weight= when
 calling =BuyseTest=, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ff2w <- trt ~ tte(time, threshold = 20, censoring = "status", weight = 0.8)
+ff2w <- trt ~ tte(time, threshold = 20, status = "status", weight = 0.8)
 ff2w <- update.formula(ff2w, . ~ . + cont(karno, threshold = 0, weight = 0.2))
 BT.nHw <- BuyseTest(ff2w, hierarchical = FALSE, data = veteran, 
                     method.inference = "none", trace = 0)
@@ -342,7 +342,7 @@ By default =BuyseTest= will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying =operator = "<0"=
 for an endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ffop <- trt ~ tte(time, censoring = "status", threshold = 20, operator = "<0")
+ffop <- trt ~ tte(time, status = "status", threshold = 20, operator = "<0")
 BTinv <- BuyseTest(ffop, data = veteran, 
                    method.inference = "none", trace = 0)
 BTinv
@@ -505,7 +505,7 @@ Several methods are available in =BuyseTest= to perform statistical inference:
   the sample size, for testing the absence of a difference between the
   groups.
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
+BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                      data = veteran, trace = 0, method.inference = "permutation") 
 summary(BT.perm)
 #+END_SRC
@@ -533,7 +533,7 @@ summary(BT.perm)
   p-values and confidence intervals.
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
+BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                      data = veteran, trace = 0, method.inference = "bootstrap") 
 summary(BT.boot)
 #+END_SRC
@@ -561,7 +561,7 @@ summary(BT.boot)
   p-values and confidence intervals.
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.ustat <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status"),
+BT.ustat <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                       data = veteran, trace = 0, method.inference = "u-statistic") 
 summary(BT.ustat)
 #+END_SRC
@@ -623,7 +623,7 @@ of a score over all pairs of patients. The argument =keep.pairScore=
 enables to export the score relative to each pair in the output of
 BuyseTest:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-form <- trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno)
+form <- trt ~ tte(time, threshold = 20, status = "status") + cont(karno)
 BT.keep <- BuyseTest(form,
                      data = veteran, keep.pairScore = TRUE, 
                      trace = 0, method.inference = "none")
@@ -705,7 +705,7 @@ BuyseTest.options enables to export the survival probabilities in the
 output of BuyseTest:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(keep.survival = TRUE)
-BT.keep2 <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
+BT.keep2 <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
                       data = veteran, keep.pairScore = TRUE, scoring.rule = "Peron",
                       trace = 0, method.inference = "none")
 #+END_SRC

@@ -9,25 +9,24 @@
 \alias{calcPeron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
-initializeArgs(censoring, correction.uninf = NULL, cpus = NULL, data,
+initializeArgs(status, correction.uninf = NULL, cpus = NULL, data,
   endpoint, formula, hierarchical = NULL, keep.pairScore = NULL,
   method.inference = NULL, scoring.rule = NULL, model.tte,
   n.resampling = NULL, strata.resampling = NULL, name.call,
-  neutral.as.uninf = NULL, operator, option, seed = NULL, strata,
-  threshold, trace = NULL, treatment, type, weight)
+  neutral.as.uninf = NULL, operator, censoring, option, seed = NULL,
+  strata, threshold, trace = NULL, treatment, type, weight)
 
-initializeData(data, type, endpoint, Uendpoint, D, scoring.rule, censoring,
-  Ucensoring, method.inference, operator, strata, treatment, hierarchical,
-  copy, endpoint.TTE, censoring.TTE, iidNuisance)
+initializeData(data, type, endpoint, Uendpoint, D, scoring.rule, status,
+  Ustatus, method.inference, operator, censoring, strata, treatment,
+  hierarchical, copy, endpoint.TTE, status.TTE, iidNuisance)
 
 initializeFormula(x)
 
 calcSample(envir, method.inference)
 
 calcPeron(data, model.tte, method.score, treatment, level.treatment,
-  endpoint, endpoint.TTE, endpoint.UTTE, censoring, censoring.TTE,
-  censoring.UTTE, D.TTE, D.UTTE, type, strata, threshold, n.strata,
-  iidNuisance, out)
+  endpoint, endpoint.TTE, endpoint.UTTE, status, status.TTE, status.UTTE,
+  D.TTE, D.UTTE, type, strata, threshold, n.strata, iidNuisance, out)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.
@@ -38,7 +37,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \item scoring.rule, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 \item formula: call \code{initializeFormula} to extract arguments.
 \item type: convert to numeric.
-\item censoring: only keep censoring relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
+\item status: only keep status relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
 \item threshold: set default threshold to 1e-12 expect for binary variable where it is set to 1/2.
 the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12.
 When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
@@ -46,7 +45,7 @@ When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the 
 \item scoring.rule: convert to numeric.
 }
 
-\code{initializeFormula}:  extract \code{treatment}, \code{type}, \code{endpoint}, \code{threshold}, \code{censoring}, \code{operator}, and \code{strata}
+\code{initializeFormula}:  extract \code{treatment}, \code{type}, \code{endpoint}, \code{threshold}, \code{status}, \code{operator}, and \code{strata}
 from the formula. \cr \cr
 
 \code{initializeData}: Divide the dataset into two, one relative to the treatment group and the other relative to the control group.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 27 2018 (17:10) 
 ## Version: 
-## Last-Updated: feb 27 2019 (22:34) 
+## Last-Updated: nov 21 2019 (11:57) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -93,7 +93,7 @@ context("Comparison with other softwares")
 ## summary(wtest)
 ## str(wtest)
 
-## BT <- BuyseTest(treatment ~ tte(time1, censoring = status1) + tte(time2, censoring = status2),
+## BT <- BuyseTest(treatment ~ tte(time1, status = status1) + tte(time2, status = status2),
                 ## data = dt.sim,
                 ## method.inference = "none")
 

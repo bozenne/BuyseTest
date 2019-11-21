@@ -42,10 +42,10 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::mat >& iRP_Dscore_Dnuisan
 //' @name GPC_cpp
 //' 
 //' @param endpoint A matrix containing the values of each endpoint (in columns) for each observation (in rows). 
-//' @param censoring A matrix containing the values of the censoring variables relative to each endpoint (in columns) for each observation (in rows).
-//' @param indexC A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the control observations. Not unique when bootstraping.
+//' @param status A matrix containing the values of the status variables relative to each endpoint (in columns) for each observation (in rows).
+//' @param indexC A list containing, for each strata, which rows of the endpoint and status matrices corresponds to the control observations. Not unique when bootstraping.
 //' @param posC A list containing, for each strata, the unique identifier of each control observations. 
-//' @param indexT A list containing, for each strata, which rows of the endpoint and censoring matrices corresponds to the treatment observations. Not unique when bootstraping.
+//' @param indexT A list containing, for each strata, which rows of the endpoint and status matrices corresponds to the treatment observations. Not unique when bootstraping.
 //' @param posT A list containing, for each strata, the unique identifier of each treatment observations.
 //' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
 //' @param weight Store the weight associated to each endpoint. Must have length D. 
@@ -55,7 +55,7 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::mat >& iRP_Dscore_Dnuisan
 //' @param n_strata The number of strata. 
 //' @param nUTTE_analyzedPeron_M1 The number of unique time-to-event endpoints that have been analyzed the Peron scoring rule before the current endpoint. Must have length D.
 //' @param index_endpoint The position of the endpoint at each priority in the argument endpoint. Must have length D. 
-//' @param index_censoring The position of the censoring at each priority in the argument censoring. Must have length D. 
+//' @param index_status The position of the status at each priority in the argument status. Must have length D. 
 //' @param index_UTTE The position, among all the unique tte endpoints, of the TTE endpoints. Equals -1 for non tte endpoints. Must have length n_TTE. 
 //' @param list_survTimeC A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the control group (in rows).
 //' @param list_survTimeT A list of matrix containing the survival estimates (-threshold, 0, +threshold ...) for each event of the treatment group (in rows).
@@ -82,7 +82,7 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::mat >& iRP_Dscore_Dnuisan
 //' @export
 // [[Rcpp::export]]
 List GPC_cpp(arma::mat endpoint,
-			 arma::mat censoring,
+			 arma::mat status,
 			 std::vector< arma::uvec > indexC,
 			 std::vector< arma::uvec > posC,
 			 std::vector< arma::uvec > indexT,
@@ -95,7 +95,7 @@ List GPC_cpp(arma::mat endpoint,
 			 unsigned int n_strata,
 			 arma::vec nUTTE_analyzedPeron_M1,
 			 std::vector<unsigned int> index_endpoint, 
-			 std::vector<unsigned int> index_censoring, 
+			 std::vector<unsigned int> index_status, 
 			 std::vector<int> index_UTTE, 
 			 std::vector< std::vector< arma::mat > > list_survTimeC,
 			 std::vector< std::vector< arma::mat > > list_survTimeT,
@@ -239,10 +239,10 @@ List GPC_cpp(arma::mat endpoint,
 	  // *** compute scores
 	  if(debug>0){Rcout << " - score("<< iFirstEndpoint <<")" << endl;}
       arma::uvec iUvec_endpoint = {index_endpoint[iter_d]};
-      arma::uvec iUvec_censoring = {index_censoring[iter_d]};
+      arma::uvec iUvec_status = {index_status[iter_d]};
 
 	  iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-								censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
+								status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
 								list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 								list_lastSurv[iter_d].row(iter_strata),
 								iIndex_control, iIndex_treatment, iPairWeight,
@@ -268,9 +268,9 @@ List GPC_cpp(arma::mat endpoint,
 		arma::mat iCount_obsC_M1,iCount_obsT_M1;
 		arma::mat iDscore_Dnuisance_C_M1,iDscore_Dnuisance_T_M1;
 
-		// note the values in endpoint, censoring, survTime, survJump, lastSurv are not used (only their dimensions)
+		// note the values in endpoint, status, survTime, survJump, lastSurv are not used (only their dimensions)
 		arma::mat iPairScore_M1 = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-									   censoring.submat(indexC[iter_strata],iUvec_censoring), censoring.submat(indexT[iter_strata],iUvec_censoring),
+									   status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
 									   list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 									   list_lastSurv[iter_d].row(iter_strata), 
 									   iIndex_control, iIndex_treatment, iPairWeight,
@@ -441,7 +441,7 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
 	}
 
 	// *** iid of the proba/score
-	if(iMethod == 3){
+	if(iMethod == 4){
 	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(0)/vecn_pairs[iter_strata];
 	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_T.col(0)/vecn_pairs[iter_strata];
 	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(1)/vecn_pairs[iter_strata];

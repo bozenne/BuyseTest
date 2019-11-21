@@ -97,10 +97,10 @@ library(data.table)
 dt <- simBuyseTest(1e2, n.strata = 3)
 
  \dontrun{
- BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt)
+ BT <- BuyseTest(treatment ~ TTE(eventtime, status = status) + Bin(toxicity), data=dt)
  }
  \dontshow{
- BT <- BuyseTest(treatment ~ TTE(eventtime, censoring = status) + Bin(toxicity), data=dt, n.resampling = 10, trace = 0)
+ BT <- BuyseTest(treatment ~ TTE(eventtime, status = status) + Bin(toxicity), data=dt, n.resampling = 10, trace = 0)
  }
  summary(BT)
  summary(BT, percentage = FALSE)

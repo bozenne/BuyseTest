@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: nov  6 2019 (14:12) 
+## Last-Updated: nov 21 2019 (13:37) 
 ##           By: Brice Ozenne
-##     Update #: 157
+##     Update #: 159
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -316,7 +316,7 @@ test_that("check NA - continuous",{
 test_that("check favorable - time to event",{
     ## 0 threshold, 1 pair
     data <- data.frame(time = c(1,0), treatment = c(1,0), status = 1)
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
+    BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -324,7 +324,7 @@ test_that("check favorable - time to event",{
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data2)    
+    BT <- BuyseTest(treatment ~ tte(time, status = status), data = data2)    
     expect_equal(as.double(BT@count.favorable),4)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -332,14 +332,14 @@ test_that("check favorable - time to event",{
 
     ## 0 threshold, strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, status = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(4,4))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
 
     ## 1 threshold, strata
-    BT <- BuyseTest(treatment ~ tte(time, threshold = 1, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, threshold = 1, status = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(4,4))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -350,7 +350,7 @@ test_that("check favorable - time to event",{
 test_that("check unfavorable - time to event",{
     ## 0 threshold, 1 pair
     data <- data.frame(time = c(0,1), treatment = c(1,0), status = 1)
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
+    BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
     expect_equal(as.double(BT@count.neutral),0)
@@ -358,7 +358,7 @@ test_that("check unfavorable - time to event",{
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data2)    
+    BT <- BuyseTest(treatment ~ tte(time, status = status), data = data2)    
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),4)
     expect_equal(as.double(BT@count.neutral),0)
@@ -366,14 +366,14 @@ test_that("check unfavorable - time to event",{
 
     ## 0 threshold strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, status = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
     expect_equal(as.double(BT@count.uninf),c(0,0))
     
     ## 1 threshold, strata
-    BT <- BuyseTest(treatment ~ tte(time, threshold = 1, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, threshold = 1, status = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(4,4))
     expect_equal(as.double(BT@count.neutral),c(0,0))
@@ -384,7 +384,7 @@ test_that("check unfavorable - time to event",{
 test_that("check neutral - time to event",{
     ## 0 threshold, 1 pair
     data <- data.frame(time = c(1,1), treatment = c(1,0), status = 1)
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
+    BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),1)
@@ -392,7 +392,7 @@ test_that("check neutral - time to event",{
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data2)    
+    BT <- BuyseTest(treatment ~ tte(time, status = status), data = data2)    
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),4)
@@ -400,7 +400,7 @@ test_that("check neutral - time to event",{
 
     ## 0 threshold strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status) + strata, data = data3)    
+    BT <- BuyseTest(treatment ~ tte(time, status = status) + strata, data = data3)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
@@ -409,7 +409,7 @@ test_that("check neutral - time to event",{
     ## 1 threshold, strata
     data4 <- data3
     data4[data4$treatment==1,"time"] <- 2
-    BT <- BuyseTest(treatment ~ tte(time, threshold = 3, censoring = status) + strata, data = data4)    
+    BT <- BuyseTest(treatment ~ tte(time, threshold = 3, status = status) + strata, data = data4)    
     expect_equal(as.double(BT@count.favorable),c(0,0))
     expect_equal(as.double(BT@count.unfavorable),c(0,0))
     expect_equal(as.double(BT@count.neutral),c(4,4))
@@ -420,7 +420,7 @@ test_that("check neutral - time to event",{
 test_that("check NA - time to event",{
     ## censored after the event in the other arm
     data <- data.frame(time = c(2,1), treatment = c(1,0), status = c(0,1))
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status),
+    BT <- BuyseTest(treatment ~ tte(time, status = status),
                     data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -429,7 +429,7 @@ test_that("check NA - time to event",{
 
     ## censored at the same time as the event in the other arm
     data <- data.frame(time = c(1,2,1), treatment = c(1,1,0), status = c(0,1,1))
-    BT <- BuyseTest(treatment ~ tte(time, censoring = status), data = data)
+    BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),2)
     expect_equal(as.double(BT@count.unfavorable),0)
     expect_equal(as.double(BT@count.neutral),0)
@@ -447,9 +447,9 @@ dt.2pairs <- data.table(id = 1:4,
 
 ## *** Gehan
 test_that("2 pairs - Gehan - no correction",{
-    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
+    BT <- BuyseTest(treat ~ tte(time, threshold = 0, status = cens), data = dt.2pairs,
                     scoring.rule = "Gehan", correction.uninf = FALSE)
-  
+
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),2)
     expect_equal(as.double(BT@count.neutral),0)
@@ -463,7 +463,7 @@ test_that("2 pairs - Gehan - no correction",{
 })
 
 test_that("2 pairs - Gehan - correction",{
-    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
+    BT <- BuyseTest(treat ~ tte(time, threshold = 0, status = cens), data = dt.2pairs,
                     scoring.rule = "Gehan", correction.uninf = TRUE)
   
     expect_equal(as.double(BT@count.favorable),0)
@@ -480,7 +480,7 @@ test_that("2 pairs - Gehan - correction",{
 
 ## *** Peron
 test_that("2 pairs - Peron - no correction",{
-    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
+    BT <- BuyseTest(treat ~ tte(time, threshold = 0, status = cens), data = dt.2pairs,
                     scoring.rule = "Peron", correction.uninf = FALSE)
   
     ## different survival curve per groups (denoting S survival time and T group)
@@ -507,7 +507,7 @@ test_that("2 pairs - Peron - no correction",{
 })
 
 test_that("2 pairs - Peron - correction",{
-    BT <- BuyseTest(treat ~ tte(time, threshold = 0, censoring = cens), data = dt.2pairs,
+    BT <- BuyseTest(treat ~ tte(time, threshold = 0, status = cens), data = dt.2pairs,
                     scoring.rule = "Peron", correction.uninf = TRUE)
   
     ## different survival curve per groups (denoting S survival time and T group)
@@ -551,12 +551,12 @@ df.all <- as.data.frame(M.all)
 
 test_that("Peron - predictible events",{
     df.all$trt <- abs(df.all$trt)
-    BT <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = status), data = df.all,
+    BT <- BuyseTest(trt ~ tte(time, threshold = 0, status = status), data = df.all,
                     scoring.rule="Peron", correction.uninf = FALSE)
     expect_equal(as.double(BT@Delta.netBenefit),1)
 
     df.all$trt <- -abs(df.all$trt)
-    BT <- BuyseTest(trt ~ tte(time, threshold = 0, censoring = status), data = df.all,
+    BT <- BuyseTest(trt ~ tte(time, threshold = 0, status = status), data = df.all,
                     scoring.rule="Peron", correction.uninf = FALSE)
     expect_equal(as.double(BT@Delta.netBenefit),-1)
 

@@ -50,7 +50,7 @@ for(iData in 1:3){ ## iData <- 1
     for(iThreshold in seqThreshold){ ## iThreshold <- 0.5
         
         ## *** Compute survival
-        form <- as.formula(paste0("treatment ~ tte(time, censoring = status, threshold = ",iThreshold,")"))
+        form <- as.formula(paste0("treatment ~ tte(time, status = status, threshold = ",iThreshold,")"))
         outBT <- BuyseTest(form,
                            data = data)
         outSurv <- getSurvival(outBT, endpoint = 1, strata = 1, unlist = TRUE)
@@ -142,7 +142,7 @@ dataStrata <- rbind(cbind(data, strata = 1),
                     )
 
 ## ** tests
-outBT <- BuyseTest(treatment ~ tte(time,censoring = status) + strata,
+outBT <- BuyseTest(treatment ~ tte(time, status = status) + strata,
                    data = dataStrata)
 outSurv <- getSurvival(outBT, endpoint = 1, unlist = TRUE)
 

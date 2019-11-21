@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: nov 15 2019 (10:11) 
+## Last-Updated: nov 21 2019 (14:12) 
 ##           By: Brice Ozenne
-##     Update #: 199
+##     Update #: 216
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,7 +22,7 @@
 ##' @keywords internal
 ##' @author Brice Ozenne
 testArgs <- function(name.call,
-                     censoring,
+                     status,
                      correction.uninf,
                      cpus,
                      data,
@@ -39,6 +39,7 @@ testArgs <- function(name.call,
                      hierarchical,
                      neutral.as.uninf,
                      operator,
+                     censoring,
                      seed,
                      strata,
                      threshold,
@@ -69,7 +70,7 @@ testArgs <- function(name.call,
     }
     
     ## ** extract usefull quantities
-    argnames <- c("treatment", "endpoint", "type", "threshold", "censoring", "strata")
+    argnames <- c("treatment", "endpoint", "type", "threshold", "status", "strata")
 
     D <- length(endpoint) 
     D.TTE <- sum(type == 3) # number of time to event endpoints
@@ -87,30 +88,49 @@ testArgs <- function(name.call,
     }
 
     
-    ## ** censoring
-    if(length(censoring) != D){
-        stop("BuyseTest: \'censoring\' does not match \'endpoint\' size. \n",
-             "length(censoring): ",length(censoring),"\n",
+    ## ** status
+    if(length(status) != D){
+        stop("BuyseTest: \'status\' does not match \'endpoint\' size. \n",
+             "length(status): ",length(status),"\n",
              "length(endpoint) : ",D,"\n")
             
     }
-    if(any(is.na(censoring))){
-        stop("BuyseTest: \'censoring\' must not contain NA. \n")
+    if(any(is.na(status))){
+        stop("BuyseTest: \'status\' must not contain NA. \n")
     }
-    if(any(censoring[type==3] == "..NA..") ){
-        stop("BuyseTest: wrong specification of \'censoring\'. \n",
-             "\'censoring\' must indicate a variable in data for TTE endpoints. \n",
-             "TTE endoints: ",paste(endpoint[type==3],collapse=" "),"\n",
-             "proposed \'censoring\' for these endoints: ",paste(censoring[type==3],collapse=" "),"\n")
+    index.pb <- which(status[type==3] == "..NA..")
+    if(length(index.pb)>0){
+        if(all(attr(censoring,"original")[index.pb] %in% names(data))){
+            stop("BuyseTest: wrong specification of \'status\'. \n",
+                 "\'status\' must indicate a variable in data for TTE endpoints. \n",
+                 "\'censoring\' is used to indicate whether there is left or right censoring. \n",
+                 "Consider changing \'censoring =\' into \'status =\' when in the argument \'formula\' \n")
+        }else{        
+            stop("BuyseTest: wrong specification of \'status\'. \n",
+                 "\'status\' must indicate a variable in data for TTE endpoints. \n",
+                 "TTE endoints: ",paste(endpoint[type==3],collapse=" "),"\n",
+                 "proposed \'status\' for these endoints: ",paste(status[type==3],collapse=" "),"\n")
+        }
     }
-    if(any(censoring[type!=3] !="..NA..") ){
-        stop("BuyseTest: wrong specification of \'censoring\'. \n",
-             "\'censoring\' must be \"..NA..\" for binary or continuous endpoints. \n",
+    if(any(status[type!=3] !="..NA..") ){
+        stop("BuyseTest: wrong specification of \'status\'. \n",
+             "\'status\' must be \"..NA..\" for binary or continuous endpoints. \n",
              "endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
-             "proposed \'censoring\' for these endoints : ",paste(censoring[type!=3],collapse=" "),"\n")
+             "proposed \'status\' for these endoints: ",paste(status[type!=3],collapse=" "),"\n")
     }
-        
 
+    ## ** censoring
+    if(any(is.na(censoring))){
+        stop("BuyseTest: wrong specification of \'censoring\'. \n",
+             "\'censoring\' must be \'as.character(NA)\', \"left\", or \"right\" \n",
+             "incorrect \'censoring\' value(s): \"",paste(attr(censoring,"original")[is.na(censoring)], collapse = "\" \""),"\" \n")
+    }
+    if(any(censoring[type==3]==0)){
+        stop("BuyseTest: wrong specification of \'censoring\'. \n",
+             "\'censoring\' must be \"left\" or \"right\" for TTE endpoints \n")
+    }
+
+    
     ## ** cpus
     if(cpus>1){
         validInteger(cpus,
@@ -124,6 +144,10 @@ testArgs <- function(name.call,
     if(is.na(scoring.rule)){
         stop("BuyseTest: wrong specification of \'scoring.rule\'. \n",
              "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\". \n")
+    }
+    if(scoring.rule>0 && any(censoring>1)){
+        warning("The Peron's scoring rule does not support left-censored endpoints \n",
+                "For those endpoints, the Gehan's scoring rule will be used instead.")
     }
 
     ## ## ** model.tte
@@ -186,16 +210,16 @@ testArgs <- function(name.call,
 
     ## *** time to event endpoint
     index.TTE <- which(type==3)
-    censoring.TTE <- censoring[type==3]
+    status.TTE <- status[type==3]
     if(length(index.TTE)>0){
         validNames(data,
                    name1 = "data",
-                   required.values = censoring.TTE,
+                   required.values = status.TTE,
                    valid.length = NULL,
                    refuse.NULL = FALSE,
                    method = "BuyseTest")
 
-        valid.values.censoring <- 0:2
+        valid.values.status <- 0:2
 
         for(iTTE in index.TTE){
             validNumeric(data[[endpoint[iTTE]]],
@@ -203,9 +227,9 @@ testArgs <- function(name.call,
                          valid.length = NULL,
                          refuse.NA = TRUE,
                          method = "BuyseTest")
-            validNumeric(unique(data[[censoring.TTE[which(index.TTE == iTTE)]]]),
-                         name1 = censoring.TTE[which(index.TTE == iTTE)],
-                         valid.values = valid.values.censoring,
+            validNumeric(unique(data[[status.TTE[which(index.TTE == iTTE)]]]),
+                         name1 = status.TTE[which(index.TTE == iTTE)],
+                         valid.values = valid.values.status,
                          valid.length = NULL,
                          method = "BuyseTest")
         }

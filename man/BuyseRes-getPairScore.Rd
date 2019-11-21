@@ -79,7 +79,7 @@ library(prodlim)
 ## run BuyseTest
 data(veteran,package="survival")
 
-BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, censoring = "status") + cont(karno),
+BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
                      data = veteran, keep.pairScore = TRUE, 
                      trace = 0, method.inference = "none")
 

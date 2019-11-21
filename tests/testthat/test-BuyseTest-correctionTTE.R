@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: nov  8 2019 (11:13) 
+## Last-Updated: nov 21 2019 (11:55) 
 ##           By: Brice Ozenne
-##     Update #: 109
+##     Update #: 110
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,7 +36,7 @@ df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
 
 ## ** Gehan
 test_that("1 TTE endpoint - Gehan (no correction)", {
-    Gehan <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
+    Gehan <- BuyseTest(group ~ tte(survie, status = event, threshold = 1) + cont(score),
                        data = df,
                        scoring.rule = "Gehan", correction.uninf = FALSE)
 
@@ -57,7 +57,7 @@ test_that("1 TTE endpoint - Gehan (no correction)", {
 
 test_that("1 TTE endpoint - Gehan (correction at the pair level)", {
     ## survival first    
-    GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
+    GehanC <- BuyseTest(group ~ tte(survie, status = event, threshold = 1) + cont(score),
                         data = df, 
                         scoring.rule = "Gehan", correction.uninf = TRUE)
     ## getPairScore(GehanC)
@@ -80,7 +80,7 @@ test_that("1 TTE endpoint - Gehan (correction at the pair level)", {
 
 test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     ## survival first    
-    GehanC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
+    GehanC <- BuyseTest(group ~ tte(survie, status = event, threshold = 1) + cont(score),
                         data = df, 
                         scoring.rule = "Gehan", correction.uninf = 2)
 
@@ -98,7 +98,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
     expect_equal(as.double(GehanC@Delta.winRatio[1]),iScoreS[,sum(favorable*factor)/sum(unfavorable*factor)])
 
     ## survival second
-    GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
+    GehanC2 <- BuyseTest(group ~  cont(score) + tte(survie, status = event, threshold = 1),
                          data = df, 
                          scoring.rule = "Gehan", correction.uninf = 2)
     
@@ -118,7 +118,7 @@ test_that("1 TTE endpoint - Gehan (correction IPCW)", {
 ## ** Peron
 test_that("1 TTE endpoint - Peron (no correction)", {
 
-    Peron <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
+    Peron <- BuyseTest(group ~ tte(survie, status = event, threshold = 1) + cont(score),
                        data = df, 
                        scoring.rule = "Peron", correction.uninf = FALSE)
 
@@ -138,7 +138,7 @@ test_that("1 TTE endpoint - Peron (no correction)", {
     
 test_that("1 TTE endpoint - Peron (IPCW)", {
     ## survival first
-    PeronC <- BuyseTest(group ~ tte(survie, censoring = event, threshold = 1) + cont(score),
+    PeronC <- BuyseTest(group ~ tte(survie, status = event, threshold = 1) + cont(score),
                         data = df, 
                         scoring.rule = "Peron", correction.uninf = 2)
 
@@ -157,7 +157,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
     expect_equal(as.double(PeronC@Delta.winRatio[1]),iScoreS[,sum(favorable*factor)/cumsum(unfavorable*factor)])
 
     ## survival second
-    PeronC2 <- BuyseTest(group ~  cont(score) + tte(survie, censoring = event, threshold = 1),
+    PeronC2 <- BuyseTest(group ~  cont(score) + tte(survie, status = event, threshold = 1),
                          data = df, 
                          scoring.rule = "Peron", correction.uninf = 2)
     
