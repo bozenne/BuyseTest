@@ -38,7 +38,9 @@ Imports:
     stats4,
     utils
 Suggests:
+	cvAUC,
     pbapply,
+    pROC,
     R.rsp,
 	riskRegression,
     survival,
