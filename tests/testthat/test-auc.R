@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: dec  2 2019 (19:50) 
+## Last-Updated: dec  3 2019 (18:11) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@ library(cvAUC)
 ## * Compare AUC and CI
 n <- 200
 set.seed(10)
-X <- rnorm(X)
+X <- rnorm(n)
 dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
                  X = X,
                  fold = unlist(lapply(1:10,function(iL){rep(iL,n/10)})))
@@ -64,9 +64,34 @@ test_that("AUC after CV - BuyseTest vs cvAUC",{
                     labels = dt$Y,
                     folds = dt$fold0)
 
+    attr(test0,"iid")
+    test01 <- auc(labels = dt$Y[1:100], prediction = dt$X[1:100])
+    test02 <- auc(labels = dt$Y[101:200], prediction = dt$X[101:200])
+
+    sqrt((test01$se[1]^2+test02$se[2]^2)/4)
+    
+    unlist(GS0[c("cvAUC","se")])
     
     expect_equal(test0[test0$fold=="global", "estimate"],
                  GS0$cvAUC, tol = 1e-6)
+
+
+    M0.iid <- as.matrix(Matrix::bdiag(attr(test02,"iid"),attr(test01,"iid")))
+    sqrt(sum((rowSums(M0.iid)/2)^2))
+
+    attr(test0,"iid")/M0.iid
+
+    dt
+    e.BT <- BuyseTest(Y~cont(X)+fold0,
+                      method.inference = "u-statistic",
+                      data = dt, trace = 0)
+    e1.BT <- BuyseTest(Y~cont(X)+fold0,
+                       method.inference = "u-statistic",
+                       data = dt[fold0==1], trace = 0)
+
+    iid(e.BT)[1:100,] + e.BT@count.favorable/
+    iid(e0.BT)*sqrt(100)
+    
     
     df.test0 <- as.data.frame(test0)
 

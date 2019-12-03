@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: dec  2 2019 (19:50) 
+## Last-Updated: dec  3 2019 (17:50) 
 ##           By: Brice Ozenne
-##     Update #: 97
+##     Update #: 107
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,8 +15,43 @@
 ## 
 ### Code:
 
-##' @details Compared to other functions computing the AUC (e.g. the auc fonction of the ROCR package),
-##' the AUC is defined here as P[Y>X] with a strict inequality sign.
+## * Documentation - auc
+#' @title Estimation of the Area Under the ROC Curve
+#' @name auc
+#' @aliases auc
+#' 
+#' @description Estimation of the Area Under the ROC curve, possibly after cross validation,
+#' to assess the discriminant ability of a biomarker regarding a disease status.
+#' 
+#' @param labels [integer/character vector] the disease status (should only take two different values).
+#' @param predictions [numeric vector] A vector with the same length as \code{labels} containing the biomarker values.
+#' @param fold [character/integer vector] If using cross validation, the index of the fold. 
+#' Should have the same length as \code{labels}.
+#' @param observation [integer vector] If using cross validation, the index of the corresponding observation in the original dataset.
+#' Necessary to compute the standard error when using cross validation.
+#' @param direction [character] \code{">"} lead to estimate P[Y>X],
+#' \code{"<"} to estimate P[Y<X],
+#' and \code{"auto"} to estimate max(P[Y>X],P[Y<X]).
+#' @param null [numeric, 0-1] the value against which the AUC should be compared when computing the p-value.
+#' @param conf.level [numeric, 0-1] the confidence level of the confidence intervals.
+#' 
+#' @details Compared to other functions computing the AUC (e.g. the auc fonction of the ROCR package),
+#' the AUC is defined here as P[Y>X] with a strict inequality sign (i.e. not P[Y>=X]).
+#'
+#' @return A \emph{data.frame} containing for each fold the AUC value with its standard error (when computed).
+#' The last line of the data.frame contains the global AUC value with its standard error.
+#' 
+
+## * Example - auc
+#' @rdname auc
+#' @examples
+#'
+#'
+#' 
+
+## * Code - auc
+#' @rdname auc
+#' @export
 auc <- function(labels, predictions, fold = NULL, observation = NULL, direction = ">",
                 null = 0.5, conf.level = 0.95){
 
@@ -93,7 +128,6 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
             }))
             out$se[1:n.fold] <- sqrt(colSums(M.iid^2))
         }
-        browser()
         ## colSums(M.iid^2)
     }else if(direction == "<"){
         out <- data.frame(fold = c(name.fold,"global"),
@@ -150,6 +184,9 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
     class(out) <- append("BuyseTestAuc",class(out))
     attr(out, "contrast") <- e.BT@level.treatment
     attr(out, "n.fold") <- n.fold
+    if(!is.null(observation)){
+        attr(out, "iid") <- M.iid
+    }
     return(out)
 
 }
