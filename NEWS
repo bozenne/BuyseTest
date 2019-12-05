@@ -2,6 +2,7 @@
 
 * Version > 1.8
 ** User visble changes
+- NEW FEATURE (1.8.3): function auc
 - NEW FEATURE (1.8.2): argument censoring has been renames status in
   the formula interface. Now the user can specify censoring = "left"
   or "right" to deal with right or left censoring (left censoring is

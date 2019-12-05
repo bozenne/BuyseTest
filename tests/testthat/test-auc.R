@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: dec  3 2019 (18:11) 
+## Last-Updated: dec  5 2019 (15:46) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 21
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,7 @@ dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
                  X = X,
                  fold = unlist(lapply(1:10,function(iL){rep(iL,n/10)})))
 ## boxplot(X~Y, data = dt)
+## ** no CV
 test_that("AUC - BuyseTest vs pROC",{
     test <- auc(labels = dt$Y, predictions = dt$X, direction = ">")
     test2 <- cvAUC(predictions = dt$X,
@@ -55,6 +56,7 @@ test_that("AUC - BuyseTest vs pROC",{
     expect_equal(test$se, c(0.036287, 0.036287), tol = 1e-6)
 })
 
+## ** with CV
 test_that("AUC after CV - BuyseTest vs cvAUC",{
     dt$fold0 <- c(rep(1,100),rep(2,100))
     
@@ -64,69 +66,17 @@ test_that("AUC after CV - BuyseTest vs cvAUC",{
                     labels = dt$Y,
                     folds = dt$fold0)
 
-    attr(test0,"iid")
-    test01 <- auc(labels = dt$Y[1:100], prediction = dt$X[1:100])
-    test02 <- auc(labels = dt$Y[101:200], prediction = dt$X[101:200])
-
-    sqrt((test01$se[1]^2+test02$se[2]^2)/4)
-    
-    unlist(GS0[c("cvAUC","se")])
-    
     expect_equal(test0[test0$fold=="global", "estimate"],
                  GS0$cvAUC, tol = 1e-6)
+    expect_equal(test0[test0$fold=="global", "se"],
+                 GS0$se, tol = 1e-6)
 
+    ## e.glm <- glm(Y~X, data = dt, family = binomial(link="logit"))
+    ## e.glmiid <- attr(riskRegression::predictRisk(e.glm, newdata = dt, iid = TRUE), "iid")
+    ## dim(e.glmiid)
 
-    M0.iid <- as.matrix(Matrix::bdiag(attr(test02,"iid"),attr(test01,"iid")))
-    sqrt(sum((rowSums(M0.iid)/2)^2))
-
-    attr(test0,"iid")/M0.iid
-
-    dt
-    e.BT <- BuyseTest(Y~cont(X)+fold0,
-                      method.inference = "u-statistic",
-                      data = dt, trace = 0)
-    e1.BT <- BuyseTest(Y~cont(X)+fold0,
-                       method.inference = "u-statistic",
-                       data = dt[fold0==1], trace = 0)
-
-    iid(e.BT)[1:100,] + e.BT@count.favorable/
-    iid(e0.BT)*sqrt(100)
-    
-    
-    df.test0 <- as.data.frame(test0)
-
-    df.test0$se[1:2]^2
-
-    GS0$se^2
-
-    var1 <- ci.cvAUC(predictions = dt$X[1:100],
-                     labels = dt$Y[1:100])$se^2
-    var2 <- ci.cvAUC(predictions = dt$X[101:200],
-                     labels = dt$Y[101:200])$se^2
-
-    (var1+var2)/2
-    2*GS0$se^2
-
-    c(var1,var2)/colSums(M.iid^2)
-    var1/colSums(M.iid^2)
-    
-    var1 <- auc(labels = dt$Y[1:100], prediction = dt$X[1:100])$se[1]^2
-    ( + auc(labels = dt$Y[101:200], prediction = dt$X[101:200])$se[1]^2)/2
-    
-
-    
-    test <- auc(labels = dt$Y, prediction = dt$X,
-                fold = dt$fold, observation = 1:NROW(dt))
-    GS <- ci.cvAUC(predictions = dt$X,
-                   labels = dt$Y,
-                   folds = dt$fold)
-
-    expect_equal(test[test$fold=="global", "estimate"],
-                 GS$cvAUC, tol = 1e-6)
-    expect_equal(test[test$fold=="global", "se"],
-                 GS$se, tol = 1e-6)
-    
-    sqrt(mean(test[1:10, "se"]^2))
+    ## test1 <- auc(labels = dt$Y, prediction = dt$X,
+    ##              fold = dt$fold0, observation = 1:NROW(dt))
     
 })
 

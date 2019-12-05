@@ -7,15 +7,19 @@
 \alias{iid,BuyseRes-method}
 \title{Extract the H-decomposition of the Estimator}
 \usage{
-iid(object, endpoint = NULL, type = "all")
+iid(object, endpoint = NULL, normalize = TRUE, type = "all")
 
-\S4method{iid}{BuyseRes}(object, endpoint = NULL, type = "all")
+\S4method{iid}{BuyseRes}(object, endpoint = NULL, normalize = TRUE,
+  type = "all")
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
 
 \item{endpoint}{[character] for which endpoint(s) the H-decomposition should be output?
 If \code{NULL} returns the sum of the H-decomposition over all endpoints.}
+
+\item{normalize}{[logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
+Otherwise not.}
 
 \item{type}{[character] type of iid to be output.
 Can be only for the nuisance parameters (\code{"nuisance"}),

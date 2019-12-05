@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: dec  3 2019 (17:50) 
+## Last-Updated: dec  5 2019 (15:59) 
 ##           By: Brice Ozenne
-##     Update #: 107
+##     Update #: 128
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -45,9 +45,21 @@
 ## * Example - auc
 #' @rdname auc
 #' @examples
+#' n <- 200
+#' set.seed(10)
+#' X <- rnorm(n)
+#' dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
+#'                  X = X,
+#'                  fold = unlist(lapply(1:10,function(iL){rep(iL,n/10)})))
 #'
+#' ## compute auc
+#' auc(labels = dt$Y, predictions = dt$X, direction = ">")
 #'
+#' ## compute auc after 10-fold cross-validation
+#' auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
 #' 
+
+
 
 ## * Code - auc
 #' @rdname auc
@@ -89,7 +101,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
 
     if(!is.null(fold)){
         df$fold <- fold
-        formula <- update(formula,.~.+fold)
+        formula <- stats::update(formula,.~.+fold)
     }else{
         df$fold <- 1
     }
@@ -101,6 +113,11 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
     e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0)
     BuyseTest.options(order.Hprojection = order.save)
 
+    indexC <- attr(e.BT@level.treatment,"indexC")
+    n.C <- length(indexC)
+    indexT <- attr(e.BT@level.treatment,"indexT")
+    n.T <- length(indexT)
+    
     ## ** Extra AUC
     direction.save <- direction
     if(direction == "auto"){
@@ -123,10 +140,11 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         if(!is.null(observation)){
             M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- iid(e.BT)[iVec,"favorable",drop=FALSE]
+                iIID[iVec] <- scale(iid(e.BT, normalize = FALSE)[iVec,"favorable",drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
+                iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
                 return(iIID)
             }))
-            out$se[1:n.fold] <- sqrt(colSums(M.iid^2))
         }
         ## colSums(M.iid^2)
     }else if(direction == "<"){
@@ -138,10 +156,11 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         if(!is.null(observation)){
             M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- iid(e.BT)[iVec,"unfavorable",drop=FALSE]
+                iIID[iVec] <- scale(iid(e.BT, normalize = FALSE)[iVec,"unfavorable",drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
+                iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
                 return(iIID)
             }))
-            out$se[1:n.fold] <- sqrt(colSums(M.iid^2))
         }
     }else if(direction == "best"){
         out <- data.frame(fold = c(name.fold,"global"),
@@ -155,29 +174,31 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         for(iFold in 1:n.fold){ ## iFold <- 1
             iDirection <- c("favorable", "unfavorable")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
             iCount <- as.double(slot(e.BT, paste0("count.",iDirection))[iFold])
-            iObservation <- observation[fold == name.fold[iFold]]
+            iVec <- observation[fold == name.fold[iFold]]
             
             out$direction[iFold] <- if(iDirection=="favorable"){">"}else{"<"}
             out$estimate[iFold] <- iCount/e.BT@n.pairs[iFold]
 
             if(!is.null(observation)){
-                M.iid[iObservation,iFold] <- iid(e.BT)[iObservation,iDirection,drop=FALSE]
-                out$se[iFold] <- sqrt(sum(M.iid[,iFold]^2))
+                M.iid[iVec,iFold] <- scale(iid(e.BT, normalize = FALSE)[iVec,iDirection,drop=FALSE], center = TRUE, scale = FALSE)
+                M.iid[intersect(iVec,indexC),iFold] <- M.iid[intersect(iVec,indexC),iFold]/n.C
+                M.iid[intersect(iVec,indexT),iFold] <- M.iid[intersect(iVec,indexT),iFold]/n.T
             }
         }
     }
     out$estimate[n.fold+1] <- mean(out$estimate[1:n.fold])
     if(!is.null(observation)){
+        out$se[1:n.fold] <- sqrt(colSums(M.iid^2))
         out$se[n.fold+1] <- sqrt(sum(rowSums(M.iid)^2))
     }
     
     z.stat <- as.double((out[,"estimate"]-null)/out[,"se"])
-    p.value <- 2*(1-pnorm(abs(z.stat)))
+    p.value <- 2*(1-stats::pnorm(abs(z.stat)))
 
     alpha <- 1-conf.level
     out <- cbind(out,
-                 lower = as.double(out[,"estimate"] + qnorm(alpha/2)*out[,"se"]),
-                 upper = as.double(out[,"estimate"] + qnorm(1-alpha/2)*out[,"se"]),
+                 lower = as.double(out[,"estimate"] + stats::qnorm(alpha/2)*out[,"se"]),
+                 upper = as.double(out[,"estimate"] + stats::qnorm(1-alpha/2)*out[,"se"]),
                  p.value = p.value)
     
     ## ** Export
@@ -190,6 +211,33 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
     return(out)
 
 }
+
+## * Utilitites
+## ** print.auc
+print.BuyseTestAuc <- function(x, ...){
+    if(NROW(x) < attr(x,"n.fold")){
+        print.data.frame(x)
+    }else{
+        label.upper <- paste0(attr(x,"contrast")[2],">",attr(x,"contrast")[1])
+        label.lower <- paste0(attr(x,"contrast")[1],">",attr(x,"contrast")[2])
+        x$direction <- sapply(x$direction, function(iD){
+            if(iD==">"){return(label.upper)}else if(iD=="<"){return(label.lower)}else{return(iD)}
+        })
+        print.data.frame(x[x$fold == "global",c("direction","estimate","se","lower","upper","p.value")], row.names = FALSE)
+    }
+}
+
+## ** coef.auc
+coef.BuyseTestAuc <- function(object,...){
+    object[object$fold=="global","estimate"]
+}
+## ** confint.auc
+confint.BuyseTestAuc <- function(object,...){
+    out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
+    rownames(out) <- NULL
+    return(as.data.frame(out))
+}
+
 
 ######################################################################
 ### auc.R ends here

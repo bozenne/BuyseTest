@@ -3,6 +3,7 @@
 export(BuyseTest)
 export(BuyseTest.options)
 export(GPC_cpp)
+export(auc)
 export(boot2pvalue)
 export(calcIntegralCif_cpp)
 export(calcIntegralSurv_cpp)

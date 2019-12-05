@@ -464,7 +464,10 @@ BuyseTest <- function(formula,
     scoring.rule <- c("Gehan","Peron")[outArgs$scoring.rule+1]
     attr(scoring.rule,"method.score") <- outArgs$method.score
     type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
-    
+    attr(outArgs$level.treatment,"indexC") <- outArgs$index.C
+    attr(outArgs$level.treatment,"indexT") <- outArgs$index.T
+    attr(outArgs$level.strata,"index") <- outArgs$index.strata
+
     BuyseRes.object <- BuyseRes(
         count.favorable = outPoint$count_favorable,      
         count.unfavorable = outPoint$count_unfavorable,

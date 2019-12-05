@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov 21 2019 (11:56) 
+## Last-Updated: dec  5 2019 (13:15) 
 ##           By: Brice Ozenne
-##     Update #: 95
+##     Update #: 98
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -641,5 +641,26 @@ test_that("iid with nuisance parameters: 2 TTE",{
     expect_equal(test,GS, tol = 1e-6)
 
 })
+
+## * normalization iid
+n <- 200
+set.seed(10)
+dt <- simBuyseTest(n, n.strata = 3)
+
+test_that("iid - remove normalization", {
+
+    e.all <- BuyseTest(treatment~bin(toxicity)+cont(score)+strata,
+                       method.inference = "u-statistic",
+                       data = dt, trace = 0)
+    e.strata <- BuyseTest(treatment~bin(toxicity)+cont(score)+strata,
+                          method.inference = "u-statistic",
+                          data = dt[strata=="a"], trace = 0)
+
+    iid.all <- iid(e.all, normalize = FALSE)[which(dt$strata=="a"),]
+    iid.strata <- iid(e.strata, normalize = FALSE)
+
+    expect_equal(unname(iid.all),unname(iid.strata), tol = 1e-9)
+})
+
 ######################################################################
 ### test-BuyseTest-iid.R ends here
