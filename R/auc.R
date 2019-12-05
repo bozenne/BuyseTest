@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: dec  5 2019 (15:59) 
+## Last-Updated: dec  5 2019 (16:22) 
 ##           By: Brice Ozenne
-##     Update #: 128
+##     Update #: 131
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,7 +40,8 @@
 #'
 #' @return A \emph{data.frame} containing for each fold the AUC value with its standard error (when computed).
 #' The last line of the data.frame contains the global AUC value with its standard error.
-#' 
+#'
+#' @references Erin LeDell, Maya Petersen, and Mark van der Laan (2015). \bold{Computationally efficient confidence intervals for cross-validated area under the ROC curve estimates}. \emph{Electron J Stat.} 9(1):1583–1607. \cr
 
 ## * Example - auc
 #' @rdname auc
@@ -214,6 +215,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
 
 ## * Utilitites
 ## ** print.auc
+#' @export
 print.BuyseTestAuc <- function(x, ...){
     if(NROW(x) < attr(x,"n.fold")){
         print.data.frame(x)
@@ -228,10 +230,12 @@ print.BuyseTestAuc <- function(x, ...){
 }
 
 ## ** coef.auc
+#' @export
 coef.BuyseTestAuc <- function(object,...){
     object[object$fold=="global","estimate"]
 }
 ## ** confint.auc
+#' @export
 confint.BuyseTestAuc <- function(object,...){
     out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
     rownames(out) <- NULL
