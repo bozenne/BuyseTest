@@ -71,4 +71,5 @@ Collate:
     'discreteRoot.R'
     'powerBuyseTest.R'
     'simBuyseTest.R'
+    'simCompetingRisks.R'
     'valid.R'
