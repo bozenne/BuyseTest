@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: dec  5 2019 (16:22) 
+## Last-Updated: dec 18 2019 (15:46) 
 ##           By: Brice Ozenne
-##     Update #: 131
+##     Update #: 136
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -46,6 +46,8 @@
 ## * Example - auc
 #' @rdname auc
 #' @examples
+#' library(data.table)
+#' 
 #' n <- 200
 #' set.seed(10)
 #' X <- rnorm(n)
@@ -230,11 +232,32 @@ print.BuyseTestAuc <- function(x, ...){
 }
 
 ## ** coef.auc
+#' @title Extract the AUC Value
+#'
+#' @description Extract the AUC value.
+#' 
+#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
+#' @param ... not used. For compatibility with the generic function.
+#'
+#' @return Estimated value for the AUC (numeric).  
+#' 
+#' @method coef BuyseTestAuc
+#' 
 #' @export
 coef.BuyseTestAuc <- function(object,...){
     object[object$fold=="global","estimate"]
 }
 ## ** confint.auc
+#' @title Extract the AUC value with its Confidence Interval
+#'
+#' @description Extract the AUC value with its Confidence Interval and p-value testing whether the AUC equals 0.5.
+#' 
+#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
+#' @param ... not used. For compatibility with the generic function.
+#'
+#' @return Estimated value for the AUC, its standard error, the lower and upper bound of the confidence interval and the p-value.
+#' 
+#' @method confint BuyseTestAuc
 #' @export
 confint.BuyseTestAuc <- function(object,...){
     out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]

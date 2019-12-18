@@ -4,7 +4,7 @@
 \alias{auc}
 \title{Estimation of the Area Under the ROC Curve}
 \usage{
-auc(labels, predictions, fold = NULL, observation = NULL, iid = NULL,
+auc(labels, predictions, fold = NULL, observation = NULL,
   direction = ">", null = 0.5, conf.level = 0.95)
 }
 \arguments{
@@ -39,7 +39,22 @@ Compared to other functions computing the AUC (e.g. the auc fonction of the ROCR
 the AUC is defined here as P[Y>X] with a strict inequality sign (i.e. not P[Y>=X]).
 }
 \examples{
+library(data.table)
 
+n <- 200
+set.seed(10)
+X <- rnorm(n)
+dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
+                 X = X,
+                 fold = unlist(lapply(1:10,function(iL){rep(iL,n/10)})))
 
+## compute auc
+auc(labels = dt$Y, predictions = dt$X, direction = ">")
 
+## compute auc after 10-fold cross-validation
+auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
+
+}
+\references{
+Erin LeDell, Maya Petersen, and Mark van der Laan (2015). \bold{Computationally efficient confidence intervals for cross-validated area under the ROC curve estimates}. \emph{Electron J Stat.} 9(1):1583–1607. \cr
 }
