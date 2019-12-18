@@ -8,52 +8,63 @@
 #' non-proportional sub-distribution hazards. A treatment variable with two groups (treatment and control) is created. 
 #' @param n.T [integer, >0] number of patients in the treatment arm
 #' @param n.C [integer, >0] number of patients in the control arm
-#' @param p1C [integer, >0] proportion of events of interest in the control group. Can be NULL if and only if \code{(b.1T, b.1C, b.2T, b.2C)}
+#' @param p.1C [integer, >0] proportion of events of interest in the control group. Can be NULL if and only if \code{(b.1T, b.1C, b.2T, b.2C)}
 #' are provided.
-#' @param sHR [double, >0] pre-specified sub-distribution hazard ratio for event of interest
-#' @param v.1C,v.1T,v.2C,v.2T shape parameters for distribution of time to event of interest in control/treatment (C/T) group and of time 
-#' to competing event in control/treatment (C/T) group respectively
-#' @param b.1C,b.1T,b.2C,b.2T rate parameters for distribution of time to event of interest in control/treatment (C/T) group and of time 
-#' to competing event in control/treatment (C/T) group respectively. Can be NULL if and only if \code{(p.1C, sHR)} are provided.
+#' @param sHR [double, >0] pre-specified sub-distribution hazard ratio for event of interest. Can be NULL if and only if 
+#' \code{(b.1T, b.1C, b.2T, b.2C)} are provided.
+#' @param v.1C,v.1T,v.2C,v.2T [double, <0] shape parameters for Gompertz distribution of time to event of interest in control/treatment (C/T) 
+#' group and of time to competing event in control/treatment (C/T) group respectively
+#' @param b.1C,b.1T,b.2C,b.2T [double, >0] rate parameters for Gompertz distribution of time to event of interest in control/treatment (C/T) 
+#' group and of time to competing event in control/treatment (C/T) group respectively. Can be NULL if and only if \code{(p.1C, sHR)} are 
+#' provided.
 #' @param cens.distrib [character] censoring distribution. Can be \code{"exponential"} for exponential censoring or \code{"uniform"} for
 #' uniform censoring. NULL means no censoring.
-#' @param param.cens [>0] parameter for censoring distribution. Should be a double for rate parameter of exponential censoring or a vector 
-#' of doubles for lower and upper bounds of uniform censoring. NULL means no censoring
-#' @param latent [logical] If \code{TRUE} also export the latent variables (e.g. true event times, event types and censoring times). NULL
-#' sets this parameter to \code{FALSE}.
+#' @param param.cens [>0] parameter for censoring distribution. Should be a double for rate parameter of exponential censoring distribution 
+#' or a vector of doubles for lower and upper bounds of uniform censoring distribution. NULL means no censoring
+#' @param latent [logical] If \code{TRUE}, also export the latent variables (e.g. true event times, true event types and censoring times). 
+#' NULL sets this parameter to \code{FALSE}.
 #' 
 #' @details 
+#' The times to the event of interest and to the competing event in each group follow an improper Gompertz distribution 
+#' (see Jeong and Fine, 2006), whose cumulative distribution function is 
 #' 
-#' Arguments in the list \code{argsTTE}:
-#'     \itemize{
-#'     \item\code{CR} should competing risks be simulated? \cr 
-#'     \item\code{rates.T} hazard corresponding to each endpoint (time to event endpoint, treatment group). \cr 
-#'     \item\code{rates.C} same as \code{rates.T} but for the control group. \cr
-#'     \item\code{rates.CR} same as \code{rates.T} but for the competing event (same in both groups). \cr
-#'     \item\code{rates.Censoring} Censoring same as \code{rates.T} but for the censoring. \cr
-#'     \item\code{name} names of the time to event variables. \cr
-#'     \item\code{nameCensoring} names of the event type indicators. \cr
-#'     }
-#'     
+#' F(t; b, v) = 1 - exp(b (1 - exp (v t)) / v) \cr 
+#' 
+#' and hazard functions is
+#' 
+#' h(t; b, v) = b exp(v t)\cr 
+#' 
+#' The shape parameters must be negative to have improper distributions for the times to the two events in each group. Note however that 
+#' in each group, the overall cumulative incidence function must be proper (i.e. the maximum values of the cumulative incidence of each 
+#' event type sum up to 1 in each group). When only providing the shape parameters, the rate parameters are
+#' computed to fulfill this condition. In case you whish to provide the rate parameters too, make sure that the condition is met.
+#'
 #' @examples
 #'
 #' #### Providing p.1C and sHR ####
-#' d <- simCompetingRisks(n.T = 5000, n.C = 5000, p.1C = 0.55, v.1C = -0.30, v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, 
-#' sHR = 0.5, b.1T = NULL, b.1C = NULL, b.2T = NULL, b.2C = NULL)
+#' d <- simCompetingRisks(n.T = 100, n.C = 100, p.1C = 0.55, v.1C = -0.30, 
+#' v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, sHR = 0.5, b.1T = NULL, 
+#' b.1C = NULL, b.2T = NULL, b.2C = NULL)
 #' 
 #' #### Providing the rate parameters ####
-#' d <- simCompetingRisks(n.T=5000, n.C=5000, p.1C = NULL, v.1C = -0.30, v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, 
-#' sHR = NULL, b.1T = b.1T, b.1C = b.1C, b.2T = b.2T, b.2C = b.2C)
+#' d <- simCompetingRisks(n.T = 100, n.C = 100, p.1C = NULL, v.1C = -0.30, 
+#' v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, sHR = NULL, b.1T = b.1T, 
+#' b.1C = b.1C, b.2T = b.2T, b.2C = b.2C)
 #' 
 #' #### With exponential censoring ####
-#' d <- simCompetingRisks(n.T = 5000, n.C = 5000, p.1C = 0.55, v.1C = -0.30, v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, 
-#' sHR = 0.5, b.1T = NULL, b.1C = NULL, b.2T = NULL, b.2C = NULL, cens.distrib = "exponential", param.cens = 0.8, 
-#' latent = T)
+#' d <- simCompetingRisks(n.T = 100, n.C = 100, p.1C = 0.55, v.1C = -0.30, 
+#' v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, sHR = 0.5, b.1T = NULL, 
+#' b.1C = NULL, b.2T = NULL, b.2C = NULL, cens.distrib = "exponential", 
+#' param.cens = 0.8, latent = T)
 #'
 #' ### With uniform censoring ####
-#' d <- simCompetingRisks(n.T = 5000, n.C = 5000, p.1C = 0.55, v.1C = -0.30, v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, 
-#' sHR = 0.5, b.1T = NULL, b.1C = NULL, b.2T = NULL, b.2C = NULL, cens.distrib = "uniform", param.cens = c(0, 7), 
-#' latent=T)        
+#' d <- simCompetingRisks(n.T = 100, n.C = 100, p.1C = 0.55, v.1C = -0.30, 
+#' v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, sHR = 0.5, b.1T = NULL, 
+#' b.1C = NULL, b.2T = NULL, b.2C = NULL, cens.distrib = "uniform", 
+#' param.cens = c(0, 7), latent=T)        
+#' 
+#' @references Jeong J-H. and Fine J. (2006) \bold{Direct parametric inference for the cumulative incidence function}. \emph{Journal of the Royal Statistical
+#' Society} 55: 187-200 \cr
 #' 
 #' @keywords function simulations
 #'
