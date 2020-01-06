@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: dec 18 2019 (15:46) 
+## Last-Updated: jan  6 2020 (19:33) 
 ##           By: Brice Ozenne
-##     Update #: 136
+##     Update #: 147
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -190,8 +190,14 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         }
     }
     out$estimate[n.fold+1] <- mean(out$estimate[1:n.fold])
+    
     if(!is.null(observation)){
-        out$se[1:n.fold] <- sqrt(colSums(M.iid^2))
+        if(!is.null(fold)){
+            n.obsfold <- tapply(observation,fold,function(vecObs){length(unique(vecObs))})
+        }else{
+            n.obsfold <- n.obs
+        }
+        out$se[1:n.fold] <- sqrt(colSums(M.iid^2))*(n.obs/n.obsfold)
         out$se[n.fold+1] <- sqrt(sum(rowSums(M.iid)^2))
     }
     
