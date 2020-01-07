@@ -5,7 +5,8 @@
 \title{Estimation of the Area Under the ROC Curve}
 \usage{
 auc(labels, predictions, fold = NULL, observation = NULL,
-  direction = ">", null = 0.5, conf.level = 0.95)
+  direction = ">", null = 0.5, conf.level = 0.95,
+  transformation = FALSE)
 }
 \arguments{
 \item{labels}{[integer/character vector] the disease status (should only take two different values).}
@@ -25,6 +26,8 @@ and \code{"auto"} to estimate max(P[Y>X],P[Y<X]).}
 \item{null}{[numeric, 0-1] the value against which the AUC should be compared when computing the p-value.}
 
 \item{conf.level}{[numeric, 0-1] the confidence level of the confidence intervals.}
+
+\item{transformation}{[logical] should a log-log transformation be used when computing the confidence intervals and the p-value.}
 }
 \value{
 A \emph{data.frame} containing for each fold the AUC value with its standard error (when computed).
