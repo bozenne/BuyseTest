@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: jan  6 2020 (23:23) 
+## Last-Updated: jan 29 2020 (13:04) 
 ##           By: Brice Ozenne
-##     Update #: 148
+##     Update #: 159
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,6 +34,7 @@
 #' and \code{"auto"} to estimate max(P[Y>X],P[Y<X]).
 #' @param null [numeric, 0-1] the value against which the AUC should be compared when computing the p-value.
 #' @param conf.level [numeric, 0-1] the confidence level of the confidence intervals.
+#' @param transformation [logical] should a log-log transformation be used when computing the confidence intervals and the p-value.
 #' 
 #' @details Compared to other functions computing the AUC (e.g. the auc fonction of the ROCR package),
 #' the AUC is defined here as P[Y>X] with a strict inequality sign (i.e. not P[Y>=X]).
@@ -68,7 +69,7 @@
 #' @rdname auc
 #' @export
 auc <- function(labels, predictions, fold = NULL, observation = NULL, direction = ">",
-                null = 0.5, conf.level = 0.95){
+                null = 0.5, conf.level = 0.95, transformation = FALSE){
 
     ## ** Normalize user imput
     if(length(unique(labels))!=2){
@@ -97,6 +98,9 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         observation <- 1:n.obs
     }
     direction <- match.arg(direction, c(">","<","auto","best"))
+    if(!is.logical(transformation)){
+        stop("Argument \'transformation\' must be TRUE or FALSE \n")
+    }
     
     df <- data.frame(Y = labels,
                      X = predictions)
@@ -133,7 +137,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
 
     name.fold <- e.BT@level.strata
     n.fold <- length(name.fold)
-    
+
     if(direction==">"){
         out <- data.frame(fold = c(name.fold,"global"),
                           direction = ">",
@@ -200,23 +204,39 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         out$se[1:n.fold] <- sqrt(colSums(M.iid^2))*(n.obs/n.obsfold)
         out$se[n.fold+1] <- sqrt(sum(rowSums(M.iid)^2))
     }
-    
-    z.stat <- as.double((out[,"estimate"]-null)/out[,"se"])
-    p.value <- 2*(1-stats::pnorm(abs(z.stat)))
 
+    ## ** P-value and confidence interval
     alpha <- 1-conf.level
-    out <- cbind(out,
-                 lower = as.double(out[,"estimate"] + stats::qnorm(alpha/2)*out[,"se"]),
-                 upper = as.double(out[,"estimate"] + stats::qnorm(1-alpha/2)*out[,"se"]),
-                 p.value = p.value)
-    
+    qinf <- stats::qnorm(alpha/2)
+    qsup <- stats::qnorm(1-alpha/2)
+
+    ## riskRegression:::transformCIBP(estimate = cbind(out$estimate), se = cbind(out$se), null = 1/2, conf.level =  0.95, type = "none",
+                                   ## ci = TRUE, band = FALSE, p.value = TRUE,
+                                   ## min.value = 0, max.value = 1)
+    ## riskRegression:::transformCIBP(estimate = cbind(out$estimate), se = cbind(out$se), null = 1/2, conf.level =  0.95, type = "loglog",
+                                   ## ci = TRUE, band = FALSE, p.value = TRUE,
+                                   ## min.value = 0, max.value = 1)
+    if(transformation){
+        newse <- out$se / (- out$estimate * log(out$estimate))
+        z.stat <- (log(-log(out$estimate)) - log(-log(null)))/newse
+        
+        out$lower <- as.double(out$estimate ^ exp(qsup * newse))
+        out$upper <- as.double(out$estimate ^ exp(qinf * newse))
+        out$p.value <- 2*(1-stats::pnorm(abs(z.stat)))
+    }else{
+        z.stat <- as.double((out[,"estimate"]-null)/out[,"se"])
+
+        out$lower <- as.double(out[,"estimate"] + qinf * out[,"se"])
+        out$upper <- as.double(out[,"estimate"] + qsup * out[,"se"])
+        out$p.value <- 2*(1-stats::pnorm(abs(z.stat)))
+    }
     ## ** Export
     class(out) <- append("BuyseTestAuc",class(out))
     attr(out, "contrast") <- e.BT@level.treatment
     attr(out, "n.fold") <- n.fold
     attr(out, "iid") <- M.iid
     return(out)
-
+ 
 }
 
 ## * Utilitites
