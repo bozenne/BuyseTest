@@ -1,38 +1,41 @@
 # -*- mode: org -*-
 
-* Version > 1.8
+* Version 1.9
+** User visble changes
+- NEW FEATURE (1.9.0): function simCompetingRisks to simulate data with competing risks under proportional sub-hazard
+
+
+* Version 1.8
 ** User visble changes
 - NEW FEATURE (1.8.3): function auc
-- NEW FEATURE (1.8.2): argument censoring has been renames status in
-  the formula interface. Now the user can specify censoring = "left"
-  or "right" to deal with right or left censoring (left censoring is
-  only implemented for the Gehan's scoring rule)
+- NEW FEATURE: method.inference="u-statistic" gives valid results when
+  using scoring.rule="Peron".
 - NEW FEATURE (1.8.1): scoring.rule="Peron" also works in presence of
   competing risk (method.inference="u-statistic" does not work in this
   case though).
+
+- CHANGE: The group variable in simBuyseTest is treatment instead of Treatment.
+
+- CHANGE: The stratification of the resampling procedure is now defined via
+  the argument strata.resampling. In particular this enables to
+  performed a bootstrap stratified on the treatment variable.
+- CHANGE (1.8.2): argument censoring has been renames status in
+  the formula interface. Now the user can specify censoring = "left"
+  or "right" to deal with right or left censoring (left censoring is
+  only implemented for the Gehan's scoring rule)
+
 - Fix issue related to rates in simBuyseTest (issue #4 on Github)
 - Add reference in the description as suggested by CRAN.
 - Update vignette.
 
 ** Internal change
 - Fix clang-UBSAN issue in the C++ code.
-
-* Version = 1.8
-** User visble changes
-- NEW FEATURE: method.inference="u-statistic" gives valid results when
-  using scoring.rule="Peron".
-- The group variable in simBuyseTest is treatment instead of Treatment.
-- NEW FEATURE:The stratification of the resampling procedure is now defined via
-  the argument strata.resampling. In particular this enables to
-  performed a bootstrap stratified on the treatment variable.
-
-** Internal change
 - Second order H-projection for scoring.rule="Peron" has been fixed.
 - To a large extend, the C++ code performing the GPC has been
   re-written to be able to compute the iid decomposition for the
   scores when using the Peron's scoring rule.
 
-* Version = 1.7
+* Version 1.7
 ** User visble changes
 - method.inference="asymptotic" becomes method.inference="u-statistic"
 - argument method.tte becomes scoring.rule.
@@ -46,11 +49,11 @@
 - fix bug in the computation of the asymptotic variance + add tests
 - faster computation of the iid (done in the C++ code)
 
-* Version = 1.6
+* Version 1.6
 ** Internal change
   - simplify C++ code.
 
-* Version = 1.5
+* Version 1.5
 ** User visble changes
   - Argument statistic now takes values netBenefit or winRatio
     (instead of netChance or winRatio).
@@ -62,7 +65,7 @@
 ** Internal change
   - improve the management of the weights of the pairs from one endpoint to another.
 
-* Version = 1.4
+* Version 1.4
 ** User visble changes - BuyseTest function
   - NEW FEATURE: Instead of estimating the survival curves on the data
     used for the GPC, BuyseTest can use pre-defined survival models
@@ -78,7 +81,7 @@
 - change the handling of NA in the survival when using method.tte="Peron" (C++ code)
 - change the way neutralAsUninf is implemented (C++ code)
 
-* Version = 1.3
+* Version 1.3
 ** User visble changes - BuyseTest function
   - NEW FEATURE: boostrap resampling (method.inference = "boostrap")
   - NEW FEATURE: confint method to extract confidence intervals
@@ -95,7 +98,7 @@
   - remove dependency on tcltk.
   - confidence intervals and p.values are computed outside BuyseTest, when calling summary.
 
-* Version = 1.2
+* Version 1.2
 ** User visble changes - BuyseTest function
   - add argument keepComparison, operator.
   - argument n.bootstrap becomes n.permuation
@@ -106,7 +109,7 @@
 ** Internal change
   - reorganize the tests
 
-* Version = 1.1
+* Version 1.1
   - add a formula argument to the BuyseTest function. This can be used instead of the treatment, endpoint, threshold, type, censoring, and strata argument
    to specify the prioritized endpoints.
   - unify the C++ code, add a threshold for considering a pair non-informative (w>1e-12). May induce differences with previous versions in the index of uniformative pairs.

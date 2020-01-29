@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: jan 29 2020 (13:38) 
+## Last-Updated: jan 29 2020 (15:26) 
 ##           By: Brice Ozenne
-##     Update #: 26
+##     Update #: 29
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -186,99 +186,19 @@ test_that("When TTE endpoints are analyzed several times with different threshol
   
 })
 
-if(FALSE){ ## too slow
+## ** Simulate HR with proportional subdistribution hazard ratio
 test_that("The relationship between net benefit and subdistribution hazard ratio is verified", {
+
+    ## d <- simCompetingRisks(n.T = n, n.C = n,
+    ##                      p.1C = 0.5, sHR = sHR, 
+    ##                      param.cens = NULL, latent = NULL)
+        
+        ## ## Compute net benefit with BuyseTest package
+        ## B = BuyseTest(treatment ~ tte(time, status = status, threshold = 0), data = sHR.data, method.tte = "Gehan", keep.pairScore = FALSE) 
   
-    ## Simulate big dataset with pre-specified subdistribution hazard ratio for event of interest (based on Haller et Ulm, 2013)
-    for (q in 1:length(sHR)) {
-    
-        gamma.0 = function(t) 0.01*exp(-0.01*t/log(1.5)) # tends to 0.001 when t goes to 0
-        gamma.1 = function(t) gamma.0(t)*sHR[q] # tends to 0.001*sHR when t goes to 0
-  
-        lambda2.0 = function(t) 0.012
-        lambda2.1 = function(t) 0.005
-  
-        ## Derive cause-specific hazard functions for event of interest in both groups
-        lambda1.0 = c()
-        lambda1.1 = c()
-        integrand.0 = function(t) 0.01*exp(-0.01*t/log(1.5))*exp(-log(1.5)*(1-exp(-0.01*t/log(1.5))) 
-                                                                 + 0.012*t)
-        integrand.1 = function(t) 0.01*sHR[q]*exp(-0.01*t/log(1.5))*exp(-sHR[q]*log(1.5)*(1-exp(-0.01*t/log(1.5))) 
-                                                                        + 0.005*t)
-  
-        for (k in 1:40000) {
-    
-            ## control group
-            num.0 = gamma.0(k)*exp(- integrate(gamma.0, lower = 0, upper = k)$value + integrate(Vectorize(lambda2.0), 
-                                                                                                lower = 0, upper = k)$value)
-            denom.0 = 1 - integrate(integrand.0, lower = 0, upper = k)$value
-            lambda1.0[k] = num.0/denom.0
-    
-            ## treatment goup
-            num.1 = gamma.1(k)*exp(- integrate(gamma.1, lower = 0, upper = k)$value + integrate(Vectorize(lambda2.1), 
-                                                                                                lower = 0, upper = k)$value)
-            denom.1 = 1 - integrate(integrand.1, lower = 0, upper = k)$value
-            lambda1.1[k] = num.1/denom.1
-    
-        }
-  
-        ## Create empty vectors
-        event.type = rep(0, n.big)
-        event.time = rep(0, n.big)
-        treatment = rep(0, n.big)
-  
-        set.seed(10)
-  
-        ## Loop over treatment subjects
-        for (i in 1:n.big) {
-    
-            if (i <= n.big/2) { 
-                ## lambda1 = function(t) lambda1.1(t)
-                ## lambda2 = function(t) lambda2.1(t)
-                lambda1 = lambda1.1
-                lambda2 = lambda2.1
-                treatment[i] = 1
-            } else {
-                ## lambda1 = function(t) lambda1.0(t)
-                ## lambda2 = function(t) lambda2.0(t)
-                lambda1 = lambda1.0
-                lambda2 = lambda2.0
-                treatment[i] = 0
-            }
-    
-            time = 0
-            event = 0
-    
-            ## Loop over time
-            while (event != 1) {
-      
-                time = time + 1
-                p = lambda1[time] + lambda2(t = time)
-                U = runif(1, min = 0, max = 1)
-                event = U < p
-      
-                if (event == 1) { ## Determine type of event
-                    event.time[i] = time
-                    event.type[i] = sample(1:2, 1, prob = c(lambda1[time]/p, lambda2(t = time)/p)) 
-                }
-            }
-        }
-  
-                                        # ## Add censoring
-                                        # censoring.time = runif(n.big, min = 0, max = 300)
-                                        # time = pmin(event.time, censoring.time) 
-                                        # status = ifelse(time == event.time, event.type, 0)
-  
-        sHR.data = data.frame(time = event.time, status = event.type, treatment = treatment)
-  
-        ## Compute net benefit with BuyseTest package
-        B = BuyseTest(treatment ~ tte(time, status = status, threshold = 0), data = sHR.data, method.tte = "Gehan", keep.pairScore = FALSE) 
-  
-        ## Tests
-        expect_equal(true.Delta[q], as.double(B@Delta.netBenefit), tolerance = 1e-2) # tolerance because of the too small dataset  
-    }
+        ## ## Tests
+        ## expect_equal(true.Delta[q], as.double(B@Delta.netBenefit), tolerance = 1e-2) # tolerance because of the too small dataset  
 })
-}
 
 
 ######################################################################
