@@ -48,8 +48,8 @@
 #' 
 #' #### Providing the rate parameters ####
 #' d <- simCompetingRisks(n.T = 100, n.C = 100, p.1C = NULL, v.1C = -0.30, 
-#' v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, sHR = NULL, b.1T = b.1T, 
-#' b.1C = b.1C, b.2T = b.2T, b.2C = b.2C)
+#' v.1T = -0.30, v.2C = -0.30, v.2T = -0.30, sHR = NULL, b.1T = 0.12, 
+#' b.1C = 0.24, b.2T = 0.33, b.2C = 0.18)
 #' 
 #' #### With exponential censoring ####
 #' d <- simCompetingRisks(n.T = 100, n.C = 100, p.1C = 0.55, v.1C = -0.30, 
