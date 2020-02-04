@@ -16,7 +16,6 @@
 #' @param legend [logical] should explainations about the content of each column be displayed? 
 #' @param col.rep [logical] should the number of successful simulations be displayed? 
 #' @param method.inference [character vector] for which inference method the rejection rate should be displayed?
-#' @param ... arguments to be passed from the generic method to the class specific method [not relevant to the user]
 #'
 #' @seealso 
 #'   \code{\link{powerBuyseTest}} for performing a simulation study for generalized pairwise comparison. \cr
