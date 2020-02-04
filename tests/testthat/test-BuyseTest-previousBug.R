@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: nov 21 2019 (11:57) 
+## Last-Updated: feb  4 2020 (16:58) 
 ##           By: Brice Ozenne
-##     Update #: 134
+##     Update #: 135
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -380,3 +380,11 @@ test_that("simBuyseTest - rate vs. scale", {
     expect_equal(mean(GS1),mean(test[treatment == "C", mean(eventtimeCensoring)]), tol = 1e-2)
     expect_equal(mean(GS1),mean(test[treatment == "T", mean(eventtimeCensoring)]), tol = 1e-2)
 })
+
+## * new
+## set.seed(10)
+## d <- simBuyseTest(1e2)
+
+## e.BT <- BuyseTest(treatment ~ toxicity + cont(score), data = d, method.inference = "permutation")
+## e.BT <- BuyseTest(treatment ~ cont(score), data = d, method.inference = "permutation")
+## summary(e.BT)

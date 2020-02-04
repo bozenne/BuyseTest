@@ -44,7 +44,7 @@ setClass(
 
 ### ** Check validity of the object
   validity = function(object){
-      validNames.summary <- c("endpoint","threshold","weight","total","favorable","unfavorable","neutral","uninf","information(%)",
+      validNames.summary <- c("endpoint","threshold","weight","strata","total","favorable","unfavorable","neutral","uninf","information(%)",
                               "delta","Delta","Delta(%)",
                               "p.value","CI","significance")
       

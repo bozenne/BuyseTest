@@ -51,8 +51,8 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    order.Hprojection = 1,
                    print.display = c("endpoint","threshold","delta","Delta"),
                    statistic = "netBenefit",               
-                   summary.display = list(c("endpoint","threshold","weight","total","favorable","unfavorable","neutral","uninf","delta","Delta","CI","p.value","significance"),
-                                          c("endpoint","threshold","weight","favorable","unfavorable","delta","Delta","Delta(%)","information(%)")),
+                   summary.display = list(c("endpoint","threshold","weight","strata","total","favorable","unfavorable","neutral","uninf","delta","Delta","CI","p.value","significance"),
+                                          c("endpoint","threshold","weight","strata","favorable","unfavorable","delta","Delta","Delta(%)","information(%)")),
                    transformation = TRUE,
                    trace = 2), 
                envir = BuyseTest.env)
