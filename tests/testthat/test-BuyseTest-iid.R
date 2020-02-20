@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: dec  5 2019 (13:15) 
+## Last-Updated: feb 20 2020 (13:59) 
 ##           By: Brice Ozenne
-##     Update #: 98
+##     Update #: 101
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,6 +28,7 @@ cov2 <- function(x,y){cov(x,y)*(length(x)-1)/length(x)}
 ## * Settings
 BuyseTest.options(check = TRUE,
                   keep.pairScore = FALSE,
+                  method.inference = "u-statistic",
                   trace = 0)
 
 ## * iid average
@@ -364,6 +365,10 @@ test_that("iid: two endpoints (no strata - first order)", {
                  c(0.0001065024, 0.0001116864, -0.0000153344, 0.0002488576, 0.4454834743), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["eventtime_1e-12",]),
                  c(0.00194112, 0.00143968, -0.00028544, 0.00395168, 0.38625867), tol = 1e-6 )
+
+    ## cluster argument
+    expect_equal(unname(iid(e.BT, cluster = 1:NROW(d))), unname(iid(e.BT)), tol = 1e-6)
+    expect_equal(confint(e.BT, cluster = 1:NROW(d)),  confint(e.BT), tol = 1e-6)
 })
 
 BuyseTest.options(order.Hprojection = 2)
@@ -460,6 +465,10 @@ test_that("iid: two endpoints (strata)", {
     expect_equal(as.double(e0.BT@covariance),
                  c(0.0009537952, 0.001180109, -0.0008541376, 0.0038421792, 0.0444467864), tol = 1e-6 )
 
+    ## cluster argument
+    expect_equal(unname(iid(e.BT, cluster = 1:NROW(d2))), unname(iid(e.BT)), tol = 1e-6)
+    expect_equal(confint(e.BT, cluster = 1:NROW(d2)),  confint(e.BT), tol = 1e-6)
+
     ## second order
     BuyseTest.options(order.Hprojection = 2)
     e.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + strata,
@@ -479,6 +488,7 @@ test_that("iid: two endpoints (strata)", {
                  e1.BT@tablePairScore[[2]][,.(index.C,index.T)])
     expect_equal(as.double(e1.BT@covariance["score2_1",]),
                  c(0.0009675260, 0.0011951397, -0.0008478746, 0.0038584150, 0.0446399926), tol = 1e-6 )
+
 
 })
 

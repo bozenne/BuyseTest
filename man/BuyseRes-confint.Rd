@@ -9,7 +9,7 @@
 \usage{
 \S4method{confint}{BuyseRes}(object, statistic = NULL,
   conf.level = NULL, alternative = NULL, method.ci.resampling = NULL,
-  order.Hprojection = NULL, transformation = NULL)
+  order.Hprojection = NULL, transformation = NULL, cluster = NULL)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
@@ -35,6 +35,8 @@ and \code{"student"} uses the quantiles of a Student's t-distribution (only avai
 \item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.
 Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.}
+
+\item{cluster}{[numeric vector] Group of observations for which the iid assumption holds .}
 }
 \value{
 A matrix containing a column for the estimated statistic (over all strata),

@@ -21,8 +21,8 @@ inferenceResampling <- function(envir){
 
         envir$outArgs$M.endpoint <- envir$outArgs$M.endpoint[envir$outArgs$data[["..rowIndex.."]],,drop=FALSE]
         envir$outArgs$M.status <- envir$outArgs$M.status[envir$outArgs$data[["..rowIndex.."]],,drop=FALSE]
-        envir$outArgs$index.C <- which(envir$outArgs$data$treatment == 0)
-        envir$outArgs$index.T <- which(envir$outArgs$data$treatment == 1)
+        envir$outArgs$index.C <- which(envir$outArgs$data[[envir$outArgs$treatment]] == 0)
+        envir$outArgs$index.T <- which(envir$outArgs$data[[envir$outArgs$treatment]] == 1)
         envir$outArgs$index.strata <- tapply(1:NROW(envir$outArgs$data), envir$outArgs$data[["..strata.."]], list)
         envir$outArgs$data[,c("..rowIndex..") := NULL,]
     }

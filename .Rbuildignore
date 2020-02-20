@@ -7,7 +7,10 @@ vignettes/*.tex
 vignettes/change.sty
 ^.*\.Rproj$
 ^\.Rproj\.user$
-Projet
-Bibliography
+inst/article
+inst/doc-software
+inst/doc-theory
+inst/docToAdd
+inst/todo.org
 LICENSE
 ^appveyor\.yml$

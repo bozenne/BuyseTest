@@ -43,8 +43,6 @@ within each treatment group be removed?}
 
 \item{trace}{[logical] should a message be printed to explain what happened
 when the function returned \code{NULL}?}
-
-\item{...}{not used. For compatibility with the generic method.}
 }
 \description{
 Extract the score of each pair.

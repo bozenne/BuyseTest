@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: dec  5 2019 (13:15) 
+## Last-Updated: feb 20 2020 (13:56) 
 ##           By: Brice Ozenne
-##     Update #: 89
+##     Update #: 102
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,7 @@
 #' or both.
 #' @param normalize [logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
 #' Otherwise not.
+#' @param cluster [numeric vector] return the H-decomposition aggregated by cluster.
 #' 
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -46,11 +47,16 @@
 #' @exportMethod iid
 setMethod(f = "iid",
           signature = "BuyseRes",
-          definition = function(object, endpoint = NULL, normalize = TRUE, type = "all"){
+          definition = function(object, endpoint = NULL, normalize = TRUE, type = "all", cluster = NULL){
 
-
-              ## ** check arguments              
+              n.obs <- NROW(object@iidAverage$favorable)
               valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+              n.endpoint <- length(valid.endpoint)
+              if(!is.null(cluster) && !is.numeric(cluster)){
+                  cluster <- as.numeric(as.factor(cluster))
+              }
+              
+              ## ** check arguments              
               if(is.numeric(endpoint)){
                   validInteger(endpoint,
                                name1 = "endpoint",
@@ -71,11 +77,9 @@ setMethod(f = "iid",
                   stop("No H-decomposition in the object \n",
                        "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
               }
+              validInteger(cluster, valid.length = n.obs, min = 1, max = n.obs, refuse.NA = TRUE, refuse.NULL = FALSE, refuse.duplicates = FALSE)
 
               ## ** extract H-decomposition
-              n.endpoint <- length(valid.endpoint)
-
-              n.obs <- NROW(object@iidAverage$favorable)
               if(type %in% c("all","u-statistic")){
                   object.iid <- object@iidAverage
               }else{
@@ -104,17 +108,29 @@ setMethod(f = "iid",
                   object.iid$unfavorable[indexT,] <- length(indexT) * object.iid$unfavorable[indexT,]
 
                   ## remove centering
-                  object.iid$unfavorable <- sweep(object.iid$unfavorable, MARGIN = 2, FUN = "+", STATS = cumsum(delta.unfavorable))
-                  object.iid$favorable <- sweep(object.iid$favorable, MARGIN = 2, FUN = "+", STATS = cumsum(delta.favorable))
+                  object.iid$unfavorable <- sweep(object.iid$unfavorable, MARGIN = 2, FUN = "+", STATS = cumsum(delta.unfavorable*object@weight))
+                  object.iid$favorable <- sweep(object.iid$favorable, MARGIN = 2, FUN = "+", STATS = cumsum(delta.favorable*object@weight))
               }
               ## ** accumulate H-decomposition
               if(is.null(endpoint)){                  
                   ## iid decomposition over all endpoints
-                  object.iid <- do.call(cbind,lapply(object.iid, function(iI){iI[, NCOL(iI)]}))
+                  object.iid <- do.call(cbind,lapply(object.iid, function(iI){
+                      iIID <- iI[, NCOL(iI)]
+                      if(!is.null(cluster)){
+                          iIID <- tapply(iIID,cluster,sum)
+                      }
+                      return(iIID)
+                  }))
               }else{
                   ## iid decomposition for each endpoint
                   object.iid <- lapply(endpoint, function(iE){
-                      cbind(favorable = object.iid$favorable[,endpoint],unfavorable = object.iid$unfavorable[,endpoint])
+                      iIID <- cbind(favorable = object.iid$favorable[,iE],
+                                    unfavorable = object.iid$unfavorable[,iE])
+                      if(!is.null(cluster)){
+                          iIID <- cbind(favorable = tapply(iIID[,"favorable"],cluster,sum),
+                                       unfavorable = tapply(iIID[,"unfavorable"],cluster,sum))
+                      }
+                      return(iIID)
                   })
                   names(object.iid) <- endpoint
               }

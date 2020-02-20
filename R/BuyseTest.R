@@ -367,7 +367,7 @@ BuyseTest <- function(formula,
     envirBT$.BuyseTest <- .BuyseTest
     envirBT$initializeData <- initializeData
     envirBT$calcPeron <- calcPeron
-    
+
     ## ** Point estimation
     if (outArgs$trace > 1) {
         if(outArgs$iid){
@@ -679,7 +679,6 @@ calcSample <- function(envir, method.inference){
 
             cumn <- 0
             for(iStrata in 1:envir$outArgs$n.strata){ ## iStrata <- 1  
-
                 ## index of the new observation in the old dataset by treatment group
                 if(test.perm){
                     out$ls.indexC[[iStrata]] <- intersect(index.C, envir$outArgs$index.strata[[iStrata]]) - 1
@@ -716,7 +715,6 @@ calcSample <- function(envir, method.inference){
             }
         }
     }
-
     return(out)
 }
 

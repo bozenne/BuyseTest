@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: nov 14 2019 (14:41) 
+## Last-Updated: feb 20 2020 (13:58) 
 ##           By: Brice Ozenne
-##     Update #: 584
+##     Update #: 604
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,6 +41,7 @@
 #' \code{"percentile"} uses the quantiles of the empirical distribution,
 #' \code{"gaussian"} uses the quantiles of a Gaussian distribution,
 #' and \code{"student"} uses the quantiles of a Student's t-distribution (only available for bootstrap).
+#' @param cluster [numeric vector] Group of observations for which the iid assumption holds .
 #'  
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -73,7 +74,8 @@ setMethod(f = "confint",
                                 alternative = NULL,
                                 method.ci.resampling = NULL,
                                 order.Hprojection = NULL,
-                                transformation = NULL){
+                                transformation = NULL,
+                                cluster = NULL){
 
               option <- BuyseTest.options()
               D <- length(object@endpoint)
@@ -133,31 +135,34 @@ setMethod(f = "confint",
                   }
               }
 
-              if(attr(method.inference,"ustatistic") && !is.null(order.Hprojection) && order.Hprojection != attr(method.inference,"hprojection")){
+              if(attr(method.inference,"ustatistic") && (!is.null(order.Hprojection) && order.Hprojection != attr(method.inference,"hprojection") || !is.null(cluster))){
 
-                  validInteger(order.Hprojection,
-                               name1 = "order.Hprojection",
-                               min = 1, max = 2, valid.length = 1,
-                               method = "confint[BuyseRes]")
+                  if(!is.null(order.Hprojection)){
+                      validInteger(order.Hprojection,
+                                   name1 = "order.Hprojection",
+                                   min = 1, max = 2, valid.length = 1,
+                                   method = "confint[BuyseRes]")
                   
-                  if(order.Hprojection > attr(method.inference,"hprojection")){
-                      stop("Cannot find the second order of the H-decomposition. \n",
-                           "Consider setting order.Hprojection to 2 in BuyseTest.options before calling BuyseTest. \n") 
-                  }else{ ## modify covariance
-                      ls.iid <- iid(object, endpoint = 1:D)
-                      delta.favorable <- colSums(object@count.favorable)/object@n.pairs
-                      delta.unfavorable <- colSums(object@count.unfavorable)/object@n.pairs
-                      keep.names <- dimnames(object@covariance)
-                          
-                      object@covariance <- do.call(rbind, lapply(1:D, function(iE){ ## iE <- 1
-                          iVar <- crossprod(ls.iid[[iE]])[c(1,4,2)]
-                          return( c(iVar,
-                                    iVar[1] + iVar[2] - 2*iVar[3],
-                                    iVar[1]/delta.unfavorable^2 + iVar[2] * delta.favorable^2/delta.unfavorable^4 - 2*iVar[3] * delta.favorable/delta.unfavorable^3)
-                                 )
-                      }))
-                      dimnames(object@covariance) <- keep.names
+                      if(order.Hprojection > attr(method.inference,"hprojection")){
+                          stop("Cannot find the second order of the H-decomposition. \n",
+                               "Consider setting order.Hprojection to 2 in BuyseTest.options before calling BuyseTest. \n")
+                      }
                   }
+                  if(identical(order.Hprojection,2) && !is.null(cluster)){
+                      warning("Inference will be performed using a first order H projection. \n")
+                  }
+                  ls.iid <- iid(object, endpoint = 1:D, cluster = cluster)
+                  delta.favorable <- cumsum(colSums(object@count.favorable)*object@weight)/sum(object@n.pairs)
+                  delta.unfavorable <- cumsum(colSums(object@count.unfavorable)*object@weight)/sum(object@n.pairs)
+                  keep.names <- dimnames(object@covariance)
+                  object@covariance <- do.call(rbind, lapply(1:D, function(iE){ ## iE <- 1
+                      iVar <- crossprod(ls.iid[[iE]])[c(1,4,2)]
+                      return( c(iVar,
+                                iVar[1] + iVar[2] - 2*iVar[3],
+                                iVar[1]/delta.unfavorable[iE]^2 + iVar[2] * delta.favorable[iE]^2/delta.unfavorable[iE]^4 - 2*iVar[3] * delta.favorable[iE]/delta.unfavorable[iE]^3)
+                             )
+                  }))
+                  dimnames(object@covariance) <- keep.names
               }
               
               validNumeric(conf.level,
@@ -369,9 +374,9 @@ confint_permutation <- function(Delta, Delta.resampling,
     ## ** p-value
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-               "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null)),
-               "less" = mean((Delta[iE] - null) >= (Delta.resampling[,iE] - null)),
-               "greater" = mean((Delta[iE] - null) <= (Delta.resampling[,iE] - null))
+               "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),
+               "less" = mean((Delta[iE] - null) >= (Delta.resampling[,iE] - null), na.rm = TRUE),
+               "greater" = mean((Delta[iE] - null) <= (Delta.resampling[,iE] - null), na.rm = TRUE)
                )
     })
 

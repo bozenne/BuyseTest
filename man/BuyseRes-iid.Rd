@@ -7,10 +7,11 @@
 \alias{iid,BuyseRes-method}
 \title{Extract the H-decomposition of the Estimator}
 \usage{
-iid(object, endpoint = NULL, normalize = TRUE, type = "all")
+iid(object, endpoint = NULL, normalize = TRUE, type = "all",
+  cluster = NULL)
 
 \S4method{iid}{BuyseRes}(object, endpoint = NULL, normalize = TRUE,
-  type = "all")
+  type = "all", cluster = NULL)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}}
@@ -25,6 +26,8 @@ Otherwise not.}
 Can be only for the nuisance parameters (\code{"nuisance"}),
 or for the u-statistic given the nuisance parameters (\code{"u-statistic"}),
 or both.}
+
+\item{cluster}{[numeric vector] return the H-decomposition aggregated by cluster.}
 }
 \description{
 Extract the H-decomposition of the GPC estimator.

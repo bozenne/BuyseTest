@@ -3,7 +3,9 @@
 * Version 1.9
 ** User visble changes
 - NEW FEATURE (1.9.0): function simCompetingRisks to simulate data with competing risks under proportional sub-hazard
+- NEW FEATURE (1.9.0): add argument cluster in confint and iid
 
+- fix bug in BuyseTest (argument strata.resampling)
 
 * Version 1.8
 ** User visble changes

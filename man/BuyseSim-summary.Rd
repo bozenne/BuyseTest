@@ -26,8 +26,6 @@ whereas \code{"winRatio"} displays the win ratio.}
 \item{col.rep}{[logical] should the number of successful simulations be displayed?}
 
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
-
-\item{...}{arguments to be passed from the generic method to the class specific method [not relevant to the user]}
 }
 \description{
 Summarize the results from the \code{\link{powerBuyseTest}} function.

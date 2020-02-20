@@ -40,7 +40,7 @@ setGeneric(name = "getSurvival",
 #' @rdname BuyseRes-iid
 #' @exportMethod iid
 setGeneric(name = "iid",
-           def = function(object, endpoint = NULL, normalize = TRUE, type = "all"){
+           def = function(object, endpoint = NULL, normalize = TRUE, type = "all", cluster = NULL){
                standardGeneric("iid")
            }
 )
