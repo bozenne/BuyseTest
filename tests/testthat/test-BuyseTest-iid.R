@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 20 2020 (13:59) 
+## Last-Updated: mar  3 2020 (10:53) 
 ##           By: Brice Ozenne
-##     Update #: 101
+##     Update #: 102
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,7 +20,7 @@ if(FALSE){
     library(BuyseTest)
     library(data.table)
 }
-
+## options("stringsAsFactors" = TRUE)
 context("Check correct computation of the variance \n")
 var2 <- function(x){var(x)*(length(x)-1)/length(x)}
 cov2 <- function(x,y){cov(x,y)*(length(x)-1)/length(x)}
@@ -506,7 +506,7 @@ test_that("iid with nuisance parameters: 1 TTE",{
     set.seed(10)
     dt <- simBuyseTest(n)
     dt$X0 <- 0
-    dt$treatment2 <- 1-as.numeric(dt$treatment)
+    dt$treatment2 <- as.numeric(dt$treatment=="C")
     ## dt <- data.table("treatment" = c("C", "C", "C", "C", "C", "T", "T", "T", "T", "T"), 
     ##                  "toxicity" = c(1, 1, 1, 1, 1, 1, 1, 0, 1, 0), 
     ##                  "score" = c( 0.54361539, -0.70762484, -0.36944577, -1.32197565,  1.28059746,  0.01874617, -0.18425254, -1.37133055, -0.59916772,  0.29454513), 
