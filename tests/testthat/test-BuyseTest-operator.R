@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: sep 13 2019 (09:32) 
+## Last-Updated: mar  3 2020 (09:43) 
 ##           By: Brice Ozenne
-##     Update #: 21
+##     Update #: 23
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,7 +33,9 @@ BuyseTest.options(check = TRUE,
 ## * one pair
 test_that("check - 1 pair",{
     ## binary 
-    data <- data.frame(toxicity1 = c(1,0), treatment = c(1,0))
+    data <- data.frame(toxicity1 = c(1,0),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ bin(toxicity1, operator = "<0"), data=data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
@@ -42,7 +44,9 @@ test_that("check - 1 pair",{
     ## getPairScore(BT)
 
     ## continuous
-    data <- data.frame(toxicity1 = c(1,0), treatment = c(1,0))
+    data <- data.frame(toxicity1 = c(1,0),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ cont(toxicity1, operator = "<0"), data=data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)

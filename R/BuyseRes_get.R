@@ -123,7 +123,8 @@ setMethod(f = "getCount",
 #' e.KM <- prodlim(Hist(time,status)~trt, data = veteran)
 #'
 #' ## and compute the survival
-#' iSurv <- predict(e.KM, times =  c(97,112+20), newdata = data.frame(trt = 1))[[1]]
+#' iSurv <- predict(e.KM, times =  c(97,112+20),
+#'                  newdata = data.frame(trt = 1, stringsAsFactors = FALSE))[[1]]
 #'
 #' ## the probability in favor of the control is then
 #' pUF <- iSurv[2]/iSurv[1]

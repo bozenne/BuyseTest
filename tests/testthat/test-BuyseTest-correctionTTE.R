@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: nov 21 2019 (11:55) 
+## Last-Updated: mar  3 2020 (09:51) 
 ##           By: Brice Ozenne
-##     Update #: 110
+##     Update #: 111
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,7 +32,8 @@ BuyseTest.options(check = TRUE,
 df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
                  "event" = c(1, 1, 1, 0, 1, 0, 0, 1),
                  "group" = c(0, 0, 0, 0, 1, 1, 1, 1),
-                 "score" = 1)
+                 "score" = 1,
+                 stringsAsFactors = FALSE)
 
 ## ** Gehan
 test_that("1 TTE endpoint - Gehan (no correction)", {

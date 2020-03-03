@@ -99,7 +99,10 @@ simCompetingRisks <- function(n.T, n.C, p.1C = NULL, v.1C, v.1T, v.2C, v.2T, sHR
   rF2C <- function(x) log(1 - v.2C * log(1 - x) / b.2C) / v.2C
   n <- (n.T + n.C)
   u <- stats::runif(n, 0, 1)
-  data <- data.frame(treatment = c(rep(1, n.T), rep(0, n.C)), event.time = rep(0, n), event.type = rep(0, n))
+  data <- data.frame(treatment = c(rep(1, n.T), rep(0, n.C)),
+                     event.time = rep(0, n),
+                     event.type = rep(0, n),
+                     stringsAsFactors = FALSE)
   indexT1 <- which(data$treatment == 1 & u < p.1T)
   indexT2 <- which(data$treatment == 1 & u >= p.1T)
   indexC1 <- which(data$treatment == 0 & u < p.1C)

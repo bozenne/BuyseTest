@@ -125,7 +125,7 @@ setMethod(f = "summary",
                   
                   if("winRatio" %in% statistic){
                       cat(" > statistic   : win ratio (null hypothesis Delta=",null["netBenefit"],")\n", sep = "")
-                      printWinRatio <- as.data.frame(outW$winRatio)
+                      printWinRatio <- as.data.frame(outW$winRatio, stringsAsFactors = FALSE)
                       printWinRatio <- round(printWinRatio, digits = digit)
                       if(length(outW$netBenefit$order)>1){ ## remove duplicated values due to order = 1:2
                           printWinRatio[printWinRatio$order==2, rm.duplicate] <- ""

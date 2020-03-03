@@ -225,7 +225,8 @@ setMethod(f = "summary",
 
               ## ** generate summary table
               ## *** prepare
-              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=18))
+              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=18),
+                                  stringsAsFactors = FALSE)
               names(table) <- c("endpoint","threshold","weight","strata",
                                 "total","favorable","unfavorable","neutral","uninf",
                                 "delta","Delta","Delta(%)","information(%)",

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: nov 21 2019 (13:37) 
+## Last-Updated: mar  3 2020 (09:51) 
 ##           By: Brice Ozenne
-##     Update #: 159
+##     Update #: 174
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,7 +33,9 @@ BuyseTest.options(check = TRUE,
 ## ** favorable
 test_that("check favorable - 1 Binary",{    
     ## one pair
-    data <- data.frame(toxicity1 = c(1,0), treatment = c(1,0))
+    data <- data.frame(toxicity1 = c(1,0),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data=data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -63,7 +65,9 @@ test_that("check favorable - 1 Binary",{
 ## ** unfavorable
 test_that("check unfavorable - 1 Binary",{
     ## one pair
-    data <- data.frame(toxicity1 = c(0,1), treatment = c(1,0))
+    data <- data.frame(toxicity1 = c(0,1),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
@@ -91,7 +95,9 @@ test_that("check unfavorable - 1 Binary",{
 ## ** neutral
 test_that("check neutral - 1 Binary",{
     ## 1 pair
-    data <- data.frame(toxicity1 = c(1,1), treatment = c(1,0))
+    data <- data.frame(toxicity1 = c(1,1),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -118,7 +124,9 @@ test_that("check neutral - 1 Binary",{
 
 ## ** NA as uninformative
 test_that("check NA - 1 Binary",{
-  data <- data.frame(toxicity1 = c(NA, 1, 1), treatment = c(1, 1, 0))
+  data <- data.frame(toxicity1 = c(NA, 1, 1),
+                     treatment = c(1, 1, 0),
+                     stringsAsFactors = FALSE)
   BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
   expect_equal(as.double(BT@count.favorable),0)
   expect_equal(as.double(BT@count.unfavorable),0)
@@ -181,7 +189,9 @@ test_that("check mixed - 2 Binary",{
 ## ** favorable
 test_that("check favorable - continous",{
     ## one pair
-    data <- data.frame(size = c(1,0), treatment = c(1,0))
+    data <- data.frame(size = c(1,0),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -208,7 +218,9 @@ test_that("check favorable - continous",{
 ## ** unfavorable
 test_that("check unfavorable - continous",{
     ## one pair
-    data <- data.frame(size = c(-1,0), treatment = c(1,0))
+    data <- data.frame(size = c(-1,0),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
@@ -235,7 +247,9 @@ test_that("check unfavorable - continous",{
 ## ** neutral
 test_that("check neutral - continous",{
     ## one pair, 0 threshold
-    data <- data.frame(size = c(1,1), treatment = c(1,0))
+    data <- data.frame(size = c(1,1),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data=data)
     BT.bis <- BuyseTest(treatment ~ continuous(size), data=data)
     expect_equal(BT.bis,BT)
@@ -261,7 +275,9 @@ test_that("check neutral - continous",{
     expect_equal(as.double(BT@count.uninf),c(0,0))
 
     ## 1 pair, non 0 threshold 
-    data <- data.frame(size = c(1,0), treatment = c(1,0))
+    data <- data.frame(size = c(1,0),
+                       treatment = c(1,0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 2), data=data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -287,7 +303,9 @@ test_that("check neutral - continous",{
 
 ## ** NA as uninformative
 test_that("check NA - continuous",{
-    data <- data.frame(size = c(NA, 1, 1), treatment = c(1, 1, 0))
+    data <- data.frame(size = c(NA, 1, 1),
+                       treatment = c(1, 1, 0),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -315,7 +333,10 @@ test_that("check NA - continuous",{
 ## ** favorable
 test_that("check favorable - time to event",{
     ## 0 threshold, 1 pair
-    data <- data.frame(time = c(1,0), treatment = c(1,0), status = 1)
+    data <- data.frame(time = c(1,0),
+                       treatment = c(1,0),
+                       status = 1,
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),1)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -349,7 +370,10 @@ test_that("check favorable - time to event",{
 ## ** unfavorable
 test_that("check unfavorable - time to event",{
     ## 0 threshold, 1 pair
-    data <- data.frame(time = c(0,1), treatment = c(1,0), status = 1)
+    data <- data.frame(time = c(0,1),
+                       treatment = c(1,0),
+                       status = 1,
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),1)
@@ -383,7 +407,10 @@ test_that("check unfavorable - time to event",{
 ## ** neutral
 test_that("check neutral - time to event",{
     ## 0 threshold, 1 pair
-    data <- data.frame(time = c(1,1), treatment = c(1,0), status = 1)
+    data <- data.frame(time = c(1,1),
+                       treatment = c(1,0),
+                       status = 1,
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),0)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -419,7 +446,10 @@ test_that("check neutral - time to event",{
 ## ** NA as uninformative
 test_that("check NA - time to event",{
     ## censored after the event in the other arm
-    data <- data.frame(time = c(2,1), treatment = c(1,0), status = c(0,1))
+    data <- data.frame(time = c(2,1),
+                       treatment = c(1,0),
+                       status = c(0,1),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status),
                     data = data)
     expect_equal(as.double(BT@count.favorable),1)
@@ -428,7 +458,10 @@ test_that("check NA - time to event",{
     expect_equal(as.double(BT@count.uninf),0)
 
     ## censored at the same time as the event in the other arm
-    data <- data.frame(time = c(1,2,1), treatment = c(1,1,0), status = c(0,1,1))
+    data <- data.frame(time = c(1,2,1),
+                       treatment = c(1,1,0),
+                       status = c(0,1,1),
+                       stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
     expect_equal(as.double(BT@count.favorable),2)
     expect_equal(as.double(BT@count.unfavorable),0)
@@ -545,7 +578,7 @@ M.all <- rbind(c(time = 1, status = 1, trt = 0),
                c(time = 2, status = 1, trt = 0),
                c(time = 1, status = 0, trt = 1),  ## obs 2 pair 1
                c(time = 10, status = 1, trt = 1))
-df.all <- as.data.frame(M.all)
+df.all <- as.data.frame(M.all, stringsAsFactors = FALSE)
 
 ## plot(prodlim(Hist(time, status) ~ trt, data = df.all))
 

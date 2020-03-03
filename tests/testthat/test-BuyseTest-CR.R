@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: jan 29 2020 (15:26) 
+## Last-Updated: mar  3 2020 (09:41) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 33
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,8 +40,14 @@ n <- 1e2
 
 ## ** Simulate data
 set.seed(10)
-df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), group = "1"),
-            data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
+df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X),
+                       time2 = rexp(n, rate = alphaCR.X),
+                       group = "1",
+                       stringsAsFactors = FALSE),
+            data.frame(time1 = rexp(n, rate = alphaE.Y),
+                       time2 = rexp(n, rate = alphaCR.Y),
+                       group = "2",
+                       stringsAsFactors = FALSE))
 df$time <- pmin(df$time1,df$time2) ## first event
 df$event <- (df$time2<df$time1)+1 ## type of event
 
@@ -78,15 +84,29 @@ true.Delta = 0.1519 # c(1/3, 0.1519, 0, -0.4012)
 
 ## ** Simulate CR data without censoring
 set.seed(10)
-df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), group = "1"),
-            data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), group = "2"))
+df <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X),
+                       time2 = rexp(n, rate = alphaCR.X),
+                       group = "1",
+                       stringsAsFactors = FALSE),
+            data.frame(time1 = rexp(n, rate = alphaE.Y),
+                       time2 = rexp(n, rate = alphaCR.Y),
+                       group = "2",
+                       stringsAsFactors = FALSE))
 df$time <- pmin(df$time1,df$time2) ## first event
 df$event <- (df$time2<df$time1)+1 ## type of event
 
 ## ** Simulate CR data with censoring
 set.seed(10)
-df2 <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X), time2 = rexp(n, rate = alphaCR.X), time.cens = rexp(n, rate = alpha.cens), treatment = "1"),
-            data.frame(time1 = rexp(n, rate = alphaE.Y), time2 = rexp(n, rate = alphaCR.Y), time.cens = rexp(n, rate = alpha.cens), treatment = "2"))
+df2 <- rbind(data.frame(time1 = rexp(n, rate = alphaE.X),
+                        time2 = rexp(n, rate = alphaCR.X),
+                        time.cens = rexp(n, rate = alpha.cens),
+                        treatment = "1",
+                        stringsAsFactors = FALSE),
+            data.frame(time1 = rexp(n, rate = alphaE.Y),
+                       time2 = rexp(n, rate = alphaCR.Y),
+                       time.cens = rexp(n, rate = alpha.cens),
+                       treatment = "2",
+                       stringsAsFactors = FALSE))
 df2$time <- pmin(df2$time1, df2$time2, df2$time.cens) ## first status
 df2$status <- ifelse(df2$time == df2$time1, 1, ifelse(df2$time == df2$time2, 2, 0)) ## type of event
 df2$strata <- sample(c('a', 'b', 'c'), 2*n, replace = T)

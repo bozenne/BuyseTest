@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: nov 21 2019 (11:50) 
+## Last-Updated: mar  3 2020 (09:51) 
 ##           By: Brice Ozenne
-##     Update #: 506
+##     Update #: 507
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -206,7 +206,7 @@ powerBuyseTest <- function(sim,
                        dimnames = list(NULL, c("simulation","n.T","n.C","method.inference",
                                                "netBenefit","netBenefit.se","netBenefit.lower","netBenefit.upper","netBenefit.p.value",
                                                "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value")))
-        iOut <- as.data.frame(iOut)
+        iOut <- as.data.frame(iOut, stringsAsFactors = FALSE)
         iOut[,"simulation"] <- i
 
         ## *** Initialize data

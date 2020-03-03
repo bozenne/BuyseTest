@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: nov 12 2019 (11:05) 
+## last-updated: mar  3 2020 (09:44) 
 ##           By: Brice Ozenne
-##     Update #: 136
+##     Update #: 137
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -355,8 +355,12 @@ for(iStrataVar in c("treatment","strata")){ ## iStrataVar <- "treatment"
 ## * t-test example
 ## ** data
 set.seed(10)
-df <- rbind(data.frame(Group = "T", score = rnorm(25, mean = 0)),
-            data.frame(Group = "C", score = rnorm(25, mean = 0.75))
+df <- rbind(data.frame(Group = "T",
+                       score = rnorm(25, mean = 0),
+                       stringsAsFactors = FALSE),
+            data.frame(Group = "C",
+                       score = rnorm(25, mean = 0.75),
+                       stringsAsFactors = FALSE)
             )
 
 ## ** BT

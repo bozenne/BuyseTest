@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: jan 29 2020 (13:04) 
+## Last-Updated: mar  3 2020 (09:51) 
 ##           By: Brice Ozenne
-##     Update #: 159
+##     Update #: 160
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -103,7 +103,8 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
     }
     
     df <- data.frame(Y = labels,
-                     X = predictions)
+                     X = predictions,
+                     stringsAsFactors = FALSE)
     formula <- Y ~ cont(X)
 
     if(!is.null(fold)){
@@ -286,7 +287,7 @@ coef.BuyseTestAuc <- function(object,...){
 confint.BuyseTestAuc <- function(object,...){
     out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
     rownames(out) <- NULL
-    return(as.data.frame(out))
+    return(as.data.frame(out, stringsAsFactors = FALSE))
 }
 
 
