@@ -9,9 +9,6 @@
 #include <Rmath.h>
 
 // :cppFile:{FCT_buyseTest.cpp}:end:
-using namespace Rcpp ;
-using namespace std ;
-using namespace arma ;
 
 inline std::vector< double > calcOnePair_Continuous(double diff, double threshold);
  
@@ -57,7 +54,7 @@ inline std::vector< double > calcOnePair_Continuous(double diff, double threshol
   }
 
   // ** export
-  // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << endl;
+  // Rcpp::Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << std::endl;
   return(score);
   
 }
@@ -68,7 +65,7 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
   
   // ** initialize
   std::vector< double > score(4,0.0);
-  // Rcout << diff << " " << status_T << " " << status_C << " " << threshold << endl;
+  // Rcpp::Rcout << diff << " " << status_T << " " << status_C << " " << threshold << std::endl;
 
   // ** score
   if(status_T==1){
@@ -122,7 +119,7 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
   }
 
   // ** export
-  // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << endl;
+  // Rcpp::Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << std::endl;
   return(score);
   
 }
@@ -133,7 +130,7 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
   
   // ** initialize
   std::vector< double > score(4,0.0);
-  // Rcout << diff << " " << status_T << " " << status_C << " " << threshold << endl;
+  // Rcpp::Rcout << diff << " " << status_T << " " << status_C << " " << threshold << std::endl;
 
   // ** score
   if(status_T==1){
@@ -187,7 +184,7 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
   }
 
   // ** export
-  // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << endl;
+  // Rcpp::Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << std::endl;
   return(score);
   
 }
@@ -232,7 +229,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
     status_T = 1;
   }
   	
-  // Rcout << " (" << status_T << ";" << status_C << ")";
+  // Rcpp::Rcout << " (" << status_T << ";" << status_C << ")";
   // ** compute favorable and unfavorable
   if(status_T==1){
     if(status_C==1){
@@ -255,7 +252,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 
       // favorable
       if(diff >= threshold){
-		// Rcout << "(2+a) ";
+		// Rcpp::Rcout << "(2+a) ";
 		if(R_IsNA(survTimeT(1))==false){
 		  score[0] = 1.0 - survTimeT(1)/survTimeC(2); // 1-[Sc(x_i-tau)/Sc(y_j)]
 		  upperFavorable = score[0];
@@ -281,7 +278,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 		score[1] = 1.0;
 		upperUnfavorable = score[1];
       }else {
-		// Rcout << "(2-b) " << "";
+		// Rcpp::Rcout << "(2-b) " << "";
 		if((R_IsNA(survTimeT(3))==false) & (survTimeT(3) > 0)){
 		  score[1] = survTimeT(3)/survTimeC(2); //  [Sc(x_i+tau)/Sc(y_j)]
 		  upperUnfavorable = score[1];
@@ -310,7 +307,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 		score[0] = 1.0;
 		upperFavorable = score[0];
       }else {
-		// Rcout << "(3+b) ";
+		// Rcpp::Rcout << "(3+b) ";
 		if((R_IsNA(survTimeC(6))==false) && (survTimeC(6) > 0)){
 		  score[0] = survTimeC(6)/survTimeT(5); // [St(y_j+tau)/St(x_i)]
 		  upperFavorable = score[0];
@@ -330,7 +327,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 
       // unfavorable
       if(diff <= -threshold){
-		// Rcout << "(3-a) ";
+		// Rcpp::Rcout << "(3-a) ";
 		if(R_IsNA(survTimeC(4))==false){
 		  score[1] = 1.0 - survTimeC(4)/survTimeT(5); // 1-[St(y_j-tau)/St(x_i)]
 		  upperUnfavorable = score[1];
@@ -361,7 +358,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 
 	  // favorable
 	  if(diff >= threshold){
-		// Rcout << "(4+a) ";
+		// Rcpp::Rcout << "(4+a) ";
 		intFavorable = calcIntegralSurv_cpp(survJumpC, endpoint_T-threshold, lastSurvT, lastSurvC,
 											(returnIID > 1), 0, intDscore_Dnuisance_T, intDscore_Dnuisance_C);  // -intFavorable is already the lower bound
 		if(R_IsNA(survTimeT(1))==false){		  
@@ -386,10 +383,10 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 		  Dscore_Dnuisance_C -= intDscore_Dnuisance_C/denom;
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
-		// Rcout << "end " << endl;
+		// Rcpp::Rcout << "end " << std::endl;
 
 	  }else{
-		// Rcout << "(4+b) ";
+		// Rcpp::Rcout << "(4+b) ";
 
 		intFavorable = calcIntegralSurv_cpp(survJumpC, endpoint_C, lastSurvT, lastSurvC,
 											(returnIID > 1), 0, intDscore_Dnuisance_T, intDscore_Dnuisance_C); // -intFavorable is already the lower bound
@@ -402,12 +399,12 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 		  Dscore_Dnuisance_C -= intDscore_Dnuisance_C/denom;
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
-		// Rcout << "end" << endl;
+		// Rcpp::Rcout << "end" << std::endl;
 	  }
       
 	  // unfavorable
 	  if(diff <= -threshold){	
-		// Rcout << "(4-a) ";
+		// Rcpp::Rcout << "(4-a) ";
 
 		intUnfavorable = calcIntegralSurv_cpp(survJumpT, endpoint_C-threshold, lastSurvC, lastSurvT,
 											  (returnIID > 1), 1, intDscore_Dnuisance_C, intDscore_Dnuisance_T); // -intUnfavorable is already the lower bound
@@ -435,10 +432,10 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
 		
-		// Rcout << "end ";
+		// Rcpp::Rcout << "end ";
 
 	  }else{
-		// Rcout << "(4-b) ";
+		// Rcpp::Rcout << "(4-b) ";
 		intUnfavorable = calcIntegralSurv_cpp(survJumpT, endpoint_T, lastSurvC, lastSurvT,
 											  (returnIID > 1), 1, intDscore_Dnuisance_C, intDscore_Dnuisance_T); // -intUnfavorable is already the lower bound
 		
@@ -450,9 +447,9 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 		  Dscore_Dnuisance_C -= intDscore_Dnuisance_C/denom;
 		  Dscore_Dnuisance_T -= intDscore_Dnuisance_T/denom;
 		}
-		// Rcout << "end ";
+		// Rcpp::Rcout << "end ";
 	  }
-	  // Rcout << endl;
+	  // Rcpp::Rcout << std::endl;
     }}
 
   // ** compute neutral and uninformative
@@ -482,7 +479,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
   //}
 
   // ** export
-  // Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << " (upper) " << upperFavorable << " " << upperUnfavorable << endl;
+  // Rcpp::Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << " (upper) " << upperFavorable << " " << upperUnfavorable << std::endl;
   return(score);  
 }
 
@@ -697,7 +694,7 @@ std::vector< double > calcIntegralSurv_cpp(const arma::mat& survival, double sta
 
   if(nJump>0){    
 	for(int iter_time=0 ; iter_time<nJump ; iter_time++){
-	  // Rcout << "Jump: " << iter_time << "/" << nJump << endl;
+	  // Rcpp::Rcout << "Jump: " << iter_time << "/" << nJump << std::endl;
 
 	  // check whether we are at or beyond the last point of the survivla curve
 	  if(R_IsNA(survival(iter_time,1))){
