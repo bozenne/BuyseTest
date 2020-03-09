@@ -583,7 +583,7 @@ BuyseTest <- function(formula,
                      returnIID = iid + iid*envir$outArgs$iidNuisance,
                      debug = envir$outArgs$debug
                      )
-    
+
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 

@@ -18,9 +18,10 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
  
 inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold,
 													arma::rowvec survTimeC, arma::rowvec survTimeT,
-													const arma::mat& survJumpC, const arma::mat& survJumpT,
-													double lastSurvC, double lastSurvT,
-													arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T, int returnIID);
+													const arma::mat& survJumpC, const arma::mat& survJumpT, double lastSurvC, double lastSurvT,
+													arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
+													int p_C, int p_T, int returnIID);
+
 
 inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpoint_T,												 
 												 double status_C, double status_T, double tau,
@@ -193,9 +194,9 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
 // author Brice Ozenne
 inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold,
 													arma::rowvec survTimeC, arma::rowvec survTimeT,
-													const arma::mat& survJumpC, const arma::mat& survJumpT,
-													double lastSurvC, double lastSurvT,
-													arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T, int returnIID){
+													const arma::mat& survJumpC, const arma::mat& survJumpT, double lastSurvC, double lastSurvT,
+													arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
+													int p_C, int p_T, int returnIID){
   
   // survTimeC and survTimeT: survival at control/treatment observation times
   //        [0]    time 
@@ -207,7 +208,6 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
   //        [1]  survival estimated at time + tau (treatment arm and control arm)
   //        [2]  d(survival) estimated at time (control arm and treatment arm)
     
-  
   // ** initialize
   double diff = endpoint_T-endpoint_C;
   std::vector< double > score(4,0.0); // [0] favorable, [1] unfavorable, [2] test neutral [3] test uniformative
@@ -215,8 +215,8 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
   double upperUnfavorable;
 
   if(returnIID > 1){
-  	Dscore_Dnuisance_C.fill(0.0);
-  	Dscore_Dnuisance_T.fill(0.0);
+  	Dscore_Dnuisance_C.fill(0.0); // initialized to 0 (since it is a sparse matrix)
+  	Dscore_Dnuisance_T.fill(0.0); // initialized to 0 (since it is a sparse matrix)
   }
   
   // ** deal with null survival
@@ -353,9 +353,13 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
       double denom = survTimeT(5)*survTimeC(2);
       std::vector< double > intFavorable; 
       std::vector< double > intUnfavorable;
-   	  arma::mat intDscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows,4); // initialized in calcIntegralSurv_cpp
-	  arma::mat intDscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows,4); // initialized in calcIntegralSurv_cpp
-
+   	  arma::mat intDscore_Dnuisance_C;
+	  arma::mat intDscore_Dnuisance_T;
+	  if(returnIID>1){
+   	   intDscore_Dnuisance_C.resize(p_C,4); // initialized in calcIntegralSurv_cpp
+	   intDscore_Dnuisance_T.resize(p_T,4); // initialized in calcIntegralSurv_cpp
+	  }
+	  
 	  // favorable
 	  if(diff >= threshold){
 		// Rcpp::Rcout << "(4+a) ";
@@ -390,7 +394,6 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
 
 		intFavorable = calcIntegralSurv_cpp(survJumpC, endpoint_C, lastSurvT, lastSurvC,
 											(returnIID > 1), 0, intDscore_Dnuisance_T, intDscore_Dnuisance_C); // -intFavorable is already the lower bound
-
 		score[0] = -intFavorable[0] / denom; // (lower bound)
 		upperFavorable = -intFavorable[1] / denom; // (upper bound)
 		if(returnIID>1){ //		if((returnIID>1) && (intFavorable[0]>0)){
@@ -482,6 +485,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
   // Rcpp::Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << " (upper) " << upperFavorable << " " << upperUnfavorable << std::endl;
   return(score);  
 }
+
 
 // * calcOnePair_CRPeron
 // author Eva Cantagallo
@@ -689,9 +693,11 @@ std::vector< double > calcIntegralSurv_cpp(const arma::mat& survival, double sta
   std::vector< double > integral(2,0.0); // lower and upper bound
   bool stopdSurv = true;
   int nJump = survival.n_rows;
-  derivSurv.fill(0.0);
-  derivSurvD.fill(0.0);
-
+  if(returnDeriv){
+	derivSurv.fill(0.0);
+	derivSurvD.fill(0.0);
+  }
+ 
   if(nJump>0){    
 	for(int iter_time=0 ; iter_time<nJump ; iter_time++){
 	  // Rcpp::Rcout << "Jump: " << iter_time << "/" << nJump << std::endl;

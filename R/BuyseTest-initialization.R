@@ -260,6 +260,11 @@ initializeArgs <- function(status,
         cpus <- parallel::detectCores() # this function detect the number of CPU cores 
     }
 
+    ## ** trace
+    if(is.logical(trace)){
+        trace <- as.numeric(trace)
+    }
+    
     ## ** export
     return(list(
         name.call = name.call,

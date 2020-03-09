@@ -1,14 +1,17 @@
 # -*- mode: org -*-
 
 * Version 1.9
-** User visble changes
-- NEW FEATURE (1.9.0): function simCompetingRisks to simulate data with competing risks under proportional sub-hazard
-- NEW FEATURE (1.9.0): add argument cluster in confint and iid
+** Internal change
+- Use sparse matrices to store partial derivative regarding nuisance
+  parameter, i.e. BuyseTest is more memory efficient when using
+  method.inference="u-statistic" and scoring.rule="Peron" with several
+  TTE endpoints.
 
-- fix bug in BuyseTest (argument strata.resampling)
 
 * Version 1.8
 ** User visble changes
+- NEW FEATURE (1.9.0): function simCompetingRisks to simulate data with competing risks under proportional sub-hazard
+- NEW FEATURE (1.9.0): add argument cluster in confint and iid
 - NEW FEATURE (1.8.3): function auc
 - NEW FEATURE: method.inference="u-statistic" gives valid results when
   using scoring.rule="Peron".
@@ -27,6 +30,7 @@
   only implemented for the Gehan's scoring rule)
 
 - Fix issue related to rates in simBuyseTest (issue #4 on Github)
+- fix bug in BuyseTest (argument strata.resampling)
 - Add reference in the description as suggested by CRAN.
 - Update vignette.
 
