@@ -18,7 +18,8 @@ initializeArgs(status, correction.uninf = NULL, cpus = NULL, data,
 
 initializeData(data, type, endpoint, Uendpoint, D, scoring.rule, status,
   Ustatus, method.inference, operator, censoring, strata, treatment,
-  hierarchical, copy, endpoint.TTE, status.TTE, iidNuisance)
+  hierarchical, copy, keep.pairScore, endpoint.TTE, status.TTE,
+  iidNuisance)
 
 initializeFormula(x)
 

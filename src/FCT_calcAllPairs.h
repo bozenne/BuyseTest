@@ -135,12 +135,9 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 
   // iid (nuisance)
   arma::mat iDscore_Dnuisance_C, iDscore_Dnuisance_T;
-  std::vector<int> Vrow_C, Vrow_T;
-  std::vector<int> Vcol_C, Vcol_T;
-  std::vector<double> Vvalue0_C, Vvalue0_T;
-  std::vector<double> Vvalue1_C, Vvalue1_T;
-  std::vector<double> Vvalue2_C, Vvalue2_T;
-  std::vector<double> Vvalue3_C, Vvalue3_T;
+  std::vector<int> vecRow_Dnuisance_C, vecRow_Dnuisance_T;
+  std::vector<int> vecCol_Dnuisance_C, vecCol_Dnuisance_T;
+  std::vector<std::vector<double>> vecValue_Dnuisance_C(4), vecValue_Dnuisance_T(4);
 			 
   if(returnIID > 1 && method == 4){
 	// aggregated over all pairs
@@ -353,8 +350,12 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	  vec_uninformative.push_back(iPairScore[3]);
 
 	  if((returnIID > 1) && (method == 4) && (evalM1 == false)){
-		add4vec(Vrow_C, Vcol_C, Vvalue0_C, Vvalue1_C, Vvalue2_C, Vvalue3_C, n_RP, iDscore_Dnuisance_C);
-		add4vec(Vrow_T, Vcol_T, Vvalue0_T, Vvalue1_T, Vvalue2_T, Vvalue3_T, n_RP, iDscore_Dnuisance_T);
+		add4vec(vecRow_Dnuisance_C, vecCol_Dnuisance_C,
+				vecValue_Dnuisance_C[0], vecValue_Dnuisance_C[1], vecValue_Dnuisance_C[2], vecValue_Dnuisance_C[3],
+				n_RP, iDscore_Dnuisance_C);
+		add4vec(vecRow_Dnuisance_T, vecCol_Dnuisance_T,
+				vecValue_Dnuisance_T[0], vecValue_Dnuisance_T[1], vecValue_Dnuisance_T[2], vecValue_Dnuisance_T[3],
+				n_RP, iDscore_Dnuisance_T);
 	  }
 	  n_RP++;
 	}
@@ -401,29 +402,35 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	  // the location of the i-th element is specified by the contents of the i-th column of the locations matrix, where the row is in locations(0,i), and the column is in locations(1,i)
 
 	  // Rcpp::Rcout << "start C: (" << p_C << ";" << n_RP << ";" << Vvalue0_C.size() << ";" << Vvalue1_C.size() << ";" << Vvalue2_C.size() << ";" << Vvalue3_C.size()<<")" << std::endl;
-	  int nval_C = Vrow_C.size();
+	  int nval_C = vecRow_Dnuisance_C.size();
 	  arma::umat iLoc_C(2,nval_C);
 	  for(int iV=0; iV<nval_C; iV++){
-		iLoc_C(0,iV) = Vrow_C[iV];
-		iLoc_C(1,iV) = Vcol_C[iV];
+		iLoc_C(0,iV) = vecRow_Dnuisance_C[iV];
+		iLoc_C(1,iV) = vecCol_Dnuisance_C[iV];
 	  }
-	  RP_Dscore_Dnuisance_C[0] = arma::sp_mat(iLoc_C,arma::conv_to<arma::colvec>::from(Vvalue0_C), p_C, n_RP);
-	  RP_Dscore_Dnuisance_C[1] = arma::sp_mat(iLoc_C,arma::conv_to<arma::colvec>::from(Vvalue1_C), p_C, n_RP);
-	  RP_Dscore_Dnuisance_C[2] = arma::sp_mat(iLoc_C,arma::conv_to<arma::colvec>::from(Vvalue2_C), p_C, n_RP);
-	  RP_Dscore_Dnuisance_C[3] = arma::sp_mat(iLoc_C,arma::conv_to<arma::colvec>::from(Vvalue3_C), p_C, n_RP);
+	  arma::colvec iColvecValue_Dnuisance_C;
+	  arma::uvec iTestN0_C;
+	  for(int iType=0; iType<4; iType++){
+		iColvecValue_Dnuisance_C = arma::conv_to<arma::colvec>::from(vecValue_Dnuisance_C[iType]);
+		iTestN0_C = find(iColvecValue_Dnuisance_C); // find locations with non-0 score
+		RP_Dscore_Dnuisance_C[iType] = arma::sp_mat(iLoc_C.cols(iTestN0_C), iColvecValue_Dnuisance_C.rows(iTestN0_C), p_C, n_RP);
+	  }
 	  // Rcpp::Rcout << "end C " << std::endl;
 
 	  // Rcpp::Rcout << "start T: (" << p_T << ";" << n_RP << ";" << Vvalue0_T.size() << ";" << Vvalue1_T.size() << ";" << Vvalue2_T.size() << ";" << Vvalue3_T.size()<<")" << std::endl;
-  	  int nval_T = Vrow_T.size();
+  	  int nval_T = vecRow_Dnuisance_T.size();
 	  arma::umat iLoc_T(2,nval_T);
 	  for(int iV=0; iV<nval_T; iV++){
-		iLoc_T(0,iV) = Vrow_T[iV];
-		iLoc_T(1,iV) = Vcol_T[iV];
+		iLoc_T(0,iV) = vecRow_Dnuisance_T[iV];
+		iLoc_T(1,iV) = vecCol_Dnuisance_T[iV];
 	  }
-	  RP_Dscore_Dnuisance_T[0] = arma::sp_mat(iLoc_T,arma::conv_to<arma::colvec>::from(Vvalue0_T), p_T, n_RP);
-	  RP_Dscore_Dnuisance_T[1] = arma::sp_mat(iLoc_T,arma::conv_to<arma::colvec>::from(Vvalue1_T), p_T, n_RP);
-	  RP_Dscore_Dnuisance_T[2] = arma::sp_mat(iLoc_T,arma::conv_to<arma::colvec>::from(Vvalue2_T), p_T, n_RP);
-	  RP_Dscore_Dnuisance_T[3] = arma::sp_mat(iLoc_T,arma::conv_to<arma::colvec>::from(Vvalue3_T), p_T, n_RP);
+	  arma::colvec iTolvecValue_Dnuisance_T;
+	  arma::uvec iTestN0_T;
+	  for(int iType=0; iType<4; iType++){
+		iTolvecValue_Dnuisance_T = arma::conv_to<arma::colvec>::from(vecValue_Dnuisance_T[iType]);
+		iTestN0_T = find(iTolvecValue_Dnuisance_T); // find locations with non-0 score
+		RP_Dscore_Dnuisance_T[iType] = arma::sp_mat(iLoc_T.cols(iTestN0_T), iTolvecValue_Dnuisance_T.rows(iTestN0_T), p_T, n_RP);
+	  }
 	  // Rcpp::Rcout << "end T " << std::endl;
 	}
   }
