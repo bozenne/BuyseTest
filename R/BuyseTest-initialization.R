@@ -247,9 +247,6 @@ initializeArgs <- function(status,
     iid <- attr(method.inference,"studentized") || (method.inference == "u-statistic")
     if(iid){
         attr(method.inference,"hprojection") <- option$order.Hprojection
-        if(attr(method.inference,"hprojection")==2 & identical(scoring.rule,1)){
-            keep.pairScore <- TRUE ## need the detail of the score to perform the 2nd order projection
-        }
     }else{
         attr(method.inference,"hprojection") <- NA
     }
@@ -309,7 +306,7 @@ initializeArgs <- function(status,
 ## * initializeData
 #' @rdname internal-initialization
 initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, operator, censoring, strata, treatment, hierarchical, copy,
-                           endpoint.TTE, status.TTE, iidNuisance){
+                           keep.pairScore, endpoint.TTE, status.TTE, iidNuisance){
 
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
@@ -383,9 +380,11 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         test.status <- sapply(status.TTE, function(iC){any(data[[iC]]==0)})
         if(all(test.status==FALSE)){
             scoring.rule <- 0
-            iidNuisance <- FALSE
-        }        
-
+            iidNuisance <- FALSE            
+        }else if(identical(attr(method.inference,"hprojection"),2)){
+            keep.pairScore <- TRUE ## need the detail of the score to perform the 2nd order projection
+        }
+        
         ## distinct time to event endpoints
         endpoint.UTTE <- unique(endpoint.TTE[test.status])
         status.UTTE <- unique(status.TTE[test.status])
@@ -474,7 +473,8 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 endpoint.UTTE = endpoint.UTTE,
                 status.UTTE = status.UTTE,
                 D.UTTE = D.UTTE,
-                index.UTTE = index.UTTE
+                index.UTTE = index.UTTE,
+                keep.pairScore = keep.pairScore
                 ))
 }
 
