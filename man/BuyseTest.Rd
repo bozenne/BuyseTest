@@ -7,7 +7,7 @@
 BuyseTest(formula, data, scoring.rule = NULL, correction.uninf = NULL,
   model.tte = NULL, method.inference = NULL, n.resampling = NULL,
   strata.resampling = NULL, hierarchical = NULL, weight = NULL,
-  neutral.as.uninf = NULL, keep.pairScore = NULL, seed = 10,
+  neutral.as.uninf = NULL, keep.pairScore = NULL, seed = NULL,
   cpus = NULL, trace = NULL, treatment = NULL, endpoint = NULL,
   type = NULL, threshold = NULL, status = NULL, operator = NULL,
   censoring = NULL, strata = NULL, keep.comparison, method.tte)
@@ -51,7 +51,7 @@ See Details, section "Handling missing values".}
 
 \item{keep.pairScore}{[logical] should the result of each pairwise comparison be kept?}
 
-\item{seed}{[integer, >0] the seed to consider for the permutation test.
+\item{seed}{[integer, >0] the seed to consider when performing resampling.
 If \code{NULL} no seed is set.}
 
 \item{cpus}{[integer, >0] the number of CPU to use.

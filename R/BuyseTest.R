@@ -32,7 +32,7 @@
 #' @param neutral.as.uninf [logical] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 #' See Details, section "Handling missing values".
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
-#' @param seed [integer, >0] the seed to consider for the permutation test.
+#' @param seed [integer, >0] the seed to consider when performing resampling.
 #' If \code{NULL} no seed is set.
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
@@ -258,7 +258,7 @@ BuyseTest <- function(formula,
                       weight = NULL,
                       neutral.as.uninf = NULL,
                       keep.pairScore = NULL,
-                      seed = 10,
+                      seed = NULL,
                       cpus = NULL,
                       trace = NULL,
                       treatment = NULL,
