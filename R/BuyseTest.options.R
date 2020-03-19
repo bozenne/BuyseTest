@@ -25,7 +25,7 @@
 #' 
 #' ## reinitialise all global parameters
 #' BuyseTest.options(reinitialise = TRUE)
-n
+
 ## * Function BuyseTest.options
 #' @rdname BuyseTest.options
 #' @export

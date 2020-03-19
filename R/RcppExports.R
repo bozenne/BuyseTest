@@ -48,6 +48,12 @@ GPC_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, wei
     .Call(`_BuyseTest_GPC_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug)
 }
 
+#' @name GPC2_cpp
+#' @export
+GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug) {
+    .Call(`_BuyseTest_GPC2_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug)
+}
+
 #' @title C++ Function Computing the Integral Terms for the Peron Method in the survival case. 
 #' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
 #' @name calcIntegralSurv_cpp

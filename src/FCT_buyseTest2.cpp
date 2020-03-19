@@ -74,13 +74,23 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   // ** objects storing the final results
   // score specific to each pair
   int n_pairs = arma::sum(vecn_pairs);
-  std::vector< arma::mat > pairScore;
+  std::vector< std::vector <std::vector <int> > > vecPairScore;
   if(keepScore){
-    pairScore.resize(D);
-    for(unsigned int iter_d=0; iter_d < D; iter_d++){
-      pairScore[iter_d].resize(n_pairs,15);
+    vecPairScore.resize(D);
+    for(unsigned int iter_d=0; iter_d<D; iter_d++){
+      vecPairScore[iter_d].resize(15);
+      for(unsigned int iter_type=0; iter_type<15; iter_type++){
+	vecPairScore[iter_d].reserve(n_pairs);
+      }
     }
   }
+  // std::vector< arma::mat > pairScore;
+  // if(keepScore){
+  //   pairScore.resize(D);
+  //   for(unsigned int iter_d=0; iter_d < D; iter_d++){
+  //     pairScore[iter_d].resize(n_pairs,15);
+  //   }
+  // }
 	
   // total score over pairs
   arma::mat Mcount_favorable(n_strata,D,arma::fill::zeros); // store the total weight of favorable pairs [all endpoints, strata]
@@ -400,22 +410,37 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	  // **** update pairwise-scores for all pairs
 	  if(keepScore){
 	    if(debug>3){Rcpp::Rcout << " keepScore ";}
-	    pairScore[iter_d](iPair,0) = iter_d;
-	    pairScore[iter_d](iPair,1) = posStrataC[iter_C];
-	    pairScore[iter_d](iPair,2) = posStrataT[iter_T];
-	    pairScore[iter_d](iPair,3) = iPair;
-	    pairScore[iter_d](iPair,4) = iter_C;
-	    pairScore[iter_d](iPair,5) = iter_T;
+	    vecPairScore[iter_d][0].push_back(iter_d);
+	    vecPairScore[iter_d][1].push_back(posStrataC[iter_C]);
+	    vecPairScore[iter_d][2].push_back(posStrataT[iter_T]);
+	    vecPairScore[iter_d][3].push_back(iPair);
+	    vecPairScore[iter_d][4].push_back(iter_C);
+	    vecPairScore[iter_d][5].push_back(iter_T);
+	    // pairScore[iter_d](iPair,0) = iter_d;
+	    // pairScore[iter_d](iPair,1) = posStrataC[iter_C];
+	    // pairScore[iter_d](iPair,2) = posStrataT[iter_T];
+	    // pairScore[iter_d](iPair,3) = iPair;
+	    // pairScore[iter_d](iPair,4) = iter_C;
+	    // pairScore[iter_d](iPair,5) = iter_T;
 
-	    pairScore[iter_d](iPair,6) = iPairScore[0];
-	    pairScore[iter_d](iPair,11) = iPairScore[0] * iCumWeight;
-	    pairScore[iter_d](iPair,7) = iPairScore[1];
-	    pairScore[iter_d](iPair,12) = iPairScore[1] * iCumWeight;
-	    pairScore[iter_d](iPair,8) = iPairScore[2];
-	    pairScore[iter_d](iPair,13) = iPairScore[2] * iCumWeight;
-	    pairScore[iter_d](iPair,9) = iPairScore[3];
-	    pairScore[iter_d](iPair,14) = iPairScore[7] * iCumWeight;
-	    pairScore[iter_d](iPair,10) = iCumWeight;
+	    vecPairScore[iter_d][6].push_back(iPairScore[0]);
+	    vecPairScore[iter_d][7].push_back(iPairScore[1]);
+	    vecPairScore[iter_d][8].push_back(iPairScore[2]);
+	    vecPairScore[iter_d][9].push_back(iPairScore[3]);
+	    vecPairScore[iter_d][10].push_back(iCumWeight);
+	    vecPairScore[iter_d][11].push_back(iPairScore[0] * iCumWeight);
+	    vecPairScore[iter_d][12].push_back(iPairScore[1] * iCumWeight);
+	    vecPairScore[iter_d][13].push_back(iPairScore[2] * iCumWeight);
+	    vecPairScore[iter_d][14].push_back(iPairScore[3] * iCumWeight);
+	    // pairScore[iter_d](iPair,6) = iPairScore[0];
+	    // pairScore[iter_d](iPair,7) = iPairScore[1];
+	    // pairScore[iter_d](iPair,8) = iPairScore[2];
+	    // pairScore[iter_d](iPair,9) = iPairScore[3];
+	    // pairScore[iter_d](iPair,10) = iCumWeight;
+	    // pairScore[iter_d](iPair,11) = iPairScore[0] * iCumWeight;
+	    // pairScore[iter_d](iPair,12) = iPairScore[1] * iCumWeight;
+	    // pairScore[iter_d](iPair,13) = iPairScore[2] * iCumWeight;
+	    // pairScore[iter_d](iPair,14) = iPairScore[7] * iCumWeight;
 	  } 
 
 	  // **** early stop if nothing left or store weight when TTE endpoint with Peron's scoring rule
@@ -474,6 +499,18 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
   }
 
+
+  // ** combine pairwise scores into a list of matrices 
+  std::vector< arma::mat> pairScore;
+  if(keepScore){
+    pairScore.resize(D);
+    for(unsigned int iter_d=0; iter_d<D; iter_d++){
+      pairScore[iter_d].resize(vecPairScore[iter_d][0].size(),15);
+      for(unsigned int iter_type=0; iter_type<15; iter_type++){
+	pairScore[iter_d].col(iter_type) = arma::conv_to< arma::colvec >::from(vecPairScore[iter_d][iter_type]);
+      }
+    }
+  }
   
   // ** proportion in favor of treatment
   // Rcpp::Rcout << std::endl << " compute statistics" << std::endl;
