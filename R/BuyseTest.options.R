@@ -25,7 +25,7 @@
 #' 
 #' ## reinitialise all global parameters
 #' BuyseTest.options(reinitialise = TRUE)
-
+n
 ## * Function BuyseTest.options
 #' @rdname BuyseTest.options
 #' @export
@@ -39,7 +39,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    conf.level = 0.95,
                    cpus = 1,
                    debug = -1,
-                   engine = "GPC_cpp",
+                   engine = "GPC2_cpp",
                    hierarchical = TRUE,
                    keep.pairScore = FALSE,
                    keep.survival = FALSE,

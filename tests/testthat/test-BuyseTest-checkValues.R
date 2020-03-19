@@ -277,9 +277,6 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                        netChange = c(0.11647539, 0.13230618, 0.18948691) ,
                        winRatio = c(1.751355, 1.36739711, 1.48014599) )
         }
-        
-        expect_equal(test, GS, tolerance = 1e-6, scale = 1)
-        expect_equal(BT.tte,BT2)
 
         ## *** count pairs
         tableS <- summary(BT.tte, print = FALSE, percentage = FALSE)$table

@@ -8,7 +8,6 @@
 #include <RcppArmadillo.h>
 #include <Rmath.h>
 #include "FCT_calcOnePair.h"
-#include "FCT_calcAllPairs2.h"
 #include "FCT_calcStatistic.h"
 
 // * Function GPC2_cpp
@@ -79,7 +78,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   if(keepScore){
     pairScore.resize(D);
     for(unsigned int iter_d=0; iter_d < D; iter_d++){
-      pairScore[iter_d].resize(n_pairs,12);
+      pairScore[iter_d].resize(n_pairs,15);
     }
   }
 	
@@ -126,11 +125,15 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   int nStrata_Control;
   int nStrata_Treatment;
 
-  std::vector< arma::mat > Dscore_Dnuisance_strataC; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
-  std::vector< arma::mat > Dscore_Dnuisance_strataT; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  std::vector< arma::mat > Dfavorable_Dnuisance_strataC; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  std::vector< arma::mat > Dfavorable_Dnuisance_strataT; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  std::vector< arma::mat > Dunfavorable_Dnuisance_strataC; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  std::vector< arma::mat > Dunfavorable_Dnuisance_strataT; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
   if(returnIID>1){
-    Dscore_Dnuisance_strataC.resize(D_UTTE);
-    Dscore_Dnuisance_strataT.resize(D_UTTE);
+    Dfavorable_Dnuisance_strataC.resize(D_UTTE);
+    Dfavorable_Dnuisance_strataT.resize(D_UTTE);
+    Dunfavorable_Dnuisance_strataC.resize(D_UTTE);
+    Dunfavorable_Dnuisance_strataT.resize(D_UTTE);
   }
   
   // over pair
@@ -141,10 +144,21 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   arma::vec iWeight_UTTE; // store weight (i.e. complement to 1 of fav+defav) computed at the last threshold for each UTTE
   std::vector < arma::vec > iDweight_Dnuisance_C_UTTE; // store derivative of the weight regarding the nuisance parameters computed at the last threshold for each UTTE
   std::vector < arma::vec > iDweight_Dnuisance_T_UTTE; // store derivative of the weight regarding the nuisance parameters computed at the last threshold for each UTTE
+
+  std::vector < arma::mat > iDscore_Dnuisance_C_UTTE; // store derivative of the weight regarding the score computed at the last threshold for each UTTE
+  std::vector < arma::mat > iDscore_Dnuisance_T_UTTE; // store derivative of the weight regarding the score computed at the last threshold for each UTTE
   if(methodPeron){
     iFavorable_UTTE.resize(D_UTTE);
     iUnfavorable_UTTE.resize(D_UTTE);
     iWeight_UTTE.resize(D_UTTE);
+
+    if(returnIID>1){
+      iDweight_Dnuisance_C_UTTE.resize(D_UTTE);
+      iDweight_Dnuisance_T_UTTE.resize(D_UTTE);
+
+      iDscore_Dnuisance_C_UTTE.resize(D_UTTE);
+      iDscore_Dnuisance_T_UTTE.resize(D_UTTE);
+    }
   }
 
   // over endpoint
@@ -176,12 +190,20 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     if(returnIID > 1){ // 
       for(unsigned int iter_d=0; iter_d < D; iter_d ++){
 	if(p_C(iter_strata,iter_d)>0){
-	  Dscore_Dnuisance_strataC[index_UTTE[iter_d]].resize(p_C(iter_strata,iter_d),2);
-	  Dscore_Dnuisance_strataC[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+	  Dfavorable_Dnuisance_strataC[index_UTTE[iter_d]].resize(p_C(iter_strata,iter_d),D);
+	  Dfavorable_Dnuisance_strataC[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+	  Dunfavorable_Dnuisance_strataC[index_UTTE[iter_d]].resize(p_C(iter_strata,iter_d),D);
+	  Dunfavorable_Dnuisance_strataC[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+
+	  iDscore_Dnuisance_C_UTTE[index_UTTE[iter_d]].resize(p_C(iter_strata,iter_d),4);
 	}
 	if(p_T(iter_strata,iter_d)>0){
-	  Dscore_Dnuisance_strataT[index_UTTE[iter_d]].resize(p_T(iter_strata,iter_d),2);
-	  Dscore_Dnuisance_strataT[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+	  Dfavorable_Dnuisance_strataT[index_UTTE[iter_d]].resize(p_T(iter_strata,iter_d),D);
+	  Dfavorable_Dnuisance_strataT[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+	  Dunfavorable_Dnuisance_strataT[index_UTTE[iter_d]].resize(p_T(iter_strata,iter_d),D);
+	  Dunfavorable_Dnuisance_strataT[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+
+	  iDscore_Dnuisance_T_UTTE[index_UTTE[iter_d]].resize(p_T(iter_strata,iter_d),4);
 	}
       }
     }
@@ -202,29 +224,25 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	    iDweight_Dnuisance_T_UTTE.clear();
 	    iDweight_Dnuisance_C_UTTE.resize(D_UTTE);
 	    iDweight_Dnuisance_T_UTTE.resize(D_UTTE);
+
+	    for(unsigned int iter_d=0; iter_d < D; iter_d ++){
+	      if(p_C(iter_strata,iter_d)>0){
+		iDscore_Dnuisance_C_UTTE[index_UTTE[iter_d]].fill(0.0);
+	      }
+	      if(p_T(iter_strata,iter_d)>0){
+		iDscore_Dnuisance_T_UTTE[index_UTTE[iter_d]].fill(0.0);
+	      }
+	    }
 	  }
 	}
 
-	// // score pair	
-	// calcAllPairs2(endpoint.row(iIndexC[iter_C]), endpoint.row(iIndexT[iter_T]), 
-	// 	      status.row(iIndexC[iter_C]), status.row(iIndexT[iter_T]),
-	// 	      threshold, method, D, D_UTTE, nUTTE_analyzedPeron_M1,
-	// 	      index_endpoint, index_status, index_UTTE,
-	// 	      iList_survTimeC, iList_survTimeT, iList_survJumpC, iList_survJumpT, iList_lastSurv,
-	// 	      iP_C, iP_T,
-	// 	      zeroPlus, hierarchical, neutralAsUninf, keepScore, returnIID, debug, methodMax,
-	// 	      Mcount_favorable, Mcount_unfavorable, Mcount_neutral, Mcount_uninf, pairScore,
-	// 	      iidAverage_favorable, iidAverage_unfavorable, iDscore_Dnuisance_C, iDscore_Dnuisance_T,
-	// 	      iter_strata, iPosC[iter_C], iPosT[iter_T], iPair);
-
-  
 	// **** loop over endpoints
 	for(unsigned int iter_d=0 ; iter_d < D; iter_d++){
 	  if(debug==3){Rcpp::Rcout << "*" << std::endl;}
 	  iIndex_UTTE_d = index_UTTE[iter_d];
 	  iMethod = method[iter_d];
   
-	  // compute weight
+	  // **** compute weight
 	  if(debug>3){Rcpp::Rcout << "w";}
 	  iCumWeight = 1;
 	  iNewWeight = 0;
@@ -236,7 +254,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	    }
 	    if(iCumWeight<zeroPlus){break;}
 	  }
-    
+	      
 	  // **** compute score
 	  if(debug>3){Rcpp::Rcout << "s";}
 	  if(iMethod == 1){ // continuous or binary endpoint
@@ -265,7 +283,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 						status(indexStrataC[iter_C], index_status[iter_d]),
 						status(indexStrataT[iter_T], index_status[iter_d]),
 						threshold[iter_d],
-						list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_C), list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+						list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T), list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 						list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
 						iDscore_Dnuisance_C, iDscore_Dnuisance_T,
 						p_C(iter_strata, iter_d), p_T(iter_strata, iter_d), returnIID);
@@ -276,50 +294,53 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 					     status(indexStrataC[iter_C], index_status[iter_d]),
 					     status(indexStrataT[iter_T], index_status[iter_d]),
 					     threshold[iter_d],
-					     list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_C), list_survJumpC[iter_d][iter_strata],					     
+					     list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T), list_survJumpC[iter_d][iter_strata],					     
 					     list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), list_lastSurv[iter_d](iter_strata,2), list_lastSurv[iter_d](iter_strata,3));
 	  }
-
+	  
 	  // **** remove contribution from previously analyzed threshold of the same endpoint
 	  if( (iMethod >= 4) && (nUTTE_analyzedPeron_M1[iter_d]>0) ){
 	    iPairScore[0] -= iFavorable_UTTE[iIndex_UTTE_d];
 	    iPairScore[1] -= iUnfavorable_UTTE[iIndex_UTTE_d];
+
+	    if(returnIID>1){
+	    iDscore_Dnuisance_C.col(0) -= iDscore_Dnuisance_C_UTTE[iIndex_UTTE_d].col(0);
+	    iDscore_Dnuisance_C.col(1) -= iDscore_Dnuisance_C_UTTE[iIndex_UTTE_d].col(1);
+	    iDscore_Dnuisance_T.col(0) -= iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d].col(0);
+	    iDscore_Dnuisance_T.col(1) -= iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d].col(1);
+	    }
 	  }
     
 	  // **** aggregate favorable score and iid over analyzed pairs
-	  if(iPairScore[0] > zeroPlus){
+	  // if(iPairScore[0] > zeroPlus){
 	    if(debug==4){Rcpp::Rcout << "f";}
 	    if(debug>4){Rcpp::Rcout << " favorable=" << iPairScore[0] << " ";}
 
 	    // score
 	    Mcount_favorable(iter_strata,iter_d) += iPairScore[0] * iCumWeight;
-
 	    if(returnIID > 0){
 	      // iid (average)
 	      iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScore[0] * iCumWeight;
 	      iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScore[0] * iCumWeight;
 	    }
-      
 	    // iid (nuisance) for the score
 	    if( (returnIID > 1) && (iMethod == 4) ){
-	      Dscore_Dnuisance_strataC[iIndex_UTTE_d].col(0) += iDscore_Dnuisance_C.col(0) * iCumWeight;
-	      Dscore_Dnuisance_strataT[iIndex_UTTE_d].col(0) += iDscore_Dnuisance_T.col(0) * iCumWeight;
+	      Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C.col(0) * iCumWeight;
+	      Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T.col(0) * iCumWeight;
 	    }
-
 	    // iid (nuisance) for the weight of the pair
 	    if( (returnIID > 1) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	      for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
-		if(iter_UTTE != iIndex_UTTE_d){	      
-		  Dscore_Dnuisance_strataC[iIndex_UTTE_d].col(0) += (iPairScore[0] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		  Dscore_Dnuisance_strataT[iIndex_UTTE_d].col(0) += (iPairScore[0] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		if(iter_UTTE != iIndex_UTTE_d){
+		  Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScore[0] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		  Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScore[0] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 		}
 	      }
 	    }
-
-	  }
+	  // }
 
 	  // **** aggregate unfavorable score and iid over analyzed pairs
-	  if(iPairScore[1] > zeroPlus){
+	  // if(iPairScore[1] > zeroPlus){
 	    if(debug==4){Rcpp::Rcout << "d";}
 	    if(debug>4){Rcpp::Rcout << " unfavorable=" << iPairScore[1] << " ";}
 
@@ -334,20 +355,20 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
       
 	    // iid (nuisance) for the score
 	    if( (returnIID > 1) && (iMethod == 4) ){
-	      Dscore_Dnuisance_strataC[iIndex_UTTE_d].col(1) += iDscore_Dnuisance_C.col(1) * iCumWeight;
-	      Dscore_Dnuisance_strataT[iIndex_UTTE_d].col(1) += iDscore_Dnuisance_T.col(1) * iCumWeight;
+	      Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C.col(1) * iCumWeight;
+	      Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T.col(1) * iCumWeight;
 	    }
 
 	    // iid (nuisance) for the weight of the pair
 	    if( (returnIID > 1) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	      for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
 		if(iter_UTTE != iIndex_UTTE_d){	      
-		  Dscore_Dnuisance_strataC[iIndex_UTTE_d].col(1) += (iPairScore[1] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		  Dscore_Dnuisance_strataT[iIndex_UTTE_d].col(1) += (iPairScore[1] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		  Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScore[1] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		  Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScore[1] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 		}
 	      }
 	    }
-	  }
+	  // }
     
     
 	  // **** aggregate neutral score and iid over analyzed pairs
@@ -360,7 +381,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
 	    // update weight
 	    if(neutralAsUninf){
-	      iNewWeight += iPairScore[2] * iCumWeight;
+	      iNewWeight += iPairScore[2];
 	    }
 	  }
     
@@ -373,7 +394,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	    Mcount_uninf(iter_strata,iter_d) += iPairScore[3] * iCumWeight;
 
 	    // update weight
-	    iNewWeight += iPairScore[3] * iCumWeight;
+	    iNewWeight += iPairScore[3];
 	  }
 
 	  // **** update pairwise-scores for all pairs
@@ -383,15 +404,18 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	    pairScore[iter_d](iPair,1) = posStrataC[iter_C];
 	    pairScore[iter_d](iPair,2) = posStrataT[iter_T];
 	    pairScore[iter_d](iPair,3) = iPair;
+	    pairScore[iter_d](iPair,4) = iter_C;
+	    pairScore[iter_d](iPair,5) = iter_T;
 
-	    pairScore[iter_d](iPair,0) = iPairScore[0];
-	    pairScore[iter_d](iPair,4) = iPairScore[0] * iCumWeight;
-	    pairScore[iter_d](iPair,1) = iPairScore[1];
-	    pairScore[iter_d](iPair,5) = iPairScore[1] * iCumWeight;
-	    pairScore[iter_d](iPair,2) = iPairScore[2];
-	    pairScore[iter_d](iPair,6) = iPairScore[2] * iCumWeight;
-	    pairScore[iter_d](iPair,3) = iPairScore[3];
-	    pairScore[iter_d](iPair,7) = iPairScore[7] * iCumWeight;
+	    pairScore[iter_d](iPair,6) = iPairScore[0];
+	    pairScore[iter_d](iPair,11) = iPairScore[0] * iCumWeight;
+	    pairScore[iter_d](iPair,7) = iPairScore[1];
+	    pairScore[iter_d](iPair,12) = iPairScore[1] * iCumWeight;
+	    pairScore[iter_d](iPair,8) = iPairScore[2];
+	    pairScore[iter_d](iPair,13) = iPairScore[2] * iCumWeight;
+	    pairScore[iter_d](iPair,9) = iPairScore[3];
+	    pairScore[iter_d](iPair,14) = iPairScore[7] * iCumWeight;
+	    pairScore[iter_d](iPair,10) = iCumWeight;
 	  } 
 
 	  // **** early stop if nothing left or store weight when TTE endpoint with Peron's scoring rule
@@ -401,11 +425,16 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	      break;
 	    }else if(methodPeron && (iIndex_UTTE_d>=0) ){
 	      if(debug>3){Rcpp::Rcout << " store ";}
-	      iFavorable_UTTE[iIndex_UTTE_d] = iPairScore[0];
-	      iUnfavorable_UTTE[iIndex_UTTE_d] = iPairScore[1];
+	      iFavorable_UTTE[iIndex_UTTE_d] += iPairScore[0];
+	      iUnfavorable_UTTE[iIndex_UTTE_d] += iPairScore[1];
 	      iWeight_UTTE[iIndex_UTTE_d] = iNewWeight;
 
 	      if(returnIID>1){
+		// Rcpp::Rcout  << iDscore_Dnuisance_C_UTTE[0] << std::endl;
+		iDscore_Dnuisance_C_UTTE[iIndex_UTTE_d] += iDscore_Dnuisance_C;
+		iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d] += iDscore_Dnuisance_T;
+		// Rcpp::Rcout  << iDscore_Dnuisance_C_UTTE[0] << std::endl;
+		
 		if(neutralAsUninf && (iPairScore[2] > zeroPlus)){
 		  iDweight_Dnuisance_C_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_C.col(2)+iDscore_Dnuisance_C.col(3);
 		  iDweight_Dnuisance_T_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_T.col(2)+iDscore_Dnuisance_T.col(3);
@@ -432,13 +461,14 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     // ** compute iid nuisance    
     if(returnIID>1){
       if(debug>0){Rcpp::Rcout << "compute iid nuisance" << std::endl;}
+
       for(unsigned int iter_d=0; iter_d < D; iter_d++){
-    	if(index_UTTE[iter_d]>=0){
-    	  iidNuisance_favorable.rows(posStrataC) += iid_survJumpC[index_UTTE[iter_d]][iter_strata] * Dscore_Dnuisance_strataC[index_UTTE[iter_d]].col(0)/vecn_pairs[iter_strata];
-    	  iidNuisance_favorable.rows(posStrataT) += iid_survJumpT[index_UTTE[iter_d]][iter_strata] * Dscore_Dnuisance_strataT[index_UTTE[iter_d]].col(0)/vecn_pairs[iter_strata];
-    	  iidNuisance_unfavorable.rows(posStrataC) += iid_survJumpC[index_UTTE[iter_d]][iter_strata] * Dscore_Dnuisance_strataC[index_UTTE[iter_d]].col(1)/vecn_pairs[iter_strata];
-    	  iidNuisance_unfavorable.rows(posStrataT) += iid_survJumpT[index_UTTE[iter_d]][iter_strata] * Dscore_Dnuisance_strataT[index_UTTE[iter_d]].col(1)/vecn_pairs[iter_strata];
-    	}
+	for(int iter_UTTE=0 ; iter_UTTE<D_UTTE; iter_UTTE++){
+	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+    	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+    	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+    	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[iter_UTTE][iter_strata] * Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+	  }
       }
     }
 

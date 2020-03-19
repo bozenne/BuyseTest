@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: mar  3 2020 (10:53) 
+## Last-Updated: mar 19 2020 (17:06) 
 ##           By: Brice Ozenne
-##     Update #: 102
+##     Update #: 103
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -116,7 +116,8 @@ d2 <- rbind(cbind(d, strata = 1),
 
 test_that("iid: binary with strata (balanced groups)", {
     ## first order
-    BuyseTest.options(order.Hprojection = 1)
+    BuyseTest.options(order.Hprojection = 1, engine = "GPC2_cpp")
+    BuyseTest.options(order.Hprojection = 1, engine = "GPC_cpp")
     e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
                       data = d2, 
                       method.inference = "u-statistic")

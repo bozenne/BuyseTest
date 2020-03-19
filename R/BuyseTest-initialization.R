@@ -230,7 +230,10 @@ initializeArgs <- function(status,
     
     ## ** correction.uninf
     correction.uninf <- as.numeric(correction.uninf)
-
+    if(correction.uninf>0){
+        engine <- "GPC_cpp"
+    }
+    
     ## ** model.tte
     if(identical(scoring.rule,1)){
         if((!is.null(model.tte)) && (length(unique(endpoint.TTE)) == 1) && inherits(model.tte, "prodlim")){
