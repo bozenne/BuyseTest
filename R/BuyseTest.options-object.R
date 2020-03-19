@@ -26,6 +26,7 @@ setClass(
       correction.uninf = "numeric",
       cpus = "numeric",
       debug = "numeric",
+      engine = "character",
       hierarchical = "logical",
       keep.pairScore = "logical",
       keep.survival = "logical",      
@@ -78,6 +79,11 @@ setClass(
                    name1 = "@debug",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
+      validCharacter(object@engine,
+                     name1 = "@engine",
+                     valid.values = c("GPC_cpp","GPC2_cpp"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
       validLogical(object@hierarchical,
                    name1 = "@hierarchical",
                    valid.length = 1,

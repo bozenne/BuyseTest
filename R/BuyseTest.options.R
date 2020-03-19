@@ -39,6 +39,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    conf.level = 0.95,
                    cpus = 1,
                    debug = -1,
+                   engine = "GPC_cpp",
                    hierarchical = TRUE,
                    keep.pairScore = FALSE,
                    keep.survival = FALSE,

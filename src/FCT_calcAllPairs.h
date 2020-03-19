@@ -10,7 +10,7 @@
 
 // :cppFile:{FCT_buyseTest.cpp}:end:
 
-arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
+arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold,
 					   arma::colvec statusC, arma::colvec statusT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 					   arma::rowvec lastSurv, 					   
@@ -64,7 +64,7 @@ void add4vec(std::vector<int>& Vrow,
 //         RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T
 //         matPairScore
 // author Brice Ozenne
-arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double threshold,
+arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold,
 					   arma::colvec statusC, arma::colvec statusT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 					   arma::rowvec lastSurv,
@@ -83,8 +83,8 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
   // ** initialize
   int iter_C; // index of the treated patient of the pair in the treatment arm
   int iter_T; // index of the control patient of the pair in the control arm
-  int n_Control = Control.size(); // number of patients from the control arm
-  int n_Treatment = Treatment.size(); // number of patients from the treatment arm
+  int n_Control = endpointC.size(); // number of patients from the control arm
+  int n_Treatment = endpointT.size(); // number of patients from the treatment arm
   int n_pair; // number of pairs
   if(firstEndpoint){	
 	n_pair = n_Treatment * n_Control;
@@ -174,7 +174,7 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 	  iWeight = weight(iter_pair);
 	}
 	if(debug>2){Rcpp::Rcout << "("<< iter_C << "/" << n_Control <<";" << iter_T << "/" << n_Treatment << ") ";}
-	if(debug>3){Rcpp::Rcout << "("<< Treatment[iter_T] << ";" << Control[iter_C] << ";" << threshold <<") ";}
+	if(debug>3){Rcpp::Rcout << "("<< endpointT[iter_T] << ";" << endpointC[iter_C] << ";" << threshold <<") ";}
     
 	// *** compute score
 	if(evalM1 && method > 3){ // Previously analyzed endpoint with Peron's scoring rule. Extract previous score for the residual pairs.
@@ -191,20 +191,20 @@ arma::mat calcAllPairs(arma::colvec Control, arma::colvec Treatment, double thre
 		}
 	  }
     }else if(method == 1){ // continuous or binary endpoint
-	  iPairScore = calcOnePair_Continuous(Treatment[iter_T] - Control[iter_C], threshold);
+	  iPairScore = calcOnePair_Continuous(endpointT[iter_T] - endpointC[iter_C], threshold);
 	}else if(method == 2){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
-	  iPairScore = calcOnePair_TTEgehan(Treatment[iter_T] - Control[iter_C], statusC[iter_C], statusT[iter_T], threshold);
+	  iPairScore = calcOnePair_TTEgehan(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
 	}else if(method == 3){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
-	  iPairScore = calcOnePair_TTEgehan2(Treatment[iter_T] - Control[iter_C], statusC[iter_C], statusT[iter_T], threshold);
+	  iPairScore = calcOnePair_TTEgehan2(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
 	}else if(method == 4){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
-	  iPairScore = calcOneScore_SurvPeron(Control[iter_C], Treatment[iter_T], statusC[iter_C], statusT[iter_T], threshold,
+	  iPairScore = calcOneScore_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
 	  									  survTimeC.row(iter_C), survTimeT.row(iter_T),
 	  									  survJumpC, survJumpT, lastSurv(0), lastSurv(1),
 	  									  iDscore_Dnuisance_C, iDscore_Dnuisance_T,
 	  									  p_C, p_T, returnIID);
 		  		
 	}else if(method == 5){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
-	  iPairScore = calcOnePair_CRPeron(Control[iter_C], Treatment[iter_T],
+	  iPairScore = calcOnePair_CRPeron(endpointC[iter_C], endpointT[iter_T],
 									   statusC[iter_C], statusT[iter_T], threshold,
 									   survTimeC.row(iter_C), survTimeT.row(iter_T), survJumpC,
 									   lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3));
@@ -785,3 +785,4 @@ void sp_mat4vec(const arma::sp_mat& X, int RP,
   }
   return;
 }
+

@@ -68,6 +68,7 @@ initializeArgs <- function(status,
     if(is.null(strata.resampling)){ strata.resampling <- option$strata.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
     if(is.null(trace)){ trace <- option$trace }
+    engine <- option$engine
     alternative <- option$alternative
     
     ## ** convert formula into separate arguments
@@ -274,6 +275,7 @@ initializeArgs <- function(status,
         data = data,
         endpoint = endpoint,
         endpoint.TTE = endpoint.TTE,
+        engine = engine,
         formula = formula,
         iid = iid,
         iidNuisance = iidNuisance,
