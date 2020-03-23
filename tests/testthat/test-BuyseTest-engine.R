@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: mar 23 2020 (13:46) 
+## Last-Updated: mar 23 2020 (14:34) 
 ##           By: Brice Ozenne
-##     Update #: 4
+##     Update #: 5
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -89,7 +89,7 @@ test_that("different TTE with decreasing thresholds",{
                  ) 
     test <- confint(e.BT2)
     attr(test,"n.resampling") <- NULL
-    expect_equal(GS, test, tol = 1e-4)
+    expect_equal(GS, test, tol = 1e-3)
 })
 ##----------------------------------------------------------------------
 ### test-BuyseTest-engine.R ends here
