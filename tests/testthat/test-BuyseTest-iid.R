@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: mar 19 2020 (17:06) 
+## Last-Updated: mar 23 2020 (10:38) 
 ##           By: Brice Ozenne
-##     Update #: 103
+##     Update #: 106
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -65,7 +65,6 @@ test_that("iid: binary and no strata (balanced groups)", {
                        data = d, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu")
 
-    expect_equal(e1.BT@tablePairScore[[1]]$index.pair,1:4) ## correct ordering of the pairs
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance) 
     expect_equal(as.double(e.BT@covariance), c(5/64,5/64,-3/64, 1/4, 4) )
@@ -102,7 +101,6 @@ test_that("iid: binary and no strata (unbalanced groups)", {
                        data = d.bis, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu"))
     
-    expect_equal(e1.BT@tablePairScore[[1]]$index.pair,1:3) ## correct ordering of the pairs
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance) 
     expect_equal(as.double(e.BT@covariance), c(0,2/27,0,2/27,0) )
@@ -143,7 +141,6 @@ test_that("iid: binary with strata (balanced groups)", {
                        data = d2, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu")
     
-    expect_equal(e1.BT@tablePairScore[[1]]$index.pair,1:12) ## correct ordering of the pairs
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance)
     
@@ -182,7 +179,6 @@ test_that("iid: binary and no strata (unbalanced groups)", {
                        data = d2.bis, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu")
     
-    expect_equal(e1.BT@tablePairScore[[1]]$index.pair,1:9) ## correct ordering of the pairs
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance)
     
@@ -324,6 +320,7 @@ d <- simBuyseTest(50, argsTTE = list(rates.T = 1/2, rates.Censoring.T = 1))
 BuyseTest.options(order.Hprojection = 1)
 test_that("iid: two endpoints (no strata - first order)", {
     ## different endpoints
+    BuyseTest.options(engine = "GPC_cpp")
     e.BT <- BuyseTest(treatment ~  bin(toxicity) + cont(score, threshold = 1),
                       data = d,
                       method.inference = "u-statistic")
@@ -331,15 +328,13 @@ test_that("iid: two endpoints (no strata - first order)", {
                        data = d, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu")
 
+    GS <- matrix(c(0.00249999, 0.00304956, 0.00249999, 0.00320223, -0.00249201, -0.00292598, 0.009984, 0.01210375, 0.16025641, 0.07778735), 
+                  nrow = 2, 
+                  ncol = 5, 
+                  dimnames = list(c("toxicity_0.5", "score_1"),c("favorable", "unfavorable", "covariance", "netBenefit", "winRatio")) 
+                  ) 
+    expect_equal(e.BT@covariance, GS)
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance["toxicity_0.5",]),
-                 c(0.002499994, 0.002499994, -0.002492006, 0.009984000, 0.160256410), tol = 1e-6 )
-    expect_equal(as.double(e.BT@covariance["score_1",]),
-                 c(0.003049562, 0.003202234, -0.002925978, 0.012103750, 0.077787351), tol = 1e-6 )
-
-    ## favorable unfavorable   covariance
-    ## toxicity 0.002499994 0.002499994 -0.002492006
-    ## score    0.008041562 0.008194234 -0.002925978
 
     ## same endpoint
     e.BT <- BuyseTest(treatment ~  cont(score, threshold = 2) + cont(score, threshold = 1),

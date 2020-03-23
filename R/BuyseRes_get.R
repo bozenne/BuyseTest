@@ -104,10 +104,12 @@ setMethod(f = "getCount",
 #' pScore <- getPairScore(BT.keep, endpoint = 1)
 #'
 #' ## look at one pair
-#' pScore[91]
+#' indexPair <- intersect(which(pScore$index.1 == 22),
+#'                        which(pScore$index.2 == 71))
+#' pScore[indexPair]
 #'
 #' ## retrive pair in the original dataset
-#' pVeteran <- veteran[pScore[91,c(index.1,index.2)],]
+#' pVeteran <- veteran[pScore[indexPair,c(index.1,index.2)],]
 #' pVeteran
 #' 
 #' ## the observation from the control group is censored at 97
@@ -134,8 +136,8 @@ setMethod(f = "getCount",
 #' pN
 #' 
 #' if(require(testthat)){
-#'    testthat::expect_equal(pUF, pScore[91, unfavorable])
-#'    testthat::expect_equal(pN, pScore[91, neutral])
+#'    testthat::expect_equal(pUF, pScore[indexPair, unfavorable])
+#'    testthat::expect_equal(pN, pScore[indexPair, neutral])
 #' }
 
 ## * getPairScore (code)

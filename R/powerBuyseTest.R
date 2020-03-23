@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 11 2020 (16:48) 
+## Last-Updated: mar 20 2020 (17:41) 
 ##           By: Brice Ozenne
-##     Update #: 510
+##     Update #: 530
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -77,7 +77,7 @@ powerBuyseTest <- function(sim,
                            n.rep,
                            null = c(0,1),
                            cpus = 1,                          
-                           seed = 10,
+                           seed = NULL,
                            conf.level = NULL,
                            order.Hprojection = NULL,
                            transformation = NULL,
@@ -142,17 +142,23 @@ powerBuyseTest <- function(sim,
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
                               data = NULL, model.tte = NULL, keep.pairScore = TRUE, ...)
-    if(outArgs$scoring.rule==1 && n.sample.size > 1){
-        stop("Peron correction not compatible with powerBuyseTest for more than one sample size\n")
-    }
-    if(any(outArgs$operator!=">0")){
-        stop("Cannot use argument \'operator\' with powerBuyseTest \n")
-    }
-    if(!is.null(outArgs$strata)){
-        stop("Cannot use argument \'strata\' with powerBuyseTest \n")
-    }
-    if(outArgs$method.inference %in% c("none","u-statistic") == FALSE){
-        stop("Argument \'method.inference\' must be \"none\" or \"u-statistic\" \n")
+
+    ## ** test arguments
+    if(option$check){
+        outTest <- do.call(testArgs, args = c(outArgs[setdiff(names(outArgs),"data")], list(data = dt.tempo)))        
+
+        if(outArgs$scoring.rule==1 && n.sample.size > 1){
+            stop("Peron correction not compatible with powerBuyseTest for more than one sample size\n")
+        }
+        if(any(outArgs$operator!=">0")){
+            stop("Cannot use argument \'operator\' with powerBuyseTest \n")
+        }
+        if(!is.null(outArgs$strata)){
+            stop("Cannot use argument \'strata\' with powerBuyseTest \n")
+        }
+        if(outArgs$method.inference %in% c("none","u-statistic") == FALSE){
+            stop("Argument \'method.inference\' must be \"none\" or \"u-statistic\" \n")
+        }
     }
 
     cpus <- outArgs$cpus
@@ -170,7 +176,9 @@ powerBuyseTest <- function(sim,
         cat("         Simulation study with BuyseTest \n\n")
 
         if(trace > 2){
-            do.call(printGeneral, args = outArgs)
+            argsInit <- setdiff(names(as.list(args(initializeData))), c("","copy","data"))
+            M.status <- do.call(initializeData, args = c(outArgs[argsInit], list(copy = FALSE, data = dt.tempo)))$M.status
+            do.call(printGeneral, args = c(outArgs, list(M.status = M.status)))
             if(outArgs$method.inference!="none"){
                 do.call(printInference, args = outArgs)
             }
@@ -187,9 +195,6 @@ powerBuyseTest <- function(sim,
             "   - cpus       : ",cpus,"\n",
             sep = "")
         cat(" \n")
-
-        
-        
     }
     ## ** define environment
     envirBT <- new.env()
@@ -215,6 +220,7 @@ powerBuyseTest <- function(sim,
                       "level.treatment","level.strata", "method.score",
                       "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                       "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
+
         envir$outArgs[out.name] <- initializeData(data = sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax),
                                                   type = envir$outArgs$type,
                                                   endpoint = envir$outArgs$endpoint,
@@ -225,6 +231,7 @@ powerBuyseTest <- function(sim,
                                                   Ustatus = envir$outArgs$Ustatus,
                                                   method.inference = envir$outArgs$method.inference,
                                                   operator = envir$outArgs$operator,
+                                                  censoring = envir$outArgs$censoring,
                                                   strata = envir$outArgs$strata,
                                                   treatment = envir$outArgs$treatment,
                                                   hierarchical = envir$outArgs$hierarchical,

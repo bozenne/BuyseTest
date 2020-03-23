@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: mar 19 2020 (17:06) 
+## Last-Updated: mar 23 2020 (10:40) 
 ##           By: Brice Ozenne
-##     Update #: 115
+##     Update #: 118
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,6 +41,7 @@ pairScore2dt <- function(pairScore,
         iM[, c("index.pair") := .SD$index.pair + 1] 
         iM[, c("indexWithinStrata.T") := .SD$indexWithinStrata.T + 1]
         iM[, c("indexWithinStrata.C") := .SD$indexWithinStrata.C + 1]
+        data.table::setkeyv(iM, c("index.T","index.C"))
         return(iM)
     })
     names(pairScore2) <- paste0(endpoint,"_",threshold)

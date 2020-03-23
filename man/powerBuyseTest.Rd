@@ -5,9 +5,9 @@
 \title{Performing simulation studies with BuyseTest}
 \usage{
 powerBuyseTest(sim, sample.size, sample.sizeC = NULL,
-  sample.sizeT = NULL, n.rep, null = c(0, 1), cpus = 1, seed = 10,
-  conf.level = NULL, order.Hprojection = NULL, transformation = NULL,
-  trace = 1, ...)
+  sample.sizeT = NULL, n.rep, null = c(0, 1), cpus = 1,
+  seed = NULL, conf.level = NULL, order.Hprojection = NULL,
+  transformation = NULL, trace = 1, ...)
 }
 \arguments{
 \item{sim}{[function] take two arguments:

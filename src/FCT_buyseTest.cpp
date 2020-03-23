@@ -12,30 +12,30 @@
 #include "FCT_calcStatistic.h"
 
 void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat >>& iPairDweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& iPairDweight_Dnuisance_T,
-				   std::vector<int>& activeUTTE, int& D_activeUTTE,
-				   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
-				   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-				   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID);
+		   std::vector<int>& activeUTTE, int& D_activeUTTE,
+		   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
+		   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
+		   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID);
 
 void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, 
-			   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
-			   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
-			   const arma::mat& iCount_obsC, const arma::mat& iCount_obsT,
-			   const std::vector<int>& activeUTTE, int D_activeUTTE,
-			   const arma::mat& iDscore_Dnuisance_C, const arma::mat& iDscore_Dnuisance_T,
-			   const std::vector< std::vector< arma::mat > >& iid_survJumpC, const std::vector< std::vector< arma::mat > >& iid_survJumpT,
-			   const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_C,
-			   const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_T,
-			   const arma::vec& vecn_pairs, unsigned int iter_d, int iIndex_UTTE, unsigned int iter_strata, int iMethod, int returnIID);
+	       arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
+	       const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
+	       const arma::mat& iCount_obsC, const arma::mat& iCount_obsT,
+	       const std::vector<int>& activeUTTE, int D_activeUTTE,
+	       const arma::mat& iDscore_Dnuisance_C, const arma::mat& iDscore_Dnuisance_T,
+	       const std::vector< std::vector< arma::mat > >& iid_survJumpC, const std::vector< std::vector< arma::mat > >& iid_survJumpT,
+	       const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_C,
+	       const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_T,
+	       const arma::vec& vecn_pairs, unsigned int iter_d, int iIndex_UTTE, unsigned int iter_strata, int iMethod, int returnIID);
 
 void updatePairScore(std::vector< arma::mat >& pairScore, arma::mat& iPairScore,
-					 unsigned int iter_strata, const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
-					 const arma::vec& vecn_control, const arma::vec& vecn_cumpairsM1, unsigned int iter_d);
+		     unsigned int iter_strata, const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
+		     const arma::vec& vecn_control, const arma::vec& vecn_cumpairsM1, unsigned int iter_d);
 
 void updateRP(arma::mat& iRP_score, std::vector< arma::sp_mat >& iRP_Dscore_Dnuisance_C, std::vector< arma::sp_mat >& iRP_Dscore_Dnuisance_T,
-			  std::vector<arma::mat>& RP_score, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-			  arma::vec& iPairWeight_nPeron, int iSize_RP, bool neutralAsUninf, int iter_d, int correctionUninf,
-			  double zeroPlus, int iIndex_UTTE, int nUTTE_analyzedPeron, int returnIID);
+	      std::vector<arma::mat>& RP_score, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
+	      arma::vec& iPairWeight_nPeron, int iSize_RP, bool neutralAsUninf, int iter_d, int correctionUninf,
+	      double zeroPlus, int iIndex_UTTE, int nUTTE_analyzedPeron, int returnIID);
 
 arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 
@@ -77,7 +77,13 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param keepScore Should the result of each pairwise comparison be kept?
 //' @param returnIID Should the iid be computed?
 //' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
+//'
+//' @details GPC_cpp implements GPC looping first over endpoints and then over pairs.
+//' To handle multiple endpoints, it stores some of the results which can be memory demanding when considering large sample - especially when computing the iid decomposition.
+//' GPC2_cpp implements GPC looping first over pairs and then over endpoints. It has rather minimal memory requirement but does not handle correction for uninformative pairs. 
+//'
 //' @keywords function Cpp BuyseTest
+//'
 //' @author Brice Ozenne
 
 // * Function GPC_cpp
@@ -85,38 +91,38 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @export
 // [[Rcpp::export]]
 Rcpp::List GPC_cpp(arma::mat endpoint,
-				   arma::mat status,
-				   std::vector< arma::uvec > indexC,
-				   std::vector< arma::uvec > posC,
-				   std::vector< arma::uvec > indexT,
-				   std::vector< arma::uvec > posT,
-				   std::vector< double > threshold,
-				   arma::vec weight,
-				   arma::vec method,
-				   unsigned int D,
-				   unsigned int D_UTTE,
-				   unsigned int n_strata,
-				   arma::vec nUTTE_analyzedPeron_M1,
-				   std::vector<unsigned int> index_endpoint, 
-				   std::vector<unsigned int> index_status, 
-				   std::vector<int> index_UTTE, 
-				   std::vector< std::vector< arma::mat > > list_survTimeC,
-				   std::vector< std::vector< arma::mat > > list_survTimeT,
-				   std::vector< std::vector< arma::mat > > list_survJumpC,
-				   std::vector< std::vector< arma::mat > > list_survJumpT,
-				   std::vector< arma::mat > list_lastSurv,
-				   arma::mat p_C,
-				   arma::mat p_T,
-				   std::vector< std::vector< arma::mat > > iid_survJumpC,
-				   std::vector< std::vector< arma::mat > > iid_survJumpT,
-				   double zeroPlus,
-				   int correctionUninf,
-				   bool hierarchical,
-				   int hprojection,
-				   bool neutralAsUninf,
-				   bool keepScore,
-				   int returnIID,
-				   int debug){
+		   arma::mat status,
+		   std::vector< arma::uvec > indexC,
+		   std::vector< arma::uvec > posC,
+		   std::vector< arma::uvec > indexT,
+		   std::vector< arma::uvec > posT,
+		   std::vector< double > threshold,
+		   arma::vec weight,
+		   arma::vec method,
+		   unsigned int D,
+		   unsigned int D_UTTE,
+		   unsigned int n_strata,
+		   arma::vec nUTTE_analyzedPeron_M1,
+		   std::vector<unsigned int> index_endpoint, 
+		   std::vector<unsigned int> index_status, 
+		   std::vector<int> index_UTTE, 
+		   std::vector< std::vector< arma::mat > > list_survTimeC,
+		   std::vector< std::vector< arma::mat > > list_survTimeT,
+		   std::vector< std::vector< arma::mat > > list_survJumpC,
+		   std::vector< std::vector< arma::mat > > list_survJumpT,
+		   std::vector< arma::mat > list_lastSurv,
+		   arma::mat p_C,
+		   arma::mat p_T,
+		   std::vector< std::vector< arma::mat > > iid_survJumpC,
+		   std::vector< std::vector< arma::mat > > iid_survJumpT,
+		   double zeroPlus,
+		   int correctionUninf,
+		   bool hierarchical,
+		   int hprojection,
+		   bool neutralAsUninf,
+		   bool keepScore,
+		   int returnIID,
+		   int debug){
 
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -161,53 +167,53 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 
 
   if(returnIID>0){
-	Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
+    Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
     Mvar.fill(0.0);
 
-	// iid with respect to the averaging over pairs
+    // iid with respect to the averaging over pairs
     iidAverage_favorable.resize(n_obs,D);
-	iidAverage_favorable.fill(0.0);
+    iidAverage_favorable.fill(0.0);
     iidAverage_unfavorable.resize(n_obs,D);
-	iidAverage_unfavorable.fill(0.0);
+    iidAverage_unfavorable.fill(0.0);
 
-	if(returnIID>1){  
-	  // iid with respect to the nuisance parameters
-	  iidNuisance_favorable.resize(n_obs,D);
-	  iidNuisance_favorable.fill(0.0);
-	  iidNuisance_unfavorable.resize(n_obs,D);
-	  iidNuisance_unfavorable.fill(0.0);
-	}
+    if(returnIID>1){  
+      // iid with respect to the nuisance parameters
+      iidNuisance_favorable.resize(n_obs,D);
+      iidNuisance_favorable.fill(0.0);
+      iidNuisance_unfavorable.resize(n_obs,D);
+      iidNuisance_unfavorable.fill(0.0);
+    }
   }
   
   // ** loop over strata
   for(unsigned int iter_strata=0 ; iter_strata < n_strata ; iter_strata++){
 
-	// *** initialization
-	int iSize_RP = 0; // number of residual pairs (initialize to avoid C++warnings). 
-	std::vector<int> activeUTTE(0); // index of the distinct TTE endpoints already analyzed with Peron scoring rule.
-	int D_activeUTTE = 0; // number of distinct TTE endpoints already analyzed with Peron scoring rule.
-	arma::vec iIndex_control; // position of the controls in the remaining pairs among all controls.
-	arma::vec iIndex_treatment; // position of the treated in the remaining pairs among all treated.
-	arma::vec iPairWeight_nPeron; // weight associated with each pair for endpoints not analyzed with Peron
+    // *** initialization
+    int iSize_RP = 0; // number of residual pairs (initialize to avoid C++warnings). 
+    std::vector<int> activeUTTE(0); // index of the distinct TTE endpoints already analyzed with Peron scoring rule.
+    int D_activeUTTE = 0; // number of distinct TTE endpoints already analyzed with Peron scoring rule.
+    arma::vec iIndex_control; // position of the controls in the remaining pairs among all controls.
+    arma::vec iIndex_treatment; // position of the treated in the remaining pairs among all treated.
+    arma::vec iPairWeight_nPeron; // weight associated with each pair for endpoints not analyzed with Peron
 
-	// score of the remaining pairs for the TTE endpoints at the highest previous threshold
-	// remaining pairs = pairs with non-0 neutral or uninformative score
-	std::vector<arma::mat> RP_score(D_UTTE); // mat(pair;favorable/unfavorable/neutral/uninformative)
-	arma::mat iRP_score; // same but only for the current endpoint
+    // score of the remaining pairs for the TTE endpoints at the highest previous threshold
+    // remaining pairs = pairs with non-0 neutral or uninformative score
+    std::vector<arma::mat> RP_score(D_UTTE); // mat(pair;favorable/unfavorable/neutral/uninformative)
+    arma::mat iRP_score; // same but only for the current endpoint
 
-	// iid(score) of the remaining pairs for the TTE endpoints at the smallest previous threshold
-	std::vector< std::vector< arma::sp_mat > > RP_Dscore_Dnuisance_C(D_UTTE); // endpoint favorable/unfavorable/neutral (pair,nuisance parameters)
-	std::vector< std::vector< arma::sp_mat > > RP_Dscore_Dnuisance_T(D_UTTE); // endpoint favorable/unfavorable/neutral (pair,nuisance parameters)
-	std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_C; //  favorable/unfavorable/neutral/uninformative (pair,nuisance parameters) [current endpoint
-	std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_T; //  favorable/unfavorable/neutral/uninformative (pair,nuisance parameters) [current endpoint]
-	if(returnIID>1){
-	for(unsigned int iter_UTTE=0; iter_UTTE<D_UTTE; iter_UTTE++){
-	  RP_Dscore_Dnuisance_C[iter_UTTE].resize(4);
-	  RP_Dscore_Dnuisance_T[iter_UTTE].resize(4);
-	  iRP_Dscore_Dnuisance_C.resize(4);
-	  iRP_Dscore_Dnuisance_T.resize(4);
-	}
-	}
+    // iid(score) of the remaining pairs for the TTE endpoints at the smallest previous threshold
+    std::vector< std::vector< arma::sp_mat > > RP_Dscore_Dnuisance_C(D_UTTE); // endpoint favorable/unfavorable/neutral (pair,nuisance parameters)
+    std::vector< std::vector< arma::sp_mat > > RP_Dscore_Dnuisance_T(D_UTTE); // endpoint favorable/unfavorable/neutral (pair,nuisance parameters)
+    std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_C; //  favorable/unfavorable/neutral/uninformative (pair,nuisance parameters) [current endpoint
+    std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_T; //  favorable/unfavorable/neutral/uninformative (pair,nuisance parameters) [current endpoint]
+    if(returnIID>1){
+      for(unsigned int iter_UTTE=0; iter_UTTE<D_UTTE; iter_UTTE++){
+	RP_Dscore_Dnuisance_C[iter_UTTE].resize(4);
+	RP_Dscore_Dnuisance_T[iter_UTTE].resize(4);
+	iRP_Dscore_Dnuisance_C.resize(4);
+	iRP_Dscore_Dnuisance_T.resize(4);
+      }
+    }
 	
     for(unsigned int iter_d=0 ; iter_d < D; iter_d++){
       if(debug>0){Rcpp::Rcout << std::endl << "** endpoint " << iter_d << "**" << std::endl;}
@@ -215,167 +221,167 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
       // *** type of endpoint
       int iMethod = method(iter_d); // how the score are computed: 1: continuous, 2: Gehan or 3: Peron
       int iIndex_UTTE = index_UTTE[iter_d]; // which of the distinct TTE is the current TTE endpoint (-100 if not TTE or if method=Gehan)
-	  int iNUTTE_analyzedPeron = nUTTE_analyzedPeron_M1[iter_d]; // number of distinct TTE endpoints already analyzed with Peron scoring rule
+      int iNUTTE_analyzedPeron = nUTTE_analyzedPeron_M1[iter_d]; // number of distinct TTE endpoints already analyzed with Peron scoring rule
 
-	  bool iFirstEndpoint = (iter_d==0) || (hierarchical==false); // should the GPC be performed on all possible pairs or only remaining pairs, accounting for weights.
+      bool iFirstEndpoint = (iter_d==0) || (hierarchical==false); // should the GPC be performed on all possible pairs or only remaining pairs, accounting for weights.
       bool iMoreEndpoint = (D>(iter_d+1)) && hierarchical; // is there any endpoint after this one (if not, do not store detailed information about the residual pairs)
-	  bool iAlreadyAnalyzed = (iIndex_UTTE < iNUTTE_analyzedPeron) && (iIndex_UTTE > (-zeroPlus)); // has the current endpoint already been analyzed using the Peron's scoring rule
-	  bool iUpdateIndexNeutral = iMoreEndpoint & neutralAsUninf;
-	  bool iUpdateIndexUninf = iMoreEndpoint & (correctionUninf == 0 || (neutralAsUninf && (correctionUninf == 1)));
+      bool iAlreadyAnalyzed = (iIndex_UTTE < iNUTTE_analyzedPeron) && (iIndex_UTTE > (-zeroPlus)); // has the current endpoint already been analyzed using the Peron's scoring rule
+      bool iUpdateIndexNeutral = iMoreEndpoint & neutralAsUninf;
+      bool iUpdateIndexUninf = iMoreEndpoint & (correctionUninf == 0 || (neutralAsUninf && (correctionUninf == 1)));
 	  
       // *** compute weights with their iid decomposition
-	  arma::vec iPairWeight = iPairWeight_nPeron; // weight associated with each pair over all previous endpoints	
-	  std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_C(4);  
-	  std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_T(4); 
-	  std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_C_M1;  
-	  std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_T_M1; 
-	  if(iNUTTE_analyzedPeron > zeroPlus){
-   	    if(debug>0){Rcpp::Rcout << " - compute weights("<< iNUTTE_analyzedPeron <<"): " << std::endl;}
-		prepareWeight(iPairWeight, iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
-					  activeUTTE, D_activeUTTE,
-					  iter_d, iIndex_UTTE, RP_score,
-					  RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
-					  iNUTTE_analyzedPeron, correctionUninf, zeroPlus, neutralAsUninf, returnIID);
-		if(iAlreadyAnalyzed){
-		  iPairDweight_Dnuisance_C_M1 = iPairDweight_Dnuisance_C;
-		  iPairDweight_Dnuisance_T_M1 = iPairDweight_Dnuisance_T;
-		}
-	  }
-	  // Rcpp::Rcout << iPairWeight << std::endl;
+      arma::vec iPairWeight = iPairWeight_nPeron; // weight associated with each pair over all previous endpoints	
+      std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_C(4);  
+      std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_T(4); 
+      std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_C_M1;  
+      std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_T_M1; 
+      if(iNUTTE_analyzedPeron > zeroPlus){
+	if(debug>0){Rcpp::Rcout << " - compute weights("<< iNUTTE_analyzedPeron <<"): " << std::endl;}
+	prepareWeight(iPairWeight, iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
+		      activeUTTE, D_activeUTTE,
+		      iter_d, iIndex_UTTE, RP_score,
+		      RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
+		      iNUTTE_analyzedPeron, correctionUninf, zeroPlus, neutralAsUninf, returnIID);
+	if(iAlreadyAnalyzed){
+	  iPairDweight_Dnuisance_C_M1 = iPairDweight_Dnuisance_C;
+	  iPairDweight_Dnuisance_T_M1 = iPairDweight_Dnuisance_T;
+	}
+      }
+      // Rcpp::Rcout << iPairWeight << std::endl;
 
-	  // *** compute scores
-	  if(debug>0){Rcpp::Rcout << " - score("<< iFirstEndpoint <<")" << std::endl;}
+      // *** compute scores
+      if(debug>0){Rcpp::Rcout << " - score("<< iFirstEndpoint <<")" << std::endl;}
       arma::uvec iUvec_endpoint = {index_endpoint[iter_d]};
       arma::uvec iUvec_status = {index_status[iter_d]};
 
-	  iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-								status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
-								list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-								list_lastSurv[iter_d].row(iter_strata),
-								iIndex_control, iIndex_treatment, iPairWeight,
-								activeUTTE, D_activeUTTE,
-								Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
-								iRP_score,
-								iCount_obsC, iCount_obsT, iDscore_Dnuisance_C, iDscore_Dnuisance_T,
-								iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
-								iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
-								zeroPlus, 
-								iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
-								iFirstEndpoint, false, iUpdateIndexNeutral, iUpdateIndexUninf, keepScore, correctionUninf, neutralAsUninf,
-								debug);
+      iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
+				status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
+				list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+				list_lastSurv[iter_d].row(iter_strata),
+				iIndex_control, iIndex_treatment, iPairWeight,
+				activeUTTE, D_activeUTTE,
+				Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
+				iRP_score,
+				iCount_obsC, iCount_obsT, iDscore_Dnuisance_C, iDscore_Dnuisance_T,
+				iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
+				iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
+				zeroPlus, 
+				iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
+				iFirstEndpoint, false, iUpdateIndexNeutral, iUpdateIndexUninf, keepScore, correctionUninf, neutralAsUninf,
+				debug);
 
-	  if(iAlreadyAnalyzed){ // substract contribution of the previous analysis
-		if(debug>0){Rcpp::Rcout << " - scoreM1("<< iIndex_UTTE <<")" << std::endl;}
-		arma::mat iRP_score_M1= RP_score[iIndex_UTTE]; // scores relative to latest analysis of the same endpoint
-		std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_C_M1 = RP_Dscore_Dnuisance_C[iIndex_UTTE]; // iid of the scores relative to latest analysis of the same endpoint
-		std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_T_M1 = RP_Dscore_Dnuisance_T[iIndex_UTTE];
+      if(iAlreadyAnalyzed){ // substract contribution of the previous analysis
+	if(debug>0){Rcpp::Rcout << " - scoreM1("<< iIndex_UTTE <<")" << std::endl;}
+	arma::mat iRP_score_M1= RP_score[iIndex_UTTE]; // scores relative to latest analysis of the same endpoint
+	std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_C_M1 = RP_Dscore_Dnuisance_C[iIndex_UTTE]; // iid of the scores relative to latest analysis of the same endpoint
+	std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_T_M1 = RP_Dscore_Dnuisance_T[iIndex_UTTE];
 
-		// re-compute using current weights
-		double iCount_favorable_M1,iCount_unfavorable_M1,iCount_neutral_M1,iCount_uninf_M1; // initialization necessary
-		arma::mat iCount_obsC_M1,iCount_obsT_M1;
-		arma::mat iDscore_Dnuisance_C_M1,iDscore_Dnuisance_T_M1;
+	// re-compute using current weights
+	double iCount_favorable_M1,iCount_unfavorable_M1,iCount_neutral_M1,iCount_uninf_M1; // initialization necessary
+	arma::mat iCount_obsC_M1,iCount_obsT_M1;
+	arma::mat iDscore_Dnuisance_C_M1,iDscore_Dnuisance_T_M1;
 
-		// note the values in endpoint, status, survTime, survJump, lastSurv are not used (only their dimensions)
-		arma::mat iPairScore_M1 = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-											   status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
-											   list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-											   list_lastSurv[iter_d].row(iter_strata), 
-											   iIndex_control, iIndex_treatment, iPairWeight,
-											   activeUTTE, D_activeUTTE,
-											   iCount_favorable_M1, iCount_unfavorable_M1, iCount_neutral_M1, iCount_uninf_M1,
-											   iRP_score_M1,
-											   iCount_obsC_M1, iCount_obsT_M1, iDscore_Dnuisance_C_M1, iDscore_Dnuisance_T_M1,
-											   iRP_Dscore_Dnuisance_C_M1, iRP_Dscore_Dnuisance_T_M1,
-											   iPairDweight_Dnuisance_C_M1, iPairDweight_Dnuisance_T_M1,								
-											   zeroPlus, 
-											   iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
-											   false, true, false, false, keepScore, correctionUninf, neutralAsUninf,
-											   debug);
+	// note the values in endpoint, status, survTime, survJump, lastSurv are not used (only their dimensions)
+	arma::mat iPairScore_M1 = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
+					       status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
+					       list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+					       list_lastSurv[iter_d].row(iter_strata), 
+					       iIndex_control, iIndex_treatment, iPairWeight,
+					       activeUTTE, D_activeUTTE,
+					       iCount_favorable_M1, iCount_unfavorable_M1, iCount_neutral_M1, iCount_uninf_M1,
+					       iRP_score_M1,
+					       iCount_obsC_M1, iCount_obsT_M1, iDscore_Dnuisance_C_M1, iDscore_Dnuisance_T_M1,
+					       iRP_Dscore_Dnuisance_C_M1, iRP_Dscore_Dnuisance_T_M1,
+					       iPairDweight_Dnuisance_C_M1, iPairDweight_Dnuisance_T_M1,								
+					       zeroPlus, 
+					       iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
+					       false, true, false, false, keepScore, correctionUninf, neutralAsUninf,
+					       debug);
 
-		Mcount_favorable(iter_strata,iter_d) -= iCount_favorable_M1;
-		Mcount_unfavorable(iter_strata,iter_d) -= iCount_unfavorable_M1;
-		if(keepScore){
-		  iPairScore.col(2) -= iPairScore_M1.col(2); // favorable
-		  iPairScore.col(3) -= iPairScore_M1.col(3); // unfavorable corrected
-		  iPairScore.col(7) -= iPairScore_M1.col(7); // favorable
-		  iPairScore.col(8) -= iPairScore_M1.col(8); // unfavorable corrected
-		}
-		if(returnIID>0){
+	Mcount_favorable(iter_strata,iter_d) -= iCount_favorable_M1;
+	Mcount_unfavorable(iter_strata,iter_d) -= iCount_unfavorable_M1;
+	if(keepScore){
+	  iPairScore.col(2) -= iPairScore_M1.col(2); // favorable
+	  iPairScore.col(3) -= iPairScore_M1.col(3); // unfavorable corrected
+	  iPairScore.col(7) -= iPairScore_M1.col(7); // favorable
+	  iPairScore.col(8) -= iPairScore_M1.col(8); // unfavorable corrected
+	}
+	if(returnIID>0){
 
-		  for(int iCol=0; iCol <2; iCol++){
-			iCount_obsC.col(iCol) -= iCount_obsC_M1.col(iCol);
-			iCount_obsT.col(iCol) -= iCount_obsT_M1.col(iCol);
-			if(returnIID>1){
-			  iDscore_Dnuisance_C.col(iCol) -= iDscore_Dnuisance_C_M1.col(iCol);
-			  iDscore_Dnuisance_T.col(iCol) -= iDscore_Dnuisance_T_M1.col(iCol);
-			  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
-				iPairDweight_Dnuisance_C[iCol][activeUTTE[iter_UTTE]] -= iPairDweight_Dnuisance_C_M1[iCol][activeUTTE[iter_UTTE]];
-				iPairDweight_Dnuisance_T[iCol][activeUTTE[iter_UTTE]] -= iPairDweight_Dnuisance_T_M1[iCol][activeUTTE[iter_UTTE]];
-			  }
-			}
-		  }
-
-		}
+	  for(int iCol=0; iCol <2; iCol++){
+	    iCount_obsC.col(iCol) -= iCount_obsC_M1.col(iCol);
+	    iCount_obsT.col(iCol) -= iCount_obsT_M1.col(iCol);
+	    if(returnIID>1){
+	      iDscore_Dnuisance_C.col(iCol) -= iDscore_Dnuisance_C_M1.col(iCol);
+	      iDscore_Dnuisance_T.col(iCol) -= iDscore_Dnuisance_T_M1.col(iCol);
+	      for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+		iPairDweight_Dnuisance_C[iCol][activeUTTE[iter_UTTE]] -= iPairDweight_Dnuisance_C_M1[iCol][activeUTTE[iter_UTTE]];
+		iPairDweight_Dnuisance_T[iCol][activeUTTE[iter_UTTE]] -= iPairDweight_Dnuisance_T_M1[iCol][activeUTTE[iter_UTTE]];
+	      }
+	    }
 	  }
 
-	  // *** update number of pairs
-	  if(iter_d==0){
-		if(debug>0){Rcpp::Rcout << " update number of pairs" << std::endl;}
-		vecn_control[iter_strata] = posC[iter_strata].size();
-		vecn_treatment[iter_strata] = posT[iter_strata].size();		  
-		vecn_pairs[iter_strata] = vecn_control[iter_strata] * vecn_treatment[iter_strata];
-		//= Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
-		if(iter_strata == 0){
-		  vecn_cumpairsM1[0] = 0;
-		}else{
-		  vecn_cumpairsM1[iter_strata] = vecn_cumpairsM1[iter_strata-1] + vecn_control[iter_strata]*vecn_treatment[iter_strata];
-		}
-	  }
+	}
+      }
 
-	  // *** update iid
-	  if(returnIID>0){
+      // *** update number of pairs
+      if(iter_d==0){
+	if(debug>0){Rcpp::Rcout << " update number of pairs" << std::endl;}
+	vecn_control[iter_strata] = posC[iter_strata].size();
+	vecn_treatment[iter_strata] = posT[iter_strata].size();		  
+	vecn_pairs[iter_strata] = vecn_control[iter_strata] * vecn_treatment[iter_strata];
+	//= Mcount_favorable(iter_strata,0) + Mcount_unfavorable(iter_strata,0) + Mcount_neutral(iter_strata,0) + Mcount_uninf(iter_strata,0);
+	if(iter_strata == 0){
+	  vecn_cumpairsM1[0] = 0;
+	}else{
+	  vecn_cumpairsM1[iter_strata] = vecn_cumpairsM1[iter_strata-1] + vecn_control[iter_strata]*vecn_treatment[iter_strata];
+	}
+      }
 
-	  if(debug>0){Rcpp::Rcout << " update iid (" << returnIID << ")" << std::endl;}
-		updateIID(iidAverage_favorable, iidAverage_unfavorable,
-				  iidNuisance_favorable, iidNuisance_unfavorable, 
-				  posC, posT,
-				  iCount_obsC, iCount_obsT,
-				  activeUTTE, D_activeUTTE,
-				  iDscore_Dnuisance_C, iDscore_Dnuisance_T,
-				  iid_survJumpC, iid_survJumpT,
-				  iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
-				  vecn_pairs, iter_d, iIndex_UTTE, iter_strata, iMethod, returnIID);
-	  } 
+      // *** update iid
+      if(returnIID>0){
+
+	if(debug>0){Rcpp::Rcout << " update iid (" << returnIID << ")" << std::endl;}
+	updateIID(iidAverage_favorable, iidAverage_unfavorable,
+		  iidNuisance_favorable, iidNuisance_unfavorable, 
+		  posC, posT,
+		  iCount_obsC, iCount_obsT,
+		  activeUTTE, D_activeUTTE,
+		  iDscore_Dnuisance_C, iDscore_Dnuisance_T,
+		  iid_survJumpC, iid_survJumpT,
+		  iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
+		  vecn_pairs, iter_d, iIndex_UTTE, iter_strata, iMethod, returnIID);
+      } 
 	  
-	  // *** update pairwise-scores (all pairs)
-	  if(keepScore){ // store iPaireScore in pairScore
-		if(debug>0){Rcpp::Rcout << " update pairwise scores " << std::endl;}
-		updatePairScore(pairScore, iPairScore,
-						iter_strata, posC, posT,
-						vecn_control, vecn_cumpairsM1, iter_d);
+      // *** update pairwise-scores (all pairs)
+      if(keepScore){ // store iPaireScore in pairScore
+	if(debug>0){Rcpp::Rcout << " update pairwise scores " << std::endl;}
+	updatePairScore(pairScore, iPairScore,
+			iter_strata, posC, posT,
+			vecn_control, vecn_cumpairsM1, iter_d);
       }
     
       // *** store scores (and iid) relative to the remaining pairs
       if(iMoreEndpoint){
-		// end if no remaining pairs to be analyzed
-		iSize_RP = iRP_score.n_rows;
-		if(iSize_RP < zeroPlus){break;}
+	// end if no remaining pairs to be analyzed
+	iSize_RP = iRP_score.n_rows;
+	if(iSize_RP < zeroPlus){break;}
 		
-		// update position of the remaining pairs among the controls / treated
-		iIndex_control = iRP_score.col(1);
-		iIndex_treatment = iRP_score.col(2);
+	// update position of the remaining pairs among the controls / treated
+	iIndex_control = iRP_score.col(1);
+	iIndex_treatment = iRP_score.col(2);
 
-		// update iPairWeight_nPeron, RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
-		// and re-initialize iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T
-		if(debug>0){Rcpp::Rcout << " update score/iid for the remaing pairs("<< nUTTE_analyzedPeron_M1[iter_d+1] <<") " << std::endl;}
-		updateRP(iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
-				 RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
-				 iPairWeight_nPeron, iSize_RP, neutralAsUninf, iter_d, correctionUninf,
-				 zeroPlus, iIndex_UTTE, nUTTE_analyzedPeron_M1[iter_d+1], returnIID);
-	  }
+	// update iPairWeight_nPeron, RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
+	// and re-initialize iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T
+	if(debug>0){Rcpp::Rcout << " update score/iid for the remaing pairs("<< nUTTE_analyzedPeron_M1[iter_d+1] <<") " << std::endl;}
+	updateRP(iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
+		 RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
+		 iPairWeight_nPeron, iSize_RP, neutralAsUninf, iter_d, correctionUninf,
+		 zeroPlus, iIndex_UTTE, nUTTE_analyzedPeron_M1[iter_d+1], returnIID);
+      }
   
 	  
-	} // end endpoint
+    } // end endpoint
   } // end strata
   
   // ** proportion in favor of treatment
@@ -385,91 +391,625 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 
   calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
                 Mcount_favorable, Mcount_unfavorable,
-				iidAverage_favorable, iidAverage_unfavorable, iidNuisance_favorable, iidNuisance_unfavorable,
-				Mvar, returnIID,
-				posC, posT, 
+		iidAverage_favorable, iidAverage_unfavorable, iidNuisance_favorable, iidNuisance_unfavorable,
+		Mvar, returnIID,
+		posC, posT, 
                 D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-				weight, hprojection, pairScore, keepScore);
+		weight, hprojection, pairScore, keepScore);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,
-							Rcpp::Named("count_unfavorable") = Mcount_unfavorable,
-							Rcpp::Named("count_neutral") = Mcount_neutral,           
-							Rcpp::Named("count_uninf") = Mcount_uninf,
-							Rcpp::Named("delta_netBenefit") = delta_netBenefit,
-							Rcpp::Named("delta_winRatio") = delta_winRatio,
-							Rcpp::Named("Delta_netBenefit") = arma::conv_to< std::vector<double> >::from(Delta_netBenefit),
-							Rcpp::Named("Delta_winRatio") = arma::conv_to< std::vector<double> >::from(Delta_winRatio),
-							Rcpp::Named("n_pairs") = arma::conv_to< std::vector<double> >::from(vecn_pairs),
-							Rcpp::Named("iidAverage_favorable") = iidAverage_favorable,
-							Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,
-							Rcpp::Named("iidNuisance_favorable") = iidNuisance_favorable,
-							Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
-							Rcpp::Named("Mvar") = Mvar,
-							Rcpp::Named("tableScore")  = pairScore
-					  ));
+			    Rcpp::Named("count_unfavorable") = Mcount_unfavorable,
+			    Rcpp::Named("count_neutral") = Mcount_neutral,           
+			    Rcpp::Named("count_uninf") = Mcount_uninf,
+			    Rcpp::Named("delta_netBenefit") = delta_netBenefit,
+			    Rcpp::Named("delta_winRatio") = delta_winRatio,
+			    Rcpp::Named("Delta_netBenefit") = arma::conv_to< std::vector<double> >::from(Delta_netBenefit),
+			    Rcpp::Named("Delta_winRatio") = arma::conv_to< std::vector<double> >::from(Delta_winRatio),
+			    Rcpp::Named("n_pairs") = arma::conv_to< std::vector<double> >::from(vecn_pairs),
+			    Rcpp::Named("iidAverage_favorable") = iidAverage_favorable,
+			    Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,
+			    Rcpp::Named("iidNuisance_favorable") = iidNuisance_favorable,
+			    Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
+			    Rcpp::Named("Mvar") = Mvar,
+			    Rcpp::Named("tableScore")  = pairScore
+			    ));
+}
+
+// * Function GPC2_cpp
+//' @name GPC_cpp
+//' @export
+// [[Rcpp::export]]
+Rcpp::List GPC2_cpp(arma::mat endpoint,
+		    arma::mat status,
+		    std::vector< arma::uvec > indexC,
+		    std::vector< arma::uvec > posC,
+		    std::vector< arma::uvec > indexT,
+		    std::vector< arma::uvec > posT,
+		    std::vector< double > threshold,
+		    arma::vec weight,
+		    arma::vec method,
+		    unsigned int D,
+		    unsigned int D_UTTE,
+		    unsigned int n_strata,
+		    arma::vec nUTTE_analyzedPeron_M1,
+		    std::vector<unsigned int> index_endpoint, 
+		    std::vector<unsigned int> index_status, 
+		    std::vector<int> index_UTTE, 
+		    std::vector< std::vector< arma::mat > > list_survTimeC,
+		    std::vector< std::vector< arma::mat > > list_survTimeT,
+		    std::vector< std::vector< arma::mat > > list_survJumpC,
+		    std::vector< std::vector< arma::mat > > list_survJumpT,
+		    std::vector< arma::mat > list_lastSurv,
+		    arma::mat p_C,
+		    arma::mat p_T,
+		    std::vector< std::vector< arma::mat > > iid_survJumpC,
+		    std::vector< std::vector< arma::mat > > iid_survJumpT,
+		    double zeroPlus,
+		    int correctionUninf, // not used		   
+		    bool hierarchical,
+		    int hprojection,
+		    bool neutralAsUninf,
+		    bool keepScore,
+		    int returnIID,
+		    int debug){
+
+  if(debug>0){Rcpp::Rcout << std::endl;}
+
+  /// ** number of pairs
+  int n_obs = endpoint.n_rows;
+  bool methodPeron = (method.max()>=4); // if >= 3 then the Peron's scoring rule is used
+
+  // number of pairs
+  arma::vec vecn_pairs(n_strata); // number of pairs sumed over the strats
+  arma::vec vecn_treatment(n_strata); // number of patients in the treatment group over the strats
+  arma::vec vecn_control(n_strata); // number of patients in the control group over the strats
+  arma::vec vecn_cumpairsM1(n_strata); // number of pairs in the previous strata (used when storing all the pairs in pairScore)
+  for(unsigned int iter_strata=0 ; iter_strata < n_strata ; iter_strata++){
+    vecn_control[iter_strata] = posC[iter_strata].size();
+    vecn_treatment[iter_strata] = posT[iter_strata].size();		  
+    vecn_pairs[iter_strata] = vecn_control[iter_strata] * vecn_treatment[iter_strata];
+    if(iter_strata == 0){
+      vecn_cumpairsM1[0] = 0;
+    }else{
+      vecn_cumpairsM1[iter_strata] = vecn_cumpairsM1[iter_strata-1] + vecn_control[iter_strata]*vecn_treatment[iter_strata];
+    }
+  }
+  
+
+  // ** objects storing the final results
+  // score specific to each pair
+  int n_pairs = arma::sum(vecn_pairs);
+  std::vector< std::vector <std::vector <double> > > vecPairScore;
+  if(keepScore){
+    vecPairScore.resize(D);
+    for(unsigned int iter_d=0; iter_d<D; iter_d++){
+      vecPairScore[iter_d].resize(15);
+      for(unsigned int iter_type=0; iter_type<15; iter_type++){
+	vecPairScore[iter_d].reserve(n_pairs);
+      }
+    }
+  }
+  // std::vector< arma::mat > pairScore;
+  // if(keepScore){
+  //   pairScore.resize(D);
+  //   for(unsigned int iter_d=0; iter_d < D; iter_d++){
+  //     pairScore[iter_d].resize(n_pairs,15);
+  //   }
+  // }
+	
+  // total score over pairs
+  arma::mat Mcount_favorable(n_strata,D,arma::fill::zeros); // store the total weight of favorable pairs [all endpoints, strata]
+  arma::mat Mcount_unfavorable(n_strata,D,arma::fill::zeros); // store the total weight of unfavorable pairs [all endpoints, strata]
+  arma::mat Mcount_neutral(n_strata,D,arma::fill::zeros); // store the total weight of neutral pairs [all endpoints, strata]
+  arma::mat Mcount_uninf(n_strata,D,arma::fill::zeros); // store the total weight of uninf pairs [all endpoints, strata]
+
+  // variance and iid
+  arma::mat Mvar; // variance-covariance (favorable,unfavorable) scores  [all endpoints]
+
+  arma::mat iidAverage_favorable; // iid relative to the average over all pairs for the favorable scores [all endpoints]
+  arma::mat iidAverage_unfavorable; // iid relative to the average over all pairs for the unfavorable scores [all endpoints]
+  arma::mat iidNuisance_favorable; // iid relative to the nuisance parameters for the favorable scores [all endpoints]
+  arma::mat iidNuisance_unfavorable; // iid relative to the nuisance parameters for the unfavorable scores [all endpoints]
+
+  if(returnIID>0){
+    Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
+    Mvar.fill(0.0);
+
+    // iid with respect to the averaging over pairs
+    iidAverage_favorable.resize(n_obs,D);
+    iidAverage_favorable.fill(0.0);
+    iidAverage_unfavorable.resize(n_obs,D);
+    iidAverage_unfavorable.fill(0.0);
+
+    if(returnIID>1){  
+      // iid with respect to the nuisance parameters
+      iidNuisance_favorable.resize(n_obs,D);
+      iidNuisance_favorable.fill(0.0);
+      iidNuisance_unfavorable.resize(n_obs,D);
+      iidNuisance_unfavorable.fill(0.0);
+
+    }
+  }
+
+  // ** initialization for the loop
+  // over strata
+  arma::uvec indexStrataC;
+  arma::uvec indexStrataT;
+  arma::uvec posStrataC;
+  arma::uvec posStrataT;
+  int nStrata_Control;
+  int nStrata_Treatment;
+
+  std::vector< arma::mat > Dfavorable_Dnuisance_strataC; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  std::vector< arma::mat > Dfavorable_Dnuisance_strataT; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  std::vector< arma::mat > Dunfavorable_Dnuisance_strataC; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  std::vector< arma::mat > Dunfavorable_Dnuisance_strataT; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
+  if(returnIID>1){
+    Dfavorable_Dnuisance_strataC.resize(D_UTTE);
+    Dfavorable_Dnuisance_strataT.resize(D_UTTE);
+    Dunfavorable_Dnuisance_strataC.resize(D_UTTE);
+    Dunfavorable_Dnuisance_strataT.resize(D_UTTE);
+  }
+  
+  // over pair
+  int iPair = 0;
+
+  arma::vec iFavorable_UTTE; // store favorable score computed at the last threshold for each UTTE
+  arma::vec iUnfavorable_UTTE; // store unfavorable score computed at the last threshold for each UTTE
+  arma::vec iWeight_UTTE; // store weight (i.e. complement to 1 of fav+defav) computed at the last threshold for each UTTE
+  std::vector < arma::vec > iDweight_Dnuisance_C_UTTE; // store derivative of the weight regarding the nuisance parameters computed at the last threshold for each UTTE
+  std::vector < arma::vec > iDweight_Dnuisance_T_UTTE; // store derivative of the weight regarding the nuisance parameters computed at the last threshold for each UTTE
+
+  std::vector < arma::mat > iDscore_Dnuisance_C_UTTE; // store derivative of the weight regarding the score computed at the last threshold for each UTTE
+  std::vector < arma::mat > iDscore_Dnuisance_T_UTTE; // store derivative of the weight regarding the score computed at the last threshold for each UTTE
+  if(methodPeron){
+    iFavorable_UTTE.resize(D_UTTE);
+    iUnfavorable_UTTE.resize(D_UTTE);
+    iWeight_UTTE.resize(D_UTTE);
+
+    if(returnIID>1){
+      iDweight_Dnuisance_C_UTTE.resize(D_UTTE);
+      iDweight_Dnuisance_T_UTTE.resize(D_UTTE);
+
+      iDscore_Dnuisance_C_UTTE.resize(D_UTTE);
+      iDscore_Dnuisance_T_UTTE.resize(D_UTTE);
+    }
+  }
+
+  // over endpoint
+  int iIndex_UTTE_d; // position of the TTE among the UTTE
+  int iMethod; // method used to analyze the endpoint
+
+  double iCumWeight; // current weight of the pair
+  double iNewWeight; // remaining weight to analyze after the current endpoint
+
+  std::vector< double > iPairScore;
+
+  arma::mat iDscore_Dnuisance_C;
+  arma::mat iDscore_Dnuisance_T;
+  
+  // ** loop over strata
+  
+  for(unsigned int iter_strata=0 ; iter_strata < n_strata ; iter_strata++){
+    if(debug>0){Rcpp::Rcout << "Strata " << iter_strata << std::endl;}
+
+    // subset by strata
+    indexStrataC = indexC[iter_strata];
+    indexStrataT = indexT[iter_strata];
+    posStrataC = posC[iter_strata];
+    posStrataT = posT[iter_strata];
+    nStrata_Control = indexStrataC.size();
+    nStrata_Treatment = indexStrataT.size();
+
+    // prepare d(survival)/d(nuisance)
+    if(returnIID > 1){ // 
+      for(unsigned int iter_d=0; iter_d < D; iter_d ++){
+	if(p_C(iter_strata,iter_d)>0){
+	  Dfavorable_Dnuisance_strataC[index_UTTE[iter_d]].resize(p_C(iter_strata,iter_d),D);
+	  Dfavorable_Dnuisance_strataC[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+	  Dunfavorable_Dnuisance_strataC[index_UTTE[iter_d]].resize(p_C(iter_strata,iter_d),D);
+	  Dunfavorable_Dnuisance_strataC[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+
+	  iDscore_Dnuisance_C_UTTE[index_UTTE[iter_d]].resize(p_C(iter_strata,iter_d),4);
+	}
+	if(p_T(iter_strata,iter_d)>0){
+	  Dfavorable_Dnuisance_strataT[index_UTTE[iter_d]].resize(p_T(iter_strata,iter_d),D);
+	  Dfavorable_Dnuisance_strataT[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+	  Dunfavorable_Dnuisance_strataT[index_UTTE[iter_d]].resize(p_T(iter_strata,iter_d),D);
+	  Dunfavorable_Dnuisance_strataT[index_UTTE[iter_d]].fill(0.0); // will keep the sum over all pairs within strata
+
+	  iDscore_Dnuisance_T_UTTE[index_UTTE[iter_d]].resize(p_T(iter_strata,iter_d),4);
+	}
+      }
+    }
+
+    // *** loop over pairs
+    if(debug>0){Rcpp::Rcout << " - compute scores" << std::endl;}
+    for(unsigned int iter_C=0 ; iter_C < nStrata_Control; iter_C++){
+      for(unsigned int iter_T=0 ; iter_T < nStrata_Treatment; iter_T++){
+	if(debug>1){Rcpp::Rcout << " pair " << iPair << " (" << iter_C << ";" << iter_T << ") ";}
+    	
+	// prepare survival
+	if(methodPeron){ // 
+	  iFavorable_UTTE.fill(0.0);
+	  iUnfavorable_UTTE.fill(0.0);
+	  iWeight_UTTE.fill(0.0);
+	  if(returnIID>1){
+	    iDweight_Dnuisance_C_UTTE.clear();
+	    iDweight_Dnuisance_T_UTTE.clear();
+	    iDweight_Dnuisance_C_UTTE.resize(D_UTTE);
+	    iDweight_Dnuisance_T_UTTE.resize(D_UTTE);
+
+	    for(unsigned int iter_d=0; iter_d < D; iter_d ++){
+	      if(p_C(iter_strata,iter_d)>0){
+		iDscore_Dnuisance_C_UTTE[index_UTTE[iter_d]].fill(0.0);
+	      }
+	      if(p_T(iter_strata,iter_d)>0){
+		iDscore_Dnuisance_T_UTTE[index_UTTE[iter_d]].fill(0.0);
+	      }
+	    }
+	  }
+	}
+
+	// **** loop over endpoints
+	for(unsigned int iter_d=0 ; iter_d < D; iter_d++){
+	  if(debug==3){Rcpp::Rcout << "*" << std::endl;}
+	  iIndex_UTTE_d = index_UTTE[iter_d];
+	  iMethod = method[iter_d];
+  
+	  // **** compute weight
+	  if(debug>3){Rcpp::Rcout << "w";}
+	  iCumWeight = 1;
+	  iNewWeight = 0;
+	  if(hierarchical && methodPeron){
+	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
+	      if(iter_UTTE != iIndex_UTTE_d){
+		iCumWeight *= iWeight_UTTE[iter_UTTE];
+	      }
+	    }
+	    if(iCumWeight<zeroPlus){break;}
+	  }
+	      
+	  // **** compute score
+	  if(debug>3){Rcpp::Rcout << "s";}
+	  if(iMethod == 1){ // continuous or binary endpoint
+	    iPairScore = calcOnePair_Continuous(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+						threshold[iter_d]);
+	  }else if(iMethod == 2){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
+	    iPairScore = calcOnePair_TTEgehan(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+					      status(indexStrataC[iter_C], index_status[iter_d]),
+					      status(indexStrataT[iter_T], index_status[iter_d]),
+					      threshold[iter_d]);
+	  }else if(iMethod == 3){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
+	    iPairScore = calcOnePair_TTEgehan2(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+					       status(indexStrataC[iter_C], index_status[iter_d]),
+					       status(indexStrataT[iter_T], index_status[iter_d]),
+					       threshold[iter_d]);
+	  }else if(iMethod == 4){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
+
+	    if(returnIID>1){
+	      iDscore_Dnuisance_C.resize(p_C(iter_strata, iter_d),4);
+	      iDscore_Dnuisance_T.resize(p_T(iter_strata, iter_d),4);
+	    }
+	    
+	    // note: iDscore_Dnuisance_C, iDscore_Dnuisance_T are initalized to 0 in calcOneScore_SurvPeron
+	    iPairScore = calcOneScore_SurvPeron(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+						endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
+						status(indexStrataC[iter_C], index_status[iter_d]),
+						status(indexStrataT[iter_T], index_status[iter_d]),
+						threshold[iter_d],
+						list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T), list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+						list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
+						iDscore_Dnuisance_C, iDscore_Dnuisance_T,
+						p_C(iter_strata, iter_d), p_T(iter_strata, iter_d), returnIID);
+
+	  }else if(iMethod == 5){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
+	    iPairScore = calcOnePair_CRPeron(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+					     endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
+					     status(indexStrataC[iter_C], index_status[iter_d]),
+					     status(indexStrataT[iter_T], index_status[iter_d]),
+					     threshold[iter_d],
+					     list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T), list_survJumpC[iter_d][iter_strata],					     
+					     list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), list_lastSurv[iter_d](iter_strata,2), list_lastSurv[iter_d](iter_strata,3));
+	  }
+	  
+	  // **** remove contribution from previously analyzed threshold of the same endpoint
+	  if( (iMethod >= 4) && (nUTTE_analyzedPeron_M1[iter_d]>0) ){
+	    iPairScore[0] -= iFavorable_UTTE[iIndex_UTTE_d];
+	    iPairScore[1] -= iUnfavorable_UTTE[iIndex_UTTE_d];
+
+	    if(returnIID>1){
+	      iDscore_Dnuisance_C.col(0) -= iDscore_Dnuisance_C_UTTE[iIndex_UTTE_d].col(0);
+	      iDscore_Dnuisance_C.col(1) -= iDscore_Dnuisance_C_UTTE[iIndex_UTTE_d].col(1);
+	      iDscore_Dnuisance_T.col(0) -= iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d].col(0);
+	      iDscore_Dnuisance_T.col(1) -= iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d].col(1);
+	    }
+	  }
+    
+	  // **** aggregate favorable score and iid over analyzed pairs
+	  // if(iPairScore[0] > zeroPlus){
+	  if(debug==4){Rcpp::Rcout << "f";}
+	  if(debug>4){Rcpp::Rcout << " favorable=" << iPairScore[0] << " ";}
+
+	  // score
+	  Mcount_favorable(iter_strata,iter_d) += iPairScore[0] * iCumWeight;
+	  if(returnIID > 0){
+	    // iid (average)
+	    iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScore[0] * iCumWeight;
+	    iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScore[0] * iCumWeight;
+	  }
+	  // iid (nuisance) for the score
+	  if( (returnIID > 1) && (iMethod == 4) ){
+	    Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C.col(0) * iCumWeight;
+	    Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T.col(0) * iCumWeight;
+	  }
+	  // iid (nuisance) for the weight of the pair
+	  if( (returnIID > 1) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
+	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
+	      if(iter_UTTE != iIndex_UTTE_d){
+		Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScore[0] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScore[0] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+	      }
+	    }
+	  }
+	  // }
+
+	  // **** aggregate unfavorable score and iid over analyzed pairs
+	  // if(iPairScore[1] > zeroPlus){
+	  if(debug==4){Rcpp::Rcout << "d";}
+	  if(debug>4){Rcpp::Rcout << " unfavorable=" << iPairScore[1] << " ";}
+
+	  // score
+	  Mcount_unfavorable(iter_strata,iter_d) += iPairScore[1] * iCumWeight;
+      
+	  if(returnIID > 0){
+	    // iid (average)
+	    iidAverage_unfavorable(posStrataC[iter_C],iter_d) += iPairScore[1] * iCumWeight;
+	    iidAverage_unfavorable(posStrataT[iter_T],iter_d) += iPairScore[1] * iCumWeight;
+	  }
+      
+	  // iid (nuisance) for the score
+	  if( (returnIID > 1) && (iMethod == 4) ){
+	    Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C.col(1) * iCumWeight;
+	    Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T.col(1) * iCumWeight;
+	  }
+
+	  // iid (nuisance) for the weight of the pair
+	  if( (returnIID > 1) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
+	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
+	      if(iter_UTTE != iIndex_UTTE_d){	      
+		Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScore[1] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScore[1] * iCumWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+	      }
+	    }
+	  }
+	  // }
+    
+    
+	  // **** aggregate neutral score and iid over analyzed pairs
+	  if(iPairScore[2] > zeroPlus){
+	    if(debug==4){Rcpp::Rcout << "n";}
+	    if(debug>4){Rcpp::Rcout << " neutral=" << iPairScore[2] << " ";}
+		  
+	    // score
+	    Mcount_neutral(iter_strata,iter_d) += iPairScore[2] * iCumWeight;
+
+	    // update weight
+	    if(neutralAsUninf){
+	      iNewWeight += iPairScore[2];
+	    }
+	  }
+    
+	  // **** aggregate uninformative score and iid over analyzed pairs
+	  if(iPairScore[3] > zeroPlus){
+	    if(debug==4){Rcpp::Rcout << "u";}
+	    if(debug>4){Rcpp::Rcout << " uninformative=" << iPairScore[3] << " " ;}
+
+	    // score
+	    Mcount_uninf(iter_strata,iter_d) += iPairScore[3] * iCumWeight;
+
+	    // update weight
+	    iNewWeight += iPairScore[3];
+	  }
+
+	  // **** update pairwise-scores for all pairs
+	  if(keepScore){
+	    if(debug>3){Rcpp::Rcout << " keepScore ";}
+	    vecPairScore[iter_d][0].push_back(iter_d);
+	    vecPairScore[iter_d][1].push_back(posStrataC[iter_C]);
+	    vecPairScore[iter_d][2].push_back(posStrataT[iter_T]);
+	    vecPairScore[iter_d][3].push_back(iPair);
+	    vecPairScore[iter_d][4].push_back(iter_C);
+	    vecPairScore[iter_d][5].push_back(iter_T);
+	    // pairScore[iter_d](iPair,0) = iter_d;
+	    // pairScore[iter_d](iPair,1) = posStrataC[iter_C];
+	    // pairScore[iter_d](iPair,2) = posStrataT[iter_T];
+	    // pairScore[iter_d](iPair,3) = iPair;
+	    // pairScore[iter_d](iPair,4) = iter_C;
+	    // pairScore[iter_d](iPair,5) = iter_T;
+
+	    vecPairScore[iter_d][6].push_back(iPairScore[0]);
+	    vecPairScore[iter_d][7].push_back(iPairScore[1]);
+	    vecPairScore[iter_d][8].push_back(iPairScore[2]);
+	    vecPairScore[iter_d][9].push_back(iPairScore[3]);
+	    vecPairScore[iter_d][10].push_back(iCumWeight);
+	    vecPairScore[iter_d][11].push_back(iPairScore[0] * iCumWeight);
+	    vecPairScore[iter_d][12].push_back(iPairScore[1] * iCumWeight);
+	    vecPairScore[iter_d][13].push_back(iPairScore[2] * iCumWeight);
+	    vecPairScore[iter_d][14].push_back(iPairScore[3] * iCumWeight);
+	    // pairScore[iter_d](iPair,6) = iPairScore[0];
+	    // pairScore[iter_d](iPair,7) = iPairScore[1];
+	    // pairScore[iter_d](iPair,8) = iPairScore[2];
+	    // pairScore[iter_d](iPair,9) = iPairScore[3];
+	    // pairScore[iter_d](iPair,10) = iCumWeight;
+	    // pairScore[iter_d](iPair,11) = iPairScore[0] * iCumWeight;
+	    // pairScore[iter_d](iPair,12) = iPairScore[1] * iCumWeight;
+	    // pairScore[iter_d](iPair,13) = iPairScore[2] * iCumWeight;
+	    // pairScore[iter_d](iPair,14) = iPairScore[7] * iCumWeight;
+	  } 
+
+	  // **** early stop if nothing left or store weight when TTE endpoint with Peron's scoring rule
+	  if(hierarchical){
+	    if( (iNewWeight < zeroPlus) || (iter_d == (D-1)) ){
+	      if(debug>3){Rcpp::Rcout << " exit ";}
+	      break;
+	    }else if(methodPeron && (iIndex_UTTE_d>=0) ){
+	      if(debug>3){Rcpp::Rcout << " store ";}
+	      iFavorable_UTTE[iIndex_UTTE_d] += iPairScore[0];
+	      iUnfavorable_UTTE[iIndex_UTTE_d] += iPairScore[1];
+	      iWeight_UTTE[iIndex_UTTE_d] = iNewWeight;
+
+	      if(returnIID>1){
+		// Rcpp::Rcout  << iDscore_Dnuisance_C_UTTE[0] << std::endl;
+		iDscore_Dnuisance_C_UTTE[iIndex_UTTE_d] += iDscore_Dnuisance_C;
+		iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d] += iDscore_Dnuisance_T;
+		// Rcpp::Rcout  << iDscore_Dnuisance_C_UTTE[0] << std::endl;
+		
+		if(neutralAsUninf && (iPairScore[2] > zeroPlus)){
+		  iDweight_Dnuisance_C_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_C.col(2)+iDscore_Dnuisance_C.col(3);
+		  iDweight_Dnuisance_T_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_T.col(2)+iDscore_Dnuisance_T.col(3);
+		}else{
+		  iDweight_Dnuisance_C_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_C.col(3);
+		  iDweight_Dnuisance_T_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_T.col(3);
+		}
+	      }
+	    }
+	  }
+	  
+	}
+	
+	// *** update pair number
+	iPair++;
+	if(iPair % 65536 == 0){
+	  R_CheckUserInterrupt();
+	}
+	if(debug>2){Rcpp::Rcout << " done " << std::endl;}
+      }
+    }
+    if(debug>1){Rcpp::Rcout << std::endl;}
+
+    // ** compute iid nuisance    
+    if(returnIID>1){
+      if(debug>0){Rcpp::Rcout << "compute iid nuisance" << std::endl;}
+
+      for(unsigned int iter_d=0; iter_d < D; iter_d++){
+	for(int iter_UTTE=0 ; iter_UTTE<D_UTTE; iter_UTTE++){
+	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+    	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+    	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+    	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[iter_UTTE][iter_strata] * Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
+	}
+      }
+    }
+
+  }
+
+
+  // ** combine pairwise scores into a list of matrices 
+  std::vector< arma::mat> pairScore;
+  if(keepScore){
+    pairScore.resize(D);
+    for(unsigned int iter_d=0; iter_d<D; iter_d++){
+      pairScore[iter_d].resize(vecPairScore[iter_d][0].size(),15);
+      for(unsigned int iter_type=0; iter_type<15; iter_type++){
+	pairScore[iter_d].col(iter_type) = arma::conv_to< arma::colvec >::from(vecPairScore[iter_d][iter_type]);
+      }
+    }
+  }
+  
+  // ** proportion in favor of treatment
+  // Rcpp::Rcout << std::endl << " compute statistics" << std::endl;
+  arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
+  arma::vec Delta_netBenefit(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
+
+  calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
+                Mcount_favorable, Mcount_unfavorable,
+		iidAverage_favorable, iidAverage_unfavorable, iidNuisance_favorable, iidNuisance_unfavorable,
+		Mvar, returnIID,
+		posC, posT, 
+                D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
+		weight, hprojection, pairScore, keepScore);
+
+  // ** export
+  return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,
+			    Rcpp::Named("count_unfavorable") = Mcount_unfavorable,
+			    Rcpp::Named("count_neutral") = Mcount_neutral,           
+			    Rcpp::Named("count_uninf") = Mcount_uninf,
+			    Rcpp::Named("delta_netBenefit") = delta_netBenefit,
+			    Rcpp::Named("delta_winRatio") = delta_winRatio,
+			    Rcpp::Named("Delta_netBenefit") = arma::conv_to< std::vector<double> >::from(Delta_netBenefit),
+			    Rcpp::Named("Delta_winRatio") = arma::conv_to< std::vector<double> >::from(Delta_winRatio),
+			    Rcpp::Named("n_pairs") = arma::conv_to< std::vector<double> >::from(vecn_pairs),
+			    Rcpp::Named("iidAverage_favorable") = iidAverage_favorable,
+			    Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,
+			    Rcpp::Named("iidNuisance_favorable") = iidNuisance_favorable,
+			    Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
+			    Rcpp::Named("Mvar") = Mvar,
+			    Rcpp::Named("tableScore")  = pairScore
+			    ));
 }
 
 // * prepareWeight
 // author Brice Ozenne
 void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat >>& iPairDweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& iPairDweight_Dnuisance_T,
-				   std::vector<int>& activeUTTE, int& D_activeUTTE,
-				   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
-				   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-				   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID){
+		   std::vector<int>& activeUTTE, int& D_activeUTTE,
+		   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
+		   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
+		   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID){
 
 
   // ** cumulate weights over previous TTE endpoints
   activeUTTE.resize(0);
   for(int iter_UTTE=0 ; iter_UTTE<iNUTTE_analyzedPeron; iter_UTTE++){
-	if(iter_UTTE != iIndex_UTTE){
-	  activeUTTE.push_back(iter_UTTE);
-	  if(neutralAsUninf){
-		iPairWeight %= (RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3));
-	  }else{
-		iPairWeight %= RP_score[iter_UTTE].col(3);
-	  }
-	}
+    if(iter_UTTE != iIndex_UTTE){
+      activeUTTE.push_back(iter_UTTE);
+      if(neutralAsUninf){
+	iPairWeight %= (RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3));
+      }else{
+	iPairWeight %= RP_score[iter_UTTE].col(3);
+      }
+    }
   }
   D_activeUTTE = activeUTTE.size();
 
   // ** compute iid of the weights
   if(returnIID > 1){
-	iPairDweight_Dnuisance_C[0].resize(iNUTTE_analyzedPeron);
-	iPairDweight_Dnuisance_T[0].resize(iNUTTE_analyzedPeron);
+    iPairDweight_Dnuisance_C[0].resize(iNUTTE_analyzedPeron);
+    iPairDweight_Dnuisance_T[0].resize(iNUTTE_analyzedPeron);
 	
-	for(int iter_UTTE=0 ; iter_UTTE<iNUTTE_analyzedPeron; iter_UTTE++){
-	  if(iter_UTTE != iIndex_UTTE){
-		if(neutralAsUninf){
-		  iPairDweight_Dnuisance_C[0][iter_UTTE] = RP_Dscore_Dnuisance_C[iter_UTTE][2] + RP_Dscore_Dnuisance_C[iter_UTTE][3];
-		  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_C[0][iter_UTTE].n_rows; iCol++){
-			iPairDweight_Dnuisance_C[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/(RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3)));
-		  }
-		  iPairDweight_Dnuisance_T[0][iter_UTTE] = RP_Dscore_Dnuisance_T[iter_UTTE][2] + RP_Dscore_Dnuisance_T[iter_UTTE][3];
-		  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_T[0][iter_UTTE].n_rows; iCol++){
-			iPairDweight_Dnuisance_T[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/(RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3)));
-		  }
-		}else{
-		  iPairDweight_Dnuisance_C[0][iter_UTTE] = RP_Dscore_Dnuisance_C[iter_UTTE][3];
-		  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_C[0][iter_UTTE].n_rows; iCol++){
-			iPairDweight_Dnuisance_C[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/RP_score[iter_UTTE].col(3));
-		  }
-		  iPairDweight_Dnuisance_T[0][iter_UTTE] = RP_Dscore_Dnuisance_T[iter_UTTE][3];
-		  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_T[0][iter_UTTE].n_rows; iCol++){
-			iPairDweight_Dnuisance_T[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/RP_score[iter_UTTE].col(3));
-		  }
-		}
-	  }else{
-		iPairDweight_Dnuisance_C[0][iter_UTTE].resize(0,0);
-		iPairDweight_Dnuisance_T[0][iter_UTTE].resize(0,0);
+    for(int iter_UTTE=0 ; iter_UTTE<iNUTTE_analyzedPeron; iter_UTTE++){
+      if(iter_UTTE != iIndex_UTTE){
+	if(neutralAsUninf){
+	  iPairDweight_Dnuisance_C[0][iter_UTTE] = RP_Dscore_Dnuisance_C[iter_UTTE][2] + RP_Dscore_Dnuisance_C[iter_UTTE][3];
+	  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_C[0][iter_UTTE].n_rows; iCol++){
+	    iPairDweight_Dnuisance_C[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/(RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3)));
+	  }
+	  iPairDweight_Dnuisance_T[0][iter_UTTE] = RP_Dscore_Dnuisance_T[iter_UTTE][2] + RP_Dscore_Dnuisance_T[iter_UTTE][3];
+	  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_T[0][iter_UTTE].n_rows; iCol++){
+	    iPairDweight_Dnuisance_T[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/(RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3)));
+	  }
+	}else{
+	  iPairDweight_Dnuisance_C[0][iter_UTTE] = RP_Dscore_Dnuisance_C[iter_UTTE][3];
+	  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_C[0][iter_UTTE].n_rows; iCol++){
+	    iPairDweight_Dnuisance_C[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/RP_score[iter_UTTE].col(3));
+	  }
+	  iPairDweight_Dnuisance_T[0][iter_UTTE] = RP_Dscore_Dnuisance_T[iter_UTTE][3];
+	  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_T[0][iter_UTTE].n_rows; iCol++){
+	    iPairDweight_Dnuisance_T[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/RP_score[iter_UTTE].col(3));
 	  }
 	}
-	iPairDweight_Dnuisance_C[1] = iPairDweight_Dnuisance_C[0];
-	iPairDweight_Dnuisance_T[1] = iPairDweight_Dnuisance_T[0];
-	iPairDweight_Dnuisance_C[2] = iPairDweight_Dnuisance_C[0];
-	iPairDweight_Dnuisance_T[2] = iPairDweight_Dnuisance_T[0];
-	iPairDweight_Dnuisance_C[3] = iPairDweight_Dnuisance_C[0];
-	iPairDweight_Dnuisance_T[3] = iPairDweight_Dnuisance_T[0];
+      }else{
+	iPairDweight_Dnuisance_C[0][iter_UTTE].resize(0,0);
+	iPairDweight_Dnuisance_T[0][iter_UTTE].resize(0,0);
+      }
+    }
+    iPairDweight_Dnuisance_C[1] = iPairDweight_Dnuisance_C[0];
+    iPairDweight_Dnuisance_T[1] = iPairDweight_Dnuisance_T[0];
+    iPairDweight_Dnuisance_C[2] = iPairDweight_Dnuisance_C[0];
+    iPairDweight_Dnuisance_T[2] = iPairDweight_Dnuisance_T[0];
+    iPairDweight_Dnuisance_C[3] = iPairDweight_Dnuisance_C[0];
+    iPairDweight_Dnuisance_T[3] = iPairDweight_Dnuisance_T[0];
   }  
 
   return;
@@ -478,15 +1018,15 @@ void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat
 // * updateIID
 // author Brice Ozenne
 void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, 
-			   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
-			   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
-			   const arma::mat& iCount_obsC, const arma::mat& iCount_obsT,
-			   const std::vector<int>& activeUTTE, int D_activeUTTE,
-			   const arma::mat& iDscore_Dnuisance_C, const arma::mat& iDscore_Dnuisance_T,
-			   const std::vector< std::vector< arma::mat > >& iid_survJumpC, const std::vector< std::vector< arma::mat > >& iid_survJumpT,
-			   const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_C,
-			   const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_T,
-			   const arma::vec& vecn_pairs, unsigned int iter_d, int iIndex_UTTE, unsigned int iter_strata, int iMethod, int returnIID){
+	       arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
+	       const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
+	       const arma::mat& iCount_obsC, const arma::mat& iCount_obsT,
+	       const std::vector<int>& activeUTTE, int D_activeUTTE,
+	       const arma::mat& iDscore_Dnuisance_C, const arma::mat& iDscore_Dnuisance_T,
+	       const std::vector< std::vector< arma::mat > >& iid_survJumpC, const std::vector< std::vector< arma::mat > >& iid_survJumpT,
+	       const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_C,
+	       const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_T,
+	       const arma::vec& vecn_pairs, unsigned int iter_d, int iIndex_UTTE, unsigned int iter_strata, int iMethod, int returnIID){
 
   // ** iid with respect to the average over all pairs
   arma::uvec iUvec_iter_d = {iter_d};
@@ -499,31 +1039,31 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
   // ** iid with respect to the nuisance parameters
   if(returnIID>1){
 
-	// *** iid of the weights
-	arma::colvec iDweight_Dnuisance_C;
-	arma::colvec iDweight_Dnuisance_T;
+    // *** iid of the weights
+    arma::colvec iDweight_Dnuisance_C;
+    arma::colvec iDweight_Dnuisance_T;
 	
-	for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
-	  // DOCUMENTATION Armadillo
-	  // sum: For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1)
-	  iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[0][activeUTTE[iter_UTTE]],1);
-	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_C / vecn_pairs[iter_strata];
-	  iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[0][activeUTTE[iter_UTTE]],1);
-	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_T / vecn_pairs[iter_strata];
+    for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+      // DOCUMENTATION Armadillo
+      // sum: For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1)
+      iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[0][activeUTTE[iter_UTTE]],1);
+      iidNuisance_favorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_C / vecn_pairs[iter_strata];
+      iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[0][activeUTTE[iter_UTTE]],1);
+      iidNuisance_favorable.col(iter_d) += iid_survJumpT[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_T / vecn_pairs[iter_strata];
 	  
-	  iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[1][activeUTTE[iter_UTTE]],1);
-	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_C / vecn_pairs[iter_strata];
-	  iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[1][activeUTTE[iter_UTTE]],1);
-	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_T / vecn_pairs[iter_strata];
-	}
+      iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[1][activeUTTE[iter_UTTE]],1);
+      iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_C / vecn_pairs[iter_strata];
+      iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[1][activeUTTE[iter_UTTE]],1);
+      iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_T / vecn_pairs[iter_strata];
+    }
 
-	// *** iid of the proba/score
-	if(iMethod == 4){
-	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(0)/vecn_pairs[iter_strata];
-	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_T.col(0)/vecn_pairs[iter_strata];
-	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(1)/vecn_pairs[iter_strata];
-	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_T.col(1)/vecn_pairs[iter_strata];
-	}
+    // *** iid of the proba/score
+    if(iMethod == 4){
+      iidNuisance_favorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(0)/vecn_pairs[iter_strata];
+      iidNuisance_favorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_T.col(0)/vecn_pairs[iter_strata];
+      iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(1)/vecn_pairs[iter_strata];
+      iidNuisance_unfavorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_T.col(1)/vecn_pairs[iter_strata];
+    }
 
   }
 
@@ -534,8 +1074,8 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
 // * updatePairScore
 // author Brice Ozenne
 void updatePairScore(std::vector< arma::mat >& pairScore, arma::mat& iPairScore,
-					 unsigned int iter_strata, const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
-					 const arma::vec& vecn_control, const arma::vec& vecn_cumpairsM1, unsigned int iter_d){
+		     unsigned int iter_strata, const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
+		     const arma::vec& vecn_control, const arma::vec& vecn_cumpairsM1, unsigned int iter_d){
 
   // ** prepare additional columns for indicating position and strata
   int iNpairs = iPairScore.n_rows;
@@ -546,15 +1086,15 @@ void updatePairScore(std::vector< arma::mat >& pairScore, arma::mat& iPairScore,
 
   // following columns contain position relative to control obs, treatment obs, and all pairs
   for(int iPair=0; iPair < iNpairs; iPair++){
-	iMat(iPair,1) = posC[iter_strata](iPairScore(iPair,0));
-	iMat(iPair,2) = posT[iter_strata](iPairScore(iPair,1));
-	iMat(iPair,3) = iPairScore(iPair,0) + iPairScore(iPair,1)*vecn_control[iter_strata] + vecn_cumpairsM1[iter_strata];
+    iMat(iPair,1) = posC[iter_strata](iPairScore(iPair,0));
+    iMat(iPair,2) = posT[iter_strata](iPairScore(iPair,1));
+    iMat(iPair,3) = iPairScore(iPair,0) + iPairScore(iPair,1)*vecn_control[iter_strata] + vecn_cumpairsM1[iter_strata];
   }
   // ** merge additional column with the current table
   if(iter_strata==0){
-	pairScore[iter_d] = arma::join_rows(iMat,iPairScore);
+    pairScore[iter_d] = arma::join_rows(iMat,iPairScore);
   }else{
-	pairScore[iter_d] = arma::join_cols(pairScore[iter_d], arma::join_rows(iMat,iPairScore));
+    pairScore[iter_d] = arma::join_cols(pairScore[iter_d], arma::join_rows(iMat,iPairScore));
   }
 
   return;
@@ -563,61 +1103,61 @@ void updatePairScore(std::vector< arma::mat >& pairScore, arma::mat& iPairScore,
 // * updateRP
 // author Brice Ozenne
 void updateRP(arma::mat& iRP_score, std::vector< arma::sp_mat >& iRP_Dscore_Dnuisance_C, std::vector< arma::sp_mat >& iRP_Dscore_Dnuisance_T,
-			  std::vector<arma::mat>& RP_score, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-			  arma::vec& iPairWeight_nPeron, int iSize_RP, bool neutralAsUninf, int iter_d, int correctionUninf,
-			  double zeroPlus, int iIndex_UTTE, int nUTTE_analyzedPeron, int returnIID){
+	      std::vector<arma::mat>& RP_score, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
+	      arma::vec& iPairWeight_nPeron, int iSize_RP, bool neutralAsUninf, int iter_d, int correctionUninf,
+	      double zeroPlus, int iIndex_UTTE, int nUTTE_analyzedPeron, int returnIID){
 
   // ** index of the residual pairs among the analyzed pairs
   arma::uvec iIndex_RP = arma::conv_to<arma::uvec>::from(iRP_score.col(0));
 
   // ** update score and iid associated to the residual pairs for TTE endpoint analyzed with Peron's scoring rule
   for(int iter_UTTE=0; iter_UTTE<nUTTE_analyzedPeron; iter_UTTE++){
-	if(iter_UTTE == iIndex_UTTE){
-	  // update with the result of the current endpoint
-	  arma::uvec iter_36 = arma::linspace<arma::uvec>(3, 6, 4);
-	  RP_score[iter_UTTE] = iRP_score.cols(iter_36);
-	  if(returnIID>1){
-		for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){
-		  RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP] = iRP_Dscore_Dnuisance_C[iter_typeRP];
-		  RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP] = iRP_Dscore_Dnuisance_T[iter_typeRP];
-		}
-	  }
-	}else{	  
-	  // subset the result of the previous endpoints, only considering the residual pairs
-	  RP_score[iter_UTTE] = RP_score[iter_UTTE].rows(iIndex_RP);
-	  if(returnIID>1){
-		for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){ 
-		  RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP] = subcol_sp_mat(RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP], iIndex_RP);
-		  RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP] = subcol_sp_mat(RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP], iIndex_RP);
-		}
-	  }
+    if(iter_UTTE == iIndex_UTTE){
+      // update with the result of the current endpoint
+      arma::uvec iter_36 = arma::linspace<arma::uvec>(3, 6, 4);
+      RP_score[iter_UTTE] = iRP_score.cols(iter_36);
+      if(returnIID>1){
+	for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){
+	  RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP] = iRP_Dscore_Dnuisance_C[iter_typeRP];
+	  RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP] = iRP_Dscore_Dnuisance_T[iter_typeRP];
 	}
+      }
+    }else{	  
+      // subset the result of the previous endpoints, only considering the residual pairs
+      RP_score[iter_UTTE] = RP_score[iter_UTTE].rows(iIndex_RP);
+      if(returnIID>1){
+	for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){ 
+	  RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP] = subcol_sp_mat(RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP], iIndex_RP);
+	  RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP] = subcol_sp_mat(RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP], iIndex_RP);
+	}
+      }
+    }
 			
   }
 	
   // ** update weights associated to the residual pairs
   if(correctionUninf == 0){
-	// no correction: all pairs have a weight of 1
-	iPairWeight_nPeron.resize(iSize_RP);
-	iPairWeight_nPeron.fill(1.0);
+    // no correction: all pairs have a weight of 1
+    iPairWeight_nPeron.resize(iSize_RP);
+    iPairWeight_nPeron.fill(1.0);
   }else{
-	// correction
-	// 1- gather the weights that were previously used
-	if(iter_d>0){
-	  iPairWeight_nPeron = iPairWeight_nPeron.rows(iIndex_RP);
-	}else{
-	  iPairWeight_nPeron.resize(iSize_RP);
-	  iPairWeight_nPeron.fill(1.0);
-	}
+    // correction
+    // 1- gather the weights that were previously used
+    if(iter_d>0){
+      iPairWeight_nPeron = iPairWeight_nPeron.rows(iIndex_RP);
+    }else{
+      iPairWeight_nPeron.resize(iSize_RP);
+      iPairWeight_nPeron.fill(1.0);
+    }
 
-	// 2- update the weights with neutral/uninformative contribution of the current endpoint
-	if(iIndex_UTTE < (-zeroPlus)){ // i.e. not analyzed by Peron
-	  if(neutralAsUninf){
-		iPairWeight_nPeron %= (iRP_score.col(5) + iRP_score.col(6));
-	  }else{
-		iPairWeight_nPeron %= iRP_score.col(6);
-	  }	  
-	}
+    // 2- update the weights with neutral/uninformative contribution of the current endpoint
+    if(iIndex_UTTE < (-zeroPlus)){ // i.e. not analyzed by Peron
+      if(neutralAsUninf){
+	iPairWeight_nPeron %= (iRP_score.col(5) + iRP_score.col(6));
+      }else{
+	iPairWeight_nPeron %= iRP_score.col(6);
+      }	  
+    }
   }
 
   return ;
@@ -630,7 +1170,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
   // also assumes that index is sorted
   bool check = index.is_sorted();
   if(check == false){
-	Rcpp::Rcout << "WARNING: index should be sorted when subsetting a sparse matrix by column. Operation may give incorrect results" << std::endl;
+    Rcpp::Rcout << "WARNING: index should be sorted when subsetting a sparse matrix by column. Operation may give incorrect results" << std::endl;
   }
   
   // Make const iterator
@@ -653,17 +1193,17 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
   Vvalue.reserve(n);
 
   for(int i = 0; i < n; ++i){
-	while(it.col() > index[iIndex] && iIndex < nIndex){
-	  iIndex++;
-	}
-	if(it.col() == index[iIndex]){
-	  Vrow.push_back(it.row());
-	  Vcol.push_back(iIndex);
-	  Vvalue.push_back((*it));
-	}else if(it.col() > index[iIndex]){
-	  break;
-	}
-  	++it;
+    while(it.col() > index[iIndex] && iIndex < nIndex){
+      iIndex++;
+    }
+    if(it.col() == index[iIndex]){
+      Vrow.push_back(it.row());
+      Vcol.push_back(iIndex);
+      Vvalue.push_back((*it));
+    }else if(it.col() > index[iIndex]){
+      break;
+    }
+    ++it;
   }
 
   // Generate matrix
@@ -671,8 +1211,8 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
   int nValue = Vvalue.size();
   arma::umat loc(2,nValue);
   for(int iV=0; iV<nValue; iV++){
-	loc(0,iV) = Vrow[iV];
-	loc(1,iV) = Vcol[iV];
+    loc(0,iV) = Vrow[iV];
+    loc(1,iV) = Vcol[iV];
   }
   arma::sp_mat Y(loc, arma::conv_to<arma::colvec>::from(Vvalue), p, nIndex);
   return(Y);

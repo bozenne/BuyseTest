@@ -1,11 +1,22 @@
 # -*- mode: org -*-
 
 * Version 1.9
+
+** User visible changes
+
+- Fix issue related to powerBuyseTest (issue #6 on Github)
+
 ** Internal change
-- Use sparse matrices to store partial derivative regarding nuisance
-  parameter, i.e. BuyseTest is more memory efficient when using
+- method.inference="u-statistic" is now the default options
+- add argument engine to BuyseTest.options to switch between the new
+  C++ implementation (looping first over pairs and then over
+  endpoints) and the old C++ implementation (looping first over
+  endpoints and then over pairs). The new is more memory efficient but
+  is not available when correction.uninf>0.
+- old implementation is more memory efficient when using
   method.inference="u-statistic" and scoring.rule="Peron" with several
-  TTE endpoints.
+  endpoints thanks to the use of sparse matrices to store partial
+  derivative regarding nuisance parameter.
 
 
 * Version 1.8

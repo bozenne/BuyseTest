@@ -38,7 +38,13 @@
 #' @param keepScore Should the result of each pairwise comparison be kept?
 #' @param returnIID Should the iid be computed?
 #' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
+#'
+#' @details GPC_cpp implements GPC looping first over endpoints and then over pairs.
+#' To handle multiple endpoints, it stores some of the results which can be memory demanding when considering large sample - especially when computing the iid decomposition.
+#' GPC2_cpp implements GPC looping first over pairs and then over endpoints. It has rather minimal memory requirement but does not handle correction for uninformative pairs. 
+#'
 #' @keywords function Cpp BuyseTest
+#'
 #' @author Brice Ozenne
 NULL
 
@@ -48,7 +54,7 @@ GPC_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, wei
     .Call(`_BuyseTest_GPC_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug)
 }
 
-#' @name GPC2_cpp
+#' @name GPC_cpp
 #' @export
 GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug) {
     .Call(`_BuyseTest_GPC2_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, weight, method, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, keepScore, returnIID, debug)

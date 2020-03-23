@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: mar  3 2020 (09:51) 
+## Last-Updated: mar 23 2020 (10:28) 
 ##           By: Brice Ozenne
-##     Update #: 137
+##     Update #: 145
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -115,7 +115,8 @@ BT_tau0 <- BuyseTest(data=data,
                      status="event",
                      scoring.rule="Peron",
                      method.inference = "none",
-                     cpus=1)
+                     cpus=1,
+                     trace = 0)
 
 ## * Brice: 09/06/18 6:51 (Tied event with tte endpoint)
 ## when computing the integral for peron with double censoring
@@ -313,7 +314,7 @@ test_that("Boostrap - issue in the summary", {
     BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
                          data = veteran, keep.pairScore = TRUE, scoring.rule = "Gehan", 
                          trace = 0, method.inference = "bootstrap", n.resampling = 20, seed = 10)
-    summary(BT.keep, statistic = "winRatio")
+    capture.output(summary(BT.keep, statistic = "winRatio"))
 })
 
 ## * graemeleehickey (issue #3 on Github): 22 september 2019 BuysePower
@@ -326,8 +327,11 @@ test_that("BuysePower - error in print", {
     }
 
     ## the error was when setting trace to 4
-    xx <- powerBuyseTest(sim = simFCT, sample.sizeC = c(100), sample.sizeT = c(100), n.rep = 2,
-                   formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4)
+    tempo <- capture.output({
+        xx <- powerBuyseTest(sim = simFCT, sample.sizeC = c(100), sample.sizeT = c(100), n.rep = 2,
+                             formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4,
+                             seed = 10)
+    })
 
     yy <- powerBuyseTest(sim = function(n.C, n.T){
         out <- data.table(Y=rnorm(n.C+n.T),
@@ -335,7 +339,8 @@ test_that("BuysePower - error in print", {
                           )
         return(out)
     }, sample.sizeC = c(100), sample.sizeT = c(100), n.rep = 2,
-    formula = T ~ cont(Y), method.inference = "u-statistic", trace = 0)
+    formula = T ~ cont(Y), method.inference = "u-statistic", trace = 0,
+    seed = 10)
 
     expect_equal(xx,yy)
 
@@ -385,6 +390,29 @@ test_that("simBuyseTest - rate vs. scale", {
     expect_equal(mean(GS1),mean(test[treatment == "T", mean(eventtimeCensoring)]), tol = 1e-2)
 })
 
+## * graemeleehickey (issue #6 on Github): 15 march 2020 powerBuyseTest
+
+args <- list(rates.T = c((3:5) / 10), rates.Censoring.T = rep(1, 3))
+simFCT <- function(n.C, n.T) {
+  simBuyseTest(100, argsBin = NULL, argsCont = NULL, argsTTE = args)
+}
+
+test_that("powerBuyseTest - status vs. censoring", {
+    valid <- powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
+                            formula = treatment ~ tte(eventtime1, status = status1),
+                            method.inference = "u-statistic",
+                            scoring.rule = "Gehan", trace = 0)
+
+    expect_error(powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
+                                formula = treatment ~ tte(eventtime1, censoring = status1),
+                                method.inference = "u-statistic",
+                                scoring.rule = "Gehan"))
+
+    valid <- capture.output(powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
+                                           formula = treatment ~ tte(eventtime1, status = status1),
+                                           method.inference = "u-statistic",
+                                           scoring.rule = "Gehan", trace = 4))
+})
 ## * new
 ## set.seed(10)
 ## d <- simBuyseTest(1e2)

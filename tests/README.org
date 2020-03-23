@@ -1,7 +1,9 @@
 * Tests
 
+** test-auc
+Compare the auc function with the cvAUC and ci.cvAUC fonction of the cvAUC package
 ** test-BuysePower
-Just check that powerBuyseTest runs in a simple setting.
+Check that powerBuyseTest runs and give the same results as looping over BuyseTest, in simple settings.
 ** test-BuyseTest-checkValues
 Check against known output when considering many pairs (binary,
 continuous, time to event, mixed endpoint) with and without strata.
@@ -11,6 +13,8 @@ method.tte="Peron".
 ** test-BuyseTest-CR
 Check that using competing risks is equivalent to using the pseudo
 survival times.
+** test-BuyseTest-engine
+Compare the results of BuyseTest when using the two C++ implementations.
 ** test-BuyseTest-iid
 Check the computation of the variance based on the asymptotic theory (i.e. method.inference="u-statisitc")
 - for scoring.rule="Gehan"

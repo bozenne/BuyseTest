@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: dec  5 2019 (15:46) 
+## Last-Updated: mar 23 2020 (09:48) 
 ##           By: Brice Ozenne
-##     Update #: 21
+##     Update #: 22
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,7 +21,7 @@ if(FALSE){
     library(data.table)
 }
 
-context("Check auc calculation vs. pROC")
+context("Check auc calculation vs. cvAUC")
 library(pROC)
 library(cvAUC)
 
