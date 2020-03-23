@@ -441,9 +441,9 @@ setMethod(f = "summary",
                   cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
                   if(any(object@type == "TimeToEvent")){
                       
-                      if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==4)){
+                      if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==5)){
                           txt.Peron <- "cif"
-                      }else if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==3)){
+                      }else if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==4)){
                           txt.Peron <- "survival"
                       }else{
                           txt.Peron <- "survival/cif"

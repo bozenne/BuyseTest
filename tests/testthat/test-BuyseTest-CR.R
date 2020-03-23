@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: mar  3 2020 (09:41) 
+## Last-Updated: mar 23 2020 (11:00) 
 ##           By: Brice Ozenne
-##     Update #: 33
+##     Update #: 42
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,7 +36,12 @@ alphaE.X <- 2
 alphaCR.X <- 1
 alphaE.Y <- 3
 alphaCR.Y <- 2
+alpha.cens <- 1.5
 n <- 1e2
+n.big <- 5e4
+true.sHR <- c(0, 0.5, 1, 2) 
+p.1C <- 0.55
+v <- -0.30
 
 ## ** Simulate data
 set.seed(10)
@@ -207,19 +212,37 @@ test_that("When TTE endpoints are analyzed several times with different threshol
 })
 
 ## ** Simulate HR with proportional subdistribution hazard ratio
+if(FALSE){ ## works but time consuming
 test_that("The relationship between net benefit and subdistribution hazard ratio is verified", {
-
-    ## d <- simCompetingRisks(n.T = n, n.C = n,
-    ##                      p.1C = 0.5, sHR = sHR, 
-    ##                      param.cens = NULL, latent = NULL)
-        
-        ## ## Compute net benefit with BuyseTest package
-        ## B = BuyseTest(treatment ~ tte(time, status = status, threshold = 0), data = sHR.data, method.tte = "Gehan", keep.pairScore = FALSE) 
   
-        ## ## Tests
-        ## expect_equal(true.Delta[q], as.double(B@Delta.netBenefit), tolerance = 1e-2) # tolerance because of the too small dataset  
+  set.seed(10)
+  
+  ## Compute true net benefit from true subdistribution hazard ratio
+  b.1C <- v * log(1 - p.1C)
+  b.1T <- b.1C * true.sHR
+  p.1T <- 1 - exp(b.1T / v)
+  
+  true.Delta <- ((1 - true.sHR) / (1 + true.sHR)) * (1 - (1 - p.1T) * (1 - p.1C))
+  
+  ## Simulate big datasets with pre-specified subdistribution hazard ratio (based on Jeong and Fine, 2006)
+  for (q in 1:length(true.sHR)) { ## q <- 1
+    
+    dd <- simCompetingRisks(n.T = n.big/2, n.C = n.big/2, p.1C = p.1C, v.1C = v,
+                            v.1T = v, v.2C = v, v.2T = v, sHR = true.sHR[q])
+    
+    ## Compute net benefit with BuyseTest package
+    B <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0),
+                   data = dd,
+                   scoring.rule = "Gehan",
+                   keep.pairScore = FALSE,
+                   method.inference = "none",
+                   trace = FALSE) 
+    
+    ## Tests
+    expect_equal(true.Delta[q], as.double(B@Delta.netBenefit), tolerance = 1e-2) # tolerance because of the too small dataset
+    
+  }
 })
-
-
+}
 ######################################################################
 ### test-BuyseTest-CR.R ends here

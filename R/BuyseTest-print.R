@@ -95,7 +95,6 @@ printGeneral <- function(status,
     }
     if(D.TTE>0){
         cat("   - right-censored pairs: ")
-
         n.CR <- sum(grep("2", txt.eventType))
         if(n.CR==D.TTE){
             txt.Peron <- "cif"

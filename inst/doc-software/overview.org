@@ -75,7 +75,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '1.8'
+: [1] ‘1.9.0’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -86,32 +86,30 @@ sessionInfo()
 #+RESULTS:
 #+begin_example
 R version 3.5.1 (2018-07-02)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 7 x64 (build 7601) Service Pack 1
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 16.04.5 LTS
 
 Matrix products: default
+BLAS: /usr/lib/libblas/libblas.so.3.6.0
+LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
-[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.1252    
+ [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8       
+ [4] LC_COLLATE=fr_FR.UTF-8     LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8   
+ [7] LC_PAPER=da_DK.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.12.2  BuyseTest_1.8      Rcpp_1.0.1         prodlim_2018.04.18
+[1] data.table_1.12.8 BuyseTest_1.9.0   Rcpp_1.0.3       
 
 loaded via a namespace (and not attached):
  [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
- [5] survival_2.44-1.1  KernSmooth_2.23-15 splines_3.5.1      grid_3.5.1        
- [9] lava_1.6.5         stats4_3.5.1       lattice_0.20-35
+ [5] survival_2.44-1.1  prodlim_2019.11.13 splines_3.5.1      grid_3.5.1        
+ [9] lava_1.6.7         stats4_3.5.1       lattice_0.20-35
 #+end_example
-
-
-
-
-
 
 \clearpage
 
@@ -126,7 +124,6 @@ To perform generalized pairwise comparisons, the =BuyseTest= function needs:
 The =BuyseTest= function has many optional arguments to specify for example:
 - the threshold of clinical relevance associated to each endpoint \hfill - argument =threshold=
 - the censoring associated to each endpoint (for time to event endpoints) \hfill - argument =status=
-- how to compute the distribution of the statistic of interest \hfill - argument =method.inference=
 
 \bigskip
 
@@ -142,8 +139,7 @@ BT <- BuyseTest(data = veteran,
                 type = "timeToEvent", 
                 treatment = "trt", 
                 status = "status", 
-                threshold = 20,
-                method.inference = "none")
+                threshold = 20)
 #+END_SRC
 
 #+RESULTS:
@@ -158,7 +154,10 @@ Settings
        1        time     time to event  higher is favorable  20        status (0 1)
    - right-censored pairs: probabilistic score based on the survival curves 
 
-Point estimation
+Point estimation and calculation of the iid decomposition
+
+Estimation of the estimator's distribution 
+   - method: moments of the U-statistic
 
 Gather the results in a BuyseRes object
 #+end_example
@@ -175,7 +174,7 @@ Gather the results in a BuyseRes object
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                  data = veteran, trace = 0, method.inference = "none")
+                  data = veteran, trace = 0)
 #+END_SRC
 
 #+RESULTS:
@@ -197,15 +196,21 @@ summary(BT)
 #+END_SRC 
 
 #+RESULTS:
-:        Generalized pairwise comparisons with 1 endpoint
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: 1 (control) vs. 2 (treatment) 
-:  > right-censored pairs: probabilistic score based on the survival curves
-:  > results
-:  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
-:      time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > confidence level: 0.95 
+ > inference       : H-projection of order 1
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > right-censored pairs: probabilistic score based on the cif curves
+ > results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
+ p.value   CI [2.5 ; 97.5]
+ 0.37161  [-0.2735;0.1045]
+#+end_example
 
  To display the number of pairs instead of the percentage of pairs
 that are favorable/unfavorable/neutral/uniformative, set the argument
@@ -215,15 +220,21 @@ summary(BT, percentage = FALSE)
 #+END_SRC
 
 #+RESULTS:
-:        Generalized pairwise comparisons with 1 endpoint
-: 
-:  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 0 
-:  > treatment groups: 1 (control) vs. 2 (treatment) 
-:  > right-censored pairs: probabilistic score based on the survival curves
-:  > results
-:  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
-:      time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ > statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 0 
+ > confidence level: 0.95 
+ > inference       : H-projection of order 1
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > right-censored pairs: probabilistic score based on the cif curves
+ > results
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta p.value 
+     time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877 0.37161 
+  CI [2.5 ; 97.5]
+ [-0.2735;0.1045]
+#+end_example
 
 \clearpage
 
@@ -235,15 +246,21 @@ summary(BT, statistic = "winRatio")
 #+END_SRC
 
 #+RESULTS:
-:        Generalized pairwise comparisons with 1 endpoint
-: 
-:  > statistic       : win ratio (delta: endpoint specific, Delta: global) 
-:  > null hypothesis : Delta == 1 
-:  > treatment groups: 1 (control) vs. 2 (treatment) 
-:  > right-censored pairs: probabilistic score based on the survival curves
-:  > results
-:  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
-:      time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ > statistic       : win ratio (delta: endpoint specific, Delta: global) 
+ > null hypothesis : Delta == 1 
+ > confidence level: 0.95 
+ > inference       : H-projection of order 1
+ > treatment groups: 1 (control) vs. 2 (treatment) 
+ > right-censored pairs: probabilistic score based on the cif curves
+ > results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
+     time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
+ p.value  CI [2.5 ; 97.5]
+ 0.37194  [0.5134;1.2832]
+#+end_example
 
 See =help(BuyseRes-summary)= for more detailed explanations about the
 =summary= method and its output.
@@ -255,8 +272,7 @@ different endpoints must be separated with a "+" on the right hand
 side of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ff2 <- trt ~ tte(time, threshold = 20, status = "status") + cont(karno, threshold = 0)
-BT.H <- BuyseTest(ff2, data = veteran, 
-                  method.inference = "none", trace = 0)
+BT.H <- BuyseTest(ff2, data = veteran, trace = 0)
 summary(BT.H)
 #+END_SRC
 
@@ -266,13 +282,18 @@ summary(BT.H)
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
+ > confidence level: 0.95 
+ > inference       : H-projection of order 1
  > treatment groups: 1 (control) vs. 2 (treatment) 
- > right-censored pairs: probabilistic score based on the survival curves
+ > right-censored pairs: probabilistic score based on the cif curves
  > neutral pairs   : ignored at lower priority endpoints
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
      time        20   100.00        37.78          46.54      15.68        0 -0.0877 -0.0877
     karno     1e-12    15.68         5.78           7.11       2.78        0 -0.0133 -0.1009
+ p.value   CI [2.5 ; 97.5]
+ 0.37161  [-0.2735;0.1045]
+ 0.31477  [-0.2901;0.0959]
 #+end_example
 
 The hierarchy of the endpoint is defined from left (most important
