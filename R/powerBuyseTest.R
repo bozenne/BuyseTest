@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 20 2020 (17:41) 
+## Last-Updated: mar 23 2020 (12:12) 
 ##           By: Brice Ozenne
-##     Update #: 530
+##     Update #: 542
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -282,7 +282,6 @@ powerBuyseTest <- function(sim,
             }
             
             for(iStatistic in c("netBenefit","winRatio")){ ## iStatistic <- "winRatio"
-
                 outCI <- suppressWarnings(confint(BT.tempo, transformation = iTransformation, statistic = iStatistic))
 
                 iOut[iInference,paste0(iStatistic)] <- outCI[NROW(outCI),"estimate"]
@@ -349,9 +348,18 @@ powerBuyseTest <- function(sim,
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
         ## export functions
-        toExport <- c(".BuyseTest",".createSubBT","BuyseRes","initializeData","pairScore2dt","inferenceUstatistic","confint_Ustatistic", ".iid2cov", "validNumeric")
-        
-        i <- NULL ## [:forCRANcheck:] foreach
+        toExport <- c(".BuyseTest",".createSubBT","BuyseRes","initializeData","calcSample","calcPeron","pairScore2dt","inferenceUstatistic","confint_Ustatistic", ".iid2cov", "validNumeric")
+
+        ## try sim
+        test <- try(parallel::clusterCall(cl, fun = function(x){
+            sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
+        }), silent = TRUE)
+        if(inherits(test,"try-error")){
+            stop(paste0("Could not run argument \'sim\' when using multiple CPUs. \n Consider trying first to run powerBuyseTest with cpus=1. \n If it runs, make sure that \'sim\' does not depend on any variable in the global environment. \n",test))
+        }
+
+            ## run simul
+            i <- NULL ## [:forCRANcheck:] foreach
         ls.simulation <- foreach::`%dopar%`(
                                       foreach::foreach(i=1:n.block,
                                                        .packages = "data.table",

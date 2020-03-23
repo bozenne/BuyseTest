@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: feb 20 2020 (13:58) 
+## Last-Updated: mar 23 2020 (11:47) 
 ##           By: Brice Ozenne
-##     Update #: 604
+##     Update #: 606
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -260,7 +260,7 @@ setMethod(f = "confint",
                                                    out <- se
                                                }else{
                                                    out <- se/(1-x^2)
-                                                   if(any(se==0)){
+                                                   if(any(na.omit(se)==0)){
                                                        out[se==0] <- 0
                                                    }
                                                }
@@ -271,7 +271,7 @@ setMethod(f = "confint",
                                                    out <- se
                                                }else{
                                                    out <- se/x
-                                                   if(any(se==0)){
+                                                   if(any(na.omit(se)==0)){
                                                        out[se==0] <- 0
                                                    }
                                                }
@@ -283,7 +283,7 @@ setMethod(f = "confint",
                                                     out <- se
                                                 }else{
                                                     out <- se*(1-itrans.delta(x)^2)
-                                                    if(any(se==0)){
+                                                    if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
                                                 }
@@ -294,7 +294,7 @@ setMethod(f = "confint",
                                                     out <- se
                                                 }else{
                                                     out <- se*itrans.delta(x)
-                                                    if(any(se==0)){
+                                                    if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
                                                 }
@@ -572,7 +572,7 @@ confint_Ustatistic <- function(Delta, Delta.se, statistic, null,
                                    )
 
     ## special case with no variability
-    if(any((Delta==null)*(Delta.se==0) == 1)){
+    if(any(na.omit((Delta==null)*(Delta.se==0)) == 1)){
         outTable[(Delta==null)*(Delta.se==0) == 1,"p.value"] <- 1
     }
 
