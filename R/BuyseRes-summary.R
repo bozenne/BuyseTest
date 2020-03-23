@@ -163,7 +163,7 @@ setMethod(f = "summary",
               }else{
                   validCharacter(type.display,
                                  name1 = "type.display",
-                                 valid.values = c("endpoint","threshold","weight","total","favorable","unfavorable","neutral","uninf","information(%)",
+                                 valid.values = c("endpoint","threshold","strata","weight","total","favorable","unfavorable","neutral","uninf","information(%)",
                                                   "delta","Delta","Delta(%)",
                                                   "p.value","CI","significance"),
                                  valid.length = NULL)
