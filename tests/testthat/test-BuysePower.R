@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: mar 23 2020 (09:46) 
+## Last-Updated: mar 23 2020 (13:45) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -171,7 +171,7 @@ test_that("Multiple endpoints", {
     expect_equal(unlist(GS.S),unlist(test), tol = 1e-6)
 
     GS.bis <- c("n" = 50, "mean.estimate" = 0.02538207, "sd.estimate" = 0.13532166, "mean.se" = 0.12851884, "rejection (TRUE)" = 0)
-    expect_equal(GS.bis, unlist(test), tol = 1e-6)
+    expect_equal(GS.bis, unlist(test), tol = 1e-4)
 })
 
 
