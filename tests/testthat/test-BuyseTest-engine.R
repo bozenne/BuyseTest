@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: mar 23 2020 (14:34) 
+## Last-Updated: mar 25 2020 (12:52) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 7
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,21 +41,21 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
 ## * Compare
 
 test_that("TTE with decreasing thresholds",{
-iFormula <- treatment ~ tte(eventtime1,status1,5) + tte(eventtime1,status1,1) + tte(eventtime1,status1,0.5) + tte(eventtime1,status1,0)
+    iFormula <- treatment ~ tte(eventtime1,status1,5) + tte(eventtime1,status1,1) + tte(eventtime1,status1,0.5) + tte(eventtime1,status1,0)
 
-BuyseTest.options(engine = "GPC_cpp")
-e.BT1 <- BuyseTest(iFormula, data = dt.sim,
-                   method.inference = "u-statistic", scoring.rule = "Peron")
+    BuyseTest.options(engine = "GPC_cpp")
+    e.BT1 <- BuyseTest(iFormula, data = dt.sim,
+                       method.inference = "u-statistic", scoring.rule = "Peron")
 
-BuyseTest.options(engine = "GPC2_cpp")
-e.BT2 <- BuyseTest(iFormula, data = dt.sim,
-                   method.inference = "u-statistic", scoring.rule = "Peron")
+    BuyseTest.options(engine = "GPC2_cpp")
+    e.BT2 <- BuyseTest(iFormula, data = dt.sim,
+                       method.inference = "u-statistic", scoring.rule = "Peron")
 
-expect_equal(confint(e.BT1)[,"estimate"],confint(e.BT2)[,"estimate"], tol = 1e-6)
-expect_equal(confint(e.BT1)[,"se"],confint(e.BT2)[,"se"], tol = 1e-2)
-## expected difference because GPC2 compute the influence function over all pairs,
-## while GPC only over pairs with informative scores.
-## the difference is expected to be small though in large samples
+    expect_equal(confint(e.BT1)[,"estimate"],confint(e.BT2)[,"estimate"], tol = 1e-6)
+    expect_equal(confint(e.BT1)[,"se"],confint(e.BT2)[,"se"], tol = 1e-2)
+    ## expected difference because GPC2 compute the influence function over all pairs,
+    ## while GPC only over pairs with informative scores.
+    ## the difference is expected to be small though in large samples
 
 GS <- matrix(c(0, -0.05552322, -0.07409667, -0.12245246, 0.00344144, 0.11142578, 0.12031357, 0.12441761, -0.00674501, -0.26794284, -0.30166002, -0.35454813, 0.00674501, 0.16204436, 0.16145411, 0.12385689, 1, 0.61899652, 0.53947556, 0.32988924), 
              nrow = 4, 

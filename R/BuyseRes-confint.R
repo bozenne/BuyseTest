@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar 23 2020 (11:47) 
+## Last-Updated: mar 25 2020 (14:37) 
 ##           By: Brice Ozenne
-##     Update #: 606
+##     Update #: 648
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,20 +37,40 @@
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.
 #' @param order.Hprojection [integer, 1-2] order of the H-decomposition used to compute the variance.
-#' @param method.ci.resampling [character] the method used to compute the confidence intervals and p-values when using bootstrap or permutation.
-#' \code{"percentile"} uses the quantiles of the empirical distribution,
-#' \code{"gaussian"} uses the quantiles of a Gaussian distribution,
-#' and \code{"student"} uses the quantiles of a Student's t-distribution (only available for bootstrap).
+#' @param method.ci.resampling [character] the method used to compute the confidence intervals and p-values when using bootstrap or permutation (\code{"percentile"}, \code{"gaussian"}, \code{"student"}).
+#' See the details section.
 #' @param cluster [numeric vector] Group of observations for which the iid assumption holds .
 #'  
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #' \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
 #' 
-#' @details 
-#' When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
+#' @details
+#' \bold{method.ci.resampling}: when using bootstrap/permutation, p-values and confidence intervals are computing as follow: \itemize{
+#' \item \code{percentile} (bootstrap): compute the confidence interval using the quantiles of the bootstrap estimates.
+#' Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
+#' 
+#' \item \code{percentile} (permutation): apply the selected transformation to the estimate and permutation estimates.
+#' Compute the confidence interval by (i) shfiting the estimate by the quantiles of the permutation estimates and (ii) back-transforming .
+#' Compute the p-value as the relative frequency at which the estimate are less extreme than the permutation estimates.
+#'
+#' \item \code{gaussian} (bootstrap and permutation): apply the selected transformation to the estimate and bootstrap/permutation estimates.
+#' Estimate the variance of the estimator using the empirical variance of the transformed boostrap/permutation estimates.
+#' Compute confidence intervals and p-values under the normality assumption and back-transform the confidence intervals.
+#' 
+#' \item \code{student} (permutation): apply the selected transformation to the estimate, its standard error, the permutation estimates, and their standard error.
+#' Compute the studentized permutation estimates by dividing the permutation estimates by their standard error.
+#' Compute the confidence interval based on the standard error of the estimate and the quantiles of the studentized permutation estimates, and back-transform.
+#' Compute the p-value as the relative frequency at which the studentized estimate are less extreme than the permutation studentized estimates.
+#'
+#' \item \code{student} (bootstrap): apply the selected transformation to the estimate, its standard error, the bootstrap estimates, and their standard error.
+#' Compute the studentized bootstrap estimates by dividing the bootstrap estimates by their standard error. Center them.
+#' Compute the confidence interval based on the standard error of the estimate and the quantiles of the centered studentized bootstrap estimates, and back-transform.
+#' Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
+#' }
+#' 
+#' \bold{WARNING}: when using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
 #' Thus the confidence interval may not be valid if the null hypothesis is false. \cr
-#' More precisely, the quantiles of the distribution of the statistic are computed under the null hypothesis and then shifted by the point estimate of the statistic.
 #'
 #' @return A matrix containing a column for the estimated statistic (over all strata),
 #' the lower bound and upper bound of the confidence intervals, and the associated p-values.
@@ -105,34 +125,31 @@ setMethod(f = "confint",
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
-              if(is.null(method.ci.resampling)){                  
-                  if(attr(method.inference,"bootstrap")){
+              if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
+                  if(is.null(method.ci.resampling)){                  
                       if(attr(method.inference,"studentized")){
                           method.ci.resampling <- "studentized"
                       }else{
                           method.ci.resampling <- "percentile"
                       }
-                  }else if(attr(method.inference,"permutation")){
-                      method.ci.resampling <- "percentile"
+                  }else{
+                      method.ci.resampling <- tolower(method.ci.resampling)
                   }
-              }else{
-                  method.ci.resampling <- tolower(method.ci.resampling)
-              }
-              validCharacter(method.ci.resampling,
-                             name1 = "method.ci.resampling",
-                             valid.values = c("percentile","gaussian","studentized"),
-                             valid.length = 1,
-                             refuse.NULL = FALSE,                             
-                             method = "confint[BuyseRes]")
+                  validCharacter(method.ci.resampling,
+                                 name1 = "method.ci.resampling",
+                                 valid.values = c("percentile","gaussian","studentized"),
+                                 valid.length = 1,
+                                 refuse.NULL = FALSE,                             
+                                 method = "confint[BuyseRes]")
 
-              if(!is.null(method.ci.resampling)){
-                  if(!attr(method.inference,"bootstrap") && !attr(method.inference,"permutation")){
-                      warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")
-                  }else if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
+                  if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
                       stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap has been performed\n",
                            "Consider setting \'method.ci.resampling\' to \"percentile\" or \"gaussian\" \n",
                            "or setting \'method.inference\' to \"studentized bootstrap\" when calling BuyseTest. \n")
                   }
+                  
+              }else if(!is.null(method.ci.resampling)){
+                  warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")                  
               }
 
               if(attr(method.inference,"ustatistic") && (!is.null(order.Hprojection) && order.Hprojection != attr(method.inference,"hprojection") || !is.null(cluster))){
@@ -221,18 +238,23 @@ setMethod(f = "confint",
               if(method.inference == "none"){
                   method.confint <- confint_none
                   transformation <- FALSE
+                  center <- NA ## only for confint_student
               }else if(attr(method.inference,"ustatistic")){
                   method.confint <- confint_Ustatistic
+                  center <- NA ## only for confint_student
               }else if(attr(method.inference,"permutation")){
                   method.confint <- switch(method.ci.resampling,
-                                           "percentile" = confint_permutation,
-                                           "gaussian" = confint_gaussian)
+                                           "percentile" = confint_percentilePermutation,
+                                           "gaussian" = confint_gaussian,
+                                           "studentized" = confint_studentPermutation)
                   transformation <- (statistic=="winRatio")
+                  center <- FALSE ## only for confint_student
               }else if(attr(method.inference,"bootstrap")){
                   method.confint <- switch(method.ci.resampling,
                                            "percentile" = confint_percentileBootstrap,
                                            "gaussian" = confint_gaussian,
-                                           "studentized" = confint_student)
+                                           "studentized" = confint_studentBootstrap)
+                  center <- TRUE ## only for confint_student
                   if(method.ci.resampling=="percentile"){
                       transformation <- FALSE
                   }else if(transformation){
@@ -316,6 +338,7 @@ setMethod(f = "confint",
                                                 alternative = alternative,
                                                 null = trans.delta(null),
                                                 alpha = alpha,
+                                                center = center,
                                                 endpoint = endpoint,
                                                 backtransform.delta = itrans.delta,
                                                 backtransform.se = itrans.se.delta))
@@ -343,10 +366,10 @@ setMethod(f = "confint",
               
           })
 
-## * confint_permutation (called by confint)
-confint_permutation <- function(Delta, Delta.resampling,
-                                null, alternative, alpha,
-                                backtransform.delta, endpoint, ...){
+## * confint_percentilePermutation (called by confint)
+confint_percentilePermutation <- function(Delta, Delta.resampling,
+                                          null, alternative, alpha,
+                                          backtransform.delta, endpoint, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
@@ -371,7 +394,7 @@ confint_permutation <- function(Delta, Delta.resampling,
                                                         "greater" = Inf
                                                         ))
 
-    ## ** p-value
+    n## ** p-value
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
                "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),
@@ -466,10 +489,70 @@ confint_gaussian <- function(Delta, Delta.resampling,
     return(outTable)
 }
 
-## * confint_student (called by confint)
-confint_student <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampling,
-                            null, alternative, alpha,
-                            endpoint, backtransform.delta, backtransform.se, ...){
+## * confint_studentPermutation (called by confint)
+confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampling,
+                                       null, alternative, alpha,
+                                       endpoint, backtransform.delta, backtransform.se, ...){
+
+    n.endpoint <- length(endpoint)
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
+
+    ## ** point estimate
+    outTable[,"estimate"] <- backtransform.delta(Delta)
+
+    ## ** standard error
+    outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
+
+    ## ** critical quantile
+    Delta.stat.resampling <- Delta.resampling/Delta.se.resampling
+    Delta.statH0.resampling <- Delta.stat.resampling ## already under the null
+    
+    Delta.qInf <- switch(alternative,
+                         "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
+                         "less" = -Inf,
+                         "greater" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha)
+                         )
+    Delta.qSup <- switch(alternative,
+                         "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha/2),
+                         "less" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha),
+                         "greater" = Inf
+                         )
+
+    ## ** confidence interval
+    outTable[,"lower.ci"] <- backtransform.delta(Delta + Delta.qInf * Delta.se)
+    outTable[,"upper.ci"] <- backtransform.delta(Delta + Delta.qSup * Delta.se)
+
+    ## ** p.value
+    Delta.stat <- Delta/Delta.se
+    
+    outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
+        switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
+               "two.sided" = mean(abs(Delta.stat[iE] - null) <= abs(Delta.statH0.resampling[,iE] - null), na.rm = TRUE),
+               "less" = mean((Delta.stat[iE] - null) >= (Delta.statH0.resampling[,iE] - null), na.rm = TRUE),
+               "greater" = mean((Delta.stat[iE] - null) <= (Delta.statH0.resampling[,iE] - null), na.rm = TRUE)
+               )
+    })    
+
+    ## special case
+    if(any(Delta.se==0)){
+        index0 <- which(Delta.se==0)
+        outTable[index0,"lower.ci"] <- outTable[index0,"estimate"]
+        outTable[index0,"upper.ci"] <- outTable[index0,"estimate"]
+        outTable[index0,"p.value"] <- as.numeric(outTable[index0,"estimate"]==null)
+    }
+
+    
+    ## ** export
+    return(outTable)
+
+
+
+}
+## * confint_studentBootstrap (called by confint)
+confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampling,
+                                     null, alternative, alpha,
+                                     endpoint, backtransform.delta, backtransform.se, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
@@ -515,7 +598,7 @@ confint_student <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampli
         ## if(sign(mean(Delta.resampling[,iE]))!=sign(Delta[iE])){
             ## warning("the estimate and the average bootstrap estimate do not have same sign \n")
         ## }
-        outTable[iE, "p.value"] <- boot2pvalue(Delta.statH0.resampling[,iE], null = null, estimate = Delta[iE],
+        outTable[iE, "p.value"] <- boot2pvalue(Delta.statH0.resampling[,iE], null = null, estimate = Delta[iE], ## note: estimate is not used to produce the ci, just for knowing the sign
                                                alternative = alternative, FUN.ci = quantileCI2, checkSign = FALSE)
     }
 

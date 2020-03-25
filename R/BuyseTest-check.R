@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: nov 21 2019 (14:12) 
+## Last-Updated: mar 25 2020 (12:09) 
 ##           By: Brice Ozenne
-##     Update #: 216
+##     Update #: 217
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -266,7 +266,7 @@ testArgs <- function(name.call,
     if(method.inference != "u-statistic-bebu"){ ## asympototic bebu - hidden value only for debugging
         validCharacter(method.inference,
                        valid.length = 1,
-                       valid.values = c("none","u-statistic","permutation","bootstrap","studentized bootstrap"),
+                       valid.values = c("none","u-statistic","permutation", "studentized permutation", "bootstrap", "studentized bootstrap"),
                        method = "BuyseTest")
     }
     if(method.inference != "none" && any(table(data[[treatment]])<2) ){

@@ -31,7 +31,7 @@ See Details, section "Handling missing values".}
 Models must \code{prodlim} objects and stratified on the treatment and strata variable. When used, the uncertainty from the estimates of these survival models is ignored.}
 
 \item{method.inference}{[character] method used to compute confidence intervals and p-values.
-Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"bootstrap"}, \code{"bootstrap"}, \code{"studentized bootstrap"}.
+Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"studentized permutation"}, \code{"bootstrap"}, \code{"studentized bootstrap"}.
 See Details, section "Statistical inference".}
 
 \item{n.resampling}{[integer] the number of permutations/samples used for computing the confidence intervals and the p.values. 
@@ -141,6 +141,7 @@ The variance is computed using a H-projection of order 1 (default option), which
 An unbiased estimator can be obtained using a H-projection of order 2 (only available for the uncorrected Gehan's scoring rule, see \code{BuyseTest.options}).
 \bold{WARNING}: the current implementation of the H-projection has not been validated when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}).
   \item argument \code{method.inference="permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio).
+  \item argument \code{method.inference="studentized permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimate.
   \item argument \code{method.inference="bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio).
   \item argument \code{method.inference=" studentized bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimator.
 }

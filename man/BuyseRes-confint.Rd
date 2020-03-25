@@ -25,10 +25,8 @@ Default value read from \code{BuyseTest.options()}.}
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{method.ci.resampling}{[character] the method used to compute the confidence intervals and p-values when using bootstrap or permutation.
-\code{"percentile"} uses the quantiles of the empirical distribution,
-\code{"gaussian"} uses the quantiles of a Gaussian distribution,
-and \code{"student"} uses the quantiles of a Student's t-distribution (only available for bootstrap).}
+\item{method.ci.resampling}{[character] the method used to compute the confidence intervals and p-values when using bootstrap or permutation (\code{"percentile"}, \code{"gaussian"}, \code{"student"}).
+See the details section.}
 
 \item{order.Hprojection}{[integer, 1-2] order of the H-decomposition used to compute the variance.}
 
@@ -51,9 +49,31 @@ When using resampling methods:
 Computes confidence intervals for net benefit statistic or the win ratio statistic.
 }
 \details{
-When using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
+\bold{method.ci.resampling}: when using bootstrap/permutation, p-values and confidence intervals are computing as follow: \itemize{
+\item \code{percentile} (bootstrap): compute the confidence interval using the quantiles of the bootstrap estimates.
+Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
+
+\item \code{percentile} (permutation): apply the selected transformation to the estimate and permutation estimates.
+Compute the confidence interval by (i) shfiting the estimate by the quantiles of the permutation estimates and (ii) back-transforming .
+Compute the p-value as the relative frequency at which the estimate are less extreme than the permutation estimates.
+
+\item \code{gaussian} (bootstrap and permutation): apply the selected transformation to the estimate and bootstrap/permutation estimates.
+Estimate the variance of the estimator using the empirical variance of the transformed boostrap/permutation estimates.
+Compute confidence intervals and p-values under the normality assumption and back-transform the confidence intervals.
+
+\item \code{student} (permutation): apply the selected transformation to the estimate, its standard error, the permutation estimates, and their standard error.
+Compute the studentized permutation estimates by dividing the permutation estimates by their standard error.
+Compute the confidence interval based on the standard error of the estimate and the quantiles of the studentized permutation estimates, and back-transform.
+Compute the p-value as the relative frequency at which the studentized estimate are less extreme than the permutation studentized estimates.
+
+\item \code{student} (bootstrap): apply the selected transformation to the estimate, its standard error, the bootstrap estimates, and their standard error.
+Compute the studentized bootstrap estimates by dividing the bootstrap estimates by their standard error. Center them.
+Compute the confidence interval based on the standard error of the estimate and the quantiles of the centered studentized bootstrap estimates, and back-transform.
+Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
+}
+
+\bold{WARNING}: when using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
 Thus the confidence interval may not be valid if the null hypothesis is false. \cr
-More precisely, the quantiles of the distribution of the statistic are computed under the null hypothesis and then shifted by the point estimate of the statistic.
 }
 \seealso{
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
