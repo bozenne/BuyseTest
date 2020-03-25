@@ -1,7 +1,6 @@
 ## * Documentation - BuyseTest
 #' @name BuyseTest
 #' @title Generalized Pairwise Comparisons (GPC)
-#' @aliases BuyseTest
 #' 
 #' @description Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event endpoints.
 #' @param formula [formula] a symbolic description of the GPC model,

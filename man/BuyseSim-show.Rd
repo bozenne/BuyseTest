@@ -9,10 +9,10 @@
 \S4method{show}{BuyseSim}(object)
 }
 \arguments{
-\item{object}{an \R object of class \code{\linkS4class{BuyseSim}}, i.e., output of \code{\link{BuyseTest}}}
+\item{object}{an \R object of class \code{BuyseSim}, i.e., output of \code{\link{BuyseTest}}}
 }
 \description{
-Display the main results stored in a \code{\link{BuyseSim}} object.
+Display the main results stored in a \code{BuyseSim} object.
 }
 \seealso{
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr

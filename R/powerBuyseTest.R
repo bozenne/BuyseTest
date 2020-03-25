@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 23 2020 (12:12) 
+## Last-Updated: mar 25 2020 (15:20) 
 ##           By: Brice Ozenne
-##     Update #: 542
+##     Update #: 543
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,7 +17,6 @@
 ## * Documentation - powerBuyseTest
 #' @name powerBuyseTest
 #' @title Performing simulation studies with BuyseTest
-#' @aliases powerBuyseTest
 #' 
 #' @description Performs a simulation studies for several sample sizes.
 #' Returns estimates, standard errors, confidence intervals and p.values.

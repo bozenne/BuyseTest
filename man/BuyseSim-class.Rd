@@ -3,7 +3,6 @@
 \docType{class}
 \name{BuyseSim-class}
 \alias{BuyseSim-class}
-\alias{BuyseSim}
 \title{Class "BuyseSim" (output of BuyseTest)}
 \description{
 A \code{\link{powerBuyseTest}} output is reported in a \code{BuyseSim} object.

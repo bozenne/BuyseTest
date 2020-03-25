@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar 25 2020 (14:37) 
+## Last-Updated: mar 25 2020 (15:29) 
 ##           By: Brice Ozenne
-##     Update #: 648
+##     Update #: 657
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 #' @docType methods
 #' @name BuyseRes-confint
 #' @title  Confidence Intervals for Model Parameters
-#' @aliases confint confint,BuyseRes-method
+#' @aliases confint,BuyseRes-method
 #' @include BuyseRes-object.R
 #' 
 #' @description Computes confidence intervals for net benefit statistic or the win ratio statistic.
@@ -328,7 +328,7 @@ setMethod(f = "confint",
                   trans.se.delta <- function(x,se){se}
                   itrans.se.delta <- function(x,se){se}
               }
-              
+
               ## ** compute the confidence intervals
               outConfint <- do.call(method.confint,
                                     args = list(Delta = trans.delta(Delta),
@@ -394,7 +394,7 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
                                                         "greater" = Inf
                                                         ))
 
-    n## ** p-value
+    ## ** p-value
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
                "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),

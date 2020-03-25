@@ -1,7 +1,6 @@
 ## * Documentation BuyseSim
 #' @name BuyseSim-class
 #' @title Class "BuyseSim" (output of BuyseTest)
-#' @aliases  BuyseSim BuyseSim-class
 #' 
 #' @description A \code{\link{powerBuyseTest}} output is reported in a \code{BuyseSim} object.
 #' 

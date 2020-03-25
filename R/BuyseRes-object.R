@@ -1,7 +1,6 @@
 ## * Documentation BuyseRes
 #' @name BuyseRes-class
 #' @title Class "BuyseRes" (output of BuyseTest)
-#' @aliases  BuyseRes BuyseRes-class
 #' 
 #' @description A \code{\link{BuyseTest}} output is reported in a \code{BuyseRes} object.
 #' 

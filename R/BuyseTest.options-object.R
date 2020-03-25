@@ -1,7 +1,6 @@
 ## * Documentation BuyseTest.options
 #' @title Class "BuyseTest.options" (global setting for the BuyseTest package)
 #' @name BuyseTest.options-class
-#' @aliases BuyseTest.options-class
 #' @include 1-setGeneric.R
 #' 
 #' @description Class defining the global settings for the BuyseTest package.
@@ -157,8 +156,7 @@ setClass(
 
 #' @title Methods for the class "BuyseTest.options" 
 #' @name BuyseTest.options-methods
-#' @aliases BuyseTest.options-methods alloc,BuyseTest.options-method select,BuyseTest.options-method
-#'
+#' @aliases alloc,BuyseTest.options-method
 #' @description Methods to update or select global settings
 #' 
 #' @param object an object of class \code{BuyseTest.options}.

@@ -3,7 +3,6 @@
 \docType{methods}
 \name{BuyseRes-confint}
 \alias{BuyseRes-confint}
-\alias{confint}
 \alias{confint,BuyseRes-method}
 \title{Confidence Intervals for Model Parameters}
 \usage{

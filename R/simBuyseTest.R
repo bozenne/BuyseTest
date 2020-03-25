@@ -2,7 +2,6 @@
 #' @name Simulation function
 #' @rdname simulation
 #' @title Simulation of data for the BuyseTest
-#' @aliases simBuyseTest
 #' 
 #' @description Simulate binary, continuous or time to event data, possibly with strata.
 #' Outcomes are simulated independently of each other and independently of the strata variable.

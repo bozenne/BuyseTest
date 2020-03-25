@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: nov 14 2019 (14:41) 
+## Last-Updated: mar 25 2020 (15:28) 
 ##           By: Brice Ozenne
-##     Update #: 38
+##     Update #: 41
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -21,7 +21,7 @@
 #' @title Coef Method for Class "BuyseRes"
 #' @aliases coef,BuyseRes-method
 #' @include BuyseRes-object.R
-#' 
+#'  
 #' @description Extract summary statistics from the result of a \code{\link{BuyseTest}} function.
 #' 
 #' @param object output of \code{\link{BuyseTest}}

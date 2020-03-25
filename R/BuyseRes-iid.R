@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  7 2019 (11:20) 
 ## Version: 
-## Last-Updated: feb 20 2020 (13:56) 
+## Last-Updated: mar 25 2020 (15:29) 
 ##           By: Brice Ozenne
-##     Update #: 102
+##     Update #: 105
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 #' @docType methods
 #' @name BuyseRes-iid
 #' @title Extract the H-decomposition of the Estimator
-#' @aliases iid iid,BuyseRes-method
+#' @aliases iid,BuyseRes-method
 #' @include BuyseRes-object.R
 #' 
 #' @description Extract the H-decomposition of the GPC estimator.

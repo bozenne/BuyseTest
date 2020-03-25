@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: mar  3 2020 (09:51) 
+## Last-Updated: mar 25 2020 (15:19) 
 ##           By: Brice Ozenne
-##     Update #: 160
+##     Update #: 161
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,7 +18,6 @@
 ## * Documentation - auc
 #' @title Estimation of the Area Under the ROC Curve
 #' @name auc
-#' @aliases auc
 #' 
 #' @description Estimation of the Area Under the ROC curve, possibly after cross validation,
 #' to assess the discriminant ability of a biomarker regarding a disease status.

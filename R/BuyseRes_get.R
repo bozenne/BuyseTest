@@ -1,8 +1,8 @@
 ## * getCount (documentation)
 #' @name BuyseRes-getCount
 #' @title Extract the Number of Favorable, Unfavorable, Neutral, Uninformative pairs
+#' @aliases getCount,BuyseRes-method
 #' @include BuyseRes-object.R
-#' @aliases BuyseRes-getCount getCount getCount,BuyseRes-method
 #'
 #' @description Extract the number of favorable, unfavorable, neutral, uninformative pairs.
 #'
@@ -44,8 +44,8 @@ setMethod(f = "getCount",
 ## * getPairScore (documentation)
 #' @name BuyseRes-getPairScore
 #' @title Extract the Score of Each Pair
+#' @aliases getPairScore,BuyseRes-method
 #' @include BuyseRes-object.R
-#' @aliases BuyseRes-getPairScore getPairScore getPairScore,BuyseRes-method
 #'
 #' @description Extract the score of each pair.
 #'
@@ -248,8 +248,8 @@ setMethod(f = "getPairScore",
 ## * getSurvival (documentation)
 #' @name BuyseRes-getSurvival
 #' @title Extract the Survival and Survival Jumps
+#' @aliases getSurvival,BuyseRes-method
 #' @include BuyseRes-object.R
-#' @aliases BuyseRes-getSurvival getSurvival getSurvival,BuyseRes-method
 #'
 #' @description Extract the survival and survival jumps.
 #'

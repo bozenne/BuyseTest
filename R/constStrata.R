@@ -1,7 +1,6 @@
 ## * Documentation - constStrata
 #' @title Strata creation
 #' @name constStrata
-#' @aliases constStrata
 #' 
 #' @description Create strata from several variables.
 #' 

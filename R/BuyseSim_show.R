@@ -5,9 +5,9 @@
 #' @aliases show,BuyseSim-method
 #' @include BuyseSim-object.R BuyseSim-summary.R
 #' 
-#' @description Display the main results stored in a \code{\link{BuyseSim}} object.
+#' @description Display the main results stored in a \code{BuyseSim} object.
 #' 
-#' @param object an \R object of class \code{\linkS4class{BuyseSim}}, i.e., output of \code{\link{BuyseTest}}
+#' @param object an \R object of class \code{BuyseSim}, i.e., output of \code{\link{BuyseTest}}
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
