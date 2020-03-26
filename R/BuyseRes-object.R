@@ -26,8 +26,10 @@ setClass(
       n.pairs = "numeric",
       delta.netBenefit = "matrix",
       delta.winRatio = "matrix",
+      delta.mannWhitney = "matrix",
       Delta.netBenefit = "vector",
       Delta.winRatio = "vector",
+      Delta.mannWhitney = "vector",
       type = "vector",
       endpoint = "vector",
       level.treatment = "vector",
@@ -42,8 +44,10 @@ setClass(
       n.resampling = "numeric",
       deltaResampling.netBenefit = "array",
       deltaResampling.winRatio = "array",
+      deltaResampling.mannWhitney = "array",
       DeltaResampling.netBenefit = "matrix",
       DeltaResampling.winRatio = "matrix",
+      DeltaResampling.mannWhitney = "matrix",
       covariance = "matrix",
       covarianceResampling = "array",
       weight = "numeric",
@@ -67,8 +71,10 @@ methods::setMethod(
                                    n.pairs,
                                    delta.netBenefit,
                                    delta.winRatio,
+                                   delta.mannWhitney,
                                    Delta.netBenefit,
                                    Delta.winRatio,
+                                   Delta.mannWhitney,
                                    type,
                                    endpoint,
                                    level.strata,
@@ -83,8 +89,10 @@ methods::setMethod(
                                    n.resampling,
                                    deltaResampling.netBenefit,
                                    deltaResampling.winRatio,
+                                   deltaResampling.mannWhitney,
                                    DeltaResampling.netBenefit,
                                    DeltaResampling.winRatio,
+                                   DeltaResampling.mannWhitney,
                                    covariance,
                                    covarianceResampling,
                                    weight,
@@ -109,8 +117,10 @@ methods::setMethod(
                  ## ** delta/Delta
                  dimnames(delta.netBenefit) <- list(level.strata, name.endpoint)
                  dimnames(delta.winRatio) <- list(level.strata, name.endpoint)
+                 dimnames(delta.mannWhitney) <- list(level.strata, name.endpoint)
                  names(Delta.netBenefit) <- name.endpoint
                  names(Delta.winRatio) <- name.endpoint
+                 names(Delta.mannWhitney) <- name.endpoint
                  
                  ## ** endpoint
                  D <- length(endpoint)
@@ -130,8 +140,10 @@ methods::setMethod(
                  
                  .Object@delta.netBenefit <- delta.netBenefit
                  .Object@delta.winRatio <- delta.winRatio
+                 .Object@delta.mannWhitney <- delta.mannWhitney
                  .Object@Delta.netBenefit <- Delta.netBenefit
                  .Object@Delta.winRatio <- Delta.winRatio
+                 .Object@Delta.mannWhitney <- Delta.mannWhitney
 
                  .Object@type <- type
                  .Object@endpoint <- endpoint
@@ -149,18 +161,20 @@ methods::setMethod(
 
                  .Object@deltaResampling.netBenefit <- deltaResampling.netBenefit
                  .Object@deltaResampling.winRatio <- deltaResampling.winRatio
+                 .Object@deltaResampling.mannWhitney <- deltaResampling.mannWhitney
                  .Object@DeltaResampling.netBenefit <- DeltaResampling.netBenefit
                  .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
+                 .Object@DeltaResampling.mannWhitney <- DeltaResampling.mannWhitney
 
                  .Object@covariance <- covariance
                  if(NCOL(covariance)>0){
                      dimnames(.Object@covariance) <- list(name.endpoint,
-                                                          c("favorable","unfavorable","covariance","netBenefit","winRatio"))
+                                                          c("favorable","unfavorable","covariance","netBenefit","winRatio","mannWhitney"))
                  }
                  .Object@covarianceResampling <- covarianceResampling
                  if(dim(.Object@covarianceResampling)[1]>0){
                      dimnames(.Object@covarianceResampling) <- list(NULL,name.endpoint,
-                                                            c("favorable","unfavorable","covariance","netBenefit","winRatio"))
+                                                            c("favorable","unfavorable","covariance","netBenefit","winRatio","mannWhitney"))
                  }
                  .Object@weight <- weight
                  

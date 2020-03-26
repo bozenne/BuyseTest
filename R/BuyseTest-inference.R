@@ -98,13 +98,16 @@ inferenceResampling <- function(envir){
 
     out <- list(deltaResampling.netBenefit = array(NA, dim = dim.delta, dimnames = dimnames.delta),
                 deltaResampling.winRatio = array(NA, dim = dim.delta, dimnames = dimnames.delta),
+                deltaResampling.mannWhitney = array(NA, dim = dim.delta, dimnames = dimnames.delta),
                 DeltaResampling.netBenefit = matrix(NA, ncol = D, nrow = n.resampling,
                                                     dimnames = list(as.character(1:n.resampling), endpoint)),
                 DeltaResampling.winRatio = matrix(NA, ncol = D, nrow = n.resampling,
-                                                  dimnames = list(as.character(1:n.resampling), endpoint))
+                                                  dimnames = list(as.character(1:n.resampling), endpoint)),
+                DeltaResampling.mannWhitney = matrix(NA, ncol = D, nrow = n.resampling,
+                                                     dimnames = list(as.character(1:n.resampling), endpoint))
                 )
     if(iid){
-        out$covariance = array(NA, dim = c(n.resampling, D, 5))
+        out$covariance = array(NA, dim = c(n.resampling, D, 6))
     }else{
         out$covariance <- array(NA, dim = c(0,0,0))
     }
@@ -112,10 +115,12 @@ inferenceResampling <- function(envir){
     for(iR in test.resampling){
         out$deltaResampling.netBenefit[,,iR] <- ls.resampling[[iR]]$delta_netBenefit
         out$deltaResampling.winRatio[,,iR] <- ls.resampling[[iR]]$delta_winRatio
-
+        out$deltaResampling.mannWhitney[,,iR] <- ls.resampling[[iR]]$delta_mannWhitney
+        
         out$DeltaResampling.netBenefit[iR,] <- ls.resampling[[iR]]$Delta_netBenefit
         out$DeltaResampling.winRatio[iR,] <- ls.resampling[[iR]]$Delta_winRatio
-
+        out$DeltaResampling.mannWhitney[iR,] <- ls.resampling[[iR]]$Delta_mannWhitney
+        
         if(iid){
             out$covariance[iR,,] <- ls.resampling[[iR]]$Mvar
         }
@@ -129,6 +134,7 @@ inferenceResampling <- function(envir){
 
 ## * inference U-statistic
 ## Implement the computation of the asymptotic variance via an Hajek projection
+## used by BuysePower
 inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, count.unfavorable,
                                 n.pairs, n.C, n.T, level.strata, n.strata, n.endpoint, endpoint){
     . <- NULL ## for CRAN test
@@ -195,15 +201,17 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
                        order = max(order), endpoint = endpoint, n.endpoint = n.endpoint)
     M.cov <- cbind(M.cov0,
                    "netBenefit" = M.cov0[,"favorable"] + M.cov0[,"unfavorable"] - 2 * M.cov0[,"covariance"],
-                   "winRatio" =  M.cov0[,"favorable"]/iwUnfavorable^2 + M.cov0[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov0[,"covariance"]*iwFavorable/iwUnfavorable^3
+                   "winRatio" =  M.cov0[,"favorable"]/iwUnfavorable^2 + M.cov0[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov0[,"covariance"]*iwFavorable/iwUnfavorable^3,
+                   "mannWhitney" = M.cov0[,"favorable"]
                    )
     
     if(length(order)==2){
         M.cov1 <- .iid2cov(A.iid = A.iid, A2.iid = NULL,
                            order = min(order), endpoint = endpoint, n.endpoint = n.endpoint)
-        attr(M.cov, "first.order") <- cbind(M.cov0,
+        attr(M.cov, "first.order") <- cbind(M.cov1,
                                             "netBenefit" = M.cov1[,"favorable"] + M.cov1[,"unfavorable"] - 2 * M.cov1[,"covariance"],
-                                            "winRatio" =  M.cov1[,"favorable"]/iwUnfavorable^2 + M.cov1[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov1[,"covariance"]*iwFavorable/iwUnfavorable^3
+                                            "winRatio" =  M.cov1[,"favorable"]/iwUnfavorable^2 + M.cov1[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov1[,"covariance"]*iwFavorable/iwUnfavorable^3,
+                                            "mannWhitney" = M.cov1[,"favorable"]
                                             )
     }
     ## ** export
@@ -217,6 +225,7 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
 ## Large sample inference for a win ratio analysis of a composite outcome based on prioritized components
 ## Biostatistics (2015), pp. 1–10 doi:10.1093/biostatistics/kxv032
 ## Give results equivalent to inferenceUstatistic
+
 inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorable, count.unfavorable,
                                     n.pairs, n.C, n.T, level.strata, n.strata, n.endpoint, endpoint){
     . <- NULL ## for CRAN test
@@ -250,9 +259,9 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
         for(iE in 1:n.endpoint){ ## iE <- 1
 
             iTable <- ls.table[[iE]][ls.table[[iE]]$strata == level.strata[iStrata]]
+            
             index2originalOrder.C <- iTable[!duplicated(iTable$index.C),setNames(.SD$index.C,.SD$indexWithinStrata.C)]
             index2originalOrder.T <- iTable[!duplicated(iTable$index.T),setNames(.SD$index.T,.SD$indexWithinStrata.T)]
-
             ## *** Hajek projection
             ## \E[X_i>=Y_j+\tau|X_i] and \E[X_i+\tau<=Y_j|X_i]
             sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.T"]
@@ -346,14 +355,14 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
     }
 
     
-    
 
     ## ** export
     iwFavorable <- cumsum(count.favorable * weight) / ntot.pairs
     iwUnfavorable <- cumsum(count.unfavorable * weight) / ntot.pairs
     return(list(Sigma = cbind(M.cov,
                               "netBenefit" = M.cov[,"favorable"] + M.cov[,"unfavorable"] - 2 * M.cov[,"covariance"],
-                              "winRatio" =  M.cov[,"favorable"]/iwUnfavorable^2 + M.cov[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov[,"covariance"]*iwFavorable/iwUnfavorable^3
+                              "winRatio" =  M.cov[,"favorable"]/iwUnfavorable^2 + M.cov[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov[,"covariance"]*iwFavorable/iwUnfavorable^3,
+                              "mannWhitney" = M.cov[,"favorable"]
                               ),
                 iid1 = NULL,
                 iid2 = NULL))
@@ -397,3 +406,33 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
 }
 
 
+
+## * wsumPairScore
+## cumulate over endpoint the scores
+wsumPairScore <- function(pairScore, weight, n.endpoint){
+
+    keep.col <- c("strata","index.C","index.T","index.pair","indexWithinStrata.C", "indexWithinStrata.T","favorableC","unfavorableC")
+    old.col <- c("favorableC","unfavorableC")
+    new.col <- c("favorable","unfavorable")
+
+    out <- vector(mode = "list", length = n.endpoint)
+    ## indexPair <- setNames(1:NROW(pairScore[[1]]),pairScore[[1]]$index.pair)
+    
+    for(iE in 1:n.endpoint){ ## iE <- 2
+
+        iTable <- data.table::copy(pairScore[[iE]][,.SD,.SDcols = keep.col])
+        setnames(iTable, old = old.col, new = new.col)
+        iTable[,c("favorable") := .SD$favorable * weight[iE]]
+        iTable[,c("unfavorable") := .SD$unfavorable * weight[iE]]
+        
+        if(iE==1){
+            out[[iE]] <- iTable
+        }else{
+            out[[iE]] <- data.table::copy(out[[iE-1]])
+            indexMatch <- match(iTable$index.pair,out[[iE]]$index.pair) ## indexMatch - iTable$index.pair
+            out[[iE]][indexMatch, c("favorable") := .SD$favorable + iTable$favorable]
+            out[[iE]][indexMatch, c("unfavorable") := .SD$unfavorable + iTable$unfavorable]
+        }
+    }
+    return(out)
+}

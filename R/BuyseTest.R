@@ -416,8 +416,10 @@ BuyseTest <- function(formula,
 
     outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
                           deltaResampling.winRatio = array(dim=c(0,0,0)),
+                          deltaResampling.mannWhitney = array(dim=c(0,0,0)),
                           DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
                           DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
+                          DeltaResampling.mannWhitney = matrix(NA, nrow = 0, ncol = 0),
                           covariance = array(NA, dim = c(0,0,0)),
                           n.resampling = as.double(NA))
 
@@ -437,10 +439,17 @@ BuyseTest <- function(formula,
         }
 
         ## direct computation of the variance
-        outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
+        outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tablePairScore,
+                                                 order = option$order.Hprojection,
                                                  weight = outArgs$weight,
-                                                 count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
-                                                 n.pairs = outPoint$n_pairs, n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),                                                                                   level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+                                                 count.favorable = colSums(outPoint$count_favorable),
+                                                 count.unfavorable = colSums(outPoint$count_unfavorable),
+                                                 n.pairs = outPoint$n_pairs,
+                                                 n.C = length(envirBT$outArgs$index.C),
+                                                 n.T = length(envirBT$outArgs$index.T),
+                                                 level.strata = outArgs$level.strata,
+                                                 n.strata = outArgs$n.strata,
+                                                 endpoint = outArgs$endpoint)
 
         outPoint$Mvar <- outCovariance$Sigma
         outPoint$iidAverage_favorable <- NULL
@@ -477,8 +486,10 @@ BuyseTest <- function(formula,
         n.pairs = outPoint$n_pairs,
         delta.netBenefit = outPoint$delta_netBenefit,
         delta.winRatio = outPoint$delta_winRatio,
+        delta.mannWhitney = outPoint$delta_mannWhitney,
         Delta.netBenefit = outPoint$Delta_netBenefit,
         Delta.winRatio = outPoint$Delta_winRatio,
+        Delta.mannWhitney = outPoint$Delta_mannWhitney,
         type = type,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
@@ -493,8 +504,10 @@ BuyseTest <- function(formula,
         n.resampling = outArgs$n.resampling,
         deltaResampling.netBenefit = outResampling$deltaResampling.netBenefit,
         deltaResampling.winRatio = outResampling$deltaResampling.winRatio,
+        deltaResampling.mannWhitney = outResampling$deltaResampling.mannWhitney,
         DeltaResampling.netBenefit = outResampling$DeltaResampling.netBenefit,
         DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
+        DeltaResampling.mannWhitney = outResampling$DeltaResampling.mannWhitney,
         covarianceResampling = outResampling$covariance,
         covariance = outPoint$Mvar,
         weight = outArgs$weight,
@@ -597,6 +610,8 @@ BuyseTest <- function(formula,
                     Delta_netBenefit = resBT$Delta_netBenefit,
                     delta_winRatio = resBT$delta_winRatio,
                     Delta_winRatio = resBT$Delta_winRatio,
+                    delta_mannWhitney = resBT$delta_mannWhitney,
+                    Delta_mannWhitney = resBT$Delta_mannWhitney,
                     Mvar = resBT$Mvar))
     }
 }

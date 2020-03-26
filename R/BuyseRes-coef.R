@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: mar 25 2020 (15:28) 
+## Last-Updated: mar 26 2020 (12:21) 
 ##           By: Brice Ozenne
-##     Update #: 41
+##     Update #: 49
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,6 +37,7 @@
 #' \itemize{
 #' \item \code{"netBenefit"}: returns the net benefit.
 #' \item \code{"winRatio"}: returns the win ratio.
+#' \item \code{"mannWhitney"}: returns the proportion in favor of the treatment (also called Mann-Whitney parameter).
 #' \item \code{"count.favorable"}: returns the number of pairs in favor of the treatment.
 #' \item \code{"count.unfavorable"}: returns the number of pairs in favor of the control.
 #' \item \code{"count.neutral"}: returns the number of neutral pairs.
@@ -66,16 +67,24 @@ setMethod(f = "coef",
                   statistic <- option$statistic
               }
 
+              
+              statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
+                                  "netbenefit" = "netBenefit",
+                                  "winratio" = "winRatio",
+                                  "mannwhitney" = "mannWhitney",
+                                  statistic)
+              
               type.count <- c("count.favorable","count.unfavorable","count.neutral","count.uninf")
               type.pc <- c("pc.favorable","pc.unfavorable","pc.neutral","pc.uninf")
+
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio",type.count,type.pc),
+                             valid.values = c("netBenefit","winRatio","mannWhitney",type.count,type.pc),
                              valid.length = 1,
                              method = "coef[BuyseRes]")
 
               ## ** extract information
-              if(statistic %in% c("netBenefit","winRatio")){
+              if(statistic %in% c("netBenefit","winRatio","mannWhitney")){
 
                   if(stratified){
                       out <- slot(object, paste("delta", statistic , sep = "."))

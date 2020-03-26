@@ -167,7 +167,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 
 
   if(returnIID>0){
-    Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
+    Mvar.resize(D,6); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio); variance(mannWhiney);
     Mvar.fill(0.0);
 
     // iid with respect to the averaging over pairs
@@ -386,10 +386,10 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
   
   // ** proportion in favor of treatment
   // Rcpp::Rcout << std::endl << " compute statistics" << std::endl;
-  arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
-  arma::vec Delta_netBenefit(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
+  arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D), delta_mannWhitney(n_strata,D); // matrix containing for each strata and each endpoint the statistic
+  arma::vec Delta_netBenefit(D), Delta_winRatio(D), Delta_mannWhitney(D); // vector containing for each endpoint the overall statistic
 
-  calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
+  calcStatistic(delta_netBenefit, delta_winRatio, delta_mannWhitney, Delta_netBenefit, Delta_winRatio, Delta_mannWhitney,
                 Mcount_favorable, Mcount_unfavorable,
 		iidAverage_favorable, iidAverage_unfavorable, iidNuisance_favorable, iidNuisance_unfavorable,
 		Mvar, returnIID,
@@ -404,8 +404,10 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 			    Rcpp::Named("count_uninf") = Mcount_uninf,
 			    Rcpp::Named("delta_netBenefit") = delta_netBenefit,
 			    Rcpp::Named("delta_winRatio") = delta_winRatio,
+			    Rcpp::Named("delta_mannWhitney") = delta_mannWhitney,
 			    Rcpp::Named("Delta_netBenefit") = arma::conv_to< std::vector<double> >::from(Delta_netBenefit),
 			    Rcpp::Named("Delta_winRatio") = arma::conv_to< std::vector<double> >::from(Delta_winRatio),
+			    Rcpp::Named("Delta_mannWhitney") = arma::conv_to< std::vector<double> >::from(Delta_mannWhitney),
 			    Rcpp::Named("n_pairs") = arma::conv_to< std::vector<double> >::from(vecn_pairs),
 			    Rcpp::Named("iidAverage_favorable") = iidAverage_favorable,
 			    Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,
@@ -513,7 +515,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   arma::mat iidNuisance_unfavorable; // iid relative to the nuisance parameters for the unfavorable scores [all endpoints]
 
   if(returnIID>0){
-    Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
+    Mvar.resize(D,6); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio); variance(mannWhitney);
     Mvar.fill(0.0);
 
     // iid with respect to the averaging over pairs
@@ -816,7 +818,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	  // **** update pairwise-scores for all pairs
 	  if(keepScore){
 	    if(debug>3){Rcpp::Rcout << " keepScore ";}
-	    vecPairScore[iter_d][0].push_back(iter_d);
+	    vecPairScore[iter_d][0].push_back(iter_strata);
 	    vecPairScore[iter_d][1].push_back(posStrataC[iter_C]);
 	    vecPairScore[iter_d][2].push_back(posStrataT[iter_T]);
 	    vecPairScore[iter_d][3].push_back(iPair);
@@ -920,10 +922,10 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   
   // ** proportion in favor of treatment
   // Rcpp::Rcout << std::endl << " compute statistics" << std::endl;
-  arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D); // matrix containing for each strata and each endpoint the statistic
-  arma::vec Delta_netBenefit(D), Delta_winRatio(D); // vector containing for each endpoint the overall statistic
+  arma::mat delta_netBenefit(n_strata,D), delta_winRatio(n_strata,D), delta_mannWhitney(n_strata,D); // matrix containing for each strata and each endpoint the statistic
+  arma::vec Delta_netBenefit(D), Delta_winRatio(D), Delta_mannWhitney(D); // vector containing for each endpoint the overall statistic
 
-  calcStatistic(delta_netBenefit, delta_winRatio, Delta_netBenefit, Delta_winRatio,
+  calcStatistic(delta_netBenefit, delta_winRatio, delta_mannWhitney, Delta_netBenefit, Delta_winRatio, Delta_mannWhitney,
                 Mcount_favorable, Mcount_unfavorable,
 		iidAverage_favorable, iidAverage_unfavorable, iidNuisance_favorable, iidNuisance_unfavorable,
 		Mvar, returnIID,
@@ -938,8 +940,10 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			    Rcpp::Named("count_uninf") = Mcount_uninf,
 			    Rcpp::Named("delta_netBenefit") = delta_netBenefit,
 			    Rcpp::Named("delta_winRatio") = delta_winRatio,
+			    Rcpp::Named("delta_mannWhitney") = delta_mannWhitney,
 			    Rcpp::Named("Delta_netBenefit") = arma::conv_to< std::vector<double> >::from(Delta_netBenefit),
 			    Rcpp::Named("Delta_winRatio") = arma::conv_to< std::vector<double> >::from(Delta_winRatio),
+			    Rcpp::Named("Delta_mannWhitney") = arma::conv_to< std::vector<double> >::from(Delta_mannWhitney),
 			    Rcpp::Named("n_pairs") = arma::conv_to< std::vector<double> >::from(vecn_pairs),
 			    Rcpp::Named("iidAverage_favorable") = iidAverage_favorable,
 			    Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,

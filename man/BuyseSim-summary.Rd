@@ -15,9 +15,11 @@
 
 \item{print}{[logical] Should the table be displayed?.}
 
-\item{statistic}{[character] the statistic summarizing the pairwise comparison:
-\code{"netBenefit"} displays the net benefit
-whereas \code{"winRatio"} displays the win ratio.}
+\item{statistic}{[character] statistic relative to which the power should be computed:
+\code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
+\code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
+\code{"mannWhitney"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+Default value read from \code{BuyseTest.options()}.}
 
 \item{legend}{[logical] should explainations about the content of each column be displayed?}
 
@@ -29,6 +31,11 @@ whereas \code{"winRatio"} displays the win ratio.}
 }
 \description{
 Summarize the results from the \code{\link{powerBuyseTest}} function.
+}
+\references{
+On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
+On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \
 }
 \seealso{
 \code{\link{powerBuyseTest}} for performing a simulation study for generalized pairwise comparison. \cr

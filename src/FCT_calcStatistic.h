@@ -10,7 +10,7 @@
 
 // :cppFile:{FCT_buyseTest.cpp}:end:
 
-void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio,
+void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::mat& delta_mannWhitney, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio, arma::mat& Delta_mannWhitney,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
                    arma::mat& iidAverage_favorable, arma::mat& iid_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
 				   arma::mat& Mvar, int returnIID,
@@ -19,7 +19,7 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
 				   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
 
 // * calcStatistic
-void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio,
+void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::mat& delta_mannWhitney, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio, arma::mat& Delta_mannWhitney,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
                    arma::mat& iidAverage_favorable, arma::mat& iid_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
 				   arma::mat& Mvar, int returnIID,
@@ -63,6 +63,10 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
   Delta_winRatio = cumWcount_favorable / cumWcount_unfavorable;
   delta_winRatio = Mcount_favorable / Mcount_unfavorable;
 
+  // Mann Whitney parameter equals number of favorable pairs divided by the number of pairs (i.e. proportion in favor of the treatment)  
+  Delta_mannWhitney = cumWcount_favorable/(double)(ntot_pair);
+  delta_mannWhitney = Mcount_favorable;
+  delta_mannWhitney.each_col() /= n_pairs;
 	  
   // ** iid and variance estimation
   if(returnIID > 0){
@@ -208,6 +212,8 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
     // var(A/B) = var(A)/B^2 + var(B)*(A^2/B^4) - 2*cov(A,B)A/B^3
     // indeed (A/B)' = A'/B - B'A/B^2 so (A/B)^'2 = A'A'/B^2 + B'B'A^2/B^2 - 2B'A' A/B^3
     Mvar.col(4) = Mvar.col(0)/pow(cumWdelta_unfavorable, 2) + Mvar.col(1) % pow(cumWdelta_favorable,2)/pow(cumWdelta_unfavorable,4) - 2 * Mvar.col(2) % cumWdelta_favorable/pow(cumWdelta_unfavorable, 3);
+    // Mann-Whitney parameter is the same as the proportion in favor of treatment
+    Mvar.col(5) = Mvar.col(0);
 	// check if no variability then set var(win ratio) to 0.
 	for(unsigned int iEndpoint = 0; iEndpoint<D; iEndpoint++){
 	  if( (Mvar(iEndpoint,0)==0) && (Mvar(iEndpoint,1)==0)){

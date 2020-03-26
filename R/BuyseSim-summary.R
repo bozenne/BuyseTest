@@ -9,9 +9,11 @@
 #' 
 #' @param object output of \code{\link{powerBuyseTest}}
 #' @param print [logical] Should the table be displayed?.
-#' @param statistic [character] the statistic summarizing the pairwise comparison:
-#' \code{"netBenefit"} displays the net benefit
-#' whereas \code{"winRatio"} displays the win ratio.
+#' @param statistic [character] statistic relative to which the power should be computed:
+#' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
+#' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
+#' \code{"mannWhitney"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+#' Default value read from \code{BuyseTest.options()}.
 #' @param digit [integer vector] the number of digit to use for printing the counts and the delta.  
 #' @param legend [logical] should explainations about the content of each column be displayed? 
 #' @param col.rep [logical] should the number of successful simulations be displayed? 
@@ -19,6 +21,11 @@
 #'
 #' @seealso 
 #'   \code{\link{powerBuyseTest}} for performing a simulation study for generalized pairwise comparison. \cr
+#'
+#' @references 
+#' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+#' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
+#' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \
 #' 
 #' @keywords summary BuyseSim-method
 #' @author Brice Ozenne
@@ -50,11 +57,12 @@ setMethod(f = "summary",
                                   switch,
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
+                                  "mannwhitney" = "mannWhitney",
                                   statistic)
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio"),
+                             valid.values = c("netBenefit","winRatio","mannWhitney"),
                              valid.length = 1:2,
                              method = "summary[BuyseSim]")
               
@@ -124,10 +132,10 @@ setMethod(f = "summary",
                   }
                   
                   if("winRatio" %in% statistic){
-                      cat(" > statistic   : win ratio (null hypothesis Delta=",null["netBenefit"],")\n", sep = "")
+                      cat(" > statistic   : win ratio (null hypothesis Delta=",null["winRatio"],")\n", sep = "")
                       printWinRatio <- as.data.frame(outW$winRatio, stringsAsFactors = FALSE)
                       printWinRatio <- round(printWinRatio, digits = digit)
-                      if(length(outW$netBenefit$order)>1){ ## remove duplicated values due to order = 1:2
+                      if(length(outW$winRatio$order)>1){ ## remove duplicated values due to order = 1:2
                           printWinRatio[printWinRatio$order==2, rm.duplicate] <- ""
                       }
                       if(col.rep == FALSE){
@@ -135,6 +143,21 @@ setMethod(f = "summary",
                           printWinRatio$rep.se <- NULL
                       }
                       print(printWinRatio, row.names = FALSE)
+                      cat("\n")
+                  }
+                  
+                  if("mannWhitney" %in% statistic){
+                      cat(" > statistic   : Mann-Whitney parameter (null hypothesis Delta=",null["mannWhitney"],")\n", sep = "")
+                      printMannWhitney <- as.data.frame(outW$mannWhitney, stringsAsFactors = FALSE)
+                      printMannWhitney <- round(printMannWhitney, digits = digit)
+                      if(length(outW$mannWhitney$order)>1){ ## remove duplicated values due to order = 1:2
+                          printMannWhitney[printMannWhitney$order==2, rm.duplicate] <- ""
+                      }
+                      if(col.rep == FALSE){
+                          printMannWhitney$rep.estimate <- NULL
+                          printMannWhitney$rep.se <- NULL
+                      }
+                      print(printMannWhitney, row.names = FALSE)
                       cat("\n")
                   }
 

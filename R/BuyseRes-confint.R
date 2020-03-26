@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar 25 2020 (15:29) 
+## Last-Updated: mar 26 2020 (13:37) 
 ##           By: Brice Ozenne
-##     Update #: 657
+##     Update #: 673
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,8 @@
 #' @param object an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
 #' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
-#' whereas \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016).
+#' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
+#' \code{"mannWhitney"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
@@ -80,6 +81,11 @@
 #' \item an attribute \code{method.ci.resampling} method used to compute the confidence intervals and p-values. 
 #' }
 #' 
+#' @references 
+#' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+#' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
+#' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \cr
+#'
 #' @keywords confint BuyseRes-method
 #' @author Brice Ozenne
 
@@ -117,11 +123,12 @@ setMethod(f = "confint",
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
+                                  "mannwhitney" = "mannWhitney",
                                   statistic)
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio"),
+                             valid.values = c("netBenefit","winRatio","mannWhitney"),
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
@@ -176,7 +183,8 @@ setMethod(f = "confint",
                       iVar <- crossprod(ls.iid[[iE]])[c(1,4,2)]
                       return( c(iVar,
                                 iVar[1] + iVar[2] - 2*iVar[3],
-                                iVar[1]/delta.unfavorable[iE]^2 + iVar[2] * delta.favorable[iE]^2/delta.unfavorable[iE]^4 - 2*iVar[3] * delta.favorable[iE]/delta.unfavorable[iE]^3)
+                                iVar[1]/delta.unfavorable[iE]^2 + iVar[2] * delta.favorable[iE]^2/delta.unfavorable[iE]^4 - 2*iVar[3] * delta.favorable[iE]/delta.unfavorable[iE]^3,
+                                iVar[1])
                              )
                   }))
                   dimnames(object@covariance) <- keep.names
@@ -232,7 +240,8 @@ setMethod(f = "confint",
               ## ** null hypothesis
               null <- switch(statistic,
                              "netBenefit" = 0,
-                             "winRatio" = 1)
+                             "winRatio" = 1,
+                             "mannWhitney" = 1/2)
 
               ## ** method
               if(method.inference == "none"){
@@ -260,7 +269,8 @@ setMethod(f = "confint",
                   }else if(transformation){
                       test <- switch(statistic,
                                      "netBenefit"= any(abs(Delta.resampling-1)<1e-12),
-                                     "winRatio"= any(abs(Delta.resampling)<1e-12))
+                                     "winRatio"= any(abs(Delta.resampling)<1e-12),
+                                     "mannWhitney"= any(abs(Delta.resampling-1/2)<1e-12))
                       if(test){
                           warning("Extreme values of the statistic \n",
                                   "Consider setting the argument \'transformation\' to FALSE \n")
@@ -272,10 +282,12 @@ setMethod(f = "confint",
               if(transformation){
                   trans.delta <- switch(statistic,
                                         "netBenefit" = atanh,
-                                        "winRatio" = log)
-                  itrans.delta <- switch(statistic,
+                                        "winRatio" = log,
+                                        "mannWhitney" = function(x){atanh(2*(x-1/2))})
+                  itrans.delta <- switch(statistic,                                         
                                          "netBenefit" = tanh,
-                                         "winRatio" = exp)                  
+                                         "winRatio" = exp,
+                                         "mannWhitney" = function(x){tanh(x)/2+1/2})                  
                   trans.se.delta <- switch(statistic,
                                            "netBenefit" = function(x,se){
                                                if(is.null(se)){
@@ -293,6 +305,17 @@ setMethod(f = "confint",
                                                    out <- se
                                                }else{
                                                    out <- se/x
+                                                   if(any(na.omit(se)==0)){
+                                                       out[se==0] <- 0
+                                                   }
+                                               }
+                                               return(out)
+                                           },
+                                           "mannWhitney" = function(x,se){
+                                               if(is.null(se)){
+                                                   out <- se
+                                               }else{
+                                                   out <- 2*se/(1-(2*(x-1/2))^2)
                                                    if(any(na.omit(se)==0)){
                                                        out[se==0] <- 0
                                                    }
@@ -316,6 +339,17 @@ setMethod(f = "confint",
                                                     out <- se
                                                 }else{
                                                     out <- se*itrans.delta(x)
+                                                    if(any(na.omit(se)==0)){
+                                                        out[se==0] <- 0
+                                                    }
+                                                }
+                                                return(out)
+                                            },
+                                            "mannWhitney" = function(x,se){
+                                                if(is.null(se)){
+                                                    out <- se
+                                                }else{
+                                                    out <- (se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
                                                     if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }

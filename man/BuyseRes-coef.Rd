@@ -30,6 +30,7 @@ One of the following statistic can be specified:
 \itemize{
 \item \code{"netBenefit"}: returns the net benefit.
 \item \code{"winRatio"}: returns the win ratio.
+\item \code{"mannWhitney"}: returns the proportion in favor of the treatment (also called Mann-Whitney parameter).
 \item \code{"count.favorable"}: returns the number of pairs in favor of the treatment.
 \item \code{"count.unfavorable"}: returns the number of pairs in favor of the control.
 \item \code{"count.neutral"}: returns the number of neutral pairs.
