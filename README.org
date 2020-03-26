@@ -12,11 +12,11 @@
 (https://www.r-project.org/) implementing generalized pairwise
 comparisons (GPC). GPC compare two groups of observations
 (intervention vs. control group) regarding several prioritized
-endpoints. The net benefit and win ratio statistics can then be
-estimated and corresponding confidence intervals and p-values can be
-estimated using resampling methods or the asymptotic U-statistic
-theory. The software enables the use of thresholds of minimal
-importance difference, stratification, and corrections to deal
+endpoints. The net benefit, win ratio, and Mann-Whitney parameter can
+then be estimated and corresponding confidence intervals and p-values
+can be estimated using resampling methods or the asymptotic
+U-statistic theory. The software enables the use of thresholds of
+minimal importance difference, stratification, and corrections to deal
 with right-censored endpoints.
 
 The Generalized Pairwise Comparisons form all possible pairs of
