@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: mar 26 2020 (13:51) 
+## Last-Updated: mar 26 2020 (15:05) 
 ##           By: Brice Ozenne
-##     Update #: 130
+##     Update #: 132
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -652,8 +652,7 @@ test_that("iid with nuisance parameters: 2 TTE",{
     ##              ncol = 5, 
     ##              dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
     ##              )
-    expect_equal(test,GS, tol = 1e-6)
-
+    expect_equal(test, GS, tol = 1e-3)
 })
 
 ## * normalization iid
