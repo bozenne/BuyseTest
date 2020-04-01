@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar 26 2020 (13:37) 
+## Last-Updated: apr  1 2020 (15:28) 
 ##           By: Brice Ozenne
-##     Update #: 673
+##     Update #: 707
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,22 +52,23 @@
 #' Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
 #' 
 #' \item \code{percentile} (permutation): apply the selected transformation to the estimate and permutation estimates.
-#' Compute the confidence interval by (i) shfiting the estimate by the quantiles of the permutation estimates and (ii) back-transforming .
+#' Compute the confidence interval by (i) shfiting the estimate by the quantiles of the centered permutation estimates and (ii) back-transforming .
 #' Compute the p-value as the relative frequency at which the estimate are less extreme than the permutation estimates.
 #'
 #' \item \code{gaussian} (bootstrap and permutation): apply the selected transformation to the estimate and bootstrap/permutation estimates.
 #' Estimate the variance of the estimator using the empirical variance of the transformed boostrap/permutation estimates.
 #' Compute confidence intervals and p-values under the normality assumption and back-transform the confidence intervals.
 #' 
+#' \item \code{student} (bootstrap): apply the selected transformation to the estimate, its standard error, the bootstrap estimates, and their standard error.
+#' Compute the studentized bootstrap estimates by dividing the centered bootstrap estimates by their standard error. 
+#' Compute the confidence interval based on the standard error of the estimate and the quantiles of the studentized bootstrap estimates, and back-transform.
+#' Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
+#' 
 #' \item \code{student} (permutation): apply the selected transformation to the estimate, its standard error, the permutation estimates, and their standard error.
-#' Compute the studentized permutation estimates by dividing the permutation estimates by their standard error.
+#' Compute the studentized permutation estimates by dividing the centered permutation estimates by their standard error.
 #' Compute the confidence interval based on the standard error of the estimate and the quantiles of the studentized permutation estimates, and back-transform.
 #' Compute the p-value as the relative frequency at which the studentized estimate are less extreme than the permutation studentized estimates.
 #'
-#' \item \code{student} (bootstrap): apply the selected transformation to the estimate, its standard error, the bootstrap estimates, and their standard error.
-#' Compute the studentized bootstrap estimates by dividing the bootstrap estimates by their standard error. Center them.
-#' Compute the confidence interval based on the standard error of the estimate and the quantiles of the centered studentized bootstrap estimates, and back-transform.
-#' Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
 #' }
 #' 
 #' \bold{WARNING}: when using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
@@ -256,7 +257,6 @@ setMethod(f = "confint",
                                            "percentile" = confint_percentilePermutation,
                                            "gaussian" = confint_gaussian,
                                            "studentized" = confint_studentPermutation)
-                  transformation <- (statistic=="winRatio")
                   center <- FALSE ## only for confint_student
               }else if(attr(method.inference,"bootstrap")){
                   method.confint <- switch(method.ci.resampling,
@@ -266,15 +266,6 @@ setMethod(f = "confint",
                   center <- TRUE ## only for confint_student
                   if(method.ci.resampling=="percentile"){
                       transformation <- FALSE
-                  }else if(transformation){
-                      test <- switch(statistic,
-                                     "netBenefit"= any(abs(Delta.resampling-1)<1e-12),
-                                     "winRatio"= any(abs(Delta.resampling)<1e-12),
-                                     "mannWhitney"= any(abs(Delta.resampling-1/2)<1e-12))
-                      if(test){
-                          warning("Extreme values of the statistic \n",
-                                  "Consider setting the argument \'transformation\' to FALSE \n")
-                      }
                   }
               }
               
@@ -403,37 +394,38 @@ setMethod(f = "confint",
 ## * confint_percentilePermutation (called by confint)
 confint_percentilePermutation <- function(Delta, Delta.resampling,
                                           null, alternative, alpha,
-                                          backtransform.delta, endpoint, ...){
+                                          endpoint, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
                        dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
     
     ## ** point estimate
-    outTable[,"estimate"] <- backtransform.delta(Delta)
+    outTable[,"estimate"] <- Delta
 
     ## ** standard error
-    outTable[,"se"] <- apply(backtransform.delta(Delta.resampling), MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
+    outTable[,"se"] <- apply(Delta.resampling, MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
 
     ## ** confidence interval
-    outTable[,"lower.ci"] <- backtransform.delta(switch(alternative,
-                                                        "two.sided" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = alpha/2, na.rm = TRUE),
-                                                        "less" = -Inf,
-                                                        "greater" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = alpha, na.rm = TRUE)
-                                                        ))
+    Delta.resamplingH0 <- apply(Delta.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)
+    outTable[,"lower.ci"] <- switch(alternative,
+                                    "two.sided" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = alpha/2, na.rm = TRUE),
+                                    "less" = -Inf,
+                                    "greater" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = alpha, na.rm = TRUE)
+                                    )
     
-    outTable[,"upper.ci"] <- backtransform.delta(switch(alternative,
-                                                        "two.sided" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha/2, na.rm = TRUE),
-                                                        "less" = Delta + apply(Delta.resampling, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha, na.rm = TRUE),
-                                                        "greater" = Inf
-                                                        ))
+    outTable[,"upper.ci"] <- switch(alternative,
+                                    "two.sided" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha/2, na.rm = TRUE),
+                                    "less" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha, na.rm = TRUE),
+                                    "greater" = Inf
+                                    )
 
     ## ** p-value
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
                "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),
-               "less" = mean((Delta[iE] - null) >= (Delta.resampling[,iE] - null), na.rm = TRUE),
-               "greater" = mean((Delta[iE] - null) <= (Delta.resampling[,iE] - null), na.rm = TRUE)
+               "less" = mean(Delta[iE] >= Delta.resampling[,iE], na.rm = TRUE),
+               "greater" = mean(Delta[iE] <= Delta.resampling[,iE], na.rm = TRUE)
                )
     })
 
@@ -539,9 +531,8 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
     ## ** critical quantile
-    Delta.stat.resampling <- Delta.resampling/Delta.se.resampling
-    Delta.statH0.resampling <- Delta.stat.resampling ## already under the null
-    
+    Delta.statH0.resampling <- apply(Delta.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling
+
     Delta.qInf <- switch(alternative,
                          "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
                          "less" = -Inf,
@@ -558,13 +549,13 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     outTable[,"upper.ci"] <- backtransform.delta(Delta + Delta.qSup * Delta.se)
 
     ## ** p.value
-    Delta.stat <- Delta/Delta.se
-    
+    Delta.stat <- (Delta-null)/Delta.se
+    Delta.stat.resampling <- (Delta.resampling-null)/Delta.se.resampling
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-               "two.sided" = mean(abs(Delta.stat[iE] - null) <= abs(Delta.statH0.resampling[,iE] - null), na.rm = TRUE),
-               "less" = mean((Delta.stat[iE] - null) >= (Delta.statH0.resampling[,iE] - null), na.rm = TRUE),
-               "greater" = mean((Delta.stat[iE] - null) <= (Delta.statH0.resampling[,iE] - null), na.rm = TRUE)
+               "two.sided" = mean(abs(Delta.stat[iE]) <= abs(Delta.stat.resampling[,iE]), na.rm = TRUE),
+               "less" = mean(Delta.stat[iE] >= Delta.stat.resampling[,iE], na.rm = TRUE),
+               "greater" = mean(Delta.stat[iE] <= Delta.stat.resampling[,iE], na.rm = TRUE)
                )
     })    
 
@@ -573,7 +564,7 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
         index0 <- which(Delta.se==0)
         outTable[index0,"lower.ci"] <- outTable[index0,"estimate"]
         outTable[index0,"upper.ci"] <- outTable[index0,"estimate"]
-        outTable[index0,"p.value"] <- as.numeric(outTable[index0,"estimate"]==null)
+        outTable[index0,"p.value"] <- as.numeric(NA)
     }
 
     
@@ -599,10 +590,8 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
     ## ** critical quantile
-    ## Delta.statH0.resampling <- sweep(Delta.resampling, MARGIN = 2, FUN = "-", STATS = Delta)/Delta.se.resampling
-    Delta.stat.resampling <- Delta.resampling/Delta.se.resampling
-    Delta.statH0.resampling <- apply(Delta.stat.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)
-    
+    Delta.statH0.resampling <- apply(Delta.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling  ## center around the null
+
     Delta.qInf <- switch(alternative,
                          "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
                          "less" = -Inf,

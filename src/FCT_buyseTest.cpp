@@ -694,7 +694,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	      iDscore_Dnuisance_C.resize(p_C(iter_strata, iter_d),4);
 	      iDscore_Dnuisance_T.resize(p_T(iter_strata, iter_d),4);
 	    }
-	    
+
 	    // note: iDscore_Dnuisance_C, iDscore_Dnuisance_T are initalized to 0 in calcOneScore_SurvPeron
 	    iPairScore = calcOneScore_SurvPeron(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 						endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),

@@ -631,6 +631,7 @@ calcSample <- function(envir, method.inference){
     )
 
     if(method.inference == "none"){
+
         ## ** no resampling
         if(envir$outArgs$n.strata==1){        
             out$ls.indexC[[1]] <- envir$outArgs$index.C - 1
@@ -649,88 +650,75 @@ calcSample <- function(envir, method.inference){
         }
     }else{
 
-        if(grepl("permutation",method.inference)){
-            test.perm <- TRUE
-            replace <- FALSE
-        }else if(grepl("bootstrap",method.inference)){
-            test.perm <- FALSE
-            replace <- TRUE
-        }
-
-        ## ** perform resampling
+        ## ** stratified resampling
         n.strataResampling <- length(envir$outArgs$n.obsStrataResampling)
         index.resampling <- NULL
-        for(iSR in 1:n.strataResampling){ ## iSR <- 1 
-            index.resampling <- c(index.resampling, envir$outArgs$cumn.obsStrataResampling[iSR] + sample.int(envir$outArgs$n.obsStrataResampling[iSR], replace = replace))
-        }            
+        for (iSR in 1:n.strataResampling) {
+            index.resampling <- c(index.resampling,
+                                  envir$outArgs$cumn.obsStrataResampling[iSR] + sample.int(envir$outArgs$n.obsStrataResampling[iSR], replace = grepl("bootstrap",method.inference)))
+        }
 
         ## ** reconstruct groups
-        if(envir$outArgs$n.strata==1){
-            ## index of the new observations in the old dataset by treatment group
-            if(test.perm){
+        ## index: index of the new observations in the old dataset by treatment group
+        ## pos: unique identifier for each observation
+        if(envir$outArgs$n.strata==1){ ## no strata
+            
+            if(grepl("permutation",method.inference)){
                 out$ls.indexC[[1]] <- which(index.resampling %in% envir$outArgs$index.C) - 1
                 out$ls.indexT[[1]] <- which(index.resampling %in% envir$outArgs$index.T) - 1
-            }else{
-                out$ls.indexC[[1]] <- index.resampling[index.resampling %in% envir$outArgs$index.C] - 1
-                out$ls.indexT[[1]] <- index.resampling[index.resampling %in% envir$outArgs$index.T] - 1
+                out$ls.posC[[1]] <- out$ls.indexC[[1]]
+                out$ls.posT[[1]] <- out$ls.indexT[[1]]
+            }else if(grepl("bootstrap",method.inference)){
+                out$ls.posC[[1]] <- which(index.resampling %in% envir$outArgs$index.C) - 1
+                out$ls.posT[[1]] <- which(index.resampling %in% envir$outArgs$index.T) - 1
+                out$ls.indexC[[1]] <- index.resampling[out$ls.posC[[1]] + 1] - 1
+                out$ls.indexT[[1]] <- index.resampling[out$ls.posT[[1]] + 1] - 1
             }
-
             ## check that each group has at least one observation
-            if(length(out$ls.indexC[[1]])==0 || length(out$ls.indexT[[1]])==0){return(NULL)} 
+            if(length(out$ls.indexC[[1]])==0 || length(out$ls.indexT[[1]])==0){return(NULL)}
+            ## out$data[treatment == 0,eventtime1] - envir$outArgs$M.endpoint[out$ls.indexC[[1]]+1,1]
+            ## out$data[treatment == 1,eventtime1] - envir$outArgs$M.endpoint[out$ls.indexT[[1]]+1,1]
+            
+        }else{ ## strata
 
-            ## unique identifier for each observation
-            iNc <- length(out$ls.indexC[[1]])
-            iNt <- length(out$ls.indexT[[1]])
-            out$ls.posC[[1]] <- 0:(iNc-1)
-            out$ls.posT[[1]] <- iNc + 0:(iNt-1)
-
-        }else{
-            ## index of the new observation in the old dataset by treatment group
-            if(test.perm){
+            if (grepl("permutation",method.inference)) {
                 index.C <- which(index.resampling %in% envir$outArgs$index.C)
                 index.T <- which(index.resampling %in% envir$outArgs$index.T)
-            }else{
-                index.C <- index.resampling[index.resampling %in% envir$outArgs$index.C]
-                index.T <- index.resampling[index.resampling %in% envir$outArgs$index.T]
             }
-
-            cumn <- 0
+            
             for(iStrata in 1:envir$outArgs$n.strata){ ## iStrata <- 1  
                 ## index of the new observation in the old dataset by treatment group
-                if(test.perm){
+                if(grepl("permutation",method.inference)){
                     out$ls.indexC[[iStrata]] <- intersect(index.C, envir$outArgs$index.strata[[iStrata]]) - 1
                     out$ls.indexT[[iStrata]] <- intersect(index.T, envir$outArgs$index.strata[[iStrata]]) - 1
-                }else{
-                    ## WARNING: do not use intersect since it removes duplicated elements
-                    iIndex.strata <- index.resampling[index.resampling %in% envir$outArgs$index.strata[[iStrata]]]                
-                    out$ls.indexC[[iStrata]] <- index.C[index.C %in% iIndex.strata] - 1
-                    out$ls.indexT[[iStrata]] <- index.T[index.T %in% iIndex.strata] - 1
+                    out$ls.posC[[iStrata]] <- out$ls.indexC[[iStrata]]
+                    out$ls.posT[[iStrata]] <- out$ls.indexT[[iStrata]]
+                }else if(grepl("bootstrap",method.inference)){
+                    out$ls.posC[[iStrata]] <- which(index.resampling %in% intersect(envir$outArgs$index.C, envir$outArgs$index.strata[[iStrata]])) - 1
+                    out$ls.posT[[iStrata]] <- which(index.resampling %in% intersect(envir$outArgs$index.T, envir$outArgs$index.strata[[iStrata]])) - 1
+                    out$ls.indexC[[iStrata]] <- index.resampling[out$ls.posC[[iStrata]] + 1] - 1
+                    out$ls.indexT[[iStrata]] <- index.resampling[out$ls.posT[[iStrata]] + 1] - 1
                 }
-
                 ## check that each group has at least one observation
                 if(length(out$ls.indexC[[iStrata]])==0 || length(out$ls.indexT[[iStrata]])==0){return(NULL)} 
-
-                ## unique identifier for each observation
-                iNc <- length(out$ls.indexC[[iStrata]])
-                iNt <- length(out$ls.indexT[[iStrata]])
-                out$ls.posC[[iStrata]] <- cumn + 0:(iNc-1)
-                out$ls.posT[[iStrata]] <- cumn + iNc + 0:(iNt-1)
-                cumn <- cumn + iNc + iNt
             }
+            
         }
 
         ## ** rebuild dataset
         if(envir$outArgs$scoring.rule>0){
-            if(method.inference == "permutation"){
+            if(grepl("permutation",method.inference)){
                 out$data <- data.table::data.table(envir$outArgs$data[[envir$outArgs$treatment]][index.resampling],
                                                    "..strata.." = envir$outArgs$data[["..strata.."]],
                                                    envir$outArgs$M.endpoint,envir$outArgs$M.status)
                 data.table::setnames(out$data, old = names(out$data)[1], new = envir$outArgs$treatment)
             }else{
-                out$data <- data.table::data.table(envir$outArgs$data,
-                                                   envir$outArgs$M.endpoint,envir$outArgs$M.status)[index.resampling]
+                out$data <- data.table::data.table(envir$outArgs$data[,.SD,.SDcols = c(envir$outArgs$treatment,"..strata..")],
+                                                   envir$outArgs$M.endpoint,
+                                                   envir$outArgs$M.status)[index.resampling]
             }
         }
+
     }
     return(out)
 }

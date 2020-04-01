@@ -12,20 +12,20 @@
 
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::mat& delta_mannWhitney, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio, arma::mat& Delta_mannWhitney,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
-                   arma::mat& iidAverage_favorable, arma::mat& iid_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
-				   arma::mat& Mvar, int returnIID,
-				   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
+                   arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
+		   arma::mat& Mvar, int returnIID,
+		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
-				   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
+		   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
 
 // * calcStatistic
 void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma::mat& delta_mannWhitney, arma::vec & Delta_netBenefit, arma::vec& Delta_winRatio, arma::mat& Delta_mannWhitney,
                    const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
-                   arma::mat& iidAverage_favorable, arma::mat& iid_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
-				   arma::mat& Mvar, int returnIID,
-				   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
+                   arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
+		   arma::mat& Mvar, int returnIID,
+		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
-				   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
+		   const arma::vec& weight, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
   
   // ** total number of pairs and patients in each arm
   double ntot_pair = 0;
@@ -79,20 +79,20 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
       iidAverage_favorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
       iidAverage_favorable.rows(posT[iter_strata]) /= n_control[iter_strata];
-      iid_unfavorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
-      iid_unfavorable.rows(posT[iter_strata]) /= n_control[iter_strata];
+      iidAverage_unfavorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
+      iidAverage_unfavorable.rows(posT[iter_strata]) /= n_control[iter_strata];
     }
 	
     // *** center
     iidAverage_favorable.each_row() -= arma::conv_to<arma::rowvec>::from(delta_favorable);
-    iid_unfavorable.each_row() -= arma::conv_to<arma::rowvec>::from(delta_unfavorable);
+    iidAverage_unfavorable.each_row() -= arma::conv_to<arma::rowvec>::from(delta_unfavorable);
 
     // *** rescale
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
       iidAverage_favorable.rows(posC[iter_strata]) /= ntot_control;
       iidAverage_favorable.rows(posT[iter_strata]) /= ntot_treatment;
-      iid_unfavorable.rows(posC[iter_strata]) /= ntot_control;
-      iid_unfavorable.rows(posT[iter_strata]) /= ntot_treatment;
+      iidAverage_unfavorable.rows(posC[iter_strata]) /= ntot_control;
+      iidAverage_unfavorable.rows(posT[iter_strata]) /= ntot_treatment;
     }
 	
     // *** weight endpoints and cumulate them
@@ -101,16 +101,16 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
     iidAverage_favorable.each_row() %= rowweight;
     iidAverage_favorable = cumsum(iidAverage_favorable,1);
   
-    iid_unfavorable.each_row() %= rowweight;
-    iid_unfavorable = cumsum(iid_unfavorable,1);
+    iidAverage_unfavorable.each_row() %= rowweight;
+    iidAverage_unfavorable = cumsum(iidAverage_unfavorable,1);
 
-	if(returnIID>1){
-	  iidNuisance_favorable.each_row() %= rowweight;
-	  iidNuisance_favorable = cumsum(iidNuisance_favorable,1);
+    if(returnIID>1){
+      iidNuisance_favorable.each_row() %= rowweight;
+      iidNuisance_favorable = cumsum(iidNuisance_favorable,1);
   
-	  iidNuisance_unfavorable.each_row() %= rowweight;
-	  iidNuisance_unfavorable = cumsum(iidNuisance_unfavorable,1);
-	}
+      iidNuisance_unfavorable.each_row() %= rowweight;
+      iidNuisance_unfavorable = cumsum(iidNuisance_unfavorable,1);
+    }
 	
     // *** sufficient statistics
     arma::vec sigmaC_favorable = arma::zeros<arma::vec>(D);
@@ -121,8 +121,8 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
     arma::vec sigmaT_mixed = arma::zeros<arma::vec>(D);
 
     arma::mat iidTotal_favorable = iidAverage_favorable;
-    arma::mat iidTotal_unfavorable = iid_unfavorable;
-	if(returnIID>1){
+    arma::mat iidTotal_unfavorable = iidAverage_unfavorable;
+    if(returnIID>1){
       iidTotal_favorable += iidNuisance_favorable;
       iidTotal_unfavorable += iidNuisance_unfavorable;
     }
@@ -142,8 +142,8 @@ void calcStatistic(arma::mat& delta_netBenefit, arma::mat& delta_winRatio, arma:
     Mvar.col(1) = sigmaC_unfavorable/ntot_control + sigmaT_unfavorable/ntot_treatment; 
     Mvar.col(2) = sigmaC_mixed/ntot_control + sigmaT_mixed/ntot_treatment;
     // Mvar.col(0) = trans(sum(pow(iidAverage_favorable,2), 0));
-    // Mvar.col(1) = trans(sum(pow(iid_unfavorable,2), 0));
-    // Mvar.col(2) = trans(sum(iidAverage_favorable % iid_unfavorable, 0));
+    // Mvar.col(1) = trans(sum(pow(iidAverage_unfavorable,2), 0));
+    // Mvar.col(2) = trans(sum(iidAverage_favorable % iidAverage_unfavorable, 0));
 
     // second order
     if(hprojection==2){

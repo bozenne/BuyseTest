@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: mar 23 2020 (09:48) 
+## Last-Updated: apr  1 2020 (17:23) 
 ##           By: Brice Ozenne
-##     Update #: 22
+##     Update #: 23
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,7 +35,8 @@ dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
 ## boxplot(X~Y, data = dt)
 ## ** no CV
 test_that("AUC - BuyseTest vs pROC",{
-    test <- auc(labels = dt$Y, predictions = dt$X, direction = ">")
+    test <- BuyseTest::auc(labels = dt$Y, predictions = dt$X, direction = ">")
+    test <- BuyseTest::auc(labels = as.character(dt$Y), predictions = dt$X, direction = ">")
     test2 <- cvAUC(predictions = dt$X,
                    labels = dt$Y)
     test3 <- ci.cvAUC(predictions = dt$X,
@@ -60,8 +61,8 @@ test_that("AUC - BuyseTest vs pROC",{
 test_that("AUC after CV - BuyseTest vs cvAUC",{
     dt$fold0 <- c(rep(1,100),rep(2,100))
     
-    test0 <- auc(labels = dt$Y, prediction = dt$X,
-                 fold = dt$fold0, observation = 1:NROW(dt))
+    test0 <- BuyseTest::auc(labels = dt$Y, prediction = dt$X,
+                            fold = dt$fold0, observation = 1:NROW(dt))
     GS0 <- ci.cvAUC(predictions = dt$X,
                     labels = dt$Y,
                     folds = dt$fold0)

@@ -433,16 +433,21 @@ setMethod(f = "summary",
                           }else{
                               txt.method <- paste0(txt.method, " with [",min(n.resampling)," ; ",max(n.resampling),"] samples \n")
                           }
-                          if(attr(method.inference,"bootstrap")){
+
+                          if(attr(method.inference,"permutation")){
                               txt.method.ci <- switch(attr(outConfint,"method.ci.resampling"),
-                                                      "gaussian" = "quantiles of a Gaussian distribution",
-                                                      "student" = "quantiles of a Student's t-distribution",
-                                                      "percentile" = "quantiles of the empirical distribution"
+                                                      "percentile" = "p-value computed using the permutation distribution",
+                                                      "studentized" = "p-value computed using the studentized permutation distribution",
                                                       )
-                          }else{
-                              txt.method.ci <- "quantiles of the empirical distribution"
+                          }else if(attr(method.inference,"bootstrap")){
+                              txt.method.ci <- switch(attr(outConfint,"method.ci.resampling"),
+                                                      "percentile" = "CI computed using the percentile method; p-value by test inversion",
+                                                      "gaussian" = "CI/p-value computed assuming normality",
+                                                      "studentized" = "CI computed using the studentized method; p-value by test inversion",
+                                                      )
                           }
-                          txt.method <- paste0(txt.method,"                     confidence intervals/p-values computed using the ",txt.method.ci," \n")
+                          
+                          txt.method <- paste0(txt.method,"                     ",txt.method.ci," \n")
                       }
                       cat(" > inference       : ",txt.method, sep = "")
                   }

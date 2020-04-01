@@ -54,22 +54,23 @@ Computes confidence intervals for net benefit statistic or the win ratio statist
 Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
 
 \item \code{percentile} (permutation): apply the selected transformation to the estimate and permutation estimates.
-Compute the confidence interval by (i) shfiting the estimate by the quantiles of the permutation estimates and (ii) back-transforming .
+Compute the confidence interval by (i) shfiting the estimate by the quantiles of the centered permutation estimates and (ii) back-transforming .
 Compute the p-value as the relative frequency at which the estimate are less extreme than the permutation estimates.
 
 \item \code{gaussian} (bootstrap and permutation): apply the selected transformation to the estimate and bootstrap/permutation estimates.
 Estimate the variance of the estimator using the empirical variance of the transformed boostrap/permutation estimates.
 Compute confidence intervals and p-values under the normality assumption and back-transform the confidence intervals.
 
+\item \code{student} (bootstrap): apply the selected transformation to the estimate, its standard error, the bootstrap estimates, and their standard error.
+Compute the studentized bootstrap estimates by dividing the centered bootstrap estimates by their standard error. 
+Compute the confidence interval based on the standard error of the estimate and the quantiles of the studentized bootstrap estimates, and back-transform.
+Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
+
 \item \code{student} (permutation): apply the selected transformation to the estimate, its standard error, the permutation estimates, and their standard error.
-Compute the studentized permutation estimates by dividing the permutation estimates by their standard error.
+Compute the studentized permutation estimates by dividing the centered permutation estimates by their standard error.
 Compute the confidence interval based on the standard error of the estimate and the quantiles of the studentized permutation estimates, and back-transform.
 Compute the p-value as the relative frequency at which the studentized estimate are less extreme than the permutation studentized estimates.
 
-\item \code{student} (bootstrap): apply the selected transformation to the estimate, its standard error, the bootstrap estimates, and their standard error.
-Compute the studentized bootstrap estimates by dividing the bootstrap estimates by their standard error. Center them.
-Compute the confidence interval based on the standard error of the estimate and the quantiles of the centered studentized bootstrap estimates, and back-transform.
-Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
 }
 
 \bold{WARNING}: when using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
