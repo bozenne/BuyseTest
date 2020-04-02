@@ -531,8 +531,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   arma::uvec indexStrataT;
   arma::uvec posStrataC;
   arma::uvec posStrataT;
-  int nStrata_Control;
-  int nStrata_Treatment;
+  unsigned int nStrata_Control;
+  unsigned int nStrata_Treatment;
 
   std::vector< arma::mat > Dfavorable_Dnuisance_strataC; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
   std::vector< arma::mat > Dfavorable_Dnuisance_strataT; // sum over all pairs of a given strata of the partial derivative regarding nuisance parameters 
@@ -872,7 +872,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
       if(debug>0){Rcpp::Rcout << "compute iid nuisance" << std::endl;}
 
       for(unsigned int iter_d=0; iter_d < D; iter_d++){
-	for(int iter_UTTE=0 ; iter_UTTE<D_UTTE; iter_UTTE++){
+	for(unsigned int iter_UTTE=0 ; iter_UTTE<D_UTTE; iter_UTTE++){
 	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
     	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
     	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
