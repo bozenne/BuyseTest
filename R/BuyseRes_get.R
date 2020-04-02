@@ -157,7 +157,7 @@ setMethod(f = "getPairScore",
               }else{
                   out <- data.table::copy(object@tablePairScore)
 
-                  endpoint.names <- names(object@Delta.netBenefit)
+                  endpoint.names <- object@endpoint
                   strata.names <- object@level.strata
                   
                   if(!is.null(endpoint)){
@@ -307,7 +307,7 @@ setMethod(f = "getSurvival",
                       out <- data.table::copy(object@tableSurvival)
                   }
                   
-                  endpoint.names <- names(object@Delta.netBenefit)
+                  endpoint.names <- object@endpoint
                   strata.names <- object@level.strata
                   
                   if(!is.null(endpoint)){

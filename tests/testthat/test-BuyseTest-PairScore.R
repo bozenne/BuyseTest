@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: nov  8 2019 (11:54) 
+## Last-Updated: apr  2 2020 (16:58) 
 ##           By: Brice Ozenne
-##     Update #: 59
+##     Update #: 63
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -64,23 +64,23 @@ test_that("Full data - no correction", {
 
     ## check tablePairScore
     expect_equal(as.double(manualScore$favorable),
-                 as.double(BT.mixed@count.favorable))
+                 as.double(coef(BT.mixed, statistic = "count.favorable", cumulative = FALSE)))
     expect_equal(as.double(manualScore$unfavorable),
-                 as.double(BT.mixed@count.unfavorable))
+                 as.double(coef(BT.mixed, statistic = "count.unfavorable", cumulative = FALSE)))
     expect_equal(as.double(manualScore$neutral),
-                 as.double(BT.mixed@count.neutral))
+                 as.double(coef(BT.mixed, statistic = "count.neutral", cumulative = FALSE)))
     expect_equal(as.double(manualScore$uninf),
-                 as.double(BT.mixed@count.uninf))
+                 as.double(coef(BT.mixed, statistic = "count.uninf", cumulative = FALSE)))
 
     expect_equal(as.double(cumsum(BT.mixed@count.favorable-BT.mixed@count.unfavorable)/BT.mixed@n.pairs),
-                 as.double(BT.mixed@Delta.netBenefit))
+                 as.double(coef(BT.mixed, statistic = "netBenefit")))
     expect_equal(as.double(cumsum(BT.mixed@count.favorable)/cumsum(BT.mixed@count.unfavorable)),
-                 as.double(BT.mixed@Delta.winRatio))
+                 as.double(coef(BT.mixed, statistic = "winRatio")))
 
     ## check number of pairs
     D <- length(BT.mixed@endpoint)
-    vec.pair <- (BT.mixed@count.favorable+BT.mixed@count.unfavorable+BT.mixed@count.neutral+BT.mixed@count.uninf)
-    vec.RP <- (BT.mixed@count.neutral+BT.mixed@count.uninf)
+    vec.pair <- (coef(BT.mixed, statistic = "count.favorable", cumulative = FALSE) + coef(BT.mixed, statistic = "count.unfavorable", cumulative = FALSE) + coef(BT.mixed, statistic = "count.neutral", cumulative = FALSE) + coef(BT.mixed, statistic = "count.uninf", cumulative = FALSE))
+    vec.RP <- (coef(BT.mixed, statistic = "count.neutral", cumulative = FALSE) + coef(BT.mixed, statistic = "count.uninf", cumulative = FALSE))
     expect_equal(as.double(vec.RP[-D]),as.double(vec.pair[-1]))
     
 })
@@ -103,13 +103,13 @@ test_that("Full data", {
     }
 
     ## check tablePairScore
-    expect_equal(unname(BT.mixed@Delta.netBenefit),manualScore[,cumsum(favorable-unfavorable)]/BT.mixed@n.pairs)
-    expect_equal(unname(BT.mixed@Delta.winRatio),manualScore[,cumsum(favorable)/cumsum(unfavorable)])
+    expect_equal(unname(coef(BT.mixed, statistic = "netBenefit")),manualScore[,cumsum(favorable-unfavorable)]/BT.mixed@n.pairs)
+    expect_equal(unname(coef(BT.mixed, statistic = "winRatio")),manualScore[,cumsum(favorable)/cumsum(unfavorable)])
 
     ## check number of pairs
     D <- length(BT.mixed@endpoint)
-    vec.pair <- (BT.mixed@count.favorable+BT.mixed@count.unfavorable+BT.mixed@count.neutral+BT.mixed@count.uninf)
-    vec.RP <- (BT.mixed@count.neutral+BT.mixed@count.uninf)
+    vec.pair <- (coef(BT.mixed, statistic = "count.favorable", cumulative = FALSE) + coef(BT.mixed, statistic = "count.unfavorable", cumulative = FALSE) + coef(BT.mixed, statistic = "count.neutral", cumulative = FALSE) + coef(BT.mixed, statistic = "count.uninf", cumulative = FALSE))
+    vec.RP <- (coef(BT.mixed, statistic = "count.neutral", cumulative = FALSE) + coef(BT.mixed, statistic = "count.uninf", cumulative = FALSE))
     expect_equal(as.double(vec.RP[-D]),as.double(vec.pair[-1]))
 })
 

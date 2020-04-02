@@ -5,7 +5,7 @@
 \title{Performing simulation studies with BuyseTest}
 \usage{
 powerBuyseTest(sim, sample.size, sample.sizeC = NULL,
-  sample.sizeT = NULL, n.rep, null = c(0, 1, 1/2), cpus = 1,
+  sample.sizeT = NULL, n.rep, null = c(0, 1, 1/2, 1/2), cpus = 1,
   seed = NULL, conf.level = NULL, order.Hprojection = NULL,
   transformation = NULL, trace = 1, ...)
 }
@@ -52,8 +52,12 @@ Returns estimates, standard errors, confidence intervals and p.values.
 library(data.table)
 
 ## using simBuyseTest
-powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
-               formula = treatment ~ bin(toxicity),
+powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 10,
+               formula = treatment ~ bin(toxicity), seed = 10,
+               method.inference = "u-statistic", trace = 4)
+
+powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 100), n.rep = 10,
+               formula = treatment ~ bin(toxicity), seed = 10,
                method.inference = "u-statistic", trace = 4)
 
 ## using user defined simulation function

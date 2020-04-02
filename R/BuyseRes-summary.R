@@ -13,7 +13,8 @@
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
 #' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
 #' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-#' \code{"mannWhitney"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+#' \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+#' \code{"unfavorable"} displays the proportion in favor of the control.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
@@ -138,12 +139,13 @@ setMethod(f = "summary",
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
-                                  "mannwhitney" = "mannWhitney",
+                                  "favorable" = "favorable",
+                                  "unfavorable" = "unfavorable",
                                   statistic)
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio","mannWhitney"),
+                             valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
                              valid.length = 1,
                              method = "summary[BuyseRes]")
 
@@ -182,8 +184,8 @@ setMethod(f = "summary",
               n.endpoint <- length(endpoint)
               n.strata <- length(object@level.strata)
 
-              delta <- slot(object, name = paste0("delta.",statistic))
-              Delta <- slot(object, name = paste0("Delta.",statistic))
+              delta <- coef(object, statistic = statistic, cumulative = FALSE, stratified = TRUE)
+              Delta <- coef(object, statistic = statistic, cumulative = TRUE)
               n.resampling <- object@n.resampling
 
               method.inference <- object@method.inference
@@ -256,8 +258,10 @@ setMethod(f = "summary",
                   table[index.global,"delta"] <- (colSums(object@count.favorable)-colSums(object@count.unfavorable))/sum(object@n.pairs)
               }else if(statistic == "winRatio"){
                   table[index.global,"delta"] <- colSums(object@count.favorable)/colSums(object@count.unfavorable)
-              }else if(statistic == "mannWhitney"){
+              }else if(statistic == "favorable"){
                   table[index.global,"delta"] <- colSums(object@count.favorable)/sum(object@n.pairs)
+              }else if(statistic == "unfavorable"){
+                  table[index.global,"delta"] <- colSums(object@count.unfavorable)/sum(object@n.pairs)
               }
               table[index.global,"Delta"] <- Delta
               table[index.global,"Delta(%)"] <- 100*Delta/Delta[n.endpoint]

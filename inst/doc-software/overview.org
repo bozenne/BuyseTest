@@ -75,7 +75,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘1.9.0’
+: [1] ‘1.9.2’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -103,7 +103,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.12.8 BuyseTest_1.9.0   Rcpp_1.0.3       
+[1] data.table_1.12.8 BuyseTest_1.9.2   Rcpp_1.0.4       
 
 loaded via a namespace (and not attached):
  [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
@@ -546,7 +546,7 @@ summary(BT.perm)
  > null hypothesis : Delta == 0 
  > confidence level: 0.95 
  > inference       : permutation test with 1000 samples 
-                     confidence intervals/p-values computed using the quantiles of the empirical distribution 
+                     p-value computed using the permutation distribution 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > right-censored pairs: probabilistic score based on the survival curves
  > results
@@ -575,7 +575,7 @@ summary(BT.boot)
  > null hypothesis : Delta == 0 
  > confidence level: 0.95 
  > inference       : bootstrap resampling with 1000 samples 
-                     confidence intervals/p-values computed using the quantiles of the empirical distribution 
+                     CI computed using the percentile method; p-value by test inversion 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > right-censored pairs: probabilistic score based on the survival curves
  > results

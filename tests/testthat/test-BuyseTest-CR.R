@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: apr  1 2020 (17:08) 
+## Last-Updated: apr  2 2020 (15:30) 
 ##           By: Brice Ozenne
-##     Update #: 43
+##     Update #: 52
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,11 +68,9 @@ test_that("tte = 2 is equivalent to continuous with infty when cause=2", {
                           method.inference = "none", trace = 0)
     ## summary(e.BT.bis)
     
-    expect_equal(as.double(e.BT@Delta.netBenefit),
-                 as.double(e.BT.bis@Delta.netBenefit))
-    expect_equal(as.double(e.BT@delta.netBenefit),
-                 as.double(e.BT.bis@delta.netBenefit))
-    
+    expect_equal(as.double(coef(e.BT)),
+                 as.double(coef(e.BT.bis)),
+                 tol = 1e-6)
 })
 
 
@@ -121,14 +119,13 @@ df2$strata2 <- sample(c('d', 'e', 'f'), 2*n, replace = T)
 test_that("BuyseTest package and Eva's R code give the same results with one endpoint and one stratum", {
   
   ## Net benefit computed with Eva's R code (see inst/Code/reproduce-results-CR.R)
-  delta.R = 0.04377023
+  delta.R <- 0.04377023
 
   ## Apply GPC with BuyseTest package
-  BT = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)
+  BT <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)
   
   ## Test
-  expect_equal(as.double(delta.R), as.double(BT@Delta.netBenefit), tol = 1e-5)
-  expect_equal(as.double(delta.R), as.double(BT@delta.netBenefit), tol = 1e-5)
+  expect_equal(as.double(delta.R), as.double(coef(BT, statistic = "netBenefit")), tol = 1e-5)
   expect_error(BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5),
                          data = df2, method.inference = "u-statistic"))
   
@@ -137,44 +134,33 @@ test_that("BuyseTest package and Eva's R code give the same results with one end
 test_that("New package version gives the same results as previous one", {
   
   #### Net benefit computed with previous version 
-  delta11 = 0.04377023 # one outcome, one stratum
-  Delta11 = 0.04377023 # one outcome, one stratum
-  delta13 = c(-0.06967276, 0.13925664, 0.13200801) # one outcome, 3 strata
-  Delta13 = 0.0477878  # one outcome, 3 strata
-  delta21 = c(0.04377023, 0.02028528) # 2 outcomes, one stratum
-  Delta21 = c(0.04377023, 0.06405551) # 2 outcomes, one stratum
-  delta23 = matrix(data = c(-0.06967276, 0.045860858, 0.13925664, 0.009916651, 0.13200801, 0.015133257), byrow = T, nrow = 3) # 2 outcomes, 3 strata
-  Delta23 = c(0.04778780, 0.07473073) # 2 outcomes, 3 strata
+  delta11 <- 0.04377023 # one outcome, one stratum
+  Delta11 <- 0.04377023 # one outcome, one stratum
+  delta13 <- c(-0.06967276, 0.13925664, 0.13200801) # one outcome, 3 strata
+  Delta13 <- 0.0477878  # one outcome, 3 strata
+  delta21 <- c(0.04377023, 0.02028528) # 2 outcomes, one stratum
+  Delta21 <- c(0.04377023, 0.06405551) # 2 outcomes, one stratum
+  delta23 <- matrix(data = c(-0.06967276, 0.045860858, 0.13925664, 0.009916651, 0.13200801, 0.015133257), byrow = T, nrow = 3) # 2 outcomes, 3 strata
+  Delta23 <- c(0.04778780, 0.07473073) # 2 outcomes, 3 strata
   
   #### Apply GPC with new version of BuyseTest package
   ## One outcome, one stratum
-  BT11.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)@delta.netBenefit
-  BT11.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)@Delta.netBenefit
+  BT11.D <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5), data = df2)
 
   ## One outcome, 3 strata
-  BT13.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata, data = df2)@delta.netBenefit
-  BT13.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata, data = df2)@Delta.netBenefit
+  BT13.D <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata, data = df2)
 
   ## Two outcomes, one stratum
-  BT21.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity), data = df2)@delta.netBenefit
-  BT21.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity), data = df2)@Delta.netBenefit
+  BT21.D <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity), data = df2)
 
   ## Two outcomes, 3 strata
-  BT23.d = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@delta.netBenefit
-  BT23.D = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)@Delta.netBenefit
+  BT23.D <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + bin(toxicity) + strata, data = df2)
 
   #### Tests
-  expect_equal(delta11, as.double(BT11.d), tol = 1e-5)
-  expect_equal(Delta11, as.double(BT11.D), tol = 1e-5)
-  ## expect_equal(delta13, as.double(BT13.d), tol = 1e-5)
-  ## expect_equal(Delta13, as.double(BT13.D), tol = 1e-5)
-  ## expect_equal(delta21, as.double(BT21.d), tol = 1e-5)
-  ## expect_equal(Delta21, as.double(BT21.D), tol = 1e-5)
-  ## expect_equal(delta23[1,], as.double(BT23.d[1,]), tol = 1e-5)
-  ## expect_equal(delta23[2,], as.double(BT23.d[2,]), tol = 1e-5)
-  ## expect_equal(delta23[3,], as.double(BT23.d[3,]), tol = 1e-5)
-  ## expect_equal(Delta23, as.double(BT23.D), tol = 1e-5)
-  
+  expect_equal(Delta11, as.double(coef(BT11.D, statistic = "netBenefit")), tol = 1e-5)
+  ## expect_equal(Delta13, as.double(coef(BT13.D, statistic = "netBenefit")), tol = 1e-5)
+  ## expect_equal(Delta21, as.double(coef(BT21.D, statistic = "netBenefit")), tol = 1e-5)
+  ## expect_equal(Delta23, as.double(coef(BT23.D, statistic = "netBenefit")), tol = 1e-5)  
 })
 
 test_that("Package give the same results when model.tte is (not) provided as an argument", {
@@ -192,8 +178,7 @@ test_that("Package give the same results when model.tte is (not) provided as an 
   #B.model = BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5) + strata + strata2, data = df2, model.tte = fit) 
   
   ## Tests
-  expect_equal(as.double(B@delta.netBenefit), as.double(B.model@delta.netBenefit))
-  expect_equal(as.double(B@Delta.netBenefit), as.double(B.model@Delta.netBenefit))
+  expect_equal(coef(B), coef(B.model))
   
 })
 
@@ -207,7 +192,7 @@ test_that("When TTE endpoints are analyzed several times with different threshol
                  data = df2) 
   
   ## Tests
-  expect_equal(as.double(B1@Delta.netBenefit), as.double(B2@Delta.netBenefit[3]))
+  expect_equal(as.double(coef(B1)), as.double(coef(B2)[3]))
   
 })
 
@@ -239,7 +224,7 @@ test_that("The relationship between net benefit and subdistribution hazard ratio
                    trace = FALSE) 
     
     ## Tests
-    expect_equal(true.Delta[q], as.double(B@Delta.netBenefit), tolerance = 1e-2) # tolerance because of the too small dataset
+    expect_equal(true.Delta[q], as.double(coef(B, statistic = "netBenefit")), tolerance = 1e-2) # tolerance because of the too small dataset
     
   }
 })

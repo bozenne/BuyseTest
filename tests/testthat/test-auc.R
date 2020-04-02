@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: apr  1 2020 (17:23) 
+## Last-Updated: apr  2 2020 (14:35) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 27
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,8 +22,8 @@ if(FALSE){
 }
 
 context("Check auc calculation vs. cvAUC")
-library(pROC)
-library(cvAUC)
+## library(pROC)
+## library(cvAUC)
 
 ## * Compare AUC and CI
 n <- 200
@@ -35,13 +35,13 @@ dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
 ## boxplot(X~Y, data = dt)
 ## ** no CV
 test_that("AUC - BuyseTest vs pROC",{
-    test <- BuyseTest::auc(labels = dt$Y, predictions = dt$X, direction = ">")
-    test <- BuyseTest::auc(labels = as.character(dt$Y), predictions = dt$X, direction = ">")
-    test2 <- cvAUC(predictions = dt$X,
+    test <- auc(labels = dt$Y, predictions = dt$X, direction = ">")
+    test <- auc(labels = as.character(dt$Y), predictions = dt$X, direction = ">")
+    test2 <- cvAUC::cvAUC(predictions = dt$X,
                    labels = dt$Y)
-    test3 <- ci.cvAUC(predictions = dt$X,
+    test3 <- cvAUC::ci.cvAUC(predictions = dt$X,
                       labels = dt$Y)
-    GS <- roc(dt$Y, -dt$X, ci = TRUE, direction = ">")
+    GS <- pROC::roc(dt$Y, -dt$X, ci = TRUE, direction = ">")
 
     expect_equal(GS$auc[1], as.double(test[test$fold == "global","estimate"]), tol = 1e-6)
     expect_equal(GS$ci[1], as.double(test[test$fold == "global","lower"]), tol = 1e-3)
@@ -61,9 +61,9 @@ test_that("AUC - BuyseTest vs pROC",{
 test_that("AUC after CV - BuyseTest vs cvAUC",{
     dt$fold0 <- c(rep(1,100),rep(2,100))
     
-    test0 <- BuyseTest::auc(labels = dt$Y, prediction = dt$X,
+    test0 <- auc(labels = dt$Y, prediction = dt$X,
                             fold = dt$fold0, observation = 1:NROW(dt))
-    GS0 <- ci.cvAUC(predictions = dt$X,
+    GS0 <- cvAUC::ci.cvAUC(predictions = dt$X,
                     labels = dt$Y,
                     folds = dt$fold0)
 

@@ -93,33 +93,21 @@ inferenceResampling <- function(envir){
         warning("The resampling procedure failed for ",n.failure," samples (",round(100*n.failure/n.resampling,2),"%)")
     }
     
-    dim.delta <- c(n.strata, D, n.resampling)
-    dimnames.delta <- list(level.strata, endpoint, as.character(1:n.resampling))
+    dim.delta <- c(n.resampling, D, 4, n.strata)
+    dimnames.delta <- list(as.character(1:n.resampling), endpoint, c("favorable","unfavorable","netBenefit","winRatio"), level.strata)
 
-    out <- list(deltaResampling.netBenefit = array(NA, dim = dim.delta, dimnames = dimnames.delta),
-                deltaResampling.winRatio = array(NA, dim = dim.delta, dimnames = dimnames.delta),
-                deltaResampling.mannWhitney = array(NA, dim = dim.delta, dimnames = dimnames.delta),
-                DeltaResampling.netBenefit = matrix(NA, ncol = D, nrow = n.resampling,
-                                                    dimnames = list(as.character(1:n.resampling), endpoint)),
-                DeltaResampling.winRatio = matrix(NA, ncol = D, nrow = n.resampling,
-                                                  dimnames = list(as.character(1:n.resampling), endpoint)),
-                DeltaResampling.mannWhitney = matrix(NA, ncol = D, nrow = n.resampling,
-                                                     dimnames = list(as.character(1:n.resampling), endpoint))
+    out <- list(deltaResampling = array(NA, dim = dim.delta, dimnames = dimnames.delta),
+                DeltaResampling = array(NA, dim = dim.delta[1:3], dimnames = dimnames.delta[1:3])
                 )
     if(iid){
-        out$covariance = array(NA, dim = c(n.resampling, D, 6))
+        out$covariance = array(NA, dim = c(n.resampling, D, 5))
     }else{
         out$covariance <- array(NA, dim = c(0,0,0))
     }
     
     for(iR in test.resampling){
-        out$deltaResampling.netBenefit[,,iR] <- ls.resampling[[iR]]$delta_netBenefit
-        out$deltaResampling.winRatio[,,iR] <- ls.resampling[[iR]]$delta_winRatio
-        out$deltaResampling.mannWhitney[,,iR] <- ls.resampling[[iR]]$delta_mannWhitney
-        
-        out$DeltaResampling.netBenefit[iR,] <- ls.resampling[[iR]]$Delta_netBenefit
-        out$DeltaResampling.winRatio[iR,] <- ls.resampling[[iR]]$Delta_winRatio
-        out$DeltaResampling.mannWhitney[iR,] <- ls.resampling[[iR]]$Delta_mannWhitney
+        out$deltaResampling[iR,,,] <- ls.resampling[[iR]]$delta
+        out$DeltaResampling[iR,,] <- ls.resampling[[iR]]$Delta
         
         if(iid){
             out$covariance[iR,,] <- ls.resampling[[iR]]$Mvar
@@ -201,8 +189,7 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
                        order = max(order), endpoint = endpoint, n.endpoint = n.endpoint)
     M.cov <- cbind(M.cov0,
                    "netBenefit" = M.cov0[,"favorable"] + M.cov0[,"unfavorable"] - 2 * M.cov0[,"covariance"],
-                   "winRatio" =  M.cov0[,"favorable"]/iwUnfavorable^2 + M.cov0[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov0[,"covariance"]*iwFavorable/iwUnfavorable^3,
-                   "mannWhitney" = M.cov0[,"favorable"]
+                   "winRatio" =  M.cov0[,"favorable"]/iwUnfavorable^2 + M.cov0[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov0[,"covariance"]*iwFavorable/iwUnfavorable^3
                    )
     
     if(length(order)==2){
@@ -210,8 +197,7 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
                            order = min(order), endpoint = endpoint, n.endpoint = n.endpoint)
         attr(M.cov, "first.order") <- cbind(M.cov1,
                                             "netBenefit" = M.cov1[,"favorable"] + M.cov1[,"unfavorable"] - 2 * M.cov1[,"covariance"],
-                                            "winRatio" =  M.cov1[,"favorable"]/iwUnfavorable^2 + M.cov1[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov1[,"covariance"]*iwFavorable/iwUnfavorable^3,
-                                            "mannWhitney" = M.cov1[,"favorable"]
+                                            "winRatio" =  M.cov1[,"favorable"]/iwUnfavorable^2 + M.cov1[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov1[,"covariance"]*iwFavorable/iwUnfavorable^3
                                             )
     }
     ## ** export
@@ -361,8 +347,7 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
     iwUnfavorable <- cumsum(count.unfavorable * weight) / ntot.pairs
     return(list(Sigma = cbind(M.cov,
                               "netBenefit" = M.cov[,"favorable"] + M.cov[,"unfavorable"] - 2 * M.cov[,"covariance"],
-                              "winRatio" =  M.cov[,"favorable"]/iwUnfavorable^2 + M.cov[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov[,"covariance"]*iwFavorable/iwUnfavorable^3,
-                              "mannWhitney" = M.cov[,"favorable"]
+                              "winRatio" =  M.cov[,"favorable"]/iwUnfavorable^2 + M.cov[,"unfavorable"]*iwFavorable^2/iwUnfavorable^4 - 2 * M.cov[,"covariance"]*iwFavorable/iwUnfavorable^3
                               ),
                 iid1 = NULL,
                 iid2 = NULL))

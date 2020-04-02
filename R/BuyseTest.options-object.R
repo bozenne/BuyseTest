@@ -134,7 +134,7 @@ setClass(
                      method = "Class BuyseTest.options")
       validCharacter(object@statistic,
                      name1 = "@statistic",
-                     valid.values = c("netBenefit","winRatio","mannWhitney"),
+                     valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
       lapply(object@summary.display,validCharacter,

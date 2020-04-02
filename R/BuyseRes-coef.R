@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: mar 26 2020 (12:21) 
+## Last-Updated: apr  2 2020 (16:46) 
 ##           By: Brice Ozenne
-##     Update #: 49
+##     Update #: 62
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,7 +37,8 @@
 #' \itemize{
 #' \item \code{"netBenefit"}: returns the net benefit.
 #' \item \code{"winRatio"}: returns the win ratio.
-#' \item \code{"mannWhitney"}: returns the proportion in favor of the treatment (also called Mann-Whitney parameter).
+#' \item \code{"favorable"}: returns the proportion in favor of the treatment (also called Mann-Whitney parameter).
+#' \item \code{"unfavorable"}: returns the proportion in favor of the control.
 #' \item \code{"count.favorable"}: returns the number of pairs in favor of the treatment.
 #' \item \code{"count.unfavorable"}: returns the number of pairs in favor of the control.
 #' \item \code{"count.neutral"}: returns the number of neutral pairs.
@@ -71,7 +72,8 @@ setMethod(f = "coef",
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
-                                  "mannwhitney" = "mannWhitney",
+                                  "favorable" = "favorable",
+                                  "unfavorable" = "unfavorable",
                                   statistic)
               
               type.count <- c("count.favorable","count.unfavorable","count.neutral","count.uninf")
@@ -79,24 +81,45 @@ setMethod(f = "coef",
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio","mannWhitney",type.count,type.pc),
+                             valid.values = c("netBenefit","winRatio","favorable","unfavorable",type.count,type.pc),
                              valid.length = 1,
                              method = "coef[BuyseRes]")
 
               ## ** extract information
-              if(statistic %in% c("netBenefit","winRatio","mannWhitney")){
-
-                  if(stratified){
-                      out <- slot(object, paste("delta", statistic , sep = "."))
+              if(statistic %in% c("netBenefit","winRatio","favorable","unfavorable")){
+                  if(stratified || (cumulative==FALSE)){
+                      out <- slot(object, "delta")[,,statistic]
+                      if(!is.matrix(out)){
+                          out <- matrix(out, nrow = length(object@level.strata), ncol = length(object@endpoint),
+                                        dimnames = list(object@level.strata,paste0(object@endpoint,"_",object@threshold)))
+                      }
+                      if(cumulative && length(object@endpoint)>1){
+                          if(length(object@level.strata)==1){
+                              out <- matrix(cumsum(out), nrow = 1,
+                                            dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
+                                            )
+                          }else{
+                              out <- t(apply(out,1,cumsum))
+                          }
+                      }
+                      if(!stratified){
+                          out <- colSums(out)
+                      }
                   }else{
-                      out <- slot(object, paste("Delta", statistic, sep = "."))
+                      out <- slot(object, "Delta")[,statistic]
+                      names(out) <- paste0(object@endpoint,"_",object@threshold)
                   }
                   
-              }else if(statistic %in% type.count){
-                  
+              }else if(statistic %in% type.count){                  
                   out <- slot(object, statistic)
-                  if(cumulative){
-                      out <- t(apply(out,1,cumsum))
+                  if(cumulative && length(object@endpoint)>1){
+                      if(length(object@level.strata)==1){
+                          out <- matrix(cumsum(out), nrow = 1,
+                                        dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
+                                        )
+                      }else{
+                          out <- t(apply(out,1,cumsum))
+                      }
                   }
                   if(!stratified){
                       out <- colSums(out)
@@ -105,8 +128,14 @@ setMethod(f = "coef",
               }else if(statistic %in% type.pc){
 
                   out <- slot(object, type.count[match(statistic, type.pc)])/sum(slot(object, "n.pairs"))
-                  if(cumulative){
-                      out <- t(apply(out,1,cumsum))
+                  if(cumulative && length(object@endpoint)>1){
+                      if(length(object@level.strata)==1){
+                          out <- matrix(cumsum(out), nrow = 1,
+                                        dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
+                                        )
+                      }else{
+                          out <- t(apply(out,1,cumsum))
+                      }
                   }
                   if(!stratified){
                       out <- colSums(out)

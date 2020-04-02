@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: mar 25 2020 (15:19) 
+## Last-Updated: apr  2 2020 (14:12) 
 ##           By: Brice Ozenne
-##     Update #: 161
+##     Update #: 163
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -119,7 +119,6 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
     BuyseTest.options(order.Hprojection = 2)
     e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0)
     BuyseTest.options(order.Hprojection = order.save)
-
     indexC <- attr(e.BT@level.treatment,"indexC")
     n.C <- length(indexC)
     indexT <- attr(e.BT@level.treatment,"indexT")

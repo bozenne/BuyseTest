@@ -4,7 +4,9 @@
 
 ** User visible changes
 
-- NEW FEATURE (1.9.1): summary and confint can now display the results for proportion in favor of treatment (also called Mann-Whitney statistic) 
+- NEW FEATURE (1.9.1): summary and confint can now display the results
+  for proportion in favor of treatment (also called Mann-Whitney
+  statistic) or control
 - NEW FEATURE (1.9.0): studentized permutation tests are now available
   (method.inference = "studentized permutation").
 - Fix issue related to powerBuyseTest (issue #6 on Github)

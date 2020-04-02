@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 26 2020 (14:09) 
+## Last-Updated: apr  2 2020 (16:44) 
 ##           By: Brice Ozenne
-##     Update #: 551
+##     Update #: 576
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,8 +50,12 @@
 ##' library(data.table)
 ##' 
 ##' ## using simBuyseTest
-##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 2,
-##'                formula = treatment ~ bin(toxicity),
+##' powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 10,
+##'                formula = treatment ~ bin(toxicity), seed = 10,
+##'                method.inference = "u-statistic", trace = 4)
+##'
+##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 100), n.rep = 10,
+##'                formula = treatment ~ bin(toxicity), seed = 10,
 ##'                method.inference = "u-statistic", trace = 4)
 ##'
 ##' ## using user defined simulation function
@@ -74,7 +78,7 @@ powerBuyseTest <- function(sim,
                            sample.sizeC = NULL,
                            sample.sizeT = NULL,
                            n.rep,
-                           null = c(0,1,1/2),
+                           null = c(0,1,1/2,1/2),
                            cpus = 1,                          
                            seed = NULL,
                            conf.level = NULL,
@@ -120,9 +124,9 @@ powerBuyseTest <- function(sim,
         stop("Arguments \'sample.sizeT\ and \'sample.sizeC\' must have the same length \n")
     }
     validNumeric(null,
-                 valid.length = 3,
+                 valid.length = 4,
                  method = "BuyseTest")
-    names(null) <- c("netBenefit","winRatio","mannWhitney")
+    names(null) <- c("netBenefit","winRatio","favorable","unfavorable")
     
     n.sample.size <- length(sample.sizeT)
     grid.inference <- expand.grid(order = order.Hprojection,
@@ -206,11 +210,13 @@ powerBuyseTest <- function(sim,
     }
     ## ** warper
     warper <- function(i, envir){
-        iOut <- matrix(NA, nrow = n.inference, ncol = 19,
+        iOut <- matrix(NA, nrow = n.inference, ncol = 24,
                        dimnames = list(NULL, c("simulation","n.T","n.C","method.inference",
+                                               "favorable","favorable.se","favorable.lower","favorable.upper","favorable.p.value",
+                                               "unfavorable","unfavorable.se","unfavorable.lower","unfavorable.upper","unfavorable.p.value",
                                                "netBenefit","netBenefit.se","netBenefit.lower","netBenefit.upper","netBenefit.p.value",
-                                               "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value",
-                                               "mannWhitney","mannWhitney.se","mannWhitney.lower","mannWhitney.upper","mannWhitney.p.value")))
+                                               "winRatio","winRatio.se","winRatio.lower","winRatio.upper","winRatio.p.value"
+                                               )))
         iOut <- as.data.frame(iOut, stringsAsFactors = FALSE)
         iOut[,"simulation"] <- i
 
@@ -281,7 +287,7 @@ powerBuyseTest <- function(sim,
                 BT.tempo@covariance <- attr(BT.tempo@covariance,"first.order")
             }
             
-            for(iStatistic in c("netBenefit","winRatio","mannWhitney")){ ## iStatistic <- "winRatio"
+            for(iStatistic in c("netBenefit","winRatio","favorable","unfavorable")){ ## iStatistic <- "winRatio"
                 outCI <- suppressWarnings(confint(BT.tempo, transformation = iTransformation, statistic = iStatistic))
 
                 iOut[iInference,paste0(iStatistic)] <- outCI[NROW(outCI),"estimate"]
@@ -469,14 +475,18 @@ powerBuyseTest <- function(sim,
             }
 
             ## *** new point estimate
-            idelta_netBenefit <- iCount_favorable/iN_pairs-iCount_unfavorable/iN_pairs
-            idelta_winRatio <- iCount_favorable/iCount_unfavorable
-            idelta_mannWhitney <- iCount_favorable/iN_pairs
-
-            iDelta_netBenefit <- cumsum(iCount_favorable[1,]*weight)/iN_pairs-cumsum(iCount_unfavorable[1,]*weight)/iN_pairs
-            iDelta_winRatio <- cumsum(iCount_favorable[1,]*weight)/cumsum(iCount_unfavorable[1,]*weight)
-            iDelta_mannWhitney <- cumsum(iCount_favorable[1,]*weight)/iN_pairs
-
+            n.strata <- length(iN_pairs)
+            idelta <- array(NA, dim = c(n.strata,n.endpoint,4))
+            idelta[,,1] <- iCount_favorable/iN_pairs
+            idelta[,,2] <- iCount_unfavorable/iN_pairs
+            idelta[,,3] <- idelta[,,1]-idelta[,,2]
+            idelta[,,4] <- idelta[,,1]/idelta[,,2]
+    
+            iDelta <- cbind(cumsum(iCount_favorable[1,]*weight)/iN_pairs,
+                            cumsum(iCount_unfavorable[1,]*weight)/iN_pairs,
+                            cumsum(iCount_favorable[1,] - iCount_unfavorable[1,])*weight/iN_pairs,
+                            cumsum(iCount_favorable[1,])/cumsum(iCount_unfavorable[1,]))
+                
             ## *** compute variance            
             iSigma <- inferenceUstatistic(iLS.table, order = order,
                                            weight = weight, count.favorable = iCount_favorable, count.unfavorable = iCount_unfavorable,
@@ -491,16 +501,12 @@ powerBuyseTest <- function(sim,
             iCount_neutral <- object$count_neutral
             iCount_uninf <- object$count_uninf
 
-            idelta_netBenefit <- object$delta_netBenefit
-            idelta_winRatio <- object$delta_winRatio
-            idelta_mannWhitney <- object$delta_mannWhitney
-            iDelta_netBenefit <- object$Delta_netBenefit
-            iDelta_winRatio <- object$Delta_winRatio
-            iDelta_mannWhitney <- object$Delta_mannWhitney
+            idelta <- object$delta
+            iDelta <- object$Delta
 
             iSigma <- object$Mvar
         }
-            
+
         ## *** Create object
         out[[iSample]] <- BuyseRes(
             count.favorable = iCount_favorable,      
@@ -508,12 +514,8 @@ powerBuyseTest <- function(sim,
             count.neutral = iCount_neutral,    
             count.uninf = iCount_uninf,
             n.pairs = iN_pairs,
-            delta.netBenefit = idelta_netBenefit,
-            delta.winRatio = idelta_winRatio,
-            delta.mannWhitney = idelta_mannWhitney,
-            Delta.netBenefit = iDelta_netBenefit,
-            Delta.winRatio = iDelta_winRatio,
-            Delta.mannWhitney = iDelta_mannWhitney,
+            delta = idelta,
+            Delta = iDelta,
             type = type,
             endpoint = endpoint,
             level.treatment = level.treatment,
@@ -528,12 +530,8 @@ powerBuyseTest <- function(sim,
             level.strata = "1",
             threshold = threshold,
             n.resampling = as.double(NA),
-            deltaResampling.netBenefit = array(dim=c(0,0,0)),
-            deltaResampling.winRatio = array(dim=c(0,0,0)),
-            deltaResampling.mannWhitney = array(dim=c(0,0,0)),
-            DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
-            DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
-            DeltaResampling.mannWhitney = matrix(NA, nrow = 0, ncol = 0),
+            deltaResampling = array(NA, dim=c(0,0,0,0)),
+            DeltaResampling = array(NA, dim=c(0,0,0)),
             covarianceResampling = array(NA, dim = c(0,0,0)),
             covariance = iSigma,
             weight = weight,

@@ -40,18 +40,22 @@ test_that("BuyseTest - binary (no strata)", {
                      type = "bin")
     
     ## *** test against fixed value
-    test <- list(favorable = as.double(BT.bin@count.favorable),
-                 unfavorable = as.double(BT.bin@count.unfavorable),
-                 neutral = as.double(BT.bin@count.neutral),
-                 uninf = as.double(BT.bin@count.uninf),
-                 netChange = as.double(BT.bin@Delta.netBenefit),
-                 winRatio = as.double(BT.bin@Delta.winRatio)
+    test <- list(favorable = as.double(coef(BT.bin, statistic = "count.favorable", cumulative = FALSE)),
+                 unfavorable = as.double(coef(BT.bin, statistic = "count.unfavorable", cumulative = FALSE)),
+                 neutral = as.double(coef(BT.bin, statistic = "count.neutral", cumulative = FALSE)),
+                 uninf = as.double(coef(BT.bin, statistic = "count.uninf", cumulative = FALSE)),
+                 favorable = as.double(coef(BT.bin, statistic = "favorable", cumulative = TRUE)),
+                 unfavorable = as.double(coef(BT.bin, statistic = "unfavorable", cumulative = TRUE)),
+                 netChange = as.double(coef(BT.bin, statistic = "netBenefit", cumulative = TRUE)),
+                 winRatio = as.double(coef(BT.bin, statistic = "winRatio", cumulative = TRUE))
                  )
 
     GS <- list(favorable = c(2856) ,
                unfavorable = c(1716) ,
                neutral = c(4428) ,
                uninf = c(0) ,
+               favorable = c(0.317333) ,
+               unfavorable = c(0.190667) ,
                netChange = c(0.126667) ,
                winRatio = c(1.664336) )
     ## butils::object2script(test, digit = 6)
@@ -107,17 +111,22 @@ test_that("BuyseTest - continuous (no strata)", {
                      )
     
     ## *** test against fixed value    
-    test <- list(favorable = as.double(BT.cont@count.favorable),
-                 unfavorable = as.double(BT.cont@count.unfavorable),
-                 neutral = as.double(BT.cont@count.neutral),
-                 uninf = as.double(BT.cont@count.uninf),
-                 netChange = as.double(BT.cont@Delta.netBenefit),
-                 winRatio = as.double(BT.cont@Delta.winRatio)
+    test <- list(favorable = as.double(coef(BT.cont, statistic = "count.favorable", cumulative = FALSE)),
+                 unfavorable = as.double(coef(BT.cont, statistic = "count.unfavorable", cumulative = FALSE)),
+                 neutral = as.double(coef(BT.cont, statistic = "count.neutral", cumulative = FALSE)),
+                 uninf = as.double(coef(BT.cont, statistic = "count.uninf", cumulative = FALSE)),
+                 favorable = as.double(coef(BT.cont, statistic = "favorable", cumulative = TRUE)),
+                 unfavorable = as.double(coef(BT.cont, statistic = "unfavorable", cumulative = TRUE)),
+                 netChange = as.double(coef(BT.cont, statistic = "netBenefit", cumulative = TRUE)),
+                 winRatio = as.double(coef(BT.cont, statistic = "winRatio", cumulative = TRUE))
                  )
+
     GS <- list(favorable = c(1562, 2336) ,
                unfavorable = c(2690, 2412) ,
                neutral = c(4748, 0) ,
                uninf = c(0, 0) ,
+               favorable = c(0.173556, 0.433111) ,
+               unfavorable = c(0.298889, 0.566889) ,
                netChange = c(-0.125333, -0.133778) ,
                winRatio = c(0.580669, 0.764014) )
     ## butils::object2script(test, digit = 6)
@@ -188,28 +197,39 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
 
         ## *** compatibility between BuyseTests
         expect_equal(BT.tte, BT2)
-        expect_equal(sum(BT.tte@count.favorable),BT.1tte@count.favorable[1])
-        expect_equal(sum(BT.tte@count.unfavorable),BT.1tte@count.unfavorable[1])
-        expect_equal(BT.tte@count.neutral[3],BT.1tte@count.neutral[1])
-        expect_equal(BT.tte@count.uninf[3],BT.1tte@count.uninf[1])
-        expect_equal(BT.tte@Delta.netBenefit[3],BT.1tte@Delta.netBenefit[1])
-        expect_equal(BT.tte@Delta.winRatio[3],BT.1tte@Delta.winRatio[1])
+        expect_equal(sum(coef(BT.tte, statistic = "count.favorable", cumulative = FALSE)),
+                     as.double(coef(BT.1tte, statistic = "count.favorable", cumulative = FALSE)))
+        expect_equal(sum(coef(BT.tte, statistic = "count.unfavorable", cumulative = FALSE)),
+                     as.double(coef(BT.1tte, statistic = "count.unfavorable", cumulative = FALSE)))
+        expect_equal(coef(BT.tte, statistic = "count.neutral", cumulative = FALSE)[3],
+                     coef(BT.1tte, statistic = "count.neutral", cumulative = FALSE))
+        expect_equal(coef(BT.tte, statistic = "count.uninf", cumulative = FALSE)[3],
+                     coef(BT.1tte, statistic = "count.uninf", cumulative = FALSE))
+        expect_equal(coef(BT.tte, statistic = "netBenefit", cumulative = TRUE)[3],
+                     coef(BT.1tte, statistic = "netBenefit", cumulative = TRUE))
+        expect_equal(coef(BT.tte, statistic = "winRatio", cumulative = TRUE)[3],
+                     coef(BT.1tte, statistic = "winRatio", cumulative = TRUE))
 
         ## *** test against fixed value
-        test <- list(favorable = as.double(BT.tte@count.favorable),
-                     unfavorable = as.double(BT.tte@count.unfavorable),
-                     neutral = as.double(BT.tte@count.neutral),
-                     uninf = as.double(BT.tte@count.uninf),
-                     netChange = as.double(BT.tte@Delta.netBenefit),
-                     winRatio = as.double(BT.tte@Delta.winRatio)
+        test <- list(favorable = as.double(coef(BT.tte, statistic = "count.favorable", cumulative = FALSE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "count.unfavorable", cumulative = FALSE)),
+                     neutral = as.double(coef(BT.tte, statistic = "count.neutral", cumulative = FALSE)),
+                     uninf = as.double(coef(BT.tte, statistic = "count.uninf", cumulative = FALSE)),
+                     favorable = as.double(coef(BT.tte, statistic = "favorable", cumulative = TRUE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "unfavorable", cumulative = TRUE)),
+                     netChange = as.double(coef(BT.tte, statistic = "netBenefit", cumulative = TRUE)),
+                     winRatio = as.double(coef(BT.tte, statistic = "winRatio", cumulative = TRUE))
                      )
+
         if(method == "Gehan"){
             GS <- list(favorable = c(353, 649, 524) ,
                        unfavorable = c(394, 601, 490) ,
                        neutral = c(1931, 1294, 789) ,
                        uninf = c(6322, 5709, 5200) ,
-                       netChange = c(-0.0045556, 0.0007778, 0.0045556) ,
-                       winRatio = c(0.8959391, 1.0070352, 1.0276094) )
+                       favorable = c(0.03922222, 0.11133333, 0.16955556) ,
+                       unfavorable = c(0.04377778, 0.11055556, 0.165) ,
+                       netChange = c(-0.00455556, 0.00077778, 0.00455556) ,
+                       winRatio = c(0.89593909, 1.00703518, 1.02760943) )
             ## butils::object2script(test, digit = 8)
             
         }else if(method == "Peron"){
@@ -217,6 +237,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
                        unfavorable = c(1395.18398457, 1113.5745081, 723.5751254) ,
                        neutral = c(5161.35356532, 3068.29267133, 1714.81236674) ,
                        uninf = c(0, 0, 0) ,
+                       favorable = c(0.27149583, 0.38032765, 0.45031711) ,
+                       unfavorable = c(0.15502044, 0.27875094, 0.35914818) ,
                        netChange = c(0.11647539, 0.1015767, 0.09116893) ,
                        winRatio = c(1.751355, 1.3643995, 1.25384768) )
         }
@@ -234,7 +256,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
 }
 
 ## ** No strata - different endpoints
-## for(method in c("Gehan","Peron")){ ## method <- "Peron"
+## for(method in c("Gehan","Peron")){ ## method <- "Peron" ## method <- "Gehan" 
 for(method in c("Gehan","Peron")){ ## method <- "Peron"
     test_that(paste0("BuyseTest - tte (different, ",method,", no strata)"),{ 
     
@@ -252,19 +274,27 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                          correction.uninf = FALSE
                          )
 
-        ## *** test against fixed value
-        test <- list(favorable = as.double(BT.tte@count.favorable),
-                     unfavorable = as.double(BT.tte@count.unfavorable),
-                     neutral = as.double(BT.tte@count.neutral),
-                     uninf = as.double(BT.tte@count.uninf),
-                     netChange = as.double(BT.tte@Delta.netBenefit),
-                     winRatio = as.double(BT.tte@Delta.winRatio)
+        test <- list(favorable = as.double(coef(BT.tte, statistic = "count.favorable", cumulative = FALSE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "count.unfavorable", cumulative = FALSE)),
+                     neutral = as.double(coef(BT.tte, statistic = "count.neutral", cumulative = FALSE)),
+                     uninf = as.double(coef(BT.tte, statistic = "count.uninf", cumulative = FALSE)),
+                     favorable = as.double(coef(BT.tte, statistic = "favorable", cumulative = TRUE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "unfavorable", cumulative = TRUE)),
+                     netChange = as.double(coef(BT.tte, statistic = "netBenefit", cumulative = TRUE)),
+                     winRatio = as.double(coef(BT.tte, statistic = "winRatio", cumulative = TRUE))
                      )
+
+        ## *** compatibility between BuyseTests
+        expect_equal(BT.tte, BT2)
+
+        ## *** test against fixed value
         if(method == "Gehan"){
             GS <- list(favorable = c(353, 666, 924) ,
                        unfavorable = c(394, 756, 487) ,
                        neutral = c(1931, 578, 200) ,
                        uninf = c(6322, 6253, 5220) ,
+                       favorable = c(0.03922222, 0.11322222, 0.21588889) ,
+                       unfavorable = c(0.04377778, 0.12777778, 0.18188889) ,
                        netChange = c(-0.00455556, -0.01455556, 0.034) ,
                        winRatio = c(0.89593909, 0.88608696, 1.18692731) )
             ## butils::object2script(test, digit = 8)
@@ -274,6 +304,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                        unfavorable = c(1395.18398457, 1845.87475171, 310.74049374) ,
                        neutral = c(5161.35356532, 1000.31578572, 118.00747754) ,
                        uninf = c(0, 326.81112786, 73.01189405) ,
+                       favorable = c(0.27149583, 0.49242382, 0.58413127) ,
+                       unfavorable = c(0.15502044, 0.36011764, 0.39464436) ,
                        netChange = c(0.11647539, 0.13230618, 0.18948691) ,
                        winRatio = c(1.751355, 1.36739711, 1.48014599) )
         }
@@ -295,19 +327,24 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"  ## method <- "Gehan"
                             data = dtS.sim, scoring.rule = method)
 
         ## *** test against fixed value
-        test <- list(favorable = as.double(BT.tte@count.favorable),
-                     unfavorable = as.double(BT.tte@count.unfavorable),
-                     neutral = as.double(BT.tte@count.neutral),
-                     uninf = as.double(BT.tte@count.uninf),
-                     netChange = as.double(BT.tte@Delta.netBenefit),
-                     winRatio = as.double(BT.tte@Delta.winRatio)
+        test <- list(favorable = as.double(coef(BT.tte, statistic = "count.favorable", stratified = TRUE, cumulative = FALSE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "count.unfavorable", stratified = TRUE, cumulative = FALSE)),
+                     neutral = as.double(coef(BT.tte, statistic = "count.neutral", stratified = TRUE, cumulative = FALSE)),
+                     uninf = as.double(coef(BT.tte, statistic = "count.uninf", stratified = TRUE, cumulative = FALSE)),
+                     favorable = as.double(coef(BT.tte, statistic = "favorable", stratified = FALSE, cumulative = TRUE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "unfavorable", stratified = FALSE, cumulative = TRUE)),
+                     netChange = as.double(coef(BT.tte, statistic = "netBenefit", stratified = FALSE, cumulative = TRUE)),
+                     winRatio = as.double(coef(BT.tte, statistic = "winRatio", stratified = FALSE, cumulative = TRUE))
                      )
 
+        
         if(method == "Gehan"){
             GS <- list(favorable = c(353, 353, 353, 649, 649, 649, 524, 524, 524) ,
                        unfavorable = c(394, 394, 394, 601, 601, 601, 490, 490, 490) ,
                        neutral = c(1931, 1931, 1931, 1294, 1294, 1294, 789, 789, 789) ,
                        uninf = c(6322, 6322, 6322, 5709, 5709, 5709, 5200, 5200, 5200) ,
+                       favorable = c(0.03922, 0.11133, 0.16956) ,
+                       unfavorable = c(0.04378, 0.11056, 0.165) ,
                        netChange = c(-0.00456, 0.00078, 0.00456) ,
                        winRatio = c(0.89594, 1.00704, 1.02761) )
         } else if(method == "Peron"){
@@ -315,6 +352,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"  ## method <- "Gehan"
                        unfavorable = c(1395.18398, 1395.18398, 1395.18398, 1113.57451, 1113.57451, 1113.57451, 723.57513, 723.57513, 723.57513) ,
                        neutral = c(5161.35357, 5161.35357, 5161.35357, 3068.29267, 3068.29267, 3068.29267, 1714.81237, 1714.81237, 1714.81237) ,
                        uninf = c(0, 0, 0, 0, 0, 0, 0, 0, 0) ,
+                       favorable = c(0.2715, 0.38033, 0.45032) ,
+                       unfavorable = c(0.15502, 0.27875, 0.35915) ,
                        netChange = c(0.11648, 0.10158, 0.09117) ,
                        winRatio = c(1.75136, 1.3644, 1.25385) )
             expect_equal(GS, test, tol = 1e-4, scale = 1)
@@ -336,7 +375,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"  ## method <- "Gehan"
 }
 
 ## * Mixed endpoints 
-for(method in c("Gehan","Peron")){ ## method <- "Peron"
+for(method in c("Gehan","Peron")){ ## method <- "Peron" ## method <- "Gehan"
     test_that(paste0("BuyseTest - mixed (",method,", no strata)"),{ 
     
         BT.mixed <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 0.5) + cont(score1, 1) + bin(toxicity1) + tte(eventtime1, status1, threshold = 0.25) + cont(score1, 0.5),
@@ -350,19 +389,27 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                          threshold=c(0.5,1,NA,0.25,0.5),
                          scoring.rule=method)
   
+        ## *** compatibility between BuyseTests
+        expect_equal(BT.mixed, BT2)
+
         ## *** test against fixed value
-        test <- list(favorable = as.double(BT.mixed@count.favorable),
-                     unfavorable = as.double(BT.mixed@count.unfavorable),
-                     neutral = as.double(BT.mixed@count.neutral),
-                     uninf = as.double(BT.mixed@count.uninf),
-                     netChange = as.double(BT.mixed@Delta.netBenefit),
-                     winRatio = as.double(BT.mixed@Delta.winRatio)
+        test <- list(favorable = as.double(coef(BT.mixed, statistic = "count.favorable", cumulative = FALSE)),
+                     unfavorable = as.double(coef(BT.mixed, statistic = "count.unfavorable", cumulative = FALSE)),
+                     neutral = as.double(coef(BT.mixed, statistic = "count.neutral", cumulative = FALSE)),
+                     uninf = as.double(coef(BT.mixed, statistic = "count.uninf", cumulative = FALSE)),
+                     favorable = as.double(coef(BT.mixed, statistic = "favorable", cumulative = TRUE)),
+                     unfavorable = as.double(coef(BT.mixed, statistic = "unfavorable", cumulative = TRUE)),
+                     netChange = as.double(coef(BT.mixed, statistic = "netBenefit", cumulative = TRUE)),
+                     winRatio = as.double(coef(BT.mixed, statistic = "winRatio", cumulative = TRUE))
                      )
+
         if(method == "Gehan"){
             GS <- list(favorable = c(1002, 1294, 1175, 146, 334) ,
                        unfavorable = c(995, 1966, 714, 123, 411) ,
                        neutral = c(1294, 3743, 1854, 186, 840) ,
                        uninf = c(5709, 0, 0, 1399, 0) ,
+                       favorable = c(0.11133333, 0.25511111, 0.38566667, 0.40188889, 0.439) ,
+                       unfavorable = c(0.11055556, 0.329, 0.40833333, 0.422, 0.46766667) ,
                        netChange = c(0.00077778, -0.07388889, -0.02266667, -0.02011111, -0.02866667) ,
                        winRatio = c(1.00703518, 0.77541371, 0.9444898, 0.95234334, 0.93870278) )
             ## butils::object2script(test, digit = 8)
@@ -372,6 +419,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"
                        unfavorable = c(2508.75849267, 940.43278022, 311.753946, 189.11524727, 118.87398395) ,
                        neutral = c(3068.29267133, 1604.02307056, 805.6850846, 437.20181536, 233.92732904) ,
                        uninf = c(0, 0, 0, 0, 0) ,
+                       favorable = c(0.38032765, 0.43853174, 0.49259663, 0.51252641, 0.52190425) ,
+                       unfavorable = c(0.27875094, 0.38324347, 0.4178828, 0.43889561, 0.45210383) ,
                        netChange = c(0.1015767, 0.05528826, 0.07471383, 0.07363081, 0.06980042) ,
                        winRatio = c(1.3643995, 1.14426407, 1.17879135, 1.16776382, 1.15439024) )
         }
@@ -395,19 +444,26 @@ test_that("ordering does not matter", {
                            data = dt.sim, scoring.rule = method)
     BT.mixed2 <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 0.5) +  tte(eventtime1, status1, threshold = 0.25) + cont(score1, 1),
                            data = dt.sim, scoring.rule = method)
-    expect_equal(BT.mixed2@Delta.netBenefit[2:3],BT.mixed1@Delta.netBenefit)
-    expect_equal(BT.mixed2@Delta.winRatio[2:3],BT.mixed1@Delta.winRatio)
+    expect_equal(coef(BT.mixed2, statistic = "netBenefit")[2:3], coef(BT.mixed1, statistic = "netBenefit"), tol = 1e-6)
+    expect_equal(coef(BT.mixed2, statistic = "winRatio")[2:3], coef(BT.mixed1, statistic = "winRatio"), tol = 1e-6)
 })
 
 test_that(paste0("BuyseTest - Peron scoring rule with 2 TTE, one without censoring"),{ 
+    ## 1 continuous
+    ## 2 Gehan left-censoring
+    ## 3 Gehan right-censoring
+    ## 4 Peron right-censoring survival
+    ## 5 Peron right-censoring competing risks
     
     BT.mixed <- BuyseTest(treatment ~ tte(eventtime2, status2, threshold = 0.5) + tte(eventtime1, status1.noC, threshold = 0),
                           data = dt.sim, scoring.rule = "Peron")
+    expect_equal(unname(attr(BT.mixed@scoring.rule,"method.score")), c(4,1))
     ## summary(BT.mixed)
     BT.mixed <- BuyseTest(treatment ~ tte(eventtime1, status1.noC, threshold = 0) + tte(eventtime2, status2, threshold = 0.5),
                           data = dt.sim, scoring.rule = "Peron")
     ## summary(BT.mixed)
-
+    expect_equal(unname(attr(BT.mixed@scoring.rule,"method.score")), c(1,4))
+    
 })
 
 ## * Left censoring

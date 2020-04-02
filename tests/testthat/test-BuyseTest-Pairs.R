@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: mar  3 2020 (09:51) 
+## Last-Updated: apr  2 2020 (17:18) 
 ##           By: Brice Ozenne
-##     Update #: 174
+##     Update #: 187
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,28 +37,28 @@ test_that("check favorable - 1 Binary",{
                        treatment = c(1,0),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data=data)
-    expect_equal(as.double(BT@count.favorable),1)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
     ## getPairScore(BT)
 
     ## several pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data = data2)
-    expect_equal(as.double(BT@count.favorable),4)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
     ## getPairScore(BT)
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(4,4))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
     ## getPairScore(BT)
 })
 
@@ -69,26 +69,26 @@ test_that("check unfavorable - 1 Binary",{
                        treatment = c(1,0),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),1)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## several pairs
     data2 <- rbind(data,data)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data = data2)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),4)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(4,4))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
     ## getPairScore(BT)
 })
 
@@ -99,26 +99,26 @@ test_that("check neutral - 1 Binary",{
                        treatment = c(1,0),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),1)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## several pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ bin(toxicity1), data = data2)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),4)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(4,4))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
     ## getPairScore(BT)
 })
 
@@ -128,18 +128,18 @@ test_that("check NA - 1 Binary",{
                      treatment = c(1, 1, 0),
                      stringsAsFactors = FALSE)
   BT <- BuyseTest(treatment ~ bin(toxicity1), data = data)
-  expect_equal(as.double(BT@count.favorable),0)
-  expect_equal(as.double(BT@count.unfavorable),0)
-  expect_equal(as.double(BT@count.neutral),1)
-  expect_equal(as.double(BT@count.uninf),1)
+  expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+  expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+  expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),1)
+  expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),1)
 
   ## with strata
   data2 <- rbind(cbind(data, strata = 0), cbind(data, strata = 1))
   BT <- BuyseTest(treatment ~ bin(toxicity1) + strata, data = data2)
-  expect_equal(as.double(BT@count.favorable),c(0,0))
-  expect_equal(as.double(BT@count.unfavorable),c(0,0))
-  expect_equal(as.double(BT@count.neutral),c(1,1))
-  expect_equal(as.double(BT@count.uninf),c(1,1))
+  expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+  expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+  expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(1,1))
+  expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(1,1))
 })
 
 ## * two binary endpoints
@@ -152,16 +152,13 @@ test_that("check unfavorable - 2 Binary",{
     BT <- BuyseTest(treatment ~ bin(toxicity1) + bin(toxicity2), data = dt)
     
     ## total pairs: 25
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,25))
-    expect_equal(as.double(BT@count.neutral),c(25,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),c(0,25))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),c(25,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),c(0,0))
 
-    expect_equal(as.double(BT@delta.netBenefit),c(0,-1))
-    expect_equal(as.double(BT@Delta.netBenefit),c(0,-1))
-
-    expect_equal(as.double(BT@delta.winRatio),c(NaN,0))
-    expect_equal(as.double(BT@Delta.winRatio),c(NaN,0))
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),c(0,-1))
+    expect_equal(as.double(coef(BT, statistic = "winRatio")),c(NaN,0))
 })
 
 ## ** mixed
@@ -173,16 +170,13 @@ test_that("check mixed - 2 Binary",{
                     keep.pairScore = TRUE)
     ## getPairScore(BT)
     
-    expect_equal(as.double(BT@count.favorable),c(0,1))
-    expect_equal(as.double(BT@count.unfavorable),c(0,1))
-    expect_equal(as.double(BT@count.neutral),c(4,2))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),c(0,1))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),c(0,1))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),c(4,2))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),c(0,0))
 
-    expect_equal(as.double(BT@delta.netBenefit),c(0,0))
-    expect_equal(as.double(BT@Delta.netBenefit),c(0,0))
-
-    expect_equal(as.double(BT@delta.winRatio),c(NaN,1))
-    expect_equal(as.double(BT@Delta.winRatio),c(NaN,1))
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "winRatio")),c(NaN,1))
 })
 
 ## * one continous endpoint
@@ -193,26 +187,26 @@ test_that("check favorable - continous",{
                        treatment = c(1,0),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data)
-    expect_equal(as.double(BT@count.favorable),1)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## several pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data2)
-    expect_equal(as.double(BT@count.favorable),4)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(4,4))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 })
 
 ## ** unfavorable
@@ -222,26 +216,26 @@ test_that("check unfavorable - continous",{
                        treatment = c(1,0),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),1)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## several pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data2)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),4)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(4,4))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 })
 
 ## ** neutral
@@ -253,52 +247,52 @@ test_that("check neutral - continous",{
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data=data)
     BT.bis <- BuyseTest(treatment ~ continuous(size), data=data)
     expect_equal(BT.bis,BT)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),1)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## several pairs, 0 threshold
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1), data = data2)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),4)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## with strata, 0 threshold
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 1) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(4,4))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 
     ## 1 pair, non 0 threshold 
     data <- data.frame(size = c(1,0),
                        treatment = c(1,0),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 2), data=data)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),1)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## several pairs, non 0 threshold
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 2), data = data2)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),4)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## with strata, non 0 threshold
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 2) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(4,4))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 })
 
 ## ** NA as uninformative
@@ -307,26 +301,26 @@ test_that("check NA - continuous",{
                        treatment = c(1, 1, 0),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data = data)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),1)
-    expect_equal(as.double(BT@count.uninf),1)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),1)
 
     ## more pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data = data2)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),4)
-    expect_equal(as.double(BT@count.uninf),4)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),4)
 
     ## with strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 0) + strata, data = data3)
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(4,4))
-    expect_equal(as.double(BT@count.uninf),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(4,4))
 })
 
 ## * one time to event endpoint (no extrapolation needed or possible)
@@ -338,33 +332,33 @@ test_that("check favorable - time to event",{
                        status = 1,
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
-    expect_equal(as.double(BT@count.favorable),1)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data2)    
-    expect_equal(as.double(BT@count.favorable),4)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## 0 threshold, strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ tte(time, status = status) + strata, data = data3)    
-    expect_equal(as.double(BT@count.favorable),c(4,4))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 
     ## 1 threshold, strata
     BT <- BuyseTest(treatment ~ tte(time, threshold = 1, status = status) + strata, data = data3)    
-    expect_equal(as.double(BT@count.favorable),c(4,4))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 })
 
 ## ** unfavorable
@@ -375,33 +369,33 @@ test_that("check unfavorable - time to event",{
                        status = 1,
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),1)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data2)    
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),4)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## 0 threshold strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ tte(time, status = status) + strata, data = data3)    
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(4,4))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
     
     ## 1 threshold, strata
     BT <- BuyseTest(treatment ~ tte(time, threshold = 1, status = status) + strata, data = data3)    
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(4,4))
-    expect_equal(as.double(BT@count.neutral),c(0,0))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 })
 
 ## ** neutral
@@ -412,35 +406,35 @@ test_that("check neutral - time to event",{
                        status = 1,
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),1)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## 0 threshold, several pairs
     data2 <- rbind(data, data)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data2)    
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),4)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## 0 threshold strata
     data3 <- rbind(cbind(data2, strata = 0), cbind(data2, strata = 1))
     BT <- BuyseTest(treatment ~ tte(time, status = status) + strata, data = data3)    
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(4,4))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
     
     ## 1 threshold, strata
     data4 <- data3
     data4[data4$treatment==1,"time"] <- 2
     BT <- BuyseTest(treatment ~ tte(time, threshold = 3, status = status) + strata, data = data4)    
-    expect_equal(as.double(BT@count.favorable),c(0,0))
-    expect_equal(as.double(BT@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT@count.neutral),c(4,4))
-    expect_equal(as.double(BT@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE, stratified = TRUE)),c(0,0))
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE, stratified = TRUE)),c(4,4))
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE, stratified = TRUE)),c(0,0))
 })
 
 ## ** NA as uninformative
@@ -452,10 +446,10 @@ test_that("check NA - time to event",{
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status),
                     data = data)
-    expect_equal(as.double(BT@count.favorable),1)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 
     ## censored at the same time as the event in the other arm
     data <- data.frame(time = c(1,2,1),
@@ -463,10 +457,10 @@ test_that("check NA - time to event",{
                        status = c(0,1,1),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status), data = data)
-    expect_equal(as.double(BT@count.favorable),2)
-    expect_equal(as.double(BT@count.unfavorable),0)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),2)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
 })
 
 ## * one time to event endpoint (extrapolation using Gehan/Peron)
@@ -483,32 +477,26 @@ test_that("2 pairs - Gehan - no correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, status = cens), data = dt.2pairs,
                     scoring.rule = "Gehan", correction.uninf = FALSE)
 
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),2)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),2)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),2)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),2)
  
-    expect_equal(as.double(BT@delta.netBenefit),-1/2) ## 
-    expect_equal(as.double(BT@Delta.netBenefit),-1/2) ##
-    
-    expect_equal(as.double(BT@delta.winRatio),0)
-    expect_equal(as.double(BT@Delta.winRatio),0)
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),-1/2) ## 
+    expect_equal(as.double(coef(BT, statistic = "winRatio")),c(0))
 })
 
 test_that("2 pairs - Gehan - correction",{
     BT <- BuyseTest(treat ~ tte(time, threshold = 0, status = cens), data = dt.2pairs,
                     scoring.rule = "Gehan", correction.uninf = TRUE)
   
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),4)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
  
-    expect_equal(as.double(BT@delta.netBenefit),-1) ## 
-    expect_equal(as.double(BT@Delta.netBenefit),-1) ##
-    
-    expect_equal(as.double(BT@delta.winRatio),0)
-    expect_equal(as.double(BT@Delta.winRatio),0)
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),-1) ## 
+    expect_equal(as.double(coef(BT, statistic = "winRatio")),0) ## 
 })
 
 ## *** Peron
@@ -526,16 +514,13 @@ test_that("2 pairs - Peron - no correction",{
     ## 12 vs 20 : unfavorable
     ## 12 vs 32 : unfavorable
 
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),4)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
   
-    expect_equal(as.double(BT@delta.netBenefit),-1)
-    expect_equal(as.double(BT@Delta.netBenefit),-1)
-
-    expect_equal(as.double(BT@delta.winRatio),0)
-    expect_equal(as.double(BT@Delta.winRatio),0)
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),-1)
+    expect_equal(as.double(coef(BT, statistic = "winRatio")),0)
   
 })
 
@@ -553,16 +538,13 @@ test_that("2 pairs - Peron - correction",{
     ## 12 vs 20 : unfavorable
     ## 12 vs 32 : unfavorable
 
-    expect_equal(as.double(BT@count.favorable),0)
-    expect_equal(as.double(BT@count.unfavorable),4)
-    expect_equal(as.double(BT@count.neutral),0)
-    expect_equal(as.double(BT@count.uninf),0)
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),4)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
   
-    expect_equal(as.double(BT@delta.netBenefit),-1)
-    expect_equal(as.double(BT@Delta.netBenefit),-1)
-
-    expect_equal(as.double(BT@delta.winRatio),0)
-    expect_equal(as.double(BT@Delta.winRatio),0)
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),-1)
+    expect_equal(as.double(coef(BT, statistic = "winRatio")),0)
   
 })
 
@@ -586,12 +568,12 @@ test_that("Peron - predictible events",{
     df.all$trt <- abs(df.all$trt)
     BT <- BuyseTest(trt ~ tte(time, threshold = 0, status = status), data = df.all,
                     scoring.rule="Peron", correction.uninf = FALSE)
-    expect_equal(as.double(BT@Delta.netBenefit),1)
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),1)
 
     df.all$trt <- -abs(df.all$trt)
     BT <- BuyseTest(trt ~ tte(time, threshold = 0, status = status), data = df.all,
                     scoring.rule="Peron", correction.uninf = FALSE)
-    expect_equal(as.double(BT@Delta.netBenefit),-1)
+    expect_equal(as.double(coef(BT, statistic = "netBenefit")),-1)
 
 })
 

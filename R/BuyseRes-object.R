@@ -24,12 +24,8 @@ setClass(
       count.neutral = "matrix",
       count.uninf = "matrix",
       n.pairs = "numeric",
-      delta.netBenefit = "matrix",
-      delta.winRatio = "matrix",
-      delta.mannWhitney = "matrix",
-      Delta.netBenefit = "vector",
-      Delta.winRatio = "vector",
-      Delta.mannWhitney = "vector",
+      delta = "array",
+      Delta = "matrix",
       type = "vector",
       endpoint = "vector",
       level.treatment = "vector",
@@ -42,12 +38,8 @@ setClass(
       strata = "vector",
       threshold = "numeric",
       n.resampling = "numeric",
-      deltaResampling.netBenefit = "array",
-      deltaResampling.winRatio = "array",
-      deltaResampling.mannWhitney = "array",
-      DeltaResampling.netBenefit = "matrix",
-      DeltaResampling.winRatio = "matrix",
-      DeltaResampling.mannWhitney = "matrix",
+      deltaResampling = "array",
+      DeltaResampling = "array",
       covariance = "matrix",
       covarianceResampling = "array",
       weight = "numeric",
@@ -69,12 +61,8 @@ methods::setMethod(
                                    count.neutral,
                                    count.uninf,
                                    n.pairs,
-                                   delta.netBenefit,
-                                   delta.winRatio,
-                                   delta.mannWhitney,
-                                   Delta.netBenefit,
-                                   Delta.winRatio,
-                                   Delta.mannWhitney,
+                                   delta,
+                                   Delta,
                                    type,
                                    endpoint,
                                    level.strata,
@@ -87,12 +75,8 @@ methods::setMethod(
                                    strata,
                                    threshold,
                                    n.resampling,
-                                   deltaResampling.netBenefit,
-                                   deltaResampling.winRatio,
-                                   deltaResampling.mannWhitney,
-                                   DeltaResampling.netBenefit,
-                                   DeltaResampling.winRatio,
-                                   DeltaResampling.mannWhitney,
+                                   deltaResampling,
+                                   DeltaResampling,
                                    covariance,
                                    covarianceResampling,
                                    weight,
@@ -115,12 +99,36 @@ methods::setMethod(
                  names(weight) <- name.endpoint
                  
                  ## ** delta/Delta
-                 dimnames(delta.netBenefit) <- list(level.strata, name.endpoint)
-                 dimnames(delta.winRatio) <- list(level.strata, name.endpoint)
-                 dimnames(delta.mannWhitney) <- list(level.strata, name.endpoint)
-                 names(Delta.netBenefit) <- name.endpoint
-                 names(Delta.winRatio) <- name.endpoint
-                 names(Delta.mannWhitney) <- name.endpoint
+                 dimnames(delta) <- list(level.strata,
+                                         name.endpoint,
+                                         c("favorable","unfavorable","netBenefit","winRatio"))
+                 dimnames(Delta) <- list(name.endpoint,
+                                         c("favorable","unfavorable","netBenefit","winRatio"))
+
+                 if(length(covariance)>0){
+                     dimnames(covariance) <- list(name.endpoint,
+                                                  c("favorable","unfavorable","covariance","netBenefit","winRatio"))
+                 }
+                 
+                 ## ** delta/Delta resampling
+                 if(length(deltaResampling)>0){
+                     dimnames(deltaResampling) <- list(NULL,
+                                                       name.endpoint,
+                                                       c("favorable","unfavorable","netBenefit","winRatio"),
+                                                       level.strata)
+                 }
+                 
+                 if(length(DeltaResampling)>0){
+                     dimnames(DeltaResampling) <- list(NULL,
+                                                       name.endpoint,
+                                                       c("favorable","unfavorable","netBenefit","winRatio"))
+                 }
+                 
+                 if(length(covarianceResampling)>0){
+                     dimnames(covarianceResampling) <- list(NULL,
+                                                            name.endpoint,
+                                                            c("favorable","unfavorable","covariance","netBenefit","winRatio"))
+                 }
                  
                  ## ** endpoint
                  D <- length(endpoint)
@@ -131,6 +139,11 @@ methods::setMethod(
                  }
                  n.strata <- length(level.strata)
 
+                 ## ** scoring rule
+                 if(!is.null(attr(scoring.rule,"method.score"))){
+                     attr(scoring.rule,"method.score") <- setNames(attr(scoring.rule,"method.score"), name.endpoint)
+                 }
+                 
                  ## ** store
                  .Object@count.favorable <- count.favorable      
                  .Object@count.unfavorable <- count.unfavorable
@@ -138,12 +151,8 @@ methods::setMethod(
                  .Object@count.uninf <- count.uninf
                  .Object@n.pairs <- n.pairs
                  
-                 .Object@delta.netBenefit <- delta.netBenefit
-                 .Object@delta.winRatio <- delta.winRatio
-                 .Object@delta.mannWhitney <- delta.mannWhitney
-                 .Object@Delta.netBenefit <- Delta.netBenefit
-                 .Object@Delta.winRatio <- Delta.winRatio
-                 .Object@Delta.mannWhitney <- Delta.mannWhitney
+                 .Object@delta <- delta
+                 .Object@Delta <- Delta
 
                  .Object@type <- type
                  .Object@endpoint <- endpoint
@@ -159,23 +168,13 @@ methods::setMethod(
                  
                  .Object@n.resampling <- n.resampling
 
-                 .Object@deltaResampling.netBenefit <- deltaResampling.netBenefit
-                 .Object@deltaResampling.winRatio <- deltaResampling.winRatio
-                 .Object@deltaResampling.mannWhitney <- deltaResampling.mannWhitney
-                 .Object@DeltaResampling.netBenefit <- DeltaResampling.netBenefit
-                 .Object@DeltaResampling.winRatio <- DeltaResampling.winRatio
-                 .Object@DeltaResampling.mannWhitney <- DeltaResampling.mannWhitney
+                 .Object@deltaResampling <- deltaResampling
+                 .Object@DeltaResampling <- DeltaResampling
 
                  .Object@covariance <- covariance
-                 if(NCOL(covariance)>0){
-                     dimnames(.Object@covariance) <- list(name.endpoint,
-                                                          c("favorable","unfavorable","covariance","netBenefit","winRatio","mannWhitney"))
-                 }
+
                  .Object@covarianceResampling <- covarianceResampling
-                 if(dim(.Object@covarianceResampling)[1]>0){
-                     dimnames(.Object@covarianceResampling) <- list(NULL,name.endpoint,
-                                                            c("favorable","unfavorable","covariance","netBenefit","winRatio","mannWhitney"))
-                 }
+
                  .Object@weight <- weight
                  
                  .Object@iidAverage <- list(favorable = iidAverage_favorable,

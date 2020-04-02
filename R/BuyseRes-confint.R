@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  1 2020 (15:28) 
+## Last-Updated: apr  2 2020 (16:33) 
 ##           By: Brice Ozenne
-##     Update #: 707
+##     Update #: 720
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,8 @@
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
 #' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
 #' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-#' \code{"mannWhitney"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+#' \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+#' \code{"unfavorable"} displays the proportion in favor of the control.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
@@ -124,12 +125,13 @@ setMethod(f = "confint",
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
-                                  "mannwhitney" = "mannWhitney",
+                                  "favorable" = "favorable",
+                                  "unfavorable" = "unfavorable",
                                   statistic)
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio","mannWhitney"),
+                             valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
                              valid.length = 1,
                              method = "confint[BuyseRes]")
 
@@ -184,8 +186,7 @@ setMethod(f = "confint",
                       iVar <- crossprod(ls.iid[[iE]])[c(1,4,2)]
                       return( c(iVar,
                                 iVar[1] + iVar[2] - 2*iVar[3],
-                                iVar[1]/delta.unfavorable[iE]^2 + iVar[2] * delta.favorable[iE]^2/delta.unfavorable[iE]^4 - 2*iVar[3] * delta.favorable[iE]/delta.unfavorable[iE]^3,
-                                iVar[1])
+                                iVar[1]/delta.unfavorable[iE]^2 + iVar[2] * delta.favorable[iE]^2/delta.unfavorable[iE]^4 - 2*iVar[3] * delta.favorable[iE]/delta.unfavorable[iE]^3)
                              )
                   }))
                   dimnames(object@covariance) <- keep.names
@@ -215,19 +216,34 @@ setMethod(f = "confint",
               }
 
               endpoint <- paste0(object@endpoint,"_",object@threshold)
-              Delta <- slot(object, name = paste0("Delta.",statistic))
-              Delta.resampling <- slot(object, name = paste0("DeltaResampling.",statistic))
+              Delta <- slot(object, name = "Delta")[,statistic]
 
-              if(sum(dim(object@covariance))>0){
+              if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
+                  Delta.resampling <- slot(object, name = "DeltaResampling")[,,statistic]
+                  if(!is.matrix(Delta.resampling)){
+                      Delta.resampling <- matrix(Delta.resampling, ncol = length(endpoint),
+                                                 dimnames = list(NULL, endpoint))
+                  }
+                  if(attr(method.inference,"studentized")){
+                      Delta.se.resampling <- sqrt(object@covarianceResampling[,,statistic])
+                      if(!is.matrix(Delta.se.resampling)){
+                          Delta.se.resampling <- matrix(Delta.se.resampling, ncol = length(endpoint),
+                                                        dimnames = list(NULL, endpoint))
+                      }
+                  }else{
+                      Delta.se.resampling <- NULL
+                  }
+              }else{
+                  Delta.resampling <- NULL
+                  Delta.se.resampling <- NULL
+              }
+
+              
+              if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
                   Delta.se <- sqrt(object@covariance[,statistic])
               }else{
                   Delta.se <- NULL
-              }
-              if(sum(dim(object@covarianceResampling))>0){
-                  Delta.se.resampling <- sqrt(object@covarianceResampling[,,statistic])
-              }else{
-                  Delta.se.resampling <- NULL
-              }
+              }              
               alpha <- 1-conf.level
 
               ## safety
@@ -242,7 +258,8 @@ setMethod(f = "confint",
               null <- switch(statistic,
                              "netBenefit" = 0,
                              "winRatio" = 1,
-                             "mannWhitney" = 1/2)
+                             "favorable" = 1/2,
+                             "unfavorable" = 1/2)
 
               ## ** method
               if(method.inference == "none"){
@@ -272,13 +289,17 @@ setMethod(f = "confint",
               ## ** transformation
               if(transformation){
                   trans.delta <- switch(statistic,
-                                        "netBenefit" = atanh,
-                                        "winRatio" = log,
-                                        "mannWhitney" = function(x){atanh(2*(x-1/2))})
+                                        "netBenefit" = function(x){if(is.null(x)){x}else{atanh(x)}},
+                                        "winRatio" = function(x){if(is.null(x)){x}else{log(x)}},
+                                        "favorable" = function(x){if(is.null(x)){x}else{atanh(2*(x-1/2))}},
+                                        "unfavorable" = function(x){if(is.null(x)){x}else{atanh(2*(x-1/2))}}
+                                        )
                   itrans.delta <- switch(statistic,                                         
-                                         "netBenefit" = tanh,
-                                         "winRatio" = exp,
-                                         "mannWhitney" = function(x){tanh(x)/2+1/2})                  
+                                         "netBenefit" = function(x){if(is.null(x)){x}else{tanh(x)}}, 
+                                         "winRatio" = function(x){if(is.null(x)){x}else{exp(x)}},
+                                         "favorable" = function(x){if(is.null(x)){x}else{tanh(x)/2+1/2}},
+                                         "unfavorable" = function(x){if(is.null(x)){x}else{tanh(x)/2+1/2}}
+                                         )                  
                   trans.se.delta <- switch(statistic,
                                            "netBenefit" = function(x,se){
                                                if(is.null(se)){
@@ -302,7 +323,18 @@ setMethod(f = "confint",
                                                }
                                                return(out)
                                            },
-                                           "mannWhitney" = function(x,se){
+                                           "favorable" = function(x,se){
+                                               if(is.null(se)){
+                                                   out <- se
+                                               }else{
+                                                   out <- 2*se/(1-(2*(x-1/2))^2)
+                                                   if(any(na.omit(se)==0)){
+                                                       out[se==0] <- 0
+                                                   }
+                                               }
+                                               return(out)
+                                           },
+                                           "unfavorable" = function(x,se){
                                                if(is.null(se)){
                                                    out <- se
                                                }else{
@@ -336,7 +368,18 @@ setMethod(f = "confint",
                                                 }
                                                 return(out)
                                             },
-                                            "mannWhitney" = function(x,se){
+                                            "favorable" = function(x,se){
+                                                if(is.null(se)){
+                                                    out <- se
+                                                }else{
+                                                    out <- (se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
+                                                    if(any(na.omit(se)==0)){
+                                                        out[se==0] <- 0
+                                                    }
+                                                }
+                                                return(out)
+                                            },
+                                            "unfavorable" = function(x,se){
                                                 if(is.null(se)){
                                                     out <- se
                                                 }else{

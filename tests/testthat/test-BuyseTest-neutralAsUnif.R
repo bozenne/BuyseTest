@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: nov  6 2019 (14:14) 
+## last-updated: apr  2 2020 (16:57) 
 ##           By: Brice Ozenne
-##     Update #: 54
+##     Update #: 58
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -53,10 +53,10 @@ test_that("continue after NA (no NA)", {
                          data = dt.data,
                          neutral.as.uninf = TRUE)
     
-    expect_equal(as.double(BT.TRUE@count.favorable),c(0,0))
-    expect_equal(as.double(BT.TRUE@count.unfavorable),c(0,4))
-    expect_equal(as.double(BT.TRUE@count.neutral),c(4,0))
-    expect_equal(as.double(BT.TRUE@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT.TRUE, statistic = "count.favorable", cumulative = FALSE)),c(0,0))
+    expect_equal(as.double(coef(BT.TRUE, statistic = "count.unfavorable", cumulative = FALSE)),c(0,4))
+    expect_equal(as.double(coef(BT.TRUE, statistic = "count.neutral", cumulative = FALSE)),c(4,0))
+    expect_equal(as.double(coef(BT.TRUE, statistic = "count.uninf", cumulative = FALSE)),c(0,0))
     
 })
 
@@ -65,10 +65,10 @@ test_that("continue after NA (NA)", {
                             data = dt.dataNA, scoring.rule = "Peron",
                             neutral.as.uninf = TRUE)
     ## summary(BT.TRUE_NA, percentage = FALSE)
-    expect_equal(as.double(BT.TRUE_NA@count.favorable),c(0,0))
-    expect_equal(as.double(BT.TRUE_NA@count.unfavorable),c(0,4))
-    expect_equal(as.double(BT.TRUE_NA@count.neutral),c(2,0))
-    expect_equal(as.double(BT.TRUE_NA@count.uninf),c(2,0))
+    expect_equal(as.double(coef(BT.TRUE_NA, statistic = "count.favorable", cumulative = FALSE)),c(0,0))
+    expect_equal(as.double(coef(BT.TRUE_NA, statistic = "count.unfavorable", cumulative = FALSE)),c(0,4))
+    expect_equal(as.double(coef(BT.TRUE_NA, statistic = "count.neutral", cumulative = FALSE)),c(2,0))
+    expect_equal(as.double(coef(BT.TRUE_NA, statistic = "count.uninf", cumulative = FALSE)),c(2,0))
     
 })
 
@@ -79,10 +79,10 @@ test_that("stop after NA (no NA)", {
                           data = dt.data,
                           neutral.as.uninf = FALSE)
     
-    expect_equal(as.double(BT.FALSE@count.favorable),c(0,0))
-    expect_equal(as.double(BT.FALSE@count.unfavorable),c(0,0))
-    expect_equal(as.double(BT.FALSE@count.neutral),c(4,0))
-    expect_equal(as.double(BT.FALSE@count.uninf),c(0,0))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.favorable", cumulative = FALSE)),c(0,0))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.unfavorable", cumulative = FALSE)),c(0,0))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.neutral", cumulative = FALSE)),c(4,0))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.uninf", cumulative = FALSE)),c(0,0))
     
 })
 
@@ -91,10 +91,10 @@ test_that("stop after NA (NA)", {
                           data = dt.dataNA,
                           neutral.as.uninf = FALSE)
     
-    expect_equal(as.double(BT.FALSE@count.favorable),c(0,0))
-    expect_equal(as.double(BT.FALSE@count.unfavorable),c(0,2))
-    expect_equal(as.double(BT.FALSE@count.neutral),c(2,0))
-    expect_equal(as.double(BT.FALSE@count.uninf),c(2,0))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.favorable", cumulative = FALSE)),c(0,0))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.unfavorable", cumulative = FALSE)),c(0,2))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.neutral", cumulative = FALSE)),c(2,0))
+    expect_equal(as.double(coef(BT.FALSE, statistic = "count.uninf", cumulative = FALSE)),c(2,0))
     
 })
 

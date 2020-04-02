@@ -57,12 +57,13 @@ setMethod(f = "summary",
                                   switch,
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
-                                  "mannwhitney" = "mannWhitney",
+                                  "favorable" = "favorable",
+                                  "unfavorable" = "unfavorable",
                                   statistic)
 
               validCharacter(statistic,
                              name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio","mannWhitney"),
+                             valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
                              valid.length = 1:2,
                              method = "summary[BuyseSim]")
               
@@ -146,21 +147,36 @@ setMethod(f = "summary",
                       cat("\n")
                   }
                   
-                  if("mannWhitney" %in% statistic){
-                      cat(" > statistic   : Mann-Whitney parameter (null hypothesis Delta=",null["mannWhitney"],")\n", sep = "")
-                      printMannWhitney <- as.data.frame(outW$mannWhitney, stringsAsFactors = FALSE)
-                      printMannWhitney <- round(printMannWhitney, digits = digit)
-                      if(length(outW$mannWhitney$order)>1){ ## remove duplicated values due to order = 1:2
-                          printMannWhitney[printMannWhitney$order==2, rm.duplicate] <- ""
+                  if("favorable" %in% statistic){
+                      cat(" > statistic   : proportion in favor of treatment (null hypothesis Delta=",null["favorable"],")\n", sep = "")
+                      printFavorable <- as.data.frame(outW$favorable, stringsAsFactors = FALSE)
+                      printFavorable <- round(printFavorable, digits = digit)
+                      if(length(outW$favorable$order)>1){ ## remove duplicated values due to order = 1:2
+                          printFavorable[printFavorable$order==2, rm.duplicate] <- ""
                       }
                       if(col.rep == FALSE){
-                          printMannWhitney$rep.estimate <- NULL
-                          printMannWhitney$rep.se <- NULL
+                          printFavorable$rep.estimate <- NULL
+                          printFavorable$rep.se <- NULL
                       }
-                      print(printMannWhitney, row.names = FALSE)
+                      print(printFavorable, row.names = FALSE)
                       cat("\n")
                   }
 
+                  if("unfavorable" %in% statistic){
+                      cat(" > statistic   : proportion in favor of control (null hypothesis Delta=",null["unfavorable"],")\n", sep = "")
+                      printUnfavorable <- as.data.frame(outW$unfavorable, stringsAsFactors = FALSE)
+                      printUnfavorable <- round(printUnfavorable, digits = digit)
+                      if(length(outW$unfavorable$order)>1){ ## remove duplicated values due to order = 1:2
+                          printUnfavorable[printUnfavorable$order==2, rm.duplicate] <- ""
+                      }
+                      if(col.rep == FALSE){
+                          printUnfavorable$rep.estimate <- NULL
+                          printUnfavorable$rep.se <- NULL
+                      }
+                      print(printUnfavorable, row.names = FALSE)
+                      cat("\n")
+                  }
+                  
                   if(legend){
                       M <- rbind(c(" n.T",":","number of observations in the treatment group"),
                                  c(" n.C",":","number of observations in the control group"),

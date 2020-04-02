@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: mar 26 2020 (15:05) 
+## Last-Updated: apr  2 2020 (15:39) 
 ##           By: Brice Ozenne
-##     Update #: 132
+##     Update #: 136
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -48,7 +48,7 @@ test_that("iid: binary and no strata (balanced groups)", {
                        method.inference = "u-statistic-bebu")
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16, 1/4, 4, 1/16) )
+    expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16, 1/4, 4) )
 
     expect_equal(iid(e.BT)[,"favorable"], c(-1/8,1/8,1/8,-1/8))
     expect_equal(iid(e.BT)[,"unfavorable"], c(1/8,-1/8,-1/8,1/8))
@@ -67,7 +67,7 @@ test_that("iid: binary and no strata (balanced groups)", {
 
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance) 
-    expect_equal(as.double(e.BT@covariance), c(5/64, 5/64, -3/64, 1/4, 4, 5/64) )
+    expect_equal(as.double(e.BT@covariance), c(5/64, 5/64, -3/64, 1/4, 4) )
 })
 
 ## unequal number in each group
@@ -84,7 +84,7 @@ test_that("iid: binary and no strata (unbalanced groups)", {
                        method.inference = "u-statistic-bebu"))
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0, 0) )
+    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0) )
 
     expect_equal(iid(e.BT)[,"favorable"], c(0,0,0,0))
     expect_equal(iid(e.BT)[,"unfavorable"], c(0,-1/9,-1/9,2/9))
@@ -103,7 +103,7 @@ test_that("iid: binary and no strata (unbalanced groups)", {
     
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance) 
-    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0, 0) )
+    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0) )
 })
 
 
@@ -123,7 +123,7 @@ test_that("iid: binary with strata (balanced groups)", {
                        method.inference = "u-statistic-bebu")
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(1/16, 1/16, -1/16, 1/4, 4, 1/16)/3 )
+    expect_equal(as.double(e.BT@covariance), c(1/16, 1/16, -1/16, 1/4, 4)/3 )
 
     expect_equal(iid(e.BT)[,"favorable"], rep(c(-1/8,1/8,1/8,-1/8),3)/3)
     expect_equal(iid(e.BT)[,"unfavorable"], rep(c(1/8,-1/8,-1/8,1/8),3)/3)
@@ -143,7 +143,7 @@ test_that("iid: binary with strata (balanced groups)", {
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance)
     
-    expect_equal(as.double(e.BT@covariance), c(5/64, 5/64, -3/64, 1/4, 4, 5/64)/3 )
+    expect_equal(as.double(e.BT@covariance), c(5/64, 5/64, -3/64, 1/4, 4)/3 )
 })
 
 d2.bis <- rbind(cbind(d.bis, strata = 1),
@@ -161,7 +161,7 @@ test_that("iid: binary and no strata (unbalanced groups)", {
                        method.inference = "u-statistic-bebu")
     
     expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0, 0)/3 )
+    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0)/3 )
 
     expect_equal(iid(e.BT)[,"favorable"], rep(c(0,0,0,0),3)/3)
     expect_equal(iid(e.BT)[,"unfavorable"], rep(c(0,-1/9,-1/9,2/9),3)/3)
@@ -181,7 +181,7 @@ test_that("iid: binary and no strata (unbalanced groups)", {
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance)
     
-    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0, 0)/3 )
+    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0)/3 )
 })
 
 ## ** 1 continuous variable
@@ -326,11 +326,11 @@ test_that("iid: two endpoints (no strata - first order)", {
                        data = d, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu")
 
-    GS <- matrix(c(0.00249999, 0.00304956, 0.00249999, 0.00320223, -0.00249201, -0.00292598, 0.009984, 0.01210375, 0.16025641, 0.07778735, 0.00249999, 0.00304956), 
-                  nrow = 2, 
-                  ncol = 6, 
-                  dimnames = list(c("toxicity_0.5", "score_1"),c("favorable", "unfavorable", "covariance", "netBenefit", "winRatio", "mannWhitney")) 
-                  ) 
+    GS <- matrix(c(0.00249999, 0.00304956, 0.00249999, 0.00320223, -0.00249201, -0.00292598, 0.009984, 0.01210375, 0.16025641, 0.07778735), 
+                 nrow = 2, 
+                 ncol = 5, 
+                 dimnames = list(c("toxicity_0.5", "score_1"),c("favorable", "unfavorable", "covariance", "netBenefit", "winRatio")) 
+                 ) 
     expect_equal(e.BT@covariance, GS)
     expect_equal(e.BT@covariance, e2.BT@covariance)
 
@@ -343,9 +343,9 @@ test_that("iid: two endpoints (no strata - first order)", {
                        method.inference = "u-statistic-bebu")
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["score_2",]),
-                 c(0.00036192, 0.000613760, -0.000166400, 0.00130848, 0.13086775, 0.00036192), tol = 1e-6 )
+                 c(0.00036192, 0.000613760, -0.000166400, 0.00130848, 0.13086775), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["score_1",]),
-                 c(0.00190759, 0.002360218, -0.001708275, 0.007684358, 0.088893573, 0.00190759), tol = 1e-6 )
+                 c(0.00190759, 0.002360218, -0.001708275, 0.007684358, 0.088893573), tol = 1e-6 )
 
     ## same endpoint tte
     e.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, status = status) + tte(eventtime, threshold = 0, status = status),
@@ -356,9 +356,9 @@ test_that("iid: two endpoints (no strata - first order)", {
                                         method.inference = "u-statistic-bebu")
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["eventtime_1",]),
-                 c(0.0001065024, 0.0001116864, -0.0000153344, 0.0002488576, 0.4454834743, 0.0001065024), tol = 1e-6 )
+                 c(0.0001065024, 0.0001116864, -0.0000153344, 0.0002488576, 0.4454834743), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["eventtime_1e-12",]),
-                 c(0.00194112, 0.00143968, -0.00028544, 0.00395168, 0.38625867, 0.00194112), tol = 1e-6 )
+                 c(0.00194112, 0.00143968, -0.00028544, 0.00395168, 0.38625867), tol = 1e-6 )
 
     ## cluster argument
     expect_equal(unname(iid(e.BT, cluster = 1:NROW(d))), unname(iid(e.BT)), tol = 1e-6)
@@ -384,9 +384,9 @@ test_that("iid: two endpoints (no strata - second order)", {
     expect_equal(e.BT@covariance, e1.BT@covariance)
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance["toxicity_0.5",]),
-                 c(0.002524914, 0.002524914, -0.002467086, 0.009984000, 0.160256410, 0.002524914), tol = 1e-6 )
+                 c(0.002524914, 0.002524914, -0.002467086, 0.009984000, 0.160256410), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["score_1",]),
-                 c(0.003079997, 0.003232467, -0.002921262, 0.012154988, 0.078117626, 0.003079997), tol = 1e-6 )
+                 c(0.003079997, 0.003232467, -0.002921262, 0.012154988, 0.078117626), tol = 1e-6 )
 
     ## same endpoint
     e.BT <- BuyseTest(treatment ~  cont(score, threshold = 2) + cont(score, threshold = 1),
@@ -405,9 +405,9 @@ test_that("iid: two endpoints (no strata - second order)", {
     expect_equal(e1.BT@tablePairScore[[1]][index.pair %in% remaining.pairs,.(index.C,index.T)],
                  e1.BT@tablePairScore[[2]][,.(index.C,index.T)])
     expect_equal(as.double(e.BT@covariance["score_2",]),
-                 c(0.000374400, 0.0006309248, -0.000164736, 0.001334797, 0.13361289, 0.000374400), tol = 1e-6 )
+                 c(0.000374400, 0.0006309248, -0.000164736, 0.001334797, 0.13361289), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["score_1",]),
-                 c(0.001935052, 0.002390279, -0.001695749, 0.007716830, 0.089279985, 0.001935052), tol = 1e-6 )
+                 c(0.001935052, 0.002390279, -0.001695749, 0.007716830, 0.089279985), tol = 1e-6 )
 
     ## same endpoint tte
     e.BT <- BuyseTest(treatment ~  tte(eventtime, threshold = 1, status = status) + tte(eventtime, threshold = 0, status = status),
@@ -426,9 +426,9 @@ test_that("iid: two endpoints (no strata - second order)", {
     expect_equal(e1.BT@tablePairScore[[1]][index.pair %in% remaining.pairs,.(index.C,index.T)],
                  e1.BT@tablePairScore[[2]][,.(index.C,index.T)])
     expect_equal(as.double(e.BT@covariance["eventtime_1",]),
-                 c(1.126726e-04, 1.183647e-04, -1.522106e-05,  2.614794e-04, 4.680545e-01, 1.126726e-04), tol = 1e-6 )
+                 c(1.126726e-04, 1.183647e-04, -1.522106e-05,  2.614794e-04, 4.680545e-01), tol = 1e-6 )
     expect_equal(as.double(e.BT@covariance["eventtime_1e-12",]),
-                 c(0.0019582080,  0.0014531264, -0.0002877952,  0.0039869248,  0.3897334933, 0.0019582080), tol = 1e-6 )
+                 c(0.0019582080,  0.0014531264, -0.0002877952,  0.0039869248,  0.3897334933), tol = 1e-6 )
 })
 
 ## *** strata
@@ -457,7 +457,7 @@ test_that("iid: two endpoints (strata)", {
     expect_equal(as.double(e0.BT@covariance), as.double(e.BT@covariance[2,]))
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e0.BT@covariance),
-                 c(0.0009537952, 0.001180109, -0.0008541376, 0.0038421792, 0.0444467864, 0.0009537952), tol = 1e-6 )
+                 c(0.0009537952, 0.001180109, -0.0008541376, 0.0038421792, 0.0444467864), tol = 1e-6 )
 
     ## cluster argument
     expect_equal(unname(iid(e.BT, cluster = 1:NROW(d2))), unname(iid(e.BT)), tol = 1e-6)
@@ -475,14 +475,14 @@ test_that("iid: two endpoints (strata)", {
                        data = d2, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu") ## neglect some terms
 
-                       ## expect_equal(e.BT@covariance, e1.BT@covariance, tol = 1e-4) ## imperfect match
-                       expect_equal(e.BT@covariance, e2.BT@covariance)
-                       remaining.pairs <- e1.BT@tablePairScore[[2]]$index.pair
+    ## expect_equal(e.BT@covariance, e1.BT@covariance, tol = 1e-4) ## imperfect match
+    expect_equal(e.BT@covariance, e2.BT@covariance)
+    remaining.pairs <- e1.BT@tablePairScore[[2]]$index.pair
 
-                       expect_equal(e1.BT@tablePairScore[[1]][index.pair %in% remaining.pairs,.(index.C,index.T)],
-                                    e1.BT@tablePairScore[[2]][,.(index.C,index.T)])
-                       expect_equal(as.double(e1.BT@covariance["score2_1",]),
-                                    c(0.0009675260, 0.0011951397, -0.0008478746, 0.0038584150, 0.0446399926, 0.0009675260), tol = 1e-6 )
+    expect_equal(e1.BT@tablePairScore[[1]][index.pair %in% remaining.pairs,.(index.C,index.T)],
+                 e1.BT@tablePairScore[[2]][,.(index.C,index.T)])
+    expect_equal(as.double(e1.BT@covariance["score2_1",]),
+                 c(0.0009675260, 0.0011951397, -0.0008478746, 0.0038584150, 0.0446399926), tol = 1e-6 )
 
 
 })

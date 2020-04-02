@@ -414,13 +414,9 @@ BuyseTest <- function(formula,
         do.call(printInference, args = outArgs)
     }
 
-    outResampling <- list(deltaResampling.netBenefit = array(dim=c(0,0,0)),
-                          deltaResampling.winRatio = array(dim=c(0,0,0)),
-                          deltaResampling.mannWhitney = array(dim=c(0,0,0)),
-                          DeltaResampling.netBenefit = matrix(NA, nrow = 0, ncol = 0),
-                          DeltaResampling.winRatio = matrix(NA, nrow = 0, ncol = 0),
-                          DeltaResampling.mannWhitney = matrix(NA, nrow = 0, ncol = 0),
-                          covariance = array(NA, dim = c(0,0,0)),
+    outResampling <- list(deltaResampling = array(NA, dim=c(0,0,0,0)),
+                          DeltaResampling = array(NA, dim=c(0,0,0)),
+                          covariance = array(NA, dim=c(0,0,0)),
                           n.resampling = as.double(NA))
 
     if(outArgs$method.inference == "none"){
@@ -484,12 +480,8 @@ BuyseTest <- function(formula,
         count.neutral = outPoint$count_neutral,    
         count.uninf = outPoint$count_uninf,
         n.pairs = outPoint$n_pairs,
-        delta.netBenefit = outPoint$delta_netBenefit,
-        delta.winRatio = outPoint$delta_winRatio,
-        delta.mannWhitney = outPoint$delta_mannWhitney,
-        Delta.netBenefit = outPoint$Delta_netBenefit,
-        Delta.winRatio = outPoint$Delta_winRatio,
-        Delta.mannWhitney = outPoint$Delta_mannWhitney,
+        delta = outPoint$delta,
+        Delta = outPoint$Delta,
         type = type,
         endpoint = outArgs$endpoint,
         level.treatment = outArgs$level.treatment,
@@ -502,12 +494,8 @@ BuyseTest <- function(formula,
         level.strata = outArgs$level.strata,
         threshold = outArgs$threshold,
         n.resampling = outArgs$n.resampling,
-        deltaResampling.netBenefit = outResampling$deltaResampling.netBenefit,
-        deltaResampling.winRatio = outResampling$deltaResampling.winRatio,
-        deltaResampling.mannWhitney = outResampling$deltaResampling.mannWhitney,
-        DeltaResampling.netBenefit = outResampling$DeltaResampling.netBenefit,
-        DeltaResampling.winRatio = outResampling$DeltaResampling.winRatio,
-        DeltaResampling.mannWhitney = outResampling$DeltaResampling.mannWhitney,
+        deltaResampling = outResampling$deltaResampling,
+        DeltaResampling = outResampling$DeltaResampling,
         covarianceResampling = outResampling$covariance,
         covariance = outPoint$Mvar,
         weight = outArgs$weight,
@@ -599,6 +587,7 @@ BuyseTest <- function(formula,
                                  debug = envir$outArgs$debug
                                  ))
 
+    
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
@@ -606,12 +595,8 @@ BuyseTest <- function(formula,
         }
         return(resBT)
     }else{
-        return(list(delta_netBenefit = resBT$delta_netBenefit,
-                    Delta_netBenefit = resBT$Delta_netBenefit,
-                    delta_winRatio = resBT$delta_winRatio,
-                    Delta_winRatio = resBT$Delta_winRatio,
-                    delta_mannWhitney = resBT$delta_mannWhitney,
-                    Delta_mannWhitney = resBT$Delta_mannWhitney,
+        return(list(delta = resBT$delta,
+                    Delta = resBT$Delta,
                     Mvar = resBT$Mvar))
     }
 }
