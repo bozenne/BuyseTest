@@ -476,8 +476,8 @@ setMethod(f = "summary",
                   }
                   if(n.endpoint>1 && any(object@count.neutral>0)){
                       txt.neutral <- switch(as.character(object@neutral.as.uninf),
-                                            "FALSE" = "re-analyzed using lower priority endpoints",
-                                            "TRUE" = "ignored at lower priority endpoints")
+                                            "TRUE" = "re-analyzed using lower priority endpoints",
+                                            "FALSE" = "ignored at lower priority endpoints")
                       cat(" > neutral pairs   : ",txt.neutral,"\n", sep = "")
                   }
                   if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){

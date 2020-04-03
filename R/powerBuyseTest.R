@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: apr  2 2020 (16:44) 
+## Last-Updated: apr  3 2020 (16:40) 
 ##           By: Brice Ozenne
-##     Update #: 576
+##     Update #: 577
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,7 +29,11 @@
 #' @param sample.sizeC [integer vector, >0] the various sample sizes in the control group.
 #' @param sample.sizeT [integer vector, >0] the various sample sizes in the treatment group.
 #' @param n.rep [integer, >0] the number of simulations.
-#' @param null [numeric vector] the null hypothesis to be tested for the net benefit (first element) and the win ratio (second element).
+#' @param null [numeric vector] the null hypothesis to be tested
+#' for the net benefit (first element),
+#' the win ratio (second element),
+#' the proportion in favor of treatment (thrid element),
+#' and the proportion in favor of control (fourth element).
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
 #' Default value read from \code{BuyseTest.options()}.

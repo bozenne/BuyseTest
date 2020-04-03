@@ -23,7 +23,11 @@ Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} a
 
 \item{n.rep}{[integer, >0] the number of simulations.}
 
-\item{null}{[numeric vector] the null hypothesis to be tested for the net benefit (first element) and the win ratio (second element).}
+\item{null}{[numeric vector] the null hypothesis to be tested
+for the net benefit (first element),
+the win ratio (second element),
+the proportion in favor of treatment (thrid element),
+and the proportion in favor of control (fourth element).}
 
 \item{cpus}{[integer, >0] the number of CPU to use.
 Only the permutation test can use parallel computation.
