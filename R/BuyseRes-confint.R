@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  2 2020 (16:33) 
+## Last-Updated: apr  3 2020 (11:41) 
 ##           By: Brice Ozenne
-##     Update #: 720
+##     Update #: 725
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,6 +31,7 @@
 #' \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
 #' \code{"unfavorable"} displays the proportion in favor of the control.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param null [numeric] right hand side of the null hypothesis (used for the computation of the p-value).
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
@@ -98,6 +99,7 @@ setMethod(f = "confint",
           signature = "BuyseRes",
           definition = function(object,
                                 statistic = NULL,
+                                null = NULL,
                                 conf.level = NULL,
                                 alternative = NULL,
                                 method.ci.resampling = NULL,
@@ -255,12 +257,18 @@ setMethod(f = "confint",
               }
               
               ## ** null hypothesis
-              null <- switch(statistic,
-                             "netBenefit" = 0,
-                             "winRatio" = 1,
-                             "favorable" = 1/2,
-                             "unfavorable" = 1/2)
-
+              if(is.null(null)){
+                  null <- switch(statistic,
+                                 "netBenefit" = 0,
+                                 "winRatio" = 1,
+                                 "favorable" = 1/2,
+                                 "unfavorable" = 1/2)
+              }else{
+                  validNumeric(null, valid.length = 1,
+                               min = if("statistic"=="netBenefit"){-1}else{0},
+                               max = if("statistic"=="winRatio"){Inf}else{1})
+              }
+              
               ## ** method
               if(method.inference == "none"){
                   method.confint <- confint_none

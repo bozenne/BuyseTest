@@ -6,7 +6,7 @@
 \alias{confint,BuyseRes-method}
 \title{Confidence Intervals for Model Parameters}
 \usage{
-\S4method{confint}{BuyseRes}(object, statistic = NULL,
+\S4method{confint}{BuyseRes}(object, statistic = NULL, null = NULL,
   conf.level = NULL, alternative = NULL, method.ci.resampling = NULL,
   order.Hprojection = NULL, transformation = NULL, cluster = NULL)
 }
@@ -19,6 +19,8 @@
 \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
 \code{"unfavorable"} displays the proportion in favor of the control.
 Default value read from \code{BuyseTest.options()}.}
+
+\item{null}{[numeric] right hand side of the null hypothesis (used for the computation of the p-value).}
 
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
