@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr  2 2020 (16:47) 
+## Last-Updated: apr  3 2020 (14:01) 
 ##           By: Brice Ozenne
-##     Update #: 157
+##     Update #: 160
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -262,9 +262,15 @@ test_that("same p.value (permutation test) for winRatio and net Benefit", {
     netBenefit.perm <- confint(e.perm, statistic = "netBenefit")
     winRatio.perm <- confint(e.perm, statistic = "winRatio")
 
-    manual <- c(netBenefit = mean(abs(e.perm@DeltaResampling[,1,"netBenefit"]) >= abs(coef(e.perm, statistic = "netBenefit"))),
-                winRatio = mean(abs(e.perm@DeltaResampling[,1,"winRatio"]-1) >= abs(coef(e.perm, statistic  = "winRatio")-1)),
-                winRatio.log = mean(abs(log(e.perm@DeltaResampling[,1,"winRatio"])) >= abs(log(coef(e.perm, statistic = "winRatio"))))
+    Delta.netBenefit <- coef(e.perm, statistic = "netBenefit")
+    Delta.winRatio <- coef(e.perm, statistic = "winRatio")
+    DeltaResampling.netBenefit <- e.perm@DeltaResampling[,1,"netBenefit"]
+    DeltaResampling.winRatio <- e.perm@DeltaResampling[,1,"winRatio"]
+    
+    manual <- c(netBenefit = mean(abs(DeltaResampling.netBenefit) >= abs(Delta.netBenefit)),
+                netBenefit.atanh = mean(abs(atanh(DeltaResampling.netBenefit)) >= abs(atanh(Delta.netBenefit))),
+                winRatio = mean(abs(DeltaResampling.winRatio-1) >= abs(Delta.winRatio-1)),
+                winRatio.log = mean(abs(log(DeltaResampling.winRatio)) >= abs(log(Delta.winRatio)))
                 )
 
     expect_equal(netBenefit.perm[,"p.value"], winRatio.perm[,"p.value"])

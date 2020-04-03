@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  3 2020 (11:41) 
+## Last-Updated: apr  3 2020 (13:59) 
 ##           By: Brice Ozenne
-##     Update #: 725
+##     Update #: 734
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -273,22 +273,18 @@ setMethod(f = "confint",
               if(method.inference == "none"){
                   method.confint <- confint_none
                   transformation <- FALSE
-                  center <- NA ## only for confint_student
               }else if(attr(method.inference,"ustatistic")){
                   method.confint <- confint_Ustatistic
-                  center <- NA ## only for confint_student
               }else if(attr(method.inference,"permutation")){
                   method.confint <- switch(method.ci.resampling,
                                            "percentile" = confint_percentilePermutation,
                                            "gaussian" = confint_gaussian,
                                            "studentized" = confint_studentPermutation)
-                  center <- FALSE ## only for confint_student
               }else if(attr(method.inference,"bootstrap")){
                   method.confint <- switch(method.ci.resampling,
                                            "percentile" = confint_percentileBootstrap,
                                            "gaussian" = confint_gaussian,
                                            "studentized" = confint_studentBootstrap)
-                  center <- TRUE ## only for confint_student
                   if(method.ci.resampling=="percentile"){
                       transformation <- FALSE
                   }
@@ -414,7 +410,6 @@ setMethod(f = "confint",
                                                 alternative = alternative,
                                                 null = trans.delta(null),
                                                 alpha = alpha,
-                                                center = center,
                                                 endpoint = endpoint,
                                                 backtransform.delta = itrans.delta,
                                                 backtransform.se = itrans.se.delta))
@@ -445,17 +440,17 @@ setMethod(f = "confint",
 ## * confint_percentilePermutation (called by confint)
 confint_percentilePermutation <- function(Delta, Delta.resampling,
                                           null, alternative, alpha,
-                                          endpoint, ...){
+                                          endpoint, backtransform.delta, ...){
 
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
                        dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
     
     ## ** point estimate
-    outTable[,"estimate"] <- Delta
+    outTable[,"estimate"] <- backtransform.delta(Delta)
 
     ## ** standard error
-    outTable[,"se"] <- apply(Delta.resampling, MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
+    outTable[,"se"] <- apply(backtransform.delta(Delta.resampling), MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
 
     ## ** confidence interval
     Delta.resamplingH0 <- apply(Delta.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)
