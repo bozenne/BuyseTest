@@ -191,7 +191,7 @@ setMethod(f = "select",
             }
             n.field <- length(name.field)
             
-            ls.slots <- setNames(vector(mode = "list", length = n.field), name.field)
+            ls.slots <- stats::setNames(vector(mode = "list", length = n.field), name.field)
             for (iField in 1:n.field) {
               ls.slots[[iField]] <- slot(object, name.field[iField])
             }

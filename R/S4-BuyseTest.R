@@ -144,7 +144,7 @@ methods::setMethod(
                  ## ** tableSurvival
 
                  ## ** type
-                 type <- setNames(c("Binary","Continuous","TimeToEvent")[type], name.endpoint)
+                 type <- stats::setNames(c("Binary","Continuous","TimeToEvent")[type], name.endpoint)
 
                  ## ** endpoint
                  names(endpoint) <- name.endpoint
@@ -158,7 +158,7 @@ methods::setMethod(
 
                  ## ** scoring.rule
                  scoring.rule <- c("Gehan","Peron")[scoring.rule+1]
-                 attr(scoring.rule,"method.score") <- setNames(method.score, name.endpoint)
+                 attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
 
                  ## ** hierarchical
                  

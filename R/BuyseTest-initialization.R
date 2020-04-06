@@ -333,7 +333,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
 
     ## ** operator
-    operator.endpoint <- setNames(operator, endpoint)[!duplicated(endpoint)]
+    operator.endpoint <- stats::setNames(operator, endpoint)[!duplicated(endpoint)]
     name.negative <- names(operator.endpoint)[operator.endpoint=="<0"]
     if(length(name.negative)>0){
         name.negative.binary <- intersect(name.negative, endpoint[type==1])
@@ -357,7 +357,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         level.strata <- levels(data[["..strata.."]])        
         data[ , c("..strata..") := as.numeric(.SD[["..strata.."]])] # convert to numeric
         
-        n.obsStrata <- data[,.N, by = "..strata.."][,setNames(.SD[[1]],.SD[[2]]),.SD = c("N","..strata..")]
+        n.obsStrata <- data[,.N, by = "..strata.."][,stats::setNames(.SD[[1]],.SD[[2]]),.SD = c("N","..strata..")]
     }else{
         
         data[ , c("..strata..") := 1]
@@ -369,7 +369,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 
     ## ** convert treatment to binary indicator
     level.treatment <- levels(as.factor(data[[treatment]]))
-    trt2bin <- setNames(0:1,level.treatment)
+    trt2bin <- stats::setNames(0:1,level.treatment)
     data[ , c(treatment) := trt2bin[as.character(.SD[[1]])], .SDcols = treatment]
 
     ## ** rowIndex

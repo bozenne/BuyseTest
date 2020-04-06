@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: nov 14 2019 (14:45) 
+## Last-Updated: apr  6 2020 (20:08) 
 ##           By: Brice Ozenne
-##     Update #: 258
+##     Update #: 259
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -111,7 +111,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 
     return(list(par = solution,
                 value = value,
-                ## grid = setNames(value.grid,grid),
+                ## grid = stats::setNames(value.grid,grid),
                 counts = iter,
                 cv = (ncv==FALSE),
                 message = NULL))

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  6 2020 (11:06) 
+## Last-Updated: apr  6 2020 (20:08) 
 ##           By: Brice Ozenne
-##     Update #: 739
+##     Update #: 740
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -424,7 +424,7 @@ setMethod(f = "confint",
               if(method.inference != "none" && (attr(method.inference,"permutation") || attr(method.inference,"bootstrap"))){
                   attr(outConfint, "n.resampling")  <- colSums(!is.na(Delta.resampling))
               }else{
-                  attr(outConfint, "n.resampling")  <- setNames(rep(as.numeric(NA), length(endpoint)), endpoint)
+                  attr(outConfint, "n.resampling")  <- stats::setNames(rep(as.numeric(NA), length(endpoint)), endpoint)
               }
               attr(outConfint,"method.ci.resampling") <- method.ci.resampling
 

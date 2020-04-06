@@ -70,9 +70,9 @@ powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
 #### Using user defined simulation function ####
 ## Example of power calculation for Wilcoxon test
 simFCT <- function(n.C, n.T){
-    out <- rbind(data.table(Y=stats::rt(n.C, df = 5), group=0),
-                 data.table(Y=stats::rt(n.T, df = 5), group=1) + 1)
-    return(out)
+    out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
+                 cbind(Y=stats::rt(n.T, df = 5), group=1) + 1)
+    return(data.table::as.data.table(out))
 }
 
 \dontshow{

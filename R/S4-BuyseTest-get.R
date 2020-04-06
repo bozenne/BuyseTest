@@ -342,9 +342,9 @@ setMethod(f = "getPairScore",
                   for(iEndpoint in 1:length(out)){ ## iEndpoint <- 1
                       if(rm.withinStrata){
                           out[[iEndpoint]][,c("indexWithinStrata.T","indexWithinStrata.C") := NULL]
-                          setnames(out[[iEndpoint]], old = old.names[1:2], new = new.names[1:2])
+                          data.table::setnames(out[[iEndpoint]], old = old.names[1:2], new = new.names[1:2])
                       }else{
-                          setnames(out[[iEndpoint]], old = old.names, new = new.names)
+                          data.table::setnames(out[[iEndpoint]], old = old.names, new = new.names)
                       }
                       if(rm.indexPair){
                           out[[iEndpoint]][,c("index.pair") := NULL]

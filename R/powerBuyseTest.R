@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: apr  6 2020 (18:17) 
+## Last-Updated: apr  6 2020 (20:07) 
 ##           By: Brice Ozenne
-##     Update #: 821
+##     Update #: 839
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -67,9 +67,9 @@
 ##' #### Using user defined simulation function ####
 ##' ## Example of power calculation for Wilcoxon test
 ##' simFCT <- function(n.C, n.T){
-##'     out <- rbind(data.table(Y=stats::rt(n.C, df = 5), group=0),
-##'                  data.table(Y=stats::rt(n.T, df = 5), group=1) + 1)
-##'     return(out)
+##'     out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
+##'                  cbind(Y=stats::rt(n.T, df = 5), group=1) + 1)
+##'     return(data.table::as.data.table(out))
 ##' }
 ##'
 ##' \dontshow{
@@ -251,15 +251,10 @@ powerBuyseTest <- function(sim,
                                  )
         if(!is.null(seed)){rm(.Random.seed, envir=.GlobalEnv)} # restaure original seed
     }else { ## *** parallel permutation test
-        n.block <- max(cpus,round(sqrt(n.rep)))
-        rep.perBlock0 <- max(1,floor(n.rep/n.block))
-        rep.perBlock <- c(rep(rep.perBlock0, n.block-1), n.rep - (n.block-1)*rep.perBlock0)
-        cumsum.rep.perBlock <- c(0,cumsum(rep.perBlock))
-
         ## define cluster
         if(trace>0){
             cl <- suppressMessages(parallel::makeCluster(cpus, outfile = ""))
-            pb <- utils::txtProgressBar(max = n.block, style = 3)          
+            pb <- utils::txtProgressBar(max = n.rep, style = 3)          
         }else{
             cl <- parallel::makeCluster(cpus)
         }
@@ -279,11 +274,24 @@ powerBuyseTest <- function(sim,
         parallel::clusterCall(cl, fun = function(x){
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
         })
+
         ## export functions
-        toExport <- c(".BuyseTest",".createSubBT","S4BuyseTest","initializeData","calcSample","calcPeron","pairScore2dt","inferenceUstatistic","confint_Ustatistic", ".iid2cov", "validNumeric")
+        toExport <- c(".BuyseTest",
+                      ".powerBuyseTest",
+                      ".createSubBT",
+                      "wsumPairScore",
+                      "S4BuyseTest",
+                      "initializeData",
+                      "calcSample",
+                      "calcPeron",
+                      "pairScore2dt",
+                      "inferenceUstatistic",
+                      "confint_Ustatistic",
+                      ".iid2cov",
+                      "validNumeric")
 
         ## try sim
-        test <- try(parallel::clusterCall(cl, .packages = "data.table", fun = function(x){
+        test <- try(parallel::clusterCall(cl, fun = function(x){
             sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
         }), silent = TRUE)
         if(inherits(test,"try-error")){
@@ -293,24 +301,16 @@ powerBuyseTest <- function(sim,
         ## run simul
         i <- NULL ## [:forCRANcheck:] foreach
         ls.simulation <- foreach::`%dopar%`(
-                                      foreach::foreach(i=1:n.block,
-                                                       .packages = "data.table",
-                                                       .export = toExport),                                            
-                                      {                                           
+                                      foreach::foreach(i=1:n.rep, .export = toExport), {                                           
                                           if(trace>0){utils::setTxtProgressBar(pb, i)}
-                                          ls.out <- list()
-                                          for(j in 1:rep.perBlock[i]){
-                                              ls.out[[j]] <- .powerBuyseTest(i = j + cumsum.rep.perBlock[i],
-                                                                             envir = envirBT,
-                                                                             statistic = statistic,
-                                                                             null = null,
-                                                                             conf.level = conf.level,
-                                                                             alternative = alternative,
-                                                                             transformation = transformation,
-                                                                             order.Hprojection = order.Hprojection)
-                                          }
-                                          return(do.call(rbind, ls.out))
-                                          
+                                          .powerBuyseTest(i = i,
+                                                          envir = envirBT,
+                                                          statistic = statistic,
+                                                          null = null,
+                                                          conf.level = conf.level,
+                                                          alternative = alternative,
+                                                          transformation = transformation,
+                                                          order.Hprojection = order.Hprojection)
                                       })
 
         parallel::stopCluster(cl)

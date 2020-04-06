@@ -157,8 +157,10 @@ inferenceUstatistic <- function(tablePairScore, order, weight, count.favorable, 
 
             ## extract pairwise scores
             iTable <- ls.table[[iE]][ls.table[[iE]]$strata == level.strata[iStrata]]
-            index2originalOrder.C <- iTable[!duplicated(iTable$index.C),setNames(.SD$index.C,.SD$indexWithinStrata.C)]
-            index2originalOrder.T <- iTable[!duplicated(iTable$index.T),setNames(.SD$index.T,.SD$indexWithinStrata.T)]
+            index2originalOrder.C <- iTable[!duplicated(iTable$index.C),
+                                            stats::setNames(.SD$index.C,.SD$indexWithinStrata.C)]
+            index2originalOrder.T <- iTable[!duplicated(iTable$index.T),
+                                            stats::setNames(.SD$index.T,.SD$indexWithinStrata.T)]
             iN.strata <- NROW(iTable) ## number of pairs
 
             ## *** Hajek projection
@@ -261,8 +263,10 @@ inferenceUstatisticBebu <- function(tablePairScore, order, weight, count.favorab
 
             iTable <- ls.table[[iE]][ls.table[[iE]]$strata == level.strata[iStrata]]
             
-            index2originalOrder.C <- iTable[!duplicated(iTable$index.C),setNames(.SD$index.C,.SD$indexWithinStrata.C)]
-            index2originalOrder.T <- iTable[!duplicated(iTable$index.T),setNames(.SD$index.T,.SD$indexWithinStrata.T)]
+            index2originalOrder.C <- iTable[!duplicated(iTable$index.C),
+                                            stats::setNames(.SD$index.C,.SD$indexWithinStrata.C)]
+            index2originalOrder.T <- iTable[!duplicated(iTable$index.T),
+                                            stats::setNames(.SD$index.T,.SD$indexWithinStrata.T)]
             ## *** Hajek projection
             ## \E[X_i>=Y_j+\tau|X_i] and \E[X_i+\tau<=Y_j|X_i]
             sumPair.T <- iTable[, .(pairs  = .N, favorable = sum(.SD$favorable), unfavorable = sum(.SD$unfavorable)), by = "index.T"]
@@ -416,11 +420,11 @@ wsumPairScore <- function(pairScore, weight, n.endpoint){
     new.col <- c("favorable","unfavorable")
 
     out <- vector(mode = "list", length = n.endpoint)
-    ## indexPair <- setNames(1:NROW(pairScore[[1]]),pairScore[[1]]$index.pair)
+    ## indexPair <- stats::setNames(1:NROW(pairScore[[1]]),pairScore[[1]]$index.pair)
     for(iE in 1:n.endpoint){ ## iE <- 2
 
         iTable <- data.table::copy(pairScore[[iE]][,.SD,.SDcols = keep.col])
-        setnames(iTable, old = old.col, new = new.col)
+        data.table::setnames(iTable, old = old.col, new = new.col)
         iTable[,c("favorable") := .SD$favorable * weight[iE]]
         iTable[,c("unfavorable") := .SD$unfavorable * weight[iE]]
         

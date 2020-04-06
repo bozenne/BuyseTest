@@ -560,7 +560,7 @@ calcSample <- function(envir, method.inference){
         ## identifier for each observation from the control/treatment group (unique even when boostrap)
         ls.posC = vector(mode = "list", length = envir$outArgs$n.strata),
         ls.posT = vector(mode = "list", length = envir$outArgs$n.strata),
-        data = data.table()
+        data = data.table::data.table()
     )
 
     if(method.inference == "none"){

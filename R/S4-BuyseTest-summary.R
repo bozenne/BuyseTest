@@ -197,7 +197,7 @@ setMethod(f = "summary",
               alpha <- 1-conf.level
               qInf <- round(100*alpha/2, digits = digit[2])
               qSup <- round(100*(1-alpha/2), digits = digit[2])
-              name.ci <- paste0("CI [",qInf," ; ",qSup,"]")
+              name.ci <- paste0("CI [",qInf,"% ; ",qSup,"%]")
 
               ## ** update type.display
               ## update the name of the columns according to the request

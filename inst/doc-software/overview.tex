@@ -1,4 +1,4 @@
-% Created 2020-03-23 man 11:38
+% Created 2020-04-06 man 18:43
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -109,8 +109,7 @@ performs the GPC, estimates the net benefit/win ratio, and output a
 \item \texttt{summary} to obtain a nice display of the results
 \item \texttt{coef} to extract the estimates.
 \item \texttt{confint} to extract estimates, confidence intervals, and p.values.
-\item \texttt{iid} to extract the iid decomposition of the estimator.
-\item \texttt{getCount} to extract the number of favorable, unfavorable, neutral, and uninformative pairs.
+\item \texttt{getIid} to extract the iid decomposition of the estimator.
 \item \texttt{getPairScore} to extract the contribution of each pair to the net benefit/win ratio.
 \item \texttt{getSurvival} to extract the estimates of the survival (only relevant for right-censored endpoints).
 \end{itemize}
@@ -164,7 +163,7 @@ utils::packageVersion("BuyseTest")
 \end{lstlisting}
 
 \begin{verbatim}
-[1] ‘1.9.0’
+[1] ‘2.0.0’
 \end{verbatim}
 
 For completness, the details of the R session used to generate this
@@ -193,7 +192,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.12.8 BuyseTest_1.9.0   Rcpp_1.0.3       
+[1] data.table_1.12.8 BuyseTest_2.0.0   Rcpp_1.0.4       
 
 loaded via a namespace (and not attached):
  [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
@@ -204,7 +203,7 @@ loaded via a namespace (and not attached):
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org463aef7}
+\label{sec:orga3a29e9}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -255,7 +254,7 @@ Point estimation and calculation of the iid decomposition
 Estimation of the estimator's distribution 
    - method: moments of the U-statistic
 
-Gather the results in a BuyseRes object
+Gather the results in a S4BuyseTest object
 \end{verbatim}
 
 \clearpage
@@ -286,7 +285,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org1d9592d}
+\label{sec:org8a688fc}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -306,8 +305,8 @@ summary(BT)
 > results
 endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
     time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
-p.value   CI [2.5 ; 97.5]
-0.37161  [-0.2735;0.1045]
+CI [2.5% ; 97.5%] p.value 
+ [-0.2735;0.1045] 0.37161
 \end{verbatim}
 
 \clearpage
@@ -330,10 +329,10 @@ summary(BT, percentage = FALSE)
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > right-censored pairs: probabilistic score based on the survival curves
 > results
-endpoint threshold total favorable unfavorable neutral uninf   delta   Delta p.value 
-    time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877 0.37161 
- CI [2.5 ; 97.5]
-[-0.2735;0.1045]
+endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+    time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
+CI [2.5% ; 97.5%] p.value 
+ [-0.2735;0.1045] 0.37161
 \end{verbatim}
 
 \bigskip
@@ -358,8 +357,8 @@ summary(BT, statistic = "winRatio")
 > results
 endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
     time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
-p.value  CI [2.5 ; 97.5]
-0.37194  [0.5134;1.2832]
+CI [2.5% ; 97.5%] p.value 
+  [0.5134;1.2832] 0.37194
 \end{verbatim}
 
 See \texttt{help(BuyseRes-summary)} for more detailed explanations about the
@@ -368,7 +367,7 @@ See \texttt{help(BuyseRes-summary)} for more detailed explanations about the
 \clearpage
 
 \subsection{Using multiple endpoints}
-\label{sec:org2bb54e7}
+\label{sec:orgcf4128d}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -389,14 +388,14 @@ summary(BT.H)
 > inference       : H-projection of order 1
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > right-censored pairs: probabilistic score based on the survival curves
-> neutral pairs   : ignored at lower priority endpoints
+> neutral pairs   : re-analyzed using lower priority endpoints
 > results
 endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
     time        20   100.00        37.78          46.54      15.68        0 -0.0877 -0.0877
    karno     1e-12    15.68         5.78           7.11       2.78        0 -0.0133 -0.1009
-p.value   CI [2.5 ; 97.5]
-0.37161  [-0.2735;0.1045]
-0.31477  [-0.2901;0.0959]
+CI [2.5% ; 97.5%] p.value 
+ [-0.2735;0.1045] 0.37161 
+ [-0.2901;0.0959] 0.31477
 \end{verbatim}
 
 The hierarchy of the endpoint is defined from left (most important
@@ -418,14 +417,14 @@ summary(BT.nH)
 > inference       : H-projection of order 1
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > right-censored pairs: probabilistic score based on the survival curves
-> neutral pairs   : ignored at lower priority endpoints
+> neutral pairs   : re-analyzed using lower priority endpoints
 > results
 endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
     time        20      1      100        37.78          46.54      15.68        0 -0.0877
    karno     1e-12      1      100        41.82          44.95      13.24        0 -0.0313
-  Delta p.value   CI [2.5 ; 97.5]
--0.0877 0.37161  [-0.2735;0.1045]
--0.1190 0.49821  [-0.4346;0.2226]
+  Delta CI [2.5% ; 97.5%] p.value 
+-0.0877  [-0.2735;0.1045] 0.37161 
+-0.1190  [-0.4346;0.2226] 0.49821
 \end{verbatim}
 
 In that case the score of a pair is the weighted sum of the score
@@ -449,14 +448,14 @@ summary(BT.nHw)
 > inference       : H-projection of order 1
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > right-censored pairs: probabilistic score based on the survival curves
-> neutral pairs   : ignored at lower priority endpoints
+> neutral pairs   : re-analyzed using lower priority endpoints
 > results
 endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
     time        20    0.8      100        37.78          46.54      15.68        0 -0.0877
    karno     1e-12    0.2      100        41.82          44.95      13.24        0 -0.0313
-  Delta p.value   CI [2.5 ; 97.5]
--0.0701 0.37072  [-0.2204;0.0834]
--0.0764 0.40268  [-0.2504;0.1024]
+  Delta CI [2.5% ; 97.5%] p.value 
+-0.0701  [-0.2204;0.0834] 0.37072 
+-0.0764  [-0.2504;0.1024] 0.40268
 \end{verbatim}
 This has been refered as the O’Brien test in the litterature
 (\cite{verbeeck2019generalized}, section 3.2).
@@ -464,7 +463,7 @@ This has been refered as the O’Brien test in the litterature
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:org8aadf1e}
+\label{sec:orgda5982d}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -498,7 +497,7 @@ Error in (function (name.call, status, correction.uninf, cpus, data, endpoint,  
 \end{verbatim}
 
 \subsection{Stratified GPC}
-\label{sec:orgca73b4b}
+\label{sec:orgca2c186}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -538,7 +537,7 @@ summary(BT2, type.display = c("endpoint","threshold","strata",
 > null hypothesis : Delta == 0 
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > right-censored pairs: probabilistic score based on the survival curves
-> neutral pairs   : ignored at lower priority endpoints
+> neutral pairs   : re-analyzed using lower priority endpoints
 > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
 > results
 endpoint threshold    strata total(%) favorable(%) unfavorable(%)   delta   Delta
@@ -560,7 +559,7 @@ the strata. The global delta is a sum of the strata specific delta
 weighted by the empirical proportion of pairs for each strata.
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org65d3c23}
+\label{sec:org082c763}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -596,7 +595,7 @@ summary(BT.pair)
 > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: 0 (control) vs. 1 (treatment) 
-> neutral pairs   : ignored at lower priority endpoints
+> neutral pairs   : re-analyzed using lower priority endpoints
 > results
 endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
    tumor       0.5      100            0              0        100        0     0     0
@@ -620,7 +619,7 @@ summary(BT.pair2)
 > statistic       : net benefit (delta: endpoint specific, Delta: global) 
 > null hypothesis : Delta == 0 
 > treatment groups: 0 (control) vs. 1 (treatment) 
-> neutral pairs   : re-analyzed using lower priority endpoints
+> neutral pairs   : ignored at lower priority endpoints
 > results
 endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
    tumor       0.5      100            0              0        100        0     0     0
@@ -632,14 +631,14 @@ So in this case no pair is analyzed at second priority.
 \clearpage
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org4ddbf7d}
+\label{sec:org51c983a}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
 \item \textbf{permutation test} setting the argument \texttt{method.inference} to
-\texttt{"permutation"}. This approach gives valid p-values, regardless to
-the sample size, for testing the absence of a difference between the
-groups.
+\texttt{"permutation"}. Assuming exchangeability under the null hypothesis,
+this approach gives valid p-values (regardless to the sample size)
+for testing the absence of a difference between the groups.
 \end{itemize}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -656,7 +655,7 @@ summary(BT.perm)
 > null hypothesis : Delta == 0 
 > confidence level: 0.95 
 > inference       : permutation test with 1000 samples 
-                    confidence intervals/p-values computed using the quantiles of the empirical distribution 
+                    p-value computed using the permutation distribution 
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > right-censored pairs: probabilistic score based on the survival curves
 > results
@@ -687,14 +686,14 @@ summary(BT.boot)
 > null hypothesis : Delta == 0 
 > confidence level: 0.95 
 > inference       : bootstrap resampling with 1000 samples 
-                    confidence intervals/p-values computed using the quantiles of the empirical distribution 
+                    CI computed using the percentile method; p-value by test inversion 
 > treatment groups: 1 (control) vs. 2 (treatment) 
 > right-censored pairs: probabilistic score based on the survival curves
 > results
 endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
     time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
-p.value   CI [2.5 ; 97.5]
-  0.393  [-0.2922;0.1013]
+CI [2.5% ; 97.5%] p.value 
+ [-0.2922;0.1013]   0.393
 \end{verbatim}
 
 \begin{itemize}
@@ -722,8 +721,8 @@ summary(BT.ustat)
 > results
 endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
     time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
-p.value   CI [2.5 ; 97.5]
-0.37161  [-0.2735;0.1045]
+CI [2.5% ; 97.5%] p.value 
+ [-0.2735;0.1045] 0.37161
 \end{verbatim}
 
 The first two approaches require simulating a large number of samples
@@ -755,7 +754,7 @@ increase by a factor 5 to 10 compared to the point estimate alone
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org7c48570}
+\label{sec:org81d5c23}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -764,7 +763,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:org6e5b7eb}
+\label{sec:orgf3f0e8d}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -850,7 +849,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org0b0681e}
+\label{sec:org205915c}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -895,7 +894,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:orgf9d6825}
+\label{sec:orgd394cea}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -994,7 +993,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org74434d2}
+\label{sec:org6ff6c0c}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1081,7 +1080,7 @@ upperBound 0.5058685   0.3770426
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org78d121b}
+\label{sec:orgbd5782d}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -1151,7 +1150,7 @@ eventtime         1 -0.0022 -0.0022
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:org2d46831}
+\label{sec:org55305f3}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -1218,7 +1217,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:orge3cbeea}
+\label{sec:org2ef5d61}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1279,7 +1278,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:org006702a}
+\label{sec:org243a2ba}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1338,8 +1337,22 @@ package (\url{https://github.com/kkholst/lava})
 
 \clearpage
 
+\section{Power calculation using \texttt{powerBuyseTest}}
+\label{sec:org5a97d53}
+
+The function \texttt{powerBuyseTest} can be used to perform power
+calculation, i.e., estimate the probability of rejecting a null
+hypothesis under a specific generative mechanism. The user therefore
+need to specify:
+\begin{itemize}
+\item the generative mecanism via a function \hfill - argument \texttt{sim}
+\item the null hypothesis \hfill - argument \texttt{null}
+\item the sample size(s) for the which the power should be computed  \hfill - argument \texttt{sample.size}
+\end{itemize}
+
+
 \section{Modifying default options}
-\label{sec:org32c9209}
+\label{sec:org9ccd0c9}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1390,7 +1403,7 @@ BuyseTest.options(reinitialise = TRUE)
 
 
 \section*{References}
-\label{sec:orgfa9a1d0}
+\label{sec:org8c2c8c5}
 \begingroup
 \renewcommand{\section}[2]{}
 

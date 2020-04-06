@@ -26,8 +26,7 @@ The *BuyseTest* package contains three main functions:
     + =summary= to obtain a nice display of the results
     + =coef= to extract the estimates.
     + =confint= to extract estimates, confidence intervals, and p.values.
-    + =iid= to extract the iid decomposition of the estimator.
-    + =getCount= to extract the number of favorable, unfavorable, neutral, and uninformative pairs.
+    + =getIid= to extract the iid decomposition of the estimator.
     + =getPairScore= to extract the contribution of each pair to the net benefit/win ratio.
     + =getSurvival= to extract the estimates of the survival (only relevant for right-censored endpoints).
 - the =powerBuyseTest= function performs simulation studies,
@@ -75,7 +74,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘1.9.2’
+: [1] ‘2.0.0’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -103,7 +102,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.12.8 BuyseTest_1.9.2   Rcpp_1.0.4       
+[1] data.table_1.12.8 BuyseTest_2.0.0   Rcpp_1.0.4       
 
 loaded via a namespace (and not attached):
  [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
@@ -159,7 +158,7 @@ Point estimation and calculation of the iid decomposition
 Estimation of the estimator's distribution 
    - method: moments of the U-statistic
 
-Gather the results in a BuyseRes object
+Gather the results in a S4BuyseTest object
 #+end_example
 
 \clearpage
@@ -208,8 +207,8 @@ summary(BT)
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
      time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
- p.value   CI [2.5 ; 97.5]
- 0.37161  [-0.2735;0.1045]
+ CI [2.5% ; 97.5%] p.value 
+  [-0.2735;0.1045] 0.37161
 #+end_example
 
 \clearpage
@@ -232,10 +231,10 @@ summary(BT, percentage = FALSE)
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > right-censored pairs: probabilistic score based on the survival curves
  > results
- endpoint threshold total favorable unfavorable neutral uninf   delta   Delta p.value 
-     time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877 0.37161 
-  CI [2.5 ; 97.5]
- [-0.2735;0.1045]
+ endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
+     time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
+ CI [2.5% ; 97.5%] p.value 
+  [-0.2735;0.1045] 0.37161
 #+end_example
 
 \bigskip
@@ -260,8 +259,8 @@ summary(BT, statistic = "winRatio")
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
      time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
- p.value  CI [2.5 ; 97.5]
- 0.37194  [0.5134;1.2832]
+ CI [2.5% ; 97.5%] p.value 
+   [0.5134;1.2832] 0.37194
 #+end_example
 
 See =help(BuyseRes-summary)= for more detailed explanations about the
@@ -290,14 +289,14 @@ summary(BT.H)
  > inference       : H-projection of order 1
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > right-censored pairs: probabilistic score based on the survival curves
- > neutral pairs   : ignored at lower priority endpoints
+ > neutral pairs   : re-analyzed using lower priority endpoints
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
      time        20   100.00        37.78          46.54      15.68        0 -0.0877 -0.0877
     karno     1e-12    15.68         5.78           7.11       2.78        0 -0.0133 -0.1009
- p.value   CI [2.5 ; 97.5]
- 0.37161  [-0.2735;0.1045]
- 0.31477  [-0.2901;0.0959]
+ CI [2.5% ; 97.5%] p.value 
+  [-0.2735;0.1045] 0.37161 
+  [-0.2901;0.0959] 0.31477
 #+end_example
 
 The hierarchy of the endpoint is defined from left (most important
@@ -319,14 +318,14 @@ summary(BT.nH)
  > inference       : H-projection of order 1
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > right-censored pairs: probabilistic score based on the survival curves
- > neutral pairs   : ignored at lower priority endpoints
+ > neutral pairs   : re-analyzed using lower priority endpoints
  > results
  endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
      time        20      1      100        37.78          46.54      15.68        0 -0.0877
     karno     1e-12      1      100        41.82          44.95      13.24        0 -0.0313
-   Delta p.value   CI [2.5 ; 97.5]
- -0.0877 0.37161  [-0.2735;0.1045]
- -0.1190 0.49821  [-0.4346;0.2226]
+   Delta CI [2.5% ; 97.5%] p.value 
+ -0.0877  [-0.2735;0.1045] 0.37161 
+ -0.1190  [-0.4346;0.2226] 0.49821
 #+end_example
 
 In that case the score of a pair is the weighted sum of the score
@@ -350,14 +349,14 @@ summary(BT.nHw)
  > inference       : H-projection of order 1
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > right-censored pairs: probabilistic score based on the survival curves
- > neutral pairs   : ignored at lower priority endpoints
+ > neutral pairs   : re-analyzed using lower priority endpoints
  > results
  endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
      time        20    0.8      100        37.78          46.54      15.68        0 -0.0877
     karno     1e-12    0.2      100        41.82          44.95      13.24        0 -0.0313
-   Delta p.value   CI [2.5 ; 97.5]
- -0.0701 0.37072  [-0.2204;0.0834]
- -0.0764 0.40268  [-0.2504;0.1024]
+   Delta CI [2.5% ; 97.5%] p.value 
+ -0.0701  [-0.2204;0.0834] 0.37072 
+ -0.0764  [-0.2504;0.1024] 0.40268
 #+end_example
 This has been refered as the O’Brien test in the litterature
 (cite:verbeeck2019generalized, section 3.2).
@@ -434,7 +433,7 @@ summary(BT2, type.display = c("endpoint","threshold","strata",
  > null hypothesis : Delta == 0 
  > treatment groups: 1 (control) vs. 2 (treatment) 
  > right-censored pairs: probabilistic score based on the survival curves
- > neutral pairs   : ignored at lower priority endpoints
+ > neutral pairs   : re-analyzed using lower priority endpoints
  > uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
  > results
  endpoint threshold    strata total(%) favorable(%) unfavorable(%)   delta   Delta
@@ -489,7 +488,7 @@ summary(BT.pair)
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 0 (control) vs. 1 (treatment) 
- > neutral pairs   : ignored at lower priority endpoints
+ > neutral pairs   : re-analyzed using lower priority endpoints
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
     tumor       0.5      100            0              0        100        0     0     0
@@ -513,7 +512,7 @@ summary(BT.pair2)
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
  > treatment groups: 0 (control) vs. 1 (treatment) 
- > neutral pairs   : re-analyzed using lower priority endpoints
+ > neutral pairs   : ignored at lower priority endpoints
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
     tumor       0.5      100            0              0        100        0     0     0
@@ -528,9 +527,9 @@ So in this case no pair is analyzed at second priority.
 
 Several methods are available in =BuyseTest= to perform statistical inference:
 - *permutation test* setting the argument =method.inference= to
-  ="permutation"=. This approach gives valid p-values, regardless to
-  the sample size, for testing the absence of a difference between the
-  groups.
+  ="permutation"=. Assuming exchangeability under the null hypothesis,
+  this approach gives valid p-values (regardless to the sample size)
+  for testing the absence of a difference between the groups.
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                      data = veteran, trace = 0, method.inference = "permutation",
@@ -581,8 +580,8 @@ summary(BT.boot)
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
      time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
- p.value   CI [2.5 ; 97.5]
-   0.393  [-0.2922;0.1013]
+ CI [2.5% ; 97.5%] p.value 
+  [-0.2922;0.1013]   0.393
 #+end_example
 
 - *asymptotic distribution* setting the argument =method.inference= to
@@ -608,8 +607,8 @@ summary(BT.ustat)
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
      time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
- p.value   CI [2.5 ; 97.5]
- 0.37161  [-0.2735;0.1045]
+ CI [2.5% ; 97.5%] p.value 
+  [-0.2735;0.1045] 0.37161
 #+end_example
 
 The first two approaches require simulating a large number of samples
@@ -1174,6 +1173,94 @@ This functionality is based on the =sim= function of the *lava*
 package (https://github.com/kkholst/lava)
 
 \clearpage
+
+* Power calculation using =powerBuyseTest=
+
+The function =powerBuyseTest= can be used to perform power
+calculation, i.e., estimate the probability of rejecting a null
+hypothesis under a specific generative mechanism. The user therefore
+need to specify:
+- the generative mechanism via a function \hfill - argument =sim=
+- the null hypothesis \hfill - argument =null=
+- the sample size(s) for the which the power should be computed  \hfill - argument =sample.size=
+
+\bigskip
+
+Consider the following generative mechanism where the outcome follows
+a Student's t-distribution in the treatment and control group, with same
+variance and degrees of freedom but different mean:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+simFCT <- function(n.C, n.T){
+     out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
+                  cbind(Y=stats::rt(n.T, df = 5) + 1/2, group=1))
+     return(data.table::as.data.table(out))
+}
+simFCT(101,101)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+              Y group
+  1: -0.3622340     0
+  2:  0.4563045     0
+  3: -0.4918583     0
+  4: -0.4710663     0
+  5:  1.6273095     0
+ ---                 
+198:  0.4491401     1
+199:  0.3073182     1
+200: -0.8438920     1
+201:  1.8479558     1
+202:  2.6090392     1
+#+end_example
+
+We then define the null hypothesis:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+null <- c("netBenefit" = 0)
+#+END_SRC
+
+#+RESULTS:
+
+Naming the value is important since that will indicate which statistic
+should be used (here the net benefit). We can assess the power of the
+Wilcoxon's test using the following syntax:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+powerW <- powerBuyseTest(sim = simFCT, 
+                         sample.size = c(5,10,20,30,50,100),
+                         null = null,
+                         formula = group ~ cont(Y), 
+                         n.rep = 1000, seed = 10,
+                         cpus = 3, trace = 0)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(powerW)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        Simulation study with Generalized pairwise comparison
+        with 1000 samples
+
+ > statistic   : net benefit (null hypothesis Delta=0)
+ endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
+        Y     1e-12   5   5        0.2521      0.3676  0.3359          0.078
+                     10  10        0.2557      0.2538  0.2457          0.141
+                     20  20        0.2505      0.1787  0.1753          0.252
+                     30  30        0.2473      0.1449  0.1435           0.36
+                     50  50        0.2431      0.1135  0.1113          0.561
+                    100 100        0.2444      0.0802  0.0787          0.861
+
+ n.T          : number of observations in the treatment group
+ n.C          : number of observations in the control group
+ mean.estimate: average estimate over simulations
+ sd.estimate  : standard deviation of the estimate over simulations
+ mean.se      : average estimated standard error of the estimate over simulations
+ rejection    : frequency of the rejection of the null hypothesis over simulations
+(standard error: H-projection of order 1| p-value: after transformation)
+#+end_example
 
 * Modifying default options
 The =BuyseTest.options= method enable to get and set the default
