@@ -1,26 +1,26 @@
 ## * Documentation - show
 #' @docType methods
-#' @name BuyseRes-show
-#' @title Show Method for Class "BuyseRes"
-#' @aliases show,BuyseRes-method
-#' @include BuyseRes-object.R BuyseRes-summary.R
+#' @name S4BuyseTest-show
+#' @title Show Method for Class "S4BuyseTest"
+#' @aliases show,S4BuyseTest-method
+#' @include S4-BuyseTest.R S4-BuyseTest-summary.R
 #' 
-#' @description Display the main results stored in a \code{BuyseRes} object.
+#' @description Display the main results stored in a \code{S4BuyseTest} object.
 #' 
-#' @param object an \R object of class \code{BuyseRes}, i.e., output of \code{\link{BuyseTest}}
+#' @param object an \R object of class \code{S4BuyseTest}, i.e., output of \code{\link{BuyseTest}}
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
-#'   \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
+#'   \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
 #'  
-#' @keywords summary BuyseRes-method
+#' @keywords summary S4BuyseTest-method
 #' @author Brice Ozenne
 
 ## * Method - show
-#' @rdname BuyseRes-show
+#' @rdname S4BuyseTest-show
 #' @exportMethod show
 setMethod(f = "show",
-          signature = "BuyseRes",
+          signature = "S4BuyseTest",
           definition = function(object){
 
               ## compute summary statistics

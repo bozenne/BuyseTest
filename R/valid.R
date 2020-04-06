@@ -211,7 +211,6 @@ validDimension <- function(value1,
 validInteger <- function(value1,
                          name1 = as.character(substitute(value1)),
                          valid.length, 
-                         valid.values = NULL,
                          min = NULL,
                          max = NULL, 
                          refuse.NA = TRUE,
@@ -227,7 +226,7 @@ validInteger <- function(value1,
     validNumeric(value1 = value1, name1 = name1, valid.length = valid.length, min = min, max = max, 
                  refuse.NA = refuse.NA, refuse.NULL = refuse.NULL, refuse.duplicates = refuse.duplicates, method = method)
     
-#### check integer
+    ## check integer
     if(!is.null(value1) && any(value1 %% 1 > 0)){
         stop(method, "\'", name1, "\' must contain integers not doubles \n",        
              "invalid value(s) in ", name1, " : ", paste(value1[value1 %% 1 > 0], collapse = " "), "\n")

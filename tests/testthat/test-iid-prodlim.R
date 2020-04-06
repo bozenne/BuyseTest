@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov  8 2019 (11:23) 
+## Last-Updated: apr  6 2020 (11:50) 
 ##           By: Brice Ozenne
-##     Update #: 12
+##     Update #: 13
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,7 +33,7 @@ test_that("iid with 1 strata variable", {
     e.prodlim <- prodlim(Hist(eventtime,status)~treatment, data = dt)
     e.survival <- coxph(Surv(eventtime,status)~strata(treatment), data = dt, x = TRUE, y = TRUE)
 
-    iid.BT <- iidProdlim(e.prodlim)
+    iid.BT <- lava::iid(e.prodlim)
     iid.RR <- iidCox(e.survival, return.object = FALSE)
     iid.RR$IFsurvival <- list(t(predictCox(e.survival, newdata = dt[dt$treatment == "C",][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[1,,]),
                               t(predictCox(e.survival, newdata = dt[dt$treatment == "T",][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[1,,]))
@@ -47,13 +47,13 @@ test_that("iid with 1 strata variable", {
     expect_equal(unname(iid.BT$IFsurvival[[1]]), unname(iid.RR$IFsurvival[[1]]))
     expect_equal(unname(iid.BT$IFsurvival[[2]]), unname(iid.RR$IFsurvival[[2]]))
 })
-## profvis::profvis(iidProdlim(e.prodlim))
+## profvis::profvis(lava::iid(e.prodlim))
 
 test_that("iid with 2 strata variables", {
     e.prodlim <- prodlim(Hist(eventtime,status)~treatment+toxicity, data = dt)
     e.survival <- coxph(Surv(eventtime,status)~strata(treatment)+strata(toxicity), data = dt, x = TRUE, y = TRUE)
 
-    iid.BT <- iidProdlim(e.prodlim)
+    iid.BT <- lava::iid(e.prodlim)
     iid.RR <- iidCox(e.survival, return.object = FALSE)
     iid.RR$IFsurvival <- list(t(predictCox(e.survival, newdata = dt[dt$treatment == "C" & toxicity == 0,][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[1,,]),
                               t(predictCox(e.survival, newdata = dt[dt$treatment == "T" & toxicity == 0,][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[1,,]))

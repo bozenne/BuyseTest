@@ -25,9 +25,9 @@ validDimension(value1, value2 = NULL,
   type = c("NROW", "NCOL"), method = NULL, addPP = TRUE)
 
 validInteger(value1, name1 = as.character(substitute(value1)),
-  valid.length, valid.values = NULL, min = NULL, max = NULL,
-  refuse.NA = TRUE, refuse.NULL = TRUE, refuse.duplicates = FALSE,
-  method = NULL, addPP = TRUE)
+  valid.length, min = NULL, max = NULL, refuse.NA = TRUE,
+  refuse.NULL = TRUE, refuse.duplicates = FALSE, method = NULL,
+  addPP = TRUE)
 
 validLogical(value1, name1 = as.character(substitute(value1)),
   valid.length, refuse.NULL = TRUE, refuse.NA = TRUE, method = NULL,

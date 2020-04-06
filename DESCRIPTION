@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 1.9.2
-Date: 2020-04-03
+Version: 2.0.0
+Date: 2020-04-06
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
@@ -53,31 +53,30 @@ RoxygenNote: 6.1.1
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
-    'BuyseRes-object.R'
-    'BuyseRes-coef.R'
-    'BuyseRes-confint.R'
-    'BuyseRes-iid.R'
-    'BuyseRes-summary.R'
-    'BuyseRes_get.R'
-    'BuyseRes_show.R'
-    'BuyseSim-object.R'
-    'BuyseSim-summary.R'
-    'BuyseSim_show.R'
     'BuyseTest-check.R'
     'BuyseTest-inference.R'
     'BuyseTest-initialization.R'
     'BuyseTest-package.R'
     'BuyseTest-print.R'
     'BuyseTest.R'
-    'BuyseTest.options-object.R'
     'BuyseTest.options.R'
     'PairScore.R'
     'RcppExports.R'
+    'S4-BuysePower.R'
+    'S4-BuysePower-summary.R'
+    'S4-BuysePower-show.R'
+    'S4-BuyseTest.R'
+    'S4-BuyseTest-coef.R'
+    'S4-BuyseTest-confint.R'
+    'S4-BuyseTest-get.R'
+    'S4-BuyseTest-summary.R'
+    'S4-BuyseTest-show.R'
+    'S4-BuyseTest.options.R'
     'auc.R'
     'constStrata.R'
     'discreteRoot.R'
+    'iid.prodlim.R'
     'powerBuyseTest.R'
-    'prodlim-iid.R'
     'simBuyseTest.R'
     'simCompetingRisks.R'
     'valid.R'

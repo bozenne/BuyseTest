@@ -5,9 +5,9 @@
 \title{Performing simulation studies with BuyseTest}
 \usage{
 powerBuyseTest(sim, sample.size, sample.sizeC = NULL,
-  sample.sizeT = NULL, n.rep, null = c(0, 1, 1/2, 1/2), cpus = 1,
-  seed = NULL, conf.level = NULL, order.Hprojection = NULL,
-  transformation = NULL, trace = 1, ...)
+  sample.sizeT = NULL, n.rep, null = c(netBenefit = 0), cpus = 1,
+  seed = NULL, conf.level = NULL, alternative = NULL,
+  order.Hprojection = NULL, transformation = NULL, trace = 1, ...)
 }
 \arguments{
 \item{sim}{[function] take two arguments:
@@ -23,11 +23,8 @@ Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} a
 
 \item{n.rep}{[integer, >0] the number of simulations.}
 
-\item{null}{[numeric vector] the null hypothesis to be tested
-for the net benefit (first element),
-the win ratio (second element),
-the proportion in favor of treatment (thrid element),
-and the proportion in favor of control (fourth element).}
+\item{null}{[numeric vector] For each statistic of interest, the null hypothesis to be tested.
+The vector should be named with the names of the statistics.}
 
 \item{cpus}{[integer, >0] the number of CPU to use.
 Only the permutation test can use parallel computation.
@@ -38,7 +35,11 @@ Default value read from \code{BuyseTest.options()}.}
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{order.Hprojection}{[integer 1,2] the order of the H-project to be used to compute the variance of the net benefit/win ratio.}
+\item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
+Default value read from \code{BuyseTest.options()}.}
+
+\item{order.Hprojection}{[integer 1,2] the order of the H-project to be used to compute the variance of the net benefit/win ratio.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{transformation}{[logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.
@@ -46,7 +47,7 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{trace}{[integer] should the execution of the function be traced?}
 
-\item{...}{parameters from \code{BuyseTest}.}
+\item{...}{other arguments (e.g. \code{scoring.rule}, \code{method.inference}) to be passed to \code{initializeArgs}.}
 }
 \description{
 Performs a simulation studies for several sample sizes.
@@ -55,25 +56,35 @@ Returns estimates, standard errors, confidence intervals and p.values.
 \examples{
 library(data.table)
 
-## using simBuyseTest
-powerBuyseTest(sim = simBuyseTest, sample.size = c(100), n.rep = 10,
+#### Using simBuyseTest ####
+## only point estimate
+powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
+               formula = treatment ~ bin(toxicity), seed = 10,
+               method.inference = "none", trace = 4)
+
+## point estimate with rejection rate
+powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
                formula = treatment ~ bin(toxicity), seed = 10,
                method.inference = "u-statistic", trace = 4)
 
-powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 100), n.rep = 10,
-               formula = treatment ~ bin(toxicity), seed = 10,
-               method.inference = "u-statistic", trace = 4)
-
-## using user defined simulation function
+#### Using user defined simulation function ####
+## Example of power calculation for Wilcoxon test
 simFCT <- function(n.C, n.T){
-    out <- data.table(Y=rnorm(n.C+n.T),
-                      T=c(rep(1,n.C),rep(0,n.T))
-                     )
-return(out)
+    out <- rbind(data.table(Y=stats::rt(n.C, df = 5), group=0),
+                 data.table(Y=stats::rt(n.T, df = 5), group=1) + 1)
+    return(out)
 }
 
-powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
-              formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4)
+\dontshow{
+powerW <- powerBuyseTest(sim = simFCT, sample.size = c(5, 10,20,30,50,100),
+                         n.rep = 10, formula = group ~ cont(Y))
+summary(powerW)
+}
+\dontrun{
+powerW <- powerBuyseTest(sim = simFCT, sample.size = c(5, 10,20,30,50,100),
+                         n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+summary(powerW)
+} 
 
 }
 \author{

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 22 2017 (18:37) 
 ## Version: 
-## Last-Updated: nov 21 2019 (14:40) 
+## Last-Updated: apr  6 2020 (11:50) 
 ##           By: Brice Ozenne
-##     Update #: 27
+##     Update #: 29
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -53,7 +53,7 @@ test_that("convert 0 to 1e-12 - threshold",{
                       data = dt,
                       method.inference = "none", trace = 0)
 
-    expect_equal(test@threshold, c(1,1e-12))    
+    expect_equal(as.double(test@threshold), c(1,1e-12))    
 })
 
 ## * time to event outcomes
@@ -76,7 +76,7 @@ test_that("convert 0 to 1e-12 - threshold",{
                       data = dt,
                       method.inference = "none", trace = 0)
 
-    expect_equal(test@threshold, c(1,1e-12))    
+    expect_equal(as.double(test@threshold), c(1,1e-12))    
 })
 
 

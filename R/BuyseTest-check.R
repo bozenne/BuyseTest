@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: mar 25 2020 (12:09) 
+## Last-Updated: apr  6 2020 (10:37) 
 ##           By: Brice Ozenne
-##     Update #: 217
+##     Update #: 221
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -135,7 +135,8 @@ testArgs <- function(name.call,
     if(cpus>1){
         validInteger(cpus,
                      valid.length = 1,
-                     valid.values = 1:parallel::detectCores(),
+                     min = 1,
+                     max = parallel::detectCores(),
                      method = "BuyseTest")
     }
 
@@ -256,7 +257,9 @@ testArgs <- function(name.call,
  
     ## ** correction.uninf
     validInteger(correction.uninf,
-                 valid.length = 1, valid.values = 0:3,
+                 valid.length = 1,
+                 min = 0,
+                 max = 3,
                  method = "BuyseTest")
 
     ## ** method.inference
@@ -373,7 +376,8 @@ testArgs <- function(name.call,
     ## ** trace
     validInteger(trace,
                  valid.length = 1,
-                 valid.values = 0:2,
+                 min = 0,
+                 max = 2,
                  method = "BuyseTest")
 
     ## ** treatment

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: apr  2 2020 (15:39) 
+## Last-Updated: apr  6 2020 (11:58) 
 ##           By: Brice Ozenne
-##     Update #: 136
+##     Update #: 139
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,8 +50,8 @@ test_that("iid: binary and no strata (balanced groups)", {
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16, 1/4, 4) )
 
-    expect_equal(iid(e.BT)[,"favorable"], c(-1/8,1/8,1/8,-1/8))
-    expect_equal(iid(e.BT)[,"unfavorable"], c(1/8,-1/8,-1/8,1/8))
+    expect_equal(getIid(e.BT)[,"favorable"], c(-1/8,1/8,1/8,-1/8))
+    expect_equal(getIid(e.BT)[,"unfavorable"], c(1/8,-1/8,-1/8,1/8))
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
@@ -86,8 +86,8 @@ test_that("iid: binary and no strata (unbalanced groups)", {
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0) )
 
-    expect_equal(iid(e.BT)[,"favorable"], c(0,0,0,0))
-    expect_equal(iid(e.BT)[,"unfavorable"], c(0,-1/9,-1/9,2/9))
+    expect_equal(getIid(e.BT)[,"favorable"], c(0,0,0,0))
+    expect_equal(getIid(e.BT)[,"unfavorable"], c(0,-1/9,-1/9,2/9))
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
@@ -125,8 +125,8 @@ test_that("iid: binary with strata (balanced groups)", {
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(1/16, 1/16, -1/16, 1/4, 4)/3 )
 
-    expect_equal(iid(e.BT)[,"favorable"], rep(c(-1/8,1/8,1/8,-1/8),3)/3)
-    expect_equal(iid(e.BT)[,"unfavorable"], rep(c(1/8,-1/8,-1/8,1/8),3)/3)
+    expect_equal(getIid(e.BT)[,"favorable"], rep(c(-1/8,1/8,1/8,-1/8),3)/3)
+    expect_equal(getIid(e.BT)[,"unfavorable"], rep(c(1/8,-1/8,-1/8,1/8),3)/3)
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
@@ -163,8 +163,8 @@ test_that("iid: binary and no strata (unbalanced groups)", {
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0)/3 )
 
-    expect_equal(iid(e.BT)[,"favorable"], rep(c(0,0,0,0),3)/3)
-    expect_equal(iid(e.BT)[,"unfavorable"], rep(c(0,-1/9,-1/9,2/9),3)/3)
+    expect_equal(getIid(e.BT)[,"favorable"], rep(c(0,0,0,0),3)/3)
+    expect_equal(getIid(e.BT)[,"unfavorable"], rep(c(0,-1/9,-1/9,2/9),3)/3)
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
@@ -219,8 +219,8 @@ test_that("Manual calculation of second order H projection (no strata)",{
     dt.pair[, H2.unfavorable := unfavorable - H1C.unfavorable - H1T.unfavorable]
 
     ## check H1
-    expect_true(all(abs(dt.pair[!duplicated(index.C),.(H1C.favorable/.N,H1C.unfavorable/.N)]-iid(e.BT_c3)[1:n,])<1e-6))
-    expect_true(all(abs(dt.pair[!duplicated(index.T),.(H1T.favorable/.N,H1T.unfavorable/.N)]-iid(e.BT_c3)[(n+1):(2*n),])<1e-6))
+    expect_true(all(abs(dt.pair[!duplicated(index.C),.(H1C.favorable/.N,H1C.unfavorable/.N)]-getIid(e.BT_c3)[1:n,])<1e-6))
+    expect_true(all(abs(dt.pair[!duplicated(index.T),.(H1T.favorable/.N,H1T.unfavorable/.N)]-getIid(e.BT_c3)[(n+1):(2*n),])<1e-6))
         
     ## check H2
     manual <- dt.pair[,.(favorable = var2(H2.favorable)/.N,
@@ -264,8 +264,8 @@ test_that("Manual calculation of second order H projection (strata)",{
     dt.pair[, H2.unfavorable := unfavorable - H1C.unfavorable - H1T.unfavorable]
 
     ## check H1
-    expect_true(all(abs(dt.pair[!duplicated(index.C),.(H1C.favorable/.N,H1C.unfavorable/.N)]-iid(e.BT_c3)[which(dtS$treatment=="C"),])<1e-6))
-    expect_true(all(abs(dt.pair[!duplicated(index.T),.(H1T.favorable/.N,H1T.unfavorable/.N)]-iid(e.BT_c3)[which(dtS$treatment=="T"),])<1e-6))
+    expect_true(all(abs(dt.pair[!duplicated(index.C),.(H1C.favorable/.N,H1C.unfavorable/.N)]-getIid(e.BT_c3)[which(dtS$treatment=="C"),])<1e-6))
+    expect_true(all(abs(dt.pair[!duplicated(index.T),.(H1T.favorable/.N,H1T.unfavorable/.N)]-getIid(e.BT_c3)[which(dtS$treatment=="T"),])<1e-6))
         
     ## check H2
     manual <- dt.pair[,.(favorable = var2(H2.favorable)/.N,
@@ -361,7 +361,7 @@ test_that("iid: two endpoints (no strata - first order)", {
                  c(0.00194112, 0.00143968, -0.00028544, 0.00395168, 0.38625867), tol = 1e-6 )
 
     ## cluster argument
-    expect_equal(unname(iid(e.BT, cluster = 1:NROW(d))), unname(iid(e.BT)), tol = 1e-6)
+    expect_equal(unname(getIid(e.BT, cluster = 1:NROW(d))), unname(getIid(e.BT)), tol = 1e-6)
     expect_equal(confint(e.BT, cluster = 1:NROW(d)),  confint(e.BT), tol = 1e-6)
 })
 
@@ -460,7 +460,7 @@ test_that("iid: two endpoints (strata)", {
                  c(0.0009537952, 0.001180109, -0.0008541376, 0.0038421792, 0.0444467864), tol = 1e-6 )
 
     ## cluster argument
-    expect_equal(unname(iid(e.BT, cluster = 1:NROW(d2))), unname(iid(e.BT)), tol = 1e-6)
+    expect_equal(unname(getIid(e.BT, cluster = 1:NROW(d2))), unname(getIid(e.BT)), tol = 1e-6)
     expect_equal(confint(e.BT, cluster = 1:NROW(d2)),  confint(e.BT), tol = 1e-6)
 
     ## second order
@@ -665,12 +665,13 @@ test_that("iid - remove normalization", {
     e.all <- BuyseTest(treatment~bin(toxicity)+cont(score)+strata,
                        method.inference = "u-statistic",
                        data = dt, trace = 0)
+    
     e.strata <- BuyseTest(treatment~bin(toxicity)+cont(score)+strata,
                           method.inference = "u-statistic",
                           data = dt[strata=="a"], trace = 0)
 
-    iid.all <- iid(e.all, normalize = FALSE)[which(dt$strata=="a"),]
-    iid.strata <- iid(e.strata, normalize = FALSE)
+    iid.all <- getIid(e.all, normalize = FALSE)[which(dt$strata=="a"),]
+    iid.strata <- getIid(e.strata, normalize = FALSE)
 
     expect_equal(unname(iid.all),unname(iid.strata), tol = 1e-9)
 })

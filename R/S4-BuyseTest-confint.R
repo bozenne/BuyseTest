@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  3 2020 (13:59) 
+## Last-Updated: apr  6 2020 (11:06) 
 ##           By: Brice Ozenne
-##     Update #: 734
+##     Update #: 739
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,14 +17,14 @@
 
 ## * Documentation - confint
 #' @docType methods
-#' @name BuyseRes-confint
+#' @name S4BuyseTest-confint
 #' @title  Confidence Intervals for Model Parameters
-#' @aliases confint,BuyseRes-method
-#' @include BuyseRes-object.R
+#' @aliases confint,S4BuyseTest-method
+#' @include S4-BuyseTest.R
 #' 
 #' @description Computes confidence intervals for net benefit statistic or the win ratio statistic.
 #' 
-#' @param object an \R object of class \code{\linkS4class{BuyseRes}}, i.e., output of \code{\link{BuyseTest}}
+#' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
 #' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
 #' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
@@ -46,7 +46,7 @@
 #'  
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
-#' \code{\link{BuyseRes-summary}} for a more detailed presentation of the \code{BuyseRes} object.
+#' \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
 #' 
 #' @details
 #' \bold{method.ci.resampling}: when using bootstrap/permutation, p-values and confidence intervals are computing as follow: \itemize{
@@ -89,14 +89,14 @@
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 #' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \cr
 #'
-#' @keywords confint BuyseRes-method
+#' @keywords confint S4BuyseTest-method
 #' @author Brice Ozenne
 
 ## * Method - confint
-#' @rdname BuyseRes-confint
+#' @rdname S4BuyseTest-confint
 #' @exportMethod confint
 setMethod(f = "confint",
-          signature = "BuyseRes",
+          signature = "S4BuyseTest",
           definition = function(object,
                                 statistic = NULL,
                                 null = NULL,
@@ -135,7 +135,7 @@ setMethod(f = "confint",
                              name1 = "statistic",
                              valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
                              valid.length = 1,
-                             method = "confint[BuyseRes]")
+                             method = "confint[S4BuyseTest]")
 
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
                   if(is.null(method.ci.resampling)){                  
@@ -152,7 +152,7 @@ setMethod(f = "confint",
                                  valid.values = c("percentile","gaussian","studentized"),
                                  valid.length = 1,
                                  refuse.NULL = FALSE,                             
-                                 method = "confint[BuyseRes]")
+                                 method = "confint[S4BuyseTest]")
 
                   if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
                       stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap has been performed\n",
@@ -170,7 +170,7 @@ setMethod(f = "confint",
                       validInteger(order.Hprojection,
                                    name1 = "order.Hprojection",
                                    min = 1, max = 2, valid.length = 1,
-                                   method = "confint[BuyseRes]")
+                                   method = "confint[S4BuyseTest]")
                   
                       if(order.Hprojection > attr(method.inference,"hprojection")){
                           stop("Cannot find the second order of the H-decomposition. \n",
@@ -180,7 +180,7 @@ setMethod(f = "confint",
                   if(identical(order.Hprojection,2) && !is.null(cluster)){
                       warning("Inference will be performed using a first order H projection. \n")
                   }
-                  ls.iid <- iid(object, endpoint = 1:D, cluster = cluster)
+                  ls.iid <- getIid(object, endpoint = 1:D, cluster = cluster)
                   delta.favorable <- cumsum(colSums(object@count.favorable)*object@weight)/sum(object@n.pairs)
                   delta.unfavorable <- cumsum(colSums(object@count.unfavorable)*object@weight)/sum(object@n.pairs)
                   keep.names <- dimnames(object@covariance)
@@ -199,18 +199,18 @@ setMethod(f = "confint",
                            min = 0, max = 1,
                            refuse.NA = FALSE,
                            valid.length = 1,
-                           method = "confint[BuyseRes]")
+                           method = "confint[S4BuyseTest]")
 
               validCharacter(alternative,
                              name1 = "alternative",
                              valid.values = c("two.sided","less","greater"),
                              valid.length = 1,
-                             method = "confint[BuyseRes]")
+                             method = "confint[S4BuyseTest]")
 
               validLogical(transformation,
                            name1 = "transformation",
                            valid.length = 1,
-                           method = "confint[BuyseRes]")
+                           method = "confint[S4BuyseTest]")
               
               ## ** extract information
               if(is.na(conf.level)){
@@ -748,4 +748,4 @@ confint_none <- function(Delta, endpoint, ...){
     
 }
 ##----------------------------------------------------------------------
-### BuyseRes-confint.R ends here
+### S4BuyseTest-confint.R ends here

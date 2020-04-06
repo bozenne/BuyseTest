@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr  3 2020 (14:01) 
+## Last-Updated: apr  6 2020 (11:49) 
 ##           By: Brice Ozenne
-##     Update #: 160
+##     Update #: 161
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -143,9 +143,9 @@ test_that("ordering of tied event does not affect BuyseTest", {
     expect_equal(coef(BT.all, statistic = "winRatio"), coef(BT2.all, statistic = "winRatio"))
 
     ## number of pairs
-    expect_equal(BT.all@n.pairs, prod(table(veteran$trt)), tol = 1e-5)
-    expect_equal(BT1.all@n.pairs, prod(table(veteran$trt)), tol = 1e-5)
-    expect_equal(BT2.all@n.pairs, prod(table(veteran$trt)), tol = 1e-5)
+    expect_equal(as.double(BT.all@n.pairs), prod(table(veteran$trt)), tol = 1e-5)
+    expect_equal(as.double(BT1.all@n.pairs), prod(table(veteran$trt)), tol = 1e-5)
+    expect_equal(as.double(BT2.all@n.pairs), prod(table(veteran$trt)), tol = 1e-5)
 
     ## values of the pairs
     expect_true(all(getPairScore(BT.all, endpoint = 1)[["favorable"]]>=0))

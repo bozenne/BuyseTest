@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: nov 14 2019 (14:45) 
+## Last-Updated: apr  6 2020 (10:58) 
 ##           By: Brice Ozenne
-##     Update #: 101
+##     Update #: 104
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,13 +15,14 @@
 ## 
 ### Code:
 
-## * iidProdlim - documentation
+## * iid.prodlim - documentation
 #' @title Extract i.i.d. decomposition from a prodlim model
 #' @description Compute the influence function for each observation used to estimate the model
-#' @name iidProdlim
+#' @name iid.prodlim
 #' 
 #' @param object A prodlim object.
 #' @param add0 [logical] add the 0 to vector of relevant times.
+#' @param ... not used. For compatibility with the generic method.
 #' 
 #' @details
 #' This function is a simplified version of the iidCox function of the riskRegression package.
@@ -34,8 +35,8 @@
 #'
 #' @author Brice Ozenne
 
-## * iidProdlim - examples
-#' @rdname iidProdlim
+## * iid.prodlim - examples
+#' @rdname iid.prodlim
 #' @examples
 #' library(data.table)
 #' library(prodlim)
@@ -45,12 +46,12 @@
 #' setkeyv(dt, "treatment")
 #' 
 #' e.KM <- prodlim(Hist(eventtime,status)~treatment, data = dt)
-#' iidProdlim(e.KM)
+#' lava::iid(e.KM)
 
-## * iidProdlim - code
-#' @rdname iidProdlim
+## * iid.prodlim - code
+#' @rdname iid.prodlim
 #' @export
-iidProdlim <- function(object, add0 = FALSE){
+iid.prodlim <- function(object, add0 = FALSE, ...){
 
     if(!inherits(object,"prodlim")){
         stop("Argument \'object\' must inherit from prodlim \n")

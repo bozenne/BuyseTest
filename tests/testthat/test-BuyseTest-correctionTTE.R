@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: apr  2 2020 (16:56) 
+## Last-Updated: apr  6 2020 (11:45) 
 ##           By: Brice Ozenne
-##     Update #: 128
+##     Update #: 129
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -127,7 +127,7 @@ test_that("1 TTE endpoint - Peron (IPCW)", {
                         scoring.rule = "Peron", correction.uninf = 2)
 
     ## summary(PeronC, percentage = FALSE)
-    factor <- PeronC@n.pairs/(PeronC@n.pairs-3) ## n.pairs/(n.pairs-n.uninf)
+    factor <- as.double(PeronC@n.pairs/(PeronC@n.pairs-3)) ## n.pairs/(n.pairs-n.uninf)
     expect_equal(as.double(coef(PeronC, statistic = "count.favorable", cumulative = FALSE)), c(10*factor,0))
     expect_equal(as.double(coef(PeronC, statistic = "count.unfavorable", cumulative = FALSE)), c(2*factor,0))
     expect_equal(as.double(coef(PeronC, statistic = "count.neutral", cumulative = FALSE)), c(1*factor,1*factor))

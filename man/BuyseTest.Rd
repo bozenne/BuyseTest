@@ -69,7 +69,7 @@ See Details, section "Specification of the GPC model".}
 \item{method.tte}{Obsolete. Alias for 'scoring.rule'.}
 }
 \value{
-An \R object of class \code{\linkS4class{BuyseRes}}.
+An \R object of class \code{\linkS4class{S4BuyseTest}}.
 }
 \description{
 Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event endpoints.
@@ -241,16 +241,14 @@ if(require(survival)){
  
   ## scoring.rule = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
-                        data=veteran, scoring.rule="Gehan",
-                        method.inference = "permutation", n.resampling = 1e3)
+                        data=veteran, scoring.rule="Gehan")
   
   summary_Gehan <- summary(BT_Gehan)
   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
   
   ## scoring.rule = "Peron"
   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
-                        data=veteran, scoring.rule="Peron",
-                        method.inference = "permutation", n.resampling = 1e3)
+                        data=veteran, scoring.rule="Peron")
 
   class(BT_Peron)
   summary(BT_Peron)
@@ -265,8 +263,8 @@ On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wil
 On inference in GPC using the U-statistic theory: I. Bebu, J. M. Lachin (2015). \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
 }
 \seealso{
-\code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
-\code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
+\code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
+\code{\link{S4BuyseTest-class}} for a presentation of the \code{S4BuyseTest} object. \cr
 \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
 }
 \author{

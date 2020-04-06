@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: apr  2 2020 (14:12) 
+## Last-Updated: apr  6 2020 (11:06) 
 ##           By: Brice Ozenne
-##     Update #: 163
+##     Update #: 166
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -146,7 +146,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         if(!is.null(observation)){
             M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- scale(iid(e.BT, normalize = FALSE)[iVec,"favorable",drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE)[iVec,"favorable",drop=FALSE], center = TRUE, scale = FALSE)
                 iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
                 iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
                 return(iIID)
@@ -162,7 +162,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         if(!is.null(observation)){
             M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- scale(iid(e.BT, normalize = FALSE)[iVec,"unfavorable",drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE)[iVec,"unfavorable",drop=FALSE], center = TRUE, scale = FALSE)
                 iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
                 iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
                 return(iIID)
@@ -186,7 +186,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
             out$estimate[iFold] <- iCount/e.BT@n.pairs[iFold]
 
             if(!is.null(observation)){
-                M.iid[iVec,iFold] <- scale(iid(e.BT, normalize = FALSE)[iVec,iDirection,drop=FALSE], center = TRUE, scale = FALSE)
+                M.iid[iVec,iFold] <- scale(getIid(e.BT, normalize = FALSE)[iVec,iDirection,drop=FALSE], center = TRUE, scale = FALSE)
                 M.iid[intersect(iVec,indexC),iFold] <- M.iid[intersect(iVec,indexC),iFold]/n.C
                 M.iid[intersect(iVec,indexT),iFold] <- M.iid[intersect(iVec,indexT),iFold]/n.T
             }

@@ -1,11 +1,11 @@
-### BuyseRes-coef.R --- 
+### S4BuyseTest-coef.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: apr  2 2020 (16:46) 
+## Last-Updated: apr  6 2020 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 62
+##     Update #: 65
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,10 +17,10 @@
 
 ## * Documentation - coef
 #' @docType methods
-#' @name BuyseRes-coef
-#' @title Coef Method for Class "BuyseRes"
-#' @aliases coef,BuyseRes-method
-#' @include BuyseRes-object.R
+#' @name S4BuyseTest-coef
+#' @title Coef Method for Class "S4BuyseTest"
+#' @aliases coef,S4BuyseTest-method
+#' @include S4-BuyseTest.R
 #'  
 #' @description Extract summary statistics from the result of a \code{\link{BuyseTest}} function.
 #' 
@@ -48,14 +48,14 @@
 #' \item \code{"pc.neutral"}: returns the percentage of neutral pairs.
 #' \item \code{"pc.uninf"}: returns the percentage of uninformative pairs.
 #' }
-#' @keywords coef BuyseRes-method
+#' @keywords coef S4BuyseTest-method
 #' @author Brice Ozenne
 
 ## * method - coef
-#' @rdname BuyseRes-coef
+#' @rdname S4BuyseTest-coef
 #' @exportMethod coef
 setMethod(f = "coef",
-          signature = "BuyseRes",
+          signature = "S4BuyseTest",
           definition = function(object,
                                 statistic = NULL,
                                 stratified = FALSE,
@@ -83,7 +83,7 @@ setMethod(f = "coef",
                              name1 = "statistic",
                              valid.values = c("netBenefit","winRatio","favorable","unfavorable",type.count,type.pc),
                              valid.length = 1,
-                             method = "coef[BuyseRes]")
+                             method = "coef[S4BuyseTest]")
 
               ## ** extract information
               if(statistic %in% c("netBenefit","winRatio","favorable","unfavorable")){
@@ -150,4 +150,4 @@ setMethod(f = "coef",
           })
 
 ######################################################################
-### BuyseRes-coef.R ends here
+### S4BuyseTest-coef.R ends here

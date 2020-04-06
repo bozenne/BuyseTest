@@ -575,9 +575,9 @@ void correctionPairs(int method, double zeroPlus,
 	
   // update keep scores
   if(keepScore){
-    matPairScore.col(7) = matPairScore.col(7) + factorFavorable * matPairScore.col(10);
-    matPairScore.col(8) = matPairScore.col(8) + factorUnfavorable * matPairScore.col(10);
-    matPairScore.col(9) = matPairScore.col(9) + factorNeutral * matPairScore.col(10);
+    matPairScore.col(7) += factorFavorable * matPairScore.col(10);
+    matPairScore.col(8) += factorUnfavorable * matPairScore.col(10);
+    matPairScore.col(9) += factorNeutral * matPairScore.col(10);
     (matPairScore.col(10)).fill(0.0);
   }
 }

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: apr  2 2020 (14:35) 
+## Last-Updated: apr  6 2020 (11:44) 
 ##           By: Brice Ozenne
-##     Update #: 27
+##     Update #: 29
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -62,10 +62,10 @@ test_that("AUC after CV - BuyseTest vs cvAUC",{
     dt$fold0 <- c(rep(1,100),rep(2,100))
     
     test0 <- auc(labels = dt$Y, prediction = dt$X,
-                            fold = dt$fold0, observation = 1:NROW(dt))
+                 fold = dt$fold0, observation = 1:NROW(dt))
     GS0 <- cvAUC::ci.cvAUC(predictions = dt$X,
-                    labels = dt$Y,
-                    folds = dt$fold0)
+                           labels = dt$Y,
+                           folds = dt$fold0)
 
     expect_equal(test0[test0$fold=="global", "estimate"],
                  GS0$cvAUC, tol = 1e-6)

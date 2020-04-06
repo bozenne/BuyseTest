@@ -136,7 +136,7 @@
 #'  \item \code{order.Hprojection} [1 or 2] the order of the H-projection used to compute the variance when \code{method.inference="u-statistic"}. 
 #' }
 #' 
-#' @return An \R object of class \code{\linkS4class{BuyseRes}}.
+#' @return An \R object of class \code{\linkS4class{S4BuyseTest}}.
 #' 
 #' @references 
 #' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
@@ -146,8 +146,8 @@
 #' On inference in GPC using the U-statistic theory: I. Bebu, J. M. Lachin (2015). \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
 #'
 #' @seealso 
-#' \code{\link{BuyseRes-summary}} for a summary of the results of generalized pairwise comparison. \cr
-#' \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
+#' \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
+#' \code{\link{S4BuyseTest-class}} for a presentation of the \code{S4BuyseTest} object. \cr
 #' \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
 #' @keywords function BuyseTes
 #' @author Brice Ozenne
@@ -227,23 +227,21 @@
 #'  
 #'   ## scoring.rule = "Gehan"
 #'   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
-#'                         data=veteran, scoring.rule="Gehan",
-#'                         method.inference = "permutation", n.resampling = 1e3)
+#'                         data=veteran, scoring.rule="Gehan")
 #'   
 #'   summary_Gehan <- summary(BT_Gehan)
 #'   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
 #'   
 #'   ## scoring.rule = "Peron"
 #'   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
-#'                         data=veteran, scoring.rule="Peron",
-#'                         method.inference = "permutation", n.resampling = 1e3)
+#'                         data=veteran, scoring.rule="Peron")
 #' 
 #'   class(BT_Peron)
 #'   summary(BT_Peron)
 #' }
 #' }
 
-## * BuyseTest (code)
+## * Test (code)
 ##' @rdname BuyseTest
 ##' @export
 BuyseTest <- function(formula,
@@ -401,12 +399,12 @@ BuyseTest <- function(formula,
     ## convert from a list of vector (output of C++) to a list of data.table
     if(outArgs$keep.pairScore){
         ## needed for inference with bebu
-        outPoint$tablePairScore <- pairScore2dt(outPoint$tableScore,
-                                                level.treatment = outArgs$level.treatment,
-                                                level.strata = outArgs$level.strata,
-                                                n.strata = outArgs$n.strata,
-                                                endpoint = outArgs$endpoint,
-                                                threshold = outArgs$threshold)
+        outPoint$tableScore <- pairScore2dt(outPoint$tableScore,
+                                            level.treatment = outArgs$level.treatment,
+                                            level.strata = outArgs$level.strata,
+                                            n.strata = outArgs$n.strata,
+                                            endpoint = outArgs$endpoint,
+                                            threshold = outArgs$threshold)
     }
     
     ## ** Inference
@@ -414,18 +412,10 @@ BuyseTest <- function(formula,
         do.call(printInference, args = outArgs)
     }
 
-    outResampling <- list(deltaResampling = array(NA, dim=c(0,0,0,0)),
-                          DeltaResampling = array(NA, dim=c(0,0,0)),
-                          covariance = array(NA, dim=c(0,0,0)),
-                          n.resampling = as.double(NA))
-
-    if(outArgs$method.inference == "none"){
-        outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
-        outPoint$iidAverage_favorable <- NULL
-        outPoint$iidAverage_unfavorable <- NULL
-    }else if(outArgs$method.inference == "u-statistic"){
+    outResampling <- NULL
+    if(outArgs$method.inference == "u-statistic"){
         ## done in the C++ code
-        ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tablePairScore, order = option$order.Hprojection,
+        ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tableScore, order = option$order.Hprojection,
         ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
         ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
         ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
@@ -435,7 +425,7 @@ BuyseTest <- function(formula,
         }
 
         ## direct computation of the variance
-        outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tablePairScore,
+        outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tableScore,
                                                  order = option$order.Hprojection,
                                                  weight = outArgs$weight,
                                                  count.favorable = colSums(outPoint$count_favorable),
@@ -447,71 +437,29 @@ BuyseTest <- function(formula,
                                                  n.strata = outArgs$n.strata,
                                                  endpoint = outArgs$endpoint)
 
-        outPoint$Mvar <- outCovariance$Sigma
-        outPoint$iidAverage_favorable <- NULL
-        outPoint$iidAverage_unfavorable <- NULL
+        outPoint$covariance <- outCovariance$Sigma
         attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
     }else if(grepl("bootstrap|permutation",outArgs$method.inference)){
         outResampling <- inferenceResampling(envirBT)
-        if(outArgs$iid==FALSE){
-            outPoint$Mvar <- matrix(nrow = 0, ncol = 0)
-            outPoint$iidAverage_favorable <- NULL
-            outPoint$iidAverage_unfavorable <- NULL
-        }
     }
     if((outArgs$method.inference != "none") && (outArgs$trace > 1)){
         cat("\n")
     }
 
-    ## ** Gather results into a BuyseRes object
+    ## ** Gather results into a S4BuyseTest object
     if(outArgs$trace > 1){
-        cat("Gather the results in a BuyseRes object \n")
+        cat("Gather the results in a S4BuyseTest object \n")
     }
-    scoring.rule <- c("Gehan","Peron")[outArgs$scoring.rule+1]
-    attr(scoring.rule,"method.score") <- outArgs$method.score
-    type <- c("Binary","Continuous","TimeToEvent")[outArgs$type]
-    attr(outArgs$level.treatment,"indexC") <- outArgs$index.C
-    attr(outArgs$level.treatment,"indexT") <- outArgs$index.T
-    attr(outArgs$level.strata,"index") <- outArgs$index.strata
-
-    BuyseRes.object <- BuyseRes(
-        count.favorable = outPoint$count_favorable,      
-        count.unfavorable = outPoint$count_unfavorable,
-        count.neutral = outPoint$count_neutral,    
-        count.uninf = outPoint$count_uninf,
-        n.pairs = outPoint$n_pairs,
-        delta = outPoint$delta,
-        Delta = outPoint$Delta,
-        type = type,
-        endpoint = outArgs$endpoint,
-        level.treatment = outArgs$level.treatment,
-        scoring.rule = scoring.rule,
-        hierarchical = outArgs$hierarchical,
-        neutral.as.uninf = outArgs$neutral.as.uninf,
-        correction.uninf = outArgs$correction.uninf,
-        method.inference = outArgs$method.inference,
-        strata = outArgs$strata,
-        level.strata = outArgs$level.strata,
-        threshold = outArgs$threshold,
-        n.resampling = outArgs$n.resampling,
-        deltaResampling = outResampling$deltaResampling,
-        DeltaResampling = outResampling$DeltaResampling,
-        covarianceResampling = outResampling$covariance,
-        covariance = outPoint$Mvar,
-        weight = outArgs$weight,
-        iidAverage_favorable = outPoint$iidAverage_favorable,
-        iidAverage_unfavorable = outPoint$iidAverage_unfavorable,
-        iidNuisance_favorable = outPoint$iidNuisance_favorable,
-        iidNuisance_unfavorable = outPoint$iidNuisance_unfavorable,
-        tablePairScore = if(outArgs$keep.pairScore){outPoint$tablePairScore}else{list()},
-        tableSurvival = if(outArgs$keep.survival){outPoint$tableSurvival}else{list()}
-    )
+    keep.args <- c("index.T", "index.C", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf",
+                   "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling")
+    BuyseTest.object <- do.call("S4BuyseTest", args = c(outPoint, outArgs[keep.args], outResampling))
+    
     if(outArgs$trace > 1){
         cat("\n")
     }
     
     ## ** export
-    return(BuyseRes.object)
+    return(BuyseTest.object)
 }
 
 ## * .BuyseTest (code)
@@ -597,7 +545,7 @@ BuyseTest <- function(formula,
     }else{
         return(list(delta = resBT$delta,
                     Delta = resBT$Delta,
-                    Mvar = resBT$Mvar))
+                    covariance = resBT$covariance))
     }
 }
 
@@ -1063,7 +1011,7 @@ calcPeron <- function(data,
 
     if(iidNuisance){
         iid.model.tte <- lapply(model.tte, function(iModel){ ## iModel <- model.tte[[1]]
-            iOut <- iidProdlim(iModel, add0 = TRUE)
+            iOut <- lava::iid(iModel, add0 = TRUE)
             iOut$IFsurvival.control <- iOut$IFsurvival[which(iOut$X[,treatment]==0)]
             iOut$IFsurvival.treatment <- iOut$IFsurvival[which(iOut$X[,treatment]==1)]
             return(iOut)

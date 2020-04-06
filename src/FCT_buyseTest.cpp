@@ -409,7 +409,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 			    Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,
 			    Rcpp::Named("iidNuisance_favorable") = iidNuisance_favorable,
 			    Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
-			    Rcpp::Named("Mvar") = Mvar,
+			    Rcpp::Named("covariance") = Mvar,
 			    Rcpp::Named("tableScore")  = pairScore
 			    ));
 }
@@ -926,7 +926,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			    Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,
 			    Rcpp::Named("iidNuisance_favorable") = iidNuisance_favorable,
 			    Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
-			    Rcpp::Named("Mvar") = Mvar,
+			    Rcpp::Named("covariance") = Mvar,
 			    Rcpp::Named("tableScore")  = pairScore
 			    ));
 }

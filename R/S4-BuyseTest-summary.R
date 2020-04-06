@@ -1,9 +1,9 @@
 ## * Documentation - summary
 #' @docType methods
-#' @name BuyseRes-summary
-#' @title Summary Method for Class "BuyseRes"
-#' @aliases summary,BuyseRes-method
-#' @include BuyseRes-object.R
+#' @name S4BuyseTest-summary
+#' @title Summary Method for Class "S4BuyseTest"
+#' @aliases summary,S4BuyseTest-method
+#' @include S4-BuyseTest.R
 #' 
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
 #' 
@@ -23,7 +23,7 @@
 #' or the name of the column to be output (e.g. \code{c("strata","Delta","p.value")}).
 #' @param strata [character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.
 #' @param digit [integer vector] the number of digit to use for printing the counts and the delta.  
-#' @param ... arguments to be passed to \code{\link{BuyseRes-confint}}
+#' @param ... arguments to be passed to \code{\link{S4BuyseTest-confint}}
 #'
 #' @details
 #' \bold{Content of the output} \cr
@@ -58,7 +58,7 @@
 #' However, when using a permutation test confidence intervals are not displayed in the summary.
 #' This is because there is no (to the best of our knowledge) straightforward way to obtain good confidence intervals with permutations. 
 #' An easy way consist in using the quantiles of the permutation distribution and then shift by the point estimate of the statistic.
-#' This is what is output by \code{\link{BuyseRes-confint}}.
+#' This is what is output by \code{\link{S4BuyseTest-confint}}.
 #' However this approach leads to a much too high coverage when the null hypothesis is false.
 #' The limits of the confidence interval can also end up being outside of the interval of definition of the statistic
 #' (e.g. outside [-1,1] for the proportion in favor of treatment).
@@ -79,8 +79,8 @@
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
-#'   \code{\link{BuyseRes-class}} for a presentation of the \code{BuyseRes} object. \cr
-#'   \code{\link{BuyseRes-confint}} to output confidence interval and p-values in a matrix format.
+#'   \code{\link{S4BuyseTest-class}} for a presentation of the \code{S4BuyseTest} object. \cr
+#'   \code{\link{S4BuyseTest-confint}} to output confidence interval and p-values in a matrix format.
 #' 
 #' @examples
 #' library(data.table)
@@ -102,14 +102,14 @@
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 #' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \
 #' 
-#' @keywords summary BuyseRes-method
+#' @keywords summary S4BuyseTest-method
 #' @author Brice Ozenne
 
 ## * method - summary
-#' @rdname BuyseRes-summary
+#' @rdname S4BuyseTest-summary
 #' @exportMethod summary
 setMethod(f = "summary",
-          signature = "BuyseRes",
+          signature = "S4BuyseTest",
           definition = function(object, print = TRUE, percentage = TRUE, statistic = NULL,
                                 conf.level = NULL,
                                 strata = if(length(object@level.strata)==1){"global"}else{NULL},
@@ -128,13 +128,13 @@ setMethod(f = "summary",
               validLogical(print,
                            name1 = "print",
                            valid.length = 1,
-                           method = "summary[BuyseRes]")
+                           method = "summary[S4BuyseTest]")
               
               validLogical(percentage,
                            name1 = "percentage",
                            valid.length = 1,
                            refuse.NA = FALSE, 
-                           method = "summary[BuyseRes]")
+                           method = "summary[S4BuyseTest]")
 
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
@@ -147,26 +147,27 @@ setMethod(f = "summary",
                              name1 = "statistic",
                              valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
                              valid.length = 1,
-                             method = "summary[BuyseRes]")
+                             method = "summary[S4BuyseTest]")
 
               validCharacter(strata,
                              name1 = "strata",
                              valid.length = NULL,
                              valid.values = c("global",object@level.strata),
                              refuse.NULL = FALSE,
-                             method = "summary[BuyseRes]")
+                             method = "summary[S4BuyseTest]")
 
               if(length(digit) == 1){digit <- rep(digit,3)}
               validInteger(digit,
                            name1 = "digit",
                            min = 0,
                            valid.length = 3,
-                           method = "summary[BuyseRes]")
+                           method = "summary[S4BuyseTest]")
 
               if(is.numeric(type.display)){
                   validInteger(type.display,
                                name1 = "type.display",
-                               valid.values = 1:length(option$summary.display),
+                               min = 1,
+                               max = length(option$summary.display),
                                valid.length = 1)
                   type.display <- option$summary.display[[type.display]]
               }else{
@@ -201,7 +202,7 @@ setMethod(f = "summary",
               ## ** update type.display
               ## update the name of the columns according to the request
               if("CI" %in% type.display){
-                  type.display <- c(setdiff(type.display,"CI"),name.ci)
+                  type.display[type.display=="CI"] <- name.ci
               }
               vec.tfunu <- c("total","favorable","unfavorable","neutral","uninf")
               if(is.na(percentage)){
