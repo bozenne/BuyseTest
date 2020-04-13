@@ -203,9 +203,9 @@ simBuyseTest_bin <- function(modelT, modelC, p.T = 0.5, p.C = NULL, name = NULL,
     lava::distribution(modelT, name[iterE]) <- lava::binomial.lvm(link = "identity", p = p.T[iterE])
     lava::distribution(modelC, name[iterE]) <- lava::binomial.lvm(link = "identity", p = p.C[iterE])
   }
-  
+    
   ## ** export
-  return(list(modelT = modelC, modelC = modelC))
+  return(list(modelT = modelT, modelC = modelC))
   
 }
 
