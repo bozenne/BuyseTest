@@ -823,7 +823,7 @@ calcPeron <- function(data,
             
             for(iEndpoint in iIndex.associatedEndpoint){ ## iEndpoint <- 1
               iThreshold <- threshold[iEndpoint] ## iThreshold = 1
-              
+
               ## **** last survival
               out$lastSurv[[iEndpoint]][iStrata,] <- cbind(iLast.cif1C, iLast.cif1T, iLast.cif2C, iLast.cif2T)
               

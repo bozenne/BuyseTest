@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: apr  6 2020 (22:42) 
+## Last-Updated: apr 22 2020 (17:17) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 35
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -140,7 +140,7 @@ test_that("1 tte endpoint - Peron", {
     GS.bis <- data.frame("n.T" = c(50), 
                          "mean.estimate" = c(0.04281066), 
                          "sd.estimate" = c(0.12750526), 
-                         "mean.se" = c(0.12883854), 
+                         "mean.se" = c(0.12987798), 
                          "rejection.rate" = c(0))
     expect_equal(GS.bis, as.data.frame(test), tol = 1e-6)
 })
@@ -185,7 +185,7 @@ test_that("Multiple endpoints", {
     GS.bis <- data.frame("n.T" = c(10, 50), 
                          "mean.estimate" = c(-0.01278659, 0.02538207), 
                          "sd.estimate" = c(0.24334861, 0.13532166), 
-                         "mean.se" = c(0.28254321, 0.12851884), 
+                         "mean.se" = c(0.28827423, 0.12892174), 
                          "rejection.rate" = c(0, 0))
     expect_equal(GS.bis, as.data.frame(test), tol = 1e-3)
 

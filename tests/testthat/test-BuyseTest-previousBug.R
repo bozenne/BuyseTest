@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr  6 2020 (11:49) 
+## Last-Updated: apr 22 2020 (17:27) 
 ##           By: Brice Ozenne
-##     Update #: 161
+##     Update #: 163
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -214,16 +214,17 @@ test_that("Multiple thresholds",{
 
     ## butils::object2script(as.double(BuyseresPer@count.favorable), digit = 2)
     GS <- c(260.64, 35.93, 37.33, 147.32, 272.14, 263.6, 235.7, 213.21, 390.29, 408.73, 514.7, 514.34, 744.78, 865.21, 1095.26)
-    expect_equal(as.double(coef(BuyseresPer, statistic = "count.favorable", cumulative = FALSE)), GS, tol = 1e-1)
+    expect_equal(as.double(coef(BuyseresPer, statistic = "count.favorable", cumulative = FALSE)), GS, tol = 1e-5)
     ## butils::object2script(as.double(BuyseresPer@count.unfavorable), digit = 2)
     GS <- c(0, 0, 6.97, 25.66, 43.89, 34.8, 46.38, 105.42, 199.85, 338.55, 407.72, 521.83, 548.02, 782.94, 938.8)
-    expect_equal(as.double(coef(BuyseresPer, statistic = "count.unfavorable", cumulative = FALSE)), GS, tol = 1e-1)
+    expect_equal(as.double(coef(BuyseresPer, statistic = "count.unfavorable", cumulative = FALSE)), GS, tol = 1e-5)
     ## butils::object2script(as.double(BuyseresPer@count.neutral), digit = 2)
-    GS <- c(9617.63, 9611.09, 9596.16, 9448.36, 9149.12, 8863.32, 8581.24, 8262.61, 7676.67, 6933.58, 6011.17, 4975, 3682.21, 2034.06, 0)
-    expect_equal(as.double(coef(BuyseresPer, statistic = "count.neutral", cumulative = FALSE)), GS, tol = 1e-1)
+    GS <- c(9580.24173298, 9580.24173298, 9573.26856493, 9433.45578036, 9140.84153639, 8860.00546388, 8577.9282735, 8259.29654759, 7675.01664374, 6933.58435144, 6011.16786378, 4975.00117239, 3682.20846492, 2034.06256111, 0)
+    expect_equal(as.double(coef(BuyseresPer, statistic = "count.neutral", cumulative = FALSE)), GS, tol = 1e-5)
     ## butils::object2script(as.double(BuyseresPer@count.uninf), digit = 2)
-    GS <- c(121.73, 92.35, 62.96, 37.78, 20.99, 8.4, 8.4, 8.4, 4.2, 0, 0, 0, 0, 0, 0)
+    GS <- c(159.12095011, 123.19041299, 85.85998481, 52.68680886, 29.27044937, 11.70817975, 11.70817975, 11.70817975, 5.85408987, 0, 0, 0, 0, 0, 0)
     expect_equal(as.double(coef(BuyseresPer, statistic = "count.uninf", cumulative = FALSE)), GS, tol = 1e-1)
+    
     ## butils::object2script(as.double(BuyseresPer@delta.netBenefit), digit = 5)
     GS <- c(0.02606, 0.00359, 0.00304, 0.01217, 0.02282, 0.02288, 0.01893, 0.01078, 0.01904, 0.00702, 0.0107, -0.00075, 0.01968, 0.00823, 0.01565)
     expect_equal(as.double(coef(BuyseresPer, statistic = "netBenefit", cumulative = FALSE)), GS, tol = 1e-3)

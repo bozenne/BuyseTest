@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: apr  6 2020 (11:58) 
+## Last-Updated: apr 22 2020 (17:21) 
 ##           By: Brice Ozenne
-##     Update #: 139
+##     Update #: 140
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -586,18 +586,12 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
 
     test <- confint(e.BT_ttebin)
     attr(test,"n.resampling") <- NULL
-    GS <- matrix(c(-0.25, -0.45, 0.25820075, 0.26391019, -0.66135295, -0.81214403, 0.27696228, 0.16244277, 0.35373067, 0.14300359), 
+    GS <- matrix(c(-0.25, -0.45, 0.19367783, 0.22934636, -0.5785771, -0.78116402, 0.14839171, 0.07878577, 0.21633631, 0.0919046), 
                  nrow = 2, 
                  ncol = 5, 
                  dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
                  ) 
-    ## engine: GPC_cpp
-    ## GS <- matrix(c(-0.25, -0.45, 0.1716352, 0.2235767, -0.5471036, -0.77557548, 0.10304552, 0.06467924, 0.1629835, 0.08382162), 
-    ##              nrow = 2, 
-    ##              ncol = 5, 
-    ##              dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
-    ##              ) 
-    expect_equal(test,GS, tol = 1e-6)
+    expect_equal(test, GS, tol = 1e-6)
 
     ## GS <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
                     ## data = dt, 
@@ -641,17 +635,12 @@ test_that("iid with nuisance parameters: 2 TTE",{
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
     attr(test,"n.resampling") <- NULL
-    GS <- matrix(c(-0.25168271, -0.11821275, -0.15513379, 0.15184042, 0.23167369, 0.23143034, -0.51897542, -0.52213857, -0.55194724, 0.06044568, 0.32902927, 0.29896642, 0.11259456, 0.61321585, 0.50956265), 
+    GS <- matrix(c(-0.25168271, -0.11821275, -0.15513379, 0.1363316, 0.21272703, 0.21392362, -0.49486602, -0.49420898, -0.52702616, 0.0280597, 0.29504029, 0.26662361, 0.07720623, 0.5819696, 0.47554172), 
                  nrow = 3, 
                  ncol = 5, 
                  dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
-                 )
-    ## engine: GPC_cpp
-    ## GS <- matrix(c(-0.25168271, -0.11821275, -0.15513379, 0.14101332, 0.21861747, 0.21603064, -0.50222756, -0.50300659, -0.53007553, 0.03784555, 0.30569245, 0.27054988, 0.08755073, 0.59218176, 0.47985706), 
-    ##              nrow = 3, 
-    ##              ncol = 5, 
-    ##              dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
-    ##              )
+                 ) 
+
     expect_equal(test, GS, tol = 1e-3)
 })
 
