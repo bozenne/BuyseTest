@@ -6,8 +6,7 @@
 \alias{coef,S4BuyseTest-method}
 \title{Coef Method for Class "S4BuyseTest"}
 \usage{
-\S4method{coef}{S4BuyseTest}(object, statistic = NULL,
-  stratified = FALSE, cumulative = TRUE, ...)
+\S4method{coef}{S4BuyseTest}(object, statistic = NULL, stratified = FALSE, cumulative = TRUE, ...)
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}

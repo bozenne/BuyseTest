@@ -6,10 +6,17 @@
 \alias{summary,S4BuyseTest-method}
 \title{Summary Method for Class "S4BuyseTest"}
 \usage{
-\S4method{summary}{S4BuyseTest}(object, print = TRUE,
-  percentage = TRUE, statistic = NULL, conf.level = NULL,
-  strata = if (length(object@level.strata) == 1) {     "global" } else { 
-     NULL }, type.display = 1, digit = c(2, 4, 5), ...)
+\S4method{summary}{S4BuyseTest}(
+  object,
+  print = TRUE,
+  percentage = TRUE,
+  statistic = NULL,
+  conf.level = NULL,
+  strata = if (length(object@level.strata) == 1) {     "global" } else {     NULL },
+  type.display = 1,
+  digit = c(2, 4, 5),
+  ...
+)
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}

@@ -4,8 +4,14 @@
 \alias{constStrata}
 \title{Strata creation}
 \usage{
-constStrata(data, strata, sep = ".", lex.order = FALSE, trace = TRUE,
-  as.numeric = FALSE)
+constStrata(
+  data,
+  strata,
+  sep = ".",
+  lex.order = FALSE,
+  trace = TRUE,
+  as.numeric = FALSE
+)
 }
 \arguments{
 \item{data}{[data.frame] dataset.}

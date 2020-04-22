@@ -4,8 +4,16 @@
 \alias{calcIntegralSurv_cpp}
 \title{C++ Function Computing the Integral Terms for the Peron Method in the survival case.}
 \usage{
-calcIntegralSurv_cpp(survival, start, lastSurv, lastdSurv, returnDeriv,
-  column, derivSurv, derivSurvD)
+calcIntegralSurv_cpp(
+  survival,
+  start,
+  lastSurv,
+  lastdSurv,
+  returnDeriv,
+  column,
+  derivSurv,
+  derivSurvD
+)
 }
 \arguments{
 \item{survival}{[matrix] Contains the jump times in the first column,

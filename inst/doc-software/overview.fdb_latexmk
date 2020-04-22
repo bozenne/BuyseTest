@@ -1,15 +1,16 @@
 # Fdb version 3
-["bibtex overview"] 1586191422 "overview.aux" "overview.bbl" "overview" 1586191425
+["bibtex overview"] 1586243488 "overview.aux" "overview.bbl" "overview" 1586243490
   "/usr/share/texlive/texmf-dist/bibtex/bst/base/apalike.bst" 1292289607 24635 604dafcc79f521a11ea73e506e1fbd98 ""
   "bibliography.bib" 1578348500 1085 8311b6b0aeb043b109da7a8fe24c3542 ""
-  "overview.aux" 1586191424 5068 1399ee016de109d128c57c4be84a1a54 ""
+  "overview.aux" 1586243490 5068 001a458da52c75990ae0933e2fd228f4 ""
   "overview.bcf" 0 -1 0 ""
   (generated)
+  "overview.blg"
   "overview.bbl"
-["pdflatex"] 1586191423 "/home/brice/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" "overview.pdf" "overview" 1586191425
+["pdflatex"] 1586243488 "/home/brice/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" "overview.pdf" "overview" 1586243490
   "/etc/texmf/web2c/texmf.cnf" 1534703927 1101 af7716885e081ab43982cab7b4672c1a ""
   "/home/brice/.texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1503766560 1865349 c4cd9730da691bb349a2bc1d0ae887c5 ""
-  "/home/brice/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" 1586191420 53779 4f6953e9a77f807d37c9e99293d0be05 ""
+  "/home/brice/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" 1586243486 56638 4511d7f6deb05202b1b32230d0502a9a ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1200.tfm" 1136768653 3584 f80ddd985bd00e29e9a6047ebd9d4781 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -174,13 +175,13 @@
   "/usr/share/texmf/tex/latex/lm/ts1lmr.fd" 1256929440 1912 6435298ac30b512714b02d4c8c9e923c ""
   "/usr/share/texmf/web2c/texmf.cnf" 1503343927 31343 93828589fb0cea665e553ee5a17ad2d4 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1539412869 3856019 4dd7999380c37c605f249c4a8e3ef21e ""
-  "overview.aux" 1586191424 5068 1399ee016de109d128c57c4be84a1a54 ""
-  "overview.bbl" 1586191422 918 2bdaeca79fed899dd5f6d6ad604e0b6e "bibtex overview"
-  "overview.out" 1586191424 1566 a5e0739a23b3e2b4d5f5b23739559ffc ""
-  "overview.tex" 1586191420 53779 4f6953e9a77f807d37c9e99293d0be05 ""
+  "overview.aux" 1586243490 5068 001a458da52c75990ae0933e2fd228f4 ""
+  "overview.bbl" 1586243488 918 2bdaeca79fed899dd5f6d6ad604e0b6e "bibtex overview"
+  "overview.out" 1586243490 1566 a5e0739a23b3e2b4d5f5b23739559ffc ""
+  "overview.tex" 1586243486 56638 4511d7f6deb05202b1b32230d0502a9a ""
   (generated)
   "overview.soc"
-  "overview.aux"
   "overview.pdf"
   "overview.out"
+  "overview.aux"
   "overview.log"

@@ -5,9 +5,17 @@
 \alias{simBuyseTest}
 \title{Simulation of data for the BuyseTest}
 \usage{
-simBuyseTest(n.T, n.C = NULL, argsBin = list(), argsCont = list(),
-  argsTTE = list(), n.strata = NULL, names.strata = NULL,
-  format = "data.table", latent = FALSE)
+simBuyseTest(
+  n.T,
+  n.C = NULL,
+  argsBin = list(),
+  argsCont = list(),
+  argsTTE = list(),
+  n.strata = NULL,
+  names.strata = NULL,
+  format = "data.table",
+  latent = FALSE
+)
 }
 \arguments{
 \item{n.T}{[integer, >0] number of patients in the treatment arm}

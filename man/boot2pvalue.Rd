@@ -4,9 +4,15 @@
 \alias{boot2pvalue}
 \title{Compute the p.value from the distribution under H1}
 \usage{
-boot2pvalue(x, null, estimate = NULL, alternative = "two.sided",
-  FUN.ci = quantileCI, checkSign = TRUE,
-  tol = .Machine$double.eps^0.5)
+boot2pvalue(
+  x,
+  null,
+  estimate = NULL,
+  alternative = "two.sided",
+  FUN.ci = quantileCI,
+  checkSign = TRUE,
+  tol = .Machine$double.eps^0.5
+)
 }
 \arguments{
 \item{x}{[numeric vector] a vector of bootstrap estimates of the statistic.}

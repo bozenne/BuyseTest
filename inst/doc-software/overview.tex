@@ -1,4 +1,4 @@
-% Created 2020-04-06 man 18:43
+% Created 2020-04-07 tir 09:11
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -203,7 +203,7 @@ loaded via a namespace (and not attached):
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:orga3a29e9}
+\label{sec:org0272417}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -285,7 +285,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org8a688fc}
+\label{sec:orgd47fa04}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -367,7 +367,7 @@ See \texttt{help(BuyseRes-summary)} for more detailed explanations about the
 \clearpage
 
 \subsection{Using multiple endpoints}
-\label{sec:orgcf4128d}
+\label{sec:org13093c6}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -463,7 +463,7 @@ This has been refered as the O’Brien test in the litterature
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:orgda5982d}
+\label{sec:orgf2c2fe8}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -497,7 +497,7 @@ Error in (function (name.call, status, correction.uninf, cpus, data, endpoint,  
 \end{verbatim}
 
 \subsection{Stratified GPC}
-\label{sec:orgca2c186}
+\label{sec:org60483c4}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -559,7 +559,7 @@ the strata. The global delta is a sum of the strata specific delta
 weighted by the empirical proportion of pairs for each strata.
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org082c763}
+\label{sec:org4f48be0}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -631,7 +631,7 @@ So in this case no pair is analyzed at second priority.
 \clearpage
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org51c983a}
+\label{sec:org7550ec6}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
@@ -754,7 +754,7 @@ increase by a factor 5 to 10 compared to the point estimate alone
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org81d5c23}
+\label{sec:org84c178e}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -763,7 +763,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orgf3f0e8d}
+\label{sec:org7667d9c}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -849,7 +849,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org205915c}
+\label{sec:orgdc5e581}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} in
@@ -894,7 +894,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:orgd394cea}
+\label{sec:orgf7aa548}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -993,7 +993,7 @@ SurvivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org6ff6c0c}
+\label{sec:orgcb81064}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1080,7 +1080,7 @@ upperBound 0.5058685   0.3770426
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:orgbd5782d}
+\label{sec:orge77ad2e}
 
 In presence of censoring or missing values, some pairs may be
 classified as uninformative. This may bias the estimate of the net net
@@ -1150,7 +1150,7 @@ eventtime         1 -0.0022 -0.0022
 As we can see on this example, the net benefit is shrunk toward 0.
 
 \subsubsection{Inverse probability-of-censoring weights (IPCW)}
-\label{sec:org55305f3}
+\label{sec:org48c8a28}
 
 With IPCW the weights of the non-informative pairs is redistributed to
 the informative pairs. This is only a good strategy when there are no
@@ -1217,7 +1217,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsubsection{Correction at the pair level}
-\label{sec:org2ef5d61}
+\label{sec:orgd2e074d}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1278,7 +1278,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:org243a2ba}
+\label{sec:org87f01c3}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1338,21 +1338,102 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:org5a97d53}
+\label{sec:org524c672}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
 hypothesis under a specific generative mechanism. The user therefore
 need to specify:
 \begin{itemize}
-\item the generative mecanism via a function \hfill - argument \texttt{sim}
+\item the generative mechanism via a function \hfill - argument \texttt{sim}
 \item the null hypothesis \hfill - argument \texttt{null}
 \item the sample size(s) for the which the power should be computed  \hfill - argument \texttt{sample.size}
 \end{itemize}
 
+\bigskip
+
+Consider the following generative mechanism where the outcome follows
+a Student's t-distribution in the treatment and control group, with same
+variance and degrees of freedom but different mean:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+simFCT <- function(n.C, n.T){
+     out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
+		  cbind(Y=stats::rt(n.T, df = 5) + 1/2, group=1))
+     return(data.table::as.data.table(out))
+}
+simFCT(101,101)
+\end{lstlisting}
+
+\begin{verbatim}
+              Y group
+  1: -0.3622340     0
+  2:  0.4563045     0
+  3: -0.4918583     0
+  4: -0.4710663     0
+  5:  1.6273095     0
+ ---                 
+198:  0.4491401     1
+199:  0.3073182     1
+200: -0.8438920     1
+201:  1.8479558     1
+202:  2.6090392     1
+\end{verbatim}
+
+We then define the null hypothesis:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+null <- c("netBenefit" = 0)
+\end{lstlisting}
+
+Naming the value is important since that will indicate which statistic
+should be used (here the net benefit). We can assess the power of the
+Wilcoxon's test using the following syntax:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+powerW <- powerBuyseTest(sim = simFCT, 
+			 sample.size = c(5,10,20,30,50,100),
+			 null = null,
+			 formula = group ~ cont(Y), 
+			 n.rep = 1000, seed = 10,
+			 cpus = 3, trace = 0)
+\end{lstlisting}
+
+\clearpage
+
+And use the summary method to display the power (column
+\texttt{rejection.rate}):
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(powerW)
+\end{lstlisting}
+
+\begin{verbatim}
+        Simulation study with Generalized pairwise comparison
+        with 1000 samples
+
+ > statistic   : net benefit (null hypothesis Delta=0)
+ endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
+        Y     1e-12   5   5        0.2521      0.3676  0.3359          0.078
+                     10  10        0.2557      0.2538  0.2457          0.141
+                     20  20        0.2505      0.1787  0.1753          0.252
+                     30  30        0.2473      0.1449  0.1435           0.36
+                     50  50        0.2431      0.1135  0.1113          0.561
+                    100 100        0.2444      0.0802  0.0787          0.861
+
+ n.T          : number of observations in the treatment group
+ n.C          : number of observations in the control group
+ mean.estimate: average estimate over simulations
+ sd.estimate  : standard deviation of the estimate over simulations
+ mean.se      : average estimated standard error of the estimate over simulations
+ rejection    : frequency of the rejection of the null hypothesis over simulations
+(standard error: H-projection of order 1| p-value: after transformation)
+\end{verbatim}
+
+\clearpage
 
 \section{Modifying default options}
-\label{sec:org9ccd0c9}
+\label{sec:org1e2e6ce}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1403,7 +1484,7 @@ BuyseTest.options(reinitialise = TRUE)
 
 
 \section*{References}
-\label{sec:org8c2c8c5}
+\label{sec:org765ee1e}
 \begingroup
 \renewcommand{\section}[2]{}
 

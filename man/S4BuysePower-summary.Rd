@@ -6,9 +6,17 @@
 \alias{summary,S4BuysePower-method}
 \title{Summary Method for Class "S4BuysePower"}
 \usage{
-\S4method{summary}{S4BuysePower}(object, print = TRUE,
-  statistic = NULL, endpoint = NULL, order.Hprojection = NULL,
-  transformation = NULL, legend = TRUE, col.rep = FALSE, digit = 4)
+\S4method{summary}{S4BuysePower}(
+  object,
+  print = TRUE,
+  statistic = NULL,
+  endpoint = NULL,
+  order.Hprojection = NULL,
+  transformation = NULL,
+  legend = TRUE,
+  col.rep = FALSE,
+  digit = 4
+)
 }
 \arguments{
 \item{object}{output of \code{\link{powerBuyseTest}}}

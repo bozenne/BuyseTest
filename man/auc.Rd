@@ -4,9 +4,16 @@
 \alias{auc}
 \title{Estimation of the Area Under the ROC Curve}
 \usage{
-auc(labels, predictions, fold = NULL, observation = NULL,
-  direction = ">", null = 0.5, conf.level = 0.95,
-  transformation = FALSE)
+auc(
+  labels,
+  predictions,
+  fold = NULL,
+  observation = NULL,
+  direction = ">",
+  null = 0.5,
+  conf.level = 0.95,
+  transformation = FALSE
+)
 }
 \arguments{
 \item{labels}{[integer/character vector] the disease status (should only take two different values).}

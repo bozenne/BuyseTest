@@ -4,13 +4,33 @@
 \alias{BuyseTest}
 \title{Generalized Pairwise Comparisons (GPC)}
 \usage{
-BuyseTest(formula, data, scoring.rule = NULL, correction.uninf = NULL,
-  model.tte = NULL, method.inference = NULL, n.resampling = NULL,
-  strata.resampling = NULL, hierarchical = NULL, weight = NULL,
-  neutral.as.uninf = NULL, keep.pairScore = NULL, seed = NULL,
-  cpus = NULL, trace = NULL, treatment = NULL, endpoint = NULL,
-  type = NULL, threshold = NULL, status = NULL, operator = NULL,
-  censoring = NULL, strata = NULL, keep.comparison, method.tte)
+BuyseTest(
+  formula,
+  data,
+  scoring.rule = NULL,
+  correction.uninf = NULL,
+  model.tte = NULL,
+  method.inference = NULL,
+  n.resampling = NULL,
+  strata.resampling = NULL,
+  hierarchical = NULL,
+  weight = NULL,
+  neutral.as.uninf = NULL,
+  keep.pairScore = NULL,
+  seed = NULL,
+  cpus = NULL,
+  trace = NULL,
+  treatment = NULL,
+  endpoint = NULL,
+  type = NULL,
+  threshold = NULL,
+  status = NULL,
+  operator = NULL,
+  censoring = NULL,
+  strata = NULL,
+  keep.comparison,
+  method.tte
+)
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the GPC model,

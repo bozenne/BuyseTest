@@ -9,25 +9,81 @@
 \alias{calcPeron}
 \title{internal functions for BuyseTest - initialization}
 \usage{
-initializeArgs(status, correction.uninf = NULL, cpus = NULL, data,
-  endpoint, formula, hierarchical = NULL, keep.pairScore = NULL,
-  method.inference = NULL, scoring.rule = NULL, model.tte,
-  n.resampling = NULL, strata.resampling = NULL, name.call,
-  neutral.as.uninf = NULL, operator, censoring, option, seed = NULL,
-  strata, threshold, trace = NULL, treatment, type, weight)
+initializeArgs(
+  status,
+  correction.uninf = NULL,
+  cpus = NULL,
+  data,
+  endpoint,
+  formula,
+  hierarchical = NULL,
+  keep.pairScore = NULL,
+  method.inference = NULL,
+  scoring.rule = NULL,
+  model.tte,
+  n.resampling = NULL,
+  strata.resampling = NULL,
+  name.call,
+  neutral.as.uninf = NULL,
+  operator,
+  censoring,
+  option,
+  seed = NULL,
+  strata,
+  threshold,
+  trace = NULL,
+  treatment,
+  type,
+  weight
+)
 
-initializeData(data, type, endpoint, Uendpoint, D, scoring.rule, status,
-  Ustatus, method.inference, operator, censoring, strata, treatment,
-  hierarchical, copy, keep.pairScore, endpoint.TTE, status.TTE,
-  iidNuisance)
+initializeData(
+  data,
+  type,
+  endpoint,
+  Uendpoint,
+  D,
+  scoring.rule,
+  status,
+  Ustatus,
+  method.inference,
+  operator,
+  censoring,
+  strata,
+  treatment,
+  hierarchical,
+  copy,
+  keep.pairScore,
+  endpoint.TTE,
+  status.TTE,
+  iidNuisance
+)
 
 initializeFormula(x)
 
 calcSample(envir, method.inference)
 
-calcPeron(data, model.tte, method.score, treatment, level.treatment,
-  endpoint, endpoint.TTE, endpoint.UTTE, status, status.TTE, status.UTTE,
-  D.TTE, D.UTTE, type, strata, threshold, n.strata, iidNuisance, out)
+calcPeron(
+  data,
+  model.tte,
+  method.score,
+  treatment,
+  level.treatment,
+  endpoint,
+  endpoint.TTE,
+  endpoint.UTTE,
+  status,
+  status.TTE,
+  status.UTTE,
+  D.TTE,
+  D.UTTE,
+  type,
+  strata,
+  threshold,
+  n.strata,
+  iidNuisance,
+  out
+)
 }
 \description{
 Functions called by \code{\link{BuyseTest}} to initialize the arguments.

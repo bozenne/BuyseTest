@@ -12,40 +12,95 @@
 \alias{validPath}
 \title{Check Arguments of a function.}
 \usage{
-validCharacter(value1, name1 = as.character(substitute(value1)),
-  valid.length, valid.values = "character", refuse.NULL = TRUE,
-  refuse.duplicates = FALSE, method = NULL, addPP = TRUE)
-
-validClass(value1, name1 = as.character(substitute(value1)), valid.class,
-  type = "inherits", method = NULL, addPP = TRUE)
-
-validDimension(value1, value2 = NULL,
+validCharacter(
+  value1,
   name1 = as.character(substitute(value1)),
-  name2 = as.character(substitute(value2)), valid.dimension = NULL,
-  type = c("NROW", "NCOL"), method = NULL, addPP = TRUE)
+  valid.length,
+  valid.values = "character",
+  refuse.NULL = TRUE,
+  refuse.duplicates = FALSE,
+  method = NULL,
+  addPP = TRUE
+)
 
-validInteger(value1, name1 = as.character(substitute(value1)),
-  valid.length, min = NULL, max = NULL, refuse.NA = TRUE,
-  refuse.NULL = TRUE, refuse.duplicates = FALSE, method = NULL,
-  addPP = TRUE)
+validClass(
+  value1,
+  name1 = as.character(substitute(value1)),
+  valid.class,
+  type = "inherits",
+  method = NULL,
+  addPP = TRUE
+)
 
-validLogical(value1, name1 = as.character(substitute(value1)),
-  valid.length, refuse.NULL = TRUE, refuse.NA = TRUE, method = NULL,
-  addPP = TRUE)
+validDimension(
+  value1,
+  value2 = NULL,
+  name1 = as.character(substitute(value1)),
+  name2 = as.character(substitute(value2)),
+  valid.dimension = NULL,
+  type = c("NROW", "NCOL"),
+  method = NULL,
+  addPP = TRUE
+)
 
-validNames(value1, name1 = as.character(substitute(value1)),
-  refuse.NULL = TRUE, valid.length = NULL, valid.values = NULL,
-  required.values = NULL, refuse.values = NULL, method = NULL,
-  addPP = TRUE)
+validInteger(
+  value1,
+  name1 = as.character(substitute(value1)),
+  valid.length,
+  min = NULL,
+  max = NULL,
+  refuse.NA = TRUE,
+  refuse.NULL = TRUE,
+  refuse.duplicates = FALSE,
+  method = NULL,
+  addPP = TRUE
+)
 
-validNumeric(value1, name1 = as.character(substitute(value1)),
-  valid.length, valid.values = NULL, min = NULL, max = NULL,
-  refuse.NA = TRUE, refuse.NULL = TRUE, refuse.duplicates = FALSE,
-  method = NULL, addPP = TRUE)
+validLogical(
+  value1,
+  name1 = as.character(substitute(value1)),
+  valid.length,
+  refuse.NULL = TRUE,
+  refuse.NA = TRUE,
+  method = NULL,
+  addPP = TRUE
+)
 
-validPath(value1, name1 = as.character(substitute(value1)), type,
-  method = NULL, addPP = TRUE, extension = NULL,
-  check.fsep = FALSE)
+validNames(
+  value1,
+  name1 = as.character(substitute(value1)),
+  refuse.NULL = TRUE,
+  valid.length = NULL,
+  valid.values = NULL,
+  required.values = NULL,
+  refuse.values = NULL,
+  method = NULL,
+  addPP = TRUE
+)
+
+validNumeric(
+  value1,
+  name1 = as.character(substitute(value1)),
+  valid.length,
+  valid.values = NULL,
+  min = NULL,
+  max = NULL,
+  refuse.NA = TRUE,
+  refuse.NULL = TRUE,
+  refuse.duplicates = FALSE,
+  method = NULL,
+  addPP = TRUE
+)
+
+validPath(
+  value1,
+  name1 = as.character(substitute(value1)),
+  type,
+  method = NULL,
+  addPP = TRUE,
+  extension = NULL,
+  check.fsep = FALSE
+)
 }
 \arguments{
 \item{value1}{the value of the (first) argument to be checked}

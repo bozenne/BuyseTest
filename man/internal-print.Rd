@@ -6,10 +6,29 @@
 \alias{printInference}
 \title{internal functions for BuyseTest - display}
 \usage{
-printGeneral(status, D, D.TTE, data, endpoint, hierarchical, level.strata,
-  level.treatment, scoring.rule, M.status, neutral.as.uninf,
-  correction.uninf, operator, strata, threshold, trace, treatment, type,
-  weight, Wscheme, ...)
+printGeneral(
+  status,
+  D,
+  D.TTE,
+  data,
+  endpoint,
+  hierarchical,
+  level.strata,
+  level.treatment,
+  scoring.rule,
+  M.status,
+  neutral.as.uninf,
+  correction.uninf,
+  operator,
+  strata,
+  threshold,
+  trace,
+  treatment,
+  type,
+  weight,
+  Wscheme,
+  ...
+)
 
 printInference(method.inference, n.resampling, cpus, seed, ...)
 }

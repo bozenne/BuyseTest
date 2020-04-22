@@ -4,9 +4,23 @@
 \alias{simCompetingRisks}
 \title{Simulation of Gompertz competing risks data for the BuyseTest}
 \usage{
-simCompetingRisks(n.T, n.C, p.1C = NULL, v.1C, v.1T, v.2C, v.2T,
-  sHR = NULL, b.1T = NULL, b.1C = NULL, b.2T = NULL, b.2C = NULL,
-  cens.distrib = NULL, param.cens = NULL, latent = NULL)
+simCompetingRisks(
+  n.T,
+  n.C,
+  p.1C = NULL,
+  v.1C,
+  v.1T,
+  v.2C,
+  v.2T,
+  sHR = NULL,
+  b.1T = NULL,
+  b.1C = NULL,
+  b.2T = NULL,
+  b.2C = NULL,
+  cens.distrib = NULL,
+  param.cens = NULL,
+  latent = NULL
+)
 }
 \arguments{
 \item{n.T}{[integer, >0] number of patients in the treatment arm}

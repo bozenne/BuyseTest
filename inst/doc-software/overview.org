@@ -1235,6 +1235,10 @@ powerW <- powerBuyseTest(sim = simFCT,
 
 #+RESULTS:
 
+\clearpage
+
+And use the summary method to display the power (column
+=rejection.rate=):
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(powerW)
 #+END_SRC
@@ -1261,6 +1265,8 @@ summary(powerW)
  rejection    : frequency of the rejection of the null hypothesis over simulations
 (standard error: H-projection of order 1| p-value: after transformation)
 #+end_example
+
+\clearpage
 
 * Modifying default options
 The =BuyseTest.options= method enable to get and set the default

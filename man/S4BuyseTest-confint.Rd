@@ -6,9 +6,17 @@
 \alias{confint,S4BuyseTest-method}
 \title{Confidence Intervals for Model Parameters}
 \usage{
-\S4method{confint}{S4BuyseTest}(object, statistic = NULL, null = NULL,
-  conf.level = NULL, alternative = NULL, method.ci.resampling = NULL,
-  order.Hprojection = NULL, transformation = NULL, cluster = NULL)
+\S4method{confint}{S4BuyseTest}(
+  object,
+  statistic = NULL,
+  null = NULL,
+  conf.level = NULL,
+  alternative = NULL,
+  method.ci.resampling = NULL,
+  order.Hprojection = NULL,
+  transformation = NULL,
+  cluster = NULL
+)
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}}

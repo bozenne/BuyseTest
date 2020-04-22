@@ -5,8 +5,6 @@
 #' 
 #' @description Class defining the global settings for the BuyseTest package.
 #' 
-#' @inheritParams BuyseTest
-#' 
 #' @seealso 
 #' \code{\link{BuyseTest.options}} to select or update global settings.
 #' 
