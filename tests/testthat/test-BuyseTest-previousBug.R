@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr 22 2020 (17:27) 
+## Last-Updated: apr 26 2020 (15:09) 
 ##           By: Brice Ozenne
-##     Update #: 163
+##     Update #: 167
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -414,6 +414,31 @@ test_that("powerBuyseTest - status vs. censoring", {
                                            method.inference = "u-statistic",
                                            scoring.rule = "Gehan", trace = 4))
 })
+
+## * brice ozenne : 04/26/20 2:36 uninformative pairs Peron
+dt.prodlim <- rbind(data.table(treat=0,
+                               time = c(1:8,rep(9,12)),
+                               status = c(rep(1,8),rep(0,12))
+                               ),
+                    data.table(treat=1,
+                               time = c(1:8,rep(9,12)),
+                               status = c(0,rep(1,7),rep(0,12))
+                               ))
+
+e.prodlim <- prodlim(Hist(time, status) ~ treat, data = dt.prodlim)
+plot(e.prodlim)
+
+dt.sim <- data.table(treat = c(0:1), time = 8, status = 0)
+e.BP <- BuyseTest(treat ~ tte(time, status, threshold=2),
+                  model.tte = e.prodlim, data = dt.sim, method.inference = "none")
+
+test_that("uniformative pair after last observation",{
+    expect_equal(as.double(e.BP@count.neutral), 0)
+    expect_equal(as.double(e.BP@count.uninf), 1)
+})
+
+
+
 ## * new
 ## set.seed(10)
 ## d <- simBuyseTest(1e2)
