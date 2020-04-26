@@ -38,11 +38,11 @@ Imports:
     stats4,
     utils
 Suggests:
-	cvAUC,
+    cvAUC,
     pbapply,
     pROC,
     R.rsp,
-	riskRegression,
+    riskRegression,
     survival,
     testthat
 LinkingTo: Rcpp, RcppArmadillo

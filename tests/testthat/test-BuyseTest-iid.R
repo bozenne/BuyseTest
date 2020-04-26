@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: apr 22 2020 (17:21) 
+## Last-Updated: apr 26 2020 (15:50) 
 ##           By: Brice Ozenne
-##     Update #: 140
+##     Update #: 142
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,6 +20,7 @@ if(FALSE){
     library(BuyseTest)
     library(data.table)
 }
+
 ## options("stringsAsFactors" = TRUE)
 context("Check correct computation of the variance \n")
 var2 <- function(x){var(x)*(length(x)-1)/length(x)}
