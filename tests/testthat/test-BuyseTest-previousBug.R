@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr 26 2020 (15:09) 
+## Last-Updated: maj  5 2020 (18:11) 
 ##           By: Brice Ozenne
-##     Update #: 167
+##     Update #: 168
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -426,7 +426,7 @@ dt.prodlim <- rbind(data.table(treat=0,
                                ))
 
 e.prodlim <- prodlim(Hist(time, status) ~ treat, data = dt.prodlim)
-plot(e.prodlim)
+## plot(e.prodlim)
 
 dt.sim <- data.table(treat = c(0:1), time = 8, status = 0)
 e.BP <- BuyseTest(treat ~ tte(time, status, threshold=2),

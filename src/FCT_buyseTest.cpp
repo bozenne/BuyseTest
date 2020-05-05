@@ -887,15 +887,15 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   std::vector< arma::mat> pairScore;
   if(keepScore){
     int iNpairs;
-    arma::colvec iScore;
     pairScore.resize(D);
     for(int iter_d=0; iter_d<D; iter_d++){
       iNpairs = vecPairScore[iter_d][0].size();
       pairScore[iter_d].resize(iNpairs,15);
       for(int iter_type=0; iter_type<15; iter_type++){
-	iScore = vecPairScore[iter_d][iter_type];
-	pairScore[iter_d].col(iter_type) = iScore;
-	// pairScore[iter_d].col(iter_type) = arma::conv_to< arma::colvec >::from(vecPairScore[iter_d][iter_type]);
+	for(int iter_pair=0; iter_pair<iNpairs; iter_pair++){
+	  pairScore[iter_d](iter_pair,iter_type) = vecPairScore[iter_d][iter_type][iter_pair];
+	  // pairScore[iter_d].col(iter_type) = arma::conv_to< arma::colvec >::from(vecPairScore[iter_d][iter_type]);
+	}
       }
     }
   }
@@ -911,11 +911,11 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   }
 
   calcStatistic(delta, Delta, 
-                Mcount_favorable, Mcount_unfavorable,
+		Mcount_favorable, Mcount_unfavorable,
 		iidAverage_favorable, iidAverage_unfavorable, iidNuisance_favorable, iidNuisance_unfavorable,
 		Mvar, returnIID,
 		posC, posT, 
-                D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
+		D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
 		weight, hprojection, pairScore, keepScore);
 
   // ** export

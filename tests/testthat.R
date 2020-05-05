@@ -28,7 +28,7 @@ test_check("BuyseTest")
 ## cd bozenne
 ## cd test/testthat
 ## RDcsan
-## install.packages(c("Rcpp","RcppArmadillo","devtools","riskRegrssion"))
+## install.packages(c("Rcpp","RcppArmadillo","devtools","riskRegrssion","cvAUC"))
 ## devtools::install_github("bozenne/BuyseTest")
 ## allFiles <- list.files()
 ## lapply(allFiles, function(x){cat(x,"\n"); source(x)})
