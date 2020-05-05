@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: apr 22 2020 (17:19) 
+## Last-Updated: maj  5 2020 (16:39) 
 ##           By: Brice Ozenne
-##     Update #: 9
+##     Update #: 12
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -72,6 +72,7 @@ test_that("different TTE with decreasing thresholds",{
     BuyseTest.options(engine = "GPC_cpp")
     e.BT1 <- BuyseTest(iFormula, data = dt.sim,
                        method.inference = "u-statistic", scoring.rule = "Peron")
+
     BuyseTest.options(engine = "GPC2_cpp")
     e.BT2 <- BuyseTest(iFormula, data = dt.sim,
                        method.inference = "u-statistic", scoring.rule = "Peron")

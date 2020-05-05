@@ -292,7 +292,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 					       iMethod, returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
 					       false, true, false, false, keepScore, correctionUninf, neutralAsUninf,
 					       debug);
-
+	
 	Mcount_favorable(iter_strata,iter_d) -= iCount_favorable_M1;
 	Mcount_unfavorable(iter_strata,iter_d) -= iCount_unfavorable_M1;
 	if(keepScore){
@@ -481,10 +481,10 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   std::vector< std::vector <std::vector <double> > > vecPairScore;
   if(keepScore){
     vecPairScore.resize(D);
-    for(unsigned int iter_d=0; iter_d<D; iter_d++){
+    for(int iter_d=0; iter_d<D; iter_d++){
       vecPairScore[iter_d].resize(15);
-      for(unsigned int iter_type=0; iter_type<15; iter_type++){
-	vecPairScore[iter_d].reserve(n_pairs);
+      for(int iter_type=0; iter_type<15; iter_type++){
+	vecPairScore[iter_d][iter_type].reserve(n_pairs);
       }
     }
   }
@@ -872,7 +872,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
       if(debug>0){Rcpp::Rcout << "compute iid nuisance" << std::endl;}
 
       for(unsigned int iter_d=0; iter_d < D; iter_d++){
-	for(unsigned int iter_UTTE=0 ; iter_UTTE<D_UTTE; iter_UTTE++){
+	for(unsigned int iter_UTTE=0 ; iter_UTTE<D_UTTE; iter_UTTE++){	  
 	  iidNuisance_favorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
     	  iidNuisance_favorable.col(iter_d) += iid_survJumpT[iter_UTTE][iter_strata] * Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
     	  iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iter_UTTE][iter_strata] * Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d)/vecn_pairs[iter_strata];
@@ -882,16 +882,20 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     }
 
   }
-
-
+  
   // ** combine pairwise scores into a list of matrices 
   std::vector< arma::mat> pairScore;
   if(keepScore){
+    int iNpairs;
+    arma::colvec iScore;
     pairScore.resize(D);
-    for(unsigned int iter_d=0; iter_d<D; iter_d++){
-      pairScore[iter_d].resize(vecPairScore[iter_d][0].size(),15);
-      for(unsigned int iter_type=0; iter_type<15; iter_type++){
-	pairScore[iter_d].col(iter_type) = arma::conv_to< arma::colvec >::from(vecPairScore[iter_d][iter_type]);
+    for(int iter_d=0; iter_d<D; iter_d++){
+      iNpairs = vecPairScore[iter_d][0].size();
+      pairScore[iter_d].resize(iNpairs,15);
+      for(int iter_type=0; iter_type<15; iter_type++){
+	iScore = vecPairScore[iter_d][iter_type];
+	pairScore[iter_d].col(iter_type) = iScore;
+	// pairScore[iter_d].col(iter_type) = arma::conv_to< arma::colvec >::from(vecPairScore[iter_d][iter_type]);
       }
     }
   }
@@ -1023,7 +1027,7 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
     // *** iid of the weights
     arma::colvec iDweight_Dnuisance_C;
     arma::colvec iDweight_Dnuisance_T;
-	
+    
     for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
       // DOCUMENTATION Armadillo
       // sum: For matrix M, return the sum of elements in each column (dim=0), or each row (dim=1)
@@ -1031,7 +1035,7 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
       iidNuisance_favorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_C / vecn_pairs[iter_strata];
       iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[0][activeUTTE[iter_UTTE]],1);
       iidNuisance_favorable.col(iter_d) += iid_survJumpT[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_T / vecn_pairs[iter_strata];
-	  
+
       iDweight_Dnuisance_C = sum(iPairDweight_Dnuisance_C[1][activeUTTE[iter_UTTE]],1);
       iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[activeUTTE[iter_UTTE]][iter_strata] * iDweight_Dnuisance_C / vecn_pairs[iter_strata];
       iDweight_Dnuisance_T = sum(iPairDweight_Dnuisance_T[1][activeUTTE[iter_UTTE]],1);
@@ -1090,7 +1094,8 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::sp_mat >& iRP_Dscore_Dnui
 
   // ** index of the residual pairs among the analyzed pairs
   arma::uvec iIndex_RP = arma::conv_to<arma::uvec>::from(iRP_score.col(0));
-
+  // Rcpp::Rcout << iIndex_RP.size() << std::endl;
+  
   // ** update score and iid associated to the residual pairs for TTE endpoint analyzed with Peron's scoring rule
   for(int iter_UTTE=0; iter_UTTE<nUTTE_analyzedPeron; iter_UTTE++){
     if(iter_UTTE == iIndex_UTTE){
@@ -1107,7 +1112,7 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::sp_mat >& iRP_Dscore_Dnui
       // subset the result of the previous endpoints, only considering the residual pairs
       RP_score[iter_UTTE] = RP_score[iter_UTTE].rows(iIndex_RP);
       if(returnIID>1){
-	for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){ 
+	for(int iter_typeRP=0; iter_typeRP<4; iter_typeRP++){
 	  RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP] = subcol_sp_mat(RP_Dscore_Dnuisance_C[iter_UTTE][iter_typeRP], iIndex_RP);
 	  RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP] = subcol_sp_mat(RP_Dscore_Dnuisance_T[iter_UTTE][iter_typeRP], iIndex_RP);
 	}
@@ -1144,11 +1149,15 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::sp_mat >& iRP_Dscore_Dnui
   return ;
 }
 
-// * subset_sp_arma
-// author Brice Ozenne
+// * subcol_sp_mat
+// inspired from https://stackoverflow.com/questions/40222092/access-and-modify-the-non-zero-elements-of-sparse-matrix-of-class-armasp-mat-u
 arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
+  int p = X.n_rows;
+
   // WARNING only works for subsetting over columns since the value in a sp_mat are stored by column
   // also assumes that index is sorted
+  int nIndex = index.size();
+  int iIndex = 0;
   bool check = index.is_sorted();
   if(check == false){
     Rcpp::Rcout << "WARNING: index should be sorted when subsetting a sparse matrix by column. Operation may give incorrect results" << std::endl;
@@ -1161,10 +1170,14 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
   // Rcout << X << endl;
   // Calculate number of points
   int n = std::distance(it, it_end);
-
+  if (n <= 0) {
+    arma::sp_mat Y(p, nIndex);
+    return(Y);
+  }
+  
   // Collecting locations
-  int nIndex = index.size();
-  int iIndex = 0;
+  int iCol;
+  int iRow;
 
   std::vector<int> Vrow;
   Vrow.reserve(n);
@@ -1174,21 +1187,22 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
   Vvalue.reserve(n);
 
   for(int i = 0; i < n; ++i){
-    while(it.col() > index[iIndex] && iIndex < nIndex){
+    iCol = it.col();
+    iRow = it.row();
+    while((nIndex > iIndex) && (iCol > index[iIndex])){
       iIndex++;
     }
-    if(it.col() == index[iIndex]){
-      Vrow.push_back(it.row());
+    if(iCol == index[iIndex]){
+      Vrow.push_back(iRow);
       Vcol.push_back(iIndex);
       Vvalue.push_back((*it));
-    }else if(it.col() > index[iIndex]){
+    }else if(iCol > index[iIndex]){
       break;
     }
     ++it;
   }
 
   // Generate matrix
-  int p = X.n_rows;
   int nValue = Vvalue.size();
   arma::umat loc(2,nValue);
   for(int iV=0; iV<nValue; iV++){

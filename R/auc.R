@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: apr  6 2020 (11:06) 
+## Last-Updated: maj  5 2020 (10:37) 
 ##           By: Brice Ozenne
-##     Update #: 166
+##     Update #: 168
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -65,7 +65,6 @@
 
 
 ## * Code - auc
-#' @rdname auc
 #' @export
 auc <- function(labels, predictions, fold = NULL, observation = NULL, direction = ">",
                 null = 0.5, conf.level = 0.95, transformation = FALSE){

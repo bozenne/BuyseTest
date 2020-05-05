@@ -264,7 +264,6 @@ setMethod(f = "getIid",
 #' }
 
 ## * getPairScore (code)
-#' @rdname S4BuyseTest-getPairScore
 setMethod(f = "getPairScore",
           signature = "S4BuyseTest",
           definition = function(object, endpoint, strata, sum,

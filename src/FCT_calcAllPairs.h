@@ -140,22 +140,22 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
   std::vector<std::vector<double>> vecValue_Dnuisance_C(4), vecValue_Dnuisance_T(4);
 			 
   if(returnIID > 1 && method == 4){
-	// aggregated over all pairs
+    // aggregated over all pairs
     Dscore_Dnuisance_C.resize(p_C, 4);
     Dscore_Dnuisance_C.fill(0.0);
 
     Dscore_Dnuisance_T.resize(p_T, 4);
     Dscore_Dnuisance_T.fill(0.0);
 
-	// pair specific
-	iDscore_Dnuisance_C.resize(p_C, 4); // initialized to 0 in calcOneScore_SurvPeron
+    // pair specific
+    iDscore_Dnuisance_C.resize(p_C, 4); // initialized to 0 in calcOneScore_SurvPeron
     iDscore_Dnuisance_T.resize(p_T, 4); // initialized to 0 in calcOneScore_SurvPeron
   }
   
   // ** loop over the pairs
   for(int iter_pair=0; iter_pair<n_pair ; iter_pair++){
-	if(debug>1){Rcpp::Rcout << iter_pair << "/" << n_pair << " ";}
-	iUpdateRPNeutral = false;
+    if(debug>1){Rcpp::Rcout << iter_pair << "/" << n_pair << " ";}
+    iUpdateRPNeutral = false;
 	iUpdateRPUninf = false;
 	
 	// *** find index of the pair
@@ -190,7 +190,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 		  iDscore_Dnuisance_T.col(iType) = tempo_T;
 		}
 	  }
-    }else if(method == 1){ // continuous or binary endpoint
+	}else if(method == 1){ // continuous or binary endpoint
 	  iPairScore = calcOnePair_Continuous(endpointT[iter_T] - endpointC[iter_C], threshold);
 	}else if(method == 2){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
 	  iPairScore = calcOnePair_TTEgehan(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
@@ -198,16 +198,16 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 	  iPairScore = calcOnePair_TTEgehan2(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
 	}else if(method == 4){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
 	  iPairScore = calcOneScore_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
-	  									  survTimeC.row(iter_C), survTimeT.row(iter_T),
-	  									  survJumpC, survJumpT, lastSurv(0), lastSurv(1),
-	  									  iDscore_Dnuisance_C, iDscore_Dnuisance_T,
-	  									  p_C, p_T, returnIID);
-		  		
+					      survTimeC.row(iter_C), survTimeT.row(iter_T),
+					      survJumpC, survJumpT, lastSurv(0), lastSurv(1),
+					      iDscore_Dnuisance_C, iDscore_Dnuisance_T,
+					      p_C, p_T, returnIID);
+
 	}else if(method == 5){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
 	  iPairScore = calcOnePair_CRPeron(endpointC[iter_C], endpointT[iter_T],
-									   statusC[iter_C], statusT[iter_T], threshold,
-									   survTimeC.row(iter_C), survTimeT.row(iter_T), survJumpC,
-									   lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3));
+					   statusC[iter_C], statusT[iter_T], threshold,
+					   survTimeC.row(iter_C), survTimeT.row(iter_T), survJumpC,
+					   lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3));
 	}
 
 	// *** aggregate favorable score and iid over analyzed pairs
@@ -218,26 +218,26 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 	  count_favorable += iPairScore[0] * iWeight;
 
 	  if(returnIID > 0){
-		// iid (average)
-		count_obsC(iter_C,0) += iPairScore[0] * iWeight;
-		count_obsT(iter_T,0) += iPairScore[0] * iWeight;
-		if(returnIID > 1){
-		  // iid (nuisance) for the score
-		  if(method == 4){
-			Dscore_Dnuisance_C.col(0) += iDscore_Dnuisance_C.col(0) * iWeight;
-			Dscore_Dnuisance_T.col(0) += iDscore_Dnuisance_T.col(0) * iWeight;
+	    // iid (average)
+	    count_obsC(iter_C,0) += iPairScore[0] * iWeight;
+	    count_obsT(iter_T,0) += iPairScore[0] * iWeight;
+	    if(returnIID > 1){
+	      // iid (nuisance) for the score
+	      if(method == 4){
+		    Dscore_Dnuisance_C.col(0) += iDscore_Dnuisance_C.col(0) * iWeight;
+		    Dscore_Dnuisance_T.col(0) += iDscore_Dnuisance_T.col(0) * iWeight;
 		  }
 		  // iid (nuisance) for the weight of the pair
 		  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
-			Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
-			Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
+		    Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
+		    Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
 		  }
 		}
 	  }
 	}else if(returnIID > 1){
 	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
-		(Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].col(iter_pair)) *= 0;
-		(Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].col(iter_pair)) *= 0;
+	    (Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].col(iter_pair)) *= 0;
+	    (Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].col(iter_pair)) *= 0;
 	  }
 	}
 
@@ -249,21 +249,21 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 	  count_unfavorable += iPairScore[1] * iWeight;
 
 	  if(returnIID > 0){
-		// iid (average
-		count_obsC(iter_C,1) += iPairScore[1] * iWeight;
-		count_obsT(iter_T,1) += iPairScore[1] * iWeight;
-		if(returnIID > 1){
-		  // iid (nuisance) for the score
-		  if(method == 4){
-			Dscore_Dnuisance_C.col(1) += iDscore_Dnuisance_C.col(1) * iWeight;
-			Dscore_Dnuisance_T.col(1) += iDscore_Dnuisance_T.col(1) * iWeight;
-		  }
-		  // iid (nuisance) for the weight of the pair
-		  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
-            Dweight_Dnuisance_C[1][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[1] * iWeight;
-            Dweight_Dnuisance_T[1][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[1] * iWeight;
-          }
-		}
+	    // iid (average
+	    count_obsC(iter_C,1) += iPairScore[1] * iWeight;
+	    count_obsT(iter_T,1) += iPairScore[1] * iWeight;
+	    if(returnIID > 1){
+	      // iid (nuisance) for the score
+	      if(method == 4){
+		Dscore_Dnuisance_C.col(1) += iDscore_Dnuisance_C.col(1) * iWeight;
+		Dscore_Dnuisance_T.col(1) += iDscore_Dnuisance_T.col(1) * iWeight;
+	      }
+	      // iid (nuisance) for the weight of the pair
+	      for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+		Dweight_Dnuisance_C[1][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[1] * iWeight;
+		Dweight_Dnuisance_T[1][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[1] * iWeight;
+	      }
+	    }
 	  }
 	}else if(returnIID > 1){
 	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){

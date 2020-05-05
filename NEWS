@@ -1,22 +1,22 @@
 # -*- mode: org -*-
 
-* Version 1.9
+* Version 2.1
+
+** Internal change
+
+- fix c++ memory issue (version 2.1.1)
+- fix calculation of probability of being uninformative (version 2.1.0)
+
+* Version 2.0
 
 ** User visible changes
-
 - NEW FEATURE: powerBuyseTest now support multiple sample size when
   using the Peron's scoring rule.  
-- NEW FEATURE (1.9.1): summary and confint can now display the results
-  for proportion in favor of treatment (also called Mann-Whitney
-  statistic) or control
-- NEW FEATURE (1.9.0): studentized permutation tests are now available
-  (method.inference = "studentized permutation").
 - Fix issue related to powerBuyseTest (issue #6 on Github)
 
 ** Internal change
 - powerBuyseTest has been partially re-written. Should be easier to
   read/debug now.
-- method.inference="u-statistic" is now the default options
 - add argument engine to BuyseTest.options to switch between the new
   C++ implementation (looping first over pairs and then over
   endpoints) and the old C++ implementation (looping first over
@@ -26,6 +26,17 @@
   method.inference="u-statistic" and scoring.rule="Peron" with several
   endpoints thanks to the use of sparse matrices to store partial
   derivative regarding nuisance parameter.
+
+* Version 1.9
+** User visible changes
+- NEW FEATURE (1.9.1): summary and confint can now display the results
+  for proportion in favor of treatment (also called Mann-Whitney
+  statistic) or control
+- NEW FEATURE (1.9.0): studentized permutation tests are now available
+  (method.inference = "studentized permutation").
+- method.inference="u-statistic" is now the default options
+
+** Internal change
 - reorganize R function files.
 
 * Version 1.8

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: apr  6 2020 (20:07) 
+## Last-Updated: maj  5 2020 (10:37) 
 ##           By: Brice Ozenne
-##     Update #: 839
+##     Update #: 841
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -85,7 +85,6 @@
 ##' 
 
 ## * powerBuyseTest (code)
-##' @rdname powerBuyseTest
 ##' @export
 powerBuyseTest <- function(sim,
                            sample.size,

@@ -17,22 +17,22 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
 inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C, double status_T, double threshold);
  
 inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold,
-													arma::rowvec survTimeC, arma::rowvec survTimeT,
-													const arma::mat& survJumpC, const arma::mat& survJumpT, double lastSurvC, double lastSurvT,
-													arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
-													int p_C, int p_T, int returnIID);
+						    arma::rowvec survTimeC, arma::rowvec survTimeT,
+						    const arma::mat& survJumpC, const arma::mat& survJumpT, double lastSurvC, double lastSurvT,
+						    arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
+						    int p_C, int p_T, int returnIID);
 
 
 inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpoint_T,												 
-												 double status_C, double status_T, double tau,
-												 arma::rowvec cifTimeC_vec,  arma::rowvec cifTimeT_vec, const arma::mat& cifJumpC,
-												 double lastCif1C, double lastCif1T, double lastCif2C, double lastCif2T);
+						 double status_C, double status_T, double tau,
+						 arma::rowvec cifTimeC_vec,  arma::rowvec cifTimeT_vec, const arma::mat& cifJumpC,
+						 double lastCif1C, double lastCif1T, double lastCif2C, double lastCif2T);
 
 std::vector<double> calcIntegralSurv_cpp(const arma::mat& survival, double start, double lastSurv, double lastdSurv,
-										 bool returnDeriv, int column, arma::mat& derivSurv, arma::mat& derivSurvD);
+					 bool returnDeriv, int column, arma::mat& derivSurv, arma::mat& derivSurvD);
 
 double calcIntegralCif_cpp(const arma::mat& cif, double start_val, double stop_val, double CIF_t,
-							double lastCIF, int type);
+			   double lastCIF, int type);
 
 // * calcOnePair_Continuous
 // author Brice Ozenne
@@ -76,17 +76,17 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
       if(diff >= threshold){         // >= tau    : favorable
         score[0] = 1.0;
       }else if(diff <= -threshold){ // <= -tau    : unfavorable
-		score[1] = 1.0;
+	score[1] = 1.0;
       }else{                        // ]-tau;tau[ : neutral
-		score[2] = 1.0;
+	score[2] = 1.0;
       }
       
     }else if(status_C==0){ // (treatment event, control censored)
 	
       if(diff <= -threshold){ // <= -tau   : unfavorable
-		score[1] = 1.0;
+	score[1] = 1.0;
       }else{                  // otherwise : uninformative
-		score[3] = 1.0;
+	score[3] = 1.0;
       }
       
     }else if(status_C==2){ // (treatment event, control competing risk)
@@ -98,9 +98,9 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
     if(status_C==1){ // (treatment censored, control event)
     
       if(diff >= threshold){ // > tau    : favorable
-		score[0] = 1.0;
+	score[0] = 1.0;
       }else{                 // otherwise: uninformative
-		score[3] = 1.0;
+	score[3] = 1.0;
       }
     
     }else{ // (treatment censored, control censored/competing risk): uninformative
@@ -141,17 +141,17 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
       if(diff >= threshold){         // >= tau    : favorable
         score[0] = 1.0;
       }else if(diff <= -threshold){ // <= -tau    : unfavorable
-		score[1] = 1.0;
+	score[1] = 1.0;
       }else{                        // ]-tau;tau[ : neutral
-		score[2] = 1.0;
+	score[2] = 1.0;
       }
       
     }else if(status_C==0){ // (treatment event, control censored)
 	
       if(diff >= threshold){ // <= -tau   : unfavorable
-		score[0] = 1.0;
+	score[0] = 1.0;
       }else{                  // otherwise : uninformative
-		score[3] = 1.0;
+	score[3] = 1.0;
       }
       
     }else if(status_C==2){ // (treatment event, control competing risk)
@@ -163,9 +163,9 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
     if(status_C==1){ // (treatment censored, control event)
     
       if(diff <= -threshold){ // > tau    : favorable
-		score[1] = 1.0;
+	score[1] = 1.0;
       }else{                 // otherwise: uninformative
-		score[3] = 1.0;
+	score[3] = 1.0;
       }
     
     }else{ // (treatment censored, control censored/competing risk): uninformative
@@ -484,6 +484,7 @@ inline std::vector< double > calcOneScore_SurvPeron(double endpoint_C, double en
   //}
 
   // ** export
+  // Rcpp::Rcout << " (" << score[0] << " " << score[1] << ") "  << std::endl << Dscore_Dnuisance_C << std::endl;
   // Rcpp::Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << " (upper) " << upperFavorable << " " << upperUnfavorable << std::endl;
   return(score);  
 }

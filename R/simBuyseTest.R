@@ -79,7 +79,6 @@
 #' @author Brice Ozenne
 
 ## * Function simBuyseTest
-#' @rdname simulation
 #' @export
 simBuyseTest <- function(n.T, n.C = NULL, 
                          argsBin = list(), argsCont = list(), argsTTE = list(),

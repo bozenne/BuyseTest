@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: apr  6 2020 (10:58) 
+## Last-Updated: maj  5 2020 (10:37) 
 ##           By: Brice Ozenne
-##     Update #: 104
+##     Update #: 106
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -49,7 +49,6 @@
 #' lava::iid(e.KM)
 
 ## * iid.prodlim - code
-#' @rdname iid.prodlim
 #' @export
 iid.prodlim <- function(object, add0 = FALSE, ...){
 

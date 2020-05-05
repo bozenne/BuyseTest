@@ -242,7 +242,6 @@
 #' }
 
 ## * Test (code)
-##' @rdname BuyseTest
 ##' @export
 BuyseTest <- function(formula,
                       data,
