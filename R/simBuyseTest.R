@@ -265,7 +265,7 @@ simBuyseTest_bin <- function(modelT,
         validNumeric(rho.C,
                      valid.length = n.endpoints,
                      method = "simBuyseTest")
-        if((rho.T!=0 || rho.C!=0) && (n.endpoints != length(latentTTE))){
+        if((any(rho.T!=0) || any(rho.C!=0)) && (n.endpoints != length(latentTTE))){
             stop("The number of time to event endpoints must match the number of categorical endpoints. \n")
         }
         for(iterE in 1:n.endpoints){
