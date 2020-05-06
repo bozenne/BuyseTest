@@ -19,6 +19,7 @@ test_check("BuyseTest")
 ## ** valgrind
 ## Information: https://kevinushey.github.io/blog/2015/04/05/debugging-with-valgrind/
 
+## R -d "valgrind --tool=memcheck --leak-check=full --track-origins=yes" --vanilla < testthat.R
 ## R -d "valgrind --dsymutil=yes" -e "Rcpp::sourceCpp('segfault.cpp')"
 ## R -d valgrind
 
@@ -34,4 +35,6 @@ test_check("BuyseTest")
 ## lapply(allFiles, function(x){cat(x,"\n"); source(x)})
 ## gctorture(TRUE)
 ##
+
+
 

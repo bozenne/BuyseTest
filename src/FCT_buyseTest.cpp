@@ -1157,7 +1157,6 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
   // WARNING only works for subsetting over columns since the value in a sp_mat are stored by column
   // also assumes that index is sorted
   int nIndex = index.size();
-  int iIndex = 0;
   bool check = index.is_sorted();
   if(check == false){
     Rcpp::Rcout << "WARNING: index should be sorted when subsetting a sparse matrix by column. Operation may give incorrect results" << std::endl;
@@ -1176,6 +1175,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
   }
   
   // Collecting locations
+  int iIndex = 0;
   int iCol;
   int iRow;
 
@@ -1192,16 +1192,16 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index){
     while((nIndex > iIndex) && (iCol > index[iIndex])){
       iIndex++;
     }
-    if(iCol == index[iIndex]){
+    if((iIndex >= nIndex) || (iCol > index[iIndex])){
+      break;
+    }else if(iCol == index[iIndex]){
       Vrow.push_back(iRow);
       Vcol.push_back(iIndex);
       Vvalue.push_back((*it));
-    }else if(iCol > index[iIndex]){
-      break;
-    }
+    } 
     ++it;
   }
-
+  
   // Generate matrix
   int nValue = Vvalue.size();
   arma::umat loc(2,nValue);
