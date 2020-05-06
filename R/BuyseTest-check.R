@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr  6 2020 (10:37) 
+## Last-Updated: maj  6 2020 (15:59) 
 ##           By: Brice Ozenne
-##     Update #: 221
+##     Update #: 222
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -282,7 +282,7 @@ testArgs <- function(name.call,
         stop("Argument \'strata.resampling\' should not contain the variable used to form the treatment groups when using a permutation test. \n")
     }
     if(iid && correction.uninf > 0){
-        warning("The current implementation of the asymptotic distribution has not been validated when using a correction. \n",
+        warning("The current implementation of the asymptotic distribution is valid when using a correction. \n",
                 "Standard errors / confidence intervals / p-values may not be correct. \n",
                 "Consider using a resampling approach or checking the control of the type 1 error with powerBuyseTest. \n")
     }

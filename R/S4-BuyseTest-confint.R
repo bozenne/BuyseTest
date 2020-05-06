@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: apr  6 2020 (20:08) 
+## Last-Updated: maj  6 2020 (16:00) 
 ##           By: Brice Ozenne
-##     Update #: 740
+##     Update #: 741
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -251,7 +251,7 @@ setMethod(f = "confint",
               ## safety
               test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
               if(method.inference %in% c("u-statistic","u-statistic-bebu") && object@correction.uninf > 0){
-                  warning("The current implementation of the asymptotic distribution has not been validated when using a correction. \n",
+                  warning("The current implementation of the asymptotic distribution is not valid when using a correction. \n",
                           "Standard errors / confidence intervals / p-values may not be correct. \n",
                           "Consider using a resampling approach or checking the control of the type 1 error with powerBuyseTest. \n")
               }

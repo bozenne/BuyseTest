@@ -76,6 +76,7 @@ Collate:
     'constStrata.R'
     'discreteRoot.R'
     'iid.prodlim.R'
+    'normexp.R'
     'powerBuyseTest.R'
     'simBuyseTest.R'
     'simCompetingRisks.R'

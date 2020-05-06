@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: apr  2 2020 (16:58) 
+## Last-Updated: maj  6 2020 (18:01) 
 ##           By: Brice Ozenne
-##     Update #: 63
+##     Update #: 64
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,7 +36,7 @@ BuyseTest.options(check = TRUE,
 set.seed(10)
 dt.sim <- simBuyseTest(n.T = n.patients[1],
                        n.C = n.patients[2],
-                       argsBin = list(p.T = c(0.5,0.75)),
+                       argsBin = list(p.T = list(c(0.5,0.5),c(0.25,0.75))),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
                        argsTTE = list(rates.T = 1:3, rates.Censoring.T = rep(1,3)))
 dt.sim[eventtime1 >= 1, status1 := 0]

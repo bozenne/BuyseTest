@@ -107,7 +107,7 @@
 #' The U-statistic theory indicates that this approximation is asymptotically exact.
 #' The variance is computed using a H-projection of order 1 (default option), which is a consistent but downward biased estimator.
 #' An unbiased estimator can be obtained using a H-projection of order 2 (only available for the uncorrected Gehan's scoring rule, see \code{BuyseTest.options}).
-#' \bold{WARNING}: the current implementation of the H-projection has not been validated when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}).
+#' \bold{WARNING}: the current implementation of the H-projection is not valid when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}).
 #'   \item argument \code{method.inference="permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio).
 #'   \item argument \code{method.inference="studentized permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimate.
 #'   \item argument \code{method.inference="bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio).
@@ -149,7 +149,7 @@
 #' \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
 #' \code{\link{S4BuyseTest-class}} for a presentation of the \code{S4BuyseTest} object. \cr
 #' \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
-#' @keywords function BuyseTes
+#' @keywords function BuyseTest
 #' @author Brice Ozenne
 
 ## * BuyseTest (example)
@@ -218,8 +218,8 @@
 #' summary(BT)
 #' 
 #' #### real example : Veteran dataset of the survival package ####
-#' #### Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
-#' #### scoring.rule = "Gehan"
+#' ## Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
+#' ## scoring.rule = "Gehan"
 #' 
 #' if(require(survival)){
 #' \dontrun{

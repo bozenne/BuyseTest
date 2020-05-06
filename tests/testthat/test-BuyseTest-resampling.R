@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: apr  2 2020 (17:06) 
+## last-updated: maj  6 2020 (18:02) 
 ##           By: Brice Ozenne
-##     Update #: 180
+##     Update #: 181
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -35,7 +35,7 @@ method <- "Peron"
 set.seed(10)
 dt.sim <- simBuyseTest(n.T = n.patients,
                        n.C = n.patients,
-                       argsBin = list(p.T = c(0.5,0.75)),
+                       argsBin = list(p.T = list(c(0.5,0.5),c(0.25,0.75))),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
                        argsTTE = list(rates.T = 1:3, rates.Censoring.T = rep(1,3)),
                        n.strata = 3)
