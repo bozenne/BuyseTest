@@ -70,6 +70,7 @@ initializeArgs <- function(status,
     if(is.null(trace)){ trace <- option$trace }
     engine <- option$engine
     alternative <- option$alternative
+    precompute <- option$precompute
     
     ## ** convert formula into separate arguments
     if(!missing(formula)){
@@ -295,6 +296,7 @@ initializeArgs <- function(status,
         operator = operator,
         censoring = censoring,
         order.Hprojection = option$order.Hprojection,
+        precompute = precompute,
         seed = seed,
         strata = strata,
         threshold = threshold,
@@ -325,7 +327,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         data.class <- sapply(data,class)
         test.num <- (data.class %in% c("numeric","integer"))
         if(any(test.num==FALSE)){
-            endpoint.char <- names(data.class)[test.num==FALSE]
+            endpoint.char <- setdiff(names(data.class)[test.num==FALSE],treatment)
             for(iE in endpoint.char){
                 data[, c(iE) := as.double(as.factor(.SD[[1]]))-1.0, .SDcols = iE]
             }

@@ -10,7 +10,6 @@ calcIntegralSurv_cpp(
   lastSurv,
   lastdSurv,
   returnDeriv,
-  column,
   derivSurv,
   derivSurvD
 )
@@ -27,8 +26,6 @@ and the jump in survival in the third column.}
 \item{lastdSurv}{[numeric,>0] last survival value for the survival function in the third column.}
 
 \item{returnDeriv}{[logical] should the derivative regarding the survival parameters be return.}
-
-\item{column}{[integer] column of \code{derivSurv} and \code{derivSurvD} to be filled.}
 
 \item{derivSurv}{[matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival.}
 

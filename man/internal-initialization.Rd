@@ -81,6 +81,7 @@ calcPeron(
   strata,
   threshold,
   n.strata,
+  precompute,
   iidNuisance,
   out
 )

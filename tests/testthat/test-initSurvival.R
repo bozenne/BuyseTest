@@ -8,6 +8,7 @@ if(FALSE){
 context("Check computation")
 BuyseTest.options(keep.survival = TRUE,
                   trace = 0,
+                  precompute = FALSE,
                   method.inference = "none")
 
 ## does the same as prodlim:::predict.prodlim

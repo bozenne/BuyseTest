@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj  6 2020 (14:06) 
 ## Version: 
-## Last-Updated: maj  6 2020 (18:05) 
+## Last-Updated: maj  6 2020 (20:18) 
 ##           By: Brice Ozenne
-##     Update #: 3
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,23 +29,31 @@
 
 ## examples
 ## c(qnormexp(0.5, rate = 2, rho = 1.5), quantile(rnorm(1e5) + 1.5 * rexp(1e5, rate = 2), 0.5))
+## c(qnormexp(0.95, rate = 1/10, rho = 1.5), quantile(rnorm(1e5) + 1.5 * rexp(1e5, rate = 1/10), 0.95))
 pnormexp <- function(q, rate, rho){
     if(abs(rho)<1e-12){
-        stats::pnorm(q)
+        out <- stats::pnorm(q)
     }else{
-        stats::pnorm(q) - exp(-(rate/rho)*q+(rate/rho)^2/2)*stats::pnorm(q, mean = rate/rho)
+        out <- stats::pnorm(q) - exp(-(rate/rho)*q+(rate/rho)^2/2)*stats::pnorm(q, mean = rate/rho)
     }
+    return(out)
 }
 qnormexp <- function(p, rate, rho){
     if(abs(rho)<1e-12){
-        stats::qnorm(p)
+        out <- stats::qnorm(p)
     }else{
-        sapply(p, function(iP){
+        out <- sapply(p, function(iP){
             stats::uniroot(function(x){pnormexp(x, rate = rate, rho = rho) - iP},
-                    lower = stats::qnorm(iP),
-                    upper = (stats::qnorm(iP)+3) + (stats::qexp(iP, rate = rate) + 3/rate))$root
+                           lower = stats::qnorm(iP),
+                           upper = (stats::qnorm(iP)+3) + (stats::qexp(iP, rate = rate) + 5/rate))$root
         })
+        ## iP <- tail(p,1)
+        ## pnormexp(stats::qnorm(iP), rate = rate, rho = rho) - iP
+        ## pnormexp((stats::qnorm(iP)+3) + (stats::qexp(iP, rate = rate) + 5/rate), rate = rate, rho = rho) - iP
+        ## hist(rnorm(1e4) + rho * rexp(1e4, rate = rate))
+
     }
+    return(out)
 }
 
 

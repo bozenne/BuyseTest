@@ -9,6 +9,9 @@
 
 ** Internal change
 
+- add options precompute in BuyseTest.options (version 2.1.4): when
+  set to TRUE, the integrals over the survival and their derivatives are
+  pre-computed instead of being computed on the fly when scoring the pairs.
 - fix c++ memory issue (version 2.1.1-2.1.3)
 - fix calculation of probability of being uninformative (version 2.1.0)
 

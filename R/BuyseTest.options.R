@@ -50,6 +50,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    strata.resampling = as.character(NA),
                    neutral.as.uninf = TRUE,
                    order.Hprojection = 1,
+                   precompute = TRUE,
                    print.display = c("endpoint","threshold","delta","Delta"),
                    statistic = "netBenefit",               
                    summary.display = list(c("endpoint","threshold","weight","strata","total","favorable","unfavorable","neutral","uninf","delta","Delta","CI","p.value","significance"),

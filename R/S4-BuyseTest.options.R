@@ -33,6 +33,7 @@ setClass(
       strata.resampling = "character",
       neutral.as.uninf = "logical",
       order.Hprojection = "numeric",
+      precompute = "logical",
       print.display = "character",
       statistic = "character",
       summary.display = "list",
@@ -123,6 +124,10 @@ setClass(
                    name1 = "@order.Hprojection",
                    min = 1,
                    max = 2,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validLogical(object@precompute,
+                   name1 = "@precompute",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       validCharacter(object@print.display,

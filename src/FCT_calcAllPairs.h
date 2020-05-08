@@ -23,7 +23,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 					   std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_T,
 					   double zeroPlus, 
 					   int method, int returnIID, int p_C, int p_T, 
-					   bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, int correctionUninf, bool neutralAsUninf,
+		       bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, bool precompute, int correctionUninf, bool neutralAsUninf,
 					   int debug);
 
 void correctionPairs(int method, double zeroPlus,
@@ -77,7 +77,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 					   std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_T,
 					   double zeroPlus, 
 					   int method, int returnIID, int p_C, int p_T, 
-					   bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, int correctionUninf, bool neutralAsUninf,
+					   bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, bool precompute, int correctionUninf, bool neutralAsUninf,
 					   int debug){
 
   // ** initialize
@@ -148,8 +148,8 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
     Dscore_Dnuisance_T.fill(0.0);
 
     // pair specific
-    iDscore_Dnuisance_C.resize(p_C, 4); // initialized to 0 in calcOneScore_SurvPeron
-    iDscore_Dnuisance_T.resize(p_T, 4); // initialized to 0 in calcOneScore_SurvPeron
+    iDscore_Dnuisance_C.resize(p_C, 4); // initialized to 0 in calcOnePair_SurvPeron
+    iDscore_Dnuisance_T.resize(p_T, 4); // initialized to 0 in calcOnePair_SurvPeron
   }
   
   // ** loop over the pairs
@@ -197,11 +197,11 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 	}else if(method == 3){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
 	  iPairScore = calcOnePair_TTEgehan2(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
 	}else if(method == 4){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
-	  iPairScore = calcOneScore_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
+	  iPairScore = calcOnePair_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
 					      survTimeC.row(iter_C), survTimeT.row(iter_T),
 					      survJumpC, survJumpT, lastSurv(0), lastSurv(1),
 					      iDscore_Dnuisance_C, iDscore_Dnuisance_T,
-					      p_C, p_T, returnIID);
+					      p_C, p_T, precompute, returnIID);
 
 	}else if(method == 5){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
 	  iPairScore = calcOnePair_CRPeron(endpointC[iter_C], endpointT[iter_T],

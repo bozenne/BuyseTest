@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: apr  2 2020 (17:18) 
+## Last-Updated: maj  8 2020 (12:33) 
 ##           By: Brice Ozenne
-##     Update #: 187
+##     Update #: 191
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -445,7 +445,14 @@ test_that("check NA - time to event",{
                        status = c(0,1),
                        stringsAsFactors = FALSE)
     BT <- BuyseTest(treatment ~ tte(time, status = status),
-                    data = data)
+                    data = data, scoring.rule = "Peron")
+    expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),1)
+    expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
+    expect_equal(as.double(coef(BT, statistic = "count.uninf", cumulative = FALSE)),0)
+
+    BT <- BuyseTest(treatment ~ tte(time, status = status),
+                    data = data, scoring.rule = "Gehan")
     expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),1)
     expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
     expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),0)
@@ -562,7 +569,8 @@ M.all <- rbind(c(time = 1, status = 1, trt = 0),
                c(time = 10, status = 1, trt = 1))
 df.all <- as.data.frame(M.all, stringsAsFactors = FALSE)
 
-## plot(prodlim(Hist(time, status) ~ trt, data = df.all))
+## e.prodlim <- prodlim::prodlim(prodlim::Hist(time, status) ~ trt, data = df.all)
+## plot(e.prodlim)
 
 test_that("Peron - predictible events",{
     df.all$trt <- abs(df.all$trt)

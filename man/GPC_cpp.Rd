@@ -37,6 +37,7 @@ GPC_cpp(
   hprojection,
   neutralAsUninf,
   keepScore,
+  precompute,
   returnIID,
   debug
 )
@@ -73,6 +74,7 @@ GPC2_cpp(
   hprojection,
   neutralAsUninf,
   keepScore,
+  precompute,
   returnIID,
   debug
 )
@@ -139,6 +141,8 @@ GPC2_cpp(
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?}
 
 \item{keepScore}{Should the result of each pairwise comparison be kept?}
+
+\item{precompute}{Have the integrals relative to the survival be already computed and stored in list_survTimeC/list_survTimeT and list_survJumpC/list_survJumpT (derivatives)}
 
 \item{returnIID}{Should the iid be computed?}
 

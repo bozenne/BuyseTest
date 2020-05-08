@@ -182,7 +182,7 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
                             scoring.rule = method,
                             correction.uninf = FALSE
                             )
-
+        
         BT2 <- BuyseTest(data = dt.sim,
                          endpoint = c("eventtime1","eventtime1","eventtime1"),
                          status = c("status1","status1","status1"),
