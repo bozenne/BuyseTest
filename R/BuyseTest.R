@@ -1024,19 +1024,45 @@ calcPeron <- function(data,
         if(!precompute || method.score[iEndpoint]!=4){next} ## only for survival - not (yet!) available for the competing risk case
         
         for(iStrata in 1:n.strata){  ## iStrata <- 1
-            ls.intC <- calcIntergralSurv_R(survJump = out$survJumpC[[iEndpoint]][[iStrata]],
-                                           lastSurv = out$lastSurv[[iEndpoint]][iStrata,2], ## treatment
-                                           lastdSurv = out$lastSurv[[iEndpoint]][iStrata,1], ## control
-                                           iidNuisance = iidNuisance,
-                                           p_Surv = out$p.T[iStrata,iEndpoint],
-                                           p_SurvD = out$p.C[iStrata,iEndpoint])
 
-            ls.intT <- calcIntergralSurv_R(survJump = out$survJumpT[[iEndpoint]][[iStrata]],
-                                           lastSurv = out$lastSurv[[iEndpoint]][iStrata,1], ## control
-                                           lastdSurv = out$lastSurv[[iEndpoint]][iStrata,2], ## treatment
-                                           iidNuisance = iidNuisance,
-                                           p_Surv = out$p.C[iStrata,iEndpoint],
-                                           p_SurvD = out$p.T[iStrata,iEndpoint])
+            ls.intC <- calcIntegralSurv2_cpp(survival = out$survJumpC[[iEndpoint]][[iStrata]][,"survival"],
+                                             dSurvival = out$survJumpC[[iEndpoint]][[iStrata]][,"dSurvival"],
+                                             index_survival = out$survJumpC[[iEndpoint]][[iStrata]][,"index.survival"],
+                                             index_dSurvival1 = out$survJumpC[[iEndpoint]][[iStrata]][,"index.dSurvival1"],
+                                             index_dSurvival2 = out$survJumpC[[iEndpoint]][[iStrata]][,"index.dSurvival2"],
+                                             lastSurv = out$lastSurv[[iEndpoint]][iStrata,2], ## treatment,
+                                             lastdSurv = out$lastSurv[[iEndpoint]][iStrata,1], ## control,
+                                             iidNuisance = iidNuisance,
+                                             p_Surv = out$p.T[iStrata,iEndpoint],
+                                             p_SurvD = out$p.C[iStrata,iEndpoint],
+                                             nJump = NROW(out$survJumpC[[iEndpoint]][[iStrata]]))
+            ls.intC$time <- out$survJumpC[[iEndpoint]][[iStrata]][,"time"]
+            
+            ls.intT <- calcIntegralSurv2_cpp(survival = out$survJumpT[[iEndpoint]][[iStrata]][,"survival"],
+                                             dSurvival = out$survJumpT[[iEndpoint]][[iStrata]][,"dSurvival"],
+                                             index_survival = out$survJumpT[[iEndpoint]][[iStrata]][,"index.survival"],
+                                             index_dSurvival1 = out$survJumpT[[iEndpoint]][[iStrata]][,"index.dSurvival1"],
+                                             index_dSurvival2 = out$survJumpT[[iEndpoint]][[iStrata]][,"index.dSurvival2"],
+                                             lastSurv = out$lastSurv[[iEndpoint]][iStrata,1], ## control,
+                                             lastdSurv = out$lastSurv[[iEndpoint]][iStrata,2], ## treatment,
+                                             iidNuisance = iidNuisance,
+                                             p_Surv = out$p.C[iStrata,iEndpoint],
+                                             p_SurvD = out$p.T[iStrata,iEndpoint],
+                                             nJump = NROW(out$survJumpT[[iEndpoint]][[iStrata]]))
+            ls.intT$time <- out$survJumpT[[iEndpoint]][[iStrata]][,"time"]
+            
+            ## GS.C <- calcIntergralSurv_R(survJump = out$survJumpC[[iEndpoint]][[iStrata]],
+            ##                             lastSurv = out$lastSurv[[iEndpoint]][iStrata,2], ## treatment
+            ##                             lastdSurv = out$lastSurv[[iEndpoint]][iStrata,1], ## control
+            ##                             iidNuisance = iidNuisance,
+            ##                             p_Surv = out$p.T[iStrata,iEndpoint],
+            ##                             p_SurvD = out$p.C[iStrata,iEndpoint])
+            ## GS.T <- calcIntergralSurv_R(survJump = out$survJumpT[[iEndpoint]][[iStrata]],
+            ##                             lastSurv = out$lastSurv[[iEndpoint]][iStrata,1], ## control
+            ##                             lastdSurv = out$lastSurv[[iEndpoint]][iStrata,2], ## treatment
+            ##                             iidNuisance = iidNuisance,
+            ##                             p_Surv = out$p.C[iStrata,iEndpoint],
+            ##                             p_SurvD = out$p.T[iStrata,iEndpoint])
 
             ## not normal sidex because we want to catch before jump
             ## e.g. jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4) should give c(1,2,2,3,4,4)

@@ -779,8 +779,6 @@ std::vector< double > calcIntegralSurv_cpp(const arma::mat& survival, double sta
   return(integral);
 }
 
-
-
 // * calcIntegralCif_cpp
 //' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR).
 //' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
