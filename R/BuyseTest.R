@@ -845,14 +845,14 @@ calcPeron <- function(data,
                                                             #"CIF2T_0" = iCif2T.timeC)
               
               out$survTimeT[[iEndpoint]][[iStrata]] <- cbind("time" = iTimeT,
-                                                             "CIF1C-threshold" = iPredCif1C(iTimeT - iThreshold),
-                                                             "CIF1C_0" = iCif1C.timeT,
-                                                             "CIF1C+threshold" = iPredCif1C(iTimeT + iThreshold),
-                                                             "CIF1T-threshold" = iPredCif1T(iTimeT - iThreshold),
-                                                             "CIF1T_0" = iCif1T.timeT,
-                                                             "CIF1T+threshold" = iPredCif1T(iTimeT + iThreshold),
+                                                              "CIF1C-threshold" = iPredCif1C(iTimeT - iThreshold),
+                                                              "CIF1C_0" = iCif1C.timeT,
+                                                              "CIF1C+threshold" = iPredCif1C(iTimeT + iThreshold),
+                                                              "CIF1T-threshold" = iPredCif1T(iTimeT - iThreshold),
+                                                              "CIF1T_0" = iCif1T.timeT,
+                                                              "CIF1T+threshold" = iPredCif1T(iTimeT + iThreshold),
                                         #"CIF2C_0" = iCif2C.timeT,
-                                                             "CIF2T_0" = iCif2T.timeT)
+                                                              "CIF2T_0" = iCif2T.timeT)
             }
 
             }else{
@@ -942,50 +942,50 @@ calcPeron <- function(data,
                                                                         dimnames = list(NULL, c("time","surival","dSurvival")))
                     }
 
-                ## **** survival at observation time (+/- threshold)
-                iIndexSurvivalC.timeCmTau <- prodlim::sindex(iSurvTimeC, iTimeC - iThreshold)
-                iIndexSurvivalC.timeCpTau <- prodlim::sindex(iSurvTimeC, iTimeC + iThreshold)
-                iIndexSurvivalT.timeCmTau <- prodlim::sindex(iSurvTimeT, iTimeC - iThreshold)
-                iIndexSurvivalT.timeCpTau <- prodlim::sindex(iSurvTimeT, iTimeC + iThreshold)
+                    ## **** survival at observation time (+/- threshold)
+                    iIndexSurvivalC.timeCmTau <- prodlim::sindex(iSurvTimeC, iTimeC - iThreshold)
+                    iIndexSurvivalC.timeCpTau <- prodlim::sindex(iSurvTimeC, iTimeC + iThreshold)
+                    iIndexSurvivalT.timeCmTau <- prodlim::sindex(iSurvTimeT, iTimeC - iThreshold)
+                    iIndexSurvivalT.timeCpTau <- prodlim::sindex(iSurvTimeT, iTimeC + iThreshold)
 
                     out$survTimeC[[iEndpoint]][[iStrata]] <- cbind("time" = iTimeC,
-                                                                   "SurvivalC-threshold" = iSurvC[iIndexSurvivalC.timeCmTau],
-                                                                   "SurvivalC_0" = iSurvivalC.timeC,
-                                                                   "SurvivalC+threshold" = iSurvC[iIndexSurvivalC.timeCpTau],
-                                                                   "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeCmTau],
-                                                                   "SurvivalT_0" = iSurvivalT.timeC,
-                                                                   "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeCpTau],
-                                                                   "index.SurvivalC-threshold" = iIndexSurvivalC.timeCmTau - 1,
-                                                                   "index.SurvivalC_0" = iIndexSurvivalC.timeC - 1,
-                                                                   "index.SurvivalC+threshold" = iIndexSurvivalC.timeCpTau - 1,
-                                                                   "index.SurvivalT-threshold" = iIndexSurvivalT.timeCmTau - 1,
-                                                                   "index.SurvivalT_0" = iIndexSurvivalT.timeC - 1,
-                                                                   "index.SurvivalT+threshold" = iIndexSurvivalT.timeCpTau - 1
-                                                                   )
+                                                                    "SurvivalC-threshold" = iSurvC[iIndexSurvivalC.timeCmTau],
+                                                                    "SurvivalC_0" = iSurvivalC.timeC,
+                                                                    "SurvivalC+threshold" = iSurvC[iIndexSurvivalC.timeCpTau],
+                                                                    "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeCmTau],
+                                                                    "SurvivalT_0" = iSurvivalT.timeC,
+                                                                    "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeCpTau],
+                                                                    "index.SurvivalC-threshold" = iIndexSurvivalC.timeCmTau - 1,
+                                                                    "index.SurvivalC_0" = iIndexSurvivalC.timeC - 1,
+                                                                    "index.SurvivalC+threshold" = iIndexSurvivalC.timeCpTau - 1,
+                                                                    "index.SurvivalT-threshold" = iIndexSurvivalT.timeCmTau - 1,
+                                                                    "index.SurvivalT_0" = iIndexSurvivalT.timeC - 1,
+                                                                    "index.SurvivalT+threshold" = iIndexSurvivalT.timeCpTau - 1
+                                                                    )
 
-                iIndexSurvivalC.timeTmTau <- prodlim::sindex(iSurvTimeC, iTimeT - iThreshold)
-                iIndexSurvivalC.timeTpTau <- prodlim::sindex(iSurvTimeC, iTimeT + iThreshold)
-                iIndexSurvivalT.timeTmTau <- prodlim::sindex(iSurvTimeT, iTimeT - iThreshold)
-                iIndexSurvivalT.timeTpTau <- prodlim::sindex(iSurvTimeT, iTimeT + iThreshold)
+                    iIndexSurvivalC.timeTmTau <- prodlim::sindex(iSurvTimeC, iTimeT - iThreshold)
+                    iIndexSurvivalC.timeTpTau <- prodlim::sindex(iSurvTimeC, iTimeT + iThreshold)
+                    iIndexSurvivalT.timeTmTau <- prodlim::sindex(iSurvTimeT, iTimeT - iThreshold)
+                    iIndexSurvivalT.timeTpTau <- prodlim::sindex(iSurvTimeT, iTimeT + iThreshold)
 
-            out$survTimeT[[iEndpoint]][[iStrata]] <- cbind("time" = iTimeT,
-                                                           "SurvivalC-threshold" = iSurvC[iIndexSurvivalC.timeTmTau],
-                                                           "SurvivalC_0" = iSurvivalC.timeT,
-                                                           "SurvivalC+threshold" = iSurvC[iIndexSurvivalC.timeTpTau],
-                                                           "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeTmTau],
-                                                           "SurvivalT_0" = iSurvivalT.timeT,
-                                                           "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeTpTau],
-                                                           "index.SurvivalC-threshold" = iIndexSurvivalC.timeTmTau - 1,
-                                                           "index.SurvivalC_0" = iIndexSurvivalC.timeT - 1,
-                                                           "index.SurvivalC+threshold" = iIndexSurvivalC.timeTpTau - 1,
-                                                           "index.SurvivalT-threshold" = iIndexSurvivalT.timeTmTau - 1,
-                                                           "index.SurvivalT_0" = iIndexSurvivalT.timeT - 1,
-                                                           "index.SurvivalT+threshold" = iIndexSurvivalT.timeTpTau - 1
-                                                           )
-        } ## endpoint-threshold
-    } ## CR
-} ## strata
-} ## endpoint UTTE
+                    out$survTimeT[[iEndpoint]][[iStrata]] <- cbind("time" = iTimeT,
+                                                                    "SurvivalC-threshold" = iSurvC[iIndexSurvivalC.timeTmTau],
+                                                                    "SurvivalC_0" = iSurvivalC.timeT,
+                                                                    "SurvivalC+threshold" = iSurvC[iIndexSurvivalC.timeTpTau],
+                                                                    "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeTmTau],
+                                                                    "SurvivalT_0" = iSurvivalT.timeT,
+                                                                    "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeTpTau],
+                                                                    "index.SurvivalC-threshold" = iIndexSurvivalC.timeTmTau - 1,
+                                                                    "index.SurvivalC_0" = iIndexSurvivalC.timeT - 1,
+                                                                    "index.SurvivalC+threshold" = iIndexSurvivalC.timeTpTau - 1,
+                                                                    "index.SurvivalT-threshold" = iIndexSurvivalT.timeTmTau - 1,
+                                                                    "index.SurvivalT_0" = iIndexSurvivalT.timeT - 1,
+                                                                    "index.SurvivalT+threshold" = iIndexSurvivalT.timeTpTau - 1
+                                                                    )
+                } ## endpoint-threshold
+            } ## CR
+        } ## strata
+    } ## endpoint UTTE
 
     ## ** prepare influence function
     out$iid <- list(survJumpC = lapply(1:D.UTTE, function(IE){
@@ -1090,51 +1090,27 @@ calcPeron <- function(data,
                                                            "int.dSurvivalT_0_upper" = ls.intT$intSurv_upper[index.dSurvivalT.0+1])
 
             if(iidNuisance){
-                colnames(ls.intC$intSurv_derivSurv) <- c("time","index","value")
-                colnames(ls.intC$intSurv_derivSurvD) <- c("time","index","value")
-                colnames(ls.intT$intSurv_derivSurv) <- c("time","index","value")
-                colnames(ls.intT$intSurv_derivSurvD) <- c("time","index","value")
-
-                ls.intC$intSurv_derivSurv
-            browser()            
+                colnames(ls.intC$intSurv_deriv) <- c("index.jump","time","index.param.surv","value.surv","index.param.dsurv1","value.dsurv1","index.param.dsurv2","value.dsurv2")
+                colnames(ls.intT$intSurv_deriv) <- c("index.jump","time","index.param.surv","value.surv","index.param.dsurv1","value.dsurv1","index.param.dsurv2","value.dsurv2")
+                out$survJumpC[[iEndpoint]][[iStrata]] <- ls.intC$intSurv_deriv
+                out$survJumpT[[iEndpoint]][[iStrata]] <- ls.intT$intSurv_deriv
+                
                 out$survTimeC[[iEndpoint]][[iStrata]] <- cbind(out$survTimeC[[iEndpoint]][[iStrata]],
-                                                               "index_deriv.int.dSurvivalT-threshold" = index.dSurvivalT.tau + NROW(ls.intC$intSurv_derivSurvD),
-                                                               "index_derivD.int.dSurvivalT-threshold" = index.dSurvivalT.tau + NROW(ls.intC$intSurv_derivSurv),
-                                                               "index_deriv.int.dSurvivalC_0" = index.dSurvivalC.0,
-                                                               "index_derivD.int.dSurvivalC_0" = index.dSurvivalC.0)
+                                                               "index.int.dSurvivalT-threshold" = index.dSurvivalT.tau,
+                                                               "indexMax.int.dSurvivalT-threshold" = NROW(ls.intT$intSurv_deriv)-1,
+                                                               "index.int.dSurvivalC_0" = index.dSurvivalC.0,
+                                                               "indexMax.int.dSurvivalC_0" = NROW(ls.intC$intSurv_deriv)-1)
+                
                 out$survTimeT[[iEndpoint]][[iStrata]] <- cbind(out$survTimeT[[iEndpoint]][[iStrata]],
-                                                               "index_deriv.int.dSurvivalC-threshold" = index.dSurvivalC.tau,
-                                                               "index_derivD.int.dSurvivalC-threshold" = index.dSurvivalC.tau,
-                                                               "index_deriv.int.dSurvivalT_0" = index.dSurvivalT.0 + NROW(ls.intC$intSurv_derivSurvD),
-                                                               "index_derivD.int.dSurvivalT_0" = index.dSurvivalT.0 + NROW(ls.intC$intSurv_derivSurv))
+                                                               "index.int.dSurvivalC-threshold" = index.dSurvivalC.tau,
+                                                               "indexMax.int.dSurvivalC-threshold" = NROW(ls.intC$intSurv_deriv)-1,
+                                                               "index.int.dSurvivalT_0" = index.dSurvivalT.0,
+                                                               "indexMax.int.dSurvivalT_0" = NROW(ls.intT$intSurv_deriv)-1)
 
-                out$survJumpC[[iEndpoint]][[iStrata]] <- rbind(ls.intC$intSurv_derivSurvD,
-                                                               ls.intT$intSurv_derivSurv) ## p.C
 
-                out$survJumpT[[iEndpoint]][[iStrata]] <- rbind(ls.intC$intSurv_derivSurv,
-                                                               ls.intT$intSurv_derivSurvD) ## p.T
-
-                ## ## "int.dSurvivalC-threshold"
-                ## ls.intC$intSurv_derivSurv[index.dSurvivalC.tau+1,] - t(out$survJumpT[[iEndpoint]][[iStrata]][,out$survTimeT[[iEndpoint]][[iStrata]][,"index_deriv.int.dSurvivalC-threshold"]+1]) ## (p.T,n)
-                ## ls.intC$intSurv_derivSurvD[index.dSurvivalC.tau+1,] - t(out$survJumpC[[iEndpoint]][[iStrata]][,out$survTimeT[[iEndpoint]][[iStrata]][,"index_derivD.int.dSurvivalC-threshold"]+1]) ## (p.C,n) 
+## cbind(value = ls.intC$intSurv_lower, ls.intC$intSurv_deriv)
+                ## cbind(value = ls.intT$intSurv_lower, ls.intT$intSurv_deriv)
                 
-                ## ## "int.dSurvivalC_0"
-                ## ls.intC$intSurv_derivSurv[index.dSurvivalC.0+1,] - t(out$survJumpT[[iEndpoint]][[iStrata]][,out$survTimeC[[iEndpoint]][[iStrata]][,"index_deriv.int.dSurvivalC_0"]+1])  ## (p.T,m)
-                ## ls.intC$intSurv_derivSurvD[index.dSurvivalC.0+1,] - t(out$survJumpC[[iEndpoint]][[iStrata]][,out$survTimeC[[iEndpoint]][[iStrata]][,"index_derivD.int.dSurvivalC_0"]+1]) ## (p.C,m)
-
-                ## ## "int.dSurvivalT-threshold"
-                ## ls.intT$intSurv_derivSurv[index.dSurvivalT.tau+1,] - t(out$survJumpC[[iEndpoint]][[iStrata]][,out$survTimeC[[iEndpoint]][[iStrata]][,"index_deriv.int.dSurvivalT-threshold"]+1]) ## (p.C,m)
-                ## ls.intT$intSurv_derivSurvD[index.dSurvivalT.tau+1,] - t(out$survJumpT[[iEndpoint]][[iStrata]][,out$survTimeC[[iEndpoint]][[iStrata]][,"index_derivD.int.dSurvivalT-threshold"]+1]) ## (p.T,m)
-
-                ## ## "int.dSurvivalT_0"
-                ## ls.intT$intSurv_derivSurv[index.dSurvivalT.0+1,] - t(out$survJumpC[[iEndpoint]][[iStrata]][,out$survTimeT[[iEndpoint]][[iStrata]][,"index_deriv.int.dSurvivalT_0"]+1]) ## (p.C,n)
-                ## ls.intT$intSurv_derivSurvD[index.dSurvivalT.0+1,] - t(out$survJumpT[[iEndpoint]][[iStrata]][,out$survTimeT[[iEndpoint]][[iStrata]][,"index_derivD.int.dSurvivalT_0"]+1]) ## (p.T,n)                
-
-
-                
-                
-                
-
             }else{
                 out$survJumpC[[iEndpoint]][[iStrata]] <- matrix(0, nrow = 0, ncol = 0)
                 out$survJumpT[[iEndpoint]][[iStrata]] <- matrix(0, nrow = 0, ncol = 0)
@@ -1142,61 +1118,8 @@ calcPeron <- function(data,
         }
     }
 
-    ## lapply(out$survTimeT,function(iM){if(NROW(iM[[1]])>0){sum(is.na(iM[[1]][,14:17]))}})
-    ## lapply(out$survTimeC,function(iM){if(NROW(iM[[1]])>0){sum(is.na(iM[[1]][,14:17]))}})
-
     ## ** export
     return(out)
     
 }
 
-## * calcIntergralSurv_R
-calcIntergralSurv_R <- function(survJump, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD){
-    nJump <- NROW(survJump)
-    ## p_SurvD should be equal to nJump
-    out <- list(time = survJump[,"time"],
-                intSurv_lower = rep(0,nJump+1),
-                intSurv_upper = rep(0,nJump+1),
-                intSurv_derivSurv = matrix(0, nrow = (nJump+1)*iidNuisance, ncol = p_Surv*iidNuisance),
-                intSurv_derivSurvD = matrix(0, nrow = (nJump+1)*iidNuisance, ncol = p_SurvD*iidNuisance)
-                )
-    
-    ## ** loop over time
-    if(lastdSurv > 0){
-        ## add extra contribution to the bound after the last jump (minus because dSurv = (0 - surv(tmax))
-        if((nJump == 0) || is.na(survJump[nJump,"survival"])){
-            out$intSurv_upper[nJump+1] <- - lastSurv * lastdSurv
-        }else{
-            out$intSurv_upper[nJump+1] <- - survJump[nJump,"survival"] * lastdSurv
-        }
-    }
-
-
-    if(nJump>0){
-        for(iJump in nJump:1){
-
-            out$intSurv_lower[iJump] <- out$intSurv_lower[iJump+1]
-            out$intSurv_upper[iJump] <- out$intSurv_upper[iJump+1]
-            if(iidNuisance){
-                out$intSurv_derivSurv[iJump,] <- out$intSurv_derivSurv[iJump+1,]
-                out$intSurv_derivSurvD[iJump,] <- out$intSurv_derivSurvD[iJump+1,]
-            }
-        
-            if(is.na(survJump[iJump,"survival"])){
-                out$intSurv_upper[iJump] <- out$intSurv_upper[iJump] + lastSurv * survJump[iJump,"dSurvival"]
-            }else{
-                out$intSurv_lower[iJump] <- out$intSurv_lower[iJump] + survJump[iJump,"survival"] * survJump[iJump,"dSurvival"]
-                out$intSurv_upper[iJump] <- out$intSurv_upper[iJump] + survJump[iJump,"survival"] * survJump[iJump,"dSurvival"]
-                if(iidNuisance){
-                    ## +1 because index is coded from 0 (for C++) instead of from 1
-                    out$intSurv_derivSurv[iJump,survJump[iJump,"index.survival"]+1] <- out$intSurv_derivSurv[iJump,survJump[iJump,"index.survival"]+1] + survJump[iJump,"dSurvival"] ## derivative regarding S(t+\tau)
-                    out$intSurv_derivSurvD[iJump,survJump[iJump,"index.dSurvival1"]+1] <- out$intSurv_derivSurvD[iJump,survJump[iJump,"index.dSurvival1"]+1] - survJump[iJump,"survival"] ## derivative regarding dS(t-)
-                    out$intSurv_derivSurvD[iJump,survJump[iJump,"index.dSurvival2"]+1] <- out$intSurv_derivSurvD[iJump,survJump[iJump,"index.dSurvival2"]+1] + survJump[iJump,"survival"] ## derivative regarding dS(t+)
-                }
-            }
-        }
-    }
-
-    ## ** export
-    return(out)
-}

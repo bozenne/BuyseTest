@@ -31,37 +31,27 @@
 //' @export
 // [[Rcpp::export]]
 Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
-				 const std::vector<double>& survival,
-				 const std::vector<double>& dSurvival,
-				 const std::vector<int>& index_survival,
-				 const std::vector<int>& index_dSurvival1,
-				 const std::vector<int>& index_dSurvival2,
-				 double lastSurv,
-				 double lastdSurv,
-				 bool iidNuisance,
-				 int p_Surv,
-				 int p_SurvD,
-				 int nJump){
+								 const std::vector<double>& survival,
+								 const std::vector<double>& dSurvival,
+								 const std::vector<int>& index_survival,
+								 const std::vector<int>& index_dSurvival1,
+								 const std::vector<int>& index_dSurvival2,
+								 double lastSurv,
+								 double lastdSurv,
+								 bool iidNuisance,
+								 int p_Surv,
+								 int p_SurvD,
+								 int nJump){
 
   std::vector<double> intSurv_lower(nJump+1,0.0);
   std::vector<double> intSurv_upper(nJump+1,0.0);
-  
-  std::vector<double> jumpDeriv_Surv(0);
-  std::vector<double> indexDeriv_Surv(0);
-  std::vector<double> valueDeriv_Surv(0);
 
-  std::vector<double> jumpDeriv_SurvD(0);
-  std::vector<double> indexDeriv_SurvD(0);
-  std::vector<double> valueDeriv_SurvD(0);
-
+  arma::mat intSurv_deriv;
   if(iidNuisance){
-    jumpDeriv_Surv.reserve(nJump);
-    indexDeriv_Surv.reserve(nJump);
-    valueDeriv_Surv.reserve(nJump);
-  
-    jumpDeriv_SurvD.reserve(2*nJump);
-    indexDeriv_SurvD.reserve(2*nJump);
-    valueDeriv_SurvD.reserve(2*nJump);
+	intSurv_deriv.resize(nJump+1,8);
+	intSurv_deriv.fill(0.0);
+	intSurv_deriv(nJump,0) = nJump+1;
+	intSurv_deriv(nJump,1) = time[nJump-1]+1e-12;
   }
   
   // ** loop over time
@@ -81,68 +71,35 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
       intSurv_upper[iJump] = intSurv_upper[iJump+1];
         
       if(survival[iJump]>=0 && arma::is_finite(survival[iJump])){ // <0 and is_finite test whether it is a missing value (NA in R)
-	intSurv_lower[iJump] += survival[iJump] * dSurvival[iJump];
-	intSurv_upper[iJump] += survival[iJump] * dSurvival[iJump];
-	if(iidNuisance){
-	  // derivative regarding S(t+\tau)
-	  jumpDeriv_Surv.push_back(iJump);
-	  indexDeriv_Surv.push_back(index_survival[iJump]);
-	  valueDeriv_Surv.push_back(dSurvival[iJump]);
+		intSurv_lower[iJump] += survival[iJump] * dSurvival[iJump];
+		intSurv_upper[iJump] += survival[iJump] * dSurvival[iJump];
 
-	  // derivative regarding S(-)
-	  jumpDeriv_SurvD.push_back(iJump);
-	  indexDeriv_SurvD.push_back(index_dSurvival1[iJump]);
-	  valueDeriv_SurvD.push_back(-survival[iJump]);
+		if(iidNuisance){
+		  intSurv_deriv(iJump,0) = iJump;
+		  intSurv_deriv(iJump,1) = time[iJump];
 
-	  // derivative regarding S(+)
-	  jumpDeriv_SurvD.push_back(iJump);
-	  indexDeriv_SurvD.push_back(index_dSurvival2[iJump]);
-	  valueDeriv_SurvD.push_back(survival[iJump]);
-	}
+		  // derivative regarding S(t+\tau)
+		  intSurv_deriv(iJump,2) = index_survival[iJump];
+		  intSurv_deriv(iJump,3) = dSurvival[iJump];
+
+		  // derivative regarding S(-)
+		  intSurv_deriv(iJump,4) = index_dSurvival1[iJump];
+		  intSurv_deriv(iJump,5) = -survival[iJump];
+
+		  // derivative regarding S(+)
+		  intSurv_deriv(iJump,6) = index_dSurvival2[iJump];
+		  intSurv_deriv(iJump,7) = survival[iJump];
+		}
       }else{
-	intSurv_upper[iJump] += lastSurv * dSurvival[iJump];
+		intSurv_upper[iJump] += lastSurv * dSurvival[iJump];
       }
     }
   }
 
   // ** export
-  int n_derivSurv = jumpDeriv_Surv.size();
-  arma::mat intSurv_derivSurv(n_derivSurv,3);
-  for(int iter=0; iter<n_derivSurv; iter++){
-    if(jumpDeriv_Surv[iter] == nJump){
-      if(nJump==0){
-	intSurv_derivSurv(n_derivSurv-iter-1,0) = NA_REAL;
-      }else{
-	intSurv_derivSurv(n_derivSurv-iter-1,0) = time[jumpDeriv_Surv[iter]-1]+1e-12;
-      }
-    }else{
-      intSurv_derivSurv(n_derivSurv-iter-1,0) = time[jumpDeriv_Surv[iter]];
-    }
-    intSurv_derivSurv(n_derivSurv-iter-1,1) = indexDeriv_Surv[iter];
-    intSurv_derivSurv(n_derivSurv-iter-1,2) = valueDeriv_Surv[iter];
-  }
-
-  int n_derivSurvD = indexDeriv_SurvD.size();
-  arma::mat intSurv_derivSurvD(n_derivSurvD,3);
-  for(int iter=0; iter<n_derivSurvD; iter++){
-    if(jumpDeriv_SurvD[iter] == nJump){
-      if(nJump==0){
-	intSurv_derivSurvD(n_derivSurvD-iter-1,0) = NA_REAL;
-      }else{
-	intSurv_derivSurvD(n_derivSurvD-iter-1,0) = time[jumpDeriv_SurvD[iter]-1]+1e-12;
-      }
-    }else{
-      intSurv_derivSurvD(n_derivSurvD-iter-1,0) = time[jumpDeriv_SurvD[iter]];
-    }
-    intSurv_derivSurvD(n_derivSurvD-iter-1,1) = indexDeriv_SurvD[iter];
-    intSurv_derivSurvD(n_derivSurvD-iter-1,2) = valueDeriv_SurvD[iter];
-  }
-
-  
   return(Rcpp::List::create(Rcpp::Named("time") = time,
-			    Rcpp::Named("intSurv_lower") = intSurv_lower,
-			    Rcpp::Named("intSurv_upper") = intSurv_upper,
-			    Rcpp::Named("intSurv_derivSurv") = intSurv_derivSurv,
-			    Rcpp::Named("intSurv_derivSurvD") = intSurv_derivSurvD
-			    ));
+							Rcpp::Named("intSurv_lower") = intSurv_lower,
+							Rcpp::Named("intSurv_upper") = intSurv_upper,
+							Rcpp::Named("intSurv_deriv") = intSurv_deriv
+							));
 }
