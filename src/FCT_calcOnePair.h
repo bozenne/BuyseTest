@@ -229,7 +229,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
     status_T = 1;
   }
   	
-  Rcpp::Rcout << " (" << status_T << ";" << status_C << ")";
+  // Rcpp::Rcout << " (" << status_T << ";" << status_C << ")";
   // ** compute favorable and unfavorable
   if(status_T==1){
     if(status_C==1){
@@ -252,7 +252,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 
       // favorable
       if(diff >= threshold){
-	Rcpp::Rcout << "(2+a) ";
+	// Rcpp::Rcout << "(2+a) ";
 	if(R_IsNA(survTimeT(1))==false){
 	  score[0] = 1.0 - survTimeT(1)/survTimeC(2); // 1-[Sc(x_i-tau)/Sc(y_j)]
 	  upperFavorable = score[0];
@@ -278,7 +278,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	score[1] = 1.0;
 	upperUnfavorable = score[1];
       }else {
-	Rcpp::Rcout << "(2-b) " << "";
+	// Rcpp::Rcout << "(2-b) " << "";
 	if((R_IsNA(survTimeT(3))==false) & (survTimeT(3) > 0)){
 	  score[1] = survTimeT(3)/survTimeC(2); //  [Sc(x_i+tau)/Sc(y_j)]
 	  upperUnfavorable = score[1];
@@ -307,7 +307,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	score[0] = 1.0;
 	upperFavorable = score[0];
       }else {
-	Rcpp::Rcout << "(3+b) ";
+	// Rcpp::Rcout << "(3+b) ";
 	if((R_IsNA(survTimeC(6))==false) && (survTimeC(6) > 0)){
 	  score[0] = survTimeC(6)/survTimeT(5); // [St(y_j+tau)/St(x_i)]
 	  upperFavorable = score[0];
@@ -327,7 +327,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 
       // unfavorable
       if(diff <= -threshold){
-	Rcpp::Rcout << "(3-a) ";
+	// Rcpp::Rcout << "(3-a) ";
 	if(R_IsNA(survTimeC(4))==false){
 	  score[1] = 1.0 - survTimeC(4)/survTimeT(5); // 1-[St(y_j-tau)/St(x_i)]
 	  upperUnfavorable = score[1];
@@ -362,7 +362,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	  
       // favorable
       if(diff >= threshold){
-	Rcpp::Rcout << "(4+a) ";
+	// Rcpp::Rcout << "(4+a) ";
 
 	if(precompute){
 	  intFavorable[0] = survTimeT(13);
@@ -406,7 +406,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	// Rcpp::Rcout << "end " << std::endl;
 
       }else{
-	Rcpp::Rcout << "(4+b) ";
+	// Rcpp::Rcout << "(4+b) ";
 
 	if(precompute){
 	  intFavorable[0] = survTimeC(15);
@@ -440,7 +440,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
       
       // unfavorable
       if(diff <= -threshold){	
-	Rcpp::Rcout << "(4-a) ";
+	// Rcpp::Rcout << "(4-a) ";
 
 	if(precompute){
 	  intUnfavorable[0] = survTimeC(13);
@@ -485,7 +485,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	// Rcpp::Rcout << "end ";
 
       }else{
-	Rcpp::Rcout << "(4-b) ";
+	// Rcpp::Rcout << "(4-b) ";
 	    
 	if(precompute){
 	  intUnfavorable[0] = survTimeT(15);
