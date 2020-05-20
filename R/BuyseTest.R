@@ -924,8 +924,8 @@ calcPeron <- function(data,
                         ## iSurvT[iIndexSurvivalT.JumpCpTau]
                         ## iSurvC[iIndexSurvivalC.JumpCm]
                     }else{
-                        out$survJumpC[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 3,
-                                                                        dimnames = list(NULL, c("time","surival","dSurvival")))
+                        out$survJumpC[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 6,
+                                                                        dimnames = list(NULL, c("time","survival","dSurvival","index.survival","index.dSurvival1","index.dSurvival2")))
                     }
                 
                     if(length(iJumpT)>0){                    
@@ -938,8 +938,8 @@ calcPeron <- function(data,
                                                                        index.dSurvival2 = iIndexSurvivalT.JumpTp - 1)
                 
                     }else{
-                        out$survJumpT[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 3,
-                                                                        dimnames = list(NULL, c("time","surival","dSurvival")))
+                        out$survJumpT[[iEndpoint]][[iStrata]] <- matrix(nrow = 0, ncol = 6,
+                                                                        dimnames = list(NULL, c("time","survival","dSurvival","index.survival","index.dSurvival1","index.dSurvival2")))
                     }
 
                     ## **** survival at observation time (+/- threshold)
@@ -969,19 +969,19 @@ calcPeron <- function(data,
                     iIndexSurvivalT.timeTpTau <- prodlim::sindex(iSurvTimeT, iTimeT + iThreshold)
 
                     out$survTimeT[[iEndpoint]][[iStrata]] <- cbind("time" = iTimeT,
-                                                                    "SurvivalC-threshold" = iSurvC[iIndexSurvivalC.timeTmTau],
-                                                                    "SurvivalC_0" = iSurvivalC.timeT,
-                                                                    "SurvivalC+threshold" = iSurvC[iIndexSurvivalC.timeTpTau],
-                                                                    "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeTmTau],
-                                                                    "SurvivalT_0" = iSurvivalT.timeT,
-                                                                    "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeTpTau],
-                                                                    "index.SurvivalC-threshold" = iIndexSurvivalC.timeTmTau - 1,
-                                                                    "index.SurvivalC_0" = iIndexSurvivalC.timeT - 1,
-                                                                    "index.SurvivalC+threshold" = iIndexSurvivalC.timeTpTau - 1,
-                                                                    "index.SurvivalT-threshold" = iIndexSurvivalT.timeTmTau - 1,
-                                                                    "index.SurvivalT_0" = iIndexSurvivalT.timeT - 1,
-                                                                    "index.SurvivalT+threshold" = iIndexSurvivalT.timeTpTau - 1
-                                                                    )
+                                                                   "SurvivalC-threshold" = iSurvC[iIndexSurvivalC.timeTmTau],
+                                                                   "SurvivalC_0" = iSurvivalC.timeT,
+                                                                   "SurvivalC+threshold" = iSurvC[iIndexSurvivalC.timeTpTau],
+                                                                   "SurvivalT-threshold" = iSurvT[iIndexSurvivalT.timeTmTau],
+                                                                   "SurvivalT_0" = iSurvivalT.timeT,
+                                                                   "SurvivalT+threshold" = iSurvT[iIndexSurvivalT.timeTpTau],
+                                                                   "index.SurvivalC-threshold" = iIndexSurvivalC.timeTmTau - 1,
+                                                                   "index.SurvivalC_0" = iIndexSurvivalC.timeT - 1,
+                                                                   "index.SurvivalC+threshold" = iIndexSurvivalC.timeTpTau - 1,
+                                                                   "index.SurvivalT-threshold" = iIndexSurvivalT.timeTmTau - 1,
+                                                                   "index.SurvivalT_0" = iIndexSurvivalT.timeT - 1,
+                                                                   "index.SurvivalT+threshold" = iIndexSurvivalT.timeTpTau - 1
+                                                                   )
                 } ## endpoint-threshold
             } ## CR
         } ## strata
@@ -1036,7 +1036,7 @@ calcPeron <- function(data,
                                              p_Surv = out$p.T[iStrata,iEndpoint],
                                              p_SurvD = out$p.C[iStrata,iEndpoint],
                                              nJump = NROW(out$survJumpC[[iEndpoint]][[iStrata]]))
-            
+
             ls.intT <- calcIntegralSurv2_cpp(time = out$survJumpT[[iEndpoint]][[iStrata]][,"time"],
                                              survival = out$survJumpT[[iEndpoint]][[iStrata]][,"survival"],
                                              dSurvival = out$survJumpT[[iEndpoint]][[iStrata]][,"dSurvival"],
@@ -1049,7 +1049,7 @@ calcPeron <- function(data,
                                              p_Surv = out$p.C[iStrata,iEndpoint],
                                              p_SurvD = out$p.T[iStrata,iEndpoint],
                                              nJump = NROW(out$survJumpT[[iEndpoint]][[iStrata]]))
-
+        
             ## not normal sidex because we want to catch before jump
             ## e.g. jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4) should give c(1,2,2,3,4,4)
             ## e.g. 3 - prodlim::sindex(jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4), strict = TRUE, comp = "greater") + 1            

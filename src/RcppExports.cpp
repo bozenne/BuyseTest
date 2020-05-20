@@ -127,12 +127,35 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calcIntegralSurv2_cpp
+Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time, const std::vector<double>& survival, const std::vector<double>& dSurvival, const std::vector<int>& index_survival, const std::vector<int>& index_dSurvival1, const std::vector<int>& index_dSurvival2, double lastSurv, double lastdSurv, bool iidNuisance, int p_Surv, int p_SurvD, int nJump);
+RcppExport SEXP _BuyseTest_calcIntegralSurv2_cpp(SEXP timeSEXP, SEXP survivalSEXP, SEXP dSurvivalSEXP, SEXP index_survivalSEXP, SEXP index_dSurvival1SEXP, SEXP index_dSurvival2SEXP, SEXP lastSurvSEXP, SEXP lastdSurvSEXP, SEXP iidNuisanceSEXP, SEXP p_SurvSEXP, SEXP p_SurvDSEXP, SEXP nJumpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type survival(survivalSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type dSurvival(dSurvivalSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type index_survival(index_survivalSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type index_dSurvival1(index_dSurvival1SEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type index_dSurvival2(index_dSurvival2SEXP);
+    Rcpp::traits::input_parameter< double >::type lastSurv(lastSurvSEXP);
+    Rcpp::traits::input_parameter< double >::type lastdSurv(lastdSurvSEXP);
+    Rcpp::traits::input_parameter< bool >::type iidNuisance(iidNuisanceSEXP);
+    Rcpp::traits::input_parameter< int >::type p_Surv(p_SurvSEXP);
+    Rcpp::traits::input_parameter< int >::type p_SurvD(p_SurvDSEXP);
+    Rcpp::traits::input_parameter< int >::type nJump(nJumpSEXP);
+    rcpp_result_gen = Rcpp::wrap(calcIntegralSurv2_cpp(time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD, nJump));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 34},
     {"_BuyseTest_GPC2_cpp", (DL_FUNC) &_BuyseTest_GPC2_cpp, 34},
     {"_BuyseTest_calcIntegralSurv_cpp", (DL_FUNC) &_BuyseTest_calcIntegralSurv_cpp, 7},
     {"_BuyseTest_calcIntegralCif_cpp", (DL_FUNC) &_BuyseTest_calcIntegralCif_cpp, 6},
+    {"_BuyseTest_calcIntegralSurv2_cpp", (DL_FUNC) &_BuyseTest_calcIntegralSurv2_cpp, 12},
     {NULL, NULL, 0}
 };
 

@@ -12,30 +12,30 @@
 #include "FCT_calcStatistic.h"
 
 void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat >>& iPairDweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& iPairDweight_Dnuisance_T,
-				   std::vector<int>& activeUTTE, int& D_activeUTTE,
-				   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
-				   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-				   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID);
+		   std::vector<int>& activeUTTE, int& D_activeUTTE,
+		   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
+		   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
+		   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID);
 
 void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, 
-			   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
-			   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
-			   const arma::mat& iCount_obsC, const arma::mat& iCount_obsT,
-			   const std::vector<int>& activeUTTE, int D_activeUTTE,
-			   const arma::mat& iDscore_Dnuisance_C, const arma::mat& iDscore_Dnuisance_T,
-			   const std::vector< std::vector< arma::mat > >& iid_survJumpC, const std::vector< std::vector< arma::mat > >& iid_survJumpT,
-			   const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_C,
-			   const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_T,
-			   const arma::vec& vecn_pairs, unsigned int iter_d, int iIndex_UTTE, unsigned int iter_strata, int iMethod, int returnIID);
+	       arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
+	       const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
+	       const arma::mat& iCount_obsC, const arma::mat& iCount_obsT,
+	       const std::vector<int>& activeUTTE, int D_activeUTTE,
+	       const arma::mat& iDscore_Dnuisance_C, const arma::mat& iDscore_Dnuisance_T,
+	       const std::vector< std::vector< arma::mat > >& iid_survJumpC, const std::vector< std::vector< arma::mat > >& iid_survJumpT,
+	       const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_C,
+	       const std::vector<std::vector< arma::sp_mat >> & iPairDweight_Dnuisance_T,
+	       const arma::vec& vecn_pairs, unsigned int iter_d, int iIndex_UTTE, unsigned int iter_strata, int iMethod, int returnIID);
 
 void updatePairScore(std::vector< arma::mat >& pairScore, arma::mat& iPairScore,
-					 unsigned int iter_strata, const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
-					 const arma::vec& vecn_control, const arma::vec& vecn_cumpairsM1, unsigned int iter_d);
+		     unsigned int iter_strata, const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT,
+		     const arma::vec& vecn_control, const arma::vec& vecn_cumpairsM1, unsigned int iter_d);
 
 void updateRP(arma::mat& iRP_score, std::vector< arma::sp_mat >& iRP_Dscore_Dnuisance_C, std::vector< arma::sp_mat >& iRP_Dscore_Dnuisance_T,
-			  std::vector<arma::mat>& RP_score, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-			  arma::vec& iPairWeight_nPeron, int iSize_RP, bool neutralAsUninf, int iter_d, int correctionUninf,
-			  double zeroPlus, int iIndex_UTTE, int nUTTE_analyzedPeron, int returnIID);
+	      std::vector<arma::mat>& RP_score, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
+	      arma::vec& iPairWeight_nPeron, int iSize_RP, bool neutralAsUninf, int iter_d, int correctionUninf,
+	      double zeroPlus, int iIndex_UTTE, int nUTTE_analyzedPeron, int returnIID);
 
 arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 
@@ -92,39 +92,39 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @export
 // [[Rcpp::export]]
 Rcpp::List GPC_cpp(arma::mat endpoint,
-				   arma::mat status,
-				   std::vector< arma::uvec > indexC,
-				   std::vector< arma::uvec > posC,
-				   std::vector< arma::uvec > indexT,
-				   std::vector< arma::uvec > posT,
-				   std::vector< double > threshold,
-				   arma::vec weight,
-				   arma::vec method,
-				   unsigned int D,
-				   unsigned int D_UTTE,
-				   unsigned int n_strata,
-				   arma::vec nUTTE_analyzedPeron_M1,
-				   std::vector<unsigned int> index_endpoint, 
-				   std::vector<unsigned int> index_status, 
-				   std::vector<int> index_UTTE, 
-				   std::vector< std::vector< arma::mat > > list_survTimeC,
-				   std::vector< std::vector< arma::mat > > list_survTimeT,
-				   std::vector< std::vector< arma::mat > > list_survJumpC,
-				   std::vector< std::vector< arma::mat > > list_survJumpT,
-				   std::vector< arma::mat > list_lastSurv,
-				   arma::mat p_C,
-				   arma::mat p_T,
-				   std::vector< std::vector< arma::mat > > iid_survJumpC,
-				   std::vector< std::vector< arma::mat > > iid_survJumpT,
-				   double zeroPlus,
-				   int correctionUninf,
-				   bool hierarchical,
-				   int hprojection,
-				   bool neutralAsUninf,
-				   bool keepScore,
-				   bool precompute,
-				   int returnIID,
-				   int debug){
+		   arma::mat status,
+		   std::vector< arma::uvec > indexC,
+		   std::vector< arma::uvec > posC,
+		   std::vector< arma::uvec > indexT,
+		   std::vector< arma::uvec > posT,
+		   std::vector< double > threshold,
+		   arma::vec weight,
+		   arma::vec method,
+		   unsigned int D,
+		   unsigned int D_UTTE,
+		   unsigned int n_strata,
+		   arma::vec nUTTE_analyzedPeron_M1,
+		   std::vector<unsigned int> index_endpoint, 
+		   std::vector<unsigned int> index_status, 
+		   std::vector<int> index_UTTE, 
+		   std::vector< std::vector< arma::mat > > list_survTimeC,
+		   std::vector< std::vector< arma::mat > > list_survTimeT,
+		   std::vector< std::vector< arma::mat > > list_survJumpC,
+		   std::vector< std::vector< arma::mat > > list_survJumpT,
+		   std::vector< arma::mat > list_lastSurv,
+		   arma::mat p_C,
+		   arma::mat p_T,
+		   std::vector< std::vector< arma::mat > > iid_survJumpC,
+		   std::vector< std::vector< arma::mat > > iid_survJumpT,
+		   double zeroPlus,
+		   int correctionUninf,
+		   bool hierarchical,
+		   int hprojection,
+		   bool neutralAsUninf,
+		   bool keepScore,
+		   bool precompute,
+		   int returnIID,
+		   int debug){
 
   // WARNING : strataT and strataC should be passed as const argument but it leads to an error in the conversion to arma::uvec.
   // NOTE : each pair has an associated weight initialized at 1. The number of pairs and the total weight are two different things.
@@ -205,10 +205,10 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
     std::vector< arma::sp_mat > iRP_Dscore_Dnuisance_T; //  favorable/unfavorable/neutral/uninformative (pair,nuisance parameters) [current endpoint]
     if(returnIID>1){
       for(unsigned int iter_UTTE=0; iter_UTTE<D_UTTE; iter_UTTE++){
-		RP_Dscore_Dnuisance_C[iter_UTTE].resize(4);
-		RP_Dscore_Dnuisance_T[iter_UTTE].resize(4);
-		iRP_Dscore_Dnuisance_C.resize(4);
-		iRP_Dscore_Dnuisance_T.resize(4);
+	RP_Dscore_Dnuisance_C[iter_UTTE].resize(4);
+	RP_Dscore_Dnuisance_T[iter_UTTE].resize(4);
+	iRP_Dscore_Dnuisance_C.resize(4);
+	iRP_Dscore_Dnuisance_T.resize(4);
       }
     }
 	
@@ -233,16 +233,16 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
       std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_C_M1;  
       std::vector<std::vector< arma::sp_mat >> iPairDweight_Dnuisance_T_M1; 
       if(iNUTTE_analyzedPeron > zeroPlus){
-		if(debug>0){Rcpp::Rcout << " - compute weights("<< iNUTTE_analyzedPeron <<"): " << std::endl;}
-		prepareWeight(iPairWeight, iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
-					  activeUTTE, D_activeUTTE,
-					  iter_d, iIndex_UTTE, RP_score,
-					  RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
-					  iNUTTE_analyzedPeron, correctionUninf, zeroPlus, neutralAsUninf, returnIID);
-		if(iAlreadyAnalyzed){
-		  iPairDweight_Dnuisance_C_M1 = iPairDweight_Dnuisance_C;
-		  iPairDweight_Dnuisance_T_M1 = iPairDweight_Dnuisance_T;
-		}
+	if(debug>0){Rcpp::Rcout << " - compute weights("<< iNUTTE_analyzedPeron <<"): " << std::endl;}
+	prepareWeight(iPairWeight, iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
+		      activeUTTE, D_activeUTTE,
+		      iter_d, iIndex_UTTE, RP_score,
+		      RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
+		      iNUTTE_analyzedPeron, correctionUninf, zeroPlus, neutralAsUninf, returnIID);
+	if(iAlreadyAnalyzed){
+	  iPairDweight_Dnuisance_C_M1 = iPairDweight_Dnuisance_C;
+	  iPairDweight_Dnuisance_T_M1 = iPairDweight_Dnuisance_T;
+	}
       }
       // Rcpp::Rcout << iPairWeight << std::endl;
 
@@ -252,13 +252,13 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
       arma::uvec iUvec_status = {index_status[iter_d]};
 
       iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
-								status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
-								list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
-								list_lastSurv[iter_d].row(iter_strata),
-								iIndex_control, iIndex_treatment, iPairWeight,
-								activeUTTE, D_activeUTTE,
-								Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
-								iRP_score,
+				status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
+				list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+				list_lastSurv[iter_d].row(iter_strata),
+				iIndex_control, iIndex_treatment, iPairWeight,
+				activeUTTE, D_activeUTTE,
+				Mcount_favorable(iter_strata,iter_d), Mcount_unfavorable(iter_strata,iter_d), Mcount_neutral(iter_strata,iter_d), Mcount_uninf(iter_strata,iter_d),
+				iRP_score,
 								iCount_obsC, iCount_obsT, iDscore_Dnuisance_C, iDscore_Dnuisance_T,
 								iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
 								iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
@@ -429,33 +429,32 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 					std::vector< arma::uvec > posT,
 					std::vector< double > threshold,
 					arma::vec weight,
-					arma::vec method,
-					unsigned int D,
-					unsigned int D_UTTE,
-					unsigned int n_strata,
-					arma::vec nUTTE_analyzedPeron_M1,
-					std::vector<unsigned int> index_endpoint, 
-					std::vector<unsigned int> index_status, 
-					std::vector<int> index_UTTE, 
-					std::vector< std::vector< arma::mat > > list_survTimeC,
-					std::vector< std::vector< arma::mat > > list_survTimeT,
-					std::vector< std::vector< arma::mat > > list_survJumpC,
-					std::vector< std::vector< arma::mat > > list_survJumpT,
-					std::vector< arma::mat > list_lastSurv,
-					arma::mat p_C,
-					arma::mat p_T,
-					std::vector< std::vector< arma::mat > > iid_survJumpC,
-					std::vector< std::vector< arma::mat > > iid_survJumpT,
-					double zeroPlus,
-					int correctionUninf, // not used		   
-					bool hierarchical,
-					int hprojection,
-					bool neutralAsUninf,
+		    arma::vec method,
+		    unsigned int D,
+		    unsigned int D_UTTE,
+		    unsigned int n_strata,
+		    arma::vec nUTTE_analyzedPeron_M1,
+		    std::vector<unsigned int> index_endpoint, 
+		    std::vector<unsigned int> index_status, 
+		    std::vector<int> index_UTTE, 
+		    std::vector< std::vector< arma::mat > > list_survTimeC,
+		    std::vector< std::vector< arma::mat > > list_survTimeT,
+		    std::vector< std::vector< arma::mat > > list_survJumpC,
+		    std::vector< std::vector< arma::mat > > list_survJumpT,
+		    std::vector< arma::mat > list_lastSurv,
+		    arma::mat p_C,
+		    arma::mat p_T,
+		    std::vector< std::vector< arma::mat > > iid_survJumpC,
+		    std::vector< std::vector< arma::mat > > iid_survJumpT,
+		    double zeroPlus,
+		    int correctionUninf, // not used		   
+		    bool hierarchical,
+		    int hprojection,
+		    bool neutralAsUninf,
 		    bool keepScore,
 		    bool precompute,
 		    int returnIID,
 		    int debug){
-
   if(debug>0){Rcpp::Rcout << std::endl;}
 
   /// ** number of pairs

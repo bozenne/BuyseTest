@@ -103,3 +103,27 @@ calcIntegralCif_cpp <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) 
     .Call(`_BuyseTest_calcIntegralCif_cpp`, cif, start_val, stop_val, CIF_t, lastCIF, type)
 }
 
+#' @title C++ Function pre-computing the Integral Terms for the Peron Method in the survival case. 
+#' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored, i.e. \eqn{\int S1(t+\tau) dS2(t)}.
+#' @name calcIntegralSurv2_cpp
+#' 
+#' @param time [numeric vector] vector of jump time for S2.
+#' @param survival [numeric vector] the survival at each jump time: \eqn{S1(t+\tau)}.
+#' @param dsurvival [numeric vector] the jump in survival at each jump time: \eqn{S2(t+)-S2(t-)}
+#' @param index_survival [numeric vector] the position of survival parameter \eqn{S1(t+\tau)} among all parameters relative to S1.
+#' @param index_dSurvival1 [numeric vector] the position of survival parameter \eqn{S2(t-)} among all parameters relative to S2.
+#' @param index_dSurvival2 [numeric vector] the position of survival parameter \eqn{S2(t+)} among all parameters relative to S2.
+#' @param lastSurv [numeric] the value of S1 at the end of the follow-up.
+#' @param lastSurv [numeric] the value of S2 at the end of the follow-up.
+#' @param iidNuisance [logical] should the derivative of the integral relative to the S1 and S2 parameter be output.
+#' @param p_Surv [integer] the number of parameters relative to S1.
+#' @param p_SurvD [integer] the number of parameters relative to S2.
+#' @param nJump [integer] the number of jump times relative to S2.
+#'
+#' @keywords function Cpp internal
+#' @author Brice Ozenne
+#' @export
+calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD, nJump) {
+    .Call(`_BuyseTest_calcIntegralSurv2_cpp`, time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD, nJump)
+}
+
