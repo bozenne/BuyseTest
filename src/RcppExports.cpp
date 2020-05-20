@@ -149,6 +149,100 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rowCumSum_cpp
+arma::mat rowCumSum_cpp(const arma::mat X);
+RcppExport SEXP _BuyseTest_rowCumSum_cpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowCumSum_cpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowCumProd_cpp
+arma::mat rowCumProd_cpp(const arma::mat X);
+RcppExport SEXP _BuyseTest_rowCumProd_cpp(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowCumProd_cpp(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colCenter_cpp
+arma::mat colCenter_cpp(const arma::mat X, const arma::colvec& center);
+RcppExport SEXP _BuyseTest_colCenter_cpp(SEXP XSEXP, SEXP centerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec& >::type center(centerSEXP);
+    rcpp_result_gen = Rcpp::wrap(colCenter_cpp(X, center));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowCenter_cpp
+arma::mat rowCenter_cpp(const arma::mat X, const arma::rowvec& center);
+RcppExport SEXP _BuyseTest_rowCenter_cpp(SEXP XSEXP, SEXP centerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::rowvec& >::type center(centerSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowCenter_cpp(X, center));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colScale_cpp
+arma::mat colScale_cpp(const arma::mat X, const arma::colvec& scale);
+RcppExport SEXP _BuyseTest_colScale_cpp(SEXP XSEXP, SEXP scaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec& >::type scale(scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(colScale_cpp(X, scale));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowScale_cpp
+arma::mat rowScale_cpp(const arma::mat X, const arma::rowvec& scale);
+RcppExport SEXP _BuyseTest_rowScale_cpp(SEXP XSEXP, SEXP scaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::rowvec& >::type scale(scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowScale_cpp(X, scale));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colMultiply_cpp
+arma::mat colMultiply_cpp(const arma::mat X, const arma::colvec& scale);
+RcppExport SEXP _BuyseTest_colMultiply_cpp(SEXP XSEXP, SEXP scaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec& >::type scale(scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(colMultiply_cpp(X, scale));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowMultiply_cpp
+arma::mat rowMultiply_cpp(const arma::mat X, const arma::rowvec& scale);
+RcppExport SEXP _BuyseTest_rowMultiply_cpp(SEXP XSEXP, SEXP scaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::rowvec& >::type scale(scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowMultiply_cpp(X, scale));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_GPC_cpp", (DL_FUNC) &_BuyseTest_GPC_cpp, 34},
@@ -156,6 +250,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_BuyseTest_calcIntegralSurv_cpp", (DL_FUNC) &_BuyseTest_calcIntegralSurv_cpp, 7},
     {"_BuyseTest_calcIntegralCif_cpp", (DL_FUNC) &_BuyseTest_calcIntegralCif_cpp, 6},
     {"_BuyseTest_calcIntegralSurv2_cpp", (DL_FUNC) &_BuyseTest_calcIntegralSurv2_cpp, 12},
+    {"_BuyseTest_rowCumSum_cpp", (DL_FUNC) &_BuyseTest_rowCumSum_cpp, 1},
+    {"_BuyseTest_rowCumProd_cpp", (DL_FUNC) &_BuyseTest_rowCumProd_cpp, 1},
+    {"_BuyseTest_colCenter_cpp", (DL_FUNC) &_BuyseTest_colCenter_cpp, 2},
+    {"_BuyseTest_rowCenter_cpp", (DL_FUNC) &_BuyseTest_rowCenter_cpp, 2},
+    {"_BuyseTest_colScale_cpp", (DL_FUNC) &_BuyseTest_colScale_cpp, 2},
+    {"_BuyseTest_rowScale_cpp", (DL_FUNC) &_BuyseTest_rowScale_cpp, 2},
+    {"_BuyseTest_colMultiply_cpp", (DL_FUNC) &_BuyseTest_colMultiply_cpp, 2},
+    {"_BuyseTest_rowMultiply_cpp", (DL_FUNC) &_BuyseTest_rowMultiply_cpp, 2},
     {NULL, NULL, 0}
 };
 

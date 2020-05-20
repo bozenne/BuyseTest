@@ -63,7 +63,6 @@ GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, we
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method in the survival case. 
 #' @description Compute the integral with respect to the jump in survival for pairs where both outcomes are censored.
-#' @name calcIntegralSurv_cpp
 #' 
 #' @param survival [matrix] Contains the jump times in the first column,
 #' the survival in the other arm at times plus threshold in the second column,
@@ -78,13 +77,12 @@ GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, we
 #' @keywords function Cpp internal
 #' @author Brice Ozenne
 #' @export
-calcIntegralSurv_cpp <- function(survival, start, lastSurv, lastdSurv, returnDeriv, derivSurv, derivSurvD) {
+.calcIntegralSurv_cpp <- function(survival, start, lastSurv, lastdSurv, returnDeriv, derivSurv, derivSurvD) {
     .Call(`_BuyseTest_calcIntegralSurv_cpp`, survival, start, lastSurv, lastdSurv, returnDeriv, derivSurv, derivSurvD)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR).
 #' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
-#' @name calcIntegralCif_cpp
 #'
 #' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
 #' T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).
@@ -99,7 +97,7 @@ calcIntegralSurv_cpp <- function(survival, start, lastSurv, lastdSurv, returnDer
 #' @keywords function Cpp internal
 #' @author Eva Cantagallo
 #' @export
-calcIntegralCif_cpp <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) {
+.calcIntegralCif_cpp <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) {
     .Call(`_BuyseTest_calcIntegralCif_cpp`, cif, start_val, stop_val, CIF_t, lastCIF, type)
 }
 
@@ -125,5 +123,83 @@ calcIntegralCif_cpp <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) 
 #' @export
 calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD, nJump) {
     .Call(`_BuyseTest_calcIntegralSurv2_cpp`, time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD, nJump)
+}
+
+#' Apply cumsum in each column 
+#'
+#' @description Fast computation of apply(x,2,cumsum)
+#' @param X A matrix.
+#' @return A matrix of same size as x.
+.rowCumSum_cpp <- function(X) {
+    .Call(`_BuyseTest_rowCumSum_cpp`, X)
+}
+
+#' Apply cumprod in each row 
+#'
+#' @description Fast computation of t(apply(x,1,cumprod))
+#' @param X A matrix.
+#' @return A matrix of same size as x.
+.rowCumProd_cpp <- function(X) {
+    .Call(`_BuyseTest_rowCumProd_cpp`, X)
+}
+
+#' Substract a vector of values in each column 
+#'
+#' @description Fast computation of sweep(X, FUN = "-", STATS = center, MARGIN = 1)
+#' @param X A matrix.
+#' @param center A vector with length the number of rows of X .
+#' @return A matrix of same size as x.
+.colCenter_cpp <- function(X, center) {
+    .Call(`_BuyseTest_colCenter_cpp`, X, center)
+}
+
+#' Substract a vector of values in each row
+#'
+#' @description Fast computation of sweep(X, FUN = "-", STATS = center, MARGIN = 2)
+#' @param X A matrix.
+#' @param center A vector with length the number of columns of X.
+#' @return A matrix of same size as x.
+.rowCenter_cpp <- function(X, center) {
+    .Call(`_BuyseTest_rowCenter_cpp`, X, center)
+}
+
+#' Divide by a vector of values in each column 
+#'
+#' @description Fast computation of sweep(X, FUN = "/", STATS = scale, MARGIN = 1)
+#' @param X A matrix.
+#' @param scale A vector with length the number of rows of X .
+#' @return A matrix of same size as x.
+.colScale_cpp <- function(X, scale) {
+    .Call(`_BuyseTest_colScale_cpp`, X, scale)
+}
+
+#' Dividy by a vector of values in each row
+#'
+#' @description Fast computation of sweep(X, FUN = "/", STATS = center, MARGIN = 2)
+#' @param X A matrix.
+#' @param scale A vector with length the number of columns of X.
+#' @return A matrix of same size as x.
+.rowScale_cpp <- function(X, scale) {
+    .Call(`_BuyseTest_rowScale_cpp`, X, scale)
+}
+
+#' Multiply by a vector of values in each column 
+#'
+#' @description Fast computation of sweep(X, FUN = "*", STATS = scale, MARGIN = 1)
+#' @param X A matrix.
+#' @param scale A vector with length the number of rows of X .
+#' @return A matrix of same size as x.
+.colMultiply_cpp <- function(X, scale) {
+    .Call(`_BuyseTest_colMultiply_cpp`, X, scale)
+}
+
+#' Multiply by a vector of values in each row
+#'
+#' @description Fast computation of sweep(X, FUN = "*", STATS = center, MARGIN = 2)
+#' @param X A matrix.
+#' @param scale A vector with length the number of columns of X.
+#' @return A matrix of same size as x.
+.rowMultiply_cpp <- function(X, scale) {
+    .Call(`_BuyseTest_rowMultiply_cpp`, X, scale)
 }
 

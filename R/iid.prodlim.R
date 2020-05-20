@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: maj  5 2020 (10:37) 
+## Last-Updated: maj 20 2020 (16:43) 
 ##           By: Brice Ozenne
-##     Update #: 106
+##     Update #: 115
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -84,7 +84,10 @@ iid.prodlim <- function(object, add0 = FALSE, ...){
                     dimnames = list(NULL, strataVar))
         cbind("strata.index" = iS, data.frame(M, stringsAsFactors = FALSE))
     }))
-    tableHazard <- data.table::data.table(df.strata, hazard = object$hazard, survival = object$surv, time = object$time,
+    tableHazard <- data.table::data.table(df.strata,
+                                          hazard = object$hazard,
+                                          survival = object$surv,
+                                          time = object$time,
                                           event = object$n.event,
                                           atrisk = object$n.risk)
     tableHazard.red <- tableHazard[tableHazard$event>0]
@@ -132,6 +135,7 @@ iid.prodlim <- function(object, add0 = FALSE, ...){
         
         ## hazard
         iHazard_iS0 <- iHazard/iTableHazard$atrisk
+
         iIndEvent <- do.call(cbind, lapply(ls.Utime1[[iStrata]], function(iT){
             (abs(iT - iVec.eventtime ) < 1e-12) * iDelta_iS0
         }))
@@ -139,14 +143,13 @@ iid.prodlim <- function(object, add0 = FALSE, ...){
             (iT <= iIndexJump) * iHazard_iS0[iT]
         }))
         IFhazard[[iStrata]][iSubsetObs,] <- - iRatio + iIndEvent
-         
+        
         ## cumulative hazard
-        IFcumhazard[[iStrata]][iSubsetObs,] <- t(apply(IFhazard[[iStrata]][iSubsetObs,,drop=FALSE],1,cumsum))
+        IFcumhazard[[iStrata]][iSubsetObs,] <- .rowCumSum_cpp(IFhazard[[iStrata]][iSubsetObs,,drop=FALSE])
 
         ## survival
         ## note use exp(-surv) instead of product limit for consistency with riskRegression
-        IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], FUN = "*", STATS = exp(-cumsum(iTableHazard$hazard)), MARGIN = 2)
-        ## IFsurvival[[iStrata]][iSubsetObs,] <- sweep(-IFcumhazard[[iStrata]][iSubsetObs,], FUN = "*", STATS = iTableHazard$survival, MARGIN = 2)
+        IFsurvival[[iStrata]][iSubsetObs,] <- .rowMultiply_cpp(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], scale = exp(-cumsum(iTableHazard$hazard)))
     }
 
     ## ** Modification used by BuyseTest to enable the user to easily specify model.tte
