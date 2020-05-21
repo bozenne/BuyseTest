@@ -199,7 +199,7 @@ simBuyseTest <- function(n.T, n.C = NULL,
             lava::categorical(mC.lvm, labels = letters[1:n.strata[iterS]]) <- names.strata[iterS]   
         }
     }
-    
+
     ## ** simulate data from the generative model
     df.T <- lava::sim(mT.lvm, n.T, latent = latent)
     df.C <- lava::sim(mC.lvm, n.C, latent = latent)
@@ -298,8 +298,8 @@ simBuyseTest_bin <- function(modelT,
             stop("simBuyseTest_bin: variable already in the LVM \n",
                  "variable: ",paste(name[iterE][name[iterE] %in% lava::vars(modelT)], collapse = " "),"\n")
         }
-        iLatent.T <- paste0("eta_",name[iterE],".T")
-        iLatent.C <- paste0("eta_",name[iterE],".C")
+        iLatent.T <- paste0("eta_",name[iterE])
+        iLatent.C <- paste0("eta_",name[iterE])
 
         iCut.T <- qnormexp(cumsum(p.T[[iterE]])[-length(p.T[[iterE]])], rate = rates.T[iterE], rho = rho.T[iterE])
         iFct.T <- paste0("function(x, xcut = c(",paste0(iCut.T,collapse=","),"), xname = c(\"",paste0(names.values[[iterE]],collapse="\",\""),"\")){\n",
