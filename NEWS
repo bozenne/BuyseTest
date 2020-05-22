@@ -5,8 +5,12 @@
 ** User visible changes
 - NEW FEATURE (version 2.1.3): simBuyseTest now can simulate time to event endpoints
   and categorical endpoints that are correlated (argument argsTTE,
-  element rho.T). The user interface of argument argsTTE has also been modified. 
-
+  element rho.T). The user interface of argument argsTTE has also been modified.
+- NEW FEATURE (version 2.1.5): simBuyseTest simulates time to event
+  endpoints using a Weibull distribution. The argument rates are now
+  called scales (i.e. correspond to the inverse of the previous
+  arguments).
+ 
 ** Internal change
 
 - add options precompute in BuyseTest.options (version 2.1.4): when

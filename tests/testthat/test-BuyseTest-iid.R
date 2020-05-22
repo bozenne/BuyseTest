@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: maj  8 2020 (11:48) 
+## Last-Updated: maj 22 2020 (11:26) 
 ##           By: Brice Ozenne
-##     Update #: 151
+##     Update #: 157
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -577,7 +577,7 @@ test_that("iid with nuisance parameters: 1 TTE",{
 ## ** 1 TTE variable and 1 binary
 n <- 5
 set.seed(10)
-dt <- simBuyseTest(n, argsTTE = list(rates.T = 1/2, rates.Censoring.T = 1))
+dt <- simBuyseTest(n, argsTTE = list(scale.T = 2, scale.Censoring.T = 1))
 ## data.table("treatment" = c("C", "C", "C", "C", "C", "T", "T", "T", "T", "T"), 
 ##            "eventtime" = c(0.60539304, 0.98681219, 0.03946623, 1.28589957, 1.57044952, 0.29069131, 0.19522131, 0.04640668, 0.21109340, 0.69214123), 
 ##            "status" = c(0, 0, 0, 1, 0, 0, 0, 0, 1, 0), 
@@ -614,7 +614,7 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
                        n.C = n.patients[2],
                        argsBin = list(p.T = list(c(0.5,0.5),c(0.25,0.75))),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
-                       argsTTE = list(rates.T = 1/(1:3), rates.Censoring.T = rep(1,3)))
+                       argsTTE = list(scale.T = 1:3, scale.Censoring.T = rep(1,3)))
 setkeyv(dt.sim,c("treatment","eventtime1"))
 ## dt.sim[,status1.bis := c(status1[1:(.N-1)],1),by="treatment"] ## make sure last observation is a case
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: maj  5 2020 (10:37) 
+## Last-Updated: maj 22 2020 (15:38) 
 ##           By: Brice Ozenne
-##     Update #: 841
+##     Update #: 847
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -386,20 +386,26 @@ powerBuyseTest <- function(sim,
 
     ## ** Loop over other sample sizes
     if(rerun>0){
-
+        n.sample.size <- envir$n.sample.size
+        scoring.rule <- envir$outArgs$scoring.rule
+        iidNuisance <- envir$outArgs$iidNuisance
+        index.C <- envir$outArgs$index.C
+        index.T <- envir$outArgs$index.T
+        sample.sizeC <- envir$sample.sizeC
+        sample.sizeT <- envir$sample.sizeT
+        
         for(iSize in 1:(envir$n.sample.size-1)){
-
             if(rerun==1){ ## Gehan's scoring rule
-                outPoint <- .createSubBT(allBT[[envir$n.sample.size]], 
-                                         sample.sizeC = envir$sample.sizeC[iSize], sample.sizeT = envir$sample.sizeT[iSize])
+                outPoint <- .createSubBT(allBT[[n.sample.size]], 
+                                         sample.sizeC = sample.sizeC[iSize], sample.sizeT = sample.sizeT[iSize])
             }else if(rerun==2){ ## Peron's scoring rule or correction
-                envir$outArgs[out.name] <- initializeData(data = rbind(data[envir$outArgs$index.C[1:envir$sample.sizeC[iSize]]],
-                                                                       data[envir$outArgs$index.T[1:envir$sample.sizeT[iSize]]]),
+                envir$outArgs[out.name] <- initializeData(data = rbind(data[index.C[1:sample.sizeC[iSize]]],
+                                                                       data[index.T[1:sample.sizeT[iSize]]]),
                                                           type = envir$outArgs$type,
                                                           endpoint = envir$outArgs$endpoint,
                                                           Uendpoint = envir$outArgs$Uendpoint,
                                                           D = envir$outArgs$D,
-                                                          scoring.rule = envir$outArgs$scoring.rule,
+                                                          scoring.rule = scoring.rule,
                                                           status = envir$outArgs$status,
                                                           Ustatus = envir$outArgs$Ustatus,
                                                           method.inference = envir$outArgs$method.inference,
@@ -412,7 +418,7 @@ powerBuyseTest <- function(sim,
                                                           keep.pairScore = envir$outArgs$keep.pairScore,
                                                           endpoint.TTE = envir$outArgs$endpoint.TTE,
                                                           status.TTE = envir$outArgs$status.TTE,
-                                                          iidNuisance = envir$outArgs$iidNuisance)
+                                                          iidNuisance = iidNuisance)
 
                 outPoint <- .BuyseTest(envir = envir,
                                        iid = envir$outArgs$iid,

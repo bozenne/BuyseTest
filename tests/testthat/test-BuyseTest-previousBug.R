@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj  5 2020 (18:11) 
+## Last-Updated: maj 22 2020 (11:27) 
 ##           By: Brice Ozenne
-##     Update #: 168
+##     Update #: 171
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -370,30 +370,25 @@ test_that("BuyseTest - hierarchical", {
 
 ## * graemeleehickey (issue #4 on Github): 6 october 2019 simBuyseTest
 test_that("simBuyseTest - rate vs. scale", {
-    n <- 1e5
-    rate <- 5
+    scale <- 2
 
-    args <- list(rates.T = rate, rates.Censoring.T = rate+1,
-                 rates.C = rate, rates.Censoring.C = rate+1,
-                 rates.CR =  rate)
+    args <- list(scale.T = scale, scale.Censoring.T = scale+1,
+                 scale.C = scale, scale.Censoring.C = scale+1,
+                 scale.CR =  scale)
     set.seed(10)
     test <- simBuyseTest(1e4, argsBin = NULL, argsCont = NULL, argsTTE = args,
                        latent = TRUE)
     
-    set.seed(10)
-    GS <- rexp(n, rate = rate)
-    GS1 <- rexp(n, rate = rate+1)
+    expect_equal(scale,mean(test[treatment == "C", mean(eventtimeUncensored)]), tol = 1e-2)
+    expect_equal(scale,mean(test[treatment == "T", mean(eventtimeUncensored)]), tol = 1e-2)
 
-    expect_equal(mean(GS),mean(test[treatment == "C", mean(eventtimeUncensored)]), tol = 1e-2)
-    expect_equal(mean(GS),mean(test[treatment == "T", mean(eventtimeUncensored)]), tol = 1e-2)
-
-    expect_equal(mean(GS1),mean(test[treatment == "C", mean(eventtimeCensoring)]), tol = 1e-2)
-    expect_equal(mean(GS1),mean(test[treatment == "T", mean(eventtimeCensoring)]), tol = 1e-2)
+    expect_equal(scale+1,mean(test[treatment == "C", mean(eventtimeCensoring)]), tol = 1e-1)
+    expect_equal(scale+1,mean(test[treatment == "T", mean(eventtimeCensoring)]), tol = 1e-1)
 })
 
 ## * graemeleehickey (issue #6 on Github): 15 march 2020 powerBuyseTest
 
-args <- list(rates.T = c((3:5) / 10), rates.Censoring.T = rep(1, 3))
+args <- list(scale.T = c((3:5) / 10), scale.Censoring.T = rep(1, 3))
 simFCT <- function(n.C, n.T) {
   simBuyseTest(100, argsBin = NULL, argsCont = NULL, argsTTE = args)
 }

@@ -6,7 +6,7 @@
 #' @description Simulate categorical, continuous or time to event endpoints, possibly along with a strata variable.
 #' Categorical endpoints are simulated by thresholding a latent Gaussian variable (tobit model),
 #' continuous endpoints are simulated using a Gaussian distribution,
-#' and time to event endpoints are simulated using exponential distributions for the event of interest, competing events, and censoring.
+#' and time to event endpoints are simulated using Weibull distributions for the event of interest, competing events, and censoring.
 #' This function is built upon the \code{lvm} and \code{sim} functions from the lava package.
 #' 
 #' @param n.T [integer, >0] number of patients in the treatment arm
@@ -45,11 +45,18 @@
 #' Arguments in the list \code{argsTTE}:
 #'     \itemize{
 #'     \item\code{CR} should competing risks be simulated? \cr 
-#'     \item\code{rates.T} hazard corresponding to each endpoint (time to event endpoint, treatment group). \cr 
-#'     \item\code{rates.C} same as \code{rates.T} but for the control group. \cr
-#'     \item\code{rates.CR} same as \code{rates.T} but for the competing event (same in both groups). \cr
-#'     \item\code{rates.Censoring.T} Censoring same as \code{rates.T} but for the censoring. \cr
-#'     \item\code{rates.Censoring.C} Censoring same as \code{rates.C} but for the censoring. \cr
+#'     \item\code{scale.T,scale.C,scale.CR,scale.Censoring.T,scale.Censoring.C} scale parameter of the Weibull distribution for, respectively,
+#'      the event of interest in the treatment group,
+#'      the event of interest in the control group,
+#'      the competing event in both groups,
+#'      the censoring mechanism in the treatment group,
+#'      the censoring mechanism in the control group
+#'     \item\code{shape.T,shape.C,shape.CR,shape.Censoring.T,shape.Censoring.C} shape parameter of the Weibull distribution for, respectively,
+#'      the event of interest in the treatment group,
+#'      the event of interest in the control group,
+#'      the competing event in both groups,
+#'      the censoring mechanism in the treatment group,
+#'      the censoring mechanism in the control group
 #'     \item\code{name} names of the time to event variables. \cr
 #'     \item\code{nameCensoring} names of the event type indicators. \cr
 #'     }
@@ -86,7 +93,7 @@
 #' c(sd(dt.cont$score1), sd(dt.cont$score2), sd(dt.cont$score3))
 #' 
 #' #### only TTE endpoints ####
-#' args <- list(rates.T = c(3:5/10), rates.Censoring.T = rep(1,3))
+#' args <- list(scale.T = c(3:5/10), scale.Censoring.T = rep(1,3))
 #' dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 #' 1/c(sum(dt.tte$eventtime1)/sum(dt.tte$status1),
 #'   sum(dt.tte$eventtime2)/sum(dt.tte$status2),
@@ -98,7 +105,7 @@
 #'
 #' #### correlated categorical / time to event endpoint ####
 #' args.bin <- list(p.T = list(c(low=0.1,moderate=0.5,high=0.4)), rho.T = 1)
-#' args.tte <- list(rates.T = 2, rates.Censoring.T = 1)
+#' args.tte <- list(scale.T = 2, scale.Censoring.T = 1)
 #' dt.corr <- simBuyseTest(n, argsBin = args.bin, argsCont = NULL, argsTTE = args.tte)
 #' 
 #' 1/(sum(dt.corr$eventtime)/sum(dt.corr$status))
@@ -159,16 +166,21 @@ simBuyseTest <- function(n.T, n.C = NULL,
         mT.lvm <- newLVM$modelT
         mC.lvm <- newLVM$modelC
         latentTTE <- newLVM$latent0
-        rates.T <- newLVM$rates.T
-        rates.C <- newLVM$rates.C
+        scale.T <- newLVM$scale.T
+        scale.C <- newLVM$scale.C
+        shape.T <- newLVM$shape.T
+        shape.C <- newLVM$shape.C
     }else{
         latentTTE <- NULL
-        rates.T <- NULL
-        rates.C <- NULL
+        scale.T <- NULL
+        scale.C <- NULL
+        shape.T <- NULL
+        shape.C <- NULL
     }
     if(!is.null(argsBin)){
         newLVM <- do.call("simBuyseTest_bin", args = c(list(modelT = mT.lvm, modelC = mC.lvm, check = option$check,
-                                                            latentTTE = latentTTE, rates.T = rates.T, rates.C = rates.C),
+                                                            latentTTE = latentTTE,
+                                                            scale.T = scale.T, scale.C = scale.C, shape.T = shape.T, shape.C = shape.C),
                                                        argsBin))
         mT.lvm <- newLVM$modelT
         mC.lvm <- newLVM$modelC
@@ -214,8 +226,10 @@ simBuyseTest_bin <- function(modelT,
                              modelC,
                              check,
                              latentTTE,
-                             rates.T,
-                             rates.C,
+                             scale.T,
+                             scale.C,
+                             shape.T,
+                             shape.C,
                              p.T = c("yes" = 0.5, "no" = 0.5),
                              p.C = NULL,
                              rho.T = NULL,
@@ -301,7 +315,7 @@ simBuyseTest_bin <- function(modelT,
         iLatent.T <- paste0("eta_",name[iterE])
         iLatent.C <- paste0("eta_",name[iterE])
 
-        iCut.T <- qnormexp(cumsum(p.T[[iterE]])[-length(p.T[[iterE]])], rate = rates.T[iterE], rho = rho.T[iterE])
+        iCut.T <- qnormweibull(cumsum(p.T[[iterE]])[-length(p.T[[iterE]])], scale = scale.T[iterE], shape = shape.T[iterE], rho = rho.T[iterE])
         iFct.T <- paste0("function(x, xcut = c(",paste0(iCut.T,collapse=","),"), xname = c(\"",paste0(names.values[[iterE]],collapse="\",\""),"\")){\n",
                          "    return(factor(findInterval(x[,1], vec = xcut), levels = 0:length(xcut), labels = xname))\n",
                          "}")
@@ -311,7 +325,7 @@ simBuyseTest_bin <- function(modelT,
         modelT <- lava::`transform<-`(modelT, as.formula(paste0(name[iterE],"~",iLatent.T)), value = eval(parse(text = iFct.T)))
         lava::latent(modelT) <- as.formula(paste0("~",iLatent.T))
 
-        iCut.C <- qnormexp(cumsum(p.C[[iterE]])[-length(p.C[[iterE]])], rate = rates.C[iterE], rho = rho.C[iterE])
+        iCut.C <- qnormweibull(cumsum(p.C[[iterE]])[-length(p.C[[iterE]])], scale = scale.C[iterE], shape = shape.C[iterE], rho = rho.C[iterE])
         iFct.C <- paste0("function(x, xcut = c(",paste0(iCut.C,collapse=","),"), xname = c(\"",paste0(names.values[[iterE]],collapse="\",\""),"\")){\n",
                        "    return(factor(findInterval(x[,1], vec = xcut), levels = 0:length(xcut), labels = xname))\n",
                        "}")
@@ -390,27 +404,36 @@ simBuyseTest_cont <- function(modelT,
 simBuyseTest_TTE <- function(modelT,
                              modelC,
                              CR = FALSE,
-                             rates.T = 2,
-                             rates.C = NULL,
-                             rates.CR = NULL,
-                             rates.Censoring.T = 1,
-                             rates.Censoring.C = NULL,
+                             scale.T = 1/2,
+                             scale.C = NULL,
+                             scale.CR = NULL,
+                             shape.T = rep(1, length(scale.T)),
+                             shape.C = NULL,
+                             shape.CR = NULL,
+                             scale.Censoring.T = rep(1, length(scale.T)),
+                             scale.Censoring.C = NULL,
+                             shape.Censoring.T = rep(1, length(scale.T)),
+                             shape.Censoring.C = NULL,
                              name = NULL,
                              nameCensoring = NULL,
                              check){
     
     ## ** initialisation
-    n.endpoints <- length(rates.T)
+    n.endpoints <- length(scale.T)
     if(is.null(name)){ 
         if(n.endpoints == 1){name <- "eventtime"}else{name <- paste0("eventtime",1:n.endpoints)}
     }
     if(is.null(nameCensoring)){ 
         if(n.endpoints == 1){nameCensoring <- "status"}else{nameCensoring <- paste0("status",1:n.endpoints)}
     }
-    if(is.null(rates.C)){rates.C <- rates.T}
-    if(is.null(rates.CR)){rates.CR <- rates.T}
-    if(is.null(rates.Censoring.C)){rates.Censoring.C <- rates.Censoring.T}
-    
+    if(is.null(scale.C)){scale.C <- scale.T}
+    if(is.null(scale.CR)){scale.CR <- scale.T}
+    if(is.null(scale.Censoring.C)){scale.Censoring.C <- scale.Censoring.T}
+
+    if(is.null(shape.C)){shape.C <- shape.T}
+    if(is.null(shape.CR)){shape.CR <- shape.T}
+    if(is.null(shape.Censoring.C)){shape.Censoring.C <- shape.Censoring.T}
+
     name0 <- paste0(name,"Uncensored")
     if(CR){
         nameCR <- paste0(name,"CompetingRisk")
@@ -422,27 +445,51 @@ simBuyseTest_TTE <- function(modelT,
         validLogical(CR,
                      valid.length = 1,
                      method = "simBuyseTest")
-        validNumeric(rates.T,
+        
+        validNumeric(scale.T,
                      valid.length = NULL,
                      method = "simBuyseTest")
-        validNumeric(rates.C,
+        validNumeric(scale.C,
                      valid.length = n.endpoints,
                      min = 0,
                      method = "simBuyseTest")
         if(CR){
-            validNumeric(rates.CR,
+            validNumeric(scale.CR,
                          valid.length = n.endpoints,
                          min = 0,
                          method = "simBuyseTest")
         }
-        validNumeric(rates.Censoring.T,
+        validNumeric(scale.Censoring.T,
                      valid.length = n.endpoints,
                      min = 0,
                      method = "simBuyseTest")
-        validNumeric(rates.Censoring.C,
+        validNumeric(scale.Censoring.C,
                      valid.length = n.endpoints,
                      min = 0,
                      method = "simBuyseTest")
+
+        validNumeric(shape.T,
+                     valid.length = NULL,
+                     method = "simBuyseTest")
+        validNumeric(shape.C,
+                     valid.length = n.endpoints,
+                     min = 0,
+                     method = "simBuyseTest")
+        if(CR){
+            validNumeric(shape.CR,
+                         valid.length = n.endpoints,
+                         min = 0,
+                         method = "simBuyseTest")
+        }
+        validNumeric(shape.Censoring.T,
+                     valid.length = n.endpoints,
+                     min = 0,
+                     method = "simBuyseTest")
+        validNumeric(shape.Censoring.C,
+                     valid.length = n.endpoints,
+                     min = 0,
+                     method = "simBuyseTest")
+
         validCharacter(name,
                        valid.length = n.endpoints,
                        method = "simBuyseTest")
@@ -458,20 +505,20 @@ simBuyseTest_TTE <- function(modelT,
             stop("simBuyseTest_TTE: variable already in the LVM \n",
                  "variable: ",paste(allvarE[allvarE %in% lava::vars(modelT)], collapse = " "),"\n")
         }
-        lava::distribution(modelT, name0[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.T[iterE]) ## coxExponential is parametrized using 1/rate instead of rate
-        lava::distribution(modelT, nameC[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.Censoring.T[iterE])
+        lava::distribution(modelT, name0[iterE]) <- lava::weibull.lvm(scale = scale.T[iterE], shape = 1/shape.T[iterE])
+        lava::distribution(modelT, nameC[iterE]) <- lava::weibull.lvm(scale = scale.Censoring.T[iterE], shape = 1/shape.Censoring.T[iterE])
         if(CR){
-            lava::distribution(modelT, nameCR[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.CR[iterE])
+            lava::distribution(modelT, nameCR[iterE]) <- lava::weibull.lvm(scale = scale.CR[iterE], shape = 1/shape.CR[iterE])
             txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
         }        
         modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), nameCensoring[iterE])
 
-        lava::distribution(modelC, name0[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.C[iterE])
-        lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.Censoring.C[iterE])
+        lava::distribution(modelC, name0[iterE]) <- lava::weibull.lvm(scale = scale.C[iterE], shape = 1/shape.C[iterE])
+        lava::distribution(modelC, nameC[iterE]) <- lava::weibull.lvm(scale = scale.Censoring.C[iterE], shape = 1/shape.Censoring.C[iterE])
         if(CR){
-            lava::distribution(modelC, nameCR[iterE]) <- lava::coxExponential.lvm(rate = 1/rates.CR[iterE])
+            lava::distribution(modelC, nameCR[iterE]) <- lava::weibull.lvm(scale = scale.CR[iterE], shape = 1/shape.CR[iterE])
             txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
@@ -488,6 +535,5 @@ simBuyseTest_TTE <- function(modelT,
     }
 
     ## ** export
-    return(list(modelT = modelT, modelC = modelC, latent0 = name0, latentC = nameC, rates.T = rates.T, rates.C = rates.C))
-    
+    return(list(modelT = modelT, modelC = modelC, latent0 = name0, latentC = nameC, scale.T = scale.T, scale.C = scale.C, shape.T = shape.T, shape.C = shape.C))
 }

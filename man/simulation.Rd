@@ -40,7 +40,7 @@ simBuyseTest(
 Simulate categorical, continuous or time to event endpoints, possibly along with a strata variable.
 Categorical endpoints are simulated by thresholding a latent Gaussian variable (tobit model),
 continuous endpoints are simulated using a Gaussian distribution,
-and time to event endpoints are simulated using exponential distributions for the event of interest, competing events, and censoring.
+and time to event endpoints are simulated using Weibull distributions for the event of interest, competing events, and censoring.
 This function is built upon the \code{lvm} and \code{sim} functions from the lava package.
 }
 \details{
@@ -69,11 +69,18 @@ Arguments in the list \code{argsCont}:
 Arguments in the list \code{argsTTE}:
     \itemize{
     \item\code{CR} should competing risks be simulated? \cr 
-    \item\code{rates.T} hazard corresponding to each endpoint (time to event endpoint, treatment group). \cr 
-    \item\code{rates.C} same as \code{rates.T} but for the control group. \cr
-    \item\code{rates.CR} same as \code{rates.T} but for the competing event (same in both groups). \cr
-    \item\code{rates.Censoring.T} Censoring same as \code{rates.T} but for the censoring. \cr
-    \item\code{rates.Censoring.C} Censoring same as \code{rates.C} but for the censoring. \cr
+    \item\code{scale.T,scale.C,scale.CR,scale.Censoring.T,scale.Censoring.C} scale parameter of the Weibull distribution for, respectively,
+     the event of interest in the treatment group,
+     the event of interest in the control group,
+     the competing event in both groups,
+     the censoring mechanism in the treatment group,
+     the censoring mechanism in the control group
+    \item\code{shape.T,shape.C,shape.CR,shape.Censoring.T,shape.Censoring.C} shape parameter of the Weibull distribution for, respectively,
+     the event of interest in the treatment group,
+     the event of interest in the control group,
+     the competing event in both groups,
+     the censoring mechanism in the treatment group,
+     the censoring mechanism in the control group
     \item\code{name} names of the time to event variables. \cr
     \item\code{nameCensoring} names of the event type indicators. \cr
     }
@@ -110,7 +117,7 @@ c(mean(dt.cont$score1), mean(dt.cont$score2), mean(dt.cont$score3))
 c(sd(dt.cont$score1), sd(dt.cont$score2), sd(dt.cont$score3))
 
 #### only TTE endpoints ####
-args <- list(rates.T = c(3:5/10), rates.Censoring.T = rep(1,3))
+args <- list(scale.T = c(3:5/10), scale.Censoring.T = rep(1,3))
 dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 1/c(sum(dt.tte$eventtime1)/sum(dt.tte$status1),
   sum(dt.tte$eventtime2)/sum(dt.tte$status2),
@@ -122,7 +129,7 @@ dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 
 #### correlated categorical / time to event endpoint ####
 args.bin <- list(p.T = list(c(low=0.1,moderate=0.5,high=0.4)), rho.T = 1)
-args.tte <- list(rates.T = 2, rates.Censoring.T = 1)
+args.tte <- list(scale.T = 2, scale.Censoring.T = 1)
 dt.corr <- simBuyseTest(n, argsBin = args.bin, argsCont = NULL, argsTTE = args.tte)
 
 1/(sum(dt.corr$eventtime)/sum(dt.corr$status))
