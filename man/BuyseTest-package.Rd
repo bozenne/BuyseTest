@@ -13,10 +13,13 @@ See the section reference below for examples of application in clinical studies.
 \details{
 The Generalized Pairwise Comparisons form all possible pairs of observations,
 one observation being taken from the intervention group and the other is taken from the control group,
-and compare the value of their endpoints.
+and compare the difference in endpoints (\eqn{Y-X}) to the threshold of clinical relevance (\eqn{\tau}).
 
-If the difference in endpoint value between the two observations of the pair is greater than the threshold of clinical relevance, the pair
-is classified as favorable (i.e. win). If the difference is lower than minus the threshold of clinical relevance the pair is classified as unfavorable (i.e. loss).
+For a single endpoint,
+if the difference is greater or equal than the threshold of clinical relevance (\eqn{Y \ge X + \tau}),
+the pair is classified as favorable (i.e. win).
+If the difference is lower or equal than minus the threshold of clinical relevance (\eqn{X \ge Y + \tau}),
+the pair is classified as unfavorable (i.e. loss).
 Otherwise the pair is classified as neutral. In presence of censoring, it might not be possible to compare the difference to the threshold. In such cases the pair
 is classified as uninformative.
 

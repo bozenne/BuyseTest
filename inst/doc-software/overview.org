@@ -10,12 +10,21 @@ This vignette describes the main functionalities of the *BuyseTest*
 package. This package implements the Generalized Pairwise Comparisons
 (GPC) as defined in cite:buyse2010generalized for complete
 observations, and extended in cite:peron2018extension to deal with
-right-censoring. It is assumed that the reader is familar with the GPC
-terminology [fn::if not, cite:buyse2010generalized is a good place to
-start.], e.g. prioritized endpoints, pair, net benefit, win ratio,
-threshold of clinical relevance, \ldots, since this vignette focuses
-on the software aspect of the *BuyseTest* package (not on the
-underlying statistical model).
+right-censoring. When considering a single endpoint, the GPC procedure
+can be summarized as follow. Denote the endpoint by \(Y\) in the
+treatment group and by \(X\) in the control group. Given a
+threshold of clinical relevance \(\tau\), the aim of GPC is to
+estimate the proportion in favor of treatment \(\Prob[Y \geq X +
+\tau]\) and the proportion in favor of control \(\Prob[X \geq Y +
+\tau]\). Other statistics such as the net benefit \(\Prob[Y \geq X +
+\tau]-\Prob[X \geq Y + \tau]\) or the win ratio \(\frac{\Prob[Y \geq
+X + \tau]}{\Prob[X \geq Y + \tau]}\) can then be deduced. It is
+assumed that the reader is familar with the GPC terminology [fn::if
+not, cite:buyse2010generalized is a good place to start.],
+e.g. prioritized endpoints, pair, net benefit, win ratio, threshold of
+clinical relevance, \ldots, since this vignette focuses on the
+software aspect of the *BuyseTest* package (not on the underlying
+statistical model).
 
 \bigskip
 
@@ -74,7 +83,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘2.0.0’
+: [1] '2.1.5'
 
 For completness, the details of the R session used to generate this
 document are:
@@ -85,29 +94,39 @@ sessionInfo()
 #+RESULTS:
 #+begin_example
 R version 3.5.1 (2018-07-02)
-Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 16.04.5 LTS
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 7 x64 (build 7601) Service Pack 1
 
 Matrix products: default
-BLAS: /usr/lib/libblas/libblas.so.3.6.0
-LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
- [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8       
- [4] LC_COLLATE=fr_FR.UTF-8     LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8   
- [7] LC_PAPER=da_DK.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
-[10] LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
+[1] LC_COLLATE=Danish_Denmark.1252  LC_CTYPE=Danish_Denmark.1252   
+[3] LC_MONETARY=Danish_Denmark.1252 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.1252    
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
+[1] tools     stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.12.8 BuyseTest_2.0.0   Rcpp_1.0.4       
+[1] BuyseTest_2.1.5   spelling_1.2      butils.base_1.2   Rcpp_1.0.4.6      data.table_1.12.8
+[6] usethis_1.4.0     devtools_2.0.1    roxygen2_7.1.0   
 
 loaded via a namespace (and not attached):
- [1] compiler_3.5.1     Matrix_1.2-14      tools_3.5.1        parallel_3.5.1    
- [5] survival_2.44-1.1  prodlim_2019.11.13 splines_3.5.1      grid_3.5.1        
- [9] lava_1.6.7         stats4_3.5.1       lattice_0.20-35
+ [1] compiler_3.5.1            iterators_1.0.12          prettyunits_1.0.2        
+ [4] base64enc_0.1-3           remotes_2.0.2             testthat_2.0.0           
+ [7] digest_0.6.17             pkgbuild_1.0.2            pkgload_1.0.2            
+[10] lattice_0.20-35           memoise_1.1.0             rlang_0.3.1              
+[13] Matrix_1.2-14             foreach_1.5.0             cli_1.0.1                
+[16] parallel_3.5.1            prodlim_2019.11.13        RcppArmadillo_0.9.850.1.0
+[19] withr_2.1.2               stringr_1.3.1             xml2_1.2.0               
+[22] knitr_1.20                desc_1.2.0                fs_1.2.6                 
+[25] stats4_3.5.1              grid_3.5.1                rprojroot_1.3-2          
+[28] glue_1.3.0                R6_2.3.0                  processx_3.2.0           
+[31] survival_2.44-1.1         sessioninfo_1.1.1         lava_1.6.7               
+[34] callr_3.0.0               purrr_0.3.4               magrittr_1.5             
+[37] splines_3.5.1             codetools_0.2-15          backports_1.1.5          
+[40] ps_1.1.0                  assertthat_0.2.1          stringi_1.2.4            
+[43] doParallel_1.0.15         crayon_1.3.4
 #+end_example
 
 \clearpage
@@ -208,7 +227,7 @@ summary(BT)
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
      time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
  CI [2.5% ; 97.5%] p.value 
-  [-0.2735;0.1045] 0.37161
+  [-0.2735;0.1045] 0.37162
 #+end_example
 
 \clearpage
@@ -234,7 +253,7 @@ summary(BT, percentage = FALSE)
  endpoint threshold total favorable unfavorable neutral uninf   delta   Delta
      time        20  4692   1772.59     2183.89  735.52     0 -0.0877 -0.0877
  CI [2.5% ; 97.5%] p.value 
-  [-0.2735;0.1045] 0.37161
+  [-0.2735;0.1045] 0.37162
 #+end_example
 
 \bigskip
@@ -260,7 +279,7 @@ summary(BT, statistic = "winRatio")
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta  Delta
      time        20      100        37.78          46.54      15.68        0 0.8117 0.8117
  CI [2.5% ; 97.5%] p.value 
-   [0.5134;1.2832] 0.37194
+   [0.5134;1.2833] 0.37195
 #+end_example
 
 See =help(BuyseRes-summary)= for more detailed explanations about the
@@ -295,8 +314,8 @@ summary(BT.H)
      time        20   100.00        37.78          46.54      15.68        0 -0.0877 -0.0877
     karno     1e-12    15.68         5.78           7.11       2.78        0 -0.0133 -0.1009
  CI [2.5% ; 97.5%] p.value 
-  [-0.2735;0.1045] 0.37161 
-  [-0.2901;0.0959] 0.31477
+  [-0.2735;0.1045] 0.37162 
+  [-0.2901;0.0959] 0.31478
 #+end_example
 
 The hierarchy of the endpoint is defined from left (most important
@@ -324,7 +343,7 @@ summary(BT.nH)
      time        20      1      100        37.78          46.54      15.68        0 -0.0877
     karno     1e-12      1      100        41.82          44.95      13.24        0 -0.0313
    Delta CI [2.5% ; 97.5%] p.value 
- -0.0877  [-0.2735;0.1045] 0.37161 
+ -0.0877  [-0.2735;0.1045] 0.37162 
  -0.1190  [-0.4346;0.2226] 0.49821
 #+end_example
 
@@ -355,8 +374,8 @@ summary(BT.nHw)
      time        20    0.8      100        37.78          46.54      15.68        0 -0.0877
     karno     1e-12    0.2      100        41.82          44.95      13.24        0 -0.0313
    Delta CI [2.5% ; 97.5%] p.value 
- -0.0701  [-0.2204;0.0834] 0.37072 
- -0.0764  [-0.2504;0.1024] 0.40268
+ -0.0701  [-0.2204;0.0834] 0.37073 
+ -0.0764  [-0.2504;0.1024] 0.40269
 #+end_example
 This has been refered as the O’Brien test in the litterature
 (cite:verbeeck2019generalized, section 3.2).
@@ -487,7 +506,7 @@ summary(BT.pair)
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > treatment groups: 0 (control) vs. 1 (treatment) 
+ > treatment groups: No (control) vs. Yes (treatment) 
  > neutral pairs   : re-analyzed using lower priority endpoints
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
@@ -511,7 +530,7 @@ summary(BT.pair2)
 
  > statistic       : net benefit (delta: endpoint specific, Delta: global) 
  > null hypothesis : Delta == 0 
- > treatment groups: 0 (control) vs. 1 (treatment) 
+ > treatment groups: No (control) vs. Yes (treatment) 
  > neutral pairs   : ignored at lower priority endpoints
  > results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
@@ -608,7 +627,7 @@ summary(BT.ustat)
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
      time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0877
  CI [2.5% ; 97.5%] p.value 
-  [-0.2735;0.1045] 0.37161
+  [-0.2735;0.1045] 0.37162
 #+end_example
 
 The first two approaches require simulating a large number of samples
@@ -728,11 +747,11 @@ the method =getPairScore=.
 ** Extracting the survival probabilities
 When using =scoring.rule= equals ="Peron"=, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
-arms are used to score the pair. Setting =keep.survival= to =TRUE= in
-BuyseTest.options enables to export the survival probabilities in the
-output of BuyseTest:
+arms are used to score the pair. Setting =keep.survival= to =TRUE= and
+=precompute= to =FALSE= in BuyseTest.options enables to export the
+survival probabilities in the output of BuyseTest:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest.options(keep.survival = TRUE)
+BuyseTest.options(keep.survival = TRUE, precompute = FALSE)
 BT.keep2 <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
                       data = veteran, keep.pairScore = TRUE, scoring.rule = "Peron",
                       trace = 0, method.inference = "none")
@@ -752,22 +771,22 @@ str(outSurv)
 #+RESULTS:
 #+begin_example
 List of 5
- $ survTimeC: num [1:69, 1:7] 72 411 228 126 118 10 82 110 314 100 ...
+ $ survTimeC: num [1:69, 1:13] 72 411 228 126 118 10 82 110 314 100 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
-  .. ..$ : chr [1:7] "time" "SurvivalC-threshold" "SurvivalC_0" "SurvivalC+threshold" ...
- $ survTimeT: num [1:68, 1:7] 999 112 87 231 242 991 111 1 587 389 ...
+  .. ..$ : chr [1:13] "time" "SurvivalC-threshold" "SurvivalC_0" "SurvivalC+threshold" ...
+ $ survTimeT: num [1:68, 1:13] 999 112 87 231 242 991 111 1 587 389 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
-  .. ..$ : chr [1:7] "time" "SurvivalC-threshold" "SurvivalC_0" "SurvivalC+threshold" ...
- $ survJumpC: num [1:57, 1:3] 3 4 7 8 10 11 12 13 16 18 ...
+  .. ..$ : chr [1:13] "time" "SurvivalC-threshold" "SurvivalC_0" "SurvivalC+threshold" ...
+ $ survJumpC: num [1:57, 1:6] 3 4 7 8 10 11 12 13 16 18 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
-  .. ..$ : chr [1:3] "time" "survival" "dSurvival"
- $ survJumpT: num [1:51, 1:3] 1 2 7 8 13 15 18 19 20 21 ...
+  .. ..$ : chr [1:6] "time" "survival" "dSurvival" "index.survival" ...
+ $ survJumpT: num [1:51, 1:6] 1 2 7 8 13 15 18 19 20 21 ...
   ..- attr(*, "dimnames")=List of 2
   .. ..$ : NULL
-  .. ..$ : chr [1:3] "time" "survival" "dSurvival"
+  .. ..$ : chr [1:6] "time" "survival" "dSurvival" "index.survival" ...
  $ lastSurv : num [1:4] 0 0 NA NA
 #+end_example
 
@@ -807,10 +826,18 @@ iSurv
 #+END_SRC 
 
 #+RESULTS:
-:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold 
-:          97.0000000           0.5615232           0.5171924           0.4235463 
-: SurvivalT-threshold         SurvivalT_0 SurvivalT+threshold 
-:           0.4558824           0.3643277           0.2827500
+#+begin_example
+                     time       SurvivalC-threshold               SurvivalC_0 
+               97.0000000                 0.5615232                 0.5171924 
+      SurvivalC+threshold       SurvivalT-threshold               SurvivalT_0 
+                0.4235463                 0.4558824                 0.3643277 
+      SurvivalT+threshold index.SurvivalC-threshold         index.SurvivalC_0 
+                0.2827500                25.0000000                28.0000000 
+index.SurvivalC+threshold index.SurvivalT-threshold         index.SurvivalT_0 
+               33.0000000                27.0000000                32.0000000 
+index.SurvivalT+threshold 
+               35.0000000
+#+end_example
 
 Since we are interested in the survival in the control arm exactly at the event time:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -831,10 +858,18 @@ iSurv
 #+END_SRC
 
 #+RESULTS:
-:                time SurvivalC-threshold         SurvivalC_0 SurvivalC+threshold 
-:         112.0000000           0.5319693           0.4549201           0.3594915 
-: SurvivalT-threshold         SurvivalT_0 SurvivalT+threshold 
-:           0.3801681           0.2827500           0.2827500
+#+begin_example
+                     time       SurvivalC-threshold               SurvivalC_0 
+              112.0000000                 0.5319693                 0.4549201 
+      SurvivalC+threshold       SurvivalT-threshold               SurvivalT_0 
+                0.3594915                 0.3801681                 0.2827500 
+      SurvivalT+threshold index.SurvivalC-threshold         index.SurvivalC_0 
+                0.2827500                27.0000000                32.0000000 
+index.SurvivalC+threshold index.SurvivalT-threshold         index.SurvivalT_0 
+               37.0000000                31.0000000                35.0000000 
+index.SurvivalT+threshold 
+               35.0000000
+#+end_example
 
 Since we are interested in the survival in the control arm at the event time plus threshold:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -867,13 +902,13 @@ head(outSurv$survJumpT)
 #+END_SRC
 
 #+RESULTS:
-:      time  survival   dSurvival
-: [1,]    1 0.7681159 -0.02941176
-: [2,]    2 0.7536232 -0.01470588
-: [3,]    7 0.7388463 -0.02941176
-: [4,]    8 0.7388463 -0.02941176
-: [5,]   13 0.7092924 -0.01470588
-: [6,]   15 0.6945155 -0.02941176
+:      time  survival   dSurvival index.survival index.dSurvival1 index.dSurvival2
+: [1,]    1 0.7681159 -0.02941176             12                0                1
+: [2,]    2 0.7536232 -0.01470588             13                1                2
+: [3,]    7 0.7388463 -0.02941176             14                2                3
+: [4,]    8 0.7388463 -0.02941176             14                3                4
+: [5,]   13 0.7092924 -0.01470588             16                4                5
+: [6,]   15 0.6945155 -0.02941176             17                5                6
 
 and the starting time of the integration time. For instance, let's
 look at pair 148:
@@ -908,9 +943,10 @@ p_{UF} &= -\frac{1}{S_T(x)S_C(y)}\int_{t>x} S_C(t+\tau) dS_T(t)
 where \(x=87\) and \(y=100\). To ease the call of =calcIntegralScore_cpp= we create a warper:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 calcInt <- function(...){ ## here we don't need to return the functionnal derivative of the score 
-    calcIntegralSurv_cpp(..., 
-                         returnDeriv = FALSE, column = 0,
-                         derivSurv = matrix(0), derivSurvD = matrix(0))
+    BuyseTest:::.calcIntegralSurv_cpp(..., 
+                                      returnDeriv = FALSE, 
+                                      derivSurv = matrix(0), 
+                                      derivSurvD = matrix(0))
 }
 #+END_SRC
 
@@ -948,51 +984,60 @@ following dataset:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
 dt <- simBuyseTest(5e2, latent = TRUE, argsCont = NULL,
-                   argsTTE = list(rates.T = 2, rates.C = 1,
-                                  rates.Censoring.C = 3, rates.Censoring.T = 3))
+                   argsTTE = list(scale.T = 1/2, scale.C = 1,
+                                  scale.Censoring.C = 1, scale.Censoring.T = 1))
 dt[, status1 := 1]
 head(dt)
 #+END_SRC
 
 #+RESULTS:
-:    treatment toxicity eventtimeUncensored eventtimeCensoring  eventtime status status1
-: 1:         C        0           0.1588268         0.29186778 0.15882682      1       1
-: 2:         C        1           1.7204676         0.02222436 0.02222436      0       1
-: 3:         C        1           0.4900490         0.06386661 0.06386661      0       1
-: 4:         C        0           0.1138545         0.16875557 0.11385446      1       1
-: 5:         C        1           0.5191035         0.42600053 0.42600053      0       1
-: 6:         C        0           0.9405830         0.21198508 0.21198508      0       1
+#+begin_example
+   treatment eventtimeUncensored eventtimeCensoring eventtime status toxicity eta_toxicity
+1:         C           1.3499793          0.4546612 0.4546612      0      yes  -0.30786498
+2:         C           1.3022440          0.8234702 0.8234702      0       no   0.75808558
+3:         C           0.9800451          0.3656312 0.3656312      0      yes  -0.57386341
+4:         C           0.1809881          0.6066301 0.1809881      1      yes  -0.93874446
+5:         C           0.2747980          0.5944344 0.2747980      1      yes  -0.02769932
+6:         C           0.1351895          0.7215782 0.1351895      1      yes  -1.06624865
+   status1
+1:       1
+2:       1
+3:       1
+4:       1
+5:       1
+6:       1
+#+end_example
 
 where we have the uncensored event times as well as the censored event
 times. The percentage of censored observations is:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt[,mean(status==0)]
+100*dt[,mean(status==0)]
 #+END_SRC
 
 #+RESULTS:
-: [1] 0.658
+: [1] 46
 
 We would like to be able to recover the net benefit estimated with the uncensored event times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 1),
+BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
           data = dt,
           scoring.rule = "Gehan", method.inference = "none", trace = 0)
 #+END_SRC
 
 #+RESULTS:
 :             endpoint threshold   delta   Delta
-:  eventtimeUncensored         1 -0.2304 -0.2304
+:  eventtimeUncensored       0.5 -0.2314 -0.2314
 
 using the censored survival times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
+BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
           data = dt,
           scoring.rule = "Gehan", method.inference = "none", trace = 0)
 #+END_SRC
 
 #+RESULTS:
 :   endpoint threshold   delta   Delta
-:  eventtime         1 -0.0022 -0.0022
+:  eventtime       0.5 -0.0881 -0.0881
 
 As we can see on this example, the net benefit is shrunk toward 0.
 
@@ -1003,7 +1048,7 @@ the informative pairs. This is only a good strategy when there are no
 neutral pairs or there are no lower priority endpoints. This gives an
 estimate much closer to the true net benefit:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
+BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
                 data = dt, keep.pairScore = TRUE, trace = 0,
                 scoring.rule = "Gehan", method.inference = "none", correction.uninf = 2)
 summary(BT)
@@ -1020,7 +1065,7 @@ summary(BT)
  > uninformative pairs: no contribution, their weight is passed to the informative pairs using IPCW
  > results
   endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
- eventtime         1      100         1.18           3.19      95.63        0 -0.0202 -0.0202
+ eventtime       0.5      100        11.31          34.64      54.05        0 -0.2333 -0.2333
 #+end_example
 
 
@@ -1044,9 +1089,9 @@ iScore[,.SD[1],
 #+RESULTS:
 :    favorable unfavorable neutral uninf favorableC unfavorableC neutralC uninfC
 : 1:         0           0       0     1   0.000000     0.000000 0.000000      0
-: 2:         0           0       1     0   0.000000     0.000000 9.012582      0
-: 3:         0           1       0     0   0.000000     9.012582 0.000000      0
-: 4:         1           0       0     0   9.012582     0.000000 0.000000      0
+: 2:         0           1       0     0   0.000000     2.647043 0.000000      0
+: 3:         0           0       1     0   0.000000     0.000000 2.647043      0
+: 4:         1           0       0     0   2.647043     0.000000 0.000000      0
 
 We can see that the favorable/unfavorable/neutral pairs have seen
 their contribution multiplied by:
@@ -1055,7 +1100,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 #+END_SRC
 
 #+RESULTS:
-: [1] 9.012582
+: [1] 2.647043
 
 i.e. the inverse probability of being informative. 
 
@@ -1065,7 +1110,7 @@ Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
 probability observed on the sample:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
+BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
                 data = dt, keep.pairScore = TRUE, trace = 0,
                 scoring.rule = "Gehan", method.inference = "none", correction.uninf = TRUE)
 summary(BT)
@@ -1082,7 +1127,7 @@ summary(BT)
  > uninformative pairs: score equals the averaged score of all informative pairs
  > results
   endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
- eventtime         1      100         1.18           3.19      95.63        0 -0.0202 -0.0202
+ eventtime       0.5      100        11.31          34.64      54.05        0 -0.2333 -0.2333
 #+end_example
 
 
@@ -1095,11 +1140,11 @@ iScore[,.SD[1],
 #+END_SRC
 
 #+RESULTS:
-:    favorable unfavorable neutral uninf favorableC unfavorableC neutralC uninfC
-: 1:         0           0       0     1 0.01175241   0.03194059 0.956307      0
-: 2:         0           0       1     0 0.00000000   0.00000000 1.000000      0
-: 3:         0           1       0     0 0.00000000   1.00000000 0.000000      0
-: 4:         1           0       0     0 1.00000000   0.00000000 0.000000      0
+:    favorable unfavorable neutral uninf favorableC unfavorableC  neutralC uninfC
+: 1:         0           0       0     1  0.1131029    0.3464344 0.5404627      0
+: 2:         0           1       0     0  0.0000000    1.0000000 0.0000000      0
+: 3:         0           0       1     0  0.0000000    0.0000000 1.0000000      0
+: 4:         1           0       0     0  1.0000000    0.0000000 0.0000000      0
 
 we can see that the corrected probability have not changed for the
 informative pairs, but for the non-informative they have been set to:
@@ -1110,8 +1155,8 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 #+END_SRC
 
 #+RESULTS:
-:     favorable unfavorable  neutral
-: 1: 0.01175241  0.03194059 0.956307
+:    favorable unfavorable   neutral
+: 1: 0.1131029   0.3464344 0.5404627
 
 \clearpage
 
@@ -1126,17 +1171,17 @@ simBuyseTest(n.T = 5, n.C = 5)
 
 #+RESULTS:
 #+begin_example
-    treatment toxicity       score  eventtime status
- 1:         C        1  0.54361539 0.64461311      1
- 2:         C        1 -0.70762484 0.73722641      1
- 3:         C        1 -0.36944577 0.72134020      0
- 4:         C        1 -1.32197565 0.15806508      1
- 5:         C        1  1.28059746 0.22121166      0
- 6:         T        1  0.01874617 0.14534811      0
- 7:         T        1 -0.18425254 0.48556014      0
- 8:         T        0 -1.37133055 0.25475046      0
- 9:         T        1 -0.59916772 0.45965924      1
-10:         T        0  0.29454513 0.08948311      1
+    treatment  eventtime status toxicity       score
+ 1:         C 0.60539304      0      yes -1.85374045
+ 2:         C 0.31328027      1      yes -0.07794607
+ 3:         C 0.03946623      0      yes  0.96856634
+ 4:         C 0.32147489      1      yes  0.18492596
+ 5:         C 1.57044952      0      yes -1.37994358
+ 6:         T 0.29069131      0       no  1.10177950
+ 7:         T 0.19522131      0      yes  0.75578151
+ 8:         T 0.04640668      0      yes -0.23823356
+ 9:         T 0.05277335      1      yes  0.98744470
+10:         T 0.43062009      1      yes  0.74139013
 #+end_example
 
 By default a categorical, continuous and time to event outcome are
@@ -1156,17 +1201,17 @@ dt
 
 #+RESULTS:
 #+begin_example
-    treatment toxicity tumorSize     score  eventtime status
- 1:         C        1  9.010394 10.667415 0.27296196      0
- 2:         C        0  9.965152 11.691755 0.55624768      0
- 3:         C        0 10.847160 10.001261 0.37864505      1
- 4:         C        0 11.525498  9.257539 0.46192620      1
- 5:         C        1  9.932625 10.609684 0.09098929      1
- 6:         T        1  5.389794  5.018746 0.17361208      1
- 7:         T        1  3.791924  4.815747 0.08819698      1
- 8:         T        1  4.636324  3.628669 0.71441489      1
- 9:         T        0  3.373327  4.400832 0.10554670      0
-10:         T        0  4.743522  5.294545 0.51655591      1
+    treatment eventtime status toxicity tumorSize     score
+ 1:         C 0.1805891      0      yes 11.086551  8.564486
+ 2:         C 0.1702538      1      yes  9.237455 10.362087
+ 3:         C 0.2621793      1       no  9.171337  8.240913
+ 4:         C 0.2959301      0       no 10.834474  9.675456
+ 5:         C 0.4816549      1      yes  9.032348  9.348437
+ 6:         T 0.6446131      1       no  5.089347  6.101780
+ 7:         T 0.7372264      1      yes  4.045056  5.755782
+ 8:         T 0.7213402      0      yes  4.804850  4.761766
+ 9:         T 0.1580651      1      yes  5.925521  5.987445
+10:         T 0.2212117      0      yes  5.482979  5.741390
 #+end_example
 
 This functionality is based on the =sim= function of the *lava*
@@ -1201,17 +1246,17 @@ simFCT(101,101)
 #+RESULTS:
 #+begin_example
               Y group
-  1: -0.3622340     0
-  2:  0.4563045     0
-  3: -0.4918583     0
-  4: -0.4710663     0
-  5:  1.6273095     0
+  1:  0.9243314     0
+  2: -1.9571691     0
+  3:  4.7270966     0
+  4:  1.5312298     0
+  5:  0.1236634     0
  ---                 
-198:  0.4491401     1
-199:  0.3073182     1
-200: -0.8438920     1
-201:  1.8479558     1
-202:  2.6090392     1
+198:  0.6567732     1
+199: -0.5096230     1
+200:  0.5129740     1
+201:  0.9709603     1
+202:  0.1356299     1
 #+end_example
 
 We then define the null hypothesis:
@@ -1233,8 +1278,6 @@ powerW <- powerBuyseTest(sim = simFCT,
                          cpus = 3, trace = 0)
 #+END_SRC
 
-#+RESULTS:
-
 \clearpage
 
 And use the summary method to display the power (column
@@ -1250,12 +1293,12 @@ summary(powerW)
 
  > statistic   : net benefit (null hypothesis Delta=0)
  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
-        Y     1e-12   5   5        0.2521      0.3676  0.3359          0.078
-                     10  10        0.2557      0.2538  0.2457          0.141
-                     20  20        0.2505      0.1787  0.1753          0.252
-                     30  30        0.2473      0.1449  0.1435           0.36
-                     50  50        0.2431      0.1135  0.1113          0.561
-                    100 100        0.2444      0.0802  0.0787          0.861
+        Y     1e-12   5   5        0.2517      0.3672   0.336          0.078
+                     10  10        0.2535      0.2538  0.2459           0.14
+                     20  20        0.2492      0.1783  0.1754          0.249
+                     30  30        0.2463      0.1439  0.1436          0.357
+                     50  50        0.2428       0.113  0.1113           0.56
+                    100 100        0.2448      0.0799  0.0787          0.862
 
  n.T          : number of observations in the treatment group
  n.C          : number of observations in the control group
@@ -1371,6 +1414,9 @@ bibliographystyle:apalike
 #+LATEX_HEADER: \RequirePackage{xspace} % 
 #+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
 
+#+LaTeX_HEADER: \newcommand\Prob{\mathbb{P}}
+
 ** Image
 #+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+
 

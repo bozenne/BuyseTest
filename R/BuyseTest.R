@@ -3,6 +3,7 @@
 #' @title Generalized Pairwise Comparisons (GPC)
 #' 
 #' @description Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event endpoints.
+#' 
 #' @param formula [formula] a symbolic description of the GPC model,
 #' typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
 #' See Details, section "Specification of the GPC model".
@@ -52,6 +53,7 @@
 #' Must have only two levels (e.g. \code{0} and \code{1}).
 #'   \item \code{endpoint}: [character vector] the name of the endpoint variable(s).
 #'   \item \code{threshold}: [numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
+#' A pair will be classified as neutral if the difference in endpoint is strictly below this threshold.
 #' There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
 #'   \item \code{status}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
 #' Must value \code{NA} when the endpoint is not a time to event.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: maj 22 2020 (15:38) 
+## Last-Updated: maj 27 2020 (15:15) 
 ##           By: Brice Ozenne
-##     Update #: 847
+##     Update #: 851
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -218,7 +218,7 @@ powerBuyseTest <- function(sim,
                    "outArgs", "sample.sizeTmax", "sample.sizeCmax", "n.sample.size",
                    "sample.sizeC", "sample.sizeT", "n.rep", "seed",
                     "statistic", "null", "conf.level", "alternative", "transformation", "order.Hprojection", 
-                   ".powerBuyseTest", ".createSubBT")
+                   ".powerBuyseTest")
     for(iObject in name.copy){ ## iObject <- name.copy[2]
         envirBT[[iObject]] <- eval(parse(text = iObject))
     }
@@ -277,7 +277,6 @@ powerBuyseTest <- function(sim,
         ## export functions
         toExport <- c(".BuyseTest",
                       ".powerBuyseTest",
-                      ".createSubBT",
                       "wsumPairScore",
                       "S4BuyseTest",
                       "initializeData",
@@ -341,7 +340,7 @@ powerBuyseTest <- function(sim,
     
     n.endpoint <- length(envir$outArgs$endpoint)
     n.statistic <- length(statistic)
-    rerun <- (envir$n.sample.size>1) * (1 + (envir$outArgs$scoring.rule>0)) ## 0 no, 1 yes but only via tablePairScore, 2 yes normal one
+    rerun <- (envir$n.sample.size>1)
 
     ## ** Initialize data
     data <- envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax)
@@ -375,7 +374,6 @@ powerBuyseTest <- function(sim,
 
     ## ** Point estimate for the largest sample size
     ## largest sample size
-    if(rerun==1){envir$outArgs$keep.pairScore <- TRUE}
     outPoint <- .BuyseTest(envir = envir,
                            method.inference = "none",
                            iid = envir$outArgs$iid,
@@ -395,10 +393,6 @@ powerBuyseTest <- function(sim,
         sample.sizeT <- envir$sample.sizeT
         
         for(iSize in 1:(envir$n.sample.size-1)){
-            if(rerun==1){ ## Gehan's scoring rule
-                outPoint <- .createSubBT(allBT[[n.sample.size]], 
-                                         sample.sizeC = sample.sizeC[iSize], sample.sizeT = sample.sizeT[iSize])
-            }else if(rerun==2){ ## Peron's scoring rule or correction
                 envir$outArgs[out.name] <- initializeData(data = rbind(data[index.C[1:sample.sizeC[iSize]]],
                                                                        data[index.T[1:sample.sizeT[iSize]]]),
                                                           type = envir$outArgs$type,
@@ -424,8 +418,8 @@ powerBuyseTest <- function(sim,
                                        iid = envir$outArgs$iid,
                                        method.inference = "none",
                                        pointEstimation = TRUE)
-            }
-            allBT[[iSize]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
+
+                allBT[[iSize]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
         }
     }
 
@@ -461,111 +455,6 @@ powerBuyseTest <- function(sim,
     return(out)
 }
 
-## * .createSubBT
-.createSubBT <- function(object, sample.sizeT, sample.sizeC){
-
-    ## ** extract information
-    endpoint <- object@endpoint
-    n.endpoint <- length(endpoint)
-    n.strata <- length(object@level.strata)
-    weight <- object@weight
-    method.inference <- object@method.inference
-    correction.uninf <- object@correction.uninf
-    tableScore <- object@tablePairScore
-    order.Hprojection <- attr(method.inference,"hprojection")
-    
-    ## ** prepare export
-    out <- list(count_favorable = matrix(NA, nrow = 1, ncol = n.endpoint),
-                count_unfavorable = matrix(NA, nrow = 1, ncol = n.endpoint),
-                count_neutral = matrix(NA, nrow = 1, ncol = n.endpoint),
-                count_uninf = matrix(NA, nrow = 1, ncol = n.endpoint),
-                delta = array(NA, dim = c(n.strata,n.endpoint,4)),
-                Delta = NULL,
-                n_pairs = sample.sizeC * sample.sizeT,
-                iidAverage_favorable = NULL,
-                iidAverage_unfavorable = NULL,
-                iidNuisance_favorable = NULL,
-                iidNuisance_unfavorable = NULL,
-                covariance = NULL,
-                tableScore = vector(mode = "list", length = n.endpoint)
-                )
-            
-    ## ** update scores
-    for(iEndpoint in 1:n.endpoint){ ## iEndpoint <- 1
-        ## cat("endpoint ",iEndpoint,"\n")
-
-        ## restrict pairs 
-        index <- intersect(which(tableScore[[iEndpoint]]$indexWithinStrata.C <= sample.sizeC),
-                           which(tableScore[[iEndpoint]]$indexWithinStrata.T <= sample.sizeT))
-        iTable <- tableScore[[iEndpoint]][index]
-
-        ## update index in dataset
-        old.position <- sort(c(unique(iTable$index.T),unique(iTable$index.C)))
-        new.position <- rank(old.position)
-        old2new <- rep(NA, max(old.position))
-        old2new[old.position] <- new.position
-        iTable[, c("index.T") := old2new[.SD$index.T]]
-        iTable[, c("index.C") := old2new[.SD$index.C]]
-
-        ## update correction (no strata)
-        if(correction.uninf>0){
-            ## new weighting
-            if(iEndpoint>1){
-                iTable[, c("weight") := weightM1[match(iTable$index.pair,as.numeric(names(weightM1)))]]
-            }
-            
-            if(correction.uninf == 1){
-                mfactorFavorable <- sum(iTable$favorable * iTable$weight) / sum((iTable$favorable + iTable$unfavorable + iTable$neutral) * iTable$weight)
-                mfactorUnfavorable <- sum(iTable$unfavorable * iTable$weight) / sum((iTable$favorable + iTable$unfavorable + iTable$neutral) * iTable$weight)
-                mfactorNeutral <- sum(iTable$neutral * iTable$weight) / sum((iTable$favorable + iTable$unfavorable + iTable$neutral) * iTable$weight)
-                iTable[, c("favorableC") := (.SD$favorable + .SD$uninf * mfactorFavorable) * .SD$weight]
-                iTable[, c("unfavorableC") := (.SD$unfavorable + .SD$uninf * mfactorUnfavorable) * .SD$weight]
-                iTable[, c("neutralC") := (.SD$neutral + .SD$uninf * mfactorNeutral) * .SD$weight]
-            }else if(correction.uninf == 2){                
-                mfactor <- sum(iTable$favorable + iTable$unfavorable + iTable$neutral + iTable$uninf) / sum(iTable$favorable + iTable$unfavorable + iTable$neutral)
-                iTable[, c("favorableC") :=.SD$favorable * mfactor * .SD$weight]
-                iTable[, c("unfavorableC") :=.SD$unfavorable * mfactor * .SD$weight]
-                iTable[, c("neutralC") :=.SD$neutral * mfactor * .SD$weight]
-            }
-            weightM1 <-  setNames(iTable$neutralC,iTable$index.pair)
-        }
-        ## new counts
-        out$count_favorable[1,iEndpoint] <- sum(iTable$favorableC)
-        out$count_unfavorable[1,iEndpoint] <- sum(iTable$unfavorableC)
-        out$count_neutral[1,iEndpoint] <- sum(iTable$neutralC)
-        out$count_uninf[1,iEndpoint] <- sum(iTable$uninfC)
-
-        out$tableScore[[iEndpoint]] <- iTable
-    }
-
-    ## new point estimate
-    out$delta[,,1] <- out$count_favorable/out$n_pairs
-    out$delta[,,2] <- out$count_unfavorable/out$n_pairs
-    out$delta[,,3] <- out$delta[,,1]-out$delta[,,2]
-    out$delta[,,4] <- out$delta[,,1]/out$delta[,,2]
-    
-    out$Delta <- cbind(cumsum(out$count_favorable[1,]*weight)/out$n_pairs,
-                       cumsum(out$count_unfavorable[1,]*weight)/out$n_pairs,
-                       cumsum(out$count_favorable[1,] - out$count_unfavorable[1,])*weight/out$n_pairs,
-                       cumsum(out$count_favorable[1,])/cumsum(out$count_unfavorable[1,]))
-
-    ## compute variance
-    if(method.inference == "u-statistic"){
-        iInference <- inferenceUstatistic(out$tableScore, order = order.Hprojection,
-                                          weight = weight, count.favorable = out$count_favorable, count.unfavorable = out$count_unfavorable,
-                                          n.pairs = out$n_pairs, n.C = sample.sizeC, n.T =sample.sizeT, 
-                                          level.strata = "1", n.strata = 1, n.endpoint = n.endpoint, endpoint = endpoint)
-
-        ##  extract variance
-        out$iidAverage_favorable <- iInference$iidAverage_favorable
-        out$iidAverage_unfavorable <- iInference$iidAverage_unfavorable
-        out$covariance <- iInference$covariance
-    }
-
-    ## ** export
-    return(out)
-    
-}
 
 ######################################################################
 ### powerBuyseTest.R ends here

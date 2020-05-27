@@ -60,6 +60,15 @@ When using resampling methods:
 Computes confidence intervals for net benefit statistic or the win ratio statistic.
 }
 \details{
+\bold{statistic}: when considering a single endpoint and denoting
+\eqn{Y} the endpoint in the treatment group,
+\eqn{X} the endpoint in the control group,
+and \eqn{\tau} the threshold of clinical relevance,
+the net benefit is \eqn{P[Y \ge X + \tau] - P[X \ge Y + \tau]},
+the win ratio is \eqn{\frac{P[Y \ge X + \tau]}{P[X \ge Y + \tau]}},
+the proportion in favor of treatment is \eqn{P[Y \ge X + \tau]},
+the proportion in favor of control is \eqn{P[X \ge Y + \tau]}.
+
 \bold{method.ci.resampling}: when using bootstrap/permutation, p-values and confidence intervals are computing as follow: \itemize{
 \item \code{percentile} (bootstrap): compute the confidence interval using the quantiles of the bootstrap estimates.
 Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.

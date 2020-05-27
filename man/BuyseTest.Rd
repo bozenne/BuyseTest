@@ -104,6 +104,7 @@ A \emph{Vector interface} using  the following arguments \itemize{
 Must have only two levels (e.g. \code{0} and \code{1}).
   \item \code{endpoint}: [character vector] the name of the endpoint variable(s).
   \item \code{threshold}: [numeric vector] critical values used to compare the pairs (threshold of minimal important difference).
+A pair will be classified as neutral if the difference in endpoint is strictly below this threshold.
 There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
   \item \code{status}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
 Must value \code{NA} when the endpoint is not a time to event.

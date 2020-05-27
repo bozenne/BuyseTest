@@ -65,8 +65,8 @@ More precisely, the column:
   \item \code{neutral(\%)} lists the percentage of pairs classified as neutral at the current priority.
   \item \code{uninf} lists the number of pairs that could not be classified at the current priority (due to missing values/censoring).
   \item \code{uninf(\%)} lists the percentage of pairs that could not be classified at the current priority (due to missing values/censoring).
-  \item \code{delta} lists the value of the statistic (i.e. net benefit or win ratio) computed on the pairs analyzed at the current priority only.
-  \item \code{Delta} lists the value of the statistic (i.e. net benefit or win ratio) computed on all the pairs analyzed up to the current priority.
+  \item \code{delta} lists the value of the statistic (e.g. net benefit or win ratio) computed on the pairs analyzed at the current priority only.
+  \item \code{Delta} lists the value of the statistic (e.g. net benefit or win ratio) computed on all the pairs analyzed up to the current priority.
   \item \code{Delta(\%)} lists the  net benefit or win ratio fraction (i.e. statistic up to the current priority divided by the final statistic).
   \item \code{information(\%)} lists the information fraction (i.e. number of favorable and unfavorable pairs up to the current priority divided by the final number of favorable and unfavorable pairs).
   \item \code{CI} Confidence interval for the value of \code{Delta} (performed independently at each priority, no adjustment for multiple comparison).
@@ -75,6 +75,15 @@ More precisely, the column:
 Only displayed if some bootstrap samples have been discarded, for example, they did not lead to sample any case or control.
 }
 Note: when using the Peron scoring rule or a correction for uninformative pairs, the columns \code{total}, \code{favorable}, \code{unfavorable}, \code{neutral}, and \code{uninf} are computing by summing the contribution of the pairs. This may lead to a decimal value.
+
+\bold{statistic}: when considering a single endpoint and denoting
+\eqn{Y} the endpoint in the treatment group,
+\eqn{X} the endpoint in the control group,
+and \eqn{\tau} the threshold of clinical relevance,
+the net benefit is \eqn{P[Y \ge X + \tau] - P[X \ge Y + \tau]},
+the win ratio is \eqn{\frac{P[Y \ge X + \tau]}{P[X \ge Y + \tau]}},
+the proportion in favor of treatment is \eqn{P[Y \ge X + \tau]},
+the proportion in favor of control is \eqn{P[X \ge Y + \tau]}.
 
 \bold{Statistical inference} \cr
 When the interest is in obtaining p-values, we recommand the use of a permutation test.
