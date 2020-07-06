@@ -237,6 +237,9 @@ setMethod(f = "summary",
               if(identical(strata, "global")){
                   rm.display <- c(rm.display,"strata")
               }
+              if("delta" %in% type.display && "Delta" %in% type.display && n.endpoint == 1){
+                  rm.display <- union("delta", rm.display)
+              }
               type.display <- setdiff(type.display,rm.display)
 
               ## ** compute confidence intervals and p-values
@@ -481,8 +484,7 @@ setMethod(f = "summary",
                                                  "Gehan" = "deterministic score or uninformative",
                                                  "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
                                                  )
-
-                      cat(" > right-censored pairs: ",txt.scoring.rule,"\n", sep = "")
+                      cat(" > censored pairs  : ",txt.scoring.rule,"\n", sep = "")
                   }
                   if(n.endpoint>1 && any(object@count.neutral>0)){
                       txt.neutral <- switch(as.character(object@neutral.as.uninf),
@@ -492,7 +494,7 @@ setMethod(f = "summary",
                   }
                   if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){
                       txt.uninf <- switch(as.character(object@correction.uninf),
-                                          "0" = "no contribution at the current endpoint, analyzed at later endpoints",
+                                          "0" = if(n.endpoint==1){"no contribution"}else{"no contribution at the current endpoint, analyzed at later endpoints"},
                                           "1" = "score equals the averaged score of all informative pairs",
                                           "2" = "no contribution, their weight is passed to the informative pairs using IPCW"
                                           )
