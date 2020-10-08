@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: okt  8 2020 (17:23) 
+## Last-Updated: okt  8 2020 (17:46) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,7 +30,7 @@ set.seed(10)
 dt <- simBuyseTest(100)
 
 e.tempo <- coxph(Surv(eventtime,status)~1, data = dt, x = TRUE, y = TRUE)
-iid.tempo <- predictCox(e.survival,newdata = dt, times = 1,iid = TRUE)$survival.iid
+iid.tempo <- predictCox(e.tempo,newdata = dt, times = 1,iid = TRUE)$survival.iid
 test.riskRegression.version <- all(abs(apply(iid.tempo,2:3,mean, na.omit =TRUE))<1e-6) ## to be removed
 
 
