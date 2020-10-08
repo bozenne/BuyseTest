@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj 22 2020 (11:27) 
+## Last-Updated: okt  8 2020 (16:56) 
 ##           By: Brice Ozenne
-##     Update #: 171
+##     Update #: 175
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -434,10 +434,21 @@ test_that("uniformative pair after last observation",{
 
 
 
-## * new
-## set.seed(10)
-## d <- simBuyseTest(1e2)
+## * brice ozenne : 10/08/20 3:26  last time tie (event/censor)
+## butils::object2script(mydata, digit = 3)
+dt <- data.table("bras" = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), 
+                 "OS" = c(0.427, 1.708, 2.004, 2.792, 3.088, 3.384, 3.417, 3.647, 3.778, 3.844, 5.092, 5.355, 5.453, 6.012, 6.209, 6.209, 6.307, 6.702, 7.786, 8.049, 8.739, 9.461, 11.367, 11.728, 11.925, 11.991, 12.648, 12.746, 13.042, 13.338, 13.436, 13.666, 13.798, 16.097, 16.097, 0.854, 1.84, 3.055, 3.515, 4.172, 5.059, 5.158, 5.223, 5.519, 5.585, 6.307, 6.34, 6.373, 6.767, 6.899, 6.965, 7.129, 7.589, 7.589, 7.589, 7.753, 8.18, 9.133, 9.198, 9.855, 10.315, 11.498, 13.141, 13.239, 13.305, 13.568, 13.929, 15.21, 16.459, 19.087, 20.237, 20.532, 21.846, 22.273, 26.445, 27.989), 
+                 "etat" = c(0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1))
 
-## e.BT <- BuyseTest(treatment ~ toxicity + cont(score), data = d, method.inference = "permutation")
-## e.BT <- BuyseTest(treatment ~ cont(score), data = d, method.inference = "permutation")
-## summary(e.BT)
+
+test_that("last time is a tie with both event and censor",{
+    test <- BuyseTest(bras ~ tte(OS, status = etat),
+                      data = dt, method.inference = "u-statistic", scoring.rule = "Peron",
+                      trace = 0)
+    expect_equal(as.double(c(coef(test,"count.favorable"),coef(test,"count.unfavorable"),coef(test,"count.neutral"))),
+                 c(892.6111, 520.3092,   0.0000 ), tol = 1e-3)
+
+    ## dt[c(1,36)]
+                 
+})
+

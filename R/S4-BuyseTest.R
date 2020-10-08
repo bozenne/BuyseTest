@@ -158,6 +158,10 @@ methods::setMethod(
 
                  ## ** scoring.rule
                  scoring.rule <- c("Gehan","Peron")[scoring.rule+1]
+                 attr(scoring.rule,"test.censoring") <- attr(method.score, "test.censoring")
+                 attr(method.score, "test.censoring") <- NULL
+                 attr(scoring.rule,"test.CR") <- attr(method.score, "test.CR")
+                 attr(method.score, "test.CR") <- NULL
                  attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
 
                  ## ** hierarchical

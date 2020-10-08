@@ -142,7 +142,7 @@ setMethod(f = "summary",
                                                "favorable" = "proportion in favor of treatment",
                                                "unfavorable" = "proportion in favor of control"
                                                )
-                      cat(" > statistic   : ",name.statistic," (null hypothesis Delta=",null[statistic],")\n", sep = "")
+                      cat(" - statistic   : ",name.statistic," (null hypothesis Delta=",null[statistic],")\n", sep = "")
 
                       df.print <- as.data.frame(dtS.res[dtS.res$statistic == iStatistic])
                       df.print$statistic <- NULL

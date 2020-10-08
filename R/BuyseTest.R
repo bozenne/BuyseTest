@@ -243,7 +243,7 @@
 #' }
 #' }
 
-## * Test (code)
+## * BuyseTest (code)
 ##' @export
 BuyseTest <- function(formula,
                       data,
@@ -468,7 +468,6 @@ BuyseTest <- function(formula,
                        iid,
                        method.inference,
                        pointEstimation){
-   
 
     ## ** Resampling
     outSample <- calcSample(envir = envir, method.inference = method.inference)
@@ -499,7 +498,7 @@ BuyseTest <- function(formula,
                              iidNuisance = envir$outArgs$iidNuisance * iid,
                              out = envir$outArgs$skeletonPeron)
     }
-    
+
     ## ** Perform GPC
     resBT <- do.call(envir$outArgs$engine,
                      args = list(endpoint = envir$outArgs$M.endpoint,
@@ -537,7 +536,7 @@ BuyseTest <- function(formula,
                                  returnIID = iid + iid*envir$outArgs$iidNuisance,
                                  debug = envir$outArgs$debug
                                  ))
-
+   
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
@@ -873,27 +872,29 @@ calcPeron <- function(data,
                 iSurvTimeC <- c(-1e12,iJumpC)
                 iSurvC <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpC])
                 if(iLast.survC!=0){ ## just after last event is unknown when the survival curve does not ends at 0
-                    iSurvTimeC <- c(iSurvTimeC, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopC] + 1e-12)
+                    iSurvTimeC <- c(iSurvTimeC, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopC] + 1e-11)
                     iSurvC <- c(iSurvC,NA)
                 }
 
                 iSurvTimeT <- c(-1e12,iJumpT)
                 iSurvT <- c(1,model.tte[[iEndpoint.UTTE]]$surv[iIndexJumpT])
                 if(iLast.survT!=0){ ## just after last event is unknown when the survival curve does not ends at 0
-                    iSurvTimeT <- c(iSurvTimeT, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopT] + 1e-12)
+                    iSurvTimeT <- c(iSurvTimeT, model.tte[[iEndpoint.UTTE]]$time[iIndex.stopT] + 1e-11)
                     iSurvT <- c(iSurvT,NA)
                 }
 
                 ## dSurvival at each jump
                 if(length(iJumpC)>0){
-                    iIndexSurvivalC.JumpCm <- prodlim::sindex(iSurvTimeC, iJumpC - 1e-12)
-                    iIndexSurvivalC.JumpCp <- prodlim::sindex(iSurvTimeC, iJumpC + 1e-12)
+                    ## find index of the survival parameter before and after the jump (NA when after last observation point)
+                    iIndexSurvivalC.JumpCm <- prodlim::sindex(jump.times = iSurvTimeC, eval.times = iJumpC - 1e-12)
+                    iIndexSurvivalC.JumpCp <- prodlim::sindex(jump.times = iSurvTimeC, eval.times = iJumpC + 1e-12)
                     iDSurvC <- iSurvC[iIndexSurvivalC.JumpCp] - iSurvC[iIndexSurvivalC.JumpCm]
                 }
                 
                 if(length(iJumpT)>0){
-                    iIndexSurvivalT.JumpTm <- prodlim::sindex(iSurvTimeT, iJumpT - 1e-12)
-                    iIndexSurvivalT.JumpTp <- prodlim::sindex(iSurvTimeT, iJumpT + 1e-12)
+                    ## find index of the survival parameter before and after the jump (NA when after last observation point)
+                    iIndexSurvivalT.JumpTm <- prodlim::sindex(jump.times = iSurvTimeT, eval.times = iJumpT - 1e-12)
+                    iIndexSurvivalT.JumpTp <- prodlim::sindex(jump.times = iSurvTimeT, eval.times = iJumpT + 1e-12)
                     iDSurvT <- iSurvT[iIndexSurvivalT.JumpTp] - iSurvT[iIndexSurvivalT.JumpTm]
                 }
                 
@@ -915,14 +916,14 @@ calcPeron <- function(data,
                     out$lastSurv[[iEndpoint]][iStrata,1:2] <- c(iLast.survC, iLast.survT)
 
                     ## **** survival at jump times
-                    if(length(iJumpC)>0){                    
-                        iIndexSurvivalT.JumpCpTau <- prodlim::sindex(iSurvTimeT, iJumpC + iThreshold)
-                        out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(time = iJumpC,
+                    if(length(iJumpC)>0){
+                        iIndexSurvivalT.JumpCpTau <- prodlim::sindex(jump.times = iSurvTimeT, eval.times = iJumpC + iThreshold)
+                        out$survJumpC[[iEndpoint]][[iStrata]] <- cbind(time = iJumpC, ## jump time in group C
                                                                        survival = iSurvT[iIndexSurvivalT.JumpCpTau],
                                                                        dSurvival = iDSurvC,
                                                                        index.survival = iIndexSurvivalT.JumpCpTau - 1,
-                                                                       index.dSurvival1 = iIndexSurvivalC.JumpCm - 1,
-                                                                       index.dSurvival2 = iIndexSurvivalC.JumpCp - 1)
+                                                                       index.dSurvival1 = iIndexSurvivalC.JumpCm - 1, ## index of the survival parameter in group C, i.e. 1:nJump
+                                                                       index.dSurvival2 = iIndexSurvivalC.JumpCp - 1) ## index of the survival parameter in group C, i.e. 1:nJump
                         ## iSurvT[iIndexSurvivalT.JumpCpTau]
                         ## iSurvC[iIndexSurvivalC.JumpCm]
                     }else{
@@ -997,7 +998,7 @@ calcPeron <- function(data,
         lapply(1:n.strata, matrix, nrow = 0, ncol = 0)
     })
     )
-
+        
     if(iidNuisance){
         iid.model.tte <- lapply(model.tte, function(iModel){ ## iModel <- model.tte[[1]]
             iOut <- lava::iid(iModel, add0 = TRUE)
@@ -1022,7 +1023,7 @@ calcPeron <- function(data,
 
     ## ** pre-compute integrals
     for(iEndpoint in 1:length(endpoint)){ ## iEndpoint <- 1
-        
+         
         if(!precompute || method.score[iEndpoint]!=4){next} ## only for survival - not (yet!) available for the competing risk case
         
         for(iStrata in 1:n.strata){  ## iStrata <- 1

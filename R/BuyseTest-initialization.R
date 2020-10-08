@@ -420,6 +420,8 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
             return(4 + test.CR[iE]) ## 4/5 Peron (survival/competing risks)
         }
     })
+    attr(method.score,"test.censoring") <- test.censoring
+    attr(method.score,"test.CR") <- test.CR
     
     ## ** previously analyzed distinct TTE endpoints
     if((scoring.rule==1) && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC

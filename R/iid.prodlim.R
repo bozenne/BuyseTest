@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: maj 20 2020 (16:43) 
+## Last-Updated: okt  8 2020 (17:12) 
 ##           By: Brice Ozenne
-##     Update #: 115
+##     Update #: 120
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -151,7 +151,7 @@ iid.prodlim <- function(object, add0 = FALSE, ...){
         ## note use exp(-surv) instead of product limit for consistency with riskRegression
         IFsurvival[[iStrata]][iSubsetObs,] <- .rowMultiply_cpp(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], scale = exp(-cumsum(iTableHazard$hazard)))
     }
-
+    
     ## ** Modification used by BuyseTest to enable the user to easily specify model.tte
     if(!is.null(object$XX) && !identical(object$X,object$XX)){
         

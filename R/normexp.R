@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj  6 2020 (14:06) 
 ## Version: 
-## Last-Updated: maj 22 2020 (12:59) 
+## Last-Updated: okt  8 2020 (17:22) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 30
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -81,7 +81,7 @@ pnormweibull <- function(q, scale, shape, rho){
         if(shape==1){
             out <- stats::pnorm(q) - exp(-(1/(scale*rho))*q+(1/(scale*rho))^2/2)*stats::pnorm(q, mean = 1/(scale*rho))
         }else{
-            I <- integrate(f = function(x){exp(-x^2/2)/sqrt(2*pi)*exp(-((q-x)/(rho*scale))^shape)}, lower = min(-4,q - 7^(1/shape)*rho*scale), upper = q)
+            I <- stats::integrate(f = function(x){exp(-x^2/2)/sqrt(2*pi)*exp(-((q-x)/(rho*scale))^shape)}, lower = min(-4,q - 7^(1/shape)*rho*scale), upper = q)
             out <- stats::pnorm(q) - I$value
         }
        

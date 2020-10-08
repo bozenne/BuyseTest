@@ -420,14 +420,14 @@ setMethod(f = "summary",
                   ## *** display
                   cat("       Generalized pairwise comparisons ",txt.endpoint,txt.strata,"\n\n", sep = "")
                   if(statistic == "winRatio"){
-                      cat(" > statistic       : win ratio (delta: endpoint specific, Delta: global) \n",
-                          " > null hypothesis : Delta == 1 \n", sep = "")
+                      cat(" - statistic       : win ratio (delta: endpoint specific, Delta: global) \n",
+                          " - null hypothesis : Delta == 1 \n", sep = "")
                   }else {
-                      cat(" > statistic       : net benefit (delta: endpoint specific, Delta: global) \n",
-                          " > null hypothesis : Delta == 0 \n", sep = "")
+                      cat(" - statistic       : net benefit (delta: endpoint specific, Delta: global) \n",
+                          " - null hypothesis : Delta == 0 \n", sep = "")
                   }
                   if(method.inference != "none"){
-                      cat(" > confidence level: ",1-alpha," \n", sep = "")
+                      cat(" - confidence level: ",1-alpha," \n", sep = "")
 
                       if(attr(method.inference,"permutation")){
                           txt.method <- "permutation test"
@@ -466,11 +466,11 @@ setMethod(f = "summary",
                           
                           txt.method <- paste0(txt.method,"                     ",txt.method.ci," \n")
                       }
-                      cat(" > inference       : ",txt.method, sep = "")
+                      cat(" - inference       : ",txt.method, sep = "")
                   }
                   
-                  cat(" > treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
-                  if(any(object@type == "TimeToEvent")){
+                  cat(" - treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
+                  if(any(object@type == "TimeToEvent") && any(attr(object@scoring.rule,"test.censoring"))){
                       
                       if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==5)){
                           txt.Peron <- "cif"
@@ -484,13 +484,13 @@ setMethod(f = "summary",
                                                  "Gehan" = "deterministic score or uninformative",
                                                  "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
                                                  )
-                      cat(" > censored pairs  : ",txt.scoring.rule,"\n", sep = "")
+                      cat(" - censored pairs  : ",txt.scoring.rule,"\n", sep = "")
                   }
                   if(n.endpoint>1 && any(object@count.neutral>0)){
                       txt.neutral <- switch(as.character(object@neutral.as.uninf),
                                             "TRUE" = "re-analyzed using lower priority endpoints",
                                             "FALSE" = "ignored at lower priority endpoints")
-                      cat(" > neutral pairs   : ",txt.neutral,"\n", sep = "")
+                      cat(" - neutral pairs   : ",txt.neutral,"\n", sep = "")
                   }
                   if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){
                       txt.uninf <- switch(as.character(object@correction.uninf),
@@ -498,10 +498,10 @@ setMethod(f = "summary",
                                           "1" = "score equals the averaged score of all informative pairs",
                                           "2" = "no contribution, their weight is passed to the informative pairs using IPCW"
                                           )
-                      cat(" > uninformative pairs: ",txt.uninf,"\n", sep = "")
+                      cat(" - uninformative pairs: ",txt.uninf,"\n", sep = "")
                   }
                   
-                  cat(" > results\n")
+                  cat(" - results\n")
                   table.print2 <- table.print
                   if("significance" %in% names(table.print)){
                       names(table.print2)[names(table.print2) == "significance"] <- ""
