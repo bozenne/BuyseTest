@@ -43,6 +43,7 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
 				 int p_SurvD,
 				 int nJump){
 
+
   std::vector<double> intSurv_lower(nJump+1,0.0);
   std::vector<double> intSurv_upper(nJump+1,0.0);
 
@@ -55,7 +56,17 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
       intSurv_deriv(nJump,1) = time[nJump-1]+1e-12;
     }
   }
-  
+
+  if(nJump == 0){
+	
+	return(Rcpp::List::create(Rcpp::Named("time") = 0,
+							  Rcpp::Named("intSurv_lower") = 0,
+							  Rcpp::Named("intSurv_upper") = 0,
+							  Rcpp::Named("intSurv_deriv") = intSurv_deriv
+							  ));
+	
+  }
+
   // ** loop over time
   if(lastdSurv > 0){
     // add extra contribution to the bound after the last jump (minus because dSurv = (0 - surv(tmax))
@@ -73,27 +84,27 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
       intSurv_upper[iJump] = intSurv_upper[iJump+1];
         
       if(survival[iJump]>=0 && arma::is_finite(survival[iJump])){ // <0 and is_finite test whether it is a missing value (NA in R)
-	intSurv_lower[iJump] += survival[iJump] * dSurvival[iJump];
-	intSurv_upper[iJump] += survival[iJump] * dSurvival[iJump];
+		intSurv_lower[iJump] += survival[iJump] * dSurvival[iJump];
+		intSurv_upper[iJump] += survival[iJump] * dSurvival[iJump];
 
-	if(iidNuisance){
-	  intSurv_deriv(iJump,0) = iJump;
-	  intSurv_deriv(iJump,1) = time[iJump];
+		if(iidNuisance){
+		  intSurv_deriv(iJump,0) = iJump;
+		  intSurv_deriv(iJump,1) = time[iJump];
 
-	  // derivative regarding S(t+\tau)
-	  intSurv_deriv(iJump,2) = index_survival[iJump];
-	  intSurv_deriv(iJump,3) = dSurvival[iJump];
+		  // derivative regarding S(t+\tau)
+		  intSurv_deriv(iJump,2) = index_survival[iJump];
+		  intSurv_deriv(iJump,3) = dSurvival[iJump];
 
-	  // derivative regarding S(-)
-	  intSurv_deriv(iJump,4) = index_dSurvival1[iJump];
-	  intSurv_deriv(iJump,5) = -survival[iJump];
+		  // derivative regarding S(-)
+		  intSurv_deriv(iJump,4) = index_dSurvival1[iJump];
+		  intSurv_deriv(iJump,5) = -survival[iJump];
 
-	  // derivative regarding S(+)
-	  intSurv_deriv(iJump,6) = index_dSurvival2[iJump];
-	  intSurv_deriv(iJump,7) = survival[iJump];
-	}
+		  // derivative regarding S(+)
+		  intSurv_deriv(iJump,6) = index_dSurvival2[iJump];
+		  intSurv_deriv(iJump,7) = survival[iJump];
+		}
       }else{
-	intSurv_upper[iJump] += lastSurv * dSurvival[iJump];
+		intSurv_upper[iJump] += lastSurv * dSurvival[iJump];
       }
     }
   }

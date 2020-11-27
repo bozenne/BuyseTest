@@ -1,11 +1,11 @@
-### test-iid-prodlim.R --- 
+### test-BuyseTTEM.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: okt  8 2020 (17:46) 
+## Last-Updated: nov 26 2020 (20:31) 
 ##           By: Brice Ozenne
-##     Update #: 18
+##     Update #: 21
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,14 +20,23 @@ if(FALSE){
     library(BuyseTest)
     library(data.table)
 }
-context("Check the iid for prodlim")
+context("Check BuyseTTEM against predictCoxPL")
 
 library(riskRegression)
 library(prodlim)
 library(survival)
 
+## * Survival case
+## ** no strata (other than treatment group)
+## treatment arm with last observation NA
+## control arm with last observation event
 set.seed(10)
 dt <- simBuyseTest(100)
+
+e.BuyseTTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE)
+## ** with strata (other than treatment group)
+## treatment arm with last observation NA
+## control arm with last observation event
 
 e.tempo <- coxph(Surv(eventtime,status)~1, data = dt, x = TRUE, y = TRUE)
 iid.tempo <- predictCox(e.tempo,newdata = dt, times = 1,iid = TRUE)$survival.iid
@@ -82,5 +91,15 @@ test_that("iid with 2 strata variables", {
     }
 })
 
+
+## * Competing risk case
+## ** no strata (other than treatment group)
+## treatment arm with last observation NA
+## control arm with last observation event
+
+## ** with strata (other than treatment group)
+## treatment arm with last observation NA
+## control arm with last observation event
+
 ######################################################################
-### test-iid-prodlim.R ends here
+### test-BuyseTTEM.R ends here

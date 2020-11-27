@@ -36,6 +36,7 @@ initializeArgs <- function(status,
                            cpus = NULL,
                            data,
                            endpoint,
+                           fitter.model.tte = NULL,
                            formula,
                            hierarchical = NULL,
                            keep.pairScore = NULL,
@@ -131,7 +132,8 @@ initializeArgs <- function(status,
     D <- length(endpoint)
     D.TTE <- length(endpoint.TTE)
     
-    Uendpoint <- unique(endpoint)
+    Uendpoint <- unique(endpoint) 
+    Uendpoint.TTE <- unique(endpoint.TTE) 
     
     ## ** default values 
     if(is.null(formula)){
@@ -247,7 +249,12 @@ initializeArgs <- function(status,
     }else{
         model.tte <- NULL
     }
-    
+    if(!is.null(model.tte)){
+        fitter.model.tte <- unlist(lapply(model.tte, class))
+    }else{
+        fitter.model.tte <- setNames(rep(fitter.model.tte, length(Uendpoint.TTE)), Uendpoint.TTE)
+    }
+
     ## ** iid
     iid <- attr(method.inference,"studentized") || (method.inference == "u-statistic")
     if(iid){
@@ -280,6 +287,7 @@ initializeArgs <- function(status,
         endpoint = endpoint,
         endpoint.TTE = endpoint.TTE,
         engine = engine,
+        fitter.model.tte = fitter.model.tte,
         formula = formula,
         iid = iid,
         iidNuisance = iidNuisance,

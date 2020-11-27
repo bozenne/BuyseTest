@@ -18,12 +18,14 @@ setClass(
   
   representation(
       alternative = "character",
+      args.model.tte = "list",
       check = "logical",
       conf.level = "numeric",
       correction.uninf = "numeric",
       cpus = "numeric",
       debug = "numeric",
       engine = "character",
+      fitter.model.tte = "character",
       hierarchical = "logical",
       keep.pairScore = "logical",
       keep.survival = "logical",      
@@ -80,6 +82,11 @@ setClass(
       validCharacter(object@engine,
                      name1 = "@engine",
                      valid.values = c("GPC_cpp","GPC2_cpp"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
+      validCharacter(object@fitter.model.tte,
+                     name1 = "@fitter.model.tte",
+                     valid.values = c("prodlim", "survreg"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
       validLogical(object@hierarchical,

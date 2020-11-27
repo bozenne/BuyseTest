@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: okt  8 2020 (17:12) 
+## Last-Updated: nov 18 2020 (16:41) 
 ##           By: Brice Ozenne
-##     Update #: 120
+##     Update #: 124
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,9 +52,6 @@
 #' @export
 iid.prodlim <- function(object, add0 = FALSE, ...){
 
-    if(!inherits(object,"prodlim")){
-        stop("Argument \'object\' must inherit from prodlim \n")
-    }
     if(object$type!="surv"){
         stop("Influence function only available for survival models \n")
     }
@@ -110,6 +107,7 @@ iid.prodlim <- function(object, add0 = FALSE, ...){
     IFhazard <- vector(mode = "list", length = n.strata)
     IFcumhazard <- vector(mode = "list", length = n.strata)
     IFsurvival <- vector(mode = "list", length = n.strata)
+    IFcif <- vector(mode = "list", length = n.strata)
     ls.Utime1 <- vector(mode = "list", length = n.strata)
     
     for(iStrata in 1:n.strata){ ## iStrata <- 1
@@ -123,6 +121,7 @@ iid.prodlim <- function(object, add0 = FALSE, ...){
         IFhazard[[iStrata]] <- matrix(0, nrow = n.obs, ncol = iN.time)
         IFcumhazard[[iStrata]] <- matrix(0, nrow = n.obs, ncol = iN.time)
         IFsurvival[[iStrata]] <- matrix(0, nrow = n.obs, ncol = iN.time)
+        IFcif[[iStrata]] <- matrix(0, nrow = n.obs, ncol = iN.time)
 
         ## only keep observation in the strata and with eventtime at or after the first jump
         iSubsetObs <- intersect(which(vec.strataNum==iStrata),
@@ -150,6 +149,7 @@ iid.prodlim <- function(object, add0 = FALSE, ...){
         ## survival
         ## note use exp(-surv) instead of product limit for consistency with riskRegression
         IFsurvival[[iStrata]][iSubsetObs,] <- .rowMultiply_cpp(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], scale = exp(-cumsum(iTableHazard$hazard)))
+        IFcif[[iStrata]][iSubsetObs,] <- 1 - IFsurvival[[iStrata]][iSubsetObs,]
     }
     
     ## ** Modification used by BuyseTest to enable the user to easily specify model.tte

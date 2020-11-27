@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt  8 2020 (16:56) 
+## Last-Updated: okt 12 2020 (19:48) 
 ##           By: Brice Ozenne
-##     Update #: 175
+##     Update #: 176
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -452,3 +452,24 @@ test_that("last time is a tie with both event and censor",{
                  
 })
 
+## * brice ozenne : 10/12/20 9:46 only censored event in one group
+
+dt <- data.table("treatment" = c(rep("C",10),rep("T",10)),
+                 "time" = c(1:10,1:10),
+                 "status" = c(rep(1,10),rep(0,10)))
+
+e.Peron <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0),
+                     data = dt, scoring.rule = "Peron")
+expect_equal(as.double(coef(e.Peron,"netBenefit")),1)
+
+dt2 <- data.table("treatment" = c(rep("C",10),rep("T",10)),
+                 "time" = c(1:10,1:10),
+                 "status" = c(c(rep(1,9),0),rep(0,10)))
+
+e2.Peron <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0),
+                     data = dt2, scoring.rule = "Peron")
+expect_equal(as.double(coef(e.Peron,"netBenefit")),0.9)
+summary(e2.Peron, percentage = FALSE)
+dt <- data.table("treatment" = c("C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T"), 
+                 "time" = c(0.302, 0.307, 0.336, 0.347, 0.348, 0.459, 0.494, 0.525, 0.587, 0.588, 0.098, 0.116, 0.180, 0.229, 0.306, 0.318, 0.452, 0.485, 1.025, 1.339), 
+                 "status" = c(0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
