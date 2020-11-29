@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov 26 2020 (20:31) 
+## Last-Updated: nov 29 2020 (14:33) 
 ##           By: Brice Ozenne
-##     Update #: 21
+##     Update #: 31
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,79 +27,207 @@ library(prodlim)
 library(survival)
 
 ## * Survival case
-## ** no strata (other than treatment group)
 ## treatment arm with last observation NA
 ## control arm with last observation event
 set.seed(10)
 dt <- simBuyseTest(100)
+dt[,last:=eventtime==max(eventtime), by = c("treatment","toxicity")]
+dt[treatment == "C" & last, status:=1]
+dt[treatment == "T" & last, status:=0]
+dt2 <- dt[status!=0]
+## plot(prodlim(Hist(eventtime,status)~treatment+toxicity,data=dt))
 
-e.BuyseTTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE)
-## ** with strata (other than treatment group)
-## treatment arm with last observation NA
-## control arm with last observation event
+seqTau <- c(0,unique(dt$eventtime),runif(100,0,max(dt$eventtime)),1e5)
 
-e.tempo <- coxph(Surv(eventtime,status)~1, data = dt, x = TRUE, y = TRUE)
-iid.tempo <- predictCox(e.tempo,newdata = dt, times = 1,iid = TRUE)$survival.iid
-test.riskRegression.version <- all(abs(apply(iid.tempo,2:3,mean, na.omit =TRUE))<1e-6) ## to be removed
+## ** no strata (other than treatment group)
+test_that("no strata, survival", {
+    ## ## no censoring ## ##
+    e.rr <- coxph(Surv(eventtime,status)~strata(treatment), data = dt2, x = TRUE, y = TRUE)
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt2, iid = TRUE, iid.surv = "exp") 
 
+    ## Treatment
+    test <- predict(e.bb, time = seqTau, treatment  = "T", iid = TRUE)
+    GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE)
 
-test_that("iid with 1 strata variable", {
-    e.prodlim <- prodlim(Hist(eventtime,status)~treatment, data = dt)
-    e.survival <- coxph(Surv(eventtime,status)~strata(treatment), data = dt, x = TRUE, y = TRUE)
+    expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+    expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
 
-    iid.BT <- lava::iid(e.prodlim)
-    iid.RR <- iidCox(e.survival, return.object = FALSE)
+    ## Control
+    test <- predict(e.bb, time = seqTau, treatment  = "C", iid = TRUE)
+    GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE)
 
-    iid.RR$IFsurvival[[1]]
+    expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+    expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
 
+    ## ## censoring ## ##
+    e.r <- coxph(Surv(eventtime,status)~strata(treatment), data = dt, x = TRUE, y = TRUE)
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE, iid.surv = "exp")
 
-    if(test.riskRegression.version){
-    iid.RR$IFsurvival <- list(predictCox(e.survival, newdata = dt[dt$treatment == "C",][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[,,1],
-                              predictCox(e.survival, newdata = dt[dt$treatment == "T",][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[,,1])
+    ## Treamtent
+    test <- predict(e.b, time = seqTau, treatment  = "T", iid = TRUE)
+    GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE)
 
-    expect_equal(unname(iid.BT$IFhazard[[1]]), unname(iid.RR$IFhazard[[1]]))
-    expect_equal(unname(iid.BT$IFhazard[[2]]), unname(iid.RR$IFhazard[[2]]))
+    expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+    expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
 
-    expect_equal(unname(iid.BT$IFcumhazard[[1]]), unname(iid.RR$IFcumhazard[[1]]))
-    expect_equal(unname(iid.BT$IFcumhazard[[2]]), unname(iid.RR$IFcumhazard[[2]]))
+    ## Control
+    test <- predict(e.b, time = seqTau, treatment  = "C", iid = TRUE)
+    GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE)
 
-    expect_equal(unname(iid.BT$IFsurvival[[1]]), unname(iid.RR$IFsurvival[[1]]))
-    expect_equal(unname(iid.BT$IFsurvival[[2]]), unname(iid.RR$IFsurvival[[2]]))
-    }
+    expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+    expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
 })
-## profvis::profvis(lava::iid(e.prodlim))
 
-test_that("iid with 2 strata variables", {
-    e.prodlim <- prodlim(Hist(eventtime,status)~treatment+toxicity, data = dt)
-    e.survival <- coxph(Surv(eventtime,status)~strata(treatment)+strata(toxicity), data = dt, x = TRUE, y = TRUE)
+## ** with strata (other than treatment group)
 
-    iid.BT <- lava::iid(e.prodlim)
-    iid.RR <- iidCox(e.survival, return.object = FALSE)
-    if(test.riskRegression.version){
-        iid.RR$IFsurvival <- list(t(predictCox(e.survival, newdata = dt[dt$treatment == "C" & toxicity == 0,][1], times = iid.RR$time[[1]], iid = TRUE)$survival.iid[,,1]),
-                                  t(predictCox(e.survival, newdata = dt[dt$treatment == "T" & toxicity == 0,][1], times = iid.RR$time[[2]], iid = TRUE)$survival.iid[,,1]))
+test_that("strata, survival", {
+    ## ## no censoring ## ##
+    e.rr <- coxph(Surv(eventtime,status)~strata(treatment)+strata(toxicity), data = dt2, x = TRUE, y = TRUE)
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt2, iid = TRUE, iid.surv = "exp",
+                     treatment = "treatment")
 
-        expect_equal(unname(iid.BT$IFhazard[[1]]), unname(iid.RR$IFhazard[[1]]))
-        expect_equal(unname(iid.BT$IFhazard[[3]]), unname(iid.RR$IFhazard[[2]]))
-        expect_equal(unname(iid.BT$IFhazard[[2]]), unname(iid.RR$IFhazard[[3]]))
-        expect_equal(unname(iid.BT$IFhazard[[4]]), unname(iid.RR$IFhazard[[4]]))
+    for(iStrata in c("yes","no")){
+        ## Treatment
+        test <- predict(e.bb, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE)
+        GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE)
 
-        expect_equal(unname(iid.BT$IFcumhazard[[1]]), unname(iid.RR$IFcumhazard[[1]]))
-        expect_equal(unname(iid.BT$IFcumhazard[[3]]), unname(iid.RR$IFcumhazard[[2]]))
-        expect_equal(unname(iid.BT$IFcumhazard[[2]]), unname(iid.RR$IFcumhazard[[3]]))
-        expect_equal(unname(iid.BT$IFcumhazard[[4]]), unname(iid.RR$IFcumhazard[[4]]))
+        expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+        expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
+
+        ## Control
+        test <- predict(e.bb, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE)
+        GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE)
+
+        expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+        expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
+    }
+
+    ## ## censoring ## ##
+    e.r <- coxph(Surv(eventtime,status)~strata(treatment)+strata(toxicity), data = dt, x = TRUE, y = TRUE)
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt, iid = TRUE, iid.surv = "exp",
+                     treatment = "treatment")
+
+    for(iStrata in c("yes","no")){
+        ## Treatment
+        test <- predict(e.b, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE)
+        GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE)
+
+        expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+        expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
+
+        ## Control
+        test <- predict(e.b, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE)
+        GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE)
+
+        expect_equal(1-test$cif,GS$survival[1,], tol = 1e-6)
+        expect_equal(-test$cif.iid,GS$survival.iid[,,1], tol = 1e-6)
     }
 })
 
 
 ## * Competing risk case
+set.seed(10)
+dt <- simBuyseTest(100, argsTTE = list(CR=TRUE))
+setkeyv(dt, "eventtime")
+dt[,last:=eventtime==max(eventtime), by = c("treatment","toxicity")]
+dt[treatment == "C" & last, status:=1]
+dt[treatment == "T" & last, status:=0]
+## plot(prodlim(Hist(eventtime,status)~treatment+toxicity,data=dt))
+dt2 <- dt[status!=0]
+
+seqTau <- c(0,unique(dt$eventtime),runif(100,0,max(dt$eventtime)),1e5)
+
 ## ** no strata (other than treatment group)
-## treatment arm with last observation NA
-## control arm with last observation event
+
+test_that("no strata, competing risks", {
+    ## ## no censoring ## ##
+    e.rr <- CSC(Hist(eventtime,status)~strata(treatment), data = dt2)
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt2, iid = TRUE, iid.surv = "prodlim")
+
+    for(iCause in 1:2){
+        ## Treatment
+        test <- predict(e.bb, time = seqTau, treatment  = "T", iid = TRUE, cause = iCause)
+        GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+        expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+
+        ## Control
+        test <- predict(e.bb, time = seqTau, treatment  = "C", iid = TRUE, cause = iCause)
+        GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+        expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+    }
+    
+    ## ## censoring ## ##
+    e.r <- CSC(Hist(eventtime,status)~strata(treatment), data = dt)
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE, iid.surv = "prodlim")
+
+    for(iCause in 1:2){
+        ## Treatment
+        test <- predict(e.b, time = seqTau, treatment  = "T", iid = TRUE, cause = iCause)
+        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+        expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+
+        ## Control
+        test <- predict(e.b, time = seqTau, treatment  = "C", iid = TRUE, cause = iCause)
+        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+        expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+    }
+})
 
 ## ** with strata (other than treatment group)
-## treatment arm with last observation NA
-## control arm with last observation event
+
+test_that("with strata, competing risks", {
+    ## ## no censoring ## ##
+    e.rr <- CSC(Hist(eventtime,status)~strata(treatment)+strata(toxicity), data = dt2)
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt2, iid = TRUE, iid.surv = "prodlim", treatment = "treatment")
+
+    for(iCause in 1:2){
+        for(iStrata in c("yes","no")){
+            ## Treatment
+            test <- predict(e.bb, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE, cause = iCause)
+            GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+            expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+
+            ## Control
+            test <- predict(e.bb, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE, cause = iCause)
+            GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+            expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        }
+    }
+    
+    ## ## censoring ## ##
+    e.r <- CSC(Hist(eventtime,status)~strata(treatment)+strata(toxicity), data = dt)
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt, iid = TRUE, iid.surv = "prodlim", treatment = "treatment")
+
+    for(iCause in 1:2){
+        for(iStrata in c("yes","no")){
+            ## Treatment
+            test <- predict(e.b, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE, cause = iCause)
+            GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+        expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+
+        ## Control
+        test <- predict(e.b, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE, cause = iCause)
+        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+
+            expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        }
+    }
+})
 
 ######################################################################
 ### test-BuyseTTEM.R ends here

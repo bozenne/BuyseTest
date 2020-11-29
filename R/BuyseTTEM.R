@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: nov 26 2020 (20:31) 
+## Last-Updated: nov 29 2020 (14:25) 
 ##           By: Brice Ozenne
-##     Update #: 172
+##     Update #: 206
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -258,7 +258,6 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
 
     ## ** table iid
     if(iid){
-        browser()
         vec.eventtime <- object$model.response[object$originalDataOrder,"time"]
         if(test.CR){
             vec.status <- object$model.response[object$originalDataOrder,"event"] ## 1:n.CR event, n.CR+1 censoring
@@ -266,11 +265,14 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
             vec.status <- object$model.response[object$originalDataOrder,"status"] ## 0 censoring, 1 event
         }
         name.allStrata <- interaction(object$peron$X[,c(treatment,name.strata)])
-        if()
-        name.allStrataOriginal <- interaction(object$X[,c(treatment,name.strata)])
+
+        if(is.null(X.strata)){
+            name.allStrataOriginal <- levels(object$X$treatment)
+        }else{
+            name.allStrataOriginal <- levels(interaction(object$X[,c(treatment,name.strata)]))
+        }
         vec.allStrata <- as.numeric(factor(interaction(object$model.matrix[object$originalDataOrder,,drop=FALSE]), levels = name.allStrataOriginal))
         n.obs <- length(vec.allStrata)
-
         
         object$peron$iid.hazard <- setNames(vector(mode = "list", length=n.strata), Uname.strata)
         object$peron$iid.survival <- setNames(vector(mode = "list", length=n.strata), Uname.strata)
@@ -289,7 +291,6 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                 iIndex.allStrata <- intersect(which(object$X[,treatment]==iTreat),which(object$peron$X[,"..strata.."]==iStrata))
                 iIndStrata <- which(vec.allStrata==iIndex.allStrata)
                 iIndex.jump <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]]$index.jump
-                iStrata.nJump <- length(iIndex.jump)
 
                 if(length(iIndex.jump)==0){ ## no event: iid = 0
                     for(iEvent in 1:n.CR){ ## iEvent <- 1
@@ -325,20 +326,28 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                 
                 ## *** influence function for the cumulative incidence
                 for(iCR in 1:n.CR){
-                    object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]] <- matrix(0, nrow = n.obs, ncol = iStrata.nJump+1)
+                    object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]] <- matrix(0, nrow = n.obs, ncol = NROW(object$peron$cif[[iStrata]][[iTreat]][[iCR]]))
                     if(test.CR){
-                        browser()
-                        iHazard <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]][[paste0("hazard",iCR)]]
-                        iSurvival <- c(0,object$peron$jumpSurvHaz[[iStrata]][[iTreat]][1:(iN.jump-1),"survival"]) ## at t-
-                        iHazard.iid <- object$peron$iid.hazard[[iStrata]][[iTreat]][[iCR]]
+                        iHazard <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]][[paste0("hazard",iCR)]] ## at t
+                        iHazard.iid <- object$peron$iid.hazard[[iStrata]][[iTreat]][[iCR]] ## at t
+                        
+                        iSurvival <- c(1,object$peron$jumpSurvHaz[[iStrata]][[iTreat]][1:(iN.jump-1),"survival"]) ## at t-
                         iSurvival.iid <- cbind(0,object$peron$iid.survival[[iStrata]][[iTreat]][,1:(iN.jump-1),drop=FALSE]) ## at t-
-
-                        ## add iid at time 0
-                        object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,.rowCumSum_cpp(.rowMultiply_cpp(iSurvival.iid,iHazard) + .rowMultiply_cpp(iHazard.iid,iSurvival)))
-                        sqrt(colSums(object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]]^2))
+                        ## if(iTreat=="T"){browser()}
+                        ## object$peron$cif[[iStrata]][[iTreat]][[1]]$time
+                        ## add iid at time 0 and (if censoring) NA after the last event
+                        if(sum(object$peron$last.estimate[iStrata,paste0("cif",1:n.CR,".",iTreat)])<(1-tol12)){
+                            object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,.rowCumSum_cpp(.rowMultiply_cpp(iSurvival.iid,iHazard) + .rowMultiply_cpp(iHazard.iid,iSurvival)),NA)
+                        }else{
+                            object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,.rowCumSum_cpp(.rowMultiply_cpp(iSurvival.iid,iHazard) + .rowMultiply_cpp(iHazard.iid,iSurvival)))
+                        }
                     }else{
-                        ## add iid at time 0
-                        object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,-object$peron$iid.survival[[iStrata]][[iTreat]])
+                        ## add iid at time 0 and (if censoring) NA after the last event
+                        if(object$peron$last.estimate[iStrata,paste0("cif",iCR,".",iTreat)]<(1-tol12)){
+                            object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,-object$peron$iid.survival[[iStrata]][[iTreat]],NA)
+                        }else{
+                            object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,-object$peron$iid.survival[[iStrata]][[iTreat]])
+                        }
                     }                    
                 }
             }}
@@ -354,7 +363,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
 predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid=FALSE){
 
     ## ** check and normalize arguments
-    if(missing(strata) && NCOL(object$peron$X)==1){
+    if(missing(strata) && NCOL(object$X)==1){
         strata <- 1
     }
     if(iid && "iid.cif" %in% names(object$peron) == FALSE){
@@ -396,6 +405,7 @@ predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid=FAL
     index.table <- prodlim::sindex(jump.time = table.cif$time, eval.time = time)
     out$index <- table.cif[index.table,"index.cif.after"]
     out$cif <- table.cif[index.table,"cif"]
+
     if(iid){
         out$cif.iid <- object$peron$iid.cif[[strata]][[treatment]][[cause]][,out$index+1]
         out$cif.se <- sqrt(colSums(out$cif.iid^2))
