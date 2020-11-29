@@ -52,8 +52,7 @@ for(iData in 1:3){ ## iData <- 1
         
         ## *** Compute survival
         form <- as.formula(paste0("treatment ~ tte(time, status = status, threshold = ",iThreshold,")"))
-        outBT <- BuyseTest(form,
-                           data = data)
+        outBT <- BuyseTest(form, data = data) ## outBT <- BuyseTest(form, data = data, method.inference = "u-statistic")
         outSurv <- getSurvival(outBT, endpoint = 1, strata = 1, unlist = TRUE)
 
         ## data[,sum(status),by="treatment"]

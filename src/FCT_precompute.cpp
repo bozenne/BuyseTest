@@ -22,8 +22,6 @@
 //' @param lastSurv [numeric] the value of S1 at the end of the follow-up.
 //' @param lastSurv [numeric] the value of S2 at the end of the follow-up.
 //' @param iidNuisance [logical] should the derivative of the integral relative to the S1 and S2 parameter be output.
-//' @param p_Surv [integer] the number of parameters relative to S1.
-//' @param p_SurvD [integer] the number of parameters relative to S2.
 //' @param nJump [integer] the number of jump times relative to S2.
 //'
 //' @keywords function Cpp internal
@@ -39,8 +37,6 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
 				 double lastSurv,
 				 double lastdSurv,
 				 bool iidNuisance,
-				 int p_Surv,
-				 int p_SurvD,
 				 int nJump){
 
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: nov 29 2020 (14:25) 
+## Last-Updated: nov 29 2020 (17:08) 
 ##           By: Brice Ozenne
-##     Update #: 206
+##     Update #: 217
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -366,10 +366,6 @@ predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid=FAL
     if(missing(strata) && NCOL(object$X)==1){
         strata <- 1
     }
-    if(iid && "iid.cif" %in% names(object$peron) == FALSE){
-        stop("The iid has not been precomputed. \n",
-             "Consider setting argument \'iid\' to TRUE when calling BuyseTTEM. \n")
-    }
     if(length(cause)>1){
         stop("Argument \'cause\' should have length 1. \n")
     }
@@ -398,17 +394,45 @@ predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid=FAL
         stop("Argument \'cause\' should be ",paste(1:n.CR,collapse = " or "),". \n")
     }
 
-    ## ** extract information
-    table.cif <- object$peron$cif[[strata]][[treatment]][[cause]]
+    if(missing(time) || is.null(time)){
+        browser()
+        if(object$type=="surv"){
+            return(object$peron$cif[[strata]][[treatment]][[cause]])
+        }else{
+            return(object$peron$cif[[strata]][[treatment]][[cause]])
+        }
+    }
     
+    if(iid && "iid.cif" %in% names(object$peron) == FALSE){
+        stop("The iid has not been precomputed. \n",
+             "Consider setting argument \'iid\' to TRUE when calling BuyseTTEM. \n")
+    }
+    
+    ## ** extract information
     out <- list(index = NULL, cif = NULL)
+    if(object$type=="surv"){
+        table.cif <- object$peron$cif[[strata]][[treatment]][[1]]
+    }else{
+        table.cif <- object$peron$cif[[strata]][[treatment]][[cause]]
+    }
+    
     index.table <- prodlim::sindex(jump.time = table.cif$time, eval.time = time)
     out$index <- table.cif[index.table,"index.cif.after"]
-    out$cif <- table.cif[index.table,"cif"]
 
+    if(object$type=="surv"){
+        out$survival <- 1-table.cif[index.table,"cif"]
+    }else{
+        out$cif <- table.cif[index.table,"cif"]
+    }
+    
     if(iid){
-        out$cif.iid <- object$peron$iid.cif[[strata]][[treatment]][[cause]][,out$index+1]
-        out$cif.se <- sqrt(colSums(out$cif.iid^2))
+        if(object$type=="surv"){
+            out$survival.iid <- -object$peron$iid.cif[[strata]][[treatment]][[cause]][,out$index+1]
+            out$survival.se <- sqrt(colSums(out$survival.iid^2))
+        }else{
+            out$cif.iid <- object$peron$iid.cif[[strata]][[treatment]][[cause]][,out$index+1]
+            out$cif.se <- sqrt(colSums(out$cif.iid^2))
+        }
     }
 
     ## ** export
