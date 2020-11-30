@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: nov 29 2020 (16:11) 
+## Last-Updated: nov 30 2020 (20:09) 
 ##           By: Brice Ozenne
-##     Update #: 35
+##     Update #: 37
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -124,6 +124,24 @@ test_that("strata, survival", {
     }
 })
 
+## ** other
+dataT <- data.table(time = 1:5,
+                    treatment = "T",
+                    status1 = c(1,0,1,1,1),
+                    status2 = c(1,0,1,1,1),
+                    status3 = c(1,1,1,1,1))
+dataC <- data.table(time = c(1:5-0.1,5,5),
+                    treatment = "C",
+                    status1 = c(1,1,0,1,0,0,0),
+                    status2 = c(1,1,0,1,0,1,1),
+                    status3 = c(1,1,1,1,1,1,1))
+data <- rbind(dataC, dataT)
+seqThreshold <- c(1e-12,0.5,1)
+
+e.TTEM <- BuyseTTEM(Hist(time, status1) ~ treatment, data = data, iid = FALSE)
+expect_equal(predict(e.TTEM, treatment = "C", time = c(1,3,4,5)+1e-12)$survival,
+             c(0.8571429, 0.7142857, 0.5357143, 0.5357143), tol = 1e-6)
+             
 
 ## * Competing risk case
 set.seed(10)

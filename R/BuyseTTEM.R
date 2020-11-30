@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: nov 29 2020 (17:08) 
+## Last-Updated: nov 30 2020 (16:56) 
 ##           By: Brice Ozenne
-##     Update #: 217
+##     Update #: 247
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -108,7 +108,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
         name.strata <- "..strata.."
         Uname.strata <- "REF"
     }
-    if(n.strata>1 && any(name.strata == "..strata..")){
+    if(NCOL(X.strata)>1 && any(name.strata == "..strata..")){
         stop("Incorrect strata variable \n",
              "Cannot use \"..strata..\" as it will be used internally \n.")
     }
@@ -288,7 +288,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                 object$peron$iid.hazard[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
                 object$peron$iid.cif[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
 
-                iIndex.allStrata <- intersect(which(object$X[,treatment]==iTreat),which(object$peron$X[,"..strata.."]==iStrata))
+                iIndex.allStrata <- intersect(which(level.treatment[object$peron$X[,treatment]+1]==iTreat),which(object$peron$X[,"..strata.."]==iStrata))
                 iIndStrata <- which(vec.allStrata==iIndex.allStrata)
                 iIndex.jump <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]]$index.jump
 
@@ -300,7 +300,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                     }
                     next
                 }
-                
+
                 ## *** influence function for each cause-specific hazard
                 for(iEvent in 1:n.CR){ ## iEvent <- 1
                     iJump.time <- object$time[iIndex.jump]
@@ -330,11 +330,10 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                     if(test.CR){
                         iHazard <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]][[paste0("hazard",iCR)]] ## at t
                         iHazard.iid <- object$peron$iid.hazard[[iStrata]][[iTreat]][[iCR]] ## at t
-                        
+
                         iSurvival <- c(1,object$peron$jumpSurvHaz[[iStrata]][[iTreat]][1:(iN.jump-1),"survival"]) ## at t-
                         iSurvival.iid <- cbind(0,object$peron$iid.survival[[iStrata]][[iTreat]][,1:(iN.jump-1),drop=FALSE]) ## at t-
-                        ## if(iTreat=="T"){browser()}
-                        ## object$peron$cif[[iStrata]][[iTreat]][[1]]$time
+
                         ## add iid at time 0 and (if censoring) NA after the last event
                         if(sum(object$peron$last.estimate[iStrata,paste0("cif",1:n.CR,".",iTreat)])<(1-tol12)){
                             object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,.rowCumSum_cpp(.rowMultiply_cpp(iSurvival.iid,iHazard) + .rowMultiply_cpp(iHazard.iid,iSurvival)),NA)
@@ -360,7 +359,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
 
 
 ## * predict.prodlim2
-predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid=FALSE){
+predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid = FALSE){
 
     ## ** check and normalize arguments
     if(missing(strata) && NCOL(object$X)==1){
@@ -393,16 +392,6 @@ predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid=FAL
     if(cause > n.CR){
         stop("Argument \'cause\' should be ",paste(1:n.CR,collapse = " or "),". \n")
     }
-
-    if(missing(time) || is.null(time)){
-        browser()
-        if(object$type=="surv"){
-            return(object$peron$cif[[strata]][[treatment]][[cause]])
-        }else{
-            return(object$peron$cif[[strata]][[treatment]][[cause]])
-        }
-    }
-    
     if(iid && "iid.cif" %in% names(object$peron) == FALSE){
         stop("The iid has not been precomputed. \n",
              "Consider setting argument \'iid\' to TRUE when calling BuyseTTEM. \n")
@@ -415,8 +404,7 @@ predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid=FAL
     }else{
         table.cif <- object$peron$cif[[strata]][[treatment]][[cause]]
     }
-    
-    index.table <- prodlim::sindex(jump.time = table.cif$time, eval.time = time)
+    index.table <- pmax(1,prodlim::sindex(jump.time = table.cif$time, eval.time = time)) ## pmin since 1 is taking care of negative times
     out$index <- table.cif[index.table,"index.cif.after"]
 
     if(object$type=="surv"){

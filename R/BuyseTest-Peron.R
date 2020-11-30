@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: nov 29 2020 (17:10) 
+## Last-Updated: nov 30 2020 (16:48) 
 ##           By: Brice Ozenne
-##     Update #: 261
+##     Update #: 288
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -91,6 +91,7 @@ calcPeron <- function(data,
             for(iTreat in level.treatment){
                 iStoreJump <- c("survJumpC","survJumpT")[(iTreat==level.treatment[2])+1]
                 iStoreTime <- c("survTimeC","survTimeT")[(iTreat==level.treatment[2])+1]
+                iStoreP <- c("p.C","p.T")[(iTreat==level.treatment[2])+1]
 
                 iTreat.num <- as.numeric(iTreat==level.treatment[2])                
                 iTime <- data[list(iTreat.num,iStrata),.SD[[endpoint.UTTE[iUTTE]]],on=c(treatment,"..strata..")]
@@ -102,30 +103,30 @@ calcPeron <- function(data,
                         
                     }else{
                         ## *** survival at jump time
-                        iJump <- predict(model.tte[[iUTTE]], treatment = iTreat, strata = iStrata, iid = iidNuisance)
+                        iTime.jump <- model.tte[[iUTTE]]$peron$jumpSurvHaz[[iStrata]][[iTreat]]$time.jump
+                        
+                        iSurvTau.jump <- predict(model.tte[[iUTTE]], time = iTime.jump + threshold[iEndpoint], treatment = setdiff(level.treatment, iTreat),
+                                                 strata = iStrata, iid = iidNuisance)
+                        iSurvBefore.jump <- predict(model.tte[[iUTTE]], time = iTime.jump-zeroPlus, treatment = iTreat,
+                                                    strata = iStrata, iid = iidNuisance)
+                        iSurvAfter.jump <- predict(model.tte[[iUTTE]], time = iTime.jump+zeroPlus, treatment = iTreat,
+                                                   strata = iStrata, iid = iidNuisance)
+
                         if(iidNuisance){
-                            browser()
-                            out$iid[[iStoreJump]][[iEndpoint.UTTE]][[iStrata]] <- iid.model.tte[[iEndpoint.UTTE]]$IFsurvival.control[[iStrata]]
-                            out$p.C[iStrata, iIndex.associatedEndpoint] <- NCOL(out$iid$survJumpC[[iEndpoint.UTTE]][[iStrata]])
-                            out$p.T[iStrata, iIndex.associatedEndpoint] <- NCOL(out$iid$survJumpT[[iEndpoint.UTTE]][[iStrata]])
+                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- model.tte[[iUTTE]]$peron$survival.iid[[iStrata]][[iTreat]]
+                            out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
                         }
 
-                        ## shift the survival at t+\tau
-                        iSindex <- prodlim::sindex(jump.times = iJump$time, eval.times = iJump$time + threshold[iEndpoint])
-                        iJump$survival <-  iJump$survival[iSindex]
-                        iJump$index.survival <-  iJump$index.survival.after[iSindex]
-
                         ## rm after last event if NA and keep last survival value
-                        iJump <- iJump[!is.na(iJump$survival),,drop=FALSE]
-                        out$lastSurv[[iEndpoint]][iStrata,iTreat.num+1] <- 1-iJump[NROW(iJump),"survival"]
+                        out$lastSurv[[iEndpoint]][iStrata,iTreat.num+1] <- 1-model.tte[[iUTTE]]$peron$last.estimate[iStrata,which(level.treatment==iTreat)] ## 1- because it is cif not survival that is output
 
                         ## export
-                        out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind(time = iJump$time, ## jump time
-                                                                           survival = iJump$survival, ## survival after the jump
-                                                                           dSurvival = iJump$dsurvival, ## difference in survival before vs. after
-                                                                           index.survival = iJump$index.survival - 1, ## index of the survival parameter at t+\tau
-                                                                           index.dsurvival1 = iJump$index.survival.before - 1, ## index of the survival parameter before the jump
-                                                                           index.dsurvival2 = iJump$index.survival.after - 1) ## index of the survival parameter after the jump
+                        out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind(time = iTime.jump, ## jump time
+                                                                           survival = iSurvTau.jump$survival, 
+                                                                           dSurvival = iSurvAfter.jump$survival - iSurvBefore.jump$survival,
+                                                                           index.survival = iSurvTau.jump$index, ## index of the survival parameter at t+\tau
+                                                                           index.dsurvival1 = iSurvBefore.jump$index, ## index of the survival parameter before the jump
+                                                                           index.dsurvival2 = iSurvAfter.jump$index) ## index of the survival parameter after the jump
 
                         ## *** survival at observation time (+/- threshold)
                         iPred.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - threshold[iEndpoint], treatment = level.treatment[1], strata = iStrata)
@@ -135,19 +136,19 @@ calcPeron <- function(data,
                         iPred.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime + threshold[iEndpoint], treatment = level.treatment[2], strata = iStrata)
 
                         out[[iStoreTime]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime,
-                                                                       "survivalC-threshold" = iPred.C.beforeTau$survival,
-                                                                       "survivalC_0" = iPred.C$survival,
-                                                                       "survivalC+threshold" = iPred.C.afterTau$survival,
-                                                                       "survivalT-threshold" = iPred.T.beforeTau$survival,
-                                                                       "survivalT_0" = iPred.T$survival,
-                                                                       "survivalT+threshold" = iPred.T.afterTau$survival,
-                                                                       "index.survivalC-threshold" = iPred.C.beforeTau$index,
-                                                                       "index.survivalC_0" = iPred.C$index,
-                                                                       "index.survivalC+threshold" = iPred.C.afterTau$index,
-                                                                       "index.survivalT-threshold" = iPred.T.beforeTau$index,
-                                                                       "index.survivalT_0" = iPred.T$index,
-                                                                       "index.survivalT+threshold" = iPred.T.afterTau$index
-                                                                       )
+                                                                           "survivalC-threshold" = iPred.C.beforeTau$survival,
+                                                                           "survivalC_0" = iPred.C$survival,
+                                                                           "survivalC+threshold" = iPred.C.afterTau$survival,
+                                                                           "survivalT-threshold" = iPred.T.beforeTau$survival,
+                                                                           "survivalT_0" = iPred.T$survival,
+                                                                           "survivalT+threshold" = iPred.T.afterTau$survival,
+                                                                           "index.survivalC-threshold" = iPred.C.beforeTau$index,
+                                                                           "index.survivalC_0" = iPred.C$index,
+                                                                           "index.survivalC+threshold" = iPred.C.afterTau$index,
+                                                                           "index.survivalT-threshold" = iPred.T.beforeTau$index,
+                                                                           "index.survivalT_0" = iPred.T$index,
+                                                                           "index.survivalT+threshold" = iPred.T.afterTau$index
+                                                                           )
                     } ## End if CR
                 } ## End if iEndpoint
             } ## End if treatment
@@ -209,7 +210,6 @@ calcPeron <- function(data,
 
 
             if(iidNuisance){
-                browser()
                 colnames(ls.intC$intSurv_deriv) <- c("index.jump","time","index.param.surv","value.surv","index.param.dsurv1","value.dsurv1","index.param.dsurv2","value.dsurv2")
                 colnames(ls.intT$intSurv_deriv) <- c("index.jump","time","index.param.surv","value.surv","index.param.dsurv1","value.dsurv1","index.param.dsurv2","value.dsurv2")
                 out$survJumpC[[iEndpoint]][[iStrata]] <- ls.intC$intSurv_deriv
@@ -226,10 +226,6 @@ calcPeron <- function(data,
                                                                "indexMax.int.dSurvivalC-threshold" = NROW(ls.intC$intSurv_deriv)-1,
                                                                "index.int.dSurvivalT_0" = index.dSurvivalT.0,
                                                                "indexMax.int.dSurvivalT_0" = NROW(ls.intT$intSurv_deriv)-1)
-
-
-## cbind(value = ls.intC$intSurv_lower, ls.intC$intSurv_deriv)
-                ## cbind(value = ls.intT$intSurv_lower, ls.intT$intSurv_deriv)
                 
             }else{
                 out$survJumpC[[iEndpoint]][[iStrata]] <- matrix(0, nrow = 0, ncol = 0)
@@ -238,8 +234,6 @@ calcPeron <- function(data,
         }
     }
 
-    ## ** iid
-    
     ## ** export
     return(out)
     

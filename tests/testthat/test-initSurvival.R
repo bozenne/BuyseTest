@@ -38,7 +38,7 @@ dataC <- data.table(time = c(1:5-0.1,5,5),
                     status2 = c(1,1,0,1,0,1,1),
                     status3 = c(1,1,1,1,1,1,1))
 data <- rbind(dataC, dataT)
-seqThreshold <- c(0,0.5,1)
+seqThreshold <- c(0,0.5,1.1)
 
 ## ** tests
 for(iData in 1:3){ ## iData <- 1
@@ -47,18 +47,19 @@ for(iData in 1:3){ ## iData <- 1
 
     e.survC <- prodlim(Hist(time, status) ~ 1, data = data[treatment=="C"])
     e.survT <- prodlim(Hist(time, status) ~ 1, data = data[treatment=="T"])
-    
-    for(iThreshold in seqThreshold){ ## iThreshold <- 0.5
+    ## plot(e.survT)
+    ## plot(e.survC)
+
+    for(iThreshold in seqThreshold){ ## iThreshold <- 0
         
         ## *** Compute survival
         form <- as.formula(paste0("treatment ~ tte(time, status = status, threshold = ",iThreshold,")"))
         outBT <- BuyseTest(form, data = data) ## outBT <- BuyseTest(form, data = data, method.inference = "u-statistic")
         outSurv <- getSurvival(outBT, endpoint = 1, strata = 1, unlist = TRUE)
 
-        ## data[,sum(status),by="treatment"]
-        if(iData==3){next} ##  no censoring, outSurv is empty
+        if(iData==3){next} ## survival not used because no censoring
         
-        ## *** Control at jump times
+        ## *** Check at jump times
         test_that("initSurvival (jump times, no strata)",{
             ## correct jump times
             expect_equal(e.survC$time[e.survC$hazard>0],
@@ -66,60 +67,62 @@ for(iData in 1:3){ ## iData <- 1
             expect_equal(e.survT$time[e.survT$hazard>0],
                          outSurv$survJumpT[,"time"])
 
+            ## correct survival
+            expect_equal(predictPL2(e.survC, times = outSurv$survJumpT[,"time"] + iThreshold),
+                         outSurv$survJumpT[,"survival"])
+            expect_equal(predictPL2(e.survT, times = outSurv$survJumpC[,"time"] + iThreshold),
+                         outSurv$survJumpC[,"survival"])
+
             ## correct jumps in survival
-            expect_equal(diff(c(1,e.survC$surv[e.survC$hazard>0])),
+            expect_equal(diff(predictPL2(e.survC, times = c(0,outSurv$survJumpC[,"time"]))),
                          outSurv$survJumpC[,"dSurvival"])
-            expect_equal(diff(c(1,e.survT$surv[e.survT$hazard>0])),
+            expect_equal(diff(predictPL2(e.survT, times = c(0,outSurv$survJumpT[,"time"]))),
                          outSurv$survJumpT[,"dSurvival"])
 
-            ## correct survival
-                expect_equal(predictPL2(e.survT, times = e.survC$time[e.survC$hazard>0] + outBT@threshold),
-                             outSurv$survJumpC[,"survival"])
-                expect_equal(predictPL2(e.survC, times = e.survT$time[e.survT$hazard>0] + iThreshold),
-                             outSurv$survJumpT[,"survival"])
+            
         })
         
-        ## *** Control at observation time
+        ## *** Check at observation time
     
         test_that("initSurvival (observation times, no strata)",{
-        ## correct time
-        expect_equal(data[treatment=="C",time],
+            ## correct time
+            expect_equal(data[treatment=="C",time],
                          outSurv$survTimeC[,"time"])
 
-        expect_equal(data[treatment=="T",time],
-                     outSurv$survTimeT[,"time"])
+            expect_equal(data[treatment=="T",time],
+                         outSurv$survTimeT[,"time"])
 
-        ## correct survival (control observation times)
-        expect_equal(predictPL2(e.survC, times = data[treatment=="C",time] - outBT@threshold),
-                     outSurv$survTimeC[,"SurvivalC-threshold"])
-        expect_equal(predictPL2(e.survC, times = data[treatment=="C",time]),
-                     outSurv$survTimeC[,"SurvivalC_0"])
-        expect_equal(predictPL2(e.survC, times = data[treatment=="C",time] + iThreshold),
-                     outSurv$survTimeC[,"SurvivalC+threshold"])
+            ## correct survival
+            expect_equal(predictPL2(e.survC, times = data[treatment=="C",time] - outBT@threshold),
+                         outSurv$survTimeC[,"survivalC-threshold"])
+            expect_equal(predictPL2(e.survC, times = data[treatment=="C",time]),
+                         outSurv$survTimeC[,"survivalC_0"])
+            expect_equal(predictPL2(e.survC, times = data[treatment=="C",time] + iThreshold),
+                         outSurv$survTimeC[,"survivalC+threshold"])
 
-        expect_equal(predictPL2(e.survT, times = data[treatment=="C",time] - outBT@threshold),
-                     outSurv$survTimeC[,"SurvivalT-threshold"])
-        expect_equal(predictPL2(e.survT, times = data[treatment=="C",time]),
-                     outSurv$survTimeC[,"SurvivalT_0"])
-        expect_equal(predictPL2(e.survT, times = data[treatment=="C",time] + iThreshold),
-                     outSurv$survTimeC[,"SurvivalT+threshold"])
+            expect_equal(predictPL2(e.survT, times = data[treatment=="C",time] - outBT@threshold),
+                         outSurv$survTimeC[,"survivalT-threshold"])
+            expect_equal(predictPL2(e.survT, times = data[treatment=="C",time]),
+                         outSurv$survTimeC[,"survivalT_0"])
+            expect_equal(predictPL2(e.survT, times = data[treatment=="C",time] + iThreshold),
+                         outSurv$survTimeC[,"survivalT+threshold"])
 
-        ## correct survival (treatment observation times)
-        expect_equal(predictPL2(e.survC, times = data[treatment=="T",time] - outBT@threshold),
-                     outSurv$survTimeT[,"SurvivalC-threshold"])
-        expect_equal(predictPL2(e.survC, times = data[treatment=="T",time]),
-                     outSurv$survTimeT[,"SurvivalC_0"])
-        expect_equal(predictPL2(e.survC, times = data[treatment=="T",time] + iThreshold),
-                     outSurv$survTimeT[,"SurvivalC+threshold"])
+            ## correct survival (treatment observation times)
+            expect_equal(predictPL2(e.survC, times = data[treatment=="T",time] - outBT@threshold),
+                         outSurv$survTimeT[,"survivalC-threshold"])
+            expect_equal(predictPL2(e.survC, times = data[treatment=="T",time]),
+                         outSurv$survTimeT[,"survivalC_0"])
+            expect_equal(predictPL2(e.survC, times = data[treatment=="T",time] + iThreshold),
+                         outSurv$survTimeT[,"survivalC+threshold"])
 
-        expect_equal(predictPL2(e.survT, times = data[treatment=="T",time] - outBT@threshold),
-                     outSurv$survTimeT[,"SurvivalT-threshold"])
-        expect_equal(predictPL2(e.survT, times = data[treatment=="T",time]),
-                     outSurv$survTimeT[,"SurvivalT_0"])
-        expect_equal(predictPL2(e.survT, times = data[treatment=="T",time] + iThreshold),
-                     outSurv$survTimeT[,"SurvivalT+threshold"])
+            expect_equal(predictPL2(e.survT, times = data[treatment=="T",time] - outBT@threshold),
+                         outSurv$survTimeT[,"survivalT-threshold"])
+            expect_equal(predictPL2(e.survT, times = data[treatment=="T",time]),
+                         outSurv$survTimeT[,"survivalT_0"])
+            expect_equal(predictPL2(e.survT, times = data[treatment=="T",time] + iThreshold),
+                         outSurv$survTimeT[,"survivalT+threshold"])
         })
-        
+    
     }
 }
     
@@ -182,33 +185,33 @@ for(iStrata in 1:2){ ## iStrata <- 1
 
         ## correct survival (control observation times)
         expect_equal(predictPL2(iE.survC, times = data[treatment=="C",time] - outBT@threshold),
-                     outSurv$survTimeC[[iStrata]][,"SurvivalC-threshold"])
+                     outSurv$survTimeC[[iStrata]][,"survivalC-threshold"])
         expect_equal(predictPL2(iE.survC, times = data[treatment=="C",time]),
-                     outSurv$survTimeC[[iStrata]][,"SurvivalC_0"])
+                     outSurv$survTimeC[[iStrata]][,"survivalC_0"])
         expect_equal(predictPL2(iE.survC, times = data[treatment=="C",time]),
-                     outSurv$survTimeC[[iStrata]][,"SurvivalC+threshold"])
+                     outSurv$survTimeC[[iStrata]][,"survivalC+threshold"])
 
         expect_equal(predictPL2(iE.survT, times = data[treatment=="C",time] - outBT@threshold),
-                     outSurv$survTimeC[[iStrata]][,"SurvivalT-threshold"])
+                     outSurv$survTimeC[[iStrata]][,"survivalT-threshold"])
         expect_equal(predictPL2(iE.survT, times = data[treatment=="C",time]),
-                     outSurv$survTimeC[[iStrata]][,"SurvivalT_0"])
+                     outSurv$survTimeC[[iStrata]][,"survivalT_0"])
         expect_equal(predictPL2(iE.survT, times = data[treatment=="C",time]),
-                     outSurv$survTimeC[[iStrata]][,"SurvivalT+threshold"])
+                     outSurv$survTimeC[[iStrata]][,"survivalT+threshold"])
 
         ## correct survival (treatment observation times)
         expect_equal(predictPL2(iE.survC, times = data[treatment=="T",time] - outBT@threshold),
-                     outSurv$survTimeT[[iStrata]][,"SurvivalC-threshold"])
+                     outSurv$survTimeT[[iStrata]][,"survivalC-threshold"])
         expect_equal(predictPL2(iE.survC, times = data[treatment=="T",time]),
-                     outSurv$survTimeT[[iStrata]][,"SurvivalC_0"])
+                     outSurv$survTimeT[[iStrata]][,"survivalC_0"])
         expect_equal(predictPL2(iE.survC, times = data[treatment=="T",time]),
-                     outSurv$survTimeT[[iStrata]][,"SurvivalC+threshold"])
+                     outSurv$survTimeT[[iStrata]][,"survivalC+threshold"])
 
         expect_equal(predictPL2(iE.survT, times = data[treatment=="T",time] - outBT@threshold),
-                     outSurv$survTimeT[[iStrata]][,"SurvivalT-threshold"])
+                     outSurv$survTimeT[[iStrata]][,"survivalT-threshold"])
         expect_equal(predictPL2(iE.survT, times = data[treatment=="T",time]),
-                     outSurv$survTimeT[[iStrata]][,"SurvivalT_0"])
+                     outSurv$survTimeT[[iStrata]][,"survivalT_0"])
         expect_equal(predictPL2(iE.survT, times = data[treatment=="T",time]),
-                     outSurv$survTimeT[[iStrata]][,"SurvivalT+threshold"])
+                     outSurv$survTimeT[[iStrata]][,"survivalT+threshold"])
     })
 }
 
