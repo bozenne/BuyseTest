@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: apr  2 2020 (15:30) 
+## Last-Updated: dec  3 2020 (13:41) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 53
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -126,8 +126,8 @@ test_that("BuyseTest package and Eva's R code give the same results with one end
   
   ## Test
   expect_equal(as.double(delta.R), as.double(coef(BT, statistic = "netBenefit")), tol = 1e-5)
-  expect_error(BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5),
-                         data = df2, method.inference = "u-statistic"))
+  ## BuyseTest(treatment ~ tte(time, status = status, threshold = 0.5),
+  ##           data = df2, method.inference = "u-statistic")
   
 })
 

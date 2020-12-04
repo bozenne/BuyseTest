@@ -36,7 +36,7 @@
 #' @import methods
 #' @importFrom parallel detectCores
 #' @import Rcpp
-#' @importFrom stats as.formula delete.response formula na.omit rbinom setNames terms
+#' @importFrom stats as.formula delete.response formula na.omit rbinom predict setNames terms
 #' @importFrom stats4 summary
 #' @importFrom prodlim prodlim Hist
 #' @importFrom utils capture.output tail

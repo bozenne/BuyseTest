@@ -416,7 +416,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     
     ## ** scoring method for each endpoint
     ## check if status
-    n.CR <- sapply(Ustatus, function(iC){max(data[[iC]])})
+    n.CR <- sapply(status, function(iC){max(data[[iC]])})
     test.CR <- n.CR[status]>1
     test.censoring <- sapply(Ustatus, function(iC){any(data[[iC]]==0)})[status]
 
@@ -460,7 +460,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                           survTimeT = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
                           survJumpC = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
                           survJumpT = lapply(1:D, function(iE){lapply(1:n.strata, function(iS){matrix(nrow=0,ncol=0)})}),
-                          lastSurv = lapply(1:D, function(iS){matrix(nrow = n.strata, ncol = 2*min(1,n.CR[iS]))}), ## 4 for competing risk setting, 2 is enough for survival
+                          lastSurv = lapply(1:D, function(iS){matrix(nrow = n.strata, ncol = 2*max(1,n.CR[iS]))}), ## 4 for competing risk setting, 2 is enough for survival
                           p.C = matrix(-100, nrow = n.strata, ncol = D),
                           p.T = matrix(-100, nrow = n.strata, ncol = D),
                           iid = list(survJumpC = lapply(1:D.UTTE, function(IE){lapply(1:n.strata, matrix, nrow = 0, ncol = 0)}),

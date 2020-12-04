@@ -19,8 +19,8 @@ GPC can be used to analyze time-to-event endpoints subject to competing risks. O
 
 ```{r}
 set.seed(2)
-dt.CR <- simBuyseTest(5e2, argsCont = NULL, argsTTE = list(CR = TRUE, rates.T = 0.8, 
-                                                           rates.C = 0.5, rates.CR = 0.6))
+dt.CR <- simBuyseTest(5e2, argsCont = NULL, argsTTE = list(CR = TRUE, scale.T = 0.8, 
+                                                           scale.C = 0.5, scale.CR = 0.6))
 head(dt.CR)
 ```
 
@@ -33,7 +33,7 @@ levels(as.factor(dt.CR[,status]))
 with 0 indicating a censored observation, 1 an event of interest (time to death due to cancer is observed) and 2 a competing event (time to death due to other causes is observed). We perform the GPC analysis on this time-to-event endpoint with a threshold of 1 year setting \texttt{scoring.rule} to \texttt{"Peron"}. In the presence of competing risks, the \texttt{"Peron"} method uses the estimate of the cumulative incidence functions to compute the pairs' score:
 
 ```{r}
-BT.CR <- BuyseTest(treatment ~ tte(eventtime, threshold = 1, censoring = "status"), 
+BT.CR <- BuyseTest(treatment ~ tte(eventtime, threshold = 1, status = "status"), 
                    data = dt.CR, trace = 0, method.inference = "none",  
                    scoring.rule = "Peron", keep.pairScore = T)
 summary(BT.CR)
@@ -65,7 +65,7 @@ The net benefit focuses on the time to the event of interest of the patients of 
 As in the absence of competing risks, censoring can be handled in several ways. The first one consists in applying the \texttt{Peron} scoring rule instead of the \texttt{Gehan} scoring rule in order to use the cumulative incidence functions estimate to compute the pairs' score (see above example). Other ways are the use of a correction, either the IPCW correction or the correction at the pair level, to remove completely the uninformative pairs:
 
 ```{r}
-BT.CR.corr <- BuyseTest(treatment ~ tte(eventtime, threshold = 1, censoring = "status"), 
+BT.CR.corr <- BuyseTest(treatment ~ tte(eventtime, threshold = 1, status = "status"), 
                    data = dt.CR, trace = 0, method.inference = "none",  
                    scoring.rule = "Peron", correction.uninf = 1)
 summary(BT.CR.corr)

@@ -93,12 +93,15 @@ GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, we
 #' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two
 #' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with
 #' t+tau and t-tau).
+#' @param returnDeriv [logical] should the derivative regarding the survival parameters be return. 
+#' @param derivSurv [matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival.
+#' @param derivSurvD [matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival used to compute the jumps.
 #'
 #' @keywords function Cpp internal
 #' @author Eva Cantagallo
 #' @export
-.calcIntegralCif_cpp <- function(cif, start_val, stop_val, CIF_t, lastCIF, type) {
-    .Call(`_BuyseTest_calcIntegralCif_cpp`, cif, start_val, stop_val, CIF_t, lastCIF, type)
+.calcIntegralCif_cpp <- function(cifJump, start_val, stop_val, cifTimeT, lastCIF, type, returnDeriv, derivSurv, derivSurvD) {
+    .Call(`_BuyseTest_calcIntegralCif_cpp`, cifJump, start_val, stop_val, cifTimeT, lastCIF, type, returnDeriv, derivSurv, derivSurvD)
 }
 
 #' @title C++ Function pre-computing the Integral Terms for the Peron Method in the survival case. 
@@ -114,15 +117,13 @@ GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, we
 #' @param lastSurv [numeric] the value of S1 at the end of the follow-up.
 #' @param lastSurv [numeric] the value of S2 at the end of the follow-up.
 #' @param iidNuisance [logical] should the derivative of the integral relative to the S1 and S2 parameter be output.
-#' @param p_Surv [integer] the number of parameters relative to S1.
-#' @param p_SurvD [integer] the number of parameters relative to S2.
 #' @param nJump [integer] the number of jump times relative to S2.
 #'
 #' @keywords function Cpp internal
 #' @author Brice Ozenne
 #' @export
-calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD, nJump) {
-    .Call(`_BuyseTest_calcIntegralSurv2_cpp`, time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, p_Surv, p_SurvD, nJump)
+calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, nJump) {
+    .Call(`_BuyseTest_calcIntegralSurv2_cpp`, time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, nJump)
 }
 
 #' Apply cumsum in each column 

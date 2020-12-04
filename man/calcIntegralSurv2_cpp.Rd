@@ -14,8 +14,6 @@ calcIntegralSurv2_cpp(
   lastSurv,
   lastdSurv,
   iidNuisance,
-  p_Surv,
-  p_SurvD,
   nJump
 )
 }
@@ -33,10 +31,6 @@ calcIntegralSurv2_cpp(
 \item{lastSurv}{[numeric] the value of S2 at the end of the follow-up.}
 
 \item{iidNuisance}{[logical] should the derivative of the integral relative to the S1 and S2 parameter be output.}
-
-\item{p_Surv}{[integer] the number of parameters relative to S1.}
-
-\item{p_SurvD}{[integer] the number of parameters relative to S2.}
 
 \item{nJump}{[integer] the number of jump times relative to S2.}
 

@@ -192,14 +192,11 @@ Additional (hidden) arguments are \itemize{
 \examples{
 library(data.table)
 
-# reset the default value of the number of permuation sample
-BuyseTest.options(method.inference = "none") # no permutation test
-
 #### simulate some data ####
 set.seed(10)
 df.data <- simBuyseTest(1e2, n.strata = 2)
 
-                                       # display 
+## display 
 if(require(prodlim)){
    resKM_tempo <- prodlim(Hist(eventtime,status)~treatment, data = df.data)
    plot(resKM_tempo)
@@ -212,7 +209,7 @@ summary(BT) # net benefit
 summary(BT, percentage = FALSE)  
 summary(BT, statistic = "winRatio") # win Ratio
 
-## bootstrap to compute the CI
+## permutation instead of asymptotics to compute the p-value
 \dontrun{
     BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3)
@@ -224,7 +221,7 @@ summary(BT, statistic = "winRatio") # win Ratio
 summary(BT, statistic = "netBenefit") ## default
 summary(BT, statistic = "winRatio") 
 
-## parallel bootstrap
+## parallel permutation
 \dontrun{
     BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)

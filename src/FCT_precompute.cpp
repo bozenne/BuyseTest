@@ -112,3 +112,4 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
 			    Rcpp::Named("intSurv_deriv") = intSurv_deriv
 			    ));
 }
+

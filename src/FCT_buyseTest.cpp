@@ -251,7 +251,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
       arma::uvec iUvec_endpoint = {index_endpoint[iter_d]};
       arma::uvec iUvec_status = {index_status[iter_d]};
 
-      iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
+	  iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d],
 				status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
 				list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 				list_lastSurv[iter_d].row(iter_strata),
@@ -429,32 +429,32 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 					std::vector< arma::uvec > posT,
 					std::vector< double > threshold,
 					arma::vec weight,
-		    arma::vec method,
-		    unsigned int D,
-		    unsigned int D_UTTE,
-		    unsigned int n_strata,
-		    arma::vec nUTTE_analyzedPeron_M1,
-		    std::vector<unsigned int> index_endpoint, 
-		    std::vector<unsigned int> index_status, 
-		    std::vector<int> index_UTTE, 
-		    std::vector< std::vector< arma::mat > > list_survTimeC,
-		    std::vector< std::vector< arma::mat > > list_survTimeT,
-		    std::vector< std::vector< arma::mat > > list_survJumpC,
-		    std::vector< std::vector< arma::mat > > list_survJumpT,
-		    std::vector< arma::mat > list_lastSurv,
-		    arma::mat p_C,
-		    arma::mat p_T,
-		    std::vector< std::vector< arma::mat > > iid_survJumpC,
-		    std::vector< std::vector< arma::mat > > iid_survJumpT,
-		    double zeroPlus,
-		    int correctionUninf, // not used		   
-		    bool hierarchical,
-		    int hprojection,
-		    bool neutralAsUninf,
-		    bool keepScore,
-		    bool precompute,
-		    int returnIID,
-		    int debug){
+					arma::vec method,
+					unsigned int D,
+					unsigned int D_UTTE,
+					unsigned int n_strata,
+					arma::vec nUTTE_analyzedPeron_M1,
+					std::vector<unsigned int> index_endpoint, 
+					std::vector<unsigned int> index_status, 
+					std::vector<int> index_UTTE, 
+					std::vector< std::vector< arma::mat > > list_survTimeC,
+					std::vector< std::vector< arma::mat > > list_survTimeT,
+					std::vector< std::vector< arma::mat > > list_survJumpC,
+					std::vector< std::vector< arma::mat > > list_survJumpT,
+					std::vector< arma::mat > list_lastSurv,
+					arma::mat p_C,
+					arma::mat p_T,
+					std::vector< std::vector< arma::mat > > iid_survJumpC,
+					std::vector< std::vector< arma::mat > > iid_survJumpT,
+					double zeroPlus,
+					int correctionUninf, // not used		   
+					bool hierarchical,
+					int hprojection,
+					bool neutralAsUninf,
+					bool keepScore,
+					bool precompute,
+					int returnIID,
+					int debug){
   if(debug>0){Rcpp::Rcout << std::endl;}
 
   /// ** number of pairs
@@ -673,7 +673,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 											   status(indexStrataC[iter_C], index_status[iter_d]),
 											   status(indexStrataT[iter_T], index_status[iter_d]),
 											   threshold[iter_d],
-											   list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T), list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
+											   list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T),
+											   list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 											   list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
 											   iDscore_Dnuisance_C_calcOnePair[iter_d], iDscore_Dnuisance_T_calcOnePair[iter_d],
 											   p_C(iter_strata, iter_d), p_T(iter_strata, iter_d), precompute, returnIID);
@@ -684,8 +685,11 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 											 status(indexStrataC[iter_C], index_status[iter_d]),
 											 status(indexStrataT[iter_T], index_status[iter_d]),
 											 threshold[iter_d],
-											 list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T), list_survJumpC[iter_d][iter_strata],					     
-											 list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), list_lastSurv[iter_d](iter_strata,2), list_lastSurv[iter_d](iter_strata,3));
+											 list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T),
+											 list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],					     
+											 list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), list_lastSurv[iter_d](iter_strata,2), list_lastSurv[iter_d](iter_strata,3),
+											 iDscore_Dnuisance_C_calcOnePair[iter_d], iDscore_Dnuisance_T_calcOnePair[iter_d],
+											 p_C(iter_strata, iter_d), p_T(iter_strata, iter_d), precompute, returnIID);
 		  }
 	  
 		  // **** remove contribution from previously analyzed threshold of the same endpoint
@@ -715,7 +719,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScore[0] * iCumWeight;
 		  }
 		  // iid (nuisance) for the score
-		  if( (returnIID > 1) && (iMethod == 4) ){
+		  if( (returnIID > 1) && (iMethod >= 4) ){
 			Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(0) * iCumWeight;
 			Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(0) * iCumWeight;
 		  }
@@ -744,7 +748,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		  }
       
 		  // iid (nuisance) for the score
-		  if( (returnIID > 1) && (iMethod == 4) ){
+		  if( (returnIID > 1) && (iMethod >= 4) ){
 			Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(1) * iCumWeight;
 			Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(1) * iCumWeight;
 		  }
@@ -1033,7 +1037,7 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
     }
 
     // *** iid of the proba/score
-    if(iMethod == 4){
+    if(iMethod >= 4){
       iidNuisance_favorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(0)/vecn_pairs[iter_strata];
       iidNuisance_favorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_T.col(0)/vecn_pairs[iter_strata];
       iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(1)/vecn_pairs[iter_strata];

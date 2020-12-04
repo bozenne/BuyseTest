@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: nov 30 2020 (16:56) 
+## Last-Updated: dec  3 2020 (16:31) 
 ##           By: Brice Ozenne
-##     Update #: 247
+##     Update #: 303
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,6 +17,7 @@
 
 ## * BuyseTTEM (documentation)
 #' @title Time to Event Model
+#' @name BuyseTTEM
 #' 
 #' @description Pre-compute quantities of a time to event model useful for predictions.
 #' Only does something for prodlim objects.
@@ -61,19 +62,23 @@
 #'           treatment = "treatment",
 #'           level.treatment = unique(df.dataCR$treatment),
 #'           iid = TRUE)
-
+#' @export
 `BuyseTTEM` <-
     function(object,...) UseMethod("BuyseTTEM")
 
 
 ## * BuyseTTEM.default
+#' @rdname BuyseTTEM
+#' @export
 BuyseTTEM.formula <- function(object, treatment, level.treatment = NULL, iid, iid.surv = "prodlim", ...){
     e.prodlim <- prodlim(object, ...)
     return(BuyseTTEM(e.prodlim, treatment = treatment, level.treatment = level.treatment, iid = iid, iid.surv = iid.surv))
 }
 
 ## * BuyseTTEM.prodlim
-BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, iid.surv = "prodlim", ...){
+#' @rdname BuyseTTEM
+#' @export
+BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, iid.surv = "exp", ...){
 
     X <- object$X
     p <- NCOL(X)
@@ -85,7 +90,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
     if(missing(treatment) && NCOL(object$X)==1){
         treatment <- names(object$X)[1]
     }
-    if("treatment" %in%  names(X) == FALSE){
+    if(treatment %in%  names(X) == FALSE){
         stop("Wrong specification of the argument \'treatment\' \n",
              "Could not be found in the prodlim object, e.g. in object$X. \n")
     }
@@ -96,18 +101,20 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
              "Does not match the number of possible values in object$X. \n")
     }
 
-    strata <- setdiff(names(X),treatment)
-    if(length(strata)){
-        X.strata <- unique(X[,strata,drop=FALSE])
-        n.strata <- NROW(X.strata)
-        name.strata <- names(X.strata)
-        Uname.strata <- interaction(X.strata)
-    }else{
+    name.strata <- setdiff(names(X),treatment)
+    if(length(name.strata)==0){
+        X <- cbind(X, "..strata.." = 1)
         X.strata <- NULL
         n.strata <- 1
         name.strata <- "..strata.."
         Uname.strata <- "REF"
+    }else{
+        X.strata <- unique(X[,name.strata,drop=FALSE])
+        n.strata <- NROW(X.strata)
+        name.strata <- names(X.strata)
+        Uname.strata <- interaction(X.strata)
     }
+    
     if(NCOL(X.strata)>1 && any(name.strata == "..strata..")){
         stop("Incorrect strata variable \n",
              "Cannot use \"..strata..\" as it will be used internally \n.")
@@ -132,6 +139,8 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
     object$peron <- list(cif = setNames(vector(mode = "list", length = n.strata), Uname.strata),
                          X = X, ## strata
                          level.treatment = level.treatment,
+                         Ustrata = levels(Uname.strata),
+                         n.CR = n.CR,
                          index.start = NULL, ## index (among all estimates) of the first estimate relative to a given strata (list)
                          index.stop = NULL, ## index (among all estimates) of the last estimate relative to a given strata (list)
                          last.estimate = NULL, ## estimate of the cumulative incidence at the last observed event (matrix strata x treatment)
@@ -147,13 +156,10 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
     }
 
     ##  normalize strata variable
-    if(n.strata>1 || (n.strata==1 && name.strata!="..strata..")){
+    if(!identical(name.strata,"..strata..")){
         value.strata <- interaction(object$X[,name.strata,drop=FALSE])
         object$peron$X <- cbind(object$peron$X,
                                 "..strata.." = as.numeric(as.factor(value.strata)))
-    }else{
-        object$peron$X <- cbind(object$peron$X,
-                                "..strata.." = 1)
     }
 
     ## ** compute start/stop indexes per strata
@@ -166,6 +172,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
         return(c(C = intersect(iIndexX.C,iIndexS),
                  T = intersect(iIndexX.T,iIndexS)))
     }))
+
     object$peron$index.start <- matrix(NA, nrow = n.strata, ncol = 2, dimnames = list(NULL,level.treatment))
     object$peron$index.start[] <- object$first.strata[iMindexX]
 
@@ -177,11 +184,11 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                                     object$time[object$peron$index.stop[,level.treatment[2]]])
     colnames(object$peron$last.time) <- level.treatment
 
-    object$peron$last.estimate <- do.call(cbind,lapply(object$cuminc, function(iVec){
+    object$peron$last.estimate <- array(unlist(lapply(object$cuminc, function(iVec){
         cbind(iVec[object$peron$index.stop[,level.treatment[1]]],
               iVec[object$peron$index.stop[,level.treatment[2]]])
-    }))
-    colnames(object$peron$last.estimate) <- paste0("cif",sapply(1:n.CR,rep,times=length(level.treatment)),".",rep(level.treatment, times = n.CR)) 
+    })), dim = c(n.strata,2,n.CR),
+    dimnames = list(levels(Uname.strata),level.treatment,NULL))
 
     ## ** table CIF and dCIF
     index.allJump <- sort(unlist(lapply(object$cause.hazard, function(iVec){which(iVec>0)})))
@@ -194,7 +201,7 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
 
             object$peron$value[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
 
-            iMissingCIF <- sum(object$peron$last.estimate[iStrata,paste0("cif",1:n.CR,".",iTreat)])<(1-tol12)
+            iMissingCIF <- sum(object$peron$last.estimate[iStrata,iTreat,])<(1-tol12)
             
             ## jump time (for all causes) in this strata
             iIndex.jump <- intersect(index.allJump, object$peron$index.start[iStrata,iTreat]:object$peron$index.stop[iStrata,iTreat])
@@ -326,7 +333,9 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                 
                 ## *** influence function for the cumulative incidence
                 for(iCR in 1:n.CR){
-                    object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]] <- matrix(0, nrow = n.obs, ncol = NROW(object$peron$cif[[iStrata]][[iTreat]][[iCR]]))
+                    iParam <- na.omit(unique(c(object$peron$cif[[iStrata]][[iTreat]][[iCR]]$index.cif.before,object$peron$cif[[iStrata]][[iTreat]][[iCR]]$index.cif.after)))
+
+                    object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]] <- matrix(0, nrow = n.obs, ncol = length(iParam))
                     if(test.CR){
                         iHazard <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]][[paste0("hazard",iCR)]] ## at t
                         iHazard.iid <- object$peron$iid.hazard[[iStrata]][[iTreat]][[iCR]] ## at t
@@ -335,91 +344,75 @@ BuyseTTEM.prodlim <- function(object, treatment, level.treatment = NULL, iid, ii
                         iSurvival.iid <- cbind(0,object$peron$iid.survival[[iStrata]][[iTreat]][,1:(iN.jump-1),drop=FALSE]) ## at t-
 
                         ## add iid at time 0 and (if censoring) NA after the last event
-                        if(sum(object$peron$last.estimate[iStrata,paste0("cif",1:n.CR,".",iTreat)])<(1-tol12)){
-                            object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,.rowCumSum_cpp(.rowMultiply_cpp(iSurvival.iid,iHazard) + .rowMultiply_cpp(iHazard.iid,iSurvival)),NA)
-                        }else{
                             object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,.rowCumSum_cpp(.rowMultiply_cpp(iSurvival.iid,iHazard) + .rowMultiply_cpp(iHazard.iid,iSurvival)))
-                        }
                     }else{
                         ## add iid at time 0 and (if censoring) NA after the last event
-                        if(object$peron$last.estimate[iStrata,paste0("cif",iCR,".",iTreat)]<(1-tol12)){
-                            object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,-object$peron$iid.survival[[iStrata]][[iTreat]],NA)
-                        }else{
-                            object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,-object$peron$iid.survival[[iStrata]][[iTreat]])
-                        }
-                    }                    
+                        object$peron$iid.cif[[iStrata]][[iTreat]][[iCR]][iIndStrata,] <- cbind(0,-object$peron$iid.survival[[iStrata]][[iTreat]])
+                    }
                 }
             }}
     }
 
     ## ** export
-    class(object) <- append("prodlim2",class(object))
+    class(object) <- append("BuyseTTEM",class(object))
     return(object)
 }
 
+## * BuyseTTEM.BuyseTTEM
+#' @rdname BuyseTTEM
+#' @export
+BuyseTTEM.BuyseTTEM <- function(object, ...){
+    return(object)
+}
+    
+## * predict.BuyseTTEM
+#' @export
+predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = FALSE){
 
-## * predict.prodlim2
-predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid = FALSE){
-
-    ## ** check and normalize arguments
-    if(missing(strata) && NCOL(object$X)==1){
+    ## ** normalize input
+    if(!is.numeric(treatment)){
+        treatment <- which(treatment == object$peron$level.treatment)
+    }
+    if(missing(strata)){
         strata <- 1
     }
-    if(length(cause)>1){
-        stop("Argument \'cause\' should have length 1. \n")
-    }
-    if(length(strata)>1){
-        stop("Argument \'strata\' should have length 1. \n")
-    }
-    if(length(treatment)>1){
-        stop("Argument \'treatment\' should have length 1. \n")
-    }
-    if(is.numeric(treatment)){
-        if(strata %in% 1:2==FALSE){
-            stop("Argument \'strata\' should be 1 or 2. \n")
-        }
-    }else if(treatment %in% object$peron$level.treatment == FALSE){
-        stop("Argument \'treatment\' should be one of \"",paste(object$peron$level.treatment, collapse = "\" \""),"\". \n")
-    }
-    if(is.numeric(strata)){
-        if(strata %in% 1:length(object$peron$cif)==FALSE){
-            stop("Argument \'strata\' should be one of ",paste(1:length(object$peron$cif), collapse = " "),". \n")
-        }
-    }else if(strata %in% names(object$peron$cif) == FALSE){
-        stop("Argument \'strata\' should be one of \"",paste(names(object$peron$cif), collapse = "\" \""),"\". \n")
-    }
-    n.CR <- NCOL(object$peron$last.estimate)/2
-    if(cause > n.CR){
-        stop("Argument \'cause\' should be ",paste(1:n.CR,collapse = " or "),". \n")
-    }
-    if(iid && "iid.cif" %in% names(object$peron) == FALSE){
-        stop("The iid has not been precomputed. \n",
-             "Consider setting argument \'iid\' to TRUE when calling BuyseTTEM. \n")
-    }
     
+    ## ** output last cif estimate
+    if(identical(time,"last")){
+        if(object$type=="surv"){
+            return(1-object$peron$last.estimate[strata,treatment,cause])
+        }else{
+            return(object$peron$last.estimate[strata,treatment,cause])
+        }
+    }else if(identical(time,"jump")){
+        return(object$peron$jumpSurvHaz[[strata]][[treatment]]$time.jump)
+    }
+
     ## ** extract information
     out <- list(index = NULL, cif = NULL)
-    if(object$type=="surv"){
-        table.cif <- object$peron$cif[[strata]][[treatment]][[1]]
-    }else{
-        table.cif <- object$peron$cif[[strata]][[treatment]][[cause]]
-    }
-    index.table <- pmax(1,prodlim::sindex(jump.time = table.cif$time, eval.time = time)) ## pmin since 1 is taking care of negative times
-    out$index <- table.cif[index.table,"index.cif.after"]
-
-    if(object$type=="surv"){
-        out$survival <- 1-table.cif[index.table,"cif"]
-    }else{
-        out$cif <- table.cif[index.table,"cif"]
-    }
-    
-    if(iid){
+    if(inherits(object,"prodlim")){
         if(object$type=="surv"){
-            out$survival.iid <- -object$peron$iid.cif[[strata]][[treatment]][[cause]][,out$index+1]
-            out$survival.se <- sqrt(colSums(out$survival.iid^2))
+            table.cif <- object$peron$cif[[strata]][[treatment]][[1]]
         }else{
-            out$cif.iid <- object$peron$iid.cif[[strata]][[treatment]][[cause]][,out$index+1]
-            out$cif.se <- sqrt(colSums(out$cif.iid^2))
+            table.cif <- object$peron$cif[[strata]][[treatment]][[cause]]
+        }
+        index.table <- pmax(1,prodlim::sindex(jump.time = table.cif$time, eval.time = time)) ## pmin since 1 is taking care of negative times
+        out$index <- table.cif[index.table,"index.cif.after"]
+
+        if(object$type=="surv"){
+            out$survival <- 1-table.cif[index.table,"cif"]
+        }else{
+            out$cif <- table.cif[index.table,"cif"]
+        }
+    
+        if(iid){
+            if(object$type=="surv"){
+                out$survival.iid <- iid(object, strata = strata, treatment = treatment, cause = cause)[,out$index+1,drop=FALSE]
+                out$survival.se <- sqrt(colSums(out$survival.iid^2))
+            }else{
+                out$cif.iid <- iid(object, strata = strata, treatment = treatment, cause = cause)[,out$index+1,drop=FALSE]
+                out$cif.se <- sqrt(colSums(out$cif.iid^2))
+            }
         }
     }
 
@@ -428,6 +421,18 @@ predict.prodlim2 <- function(object, time, treatment, strata, cause = 1, iid = F
 
 }
 
+## * iid.BuyseTTEM
+#' @export
+iid.BuyseTTEM <- function(x, treatment, strata, cause = 1){
+    if(is.null(x$peron$iid.cif[[strata]][[treatment]][[cause]])){
+        stop("iid decomposition not available - consider setting the argument \'iid\' to TRUE when calling BuyseTTEM. \n")
+    }
+    if(x$type=="surv"){
+        return(-x$peron$iid.cif[[strata]][[treatment]][[cause]])
+    }else{
+        return(x$peron$iid.cif[[strata]][[treatment]][[cause]])
+    }
+}
 
 ######################################################################
 ### BuyseTTEM.R ends here

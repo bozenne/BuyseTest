@@ -4,23 +4,39 @@
 \alias{.calcIntegralCif_cpp}
 \title{C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR).}
 \usage{
-.calcIntegralCif_cpp(cif, start_val, stop_val, CIF_t, lastCIF, type)
+.calcIntegralCif_cpp(
+  cifJump,
+  start_val,
+  stop_val,
+  cifTimeT,
+  lastCIF,
+  type,
+  returnDeriv,
+  derivSurv,
+  derivSurvD
+)
 }
 \arguments{
-\item{cif}{[matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
-T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).}
-
 \item{start_val}{[numeric] Time at which to start the integral.}
 
 \item{stop_val}{[numeric] Time at which to stop the integral.}
-
-\item{CIF_t}{[numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.}
 
 \item{lastCIF}{[numeric, >0] last value of CIF of event type 1 in group T.}
 
 \item{type}{[numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two
 events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with
 t+tau and t-tau).}
+
+\item{returnDeriv}{[logical] should the derivative regarding the survival parameters be return.}
+
+\item{derivSurv}{[matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival.}
+
+\item{derivSurvD}{[matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival used to compute the jumps.}
+
+\item{cif}{[matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
+T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).}
+
+\item{CIF_t}{[numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.}
 }
 \description{
 Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.

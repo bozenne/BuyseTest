@@ -159,14 +159,11 @@
 #' @examples
 #' library(data.table)
 #' 
-#' # reset the default value of the number of permuation sample
-#' BuyseTest.options(method.inference = "none") # no permutation test
-#'
 #' #### simulate some data ####
 #' set.seed(10)
 #' df.data <- simBuyseTest(1e2, n.strata = 2)
 #'
-#'                                        # display 
+#' ## display 
 #' if(require(prodlim)){
 #'    resKM_tempo <- prodlim(Hist(eventtime,status)~treatment, data = df.data)
 #'    plot(resKM_tempo)
@@ -179,7 +176,7 @@
 #' summary(BT, percentage = FALSE)  
 #' summary(BT, statistic = "winRatio") # win Ratio
 #' 
-#' ## bootstrap to compute the CI
+#' ## permutation instead of asymptotics to compute the p-value
 #' \dontrun{
 #'     BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
 #'                     method.inference = "permutation", n.resampling = 1e3)
@@ -191,7 +188,7 @@
 #' summary(BT, statistic = "netBenefit") ## default
 #' summary(BT, statistic = "winRatio") 
 #' 
-#' ## parallel bootstrap
+#' ## parallel permutation
 #' \dontrun{
 #'     BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
 #'                     method.inference = "permutation", n.resampling = 1e3, cpus = 2)
@@ -351,8 +348,14 @@ BuyseTest <- function(formula,
 
     if(option$check){
         if(outArgs$iidNuisance && any(outArgs$method.score == 5)){
-            stop("Inference via the asymptotic theory is not implemented for competing risks when using the Peron's scoring rule \n",
-                 "Consider setting \'method.inference\' to \"none\", \"bootstrap\", or \"permutation\" \n")
+            warning("Inference via the asymptotic theory  for competing risks when using the Peron's scoring rule has not been validating \n",
+                    "Consider setting \'method.inference\' to \"none\", \"bootstrap\", or \"permutation\" \n")
+        }
+        ## if(outArgs$precompute && any(outArgs$method.score == 5)){
+        ##     stop("Option \'precompute\' is not available for the Peron scoring rule in the competing risk case \n")
+        ## }
+        if(outArgs$precompute && any(outArgs$method.score == 5)){
+            outArgs$precompute <- FALSE
         }
     }
 
@@ -539,7 +542,10 @@ BuyseTest <- function(formula,
                                  returnIID = iid + iid*envir$outArgs$iidNuisance,
                                  debug = envir$outArgs$debug
                                  ))
-
+    
+    ## print(range(resBT$iidNuisance_favorable))
+    ## print(range(resBT$iidNuisance_unfavorable))
+    
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
