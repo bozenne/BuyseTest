@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: dec  3 2020 (12:34) 
+## Last-Updated: dec  5 2020 (22:47) 
 ##           By: Brice Ozenne
-##     Update #: 39
+##     Update #: 40
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,6 +26,7 @@ library(riskRegression)
 library(prodlim)
 library(survival)
 
+if(FALSE){
 ## * Survival case
 ## treatment arm with last observation NA
 ## control arm with last observation event
@@ -246,6 +247,6 @@ test_that("with strata, competing risks", {
         }
     }
 })
-
+}
 ######################################################################
 ### test-BuyseTTEM.R ends here
