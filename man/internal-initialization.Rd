@@ -41,7 +41,6 @@ initializeArgs(
   cpus = NULL,
   data,
   endpoint,
-  fitter.model.tte = NULL,
   formula,
   hierarchical = NULL,
   keep.pairScore = NULL,

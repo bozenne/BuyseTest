@@ -36,7 +36,6 @@ initializeArgs <- function(status,
                            cpus = NULL,
                            data,
                            endpoint,
-                           fitter.model.tte = NULL,
                            formula,
                            hierarchical = NULL,
                            keep.pairScore = NULL,
@@ -69,6 +68,7 @@ initializeArgs <- function(status,
     if(is.null(strata.resampling)){ strata.resampling <- option$strata.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
     if(is.null(trace)){ trace <- option$trace }
+    fitter.model.tte <- option$fitter.model.tte
     engine <- option$engine
     alternative <- option$alternative
     precompute <- option$precompute

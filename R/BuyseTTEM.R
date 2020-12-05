@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: dec  3 2020 (16:31) 
+## Last-Updated: dec  5 2020 (21:46) 
 ##           By: Brice Ozenne
-##     Update #: 303
+##     Update #: 306
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -366,8 +366,20 @@ BuyseTTEM.BuyseTTEM <- function(object, ...){
 }
     
 ## * predict.BuyseTTEM
+#' @title Prediction with Time to Event Model
+#' @name predict.BuyseTTEM
+#' 
+#' @description Evaluate the cumulative incidence function (cif) / survival in one of the treatment groups. 
+#' 
+#' @param object time to event model. 
+#' @param time [numeric vector] time at which to evaluate the cif/survival.
+#' @param treatment [character/integer] Treatment or index of the treatment group.
+#' @param strata  [character/integer] Strata or index of the strata.
+#' @param cause [integer] The cause relative to which the cif will be evaluated.
+#' @param iid [logical] Should the influence function associated with the cif/survival be output? 
+#' @param ... not used, for compatibility with the generic method.
 #' @export
-predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = FALSE){
+predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = FALSE, ...){
 
     ## ** normalize input
     if(!is.numeric(treatment)){

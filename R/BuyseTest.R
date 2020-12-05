@@ -292,7 +292,6 @@ BuyseTest <- function(formula,
                               cpus = cpus,
                               data = data,
                               endpoint = endpoint,
-                              fitter.model.tte = option$fitter.model.tte,
                               formula = formula,
                               hierarchical = hierarchical,
                               keep.pairScore = keep.pairScore,
@@ -505,6 +504,7 @@ BuyseTest <- function(formula,
                              fitter = envir$outArgs$fitter.model.tte,
                              args = envir$outArgs$args.model.tte)
     }
+
     ## ** Perform GPC
     resBT <- do.call(envir$outArgs$engine,
                      args = list(endpoint = envir$outArgs$M.endpoint,

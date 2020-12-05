@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: maj 27 2020 (15:15) 
+## Last-Updated: dec  5 2020 (21:37) 
 ##           By: Brice Ozenne
-##     Update #: 851
+##     Update #: 858
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -185,7 +185,7 @@ powerBuyseTest <- function(sim,
     outArgs$n.strata <- 1
     outArgs$level.strata <- "1"
     outArgs$allstrata <- NULL
-    
+
     ## ** Display
     if (trace > 1) {
         cat("         Simulation study with BuyseTest \n\n")
