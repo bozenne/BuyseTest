@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: dec  5 2020 (22:29) 
+## Last-Updated: dec  6 2020 (11:28) 
 ##           By: Brice Ozenne
-##     Update #: 402
+##     Update #: 405
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -114,8 +114,7 @@ calcPeron <- function(data,
 
                     ## last estimate of the survival/cif
                     out$lastSurv[[iEndpoint]][iStrata,seq(from=iTreat.num+1, by = 2, length=iN.CR)] <- iLastEstimate
-
-                    if(test.CR){
+                    if(test.CR[iUTTE]){
                         
                         ## *** CIF at jump times
                         iPred1.iOther.beforeTau <- predict(model.tte[[iUTTE]], time = iTime.jump - iThreshold,

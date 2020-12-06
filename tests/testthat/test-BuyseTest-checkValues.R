@@ -33,7 +33,7 @@ dtS.sim <- rbind(cbind(dt.sim, strata = 1),
 test_that("BuyseTest - binary (no strata)", {
     BT.bin <- BuyseTest(treatment ~ bin(toxicity1),
                         data = dt.sim)
-    
+
     BT2 <- BuyseTest(data = dt.sim,
                      endpoint = "toxicity1",
                      treatment = "treatment",

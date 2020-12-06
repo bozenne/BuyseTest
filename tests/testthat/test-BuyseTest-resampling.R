@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: maj 22 2020 (11:01) 
+## last-updated: dec  6 2020 (11:34) 
 ##           By: Brice Ozenne
-##     Update #: 182
+##     Update #: 184
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -255,8 +255,9 @@ test_that("Bootstrap", {
                          method.inference = "studentized bootstrap", n.resampling = 10)
     
     ## ** summary (two.sided)
-    outSummaryPerc <- summary(BT.boot, print = FALSE, alternative = "two.sided", method.ci.resampling = "percentile", transform = FALSE)
-    outSummaryStud <- summary(BT.boot, print = FALSE, alternative = "two.sided", method.ci.resampling = "studentized", transform = FALSE)
+    ## warnings because too few bootstrap samples
+    outSummaryPerc <- suppressWarnings(summary(BT.boot, print = FALSE, alternative = "two.sided", method.ci.resampling = "percentile", transform = FALSE))
+    outSummaryStud <- suppressWarnings(summary(BT.boot, print = FALSE, alternative = "two.sided", method.ci.resampling = "studentized", transform = FALSE))
     ## summary(BT.boot)
     ##     Generalized pairwise comparisons with 2 prioritized endpoints
 
@@ -285,8 +286,9 @@ test_that("Bootstrap", {
                  as.double(CI), tol = 1e-6)
     
     ## ** greater
-    outSummaryPerc <- summary(BT.boot, print = FALSE, alternative = "greater", method.ci.resampling = "percentile", transform = FALSE)
-    outSummaryStud <- summary(BT.boot, print = FALSE, alternative = "greater", method.ci.resampling = "studentized", transform = FALSE)
+    ## warnings because too few bootstrap samples
+    outSummaryPerc <- suppressWarnings(summary(BT.boot, print = FALSE, alternative = "greater", method.ci.resampling = "percentile", transform = FALSE))
+    outSummaryStud <- suppressWarnings(summary(BT.boot, print = FALSE, alternative = "greater", method.ci.resampling = "studentized", transform = FALSE))
 
     CI <- cbind(apply(BT.boot@DeltaResampling[,,"netBenefit"], 2, quantile, probs = c(0.05)), Inf)
     expect_equal(as.double(unlist(outSummaryPerc$table[outSummaryPerc$table$strata=="global",c("CIinf.Delta","CIsup.Delta")])),
@@ -299,8 +301,9 @@ test_that("Bootstrap", {
                  as.double(CI), tol = 1e-6)
 
     ## ** lower
-    outSummaryPerc <- summary(BT.boot, print = FALSE, alternative = "less", method.ci.resampling = "percentile", transform = FALSE)
-    outSummaryStud <- summary(BT.boot, print = FALSE, alternative = "less", method.ci.resampling = "studentized", transform = FALSE)
+    ## warnings because too few bootstrap samples
+    outSummaryPerc <- suppressWarnings(summary(BT.boot, print = FALSE, alternative = "less", method.ci.resampling = "percentile", transform = FALSE))
+    outSummaryStud <- suppressWarnings(summary(BT.boot, print = FALSE, alternative = "less", method.ci.resampling = "studentized", transform = FALSE))
 
     CI <- cbind(-Inf, apply(BT.boot@DeltaResampling[,,"netBenefit"], 2, quantile, probs = c(0.95)))
     expect_equal(as.double(unlist(outSummaryPerc$table[outSummaryPerc$table$strata=="global",c("CIinf.Delta","CIsup.Delta")])),
