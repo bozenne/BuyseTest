@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: dec  5 2020 (22:47) 
+## Last-Updated: jan  5 2021 (11:33) 
 ##           By: Brice Ozenne
-##     Update #: 40
+##     Update #: 41
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -139,7 +139,7 @@ dataC <- data.table(time = c(1:5-0.1,5,5),
 data <- rbind(dataC, dataT)
 seqThreshold <- c(1e-12,0.5,1)
 
-e.TTEM <- BuyseTTEM(Hist(time, status1) ~ treatment, data = data, iid = FALSE)
+e.TTEM <- BuyseTTEM(Hist(time, status1) ~ treatment, data = data, iid = FALSE, iid.surv = "prodlim")
 expect_equal(predict(e.TTEM, treatment = "C", time = c(1,3,4,5)+1e-12)$survival,
              c(0.8571429, 0.7142857, 0.5357143, 0.5357143), tol = 1e-6)
              

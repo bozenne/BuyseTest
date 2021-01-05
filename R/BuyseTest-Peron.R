@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: dec  6 2020 (11:28) 
+## Last-Updated: jan  5 2021 (11:34) 
 ##           By: Brice Ozenne
-##     Update #: 405
+##     Update #: 413
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -118,17 +118,17 @@ calcPeron <- function(data,
                         
                         ## *** CIF at jump times
                         iPred1.iOther.beforeTau <- predict(model.tte[[iUTTE]], time = iTime.jump - iThreshold,
-                                                    treatment = setdiff(level.treatment,iTreat), strata = iStrata)
+                                                           treatment = setdiff(level.treatment,iTreat), strata = iStrata)
                         iPred1.iOther.afterTau <- predict(model.tte[[iUTTE]], time = iTime.jump + iThreshold,
-                                                   treatment = setdiff(level.treatment,iTreat), strata = iStrata)
+                                                          treatment = setdiff(level.treatment,iTreat), strata = iStrata)
                         out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime.jump,
                                                                            "CIF1-threshold" = iPred1.iOther.beforeTau$cif,
                                                                            "CIF1+threshold" = iPred1.iOther.afterTau$cif,
                                                                            "dCIF" = iPred1.iTreat.afterJump$cif - iPred1.iTreat.beforeJump$cif,
                                                                            "index.CIF1-threshold" = iPred1.iOther.beforeTau$index,
                                                                            "index.CIF1+threshold" = iPred1.iOther.afterTau$index,
-                                                                           "index.dCIF11" = iPred1.iTreat.beforeJump$cif,
-                                                                           "index.dCIF12" = iPred1.iTreat.afterJump$cif)
+                                                                           "index.dCIF11" = iPred1.iTreat.beforeJump$index,
+                                                                           "index.dCIF12" = iPred1.iTreat.afterJump$index)
 
                         if(iidNuisance){
                             out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- cbind(iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat, cause = 1),

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: maj 22 2020 (11:26) 
+## Last-Updated: jan  5 2021 (12:16) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -64,7 +64,7 @@ test_that("TTE with decreasing thresholds",{
 
     test <- confint(e.BT2)
     attr(test,"n.resampling") <- NULL
-    expect_equal(GS,test, tol = 1e-6)
+    expect_equal(GS, test, tol = 1e-6)
 })
 
 test_that("different TTE with decreasing thresholds",{

@@ -572,6 +572,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 
   double diff = endpoint_T - endpoint_C;
   std::vector< double > score(4, 0.0); // [0] favorable, [1] unfavorable, [2] neutral, [3] uninformative
+  // Rcpp::Rcout << diff << " " << status_T << " " << status_C << " " << threshold << std::endl;
   double denomC = 1 - cifTimeC_vec(2) - cifTimeC_vec(7);
   double denomT = 1 - cifTimeT_vec(5) - cifTimeT_vec(7);
  
@@ -641,8 +642,8 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
         } else {
           score[1] = (lastCif2C - cifTimeC_vec(7))/denomC;
 		  if(returnIID>1){
-			Dscore_Dnuisance_C(cifTimeC_vec(9),1) += score[1]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += 1/denomC; // derivative regarding F_2^C(\infty) (i.e. lastCif2C)
+			Dscore_Dnuisance_C(cifTimeC_vec(9),1) += score[1]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -1/denomC + score[1]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
 		  }
         }
@@ -680,25 +681,22 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 		  }
           score[2] = (cifTimeT_vec(3) - cifTimeC_vec(2))/denomC;
 		  if(returnIID>1){
-			Dscore_Dnuisance_C(cifTimeC_vec(9),2) += score[2]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+			Dscore_Dnuisance_C(cifTimeC_vec(9),2) += -1/denomC + score[2]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			Dscore_Dnuisance_C(cifTimeT_vec(10),2) += 1/denomC; // derivative regarding F_1^C(Tt+\tau) (i.e. cifTimeT_vec(3))
 			Dscore_Dnuisance_C(cifTimeC_vec(14),2) += score[2]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-			Dscore_Dnuisance_C(cifTimeC_vec(9),2) += -1/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 		  }
         } else {
           score[1] = (lastCif2C - cifTimeC_vec(7))/denomC;
 		  if(returnIID>1){
 			Dscore_Dnuisance_C(cifTimeC_vec(9),1) += score[1]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += 1/denomC; // derivative regarding F_1^C(\infty) (i.e. lastCif1C)
-			Dscore_Dnuisance_C(cifTimeC_vec(14),1) += score[1]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-			Dscore_Dnuisance_C(cifTimeC_vec(9),1) += -1/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+			Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -1/denomC + score[1]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
 		  }
           score[2] = (lastCif1C - cifTimeC_vec(2))/denomC;
 		  if(returnIID>1){
-			Dscore_Dnuisance_C(cifTimeC_vec(9),2) += score[2]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+			Dscore_Dnuisance_C(cifTimeC_vec(9),2) += -1/denomC + score[2]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,2) += 1/denomC; // derivative regarding F_1^C(\infty) (i.e. lastCif1C)
 			Dscore_Dnuisance_C(cifTimeC_vec(14),2) += score[2]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-			Dscore_Dnuisance_C(cifTimeC_vec(9),2) += -1/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 		  }
         }
       }
@@ -809,301 +807,305 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
       double prob12 = (lastCif2C - cifTimeC_vec(7))*(lastCif1T - cifTimeT_vec(5))/(denomT*denomC);
       double prob22 = (lastCif2C - cifTimeC_vec(7))*(lastCif2T - cifTimeT_vec(7))/(denomT*denomC);
 	  // lower bound of each integral
-	  double intFav, intDefav, intNeutralEvent1, intNeutralEvent2;
-	  arma::colvec intDscore_Dnuisance_C;
+      double intFav, intDefav, intNeutralEvent1, intNeutralEvent2;
+      arma::colvec intDscore_Dnuisance_C;
       arma::colvec intDscore_Dnuisance_T;
-	  if(returnIID>1 && precompute==false){
-		intDscore_Dnuisance_C.resize(p_C); // initialized in calcIntegralCif_cpp
-		intDscore_Dnuisance_T.resize(p_T); // initialized in calcIntegralCif_cpp
+      if(returnIID>1 && precompute==false){
+	intDscore_Dnuisance_C.resize(p_C); // initialized in calcIntegralCif_cpp
+	intDscore_Dnuisance_T.resize(p_T); // initialized in calcIntegralCif_cpp
       }
 
       if(diff >= threshold) {
-		// favorable
-		if (R_IsNA(cifTimeT_vec(1)) == false) {
-		  score[0] = (cifTimeT_vec(1) - cifTimeC_vec(2))*(lastCif1T - cifTimeT_vec(5))/(denomC*denomT);
-		  if(returnIID>1){
-			Dscore_Dnuisance_C(cifTimeT_vec(8),0) += (lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(Tt-\tau) (i.e. cifTimeT_vec(1))
-			Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-			Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,0) += (cifTimeT_vec(1) - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
-			Dscore_Dnuisance_T(cifTimeT_vec(12),0) += -(cifTimeT_vec(1) - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-			
-			Dscore_Dnuisance_C(cifTimeC_vec(9),0) += score[0]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-			Dscore_Dnuisance_C(cifTimeC_vec(14),0) += score[0]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-			Dscore_Dnuisance_T(cifTimeT_vec(12),0) += score[0]/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-			Dscore_Dnuisance_T(cifTimeT_vec(14),0) += score[0]/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-			
-		  } else {
-			score[0] = (cifTimeT_vec(1) - cifTimeC_vec(2))*(lastCif1T - cifTimeT_vec(5))/(denomC*denomT);
-			if(returnIID>1){
-			  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2-1,0) += (lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(\infty) (i.e. lastCif1C)
-			  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-			  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
-			  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += -(lastCif1C - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-			
-			  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += score[0]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-			  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += score[0]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-			  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += score[0]/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-			  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += score[0]/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-			}
-		  }
+	// favorable
+	if (R_IsNA(cifTimeT_vec(1)) == false) {
+		  
+	  score[0] = (cifTimeT_vec(1) - cifTimeC_vec(2))*(lastCif1T - cifTimeT_vec(5))/(denomC*denomT);
 
-		  intFav = calcIntegralCif_cpp(cifJumpC, endpoint_T - threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 1, // cifTimeT_vec(5);
-									   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
-		  score[0] += intFav/(denomT*denomC) + prob21;
-		  if(returnIID>1){
-			// intFav
-			// Dscore_Dnuisance_C.col(1) -= intDscore_Dnuisance_C/(denomC*denomT);
-			// Dscore_Dnuisance_T.col(1) -= intDscore_Dnuisance_T/(denomC*denomT);
-			Dscore_Dnuisance_C(cifTimeC_vec(9),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-			Dscore_Dnuisance_C(cifTimeC_vec(14),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-			Dscore_Dnuisance_T(cifTimeT_vec(12),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-			Dscore_Dnuisance_T(cifTimeT_vec(14),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	  if(returnIID>1){
+	    Dscore_Dnuisance_C(cifTimeT_vec(8),0) += (lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(Tt-\tau) (i.e. cifTimeT_vec(1))
+	    Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	    Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,0) += (cifTimeT_vec(1) - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
+	    Dscore_Dnuisance_T(cifTimeT_vec(12),0) += -(cifTimeT_vec(1) - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
 			
-			// prob21
-			Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
-			Dscore_Dnuisance_T(cifTimeT_vec(14),0) += -(lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-			Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,0) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(\infty) (i.e. lastCif12C)
-			Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	    Dscore_Dnuisance_C(cifTimeC_vec(9),0) += score[0]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	    Dscore_Dnuisance_C(cifTimeC_vec(14),0) += score[0]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	    Dscore_Dnuisance_T(cifTimeT_vec(12),0) += score[0]/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	    Dscore_Dnuisance_T(cifTimeT_vec(14),0) += score[0]/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-			Dscore_Dnuisance_C(cifTimeC_vec(9),0) += prob21/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-			Dscore_Dnuisance_C(cifTimeC_vec(14),0) += prob21/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-			Dscore_Dnuisance_T(cifTimeT_vec(12),0) += prob21/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-			Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		  }
+	  }
+	}else {
+	  score[0] = (lastCif1C - cifTimeC_vec(2))*(lastCif1T - cifTimeT_vec(5))/(denomC*denomT);
 
-		}
+	  if(returnIID>1){
+	    Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,0) += (lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(Tt-\tau) (i.e. cifTimeT_vec(1))
+	    Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif1T - cifTimeT_vec(5))/(denomC*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	    Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
+	    Dscore_Dnuisance_T(cifTimeT_vec(12),0) += -(lastCif1C - cifTimeC_vec(2))/(denomC*denomT); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+			
+	    Dscore_Dnuisance_C(cifTimeC_vec(9),0) += score[0]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	    Dscore_Dnuisance_C(cifTimeC_vec(14),0) += score[0]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	    Dscore_Dnuisance_T(cifTimeT_vec(12),0) += score[0]/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	    Dscore_Dnuisance_T(cifTimeT_vec(14),0) += score[0]/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+			
+	  }
+	}
 
-		// unfavorable
-		intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_T + threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
-									   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
-		score[1] = intDefav/(denomT*denomC) + prob12;
-		if(returnIID>1){
-		  // intDefav
-		  // Dscore_Dnuisance_C.col(1) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(1) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	intFav = calcIntegralCif_cpp(cifJumpC, endpoint_T - threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 1, // cifTimeT_vec(5);
+				     (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+	score[0] += intFav/(denomT*denomC) + prob21;
+	if(returnIID>1){
+	  // intFav
+	  Dscore_Dnuisance_C.col(1) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(1) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  // prob12
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += (lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -(lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,1) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  // prob21
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += -(lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,0) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += prob12/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += prob12/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += prob12/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += prob21/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += prob21/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += prob21/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 
-		// neutral
-		intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_T - threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 3,
-											   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
-		score[2] = prob22 += intNeutralEvent1/(denomT*denomC);
-		if(returnIID>1){
-		  // prob22		 
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,2) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,2) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	// unfavorable
+	intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_T + threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
+				       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+	score[1] = intDefav/(denomT*denomC) + prob12;
+	if(returnIID>1){
+	  // intDefav
+	  Dscore_Dnuisance_C.col(1) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(1) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += prob22/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += prob22/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += prob22/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += prob22/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	  // prob12
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += (lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -(lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,1) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+			
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += prob12/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += prob12/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += prob12/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
+
+	// neutral
+	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_T - threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 3,
+					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+	score[2] = prob22 += intNeutralEvent1/(denomT*denomC);
+	if(returnIID>1){
+	  // prob22		 
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,2) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,2) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+			
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += prob22/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += prob22/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += prob22/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += prob22/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 		
-		  // intNeutralEvent1
-		  // Dscore_Dnuisance_C.col(2) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(2) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  // intNeutralEvent1
+	  Dscore_Dnuisance_C.col(2) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(2) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 
         intNeutralEvent2 = calcIntegralCif_cpp(cifJumpC, endpoint_T + threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
-											   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[2] += intNeutralEvent2/(denomT*denomC);
-		if(returnIID>1){
+	if(returnIID>1){
 		
-		  // intNeutralEvent2
-		  // Dscore_Dnuisance_C.col(2) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(2) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  // intNeutralEvent2
+	  Dscore_Dnuisance_C.col(2) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(2) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
       } else if(diff <= -threshold) {
         intFav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 1,
-									 (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+				     (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[0] = intFav/(denomT*denomC) + prob21;
-		if(returnIID>1){
-		  // intFav
-		  // Dscore_Dnuisance_C.col(1) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(1) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	if(returnIID>1){
+	  // intFav
+	  Dscore_Dnuisance_C.col(1) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(1) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  // prob21
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += -(lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,0) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  // prob21
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += -(lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,0) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += prob21/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += prob21/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += prob21/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += prob21/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += prob21/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += prob21/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 		
-		intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
-									   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+	intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
+				       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[1] = intDefav/(denomT*denomC) + prob12;
-		if(returnIID>1){
-		  // intDefav
-		  // Dscore_Dnuisance_C.col(1) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(1) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	if(returnIID>1){
+	  // intDefav
+	  Dscore_Dnuisance_C.col(1) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(1) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  // prob12
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += (lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -(lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,1) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  // prob12
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += (lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -(lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,1) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += prob12/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += prob12/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += prob12/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += prob12/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += prob12/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += prob12/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 
-		intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
-											   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
+					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[2] = prob22 + intNeutralEvent1/(denomT*denomC);
-		if(returnIID>1){
-		  // prob22		 
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,2) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,2) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	if(returnIID>1){
+	  // prob22		 
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,2) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,2) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += prob22/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += prob22/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += prob22/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += prob22/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += prob22/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += prob22/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += prob22/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += prob22/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 		
-		  // intNeutralEvent1
-		  // Dscore_Dnuisance_C.col(2) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(2) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  // intNeutralEvent1
+	  Dscore_Dnuisance_C.col(2) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(2) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 		
       } else { // |diff| < threshold
         intFav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 1,
-									 (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+				     (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[0] = intFav/(denomT*denomC) + prob21;
-		if(returnIID>1){
-		  // intFav
-		  // Dscore_Dnuisance_C.col(1) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(1) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	if(returnIID>1){
+	  // intFav
+	  Dscore_Dnuisance_C.col(1) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(1) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += intFav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += intFav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  // prob21
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += -(lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,0) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  // prob21
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,0) += (lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += -(lastCif1C - cifTimeC_vec(2))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows/2 - 1,0) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += prob21/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += prob21/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += prob21/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),0) += prob21/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),0) += prob21/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),0) += prob21/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 		
         intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_T+threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
-									   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+				       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[1] = intDefav/(denomT*denomC) + prob12;
-		if(returnIID>1){
-		  // intDefav
-		  // Dscore_Dnuisance_C.col(1) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(1) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	if(returnIID>1){
+	  // intDefav
+	  Dscore_Dnuisance_C.col(1) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(1) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += intDefav/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += intDefav/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  // prob12
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += (lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -(lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,1) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  // prob12
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,1) += (lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -(lastCif1T - cifTimeT_vec(5))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 - 1,1) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += prob12/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += prob12/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += prob12/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),1) += prob12/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),1) += prob12/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),1) += prob12/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 		
-		intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 3,
-											   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
-		score[2] = prob22 + intNeutralEvent1/(denomT*denomC);
-		if(returnIID>1){
-		  // prob22		 
-		  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,2) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,2) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 3,
+					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+	score[2] = prob22 + intNeutralEvent1/(denomT*denomC);
+	if(returnIID>1){
+	  // prob22		 
+	  Dscore_Dnuisance_C(Dscore_Dnuisance_C.n_rows - 1,2) += (lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(\infty) (i.e. lastCif12C)
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += -(lastCif2T - cifTimeT_vec(7))/(denomT*denomC); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows - 1,2) += (lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(\infty) (i.e. lastCif2T)
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += -(lastCif2C - cifTimeC_vec(7))/(denomT*denomC); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 			
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += prob22/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += prob22/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += prob22/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += prob22/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += prob22/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += prob22/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += prob22/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += prob22/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 		
-		  // intNeutralEvent1
-		  // Dscore_Dnuisance_C.col(2) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(2) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  // intNeutralEvent1
+	  Dscore_Dnuisance_C.col(2) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(2) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent1/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
 		
-		intNeutralEvent2 = calcIntegralCif_cpp(cifJumpC, endpoint_T+threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
-											   (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
-		score[2] += intNeutralEvent2/(denomT*denomC);
-		if(returnIID>1){
+	intNeutralEvent2 = calcIntegralCif_cpp(cifJumpC, endpoint_T+threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
+					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
+	score[2] += intNeutralEvent2/(denomT*denomC);
+	if(returnIID>1){
 		
-		  // intNeutralEvent2
-		  // Dscore_Dnuisance_C.col(2) -= intDscore_Dnuisance_C/(denomC*denomT);
-		  // Dscore_Dnuisance_T.col(2) -= intDscore_Dnuisance_T/(denomC*denomT);
-		  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
-		  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
-		  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
-		  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
-		}
+	  // intNeutralEvent2
+	  Dscore_Dnuisance_C.col(2) += intDscore_Dnuisance_C/(denomC*denomT);
+	  Dscore_Dnuisance_T.col(2) += intDscore_Dnuisance_T/(denomC*denomT);
+	  Dscore_Dnuisance_C(cifTimeC_vec(9),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
+	  Dscore_Dnuisance_C(cifTimeC_vec(14),2) += intNeutralEvent2/(pow(denomC,2)*denomT); // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
+	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
+	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
+	}
       }
     }
   }
   
   score[3] = 1 - (score[0] + score[1] + score[2]);
   if(returnIID>1){
-	Dscore_Dnuisance_C.col(3) = - Dscore_Dnuisance_C.col(0) - Dscore_Dnuisance_C.col(1) - Dscore_Dnuisance_C.col(2);
-	Dscore_Dnuisance_T.col(3) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1) - Dscore_Dnuisance_T.col(2);
+    Dscore_Dnuisance_C.col(3) = - Dscore_Dnuisance_C.col(0) - Dscore_Dnuisance_C.col(1) - Dscore_Dnuisance_C.col(2);
+    Dscore_Dnuisance_T.col(3) = - Dscore_Dnuisance_T.col(0) - Dscore_Dnuisance_T.col(1) - Dscore_Dnuisance_T.col(2);
   }
+  // Rcpp::Rcout << score[0] << " " << score[1] << " " << score[2] << " " << score[3] << std::endl;
   return score;
 }
 
@@ -1201,7 +1203,7 @@ std::vector< double > calcIntegralSurv_cpp(const arma::mat& survival, double sta
 //' @export
 // [[Rcpp::export(".calcIntegralCif_cpp")]]
 double calcIntegralCif_cpp(const arma::mat& cifJump, double start_val, double stop_val, arma::rowvec cifTimeT, double lastCIF, int type,
-						   bool returnDeriv, arma::colvec& derivSurv, arma::colvec& derivSurvD){
+			   bool returnDeriv, arma::colvec& derivSurv, arma::colvec& derivSurvD){
 
   double integral = 0.0;
   int nJump = cifJump.n_rows;
@@ -1216,12 +1218,12 @@ double calcIntegralCif_cpp(const arma::mat& cifJump, double start_val, double st
         if(R_IsNA(cifJump(i,2))) {break;}
         if(cifJump(i,0) > start_val) {
           integral = integral + (lastCIF - cifJump(i, 2))*cifJump(i, 3);
-		  if(returnDeriv){
-			derivSurv(derivSurv.n_rows/2) += cifJump(i, 3); // derivative regarding CIF(\infty)
-			derivSurv(cifJump(i, 5)) -= cifJump(i, 3); // derivative regarding CIF(t+\tau)
-			derivSurvD(cifJump(i, 6)) -= (lastCIF - cifJump(i, 2)); // derivative regarding dCIF(t-)
-			derivSurvD(cifJump(i, 7)) += (lastCIF - cifJump(i, 2)); // derivative regarding dCIF(t+)
-		  }
+	  if(returnDeriv){
+	    derivSurv(derivSurv.n_rows/2) += cifJump(i, 3); // derivative regarding CIF(\infty)
+	    derivSurv(cifJump(i, 5)) -= cifJump(i, 3); // derivative regarding CIF(t+\tau)
+	    derivSurvD(cifJump(i, 6)) -= (lastCIF - cifJump(i, 2)); // derivative regarding dCIF(t-)
+	    derivSurvD(cifJump(i, 7)) += (lastCIF - cifJump(i, 2)); // derivative regarding dCIF(t+)
+	  }
         }
       }
     } else if(type == 2) {

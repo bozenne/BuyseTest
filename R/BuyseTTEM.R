@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: dec  5 2020 (21:46) 
+## Last-Updated: jan  5 2021 (12:16) 
 ##           By: Brice Ozenne
-##     Update #: 306
+##     Update #: 310
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,7 +70,7 @@
 ## * BuyseTTEM.default
 #' @rdname BuyseTTEM
 #' @export
-BuyseTTEM.formula <- function(object, treatment, level.treatment = NULL, iid, iid.surv = "prodlim", ...){
+BuyseTTEM.formula <- function(object, treatment, level.treatment = NULL, iid, iid.surv = "exp", ...){
     e.prodlim <- prodlim(object, ...)
     return(BuyseTTEM(e.prodlim, treatment = treatment, level.treatment = level.treatment, iid = iid, iid.surv = iid.surv))
 }

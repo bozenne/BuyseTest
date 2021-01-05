@@ -1,4 +1,4 @@
-* TODO add description of BuysePower in the overview document
+* TODO pre-compute for comepting risk (in BuyseTest-Peron)
 * TODO Article JSS
 
 

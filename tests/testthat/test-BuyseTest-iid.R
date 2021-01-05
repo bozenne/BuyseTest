@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: maj 22 2020 (11:26) 
+## Last-Updated: jan  5 2021 (12:17) 
 ##           By: Brice Ozenne
-##     Update #: 157
+##     Update #: 160
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -586,7 +586,7 @@ dt <- simBuyseTest(n, argsTTE = list(scale.T = 2, scale.Censoring.T = 1))
 
 test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     BuyseTest.options(order.Hprojection = 1)
-    
+
     e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
                              data = dt, 
                              keep.pairScore = TRUE,
@@ -595,6 +595,25 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     test <- confint(e.BT_ttebin)
     attr(test,"n.resampling") <- NULL
     GS <- matrix(c(-0.33333333, -0.13333333, 0.24130536, 0.36004622, -0.70573842, -0.69241599, 0.18339631, 0.52579681, 0.20172157, 0.7144262), 
+                 nrow = 2, 
+                 ncol = 5, 
+                 dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ) 
+    expect_equal(test, GS, tol = 1e-6)
+
+    ## exponential approximation of the survival when computing the influence function
+    e.TTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid=TRUE, iid.surv="prodlim")
+    attr(e.TTEM, "iidNuisance") <- TRUE
+    
+    e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
+                             data = dt, 
+                             keep.pairScore = TRUE,
+                             model.tte = e.TTEM,
+                             method.inference = "u-statistic")
+
+    test <- confint(e.BT_ttebin)
+    attr(test,"n.resampling") <- NULL
+    GS <- matrix(c(-0.33333333, -0.13333333, 0.23587679, 0.35518499, -0.69967949, -0.68733243, 0.17180423, 0.51874253, 0.19153767, 0.71069249), 
                  nrow = 2, 
                  ncol = 5, 
                  dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
@@ -640,11 +659,30 @@ test_that("iid with nuisance parameters: 2 TTE",{
     ## expect_equal(e.BT_tte1@covariance[1,],e.BT_tte3@covariance[2,], tol = 1e-6)
 
     e.BT_tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime2, status2, threshold = 1) + bin(toxicity1),
-                          data = dt.sim, 
+                          data = dt.sim,
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
     attr(test,"n.resampling") <- NULL
     GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.19937703, 0.2148585, 0.2408939, -0.14852611, -0.24811831, -0.43304747, 0.59828277, 0.54900838, 0.4468153, 0.20703017, 0.41296871, 0.97173422), 
+                 nrow = 3, 
+                 ncol = 5, 
+                 dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ) 
+
+    expect_equal(test, GS, tol = 1e-3)
+
+    ## exponential approximation of the survival when computing the influence function
+    e.TTEM <- list(BuyseTTEM(Hist(eventtime1,status1)~treatment, data = dt.sim, iid=TRUE, iid.surv="prodlim"),
+                   BuyseTTEM(Hist(eventtime2,status2)~treatment, data = dt.sim, iid=TRUE, iid.surv="prodlim"))
+    attr(e.TTEM, "iidNuisance") <- TRUE
+
+    e.BT_tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime2, status2, threshold = 1) + bin(toxicity1),
+                          data = dt.sim,
+                          model.tte = e.TTEM,
+                          method.inference = "u-statistic")
+    test <- confint(e.BT_tte)
+    attr(test,"n.resampling") <- NULL
+    GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.17433724, 0.19140473, 0.21888023, -0.09657678, -0.20304112, -0.39734512, 0.5633411, 0.51495999, 0.41162398, 0.14902033, 0.35809689, 0.96889279), 
                  nrow = 3, 
                  ncol = 5, 
                  dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 

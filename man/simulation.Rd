@@ -50,25 +50,25 @@ by specifying a non-0 value for the \code{rho.T} and \code{rho.C} elements of th
 
 Arguments in the list \code{argsBin}:
 \itemize{
-    \item\code{p.T} list of probabilities for the values taken by each endpoint (categorical endpoint, treatment group). \cr 
-    \item\code{p.C} same as \code{p.T} but for the control group. \cr
-    \item\code{rho.T} value of the regression coefficient between the underlying latent variable and the survival time. \cr 
-    \item\code{rho.C} same as \code{rho.T} but for the control group. \cr
-    \item\code{name} names of the binary variables. \cr
+    \item\code{p.T} list of probabilities for the values taken by each endpoint (categorical endpoint, treatment group). 
+    \item\code{p.C} same as \code{p.T} but for the control group. 
+    \item\code{rho.T} value of the regression coefficient between the underlying latent variable and the survival time. 
+    \item\code{rho.C} same as \code{rho.T} but for the control group. 
+    \item\code{name} names of the binary variables.
 }
 
 Arguments in the list \code{argsCont}:
     \itemize{
-    \item\code{mu.T} expected value of each endpoint (continuous endpoint, treatment group). \cr 
-    \item\code{mu.C} same as \code{mu.C} but for the control group. \cr
-    \item\code{sigma.T} standard deviation of the values of each endpoint (continuous endpoint, treatment group). \cr 
-    \item\code{sigma.C} same as \code{sigma.T} but for the control group. \cr
+    \item\code{mu.T} expected value of each endpoint (continuous endpoint, treatment group). 
+    \item\code{mu.C} same as \code{mu.C} but for the control group. 
+    \item\code{sigma.T} standard deviation of the values of each endpoint (continuous endpoint, treatment group). 
+    \item\code{sigma.C} same as \code{sigma.T} but for the control group. 
     \item\code{name} names of the continuous variables.
     }
 
 Arguments in the list \code{argsTTE}:
     \itemize{
-    \item\code{CR} should competing risks be simulated? \cr 
+    \item\code{CR} should competing risks be simulated? 
     \item\code{scale.T,scale.C,scale.CR,scale.Censoring.T,scale.Censoring.C} scale parameter of the Weibull distribution for, respectively,
      the event of interest in the treatment group,
      the event of interest in the control group,
@@ -81,8 +81,8 @@ Arguments in the list \code{argsTTE}:
      the competing event in both groups,
      the censoring mechanism in the treatment group,
      the censoring mechanism in the control group
-    \item\code{name} names of the time to event variables. \cr
-    \item\code{nameCensoring} names of the event type indicators. \cr
+    \item\code{name} names of the time to event variables. 
+    \item\code{nameCensoring} names of the event type indicators. 
     }
 }
 \examples{

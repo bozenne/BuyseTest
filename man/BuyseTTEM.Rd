@@ -14,7 +14,7 @@ BuyseTTEM(object, ...)
   treatment,
   level.treatment = NULL,
   iid,
-  iid.surv = "prodlim",
+  iid.surv = "exp",
   ...
 )
 

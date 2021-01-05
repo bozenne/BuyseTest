@@ -337,7 +337,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 
       // *** update iid
       if(returnIID>0){
-
+	
 		if(debug>0){Rcpp::Rcout << " update iid (" << returnIID << ")" << std::endl;}
 		updateIID(iidAverage_favorable, iidAverage_unfavorable,
 				  iidNuisance_favorable, iidNuisance_unfavorable, 
@@ -704,7 +704,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			  iDscore_Dnuisance_T_calcOnePair[iter_d].col(1) -= iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d].col(1);
 			}
 		  }
-    
+
 		  // **** aggregate favorable score and iid over analyzed pairs
 		  // if(iPairScore[0] > zeroPlus){
 		  if(debug==4){Rcpp::Rcout << "f";}

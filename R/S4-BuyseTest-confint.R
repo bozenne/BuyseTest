@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: maj 27 2020 (14:43) 
+## Last-Updated: jan  5 2021 (12:13) 
 ##           By: Brice Ozenne
-##     Update #: 747
+##     Update #: 749
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -248,7 +248,6 @@ setMethod(f = "confint",
                   Delta.resampling <- NULL
                   Delta.se.resampling <- NULL
               }
-
               
               if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
                   Delta.se <- sqrt(object@covariance[,statistic])
