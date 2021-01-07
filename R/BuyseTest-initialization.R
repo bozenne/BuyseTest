@@ -239,7 +239,7 @@ initializeArgs <- function(status,
     
     ## ** model.tte
     if(identical(scoring.rule,1)){
-        if((!is.null(model.tte)) && (length(unique(endpoint.TTE)) == 1) && inherits(model.tte, "prodlim")){
+        if((!is.null(model.tte)) && (length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
             attr.save <- attr(model.tte,"iidNuisance")
             
             model.tte <- list(model.tte)
@@ -273,7 +273,7 @@ initializeArgs <- function(status,
     if(is.logical(trace)){
         trace <- as.numeric(trace)
     }
-    
+
     ## ** export
     return(list(
         name.call = name.call,

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: dec  5 2020 (21:54) 
+## Last-Updated: jan  7 2021 (10:08) 
 ##           By: Brice Ozenne
-##     Update #: 178
+##     Update #: 180
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -315,7 +315,7 @@ test_that("Boostrap - issue in the summary", {
     BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
                          data = veteran, keep.pairScore = TRUE, scoring.rule = "Gehan", 
                          trace = 0, method.inference = "bootstrap", n.resampling = 20, seed = 10)
-    capture.output(summary(BT.keep, statistic = "winRatio"))
+    expect_error(capture.output(summary(BT.keep, statistic = "winRatio")), regexp = NA) ## no error
 })
 
 ## * graemeleehickey (issue #3 on Github): 22 september 2019 BuysePower
@@ -440,7 +440,6 @@ test_that("uniformative pair after last observation",{
 dt <- data.table("bras" = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), 
                  "OS" = c(0.427, 1.708, 2.004, 2.792, 3.088, 3.384, 3.417, 3.647, 3.778, 3.844, 5.092, 5.355, 5.453, 6.012, 6.209, 6.209, 6.307, 6.702, 7.786, 8.049, 8.739, 9.461, 11.367, 11.728, 11.925, 11.991, 12.648, 12.746, 13.042, 13.338, 13.436, 13.666, 13.798, 16.097, 16.097, 0.854, 1.84, 3.055, 3.515, 4.172, 5.059, 5.158, 5.223, 5.519, 5.585, 6.307, 6.34, 6.373, 6.767, 6.899, 6.965, 7.129, 7.589, 7.589, 7.589, 7.753, 8.18, 9.133, 9.198, 9.855, 10.315, 11.498, 13.141, 13.239, 13.305, 13.568, 13.929, 15.21, 16.459, 19.087, 20.237, 20.532, 21.846, 22.273, 26.445, 27.989), 
                  "etat" = c(0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1))
-
 
 test_that("last time is a tie with both event and censor",{
     test <- BuyseTest(bras ~ tte(OS, status = etat),

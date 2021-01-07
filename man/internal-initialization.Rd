@@ -27,9 +27,10 @@ calcPeron(
   D.TTE,
   D.UTTE,
   type,
+  level.strata,
+  n.strata,
   strata,
   threshold,
-  n.strata,
   precompute,
   iidNuisance,
   out

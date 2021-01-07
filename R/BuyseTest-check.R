@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: okt 13 2020 (09:01) 
+## Last-Updated: jan  6 2021 (23:20) 
 ##           By: Brice Ozenne
-##     Update #: 238
+##     Update #: 254
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -81,6 +81,10 @@ testArgs <- function(name.call,
         indexT <- which(data[[treatment]] == level.treatment[2])
         indexC <- which(data[[treatment]] == level.treatment[1])
 
+        if(any(strata %in% names(data) == FALSE)){
+            stop("Strata variable(s) \"",paste0(strata,collapse="\" \""),"\" not found in argument \'data\' \n")
+        }
+        
         strataT <- interaction(data[indexT,strata,with=FALSE], drop = TRUE, lex.order=FALSE,sep=".") 
         strataC <- interaction(data[indexC,strata,with=FALSE], drop = TRUE, lex.order=FALSE,sep=".") 
         level.strata <- levels(strataT)
@@ -162,6 +166,7 @@ testArgs <- function(name.call,
     if(!is.null(model.tte)){
         endpoint.UTTE <- unique(endpoint[type==3])
         D.UTTE <- length(endpoint.UTTE)
+
         if(!is.list(model.tte) || length(model.tte) != D.UTTE){
             stop("BuyseTest: argument \'model.tte\' must be a list containing ",D.UTTE," elements. \n",
                  "(one for each unique time to event endpoint). \n")
@@ -173,14 +178,15 @@ testArgs <- function(name.call,
                  "proposed names: \"",paste0(names(model.tte), collapse = "\" \""),"\" \n")
         }
 
-        vec.class  <- sapply(model.tte, function(iTTE){inherits(iTTE, "prodlim")})
+        valid.class <- setdiff(utils::methods(generic.function = "BuyseTTEM"), c("BuyseTTEM.formula"))
+        vec.class  <- sapply(model.tte, function(iTTE){any(paste0("BuyseTTEM.",class(model.tte[[1]])) %in% valid.class)})
         if(any(vec.class == FALSE) ){
-            stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects. \n")
+            stop("BuyseTest: argument \'model.tte\' must be a list of \"",paste0(gsub("BuyseTTEM\\.","",valid.class), collapse = "\", or \""),"\" objects. \n")
         }
-
-        vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(iTTE$discrete.predictors), sort(c(treatment,strata)))})
+        
+        vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(all.vars(stats::update(stats::formula(model.tte[[1]]), "0~."))), sort(c(treatment,strata)))})
         if(any(vec.predictors == FALSE) ){
-            stop("BuyseTest: argument \'model.tte\' must be a list of \"prodlim\" objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors. \n")
+            stop("BuyseTest: argument \'model.tte\' must be a list of objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors. \n")
         }        
     }
     

@@ -4,28 +4,17 @@
 \alias{BuyseTTEM}
 \alias{BuyseTTEM.formula}
 \alias{BuyseTTEM.prodlim}
+\alias{BuyseTTEM.survreg}
 \alias{BuyseTTEM.BuyseTTEM}
 \title{Time to Event Model}
 \usage{
 BuyseTTEM(object, ...)
 
-\method{BuyseTTEM}{formula}(
-  object,
-  treatment,
-  level.treatment = NULL,
-  iid,
-  iid.surv = "exp",
-  ...
-)
+\method{BuyseTTEM}{formula}(object, treatment, iid, iid.surv = "exp", ...)
 
-\method{BuyseTTEM}{prodlim}(
-  object,
-  treatment,
-  level.treatment = NULL,
-  iid,
-  iid.surv = "exp",
-  ...
-)
+\method{BuyseTTEM}{prodlim}(object, treatment, iid, iid.surv = "exp", ...)
+
+\method{BuyseTTEM}{survreg}(object, treatment, n.grid = 1000, iid, ...)
 
 \method{BuyseTTEM}{BuyseTTEM}(object, ...)
 }
@@ -36,12 +25,12 @@ BuyseTTEM(object, ...)
 
 \item{treatment}{[character] Name of the treatment variable.}
 
-\item{level.treatment}{[character/numeric vector] Unique values of the treatment variable.}
-
 \item{iid}{[logical] Should the iid decomposition of the predictions be output.}
 
 \item{iid.surv}{[character] Estimator of the survival used when computing the influence function.
 Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCoxPL}).}
+
+\item{n.grid}{[integer, >0] Number of timepoints used to discretize the time scale. Not relevant for prodlim objects.}
 }
 \description{
 Pre-compute quantities of a time to event model useful for predictions.
@@ -51,6 +40,8 @@ Only does something for prodlim objects.
 library(prodlim)
 library(data.table)
 
+tau <- seq(0,3,length.out=10)
+
 #### survival case ####
 set.seed(10)
 df.data <- simBuyseTest(1e2, n.strata = 2)
@@ -58,15 +49,13 @@ df.data <- simBuyseTest(1e2, n.strata = 2)
 e.prodlim <- prodlim(Hist(eventtime,status)~treatment+strata, data = df.data)
 ## plot(e.prodlim)
 
-e.prodlim2 <- BuyseTTEM(e.prodlim,
-          treatment = "treatment",
-          level.treatment = unique(df.data$treatment),
-          iid = TRUE)
-predict(e.prodlim2, time = 1:10, treatment = "T", strata = "a")
-predict(e.prodlim, times = 1:10, newdata = data.frame(treatment = "T", strata = "a"))
+e.prodlim2 <- BuyseTTEM(e.prodlim, treatment = "treatment", iid = TRUE)
 
-predict(e.prodlim2, time = 1:10, treatment = "C", strata = "a")
-predict(e.prodlim, times = 1:10, newdata = data.frame(treatment = "C", strata = "a"))
+predict(e.prodlim2, time = tau, treatment = "T", strata = "a")
+predict(e.prodlim, times = tau, newdata = data.frame(treatment = "T", strata = "a"))
+
+predict(e.prodlim2, time = tau, treatment = "C", strata = "a")
+predict(e.prodlim, times = tau, newdata = data.frame(treatment = "C", strata = "a"))
 
 #### competing risk case ####
 df.dataCR <- copy(df.data)
@@ -75,8 +64,11 @@ df.dataCR$status <- rbinom(NROW(df.dataCR), prob = 0.5, size = 2)
 e.prodlimCR <- prodlim(Hist(eventtime,status)~treatment+strata, data = df.dataCR)
 ## plot(e.prodlimCR)
 
-e.prodlimCR <- BuyseTTEM(e.prodlimCR,
-          treatment = "treatment",
-          level.treatment = unique(df.dataCR$treatment),
-          iid = TRUE)
+e.prodlimCR2 <- BuyseTTEM(e.prodlimCR, treatment = "treatment", iid = TRUE)
+
+predict(e.prodlimCR2, time = tau, treatment = "T", strata = "a")
+predict(e.prodlimCR, times = tau, newdata = data.frame(treatment = "T", strata = "a"), cause = 1)
+
+predict(e.prodlimCR2, time = tau, treatment = "C", strata = "a")
+predict(e.prodlimCR, times = tau, newdata = data.frame(treatment = "C", strata = "a"), cause = 1)
 }

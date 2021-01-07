@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: jan  5 2021 (11:34) 
+## Last-Updated: jan  7 2021 (11:21) 
 ##           By: Brice Ozenne
-##     Update #: 413
+##     Update #: 426
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,9 +31,10 @@ calcPeron <- function(data,
                       D.TTE,
                       D.UTTE,
                       type,
+                      level.strata,
+                      n.strata,
                       strata,
                       threshold,
-                      n.strata,
                       precompute,
                       iidNuisance,
                       out){
@@ -74,10 +75,11 @@ calcPeron <- function(data,
         }else if(fitter[iUTTE]=="survreg"){
 
             if(tofit){
-                model.tte[[iUTTE]] <- do.call(survival::survfit, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data), args))
+                model.tte[[iUTTE]] <- do.call(survival::survreg, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data), args))
             }
             
         }
+        
         model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment, level.treatment = level.treatment, iid = iidNuisance)
     }
 
@@ -170,6 +172,10 @@ calcPeron <- function(data,
                         if(iidNuisance){
                             out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat)
                             out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
+
+                            model.tte[[iUTTE]]$peron
+                            if(any(is.na(out$iid[[iStoreJump]][[iUTTE]][[iStrata]]))){ browser() }
+
                         }
                         out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind(time = iTime.jump, ## jump time
                                                                            survival = iSurvTau.jump$survival, 
