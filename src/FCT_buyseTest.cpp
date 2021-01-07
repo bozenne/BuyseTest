@@ -568,16 +568,14 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     iUnfavorable_UTTE.resize(D_UTTE);
     iWeight_UTTE.resize(D_UTTE);
 
-    if(returnIID>1){
-      iDweight_Dnuisance_C_UTTE.resize(D_UTTE);
-      iDweight_Dnuisance_T_UTTE.resize(D_UTTE);
+    iDweight_Dnuisance_C_UTTE.resize(D_UTTE);
+    iDweight_Dnuisance_T_UTTE.resize(D_UTTE);
 
-      iDscore_Dnuisance_C_UTTE.resize(D_UTTE);
-      iDscore_Dnuisance_T_UTTE.resize(D_UTTE);
+    iDscore_Dnuisance_C_UTTE.resize(D_UTTE);
+    iDscore_Dnuisance_T_UTTE.resize(D_UTTE);
 
-      iDscore_Dnuisance_C_calcOnePair.resize(D);
-      iDscore_Dnuisance_T_calcOnePair.resize(D);
-    }
+    iDscore_Dnuisance_C_calcOnePair.resize(D);
+    iDscore_Dnuisance_T_calcOnePair.resize(D);
   }
 
   // over endpoint
