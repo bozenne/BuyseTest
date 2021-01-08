@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: jan  7 2021 (11:34) 
+## Last-Updated: jan  8 2021 (11:13) 
 ##           By: Brice Ozenne
-##     Update #: 578
+##     Update #: 630
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -336,18 +336,73 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
         mf[[treatment]] <- factor(mf[[treatment]], levels = object$xlevels[[treatment]], labels = level.treatment)
     }
     
-    if(iid){
-        stop("Argument \'iid\' equal to TRUE not available for survreg objects. \n")
-    }
-
     if(any(object$y[,"time"]<=0)){
         stop("Only handles strictly positive event times \n")
     }
-    
+        
     ## ** handling competing risks
     object$peron$n.CR <- 1 ## survival case (one type of event)
 
-    ## ** table CIF and dCIF
+    ## ** prepare for iid
+
+    if(iid){
+
+        ## *** extract information
+        n.obs <- stats::nobs(object)
+        X <- stats::model.matrix(stats::formula(object), mf)
+        beta <- stats::coef(object)
+        sigma <- object$scale
+        object.iid <- lava::iid(object)
+        object.iid.beta <- object.iid[,setdiff(colnames(object.iid), "logsigma"),drop=FALSE]
+        if("logsigma" %in% colnames(object.iid)){
+            object.iid.sigma <- object.iid[,"logsigma",drop=FALSE]
+        }else{
+            object.iid.sigma <- matrix(0, nrow = n.obs, ncol = 1, dimnames = list(1:n.obs,"logsigma"))
+        }
+        
+        ## *** extract link and derivative
+        object.dist <- survreg.distributions[[object$dist]]
+
+        object.dist$quantileM1 <- switch(object.dist$dist,
+                                      "t" = function(q,df){stats::pt(q,df)},
+                                      "gaussian" = function(q,parms){stats::pnorm(q)},
+                                      "logistic" = function(q,parms){1/(1+exp(-q))},
+                                      "extreme" = function(q,parms){1-exp(-exp(q))},
+                                      NULL)
+        object.dist$dquantileM1 <- switch(object.dist$dist,
+                                       "t" = function(q,df){stats::dt(q,df)},
+                                       "gaussian" = function(q,parms){stats::dnorm(q)},
+                                       "logistic" = function(q,parms){exp(-q)/(1+exp(-q))^2},
+                                       "extreme" = function(q,parms){exp(q)*exp(-exp(q))},
+                                       NULL)
+
+        if("quantile" %in% names(object.dist) == FALSE){
+            object.dist$quantile <- survreg.distributions[[object.dist$dist]]$quantile
+        }
+
+        if("quantileM1" %in% names(object.dist) == FALSE){
+            object.dist$quantileM1 <- switch(object.dist$dist,
+                                             "t" = function(q,df){stats::pt(q,df)},
+                                             "gaussian" = function(q,parms){stats::pnorm(q)},
+                                             "logistic" = function(q,parms){1/(1+exp(-q))},
+                                             "extreme" = function(q,parms){1-exp(-exp(q))},
+                                             NULL)
+            object.dist$dquantileM1 <- switch(object.dist$dist,
+                                           "t" = function(q,df){stats::dt(q,df)},
+                                           "gaussian" = function(q,parms){stats::dnorm(q)},
+                                           "logistic" = function(q,parms){exp(-q)/(1+exp(-q))^2},
+                                           "extreme" = function(q,parms){exp(q)*exp(-exp(q))},
+                                           NULL)
+        }
+        
+        if(is.null(object.dist$itrans)){
+            object.dist$trans <- function(x){x}
+            object.dist$itrans <- function(x){x}
+            object.dist$dtrans <- function(x){1}
+        }
+    }
+
+    ## ** table CIF and iid
     grid.quantile <- seq(from=0,to=1-1/n.grid,length.out=n.grid)
     object$peron$last.estimate[] <- utils::tail(grid.quantile,1) ## final modeled survival value close to 0 i.e. CIF close to 1
     
@@ -368,20 +423,39 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
                                                                         time.jump = iJump,
                                                                         survival = 1-grid.quantile)
 
-            iTime <- mf[iIndex.obs,1][,1]
+            iTime <- sort(mf[iIndex.obs,1][,1])
             iIndex.param <- prodlim::sindex(jump.times = iJump, eval.times = iTime + tol12)
             iSurv <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]]$survival[iIndex.param]
             object$peron$cif[[iStrata]][[iTreat]][[1]] <- data.frame(time = c(-tol12,iTime),
                                                                      cif = c(0,1-iSurv),
                                                                      index = c(0,iIndex.param-1))
 
-            object$peron$last.time[iStrata,iTreat] <- utils::tail(iJump,1) 
+            object$peron$last.time[iStrata,iTreat] <- utils::tail(iJump,1)
+
+            if(iid){
+                iP <- NROW(object$peron$jumpSurvHaz[[iStrata]][[iTreat]])
+                iLP <- drop(X[iIndex.obs[1],,drop=FALSE] %*% beta)
+                object.iid.iLP <- object.iid.beta %*% t(X[iIndex.obs[1],,drop=FALSE])
+                
+                ## *** compute time with se [not used]
+                ## fit.trans <- iLP + object.dist$quantile(grid.quantile) * sigma
+                ## range(object.dist$itrans(fit.trans) - iJump)
+                ## fit.iid <- .rowScale_cpp(.colCenter_cpp(object.iid.sigma %*% object.dist$quantile(grid.quantile), center = - object.iid.iLP), object.dist$dtrans(object.dist$itrans(fit.trans)))
+                ## fit.se <- sqrt(colSums(fit.iid^2))
+                ## quantile(predict(object, type = "quantile", p = grid.quantile, newdata = mf[iIndex.obs[1],,drop=FALSE],se = TRUE)$se - fit.se, na.rm = TRUE)
+
+                ## *** compute survival with se
+                iPred <- (object.dist$trans(iJump) - iLP)/sigma ## range(grid.quantile - object.dist$quantileM1(iPred))
+                
+                object$peron$iid.cif[[iStrata]][[iTreat]][[1]] <- .rowMultiply_cpp(.colCenter_cpp(- object.iid.sigma %*% (object.dist$trans(iJump) - iLP) / sigma^2,
+                                                                                                  center = object.iid.iLP / sigma), scale = object.dist$dquantileM1(iPred))
+                object$peron$iid.cif[[iStrata]][[iTreat]][[1]][,iJump==0] <- 0
+
+                ## range(object$peron$iid.cif[[iStrata]][[iTreat]][[1]][,10] - (- object.iid.sigma * (object.dist$trans(iJump[10]) - iLP) /sigma^2 - object.iid.iLP / sigma) * object.dist$dquantileM1(iPred[10]))
+            }
         }
     }
 
-    ## ** table iid
-    ## not done
-    
     ## ** export
     class(object) <- append("BuyseTTEM",class(object))
     return(object)
@@ -509,7 +583,7 @@ predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = 
     if(!is.numeric(treatment)){
         treatment <- which(treatment == object$peron$level.treatment)
     }
-    if(missing(strata)){
+    if(missing(strata) && object$peron$n.strata == 1){
         strata <- 1
     }
 
@@ -558,7 +632,9 @@ iid.BuyseTTEM <- function(x, treatment, strata, cause = 1){
     if(is.null(x$peron$iid.cif[[strata]][[treatment]][[cause]])){
         stop("iid decomposition not available - consider setting the argument \'iid\' to TRUE when calling BuyseTTEM. \n")
     }
-    if(x$type=="surv"){
+    type <- ifelse(x$peron$n.CR==1,"survival","competing.risks")
+
+    if(type=="survival"){
         return(-x$peron$iid.cif[[strata]][[treatment]][[cause]])
     }else{
         return(x$peron$iid.cif[[strata]][[treatment]][[cause]])
