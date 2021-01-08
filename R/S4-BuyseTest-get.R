@@ -367,6 +367,131 @@ setMethod(f = "getPairScore",
               }
           })
 
+## * getPseudovalue (documentation)
+#' @name S4BuyseTest-getPseudovalue
+#' @title Extract the pseudovalues of the Estimator
+#' @aliases getPseudovalue,S4BuyseTest-method
+#' @include S4-BuyseTest.R
+#' 
+
+#' @description Extract the pseudovalues of the estimator.
+#' The average of the pseudovalues is the estimate and their standard deviation the standard error of the estimate times a factor n
+#' (i.e. a t-test on their mean will give asymptotically valid confidence intervals and p-values).
+#' 
+#' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
+#' @param endpoint [character] for which endpoint(s) the pseudovalues should be output?
+#' If \code{NULL} returns the sum of the H-decomposition over all endpoints.
+#' @param statistic [character] the type of statistic relative to which the pseudovalues should be computed.
+#' Can be \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, or \code{"unfavorable"}.
+#' @seealso 
+#' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
+#' \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
+#' 
+#' @keywords S4BuyseTest-method
+#' @author Brice Ozenne
+
+## * getPseudovalue (examples)
+#' @rdname S4BuyseTest-getPseudovalue
+#' @examples
+#' set.seed(10)
+#' n <- 250
+#' d <- simBuyseTest(n)
+#'
+#' e.BT <- BuyseTest(treatment ~ tte(eventtime,status,2) + bin(toxicity),
+#'                  data = d, trace = 0)
+#'
+#' #### net Benefit
+#' pseudo <- getPseudovalue(e.BT)
+#' summary(lm(pseudo~1))$coef
+#' ## asymptotically equivalent to
+#' confint(e.BT, transformation = TRUE)
+#' ## (small differences: small sample corrections)
+#' 
+#' summary(lm(getPseudovalue(e.BT, endpoint = 1)~1))$coef
+#' 
+#' #### win Ratio
+#' pseudo <- getPseudovalue(e.BT, statistic = "winRatio")
+#' summary(lm(pseudo~1))$coef ## wrong p-value (should compare to 1 instead of 0)
+#' ## asymptotically equivalent to
+#' confint(e.BT, statistic = "winRatio", transformation = TRUE)
+#' 
+#' #### favorable
+#' pseudo <- getPseudovalue(e.BT, statistic = "favorable")
+#' summary(lm(pseudo~1))$coef ## wrong p-value (should compare to 1/2 instead of 0)
+#' ## asymptotically equivalent to
+#' confint(e.BT, statistic = "favorable", transformation = TRUE)
+#' 
+#' #### unfavorable
+#' pseudo <- getPseudovalue(e.BT, statistic = "unfavorable")
+#' summary(lm(pseudo~1))$coef ## wrong p-value (should compare to 1/2 instead of 0)
+#' ## asymptotically equivalent to
+#' confint(e.BT, statistic = "unfavorable", transformation = TRUE)
+
+## * getPseudovalue (code)
+setMethod(f = "getPseudovalue",
+          signature = "S4BuyseTest",
+          definition = function(object, statistic = NULL, endpoint = NULL){
+
+              option <- BuyseTest.options()
+
+              ## ** normalize arguments
+
+              ## endpoint
+              valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+
+              if(is.null(endpoint)){
+                  endpoint <- utils::tail(valid.endpoint,1)
+              }else if(is.numeric(endpoint)){
+                  validInteger(endpoint,
+                               name1 = "endpoint",
+                               min = 1, max = length(valid.endpoint),
+                               valid.length = 1,
+                               method = "iid[BuyseTest]")
+                  endpoint <- valid.endpoint[endpoint]
+              }else{
+                  validCharacter(endpoint,
+                                 valid.length = 1,
+                                 valid.values = valid.endpoint,
+                                 refuse.NULL = FALSE)
+              }
+
+              ##  statistics
+              if(is.null(statistic)){
+                  statistic <- option$statistic
+              }else{
+
+                  statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
+                                      "netbenefit" = "netBenefit",
+                                      "winratio" = "winRatio",
+                                      "favorable" = "favorable",
+                                      "unfavorable" = "unfavorable",
+                                      statistic)
+              }
+              
+              validCharacter(statistic,
+                             name1 = "statistic",
+                             valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
+                             valid.length = 1,
+                             method = "getPseudovalue[S4BuyseTest]")
+              
+              ## ** compute pseudovalue
+              object.delta <- coef(object, statistic = statistic)[endpoint]
+              count.favorable <- coef(object, statistic = "favorable")[endpoint]
+              count.unfavorable <- coef(object, statistic = "unfavorable")[endpoint]
+              object.iid <- getIid(object, endpoint = endpoint)[[1]]
+              n <- NROW(object.iid)
+
+              out <- switch(statistic,
+                            "favorable" = n * object.iid[,"favorable"] + object.delta,
+                            "unfavorable" = n * object.iid[,"unfavorable"] + object.delta,
+                            "netBenefit" = n * (object.iid[,"favorable"] - object.iid[,"unfavorable"]) + object.delta,
+                            "winRatio" = n * (object.iid[,"favorable"] / count.unfavorable - object.iid[,"unfavorable"] * (count.favorable/count.unfavorable^2)) + object.delta,
+                            )
+
+              ## ** export
+              return(out)
+          })
+
 ## * getSurvival (documentation)
 #' @name S4BuyseTest-getSurvival
 #' @title Extract the Survival and Survival Jumps

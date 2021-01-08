@@ -3,15 +3,17 @@
 * Version 2.2
 
 ** User visible changes
-- NEW FEATURE: method.inference="u-statistic" can now be used in
-  presence of competing risks with the Peron's scoring rule (WARNING:
-  NOT YET VALIDATED)
+- NEW FEATURE: getPseudovalue can be used to extract
+  pseudo-observations corresponding to the net Benefit.
+- NEW FEATURE: model.tte can now accept survreg objects.
 
 ** Internal change
-- c++ for the competing risk has been updated to compute the influence function
+- fix operator option moving it to the C++ code.
+- c++ for the competing risk has been updated to compute the influence
+  function
 - calculation of the survival/cumulative incidence function/influence
   function of the survival model for the Peron's scoring rule has been
-  re-written. 
+  re-written.
 
 * Version 2.1
 

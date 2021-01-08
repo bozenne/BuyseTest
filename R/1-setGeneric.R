@@ -27,6 +27,15 @@ setGeneric(name = "getPairScore",
            }
            )
 
+## * Selector getPseudovalue (for S4BuyseTest)
+#' @rdname S4BuyseTest-getPseudovalue
+#' @exportMethod getPseudovalue
+setGeneric(name = "getPseudovalue",
+           def = function(object, statistic = NULL, endpoint = NULL){
+               standardGeneric("getPseudovalue")
+           }
+)
+
 ## * Selector getSurvival (for S4BuyseTest)
 #' @rdname S4BuyseTest-getSurvival
 #' @exportMethod getSurvival
