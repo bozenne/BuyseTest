@@ -110,7 +110,6 @@ There must be one threshold for each endpoint variable; it must be \code{NA} for
 Must value \code{NA} when the endpoint is not a time to event.
   \item \code{operator}: [character vector] the sign defining a favorable endpoint.
 \code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
-When the operator is set to \code{"<0"} the corresponding column in the dataset is internally multiplied by \code{-1}.#' 
   \item \code{type}: [character vector] indicates whether it is
 a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),

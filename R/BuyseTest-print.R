@@ -60,7 +60,7 @@ printGeneral <- function(status,
     df.endpoint$endpoint <- paste0(df.endpoint$endpoint," ")
     df.endpoint$type <- paste0(df.endpoint$type," ")
     df.endpoint$operator <- paste0(df.endpoint$operator," ")
-    df.endpoint$threshold <- paste0(df.endpoint$threshold," ")
+    df.endpoint$threshold <- ifelse(is.na(df.endpoint$threshold),NA,paste0(df.endpoint$threshold," "))
 
     if(all(type!=3)){
         df.endpoint$event <- NULL
@@ -73,12 +73,14 @@ printGeneral <- function(status,
         })
         df.endpoint$event[type==3] <- paste0(df.endpoint$event[type==3],txt.eventType)
     }
+    df.endpoint[is.na(df.endpoint)] <- ""
     
     ## ** Display
     cat("Settings \n")
     cat("   - 2 groups  ",if(D>1){" "},": Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
     cat("   - ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
+
     if(n.strata>1){
         txt.variable <- switch(as.character(length(strata)),
                                "1" = "variable",

@@ -15,6 +15,7 @@ GPC_cpp(
   threshold,
   weight,
   method,
+  op,
   D,
   D_UTTE,
   n_strata,
@@ -52,6 +53,7 @@ GPC2_cpp(
   threshold,
   weight,
   method,
+  op,
   D,
   D_UTTE,
   n_strata,
@@ -97,6 +99,8 @@ GPC2_cpp(
 \item{weight}{Store the weight associated to each endpoint. Must have length D.}
 
 \item{method}{The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.}
+
+\item{op}{The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.}
 
 \item{D}{The number of endpoints.}
 

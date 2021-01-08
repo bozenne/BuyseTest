@@ -22,7 +22,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 					   std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_C, std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_T,
 					   std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_T,
 					   double zeroPlus, 
-					   int method, int returnIID, int p_C, int p_T, 
+                      		           int method, int op, int returnIID, int p_C, int p_T, 
 					   bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, bool precompute, int correctionUninf, bool neutralAsUninf,
 					   int debug);
 
@@ -76,7 +76,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 					   std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_C, std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_T,
 					   std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_T,
 					   double zeroPlus, 
-					   int method, int returnIID, int p_C, int p_T, 
+					   int method, int op, int returnIID, int p_C, int p_T, 
 					   bool firstEndpoint, bool evalM1, bool updateIndexNeutral, bool updateIndexUninf, bool keepScore, bool precompute, int correctionUninf, bool neutralAsUninf,
 					   int debug){
 
@@ -151,90 +151,111 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
     iDscore_Dnuisance_C.resize(p_C, 4); // initialized to 0 in calcOnePair_SurvPeron
     iDscore_Dnuisance_T.resize(p_T, 4); // initialized to 0 in calcOnePair_SurvPeron
   }
-  
+
+  // operator
+  double iTempoOperatorDouble; // for switching favorable to unfavorable when op is <0
+  arma::colvec iTempoOperatorCol; // for switching favorable to unfavorable when op is <0
+
   // ** loop over the pairs
   for(int iter_pair=0; iter_pair<n_pair ; iter_pair++){
     if(debug>1){Rcpp::Rcout << iter_pair << "/" << n_pair << " ";}
     iUpdateRPNeutral = false;
-	iUpdateRPUninf = false;
+    iUpdateRPUninf = false;
 	
-	// *** find index of the pair
-	if(firstEndpoint){
-	  if(iter_C < (n_Control-1)){
-		iter_C ++;
-	  }else if(iter_T < (n_Treatment-1)){
-		iter_C = 0;
-		iter_T ++;
-	  }else{
-		break;
-	  }
-	}else{
-	  iter_C = index_control[iter_pair];
-	  iter_T = index_treatment[iter_pair];
-	  iWeight = weight(iter_pair);
-	}
-	if(debug>2){Rcpp::Rcout << "("<< iter_C << "/" << n_Control <<";" << iter_T << "/" << n_Treatment << ") ";}
-	if(debug>3){Rcpp::Rcout << "("<< endpointT[iter_T] << ";" << endpointC[iter_C] << ";" << threshold <<") ";}
+    // *** find index of the pair
+    if(firstEndpoint){
+      if(iter_C < (n_Control-1)){
+	iter_C ++;
+      }else if(iter_T < (n_Treatment-1)){
+	iter_C = 0;
+	iter_T ++;
+      }else{
+	break;
+      }
+    }else{
+      iter_C = index_control[iter_pair];
+      iter_T = index_treatment[iter_pair];
+      iWeight = weight(iter_pair);
+    }
+    if(debug>2){Rcpp::Rcout << "("<< iter_C << "/" << n_Control <<";" << iter_T << "/" << n_Treatment << ") ";}
+    if(debug>3){Rcpp::Rcout << "("<< endpointT[iter_T] << ";" << endpointC[iter_C] << ";" << threshold <<") ";}
     
-	// *** compute score
-	if(evalM1 && method > 3){ // Previously analyzed endpoint with Peron's scoring rule. Extract previous score for the residual pairs.
-	  iPairScore[0] = RP_score(iter_pair,0);
-	  iPairScore[1] = RP_score(iter_pair,1);
-	  iPairScore[2] = RP_score(iter_pair,2);
-	  iPairScore[3] = RP_score(iter_pair,3);
-	  if(returnIID > 1){
-		for(int iType=0; iType<4; iType++){ // convertion from sparse to non-sparse
-		  arma::colvec tempo_C(RP_Dscore_Dnuisance_C[iType].col(iter_pair));
-		  iDscore_Dnuisance_C.col(iType) = tempo_C;
-		  arma::colvec tempo_T(RP_Dscore_Dnuisance_T[iType].col(iter_pair));
-		  iDscore_Dnuisance_T.col(iType) = tempo_T;
-		}
-	  }
-	}else if(method == 1){ // continuous or binary endpoint
-	  iPairScore = calcOnePair_Continuous(endpointT[iter_T] - endpointC[iter_C], threshold);
-	}else if(method == 2){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
-	  iPairScore = calcOnePair_TTEgehan(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
-	}else if(method == 3){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
-	  iPairScore = calcOnePair_TTEgehan2(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
-	}else if(method == 4){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
-	  iPairScore = calcOnePair_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
-										 survTimeC.row(iter_C), survTimeT.row(iter_T),
-										 survJumpC, survJumpT, lastSurv(0), lastSurv(1),
-										 iDscore_Dnuisance_C, iDscore_Dnuisance_T,
-										 p_C, p_T, precompute, returnIID);
-
-	}else if(method == 5){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
-	  iPairScore = calcOnePair_CRPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
-									   survTimeC.row(iter_C), survTimeT.row(iter_T),
-									   survJumpC, survJumpT, lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3),
-									   iDscore_Dnuisance_C, iDscore_Dnuisance_T,
-									   p_C, p_T, precompute, returnIID);
+    // *** compute score
+    if(evalM1 && method > 3){ // Previously analyzed endpoint with Peron's scoring rule. Extract previous score for the residual pairs.
+      iPairScore[0] = RP_score(iter_pair,0);
+      iPairScore[1] = RP_score(iter_pair,1);
+      iPairScore[2] = RP_score(iter_pair,2);
+      iPairScore[3] = RP_score(iter_pair,3);
+      if(returnIID > 1){
+	for(int iType=0; iType<4; iType++){ // convertion from sparse to non-sparse
+	  arma::colvec tempo_C(RP_Dscore_Dnuisance_C[iType].col(iter_pair));
+	  iDscore_Dnuisance_C.col(iType) = tempo_C;
+	  arma::colvec tempo_T(RP_Dscore_Dnuisance_T[iType].col(iter_pair));
+	  iDscore_Dnuisance_T.col(iType) = tempo_T;
 	}
+      }
+    }else if(method == 1){ // continuous or binary endpoint
+      iPairScore = calcOnePair_Continuous(endpointT[iter_T] - endpointC[iter_C], threshold);
+    }else if(method == 2){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
+      iPairScore = calcOnePair_TTEgehan(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
+    }else if(method == 3){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
+      iPairScore = calcOnePair_TTEgehan2(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
+    }else if(method == 4){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
+      iPairScore = calcOnePair_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
+					 survTimeC.row(iter_C), survTimeT.row(iter_T),
+					 survJumpC, survJumpT, lastSurv(0), lastSurv(1),
+					 iDscore_Dnuisance_C, iDscore_Dnuisance_T,
+					 p_C, p_T, precompute, returnIID);
 
-	// *** aggregate favorable score and iid over analyzed pairs
-	if(iPairScore[0] > zeroPlus){
-	  if(debug>4){Rcpp::Rcout << " favorable=" << iPairScore[0] << " ";}
+    }else if(method == 5){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
+      iPairScore = calcOnePair_CRPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
+				       survTimeC.row(iter_C), survTimeT.row(iter_T),
+				       survJumpC, survJumpT, lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3),
+				       iDscore_Dnuisance_C, iDscore_Dnuisance_T,
+				       p_C, p_T, precompute, returnIID);
+    }
 
-	  // score
-	  count_favorable += iPairScore[0] * iWeight;
+    // *** operator
+    if(op<0 && !(evalM1 && method > 3)){
+      iTempoOperatorDouble = iPairScore[0];
+      iPairScore[0] = iPairScore[1];
+      iPairScore[1] = iTempoOperatorDouble;
 
-	  if(returnIID > 0){
-	    // iid (average)
-	    count_obsC(iter_C,0) += iPairScore[0] * iWeight;
-	    count_obsT(iter_T,0) += iPairScore[0] * iWeight;
-	    if(returnIID > 1){
-	      // iid (nuisance) for the score
-	      if(method >= 4){
-		    Dscore_Dnuisance_C.col(0) += iDscore_Dnuisance_C.col(0) * iWeight;
-		    Dscore_Dnuisance_T.col(0) += iDscore_Dnuisance_T.col(0) * iWeight;
-		  }
-		  // iid (nuisance) for the weight of the pair
-		  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
-		    Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
-		    Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
-		  }
-		}
+      if((returnIID > 1) && (method >= 4)){ 
+	iTempoOperatorCol = iDscore_Dnuisance_C.col(0);
+	iDscore_Dnuisance_C.col(0) = iDscore_Dnuisance_C.col(1);
+	iDscore_Dnuisance_C.col(1) = iTempoOperatorCol;
+
+	iTempoOperatorCol = iDscore_Dnuisance_T.col(0);
+	iDscore_Dnuisance_T.col(0) = iDscore_Dnuisance_T.col(1);
+	iDscore_Dnuisance_T.col(1) = iTempoOperatorCol;
+      }
+    }
+
+    // *** aggregate favorable score and iid over analyzed pairs
+    if(iPairScore[0] > zeroPlus){
+      if(debug>4){Rcpp::Rcout << " favorable=" << iPairScore[0] << " ";}
+
+      // score
+      count_favorable += iPairScore[0] * iWeight;
+
+      if(returnIID > 0){
+	// iid (average)
+	count_obsC(iter_C,0) += iPairScore[0] * iWeight;
+	count_obsT(iter_T,0) += iPairScore[0] * iWeight;
+	if(returnIID > 1){
+	  // iid (nuisance) for the score
+	  if(method >= 4){
+	    Dscore_Dnuisance_C.col(0) += iDscore_Dnuisance_C.col(0) * iWeight;
+	    Dscore_Dnuisance_T.col(0) += iDscore_Dnuisance_T.col(0) * iWeight;
 	  }
+	  // iid (nuisance) for the weight of the pair
+	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
+	    Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
+	    Dweight_Dnuisance_T[0][activeUTTE[iter_UTTE]].col(iter_pair) *= iPairScore[0] * iWeight;
+	  }
+	}
+      }
 	}else if(returnIID > 1){
 	  for(int iter_UTTE=0; iter_UTTE<D_activeUTTE; iter_UTTE++){
 	    (Dweight_Dnuisance_C[0][activeUTTE[iter_UTTE]].col(iter_pair)) *= 0;

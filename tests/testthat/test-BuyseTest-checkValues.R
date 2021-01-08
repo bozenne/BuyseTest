@@ -467,25 +467,18 @@ test_that(paste0("BuyseTest - Peron scoring rule with 2 TTE, one without censori
 ## * Left censoring
 test_that("BuyseTest - left vs. right censoring", {
 
-    BT.right <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "right", operator = "<0"),
-                          data = dt.sim,
-                          scoring.rule = "Gehan")
     BT.left <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "left"),
                          data = dt.sim,
                          scoring.rule = "Gehan")
 
-    expect_equal(coef(BT.right), -coef(BT.left))
+    expect_equal(as.double(coef(BT.left)), 0.09488889, tol = 1e-6)
 
-    BT.right <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "right", operator = "<0"),
-                          data = dt.sim,
-                          scoring.rule = "Gehan",
-                          correction.uninf = TRUE)
     BT.left <- BuyseTest(treatment ~ tte(eventtime1, status = status1, censoring = "left"),
                          data = dt.sim,
                          scoring.rule = "Gehan",
                          correction.uninf = TRUE)
 
-    expect_equal(coef(BT.right), -coef(BT.left))
+    expect_equal(as.double(coef(BT.left)), 0.1768116, tol = 1e-6)
 })
 
 ## * dataset [save]

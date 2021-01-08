@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: dec  5 2020 (21:37) 
+## Last-Updated: jan  8 2021 (16:03) 
 ##           By: Brice Ozenne
-##     Update #: 858
+##     Update #: 862
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -165,9 +165,6 @@ powerBuyseTest <- function(sim,
     ## ** test arguments
     if(option$check){
         outTest <- do.call(testArgs, args = c(outArgs[setdiff(names(outArgs),"data")], list(data = dt.tempo)))        
-        if(any(outArgs$operator!=">0")){
-            stop("Cannot use argument \'operator\' with powerBuyseTest \n")
-        }
         if(!is.null(outArgs$strata)){
             stop("Cannot use argument \'strata\' with powerBuyseTest \n")
         }
@@ -361,7 +358,6 @@ powerBuyseTest <- function(sim,
                                               status = envir$outArgs$status,
                                               Ustatus = envir$outArgs$Ustatus,
                                               method.inference = envir$outArgs$method.inference,
-                                              operator = envir$outArgs$operator,
                                               censoring = envir$outArgs$censoring,
                                               strata = envir$outArgs$strata,
                                               treatment = envir$outArgs$treatment,
@@ -403,7 +399,6 @@ powerBuyseTest <- function(sim,
                                                           status = envir$outArgs$status,
                                                           Ustatus = envir$outArgs$Ustatus,
                                                           method.inference = envir$outArgs$method.inference,
-                                                          operator = envir$outArgs$operator,
                                                           censoring = envir$outArgs$censoring,
                                                           strata = envir$outArgs$strata,
                                                           treatment = envir$outArgs$treatment,

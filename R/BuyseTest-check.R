@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jan  6 2021 (23:20) 
+## Last-Updated: jan  8 2021 (15:55) 
 ##           By: Brice Ozenne
-##     Update #: 254
+##     Update #: 257
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -319,14 +319,9 @@ testArgs <- function(name.call,
                  method = "BuyseTest")
 
     ## ** operator
-    validCharacter(operator,
-                   valid.values = c("<0",">0"),
-                   valid.length = D,
-                   method = "BuyseTest")
-
-    n.operatorPerEndpoint <- tapply(operator, endpoint, function(x){length(unique(x))})
-    if(any(n.operatorPerEndpoint>1)){
-        stop("Cannot have different operator for the same endpoint used at different priorities. \n")
+    if(any(is.na(operator))){
+        stop("BuyseTest: Wrong specification of \'operator\'. \n",
+             "Should be either \"<0\" (lower is better) or \">0\" (higher is better)")
     }
 
     ## ** seed

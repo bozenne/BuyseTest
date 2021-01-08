@@ -59,7 +59,6 @@
 #' Must value \code{NA} when the endpoint is not a time to event.
 #'   \item \code{operator}: [character vector] the sign defining a favorable endpoint.
 #' \code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
-#' When the operator is set to \code{"<0"} the corresponding column in the dataset is internally multiplied by \code{-1}.#' 
 #'   \item \code{type}: [character vector] indicates whether it is
 #' a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 #' a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
@@ -334,7 +333,6 @@ BuyseTest <- function(formula,
                                         status = outArgs$status,
                                         Ustatus = outArgs$Ustatus,
                                         method.inference = outArgs$method.inference,
-                                        operator = outArgs$operator,
                                         censoring = outArgs$censoring,
                                         strata = outArgs$strata,
                                         treatment = outArgs$treatment,
@@ -344,7 +342,7 @@ BuyseTest <- function(formula,
                                         endpoint.TTE = outArgs$endpoint.TTE,
                                         status.TTE = outArgs$status.TTE,
                                         iidNuisance = outArgs$iidNuisance)
-
+    
     if(option$check){
         if(outArgs$iidNuisance && any(outArgs$method.score == 5)){
             warning("Inference via the asymptotic theory  for competing risks when using the Peron's scoring rule has not been validating \n",
@@ -517,6 +515,7 @@ BuyseTest <- function(formula,
                                  threshold = envir$outArgs$threshold,
                                  weight = envir$outArgs$weight,
                                  method = envir$outArgs$method.score,
+                                 op = envir$outArgs$operator,
                                  D = envir$outArgs$D,
                                  D_UTTE = envir$outArgs$D.UTTE,
                                  n_strata = envir$outArgs$n.strata,

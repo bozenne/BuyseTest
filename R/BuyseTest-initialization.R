@@ -46,7 +46,7 @@ initializeArgs <- function(status,
                            strata.resampling = NULL,
                            name.call,
                            neutral.as.uninf = NULL,
-                           operator,
+                           operator = NULL,
                            censoring,
                            option,
                            seed = NULL,
@@ -274,6 +274,9 @@ initializeArgs <- function(status,
         trace <- as.numeric(trace)
     }
 
+    ## ** operator
+    operator <- sapply(operator, switch, ">0"=1, "<0"=-1, NA)
+
     ## ** export
     return(list(
         name.call = name.call,
@@ -320,7 +323,7 @@ initializeArgs <- function(status,
 
 ## * initializeData
 #' @rdname internal-initialization
-initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, operator, censoring, strata, treatment, hierarchical, copy,
+initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, censoring, strata, treatment, hierarchical, copy,
                            keep.pairScore, endpoint.TTE, status.TTE, iidNuisance){
 
     if (!data.table::is.data.table(data)) {
@@ -342,20 +345,6 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         }
     }
 
-    ## ** operator
-    operator.endpoint <- stats::setNames(operator, endpoint)[!duplicated(endpoint)]
-    name.negative <- names(operator.endpoint)[operator.endpoint=="<0"]
-    if(length(name.negative)>0){
-        name.negative.binary <- intersect(name.negative, endpoint[type==1])
-        if(length(name.negative.binary)>0){
-            data[, (name.negative.binary) := -.SD+1, .SDcols = name.negative.binary]
-        }
-        
-        name.negative.other <- setdiff(name.negative, name.negative.binary)
-        if(length(name.negative.other)){
-            data[, (name.negative.other) := -.SD , .SDcols = name.negative.other]
-        }
-    }
 
     ## ** n.obs
     n.obs <- data[,.N]
