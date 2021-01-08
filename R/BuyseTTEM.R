@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: jan  8 2021 (11:13) 
+## Last-Updated: jan  8 2021 (12:02) 
 ##           By: Brice Ozenne
-##     Update #: 630
+##     Update #: 634
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -361,7 +361,7 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
         }
         
         ## *** extract link and derivative
-        object.dist <- survreg.distributions[[object$dist]]
+        object.dist <- survival::survreg.distributions[[object$dist]]
 
         object.dist$quantileM1 <- switch(object.dist$dist,
                                       "t" = function(q,df){stats::pt(q,df)},
@@ -377,7 +377,7 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
                                        NULL)
 
         if("quantile" %in% names(object.dist) == FALSE){
-            object.dist$quantile <- survreg.distributions[[object.dist$dist]]$quantile
+            object.dist$quantile <- survival::survreg.distributions[[object.dist$dist]]$quantile
         }
 
         if("quantileM1" %in% names(object.dist) == FALSE){
@@ -410,7 +410,7 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
         for(iTreat in level.treatment){ ## iTreat <- 1
 
             iIndex.obs <- intersect(
-                intersect(which(mf$treatment==iTreat),
+                intersect(which(mf[[treatment]]==iTreat),
                           which(object$peron$X[,"..strata.."]==iStrata)),
                 which(mf[,1][,2]==1)
             )

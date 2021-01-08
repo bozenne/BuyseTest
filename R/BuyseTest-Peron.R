@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: jan  8 2021 (10:23) 
+## Last-Updated: jan  8 2021 (11:55) 
 ##           By: Brice Ozenne
-##     Update #: 428
+##     Update #: 436
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -79,8 +79,8 @@ calcPeron <- function(data,
             }
             
         }
-        
-        model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment, level.treatment = level.treatment, iid = iidNuisance)
+
+        model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment, level.treatment = level.treatment, level.strata = level.strata, iid = iidNuisance)
     }
 
     ## ** estimate quantities for scoring pairs
@@ -117,7 +117,7 @@ calcPeron <- function(data,
                     ## last estimate of the survival/cif
                     out$lastSurv[[iEndpoint]][iStrata,seq(from=iTreat.num+1, by = 2, length=iN.CR)] <- iLastEstimate
                     if(test.CR[iUTTE]){
-                        
+
                         ## *** CIF at jump times
                         iPred1.iOther.beforeTau <- predict(model.tte[[iUTTE]], time = iTime.jump - iThreshold,
                                                            treatment = setdiff(level.treatment,iTreat), strata = iStrata)
