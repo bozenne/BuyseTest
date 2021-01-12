@@ -487,9 +487,16 @@ setMethod(f = "summary",
                       cat(" - censored pairs  : ",txt.scoring.rule,"\n", sep = "")
                   }
                   if(n.endpoint>1 && any(object@count.neutral>0)){
-                      txt.neutral <- switch(as.character(object@neutral.as.uninf),
-                                            "TRUE" = "re-analyzed using lower priority endpoints",
-                                            "FALSE" = "ignored at lower priority endpoints")
+                      Uneutral.as.uninf <- unique(object@neutral.as.uninf)
+                      if(identical(Uneutral.as.uninf,TRUE)){
+                          txt.neutral <- "re-analyzed using lower priority endpoints"
+                      }else if(identical(Uneutral.as.uninf,FALSE)){
+                          txt.neutral <- "ignored at lower priority endpoints"
+                      }else{
+                          txt.neutral <- paste0("re-analyzed using lower priority endpoints for endpoint ",
+                                                paste(which(object@neutral.as.uninf), collapse = ", "),
+                                                " \n                     otherwise ignored at lower priority endpoints")
+                      }
                       cat(" - neutral pairs   : ",txt.neutral,"\n", sep = "")
                   }
                   if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){

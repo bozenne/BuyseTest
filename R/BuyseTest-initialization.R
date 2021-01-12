@@ -230,6 +230,11 @@ initializeArgs <- function(status,
     }else{
         attr(method.inference,"resampling-strata") <- strata.resampling
     }
+
+    ## ** neutral.as.uninf
+    if(length(neutral.as.uninf)==1 && D>1){
+        neutral.as.uninf <- rep(neutral.as.uninf,D)
+    }
     
     ## ** correction.uninf
     correction.uninf <- as.numeric(correction.uninf)

@@ -15,7 +15,7 @@ void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat
 		   std::vector<int>& activeUTTE, int& D_activeUTTE,
 		   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
 		   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-		   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID);
+		   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, std::vector<bool>& neutralAsUninf, int returnIID);
 
 void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, 
 	       arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, 
@@ -122,7 +122,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   int correctionUninf,
 		   bool hierarchical,
 		   int hprojection,
-		   bool neutralAsUninf,
+		   std::vector<bool> neutralAsUninf,
 		   bool keepScore,
 		   bool precompute,
 		   int returnIID,
@@ -190,6 +190,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
     // *** initialization
     int iSize_RP = 0; // number of residual pairs (initialize to avoid C++warnings). 
     std::vector<int> activeUTTE(0); // index of the distinct TTE endpoints already analyzed with Peron scoring rule.
+    std::vector<bool> neutralAsUninfUTTE(D_UTTE); // neutral as uninf option for each of the distinct TTE endpoints already analyzed with Peron scoring rule.
     int D_activeUTTE = 0; // number of distinct TTE endpoints already analyzed with Peron scoring rule.
     arma::vec iIndex_control; // position of the controls in the remaining pairs among all controls.
     arma::vec iIndex_treatment; // position of the treated in the remaining pairs among all treated.
@@ -225,8 +226,8 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
       bool iFirstEndpoint = (iter_d==0) || (hierarchical==false); // should the GPC be performed on all possible pairs or only remaining pairs, accounting for weights.
       bool iMoreEndpoint = (D>(iter_d+1)) && hierarchical; // is there any endpoint after this one (if not, do not store detailed information about the residual pairs)
       bool iAlreadyAnalyzed = (iIndex_UTTE < iNUTTE_analyzedPeron) && (iIndex_UTTE > (-zeroPlus)); // has the current endpoint already been analyzed using the Peron's scoring rule
-      bool iUpdateIndexNeutral = iMoreEndpoint & neutralAsUninf;
-      bool iUpdateIndexUninf = iMoreEndpoint & (correctionUninf == 0 || (neutralAsUninf && (correctionUninf == 1)));
+      bool iUpdateIndexNeutral = iMoreEndpoint & neutralAsUninf[iter_d];
+      bool iUpdateIndexUninf = iMoreEndpoint & (correctionUninf == 0 || (neutralAsUninf[iter_d] && (correctionUninf == 1)));
 	  
       // *** compute weights with their iid decomposition
       arma::vec iPairWeight = iPairWeight_nPeron; // weight associated with each pair over all previous endpoints	
@@ -240,7 +241,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		      activeUTTE, D_activeUTTE,
 		      iter_d, iIndex_UTTE, RP_score,
 		      RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
-		      iNUTTE_analyzedPeron, correctionUninf, zeroPlus, neutralAsUninf, returnIID);
+		      iNUTTE_analyzedPeron, correctionUninf, zeroPlus, neutralAsUninfUTTE, returnIID);
 	if(iAlreadyAnalyzed){
 	  iPairDweight_Dnuisance_C_M1 = iPairDweight_Dnuisance_C;
 	  iPairDweight_Dnuisance_T_M1 = iPairDweight_Dnuisance_T;
@@ -266,7 +267,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 				iPairDweight_Dnuisance_C, iPairDweight_Dnuisance_T,
 				zeroPlus, 
 				iMethod, op[iter_d], returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
-				iFirstEndpoint, false, iUpdateIndexNeutral, iUpdateIndexUninf, keepScore, precompute, correctionUninf, neutralAsUninf,
+				iFirstEndpoint, false, iUpdateIndexNeutral, iUpdateIndexUninf, keepScore, precompute, correctionUninf, neutralAsUninf[iter_d],
 				debug);
 
       if(iAlreadyAnalyzed){ // substract contribution of the previous analysis
@@ -294,7 +295,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 					       iPairDweight_Dnuisance_C_M1, iPairDweight_Dnuisance_T_M1,								
 					       zeroPlus, 
 					       iMethod, op[iter_d], returnIID, p_C(iter_strata, iter_d), p_T(iter_strata, iter_d),
-					       false, true, false, false, keepScore, precompute, correctionUninf, neutralAsUninf,
+					       false, true, false, false, keepScore, precompute, correctionUninf, neutralAsUninf[iter_d],
 					       debug);
 	
 	Mcount_favorable(iter_strata,iter_d) -= iCount_favorable_M1;
@@ -370,13 +371,18 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 	iIndex_control = iRP_score.col(1);
 	iIndex_treatment = iRP_score.col(2);
 
+	// update neutral.as.uninf for tte endpoints analysed for the weights (only relevant when using Peron's scoring rule)
+	if(iIndex_UTTE>=0){
+	  neutralAsUninfUTTE[iIndex_UTTE] = neutralAsUninf[iter_d];
+	}
+	  
 	// update iPairWeight_nPeron, RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
 	// and re-initialize iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T
 	if(debug>0){Rcpp::Rcout << " update score/iid for the remaing pairs("<< nUTTE_analyzedPeron_M1[iter_d+1] <<") " << std::endl;}
 	updateRP(iRP_score, iRP_Dscore_Dnuisance_C, iRP_Dscore_Dnuisance_T,
 		 RP_score, RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T,
-				 iPairWeight_nPeron, iSize_RP, neutralAsUninf, iter_d, correctionUninf,
-				 zeroPlus, iIndex_UTTE, nUTTE_analyzedPeron_M1[iter_d+1], returnIID);
+		 iPairWeight_nPeron, iSize_RP, neutralAsUninf[iter_d], iter_d, correctionUninf,
+		 zeroPlus, iIndex_UTTE, nUTTE_analyzedPeron_M1[iter_d+1], returnIID);
       }
   
 	  
@@ -453,7 +459,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 					int correctionUninf, // not used		   
 					bool hierarchical,
 					int hprojection,
-					bool neutralAsUninf,
+					std::vector<bool> neutralAsUninf,
 					bool keepScore,
 					bool precompute,
 					int returnIID,
@@ -792,7 +798,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			Mcount_neutral(iter_strata,iter_d) += iPairScore[2] * iCumWeight;
 
 			// update weight
-			if(neutralAsUninf){
+			if(neutralAsUninf[iter_d]){
 			  iNewWeight += iPairScore[2];
 			}
 		  }
@@ -856,7 +862,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 				  iDscore_Dnuisance_T_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_T_calcOnePair[iter_d];
 				}
 		
-				if(neutralAsUninf && (iPairScore[2] > zeroPlus)){
+				if(neutralAsUninf[iter_d] && (iPairScore[2] > zeroPlus)){
 				  iDweight_Dnuisance_C_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_C_calcOnePair[iter_d].col(2) + iDscore_Dnuisance_C_calcOnePair[iter_d].col(3);
 				  iDweight_Dnuisance_T_UTTE[iIndex_UTTE_d] = iDscore_Dnuisance_T_calcOnePair[iter_d].col(2) + iDscore_Dnuisance_T_calcOnePair[iter_d].col(3);
 				}else{
@@ -955,7 +961,7 @@ void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat
 		   std::vector<int>& activeUTTE, int& D_activeUTTE,
 		   int iter_d, int iIndex_UTTE, const std::vector<arma::mat>& RP_score,
 		   const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_C, const std::vector< std::vector< arma::sp_mat > >& RP_Dscore_Dnuisance_T,
-		   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, bool neutralAsUninf, int returnIID){
+		   int iNUTTE_analyzedPeron, int correctionUninf, double zeroPlus, std::vector<bool>& neutralAsUninf, int returnIID){
 
 
   // ** cumulate weights over previous TTE endpoints
@@ -963,7 +969,7 @@ void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat
   for(int iter_UTTE=0 ; iter_UTTE<iNUTTE_analyzedPeron; iter_UTTE++){
     if(iter_UTTE != iIndex_UTTE){
       activeUTTE.push_back(iter_UTTE);
-      if(neutralAsUninf){
+      if(neutralAsUninf[iter_UTTE]){
 	iPairWeight %= (RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3));
       }else{
 	iPairWeight %= RP_score[iter_UTTE].col(3);
@@ -979,7 +985,7 @@ void prepareWeight(arma::vec& iPairWeight, std::vector<std::vector< arma::sp_mat
 	
     for(int iter_UTTE=0 ; iter_UTTE<iNUTTE_analyzedPeron; iter_UTTE++){
       if(iter_UTTE != iIndex_UTTE){
-	if(neutralAsUninf){
+	if(neutralAsUninf[iter_UTTE]){
 	  iPairDweight_Dnuisance_C[0][iter_UTTE] = RP_Dscore_Dnuisance_C[iter_UTTE][2] + RP_Dscore_Dnuisance_C[iter_UTTE][3];
 	  for(size_t iCol=0; iCol < iPairDweight_Dnuisance_C[0][iter_UTTE].n_rows; iCol++){
 	    iPairDweight_Dnuisance_C[0][iter_UTTE].row(iCol) %= arma::trans(iPairWeight/(RP_score[iter_UTTE].col(2) + RP_score[iter_UTTE].col(3)));
@@ -1135,7 +1141,7 @@ void updateRP(arma::mat& iRP_score, std::vector< arma::sp_mat >& iRP_Dscore_Dnui
 			
   }
 	
-  // ** update weights associated to the residual pairs
+  // ** update weights associated to the residual pairs according to the correction for uninformative pairs
   if(correctionUninf == 0){
     // no correction: all pairs have a weight of 1
     iPairWeight_nPeron.resize(iSize_RP);

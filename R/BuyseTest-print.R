@@ -89,10 +89,14 @@ printGeneral <- function(status,
     }
     if(D>1){
         cat("   - neutral pairs: ")
-        if(neutral.as.uninf){
+        if(all(neutral.as.uninf)){
             cat("re-analyzed using lower priority endpoints \n")
-        }else{
+        }else if(all(!neutral.as.uninf)){
             cat("ignored at lower priority endpoints \n")
+        }else{
+            cat("re-analyzed using lower priority endpoints for endpoint ",
+                paste(which(neutral.as.uninf), collapse = ", "),
+                " \n                    otherwise ignored at lower priority endpoints \n",sep="")
         }
     }
     if(D.TTE>0){

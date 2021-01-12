@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jan  8 2021 (15:55) 
+## Last-Updated: jan 12 2021 (12:12) 
 ##           By: Brice Ozenne
-##     Update #: 257
+##     Update #: 258
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -315,7 +315,7 @@ testArgs <- function(name.call,
 
     ## ** neutral.as.uninf
     validLogical(neutral.as.uninf,
-                 valid.length = 1,
+                 valid.length = D,
                  method = "BuyseTest")
 
     ## ** operator

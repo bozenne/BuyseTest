@@ -66,7 +66,7 @@ Otherwise all pairs will be compaired for all endpoint (full GPC).}
 \item{weight}{[numeric vector] weights used to cumulating the pairwise scores over the endpoints.
 Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.}
 
-\item{neutral.as.uninf}{[logical] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
+\item{neutral.as.uninf}{[logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 See Details, section "Handling missing values".}
 
 \item{keep.pairScore}{[logical] should the result of each pairwise comparison be kept?}

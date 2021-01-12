@@ -29,7 +29,7 @@
 #' Otherwise all pairs will be compaired for all endpoint (full GPC).
 #' @param weight [numeric vector] weights used to cumulating the pairwise scores over the endpoints.
 #' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
-#' @param neutral.as.uninf [logical] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
+#' @param neutral.as.uninf [logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 #' See Details, section "Handling missing values".
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
 #' @param seed [integer, >0] the seed to consider when performing resampling.
