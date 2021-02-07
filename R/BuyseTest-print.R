@@ -51,7 +51,7 @@ printGeneral <- function(status,
     }
     df.endpoint$endpoint <- endpoint
     df.endpoint$type <- c("binary","continuous","time to event")[type]
-    df.endpoint$operator <- c("lower is favorable","higher is favorable")[1 + (operator == ">0")]
+    df.endpoint$operator <- ifelse(operator>0,"higher is favorable","lower is favorable")
     df.endpoint$threshold[type!=1] <- threshold[type!=1]
     df.endpoint$event[type==3] <- status[type==3]
     

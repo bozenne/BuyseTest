@@ -12,19 +12,18 @@ package. This package implements the Generalized Pairwise Comparisons
 observations, and extended in cite:peron2018extension to deal with
 right-censoring. When considering a single endpoint, the GPC procedure
 can be summarized as follow. Denote the endpoint by \(Y\) in the
-treatment group and by \(X\) in the control group. Given a
-threshold of clinical relevance \(\tau\), the aim of GPC is to
-estimate the proportion in favor of treatment \(\Prob[Y \geq X +
-\tau]\) and the proportion in favor of control \(\Prob[X \geq Y +
-\tau]\). Other statistics such as the net benefit \(\Prob[Y \geq X +
-\tau]-\Prob[X \geq Y + \tau]\) or the win ratio \(\frac{\Prob[Y \geq
-X + \tau]}{\Prob[X \geq Y + \tau]}\) can then be deduced. It is
-assumed that the reader is familar with the GPC terminology [fn::if
-not, cite:buyse2010generalized is a good place to start.],
-e.g. prioritized endpoints, pair, net benefit, win ratio, threshold of
-clinical relevance, \ldots, since this vignette focuses on the
-software aspect of the *BuyseTest* package (not on the underlying
-statistical model).
+treatment group and by \(X\) in the control group. Given a threshold
+of clinical relevance \(\tau\), the aim of GPC is to estimate the
+proportion in favor of treatment \(\Prob[Y \geq X + \tau]\) and the
+proportion in favor of control \(\Prob[X \geq Y + \tau]\). Other
+statistics such as the net benefit \(\Prob[Y \geq X + \tau]-\Prob[X
+\geq Y + \tau]\) or the win ratio \(\frac{\Prob[Y \geq X +
+\tau]}{\Prob[X \geq Y + \tau]}\) can then be deduced. The vignette is
+written for readers familar with the GPC framework [fn::if not,
+cite:buyse2010generalized is a good place to start.], e.g. prioritized
+endpoints, pair, net benefit, win ratio, threshold of clinical
+relevance, \ldots, since it focuses on the software aspect
+of the *BuyseTest* package (not on the underlying statistical model).
 
 \bigskip
 
@@ -83,7 +82,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘2.2.2’
+: [1] ‘2.2.5’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -111,7 +110,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.13.7 BuyseTest_2.2.2   Rcpp_1.0.5       
+[1] data.table_1.13.7 BuyseTest_2.2.5   Rcpp_1.0.6       
 
 loaded via a namespace (and not attached):
  [1] compiler_3.6.3     Matrix_1.2-18      tools_3.6.3        parallel_3.6.3    
@@ -155,8 +154,8 @@ BT <- BuyseTest(data = veteran,
 Settings 
    - 2 groups  : Control = 1 and Treatment = 2
    - 1 endpoint: 
-       priority endpoint type           operator            threshold event       
-       1        time     time to event  lower is favorable  20        status (0 1)
+       priority endpoint type           operator             threshold event       
+       1        time     time to event  higher is favorable  20        status (0 1)
    - right-censored pairs: probabilistic score based on the survival curves 
 
 Point estimation and calculation of the iid decomposition
@@ -179,14 +178,30 @@ Gather the results in a S4BuyseTest object
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                  data = veteran, trace = 0)
+                  data = veteran)
 #+END_SRC
 
 #+RESULTS:
+#+begin_example
 
-Here we set in addition the argument =trace= to 0 to force the
-function to be silent (i.e. no display in the terminal). We can check
-that the two approaches are equivalent:
+         Generalized Pairwise Comparisons
+
+Settings 
+   - 2 groups  : Control = 1 and Treatment = 2
+   - 1 endpoint: 
+       priority endpoint type           operator             threshold event       
+       1        time     time to event  higher is favorable  20        status (0 1)
+   - right-censored pairs: probabilistic score based on the survival curves 
+
+Point estimation and calculation of the iid decomposition
+
+Estimation of the estimator's distribution 
+   - method: moments of the U-statistic
+
+Gather the results in a S4BuyseTest object
+#+end_example
+
+We can check that the two approaches are equivalent:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 testthat::expect_equal(BT.f,BT)
 #+END_SRC
@@ -295,14 +310,14 @@ time and the investigator would like to only compare patients that
 have the same celltype. In the formula interface this is achieved by
 adding a single variable in the right hand side of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ff2strata <- update(ff2, . ~ . + celltype)
-BT2 <- BuyseTest(ff2strata, data = veteran, trace = 0)
+ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
+BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
 #+END_SRC
 
 #+RESULTS:
 
-The fact the it is not wrapped by =bin=, =cont= or =tte= indicates
-differentiate it from endpoint variables. 
+Not being wrapped by =bin=, =cont= or =tte= differentiates it from
+endpoint variables.
 
 \bigskip
 
@@ -311,13 +326,13 @@ global results as well as the results within each strata[fn::the
 strata-specific results can be removed by setting the argument
 =strata= to ="global"= when calling =summary=.]:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(BT2, type.display = c("endpoint","threshold","strata",
+summary(BTstrata, type.display = c("endpoint","threshold","strata",
                               "total","favorable","unfavorable","delta","Delta"))
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 2 prioritized endpoints and 4 strata
+       Generalized pairwise comparisons with 1 endpoint and 4 strata
 
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -325,26 +340,23 @@ summary(BT2, type.display = c("endpoint","threshold","strata",
  - inference       : H-projection of order 1
  - treatment groups: 1 (control) vs. 2 (treatment) 
  - censored pairs  : probabilistic score based on the survival curves
- - neutral pairs   : re-analyzed using lower priority endpoints
- - uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
+ - uninformative pairs: no contribution
  - results
- endpoint threshold    strata total(%) favorable(%) unfavorable(%)   delta   Delta
-     time        20    global   100.00        36.06          45.77 -0.0971 -0.0971
-                     squamous    25.38        14.33           8.77  0.2193        
-                    smallcell    45.69        12.69          20.88 -0.1792        
-                        adeno    13.71         4.74           6.15 -0.1034        
-                        large    15.23         4.30           9.97 -0.3722        
-    karno     1e-12    global    18.17         6.72           8.07 -0.0135 -0.1106
-                     squamous     2.28         0.76           0.94 -0.0071        
-                    smallcell    12.12         4.33           5.75 -0.0311        
-                        adeno     2.81         1.46           0.85  0.0448        
-                        large     0.96         0.17           0.54 -0.0241
+ endpoint threshold    strata total(%) favorable(%) unfavorable(%)   Delta
+     time        20    global   100.00        36.06          45.77 -0.0971
+                     squamous    25.38        14.33           8.77        
+                    smallcell    45.69        12.69          20.88        
+                        adeno    13.71         4.74           6.15        
+                        large    15.23         4.30           9.97
 #+end_example
 
 Note that here the numbers in the total/favorable/unfavorable/ columns
 are relative to the overall sample while the delta is only relative to
 the strata. The global delta is a sum of the strata specific delta
 weighted by the empirical proportion of pairs for each strata.
+
+\clearpage
+
 ** Using multiple endpoints
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
@@ -468,7 +480,7 @@ summary(BTinv)
 #+end_example
 
 Internally =BuyseTest= will compute the favorable and unfavorable
-score as usual and then switch them around if operator if ="<0"=.
+score as usual and then switch them around if operator equals ="<0"=.
 
 \clearpage
 
@@ -1038,14 +1050,14 @@ using the censored survival times.
 When the survival curve can be fully identified, the default (and
 recommanded) approach is to use the Peron's scoring rule where the
 censoring model rely on Kaplan Meier curve is fitted in each treatment
-group. \newline When the last observation are censored, then part of
-the survival curve is unknown and there is no perfect solution. One can:
+group. When the last observation are censored, then part of the
+survival curve is unknown and there is no perfect solution. One can:
 - only use the Peron's scoring rule, which will lead to a non-0
   uninformative score and therefore a "conservative" estimate of the net benefit.
 - use the Peron's scoring rule in conjonction with the correction
   which will led to an unbiased estimator if certain assumption are met.
-- only use the Peron's scoring rule with a parametric model which if
-  appropriate will lead to an unbiased (and rather efficient)
+- only use the Peron's scoring rule with a parametric model which, if
+  appropriate, will lead to an unbiased (and rather efficient)
   estimator.
 
 ** Gehan's scoring rule
@@ -1099,6 +1111,8 @@ library(prodlim)
 e.prodlim <- prodlim(Hist(eventtime, status) ~ treatment, data = dt)
 #+END_SRC
 
+#+RESULTS:
+
 Then passing the model to the =BuyseTest= via the =model.tte= argument:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.P1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
@@ -1139,6 +1153,9 @@ e.survreg <- survreg(Surv(eventtime, status) ~ treatment, data = dt,
                      dist = "weibull")
 attr(e.survreg, "iidNuisance") <- TRUE
 #+END_SRC
+
+#+RESULTS:
+
 Then passing the model to the =BuyseTest= via the =model.tte= argument:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.P3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
@@ -1150,7 +1167,7 @@ summary(e.P3, print=FALSE)$table.print
 :    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
 : 1 eventtime       0.5      100         11.4          32.84      55.75     0.01 -0.2144
 :   CI [2.5% ; 97.5%]    p.value significance
-: 1 [-0.2585;-0.1695] < 2.22e-16          ***
+: 1  [-0.2704;-0.157] 7.0655e-13          ***
 
 Internally the survival curve is discretized using 1000 points
 starting from survival = 1 to survival = 0.001 (this is why there is a
@@ -1290,7 +1307,7 @@ iScore[,.SD[1],
 : 1:         0           0       0     1  0.1131029    0.3464344 0.5404627      0
 : 2:         0           1       0     0  0.0000000    1.0000000 0.0000000      0
 : 3:         0           0       1     0  0.0000000    0.0000000 1.0000000      0
-: 4:         1           0       0  p   0  1.0000000    0.0000000 0.0000000      0
+: 4:         1           0       0     0  1.0000000    0.0000000 0.0000000      0
 
 we can see that the corrected probability have not changed for the
 informative pairs, but for the non-informative they have been set to:
@@ -1441,12 +1458,12 @@ summary(powerW)
 
  - statistic   : net benefit (null hypothesis Delta=0)
  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
-        Y     1e-12   5   5        0.2403      0.3845  0.3329          0.092
-                     10  10        0.2486      0.2717  0.2444          0.157
-                     20  20        0.2447      0.1874  0.1751          0.264
-                     30  30        0.2484      0.1518  0.1432           0.38
-                     50  50        0.2457      0.1159  0.1112           0.55
-                    100 100        0.2457      0.0819  0.0787          0.847
+        Y     1e-12   5   5        0.2426      0.3866  0.3319          0.094
+                     10  10        0.2516      0.2723   0.244          0.161
+                     20  20        0.2461      0.1864  0.1751          0.265
+                     30  30        0.2492      0.1516  0.1432          0.384
+                     50  50        0.2461      0.1158  0.1112          0.553
+                    100 100        0.2457      0.0814  0.0787           0.85
 
  n.T          : number of observations in the treatment group
  n.C          : number of observations in the control group
@@ -1488,14 +1505,14 @@ summary(BT)
 #+begin_example
        Generalized pairwise comparisons with 1 endpoint
 
- > statistic       : net benefit (delta: endpoint specific, Delta: global) 
- > null hypothesis : Delta == 0 
- > treatment groups: C (control) vs. T (treatment) 
- > right-censored pairs: deterministic score or uninformative
- > uninformative pairs: score equals the averaged score of all informative pairs
- > results
-  endpoint threshold   delta   Delta information(%)
- eventtime         1 -0.0202 -0.0202            100
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - treatment groups: C (control) vs. T (treatment) 
+ - censored pairs  : deterministic score or uninformative
+ - uninformative pairs: score equals the averaged score of all informative pairs
+ - results
+  endpoint threshold   Delta information(%)
+ eventtime       0.5 -0.2333            100
 #+end_example
 
 
@@ -1526,10 +1543,6 @@ bibliographystyle:apalike
 \endgroup
 #+END_EXPORT
 
-
-
-
-
 * CONFIG :noexport:
 #+LANGUAGE:  en
 #+LaTeX_CLASS: org-article
@@ -1537,34 +1550,221 @@ bibliographystyle:apalike
 #+OPTIONS:   title:t author:t toc:nil todo:nil
 #+OPTIONS:   H:3 num:t 
 #+OPTIONS:   TeX:t LaTeX:t
-#+PROPERTY: tangle yes
+
+** Display of the document
+# ## space between lines
+#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+#+LaTeX_HEADER:\renewcommand{\baselinestretch}{1.1}
+
+# ## margins
+#+LaTeX_HEADER: \geometry{a4paper, left=10mm, right=10mm}
+#+LATEX_HEADER:\geometry{top=1cm}
+
+
+# ## personalize the prefix in the name of the sections
+#+LaTeX_HEADER: \usepackage{titlesec}
+# ## fix bug in titlesec version
+# ##  https://tex.stackexchange.com/questions/299969/titlesec-loss-of-section-numbering-with-the-new-update-2016-03-15
+#+LaTeX_HEADER: \usepackage{etoolbox}
+#+LaTeX_HEADER: 
+#+LaTeX_HEADER: \makeatletter
+#+LaTeX_HEADER: \patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
+#+LaTeX_HEADER: \patchcmd{\ttlh@hang}{\noindent}{}{}{}
+#+LaTeX_HEADER: \makeatother
+
+** Color
+# ## define new colors
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+#+LaTeX_HEADER: \definecolor{myorange}{rgb}{1,0.2,0}
+#+LaTeX_HEADER: \definecolor{mypurple}{rgb}{0.7,0,8}
+#+LaTeX_HEADER: \definecolor{mycyan}{rgb}{0,0.6,0.6}
+#+LaTeX_HEADER: \newcommand{\lightblue}{blue!50!white}
+#+LaTeX_HEADER: \newcommand{\darkblue}{blue!80!black}
+#+LaTeX_HEADER: \newcommand{\darkgreen}{green!50!black}
+#+LaTeX_HEADER: \newcommand{\darkred}{red!50!black}
+#+LaTeX_HEADER: \definecolor{gray}{gray}{0.5}
+
+# ## change the color of the links
+#+LaTeX_HEADER: \hypersetup{
+#+LaTeX_HEADER:  citecolor=[rgb]{0,0.5,0},
+#+LaTeX_HEADER:  urlcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER:  linkcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER: }
+
+** Font
+# https://tex.stackexchange.com/questions/25249/how-do-i-use-a-particular-font-for-a-small-section-of-text-in-my-document
+#+LaTeX_HEADER: \newenvironment{comment}{\small \color{gray}\fontfamily{lmtt}\selectfont}{\par}
+#+LaTeX_HEADER: \newenvironment{activity}{\color{orange}\fontfamily{qzc}\selectfont}{\par}
+
+** Symbols
+# ## valid and cross symbols
+#+LaTeX_HEADER: \RequirePackage{pifont}
+#+LaTeX_HEADER: \RequirePackage{relsize}
+#+LaTeX_HEADER: \newcommand{\Cross}{{\raisebox{-0.5ex}%
+#+LaTeX_HEADER:		{\relsize{1.5}\ding{56}}}\hspace{1pt} }
+#+LaTeX_HEADER: \newcommand{\Valid}{{\raisebox{-0.5ex}%
+#+LaTeX_HEADER:		{\relsize{1.5}\ding{52}}}\hspace{1pt} }
+#+LaTeX_HEADER: \newcommand{\CrossR}{ \textcolor{red}{\Cross} }
+#+LaTeX_HEADER: \newcommand{\ValidV}{ \textcolor{green}{\Valid} }
+
+# ## warning symbol
+#+LaTeX_HEADER: \usepackage{stackengine}
+#+LaTeX_HEADER: \usepackage{scalerel}
+#+LaTeX_HEADER: \newcommand\Warning[1][3ex]{%
+#+LaTeX_HEADER:   \renewcommand\stacktype{L}%
+#+LaTeX_HEADER:   \scaleto{\stackon[1.3pt]{\color{red}$\triangle$}{\tiny\bfseries !}}{#1}%
+#+LaTeX_HEADER:   \xspace
+#+LaTeX_HEADER: }
+
+# # R Software
+#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
 
 ** Code
-#+PROPERTY: header-args :session *R*
-#+PROPERTY: header-args :tange yes % extract source code: http://orgmode.org/manual/Extracting-source-code.html
-#+PROPERTY: header-args :cache no 
+# Documentation at https://org-babel.readthedocs.io/en/latest/header-args/#results
+# :tangle (yes/no/filename) extract source code with org-babel-tangle-file, see http://orgmode.org/manual/Extracting-source-code.html 
+# :cache (yes/no)
+# :eval (yes/no/never)
+# :results (value/output/silent/graphics/raw/latex)
+# :export (code/results/none/both)
+#+PROPERTY: header-args :session *R* :tangle yes :cache no ## extra argument need to be on the same line as :session *R*
+
+# Code display:
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
 
-** Display 
-#+LaTeX_HEADER: \geometry{a4paper, left=10mm, right=10mm}
-
-#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
-#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
-#+LaTeX_HEADER:\usepackage{authblk} % enable several affiliations (clash with beamer)
-#+LaTeX_HEADER:\renewcommand{\baselinestretch}{1.1}
-#+LATEX_HEADER:\geometry{top=1cm}
+# ## change font size input
+# ## #+ATTR_LATEX: :options basicstyle=\ttfamily\scriptsize
+# ## change font size output
+# ## \RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\tiny,formatcom = {\color[rgb]{0.5,0,0}}}
 
 ** List
-#+LaTeX_HEADER: \usepackage{enumitem}
+#+LATEX_HEADER: \RequirePackage{enumitem} % better than enumerate
+
+** Image and graphs
+#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+#+LATEX_HEADER: \RequirePackage{capt-of} % 
+#+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
+
+#+LaTeX_HEADER: \RequirePackage{tikz-cd} % graph
+# ## https://tools.ietf.org/doc/texlive-doc/latex/tikz-cd/tikz-cd-doc.pdf
+
+** Table
+#+LATEX_HEADER: \RequirePackage{booktabs} % for nice lines in table (e.g. toprule, bottomrule, midrule, cmidrule)
+
+** Inline latex
+# @@latex:any arbitrary LaTeX code@@
+
+
+** Algorithm
+#+LATEX_HEADER: \RequirePackage{amsmath}
+#+LATEX_HEADER: \RequirePackage{algorithm}
+#+LATEX_HEADER: \RequirePackage[noend]{algpseudocode}
+
+** Math
+#+LATEX_HEADER: \RequirePackage{dsfont}
+#+LATEX_HEADER: \RequirePackage{amsmath,stmaryrd,graphicx}
+#+LATEX_HEADER: \RequirePackage{prodint} % product integral symbol (\PRODI)
+
+# ## lemma
+# #+LaTeX_HEADER: \RequirePackage{amsthm}
+# #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
+# #+LaTeX_HEADER: \newtheorem{lemma}[theorem]{Lemma}
+
+*** Template for shortcut
+#+LATEX_HEADER: \usepackage{ifthen}
+#+LATEX_HEADER: \usepackage{xifthen}
+#+LATEX_HEADER: \usepackage{xargs}
+#+LATEX_HEADER: \usepackage{xspace}
+
+#+LATEX_HEADER: \newcommand\defOperator[7]{%
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER:		\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+#+LATEX_HEADER:	}{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand\defUOperator[5]{%
+#+LATEX_HEADER: \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:		#5\left#3 #2 \right#4
+#+LATEX_HEADER: }{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+#+LATEX_HEADER:		\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommand{\defBoldVar}[2]{	
+#+LATEX_HEADER:	\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+#+LATEX_HEADER: }
+
+**** Probability
+#+LATEX_HEADER: \newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+
+#+LATEX_HEADER: \newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+
+#+LATEX_HEADER: \newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\logLikelihood[2][1=,2=]{\defOperator{#1}{#2}{\ell}{}{(}{)}{}}
+#+LATEX_HEADER: \newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+
+**** Operators
+#+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+
+#+LATEX_HEADER: \newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+#+LATEX_HEADER: \newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+#+LATEX_HEADER: \newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+#+LATEX_HEADER: \newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+#+LATEX_HEADER: \newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+
+#+LATEX_HEADER: \newcommandx\Hypothesis[2][1=,2=]{
+#+LATEX_HEADER:         \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:         \mathcal{H}
+#+LATEX_HEADER:         }{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER: 		\mathcal{H}_{#1}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\mathcal{H}^{(#2)}_{#1}
+#+LATEX_HEADER:         }
+#+LATEX_HEADER:         }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{#4 #1}{#4 #2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+
+#+LATEX_HEADER: \newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+
+#+LATEX_HEADER: \newcommandx\ddpartial[3][1=,2=,3=]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{\partial^{2} #1}{\partial #2^2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\frac{\partial^2 #1}{\partial #2\partial #3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: } 
+
+**** General math
+#+LATEX_HEADER: \newcommand\Real{\mathbb{R}}
+#+LATEX_HEADER: \newcommand\Rational{\mathbb{Q}}
+#+LATEX_HEADER: \newcommand\Natural{\mathbb{N}}
+#+LATEX_HEADER: \newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+#+LATEX_HEADER: \newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+#+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
+#+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+#+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+
+#+LATEX_HEADER: \newcommand\Veta{\boldsymbol{\eta}}
+#+LATEX_HEADER: \newcommand\VX{\mathbf{X}}
 
 ** Notations
-#+LATEX_HEADER: \RequirePackage{xspace} % 
-#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
-
-#+LaTeX_HEADER: \newcommand\Prob{\mathbb{P}}
-
-** Image
-#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
-
-

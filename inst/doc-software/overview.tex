@@ -1,4 +1,4 @@
-% Created 2021-01-08 fre 16:49
+% Created 2021-02-07 søn 13:14
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -56,27 +56,145 @@ emphstyle=\color{blue}
 \usepackage{ifthen}
 \usepackage{hyperref}
 \usepackage{natbib}
+\RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+\renewcommand{\baselinestretch}{1.1}
+\geometry{a4paper, left=10mm, right=10mm}
+\geometry{top=1cm}
+\usepackage{titlesec}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
+\patchcmd{\ttlh@hang}{\noindent}{}{}{}
+\makeatother
+\RequirePackage{colortbl} % arrayrulecolor to mix colors
+\definecolor{myorange}{rgb}{1,0.2,0}
+\definecolor{mypurple}{rgb}{0.7,0,8}
+\definecolor{mycyan}{rgb}{0,0.6,0.6}
+\newcommand{\lightblue}{blue!50!white}
+\newcommand{\darkblue}{blue!80!black}
+\newcommand{\darkgreen}{green!50!black}
+\newcommand{\darkred}{red!50!black}
+\definecolor{gray}{gray}{0.5}
+\hypersetup{
+citecolor=[rgb]{0,0.5,0},
+urlcolor=[rgb]{0,0,0.5},
+linkcolor=[rgb]{0,0,0.5},
+}
+\newenvironment{comment}{\small \color{gray}\fontfamily{lmtt}\selectfont}{\par}
+\newenvironment{activity}{\color{orange}\fontfamily{qzc}\selectfont}{\par}
+\RequirePackage{pifont}
+\RequirePackage{relsize}
+\newcommand{\Cross}{{\raisebox{-0.5ex}%
+{\relsize{1.5}\ding{56}}}\hspace{1pt} }
+\newcommand{\Valid}{{\raisebox{-0.5ex}%
+{\relsize{1.5}\ding{52}}}\hspace{1pt} }
+\newcommand{\CrossR}{ \textcolor{red}{\Cross} }
+\newcommand{\ValidV}{ \textcolor{green}{\Valid} }
+\usepackage{stackengine}
+\usepackage{scalerel}
+\newcommand\Warning[1][3ex]{%
+\renewcommand\stacktype{L}%
+\scaleto{\stackon[1.3pt]{\color{red}$\triangle$}{\tiny\bfseries !}}{#1}%
+\xspace
+}
+\newcommand\Rlogo{\textbf{\textsf{R}}\xspace} %
 \RequirePackage{fancyvrb}
 \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
-\geometry{a4paper, left=10mm, right=10mm}
-\RequirePackage{colortbl} % arrayrulecolor to mix colors
-\RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
-\usepackage{authblk} % enable several affiliations (clash with beamer)
-\renewcommand{\baselinestretch}{1.1}
-\geometry{top=1cm}
-\usepackage{enumitem}
-\RequirePackage{xspace} %
-\newcommand\Rlogo{\textbf{\textsf{R}}\xspace} %
-\newcommand\Prob{\mathbb{P}}
+\RequirePackage{enumitem} % better than enumerate
 \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+\RequirePackage{capt-of} %
+\RequirePackage{caption} % newlines in graphics
+\RequirePackage{tikz-cd} % graph
+\RequirePackage{booktabs} % for nice lines in table (e.g. toprule, bottomrule, midrule, cmidrule)
+\RequirePackage{amsmath}
+\RequirePackage{algorithm}
+\RequirePackage[noend]{algpseudocode}
+\RequirePackage{dsfont}
+\RequirePackage{amsmath,stmaryrd,graphicx}
+\RequirePackage{prodint} % product integral symbol (\PRODI)
+\usepackage{ifthen}
+\usepackage{xifthen}
+\usepackage{xargs}
+\usepackage{xspace}
+\newcommand\defOperator[7]{%
+\ifthenelse{\isempty{#2}}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+}
+}
+\newcommand\defUOperator[5]{%
+\ifthenelse{\isempty{#1}}{
+#5\left#3 #2 \right#4
+}{
+\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+}
+}
+\newcommand{\defBoldVar}[2]{
+\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+}
+\newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+\newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+\newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+\newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+\newcommandx\logLikelihood[2][1=,2=]{\defOperator{#1}{#2}{\ell}{}{(}{)}{}}
+\newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+\newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+\newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+\newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+\newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+\newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+\newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+\newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+\newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+\newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+\newcommandx\Hypothesis[2][1=,2=]{
+\ifthenelse{\isempty{#1}}{
+\mathcal{H}
+}{
+\ifthenelse{\isempty{#2}}{
+\mathcal{H}_{#1}
+}{
+\mathcal{H}^{(#2)}_{#1}
+}
+}
+}
+\newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+\ifthenelse{\isempty{#3}}{
+\frac{#4 #1}{#4 #2}
+}{
+\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+}
+}
+\newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+\newcommandx\ddpartial[3][1=,2=,3=]{
+\ifthenelse{\isempty{#3}}{
+\frac{\partial^{2} #1}{\partial #2^2}
+}{
+\frac{\partial^2 #1}{\partial #2\partial #3}
+}
+}
+\newcommand\Real{\mathbb{R}}
+\newcommand\Rational{\mathbb{Q}}
+\newcommand\Natural{\mathbb{N}}
+\newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+\newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+\newcommand\half{\frac{1}{2}}
+\newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+\newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+\newcommand\Veta{\boldsymbol{\eta}}
+\newcommand\VX{\mathbf{X}}
 \author{Brice Ozenne}
 \date{\today}
 \title{Overview of the package BuyseTest}
 \hypersetup{
  colorlinks=true,
- citecolor=[rgb]{0,0.5,0},
- urlcolor=[rgb]{0,0,0.5},
- linkcolor=[rgb]{0,0,0.5},
  pdfauthor={Brice Ozenne},
  pdftitle={Overview of the package BuyseTest},
  pdfkeywords={},
@@ -93,19 +211,18 @@ package. This package implements the Generalized Pairwise Comparisons
 observations, and extended in \cite{peron2018extension} to deal with
 right-censoring. When considering a single endpoint, the GPC procedure
 can be summarized as follow. Denote the endpoint by \(Y\) in the
-treatment group and by \(X\) in the control group. Given a
-threshold of clinical relevance \(\tau\), the aim of GPC is to
-estimate the proportion in favor of treatment \(\Prob[Y \geq X +
-\tau]\) and the proportion in favor of control \(\Prob[X \geq Y +
-\tau]\). Other statistics such as the net benefit \(\Prob[Y \geq X +
-\tau]-\Prob[X \geq Y + \tau]\) or the win ratio \(\frac{\Prob[Y \geq
-X + \tau]}{\Prob[X \geq Y + \tau]}\) can then be deduced. It is
-assumed that the reader is familar with the GPC terminology \footnote{if
-not, \cite{buyse2010generalized} is a good place to start.},
-e.g. prioritized endpoints, pair, net benefit, win ratio, threshold of
-clinical relevance, \ldots, since this vignette focuses on the
-software aspect of the \textbf{BuyseTest} package (not on the underlying
-statistical model).
+treatment group and by \(X\) in the control group. Given a threshold
+of clinical relevance \(\tau\), the aim of GPC is to estimate the
+proportion in favor of treatment \(\Prob[Y \geq X + \tau]\) and the
+proportion in favor of control \(\Prob[X \geq Y + \tau]\). Other
+statistics such as the net benefit \(\Prob[Y \geq X + \tau]-\Prob[X
+\geq Y + \tau]\) or the win ratio \(\frac{\Prob[Y \geq X +
+\tau]}{\Prob[X \geq Y + \tau]}\) can then be deduced. The vignette is
+written for readers familar with the GPC framework \footnote{if not,
+\cite{buyse2010generalized} is a good place to start.}, e.g. prioritized
+endpoints, pair, net benefit, win ratio, threshold of clinical
+relevance, \ldots, since it focuses on the software aspect
+of the \textbf{BuyseTest} package (not on the underlying statistical model).
 
 \bigskip
 
@@ -172,7 +289,7 @@ utils::packageVersion("BuyseTest")
 \end{lstlisting}
 
 \begin{verbatim}
-[1] ‘2.2.2’
+[1] ‘2.2.5’
 \end{verbatim}
 
 For completness, the details of the R session used to generate this
@@ -201,7 +318,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.13.7 BuyseTest_2.2.2   Rcpp_1.0.5       
+[1] data.table_1.13.7 BuyseTest_2.2.5   Rcpp_1.0.6       
 
 loaded via a namespace (and not attached):
  [1] compiler_3.6.3     Matrix_1.2-18      tools_3.6.3        parallel_3.6.3    
@@ -212,7 +329,7 @@ loaded via a namespace (and not attached):
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org7bbf3dc}
+\label{sec:org5608c77}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -251,8 +368,8 @@ BT <- BuyseTest(data = veteran,
 Settings 
    - 2 groups  : Control = 1 and Treatment = 2
    - 1 endpoint: 
-       priority endpoint type           operator            threshold event       
-       1        time     time to event  lower is favorable  20        status (0 1)
+       priority endpoint type           operator             threshold event       
+       1        time     time to event  higher is favorable  20        status (0 1)
    - right-censored pairs: probabilistic score based on the survival curves 
 
 Point estimation and calculation of the iid decomposition
@@ -279,19 +396,35 @@ type:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-		  data = veteran, trace = 0)
+		  data = veteran)
 \end{lstlisting}
 
-Here we set in addition the argument \texttt{trace} to 0 to force the
-function to be silent (i.e. no display in the terminal). We can check
-that the two approaches are equivalent:
+\begin{verbatim}
+         Generalized Pairwise Comparisons
+
+Settings 
+   - 2 groups  : Control = 1 and Treatment = 2
+   - 1 endpoint: 
+       priority endpoint type           operator             threshold event       
+       1        time     time to event  higher is favorable  20        status (0 1)
+   - right-censored pairs: probabilistic score based on the survival curves 
+
+Point estimation and calculation of the iid decomposition
+
+Estimation of the estimator's distribution 
+   - method: moments of the U-statistic
+
+Gather the results in a S4BuyseTest object
+\end{verbatim}
+
+We can check that the two approaches are equivalent:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org5b4bad1}
+\label{sec:orge9162fc}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -384,7 +517,7 @@ time_20
 \clearpage
 
 \subsection{Stratified GPC}
-\label{sec:org482544c}
+\label{sec:orgd323918}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -397,12 +530,12 @@ have the same celltype. In the formula interface this is achieved by
 adding a single variable in the right hand side of the formula:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-ff2strata <- update(ff2, . ~ . + celltype)
-BT2 <- BuyseTest(ff2strata, data = veteran, trace = 0)
+ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
+BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
 \end{lstlisting}
 
-The fact the it is not wrapped by \texttt{bin}, \texttt{cont} or \texttt{tte} indicates
-differentiate it from endpoint variables. 
+Not being wrapped by \texttt{bin}, \texttt{cont} or \texttt{tte} differentiates it from
+endpoint variables.
 
 \bigskip
 
@@ -412,12 +545,12 @@ strata-specific results can be removed by setting the argument
 \texttt{strata} to \texttt{"global"} when calling \texttt{summary}.}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-summary(BT2, type.display = c("endpoint","threshold","strata",
+summary(BTstrata, type.display = c("endpoint","threshold","strata",
 			      "total","favorable","unfavorable","delta","Delta"))
 \end{lstlisting}
 
 \begin{verbatim}
-      Generalized pairwise comparisons with 2 prioritized endpoints and 4 strata
+      Generalized pairwise comparisons with 1 endpoint and 4 strata
 
 - statistic       : net benefit (delta: endpoint specific, Delta: global) 
 - null hypothesis : Delta == 0 
@@ -425,28 +558,25 @@ summary(BT2, type.display = c("endpoint","threshold","strata",
 - inference       : H-projection of order 1
 - treatment groups: 1 (control) vs. 2 (treatment) 
 - censored pairs  : probabilistic score based on the survival curves
-- neutral pairs   : re-analyzed using lower priority endpoints
-- uninformative pairs: no contribution at the current endpoint, analyzed at later endpoints
+- uninformative pairs: no contribution
 - results
-endpoint threshold    strata total(%) favorable(%) unfavorable(%)   delta   Delta
-    time        20    global   100.00        36.06          45.77 -0.0971 -0.0971
-                    squamous    25.38        14.33           8.77  0.2193        
-                   smallcell    45.69        12.69          20.88 -0.1792        
-                       adeno    13.71         4.74           6.15 -0.1034        
-                       large    15.23         4.30           9.97 -0.3722        
-   karno     1e-12    global    18.17         6.72           8.07 -0.0135 -0.1106
-                    squamous     2.28         0.76           0.94 -0.0071        
-                   smallcell    12.12         4.33           5.75 -0.0311        
-                       adeno     2.81         1.46           0.85  0.0448        
-                       large     0.96         0.17           0.54 -0.0241
+endpoint threshold    strata total(%) favorable(%) unfavorable(%)   Delta
+    time        20    global   100.00        36.06          45.77 -0.0971
+                    squamous    25.38        14.33           8.77        
+                   smallcell    45.69        12.69          20.88        
+                       adeno    13.71         4.74           6.15        
+                       large    15.23         4.30           9.97
 \end{verbatim}
 
 Note that here the numbers in the total/favorable/unfavorable/ columns
 are relative to the overall sample while the delta is only relative to
 the strata. The global delta is a sum of the strata specific delta
 weighted by the empirical proportion of pairs for each strata.
+
+\clearpage
+
 \subsection{Using multiple endpoints}
-\label{sec:orgc807543}
+\label{sec:org2d08e29}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -542,7 +672,7 @@ This has been refered as the O’Brien test in the litterature
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:orgb40170e}
+\label{sec:orgbf4f1a7}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -570,12 +700,12 @@ CI [2.5% ; 97.5%] p.value
 \end{verbatim}
 
 Internally \texttt{BuyseTest} will compute the favorable and unfavorable
-score as usual and then switch them around if operator if \texttt{"<0"}.
+score as usual and then switch them around if operator equals \texttt{"<0"}.
 
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org86d0175}
+\label{sec:orgd7830fa}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -646,7 +776,7 @@ So in this case no pair is analyzed at second priority.
 \clearpage
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:orgbf79918}
+\label{sec:org8a78613}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
@@ -767,7 +897,7 @@ increase by a factor 5 to 10 compared to the point estimate alone
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:orgff57504}
+\label{sec:orgcad71b2}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -776,7 +906,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:org23a983d}
+\label{sec:orga791a32}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -862,7 +992,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org0b25ba1}
+\label{sec:orgad30acf}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} and
@@ -907,7 +1037,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:orge6de307}
+\label{sec:org5125ce1}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1018,7 +1148,7 @@ survivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org984ca94}
+\label{sec:orgc626d7f}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1106,7 +1236,7 @@ upperBound 0.5058685   0.3770426
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org6870562}
+\label{sec:org7d69a20}
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
@@ -1187,20 +1317,20 @@ score to favorable/unfavorable/neutral scores.
 When the survival curve can be fully identified, the default (and
 recommanded) approach is to use the Peron's scoring rule where the
 censoring model rely on Kaplan Meier curve is fitted in each treatment
-group. \newline When the last observation are censored, then part of
-the survival curve is unknown and there is no perfect solution. One can:
+group. When the last observation are censored, then part of the
+survival curve is unknown and there is no perfect solution. One can:
 \begin{itemize}
 \item only use the Peron's scoring rule, which will lead to a non-0
 uninformative score and therefore a "conservative" estimate of the net benefit.
 \item use the Peron's scoring rule in conjonction with the correction
 which will led to an unbiased estimator if certain assumption are met.
-\item only use the Peron's scoring rule with a parametric model which if
-appropriate will lead to an unbiased (and rather efficient)
+\item only use the Peron's scoring rule with a parametric model which, if
+appropriate, will lead to an unbiased (and rather efficient)
 estimator.
 \end{itemize}
 
 \subsection{Gehan's scoring rule}
-\label{sec:org2aeca8e}
+\label{sec:org5429aec}
 In the example, Gehan's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1220,7 +1350,7 @@ leads to many uninformative pairs (about 60\%) and an estimate much
 closer to 0 than the truth.
 
 \subsection{Peron's scoring rule}
-\label{sec:orgb04e3c0}
+\label{sec:orgbb1d5ed}
 In the example, Peron's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1304,6 +1434,7 @@ e.survreg <- survreg(Surv(eventtime, status) ~ treatment, data = dt,
 		     dist = "weibull")
 attr(e.survreg, "iidNuisance") <- TRUE
 \end{lstlisting}
+
 Then passing the model to the \texttt{BuyseTest} via the \texttt{model.tte} argument:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1316,7 +1447,7 @@ summary(e.P3, print=FALSE)$table.print
    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
 1 eventtime       0.5      100         11.4          32.84      55.75     0.01 -0.2144
   CI [2.5% ; 97.5%]    p.value significance
-1 [-0.2585;-0.1695] < 2.22e-16          ***
+1  [-0.2704;-0.157] 7.0655e-13          ***
 \end{verbatim}
 
 Internally the survival curve is discretized using 1000 points
@@ -1359,7 +1490,7 @@ defining an appropriate \texttt{BuyseTTEM} method. Looking at the code use
 for defining \texttt{BuyseTTEM.survreg} can be helpful.
 
 \subsection{Correction via inverse probability-of-censoring weights (IPCW)}
-\label{sec:org2a33fbf}
+\label{sec:orga57ca01}
 
 With IPCW, the weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
@@ -1426,7 +1557,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsection{Correction at the pair level}
-\label{sec:org23c302a}
+\label{sec:orgec2ec85}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1467,7 +1598,7 @@ iScore[,.SD[1],
 1:         0           0       0     1  0.1131029    0.3464344 0.5404627      0
 2:         0           1       0     0  0.0000000    1.0000000 0.0000000      0
 3:         0           0       1     0  0.0000000    0.0000000 1.0000000      0
-4:         1           0       0  p   0  1.0000000    0.0000000 0.0000000      0
+4:         1           0       0     0  1.0000000    0.0000000 0.0000000      0
 \end{verbatim}
 
 we can see that the corrected probability have not changed for the
@@ -1487,7 +1618,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orgea89ab3}
+\label{sec:orge8364c6}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1547,7 +1678,7 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:orgc8a594b}
+\label{sec:org5f39dc8}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
@@ -1623,12 +1754,12 @@ summary(powerW)
 
  - statistic   : net benefit (null hypothesis Delta=0)
  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
-        Y     1e-12   5   5        0.2403      0.3845  0.3329          0.092
-                     10  10        0.2486      0.2717  0.2444          0.157
-                     20  20        0.2447      0.1874  0.1751          0.264
-                     30  30        0.2484      0.1518  0.1432           0.38
-                     50  50        0.2457      0.1159  0.1112           0.55
-                    100 100        0.2457      0.0819  0.0787          0.847
+        Y     1e-12   5   5        0.2426      0.3866  0.3319          0.094
+                     10  10        0.2516      0.2723   0.244          0.161
+                     20  20        0.2461      0.1864  0.1751          0.265
+                     30  30        0.2492      0.1516  0.1432          0.384
+                     50  50        0.2461      0.1158  0.1112          0.553
+                    100 100        0.2457      0.0814  0.0787           0.85
 
  n.T          : number of observations in the treatment group
  n.C          : number of observations in the control group
@@ -1642,7 +1773,7 @@ summary(powerW)
 \clearpage
 
 \section{Modifying default options}
-\label{sec:orga62e69c}
+\label{sec:org06084da}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1672,14 +1803,14 @@ summary(BT)
 \begin{verbatim}
       Generalized pairwise comparisons with 1 endpoint
 
-> statistic       : net benefit (delta: endpoint specific, Delta: global) 
-> null hypothesis : Delta == 0 
-> treatment groups: C (control) vs. T (treatment) 
-> right-censored pairs: deterministic score or uninformative
-> uninformative pairs: score equals the averaged score of all informative pairs
-> results
- endpoint threshold   delta   Delta information(%)
-eventtime         1 -0.0202 -0.0202            100
+- statistic       : net benefit (delta: endpoint specific, Delta: global) 
+- null hypothesis : Delta == 0 
+- treatment groups: C (control) vs. T (treatment) 
+- censored pairs  : deterministic score or uninformative
+- uninformative pairs: score equals the averaged score of all informative pairs
+- results
+ endpoint threshold   Delta information(%)
+eventtime       0.5 -0.2333            100
 \end{verbatim}
 
 
@@ -1693,7 +1824,7 @@ BuyseTest.options(reinitialise = TRUE)
 
 
 \section*{References}
-\label{sec:org1215d6c}
+\label{sec:org6b20263}
 \begingroup
 \renewcommand{\section}[2]{}
 
