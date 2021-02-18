@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jan  7 2021 (10:08) 
+## Last-Updated: feb 18 2021 (12:11) 
 ##           By: Brice Ozenne
-##     Update #: 180
+##     Update #: 184
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -471,9 +471,25 @@ test_that("one group with only censoring, one group with no censoring",{
     expect_equal(as.double(coef(e2.Peron,"netBenefit")),0.9)
 
     dt3 <- data.table("treatment" = c("C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T"), 
-                     "time" = c(0.302, 0.307, 0.336, 0.347, 0.348, 0.459, 0.494, 0.525, 0.587, 0.588, 0.098, 0.116, 0.180, 0.229, 0.306, 0.318, 0.452, 0.485, 1.025, 1.339), 
-                     "status" = c(0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+                      "time" = c(0.302, 0.307, 0.336, 0.347, 0.348, 0.459, 0.494, 0.525, 0.587, 0.588, 0.098, 0.116, 0.180, 0.229, 0.306, 0.318, 0.452, 0.485, 1.025, 1.339), 
+                      "status" = c(0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
     e3.Peron <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0),
                           data = dt3, scoring.rule = "Peron")
     expect_equal(as.double(coef(e3.Peron,"netBenefit")),0.733333333)
+})
+## * brice ozenne : 02/18/21 12:00 subset factor strata
+test_that("subset factor strata",{
+    dt <- data.table("treatment" = c(rep("C",100),rep("T",100)),
+                     "time" = rnorm(200, mean = 100),
+                     "status" = 1,
+                     "strata" = factor(1:5))
+    dtR <- dt[strata %in% 1:3]
+    dtR[, strata := droplevels(strata)]
+    
+    test <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0) + strata,
+                      data = dt[strata %in% 1:3], trace = FALSE)
+    GS <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0) + strata,
+                    data = dtR, trace = FALSE)
+    expect_equal(confint(test),confint(GS), tol = 1e-6)
+
 })

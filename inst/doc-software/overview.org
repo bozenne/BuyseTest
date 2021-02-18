@@ -480,7 +480,8 @@ summary(BTinv)
 #+end_example
 
 Internally =BuyseTest= will compute the favorable and unfavorable
-score as usual and then switch them around if operator equals ="<0"=.
+score as usual and then switch them around if the operator equals
+="<0"=.
 
 \clearpage
 
