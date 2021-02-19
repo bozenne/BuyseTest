@@ -314,7 +314,6 @@ simBuyseTest_bin <- function(modelT,
         }
         iLatent.T <- paste0("eta_",name[iterE])
         iLatent.C <- paste0("eta_",name[iterE])
-
         iCut.T <- qnormweibull(cumsum(p.T[[iterE]])[-length(p.T[[iterE]])], scale = scale.T[iterE], shape = shape.T[iterE], rho = rho.T[iterE])
         iFct.T <- paste0("function(x, xcut = c(",paste0(iCut.T,collapse=","),"), xname = c(\"",paste0(names.values[[iterE]],collapse="\",\""),"\")){\n",
                          "    return(factor(findInterval(x[,1], vec = xcut), levels = 0:length(xcut), labels = xname))\n",
