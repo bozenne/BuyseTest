@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj  6 2020 (14:06) 
 ## Version: 
-## Last-Updated: feb 19 2021 (09:24) 
+## Last-Updated: feb 19 2021 (09:28) 
 ##           By: Brice Ozenne
-##     Update #: 67
+##     Update #: 70
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,17 +32,21 @@
 ##' @title Cumulative Distribution Function of a Gaussian Variable Plus an Exponential Variable
 ##' @keywords internal
 ##' @examples
+##' \dontrun{
+##' n <- 1e6
+##' 
 ##' ## rho > 0
-##' mean(rnorm(1e5) + 1.5 * rexp(1e5, rate = 2) <= 0.1)
+##' mean(rnorm(n) + 1.5 * rexp(n, rate = 2) <= 0.1)
 ##' pnormexp(0.1, rate = 2, rho = 1.5)
-##' mean(rnorm(1e5) + 1.5 * rexp(1e5, rate = 2) <= 0.9)
+##' mean(rnorm(n) + 1.5 * rexp(n, rate = 2) <= 0.9)
 ##' pnormexp(0.9, rate = 2, rho = 1.5)
 ##'
 ##' ## rho < 0
-##' mean(rnorm(1e5) - 1.5 * rexp(1e5, rate = 2) <= 0.1)
+##' mean(rnorm(n) - 1.5 * rexp(n, rate = 2) <= 0.1)
 ##' pnormexp(0.1, rate = 2, rho = -1.5)
-##' mean(rnorm(1e5) - 1.5 * rexp(1e5, rate = 2) <= 0.9)
+##' mean(rnorm(n) - 1.5 * rexp(n, rate = 2) <= 0.9)
 ##' pnormexp(0.9, rate = 2, rho = -1.5)
+##' }
 pnormexp <- function(q, rate, rho){
     if(abs(rho)<1e-12){
         out <- stats::pnorm(q)
@@ -64,11 +68,15 @@ pnormexp <- function(q, rate, rho){
 ##' @title Density of a Gaussian Variable Plus an Exponential Variable
 ##' @keywords internal
 ##' @examples
-##' c(qnormexp(0.5, rate = 2, rho = 1.5), quantile(rnorm(1e5) + 1.5 * rexp(1e5, rate = 2), 0.5))
-##' c(qnormexp(0.95, rate = 1/10, rho = 1.5), quantile(rnorm(1e5) + 1.5 * rexp(1e5, rate = 1/10), 0.95))
+##' \dontrun{
+##' n <- 1e6
 ##' 
-##' c(qnormexp(0.5, rate = 2, rho = -1.5), quantile(rnorm(1e6) - 1.5 * rexp(1e6, rate = 2), 0.5))
-##' c(qnormexp(0.95, rate = 1/10, rho = -1.5), quantile(rnorm(1e6) - 1.5 * rexp(1e6, rate = 1/10), 0.95))
+##' c(qnormexp(0.5, rate = 2, rho = 1.5), quantile(rnorm(n) + 1.5 * rexp(n, rate = 2), 0.5))
+##' c(qnormexp(0.95, rate = 1/10, rho = 1.5), quantile(rnorm(n) + 1.5 * rexp(n, rate = 1/10), 0.95))
+##' 
+##' c(qnormexp(0.5, rate = 2, rho = -1.5), quantile(rnorm(n) - 1.5 * rexp(n, rate = 2), 0.5))
+##' c(qnormexp(0.95, rate = 1/10, rho = -1.5), quantile(rnorm(n) - 1.5 * rexp(n, rate = 1/10), 0.95))
+##' }
 qnormexp <- function(p, rate, rho){
     if(abs(rho)<1e-12){
         out <- stats::qnorm(p)
@@ -108,20 +116,24 @@ qnormexp <- function(p, rate, rho){
 ##' @title Cumulative Distribution Function of a Gaussian Variable Plus an Weibull Variable
 ##' @keywords internal
 ##' @examples
+##' \dontrun{
+##' n <- 1e6
+##' 
 ##' pnormweibull(0.1, scale = 1/2, shape = 1, rho = 1.5)
 ##' pnormweibull(0.8, scale = 1/2, shape = 1, rho = 1.5)
-##' mean(rnorm(1e5) + 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.1)
-##' mean(rnorm(1e5) + 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.8)
+##' mean(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.1)
+##' mean(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.8)
 ##' 
 ##' pnormweibull(0.1, scale = 1/2, shape = 1, rho = -1.5)
 ##' pnormweibull(0.8, scale = 1/2, shape = 1, rho = -1.5)
-##' mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.1)
-##' mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.8)
+##' mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.1)
+##' mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.8)
 ##' 
 ##' pnormweibull(0.1, scale = 1/2, shape = 2, rho = -1.5)
 ##' pnormweibull(0.8, scale = 1/2, shape = 2, rho = -1.5)
-##' mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 2) <= 0.1)
-##' mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 2) <= 0.8)
+##' mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 2) <= 0.1)
+##' mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 2) <= 0.8)
+##' }
 
 pnormweibull <- function(q, scale, shape, rho){
     if(abs(rho)<1e-12){
@@ -149,18 +161,30 @@ pnormweibull <- function(q, scale, shape, rho){
 ##' @title Density of a Gaussian Variable Plus an Weibull Variable
 ##' @keywords internal
 ##' @examples
+##' \dontrun{
 ##' n <- 5e6
-##' c(qnormweibull(0.5, scale = 1/2, shape = 1, rho = 1.5), quantile(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 1), 0.5))
-##' c(qnormweibull(0.95, scale = 10, shape = 1, rho = 1.5), quantile(rnorm(n) + 1.5 * rweibull(n, scale = 10, shape = 1), 0.95))
 ##' 
-##' c(qnormweibull(0.5, scale = 1/2, shape = 2, rho = 1.5), quantile(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 2), 0.5))
-##' c(qnormweibull(0.95, scale = 10, shape = 2, rho = 1.5), quantile(rnorm(n) + 1.5 * rweibull(n, scale = 10, shape = 2), 0.95))
+##' c(qnormweibull(0.5, scale = 1/2, shape = 1, rho = 1.5),
+##'  quantile(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 1), 0.5))
+##' c(qnormweibull(0.95, scale = 10, shape = 1, rho = 1.5),
+##' quantile(rnorm(n) + 1.5 * rweibull(n, scale = 10, shape = 1), 0.95))
+##' 
+##' c(qnormweibull(0.5, scale = 1/2, shape = 2, rho = 1.5),
+##' quantile(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 2), 0.5))
+##' c(qnormweibull(0.95, scale = 10, shape = 2, rho = 1.5),
+##' quantile(rnorm(n) + 1.5 * rweibull(n, scale = 10, shape = 2), 0.95))
 ##'
-##' c(qnormweibull(0.5, scale = 1/2, shape = 1, rho = -1.5), quantile(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 1), 0.5))
-##' c(qnormweibull(0.95, scale = 10, shape = 1, rho = -1.5), quantile(rnorm(n) - 1.5 * rweibull(n, scale = 10, shape = 1), 0.95))
+##' c(qnormweibull(0.5, scale = 1/2, shape = 1, rho = -1.5),
+##' quantile(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 1), 0.5))
+##' c(qnormweibull(0.95, scale = 10, shape = 1, rho = -1.5),
+##' quantile(rnorm(n) - 1.5 * rweibull(n, scale = 10, shape = 1), 0.95))
 ##' 
-##' c(qnormweibull(0.5, scale = 1/2, shape = 2, rho = -1.5), quantile(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 2), 0.5))
-##' c(qnormweibull(0.95, scale = 10, shape = 2, rho = -1.5), quantile(rnorm(n) - 1.5 * rweibull(n, scale = 10, shape = 2), 0.95))
+##' c(qnormweibull(0.5, scale = 1/2, shape = 2, rho = -1.5),
+##' quantile(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 2), 0.5))
+##' c(qnormweibull(0.95, scale = 10, shape = 2, rho = -1.5),
+##' quantile(rnorm(n) - 1.5 * rweibull(n, scale = 10, shape = 2), 0.95))
+##' 
+##' }
 qnormweibull <- function(p, scale, shape, rho){
     if(abs(rho)<1e-12){
         out <- stats::qnorm(p)

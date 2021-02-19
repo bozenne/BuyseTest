@@ -10,10 +10,14 @@ qnormexp(p, rate, rho)
 Density of a Gaussian Variable Plus an Exponential Variable
 }
 \examples{
-c(qnormexp(0.5, rate = 2, rho = 1.5), quantile(rnorm(1e5) + 1.5 * rexp(1e5, rate = 2), 0.5))
-c(qnormexp(0.95, rate = 1/10, rho = 1.5), quantile(rnorm(1e5) + 1.5 * rexp(1e5, rate = 1/10), 0.95))
+\dontrun{
+n <- 1e6
 
-c(qnormexp(0.5, rate = 2, rho = -1.5), quantile(rnorm(1e6) - 1.5 * rexp(1e6, rate = 2), 0.5))
-c(qnormexp(0.95, rate = 1/10, rho = -1.5), quantile(rnorm(1e6) - 1.5 * rexp(1e6, rate = 1/10), 0.95))
+c(qnormexp(0.5, rate = 2, rho = 1.5), quantile(rnorm(n) + 1.5 * rexp(n, rate = 2), 0.5))
+c(qnormexp(0.95, rate = 1/10, rho = 1.5), quantile(rnorm(n) + 1.5 * rexp(n, rate = 1/10), 0.95))
+
+c(qnormexp(0.5, rate = 2, rho = -1.5), quantile(rnorm(n) - 1.5 * rexp(n, rate = 2), 0.5))
+c(qnormexp(0.95, rate = 1/10, rho = -1.5), quantile(rnorm(n) - 1.5 * rexp(n, rate = 1/10), 0.95))
+}
 }
 \keyword{internal}

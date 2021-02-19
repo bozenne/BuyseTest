@@ -10,19 +10,23 @@ pnormweibull(q, scale, shape, rho)
 Cumulative Distribution Function of a Gaussian Variable Plus an Weibull Variable
 }
 \examples{
+\dontrun{
+n <- 1e6
+
 pnormweibull(0.1, scale = 1/2, shape = 1, rho = 1.5)
 pnormweibull(0.8, scale = 1/2, shape = 1, rho = 1.5)
-mean(rnorm(1e5) + 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.1)
-mean(rnorm(1e5) + 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.8)
+mean(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.1)
+mean(rnorm(n) + 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.8)
 
 pnormweibull(0.1, scale = 1/2, shape = 1, rho = -1.5)
 pnormweibull(0.8, scale = 1/2, shape = 1, rho = -1.5)
-mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.1)
-mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 1) <= 0.8)
+mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.1)
+mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 1) <= 0.8)
 
 pnormweibull(0.1, scale = 1/2, shape = 2, rho = -1.5)
 pnormweibull(0.8, scale = 1/2, shape = 2, rho = -1.5)
-mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 2) <= 0.1)
-mean(rnorm(1e5) - 1.5 * rweibull(1e5, scale = 1/2, shape = 2) <= 0.8)
+mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 2) <= 0.1)
+mean(rnorm(n) - 1.5 * rweibull(n, scale = 1/2, shape = 2) <= 0.8)
+}
 }
 \keyword{internal}

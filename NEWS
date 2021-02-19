@@ -8,6 +8,7 @@
 - NEW FEATURE: model.tte can now accept survreg objects.
 
 ** Internal change
+- fix bug in simBuyseTest when using negative correlation.
 - fix bug in printGeneral when displaying the operator argument.
 - fix operator option moving it to the C++ code.
 - c++ for the competing risk has been updated to compute the influence

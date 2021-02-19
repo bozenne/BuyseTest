@@ -10,16 +10,20 @@ pnormexp(q, rate, rho)
 Cumulative Distribution Function of a Gaussian Variable Plus an Exponential Variable
 }
 \examples{
+\dontrun{
+n <- 1e6
+
 ## rho > 0
-mean(rnorm(1e5) + 1.5 * rexp(1e5, rate = 2) <= 0.1)
+mean(rnorm(n) + 1.5 * rexp(n, rate = 2) <= 0.1)
 pnormexp(0.1, rate = 2, rho = 1.5)
-mean(rnorm(1e5) + 1.5 * rexp(1e5, rate = 2) <= 0.9)
+mean(rnorm(n) + 1.5 * rexp(n, rate = 2) <= 0.9)
 pnormexp(0.9, rate = 2, rho = 1.5)
 
 ## rho < 0
-mean(rnorm(1e5) - 1.5 * rexp(1e5, rate = 2) <= 0.1)
+mean(rnorm(n) - 1.5 * rexp(n, rate = 2) <= 0.1)
 pnormexp(0.1, rate = 2, rho = -1.5)
-mean(rnorm(1e5) - 1.5 * rexp(1e5, rate = 2) <= 0.9)
+mean(rnorm(n) - 1.5 * rexp(n, rate = 2) <= 0.9)
 pnormexp(0.9, rate = 2, rho = -1.5)
+}
 }
 \keyword{internal}
