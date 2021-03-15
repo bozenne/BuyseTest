@@ -217,7 +217,7 @@ setMethod(f = "getIid",
 #' library(prodlim)
 #' 
 #' ## run BuyseTest
-#' data(veteran,package="survival")
+#' data(cancer,package="survival")
 #'
 #' BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
 #'                      data = veteran, keep.pairScore = TRUE, 

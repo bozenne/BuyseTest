@@ -221,7 +221,7 @@
 #' 
 #' if(require(survival)){
 #' \dontrun{
-#'   data(veteran,package="survival")
+#'   data(cancer,package="survival")
 #'  
 #'   ## scoring.rule = "Gehan"
 #'   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
