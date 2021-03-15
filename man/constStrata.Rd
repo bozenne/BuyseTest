@@ -38,7 +38,7 @@ This function uses the \code{interaction} function from the \emph{base} package 
 \examples{
 library(data.table)
 
-data(veteran,package="survival")
+data(cancer,package="survival")
   
 # strata with two variables : celltype and karno
 veteran$strata1 <- constStrata(veteran,c("celltype","karno"))
