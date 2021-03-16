@@ -38,20 +38,20 @@ This function uses the \code{interaction} function from the \emph{base} package 
 \examples{
 library(data.table)
 
-library(survival) ## import cancer
+library(survival) ## import veteran
   
 # strata with two variables : celltype and karno
-cancer$strata1 <- constStrata(cancer,c("celltype","karno"))
-table(cancer$strata1)
+veteran$strata1 <- constStrata(veteran,c("celltype","karno"))
+table(veteran$strata1)
   
 # strata with three variables : celltype, karno and age dichotomized at 60 years
-cancer$age60 <- cancer$age>60
-cancer$age60 <- factor(cancer$age60,labels=c("<=60",">60")) # convert to factor with labels
-cancer$strata2 <- constStrata(cancer,c("celltype","karno","age60"))
-table(cancer$strata2) # factor strata variable 
+veteran$age60 <- veteran$age>60
+veteran$age60 <- factor(veteran$age60,labels=c("<=60",">60")) # convert to factor with labels
+veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"))
+table(veteran$strata2) # factor strata variable 
   
-cancer$strata2 <- constStrata(cancer,c("celltype","karno","age60"), as.numeric=TRUE)
-table(cancer$strata2) # numeric strata variable
+veteran$strata2 <- constStrata(veteran,c("celltype","karno","age60"), as.numeric=TRUE)
+table(veteran$strata2) # numeric strata variable
 
 }
 \author{

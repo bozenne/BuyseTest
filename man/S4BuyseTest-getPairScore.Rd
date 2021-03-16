@@ -90,10 +90,10 @@ library(data.table)
 library(prodlim)
 
 ## run BuyseTest
-library(survival) ## import cancer
+library(survival) ## import veteran
 
 BT.keep <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
-                     data = cancer, keep.pairScore = TRUE, 
+                     data = veteran, keep.pairScore = TRUE, 
                      trace = 0, method.inference = "none")
 
 ## Extract scores
@@ -105,8 +105,8 @@ indexPair <- intersect(which(pScore$index.1 == 22),
 pScore[indexPair]
 
 ## retrive pair in the original dataset
-pCancer <- cancer[pScore[indexPair,c(index.1,index.2)],]
-pCancer
+pVeteran <- veteran[pScore[indexPair,c(index.1,index.2)],]
+pVeteran
 
 ## the observation from the control group is censored at 97
 ## the observation from the treatment group has an event at 112
@@ -118,7 +118,7 @@ pCancer
 ## where Sc(t) is the survival at time t in the control arm.
 
 ## we first estimate the survival in each arm
-e.KM <- prodlim(Hist(time,status)~trt, data = cancer)
+e.KM <- prodlim(Hist(time,status)~trt, data = veteran)
 
 ## and compute the survival
 iSurv <- predict(e.KM, times =  c(97,112+20),

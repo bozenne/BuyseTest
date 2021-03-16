@@ -215,24 +215,24 @@
 #' BT <- BuyseTest(f, data=df.data)
 #' summary(BT)
 #' 
-#' #### real example : Cancer dataset of the survival package ####
+#' #### real example : veteran dataset of the survival package ####
 #' ## Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
 #' ## scoring.rule = "Gehan"
 #' 
 #' if(require(survival)){
 #' \dontrun{
-#'   library(survival) ## import cancer
+#'   library(survival) ## import veteran
 #'  
 #'   ## scoring.rule = "Gehan"
 #'   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
-#'                         data=cancer, scoring.rule="Gehan")
+#'                         data=veteran, scoring.rule="Gehan")
 #'   
 #'   summary_Gehan <- summary(BT_Gehan)
 #'   summary_Gehan <- summary(BT_Gehan, statistic = "winRatio")
 #'   
 #'   ## scoring.rule = "Peron"
 #'   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
-#'                         data=cancer, scoring.rule="Peron")
+#'                         data=veteran, scoring.rule="Peron")
 #' 
 #'   class(BT_Peron)
 #'   summary(BT_Peron)
