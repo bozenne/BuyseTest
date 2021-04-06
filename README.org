@@ -125,3 +125,4 @@ toBibtex(citation("BuyseTest"))
 
 * Functionalities
 See the vignette "Overview of the package BuyseTest" in [[./vignettes/overview.pdf]]
+
