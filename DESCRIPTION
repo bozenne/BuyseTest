@@ -30,6 +30,7 @@ Imports:
     data.table,
     doParallel,
     foreach,
+    ggplot2,
     methods,
     lava,
     parallel,

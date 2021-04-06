@@ -71,8 +71,9 @@ setMethod(f = "getCount",
 #' @rdname S4BuyseTest-getIid
 setMethod(f = "getIid",
           signature = "S4BuyseTest",
-          definition = function(object, endpoint = NULL, normalize = TRUE, type = "all", cluster = NULL){
+          definition = function(object, endpoint = NULL, statistic = NULL, normalize = TRUE, type = "all", cluster = NULL){
 
+              option <- BuyseTest.options()
               n.obs <- NROW(object@iidAverage$favorable)
               valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
               n.endpoint <- length(valid.endpoint)
@@ -103,6 +104,30 @@ setMethod(f = "getIid",
               }
               validInteger(cluster, valid.length = n.obs, min = 1, max = n.obs, refuse.NA = TRUE, refuse.NULL = FALSE, refuse.duplicates = FALSE)
 
+              if(is.null(statistic)){
+                  statistic <- option$statistic
+              }else{
+                  statistic <- sapply(tolower(statistic), function(iChar){
+                      switch(gsub("[[:blank:]]", "", iChar),
+                             "netbenefit" = "netBenefit",
+                             "winratio" = "winRatio",
+                             "favorable" = "favorable",
+                             "unfavorable" = "unfavorable",
+                             statistic)})
+              
+                  validCharacter(statistic,
+                                 name1 = "statistic",
+                                 valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
+                                 valid.length = NULL,
+                                 refuse.duplicates = TRUE,
+                                 method = "getIid[S4BuyseTest]")
+              }
+              ## ** extract favorable/unfavorable
+              delta.favorable <- colSums(object@count.favorable)/sum(object@n.pairs)
+              delta.unfavorable <- colSums(object@count.unfavorable)/sum(object@n.pairs)
+              Delta.favorable <- sum(delta.favorable)
+              Delta.unfavorable <- sum(delta.unfavorable)
+
               ## ** extract H-decomposition
               if(type %in% c("all","u-statistic")){
                   object.iid <- object@iidAverage
@@ -119,8 +144,6 @@ setMethod(f = "getIid",
               }
 
               if(normalize==FALSE){
-                  delta.favorable <- colSums(object@count.favorable)/sum(object@n.pairs)
-                  delta.unfavorable <- colSums(object@count.unfavorable)/sum(object@n.pairs)
                   indexC <- attr(object@level.treatment,"indexC")
                   indexT <- attr(object@level.treatment,"indexT")
 
@@ -145,22 +168,37 @@ setMethod(f = "getIid",
                       }
                       return(iIID)
                   }))
+                  out <- matrix(NA, nrow = NROW(object.iid), ncol = length(statistic), dimnames = list(NULL, statistic))
+                  if("favorable" %in% statistic){
+                      out[,"favorable"] <- object.iid[,"favorable"]
+                  }
+                  if("unfavorable" %in% statistic){
+                      out[,"unfavorable"] <- object.iid[,"unfavorable"]
+                  }
+                  if("netBenefit" %in% statistic){
+                      out[,"netBenefit"] <- object.iid[,"favorable"] - object.iid[,"unfavorable"]
+                  }
+                  if("winRatio" %in% statistic){
+                      out[,"winRatio"] <- object.iid[,"favorable"]/Delta.unfavorable - object.iid[,"unfavorable"]*Delta.favorable/Delta.unfavorable^2
+                  }
+
               }else{
                   ## iid decomposition for each endpoint
-                  object.iid <- lapply(endpoint, function(iE){
+                  out <- lapply(endpoint, function(iE){
                       iIID <- cbind(favorable = object.iid$favorable[,iE],
                                     unfavorable = object.iid$unfavorable[,iE])
                       if(!is.null(cluster)){
                           iIID <- cbind(favorable = tapply(iIID[,"favorable"],cluster,sum),
-                                       unfavorable = tapply(iIID[,"unfavorable"],cluster,sum))
+                                        unfavorable = tapply(iIID[,"unfavorable"],cluster,sum))
                       }
                       return(iIID)
                   })
-                  names(object.iid) <- endpoint
+                  names(out) <- endpoint
               }
 
+
               ## ** output H-decomposition
-              return(object.iid)
+              return(out)
     
 })
 
