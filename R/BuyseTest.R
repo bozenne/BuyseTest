@@ -267,7 +267,8 @@ BuyseTest <- function(formula,
                       keep.comparison,
                       method.tte){
 
-    name.call <- names(match.call())
+    mycall <- match.call()
+    name.call <- names(mycall)
     option <- BuyseTest.options()
 
     ## ** compatibility with previous version
@@ -455,7 +456,8 @@ BuyseTest <- function(formula,
     }
     keep.args <- c("index.T", "index.C", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf",
                    "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling")
-    BuyseTest.object <- do.call("S4BuyseTest", args = c(outPoint, outArgs[keep.args], outResampling))
+    BuyseTest.object <- do.call("S4BuyseTest", args = c(list(call = setNames(as.list(mycall),names(mycall))),
+                                                        outPoint, outArgs[keep.args], outResampling))
     
     if(outArgs$trace > 1){
         cat("\n")

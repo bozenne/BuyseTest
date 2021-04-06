@@ -19,6 +19,7 @@ setClass(
   Class = "S4BuyseTest",
   
   representation(
+      call = "list",
       count.favorable = "matrix",      
       count.unfavorable = "matrix",
       count.neutral = "matrix",
@@ -55,7 +56,8 @@ setClass(
 methods::setMethod(
              f = "initialize", 
              signature = "S4BuyseTest", 
-             definition = function(.Object, 
+             definition = function(.Object,
+                                   call,
                                    count_favorable, ## from cpp object
                                    count_unfavorable, ## from cpp object
                                    count_neutral, ## from cpp object
@@ -92,6 +94,8 @@ methods::setMethod(
                                    args){
 
                  name.endpoint <- paste0(endpoint,"_",threshold)
+                 
+                 ## ** call
                  
                  ## ** count
                  dimnames(count_favorable) <- list(level.strata, name.endpoint)
@@ -226,6 +230,7 @@ methods::setMethod(
                  .Object@tablePairScore <- tableScore
 
                  ## *** required additional information
+                 .Object@call <- call[-1]      
                  .Object@type <- type
                  .Object@endpoint <- endpoint
                  .Object@level.strata <- level.strata

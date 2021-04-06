@@ -32,6 +32,7 @@
 #' E. D. Saad , J. R. Zalcberg, J. Peron, E. Coart, T. Burzykowski, M. Buyse (2018). \bold{Understanding and communicating measures of treatment effect on survival: can we do better?}. \emph{J Natl Cancer Inst}.
 #' @useDynLib BuyseTest, .registration=TRUE
 #' @import data.table
+#' @importFrom ggplot2 autoplot
 #' @importFrom lava categorical coxExponential.lvm distribution eventTime iid lvm sim vars latent<-
 #' @import methods
 #' @importFrom parallel detectCores

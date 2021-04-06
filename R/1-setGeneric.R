@@ -49,8 +49,12 @@ setGeneric(name = "getSurvival",
 #' @rdname S4BuyseTest-getIid
 #' @exportMethod getIid
 setGeneric(name = "getIid",
-           def = function(object, endpoint = NULL, normalize = TRUE, type = "all", cluster = NULL){
+           def = function(object, endpoint = NULL, statistic = NULL, normalize = TRUE, type = "all", cluster = NULL){
                standardGeneric("getIid")
            }
 )
 
+## * method sensitivity (for BuyseTest)
+setGeneric(name = "sensitivity", 
+           def = function(object, ...){standardGeneric("sensitivity")}
+)
