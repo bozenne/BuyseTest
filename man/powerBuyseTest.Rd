@@ -72,7 +72,7 @@ library(data.table)
 ## only point estimate
 powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
                formula = treatment ~ bin(toxicity), seed = 10,
-               method.inference = "none", trace = 4)
+               method.inference = "none", trace = 2)
 
 ## point estimate with rejection rate
 powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,

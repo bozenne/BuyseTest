@@ -55,6 +55,8 @@ setGeneric(name = "getIid",
 )
 
 ## * method sensitivity (for BuyseTest)
+#' @rdname S4BuyseTest-sensitivity
+#' @exportMethod sensitivity
 setGeneric(name = "sensitivity", 
            def = function(object, ...){standardGeneric("sensitivity")}
 )

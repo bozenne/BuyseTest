@@ -2,6 +2,10 @@
 #+Author: Brice Ozenne
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
 options(width = 94)
+if(system("whoami",intern=TRUE)=="bozenne"){  
+  setwd("~/Documents/GitHub/BuyseTest/inst/doc-software/")
+}
+
 #+END_SRC
 
 #+RESULTS:
@@ -37,6 +41,7 @@ The *BuyseTest* package contains three main functions:
     + =getIid= to extract the iid decomposition of the estimator.
     + =getPairScore= to extract the contribution of each pair to the net benefit/win ratio.
     + =getSurvival= to extract the estimates of the survival (only relevant for right-censored endpoints).
+    + =sensitivity= to perform a sensitivity analysis on the choice of the threshold(s) of clinical relevance.
 - the =powerBuyseTest= function performs simulation studies,
   e.g. to estimate the statistical power or assess the bias / type 1
   error rate of a test for a specific design.
@@ -57,7 +62,7 @@ library(data.table)
 To illustrate the functionalities of the package, we will used the
 =veteran= dataset from the *survival* package:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-data(veteran,package="survival")
+library(survival)
 head(veteran)
 #+END_SRC
 
@@ -82,7 +87,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘2.2.5’
+: [1] ‘2.2.7’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -92,30 +97,35 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 3.6.3 (2020-02-29)
+R version 4.0.5 (2021-03-31)
 Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 16.04.7 LTS
+Running under: Ubuntu 20.04.2 LTS
 
 Matrix products: default
-BLAS:   /usr/lib/libblas/libblas.so.3.6.0
-LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
- [1] LC_CTYPE=fr_FR.UTF-8       LC_NUMERIC=C               LC_TIME=da_DK.UTF-8       
- [4] LC_COLLATE=fr_FR.UTF-8     LC_MONETARY=da_DK.UTF-8    LC_MESSAGES=fr_FR.UTF-8   
- [7] LC_PAPER=da_DK.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
-[10] LC_TELEPHONE=C             LC_MEASUREMENT=da_DK.UTF-8 LC_IDENTIFICATION=C       
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
+ [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.13.7 BuyseTest_2.2.5   Rcpp_1.0.6       
+[1] survival_3.2-10   data.table_1.14.0 BuyseTest_2.2.7   Rcpp_1.0.6       
 
 loaded via a namespace (and not attached):
- [1] compiler_3.6.3     Matrix_1.2-18      tools_3.6.3        parallel_3.6.3    
- [5] survival_3.1-12    prodlim_2019.11.13 splines_3.6.3      grid_3.6.3        
- [9] lava_1.6.8.1       stats4_3.6.3       lattice_0.20-41
+ [1] magrittr_2.0.1     splines_4.0.5      tidyselect_1.1.0   munsell_0.5.0     
+ [5] prodlim_2019.11.13 lattice_0.20-41    colorspace_2.0-0   R6_2.5.0          
+ [9] rlang_0.4.10       fansi_0.4.2        dplyr_1.0.5        parallel_4.0.5    
+[13] grid_4.0.5         gtable_0.3.0       utf8_1.2.1         ellipsis_0.3.1    
+[17] tibble_3.1.0       lifecycle_1.0.0    crayon_1.4.1       Matrix_1.3-2      
+[21] lava_1.6.9         purrr_0.3.4        ggplot2_3.3.3      vctrs_0.3.7       
+[25] glue_1.4.2         compiler_4.0.5     pillar_1.5.1       generics_0.1.0    
+[29] scales_1.1.1       stats4_4.0.5       pkgconfig_2.0.3
 #+end_example
 
 \clearpage
@@ -203,6 +213,7 @@ Gather the results in a S4BuyseTest object
 
 We can check that the two approaches are equivalent:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.f@call <- list(); BT@call <- list();
 testthat::expect_equal(BT.f,BT)
 #+END_SRC
 
@@ -664,6 +675,115 @@ increase by a factor 5 to 10 compared to the point estimate alone
 (i.e. =method.inference= equal to ="none"=).
 
 \clearpage
+
+** Sensitivity analysis
+
+The choice of the threshold of clinical relevance if somehow
+subjective and it is recommended to see how the results vary as a
+function of the threshold. This can be easily performed using the
+=sensitivity= method:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BTse.ustat <- sensitivity(BT.ustat, threshold = seq(0,500, length.out=10), band = TRUE)
+BTse.ustat
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        time    estimate         se    lower.ci   upper.ci   p.value  lower.band upper.band
+1    0.00000 -0.08752774 0.10041203 -0.27851884 0.11012263 0.3858177 -0.32460029  0.1598922
+2   55.55556 -0.08095829 0.08957699 -0.25229456 0.09530004 0.3682107 -0.29409683  0.1398508
+3  111.11111 -0.03170177 0.07463991 -0.17629003 0.11422560 0.6712414 -0.21231166  0.1510024
+4  166.66667  0.01896964 0.06452954 -0.10713643 0.14447503 0.7688360 -0.13899110  0.1759890
+5  222.22222  0.03315614 0.05523512 -0.07506821 0.14060850 0.5486177 -0.10255669  0.1676572
+6  277.77778  0.04217485 0.04654025 -0.04914025 0.13279075 0.3653982 -0.07241581  0.1556666
+7  333.33333  0.04112991 0.03946828 -0.03631838 0.11808708 0.2979105 -0.05608655  0.1375738
+8  388.88889  0.04075638 0.03300933 -0.02402114 0.10519310 0.2174545 -0.04057201  0.1215483
+9  444.44444  0.04097871 0.03027888 -0.01844156 0.10011054 0.1764199 -0.03362927  0.1151325
+10 500.00000  0.03517173 0.02769280 -0.01915553 0.08929191 0.2044340 -0.03303993  0.1030573
+#+end_example
+
+Here by setting the argument =band= to =TRUE=, we obtain confidence
+intervals and p-values adjusted for multiple comparisons. Said
+otherwise, the columns =lower.ci= and =upper.ci= provide a (pointwise)
+confidence interval with 95% coverage for a given threshold while the
+columns =lower.band= and =upper.band= provide a (simutaneous)
+confidence interval with 95% coverage across all given thresholds. In
+particular if is interested in the largest effect, the simultaneous
+confidence interval should be reported instead of the pointwise. They
+can be displayed using the =autoplot= method:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(ggplot2)
+autoplot(BTse.ustat)
+#+END_SRC
+
+#+RESULTS:
+
+
+#+ATTR_LaTeX: :width 0.5\textwidth :placement [!h]
+[[./figures/gg-sensitivity1.pdf]]
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+ggsave(autoplot(BTse.ustat), filename = file.path("figures","gg-sensitivity1.pdf"),
+       width = 5, height = 3)
+#+END_SRC
+#+RESULTS:
+
+With multiple endpoints, the thresholds can be specified using a list:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BTse.H <- sensitivity(BT.H, 
+                      threshold = list(time = seq(0,500,length = 10), karno = c(0,40,80)))
+head(BTse.H)
+#+END_SRC
+
+#+RESULTS:
+:        time karno    estimate         se   lower.ci   upper.ci   p.value
+: 1   0.00000     0 -0.08754474 0.10044847 -0.2786016 0.11017738 0.3858987
+: 2  55.55556     0 -0.11177487 0.09915501 -0.2995661 0.08435417 0.2636263
+: 3 111.11111     0 -0.08618872 0.09822940 -0.2732475 0.10715096 0.3826244
+: 4 166.66667     0 -0.05180121 0.09818252 -0.2400240 0.14017526 0.5984319
+: 5 222.22222     0 -0.03668720 0.09810141 -0.2253052 0.15458146 0.7086747
+: 6 277.77778     0 -0.02906324 0.09773146 -0.2172647 0.16122161 0.7663054
+
+or a matrix:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+grid <- expand.grid(list("time_20" = seq(0,500,length = 10), "karno_1e-12" = c(0,40,80)))
+cbind(head(grid)," " = "  ...   ",tail(grid))
+range(BTse.H-sensitivity(BT.H, threshold = grid))
+#+END_SRC
+
+#+RESULTS:
+:     time_20 karno_1e-12           time_20 karno_1e-12
+: 1   0.00000           0   ...    222.2222          80
+: 2  55.55556           0   ...    277.7778          80
+: 3 111.11111           0   ...    333.3333          80
+: 4 166.66667           0   ...    388.8889          80
+: 5 222.22222           0   ...    444.4444          80
+: 6 277.77778           0   ...    500.0000          80
+: [1] 0 0
+
+The latter should be used when the same endpoint is used at different
+priorities (each column correspond to the threshold that should be
+used at a priority). As before we can display the results using the
+autoplot function:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+autoplot(BTse.H, col = NA)
+##  alternative display:
+## autoplot(BTse.H, position  = position_dodge(width = 15))
+#+END_SRC
+
+#+ATTR_LaTeX: :width \textwidth :placement [!h]
+[[./figures/gg-sensitivity2.pdf]]
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+ggsave(autoplot(BTse.H, col = NA), filename = file.path("figures","gg-sensitivity2.pdf"),
+       width = 7, height = 3)
+#+END_SRC
+#+RESULTS:
+
+Note that the autoplot function cannot be used when more than 2
+thresholds are varied at the same time.
+#+RESULTS:
 
 * Getting additional inside: looking at the pair level
 
@@ -1544,6 +1664,7 @@ bibliographystyle:apalike
 \endgroup
 #+END_EXPORT
 
+
 * CONFIG :noexport:
 #+LANGUAGE:  en
 #+LaTeX_CLASS: org-article
@@ -1551,17 +1672,12 @@ bibliographystyle:apalike
 #+OPTIONS:   title:t author:t toc:nil todo:nil
 #+OPTIONS:   H:3 num:t 
 #+OPTIONS:   TeX:t LaTeX:t
-
 ** Display of the document
 # ## space between lines
 #+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
 #+LaTeX_HEADER:\renewcommand{\baselinestretch}{1.1}
-
 # ## margins
-#+LaTeX_HEADER: \geometry{a4paper, left=10mm, right=10mm}
-#+LATEX_HEADER:\geometry{top=1cm}
-
-
+#+LaTeX_HEADER: \geometry{a4paper, left=10mm, right=10mm, top=10mm}
 # ## personalize the prefix in the name of the sections
 #+LaTeX_HEADER: \usepackage{titlesec}
 # ## fix bug in titlesec version
@@ -1572,7 +1688,6 @@ bibliographystyle:apalike
 #+LaTeX_HEADER: \patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
 #+LaTeX_HEADER: \patchcmd{\ttlh@hang}{\noindent}{}{}{}
 #+LaTeX_HEADER: \makeatother
-
 ** Color
 # ## define new colors
 #+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
@@ -1584,19 +1699,16 @@ bibliographystyle:apalike
 #+LaTeX_HEADER: \newcommand{\darkgreen}{green!50!black}
 #+LaTeX_HEADER: \newcommand{\darkred}{red!50!black}
 #+LaTeX_HEADER: \definecolor{gray}{gray}{0.5}
-
 # ## change the color of the links
 #+LaTeX_HEADER: \hypersetup{
 #+LaTeX_HEADER:  citecolor=[rgb]{0,0.5,0},
 #+LaTeX_HEADER:  urlcolor=[rgb]{0,0,0.5},
 #+LaTeX_HEADER:  linkcolor=[rgb]{0,0,0.5},
 #+LaTeX_HEADER: }
-
 ** Font
 # https://tex.stackexchange.com/questions/25249/how-do-i-use-a-particular-font-for-a-small-section-of-text-in-my-document
-#+LaTeX_HEADER: \newenvironment{comment}{\small \color{gray}\fontfamily{lmtt}\selectfont}{\par}
+#+LaTeX_HEADER: \newenvironment{note}{\small \color{gray}\fontfamily{lmtt}\selectfont}{\par}
 #+LaTeX_HEADER: \newenvironment{activity}{\color{orange}\fontfamily{qzc}\selectfont}{\par}
-
 ** Symbols
 # ## valid and cross symbols
 #+LaTeX_HEADER: \RequirePackage{pifont}
@@ -1607,7 +1719,6 @@ bibliographystyle:apalike
 #+LaTeX_HEADER:		{\relsize{1.5}\ding{52}}}\hspace{1pt} }
 #+LaTeX_HEADER: \newcommand{\CrossR}{ \textcolor{red}{\Cross} }
 #+LaTeX_HEADER: \newcommand{\ValidV}{ \textcolor{green}{\Valid} }
-
 # ## warning symbol
 #+LaTeX_HEADER: \usepackage{stackengine}
 #+LaTeX_HEADER: \usepackage{scalerel}
@@ -1616,11 +1727,12 @@ bibliographystyle:apalike
 #+LaTeX_HEADER:   \scaleto{\stackon[1.3pt]{\color{red}$\triangle$}{\tiny\bfseries !}}{#1}%
 #+LaTeX_HEADER:   \xspace
 #+LaTeX_HEADER: }
-
 # # R Software
 #+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
-
 ** Code
+:PROPERTIES:
+:ID:       2ec77c4b-f83d-4612-9a89-a96ba1b7bf70
+:END:
 # Documentation at https://org-babel.readthedocs.io/en/latest/header-args/#results
 # :tangle (yes/no/filename) extract source code with org-babel-tangle-file, see http://orgmode.org/manual/Extracting-source-code.html 
 # :cache (yes/no)
@@ -1628,55 +1740,47 @@ bibliographystyle:apalike
 # :results (value/output/silent/graphics/raw/latex)
 # :export (code/results/none/both)
 #+PROPERTY: header-args :session *R* :tangle yes :cache no ## extra argument need to be on the same line as :session *R*
-
 # Code display:
 #+LATEX_HEADER: \RequirePackage{fancyvrb}
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
-
-# ## change font size input
+# ## change font size input (global change)
+# ## doc: https://ctan.math.illinois.edu/macros/latex/contrib/listings/listings.pdf
+# #+LATEX_HEADER: \newskip kipamount    kipamount =6pt plus 0pt minus 6pt
+# #+LATEX_HEADER: \lstdefinestyle{code-tiny}{basicstyle=\ttfamily\tiny, aboveskip =  kipamount, belowskip =  kipamount}
+# #+LATEX_HEADER: \lstset{style=code-tiny}
+# ## change font size input (local change, put just before BEGIN_SRC)
 # ## #+ATTR_LATEX: :options basicstyle=\ttfamily\scriptsize
-# ## change font size output
+# ## change font size output (global change)
 # ## \RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\tiny,formatcom = {\color[rgb]{0.5,0,0}}}
-
-** List
+** Lists
 #+LATEX_HEADER: \RequirePackage{enumitem} % better than enumerate
-
 ** Image and graphs
 #+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
 #+LATEX_HEADER: \RequirePackage{capt-of} % 
 #+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
-
 #+LaTeX_HEADER: \RequirePackage{tikz-cd} % graph
 # ## https://tools.ietf.org/doc/texlive-doc/latex/tikz-cd/tikz-cd-doc.pdf
-
 ** Table
 #+LATEX_HEADER: \RequirePackage{booktabs} % for nice lines in table (e.g. toprule, bottomrule, midrule, cmidrule)
-
 ** Inline latex
 # @@latex:any arbitrary LaTeX code@@
-
-
 ** Algorithm
 #+LATEX_HEADER: \RequirePackage{amsmath}
 #+LATEX_HEADER: \RequirePackage{algorithm}
 #+LATEX_HEADER: \RequirePackage[noend]{algpseudocode}
-
 ** Math
 #+LATEX_HEADER: \RequirePackage{dsfont}
 #+LATEX_HEADER: \RequirePackage{amsmath,stmaryrd,graphicx}
 #+LATEX_HEADER: \RequirePackage{prodint} % product integral symbol (\PRODI)
-
 # ## lemma
 # #+LaTeX_HEADER: \RequirePackage{amsthm}
 # #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
 # #+LaTeX_HEADER: \newtheorem{lemma}[theorem]{Lemma}
-
 *** Template for shortcut
 #+LATEX_HEADER: \usepackage{ifthen}
 #+LATEX_HEADER: \usepackage{xifthen}
 #+LATEX_HEADER: \usepackage{xargs}
 #+LATEX_HEADER: \usepackage{xspace}
-
 #+LATEX_HEADER: \newcommand\defOperator[7]{%
 #+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{
 #+LATEX_HEADER:		\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
@@ -1684,7 +1788,6 @@ bibliographystyle:apalike
 #+LATEX_HEADER:	\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
 #+LATEX_HEADER: }
 #+LATEX_HEADER: }
-
 #+LATEX_HEADER: \newcommand\defUOperator[5]{%
 #+LATEX_HEADER: \ifthenelse{\isempty{#1}}{
 #+LATEX_HEADER:		#5\left#3 #2 \right#4
@@ -1693,38 +1796,31 @@ bibliographystyle:apalike
 #+LATEX_HEADER:		\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
 #+LATEX_HEADER: }
 #+LATEX_HEADER: }
-
 #+LATEX_HEADER: \newcommand{\defBoldVar}[2]{	
 #+LATEX_HEADER:	\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
 #+LATEX_HEADER: }
-
 **** Probability
 #+LATEX_HEADER: \newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
 #+LATEX_HEADER: \newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
 #+LATEX_HEADER: \newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
 #+LATEX_HEADER: \newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
 #+LATEX_HEADER: \newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
-
 #+LATEX_HEADER: \newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
-
 #+LATEX_HEADER: \newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\logLikelihood[2][1=,2=]{\defOperator{#1}{#2}{\ell}{}{(}{)}{}}
 #+LATEX_HEADER: \newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
-
 **** Operators
 #+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
 #+LATEX_HEADER: \newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
-
 #+LATEX_HEADER: \newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
 #+LATEX_HEADER: \newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
 #+LATEX_HEADER: \newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
 #+LATEX_HEADER: \newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
 #+LATEX_HEADER: \newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
-
 #+LATEX_HEADER: \newcommandx\Hypothesis[2][1=,2=]{
 #+LATEX_HEADER:         \ifthenelse{\isempty{#1}}{
 #+LATEX_HEADER:         \mathcal{H}
@@ -1736,7 +1832,6 @@ bibliographystyle:apalike
 #+LATEX_HEADER:         }
 #+LATEX_HEADER:         }
 #+LATEX_HEADER: }
-
 #+LATEX_HEADER: \newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
 #+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
 #+LATEX_HEADER: 		\frac{#4 #1}{#4 #2}
@@ -1744,9 +1839,7 @@ bibliographystyle:apalike
 #+LATEX_HEADER: 	\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
 #+LATEX_HEADER: }
 #+LATEX_HEADER: }
-
 #+LATEX_HEADER: \newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
-
 #+LATEX_HEADER: \newcommandx\ddpartial[3][1=,2=,3=]{
 #+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
 #+LATEX_HEADER: 		\frac{\partial^{2} #1}{\partial #2^2}
@@ -1754,7 +1847,6 @@ bibliographystyle:apalike
 #+LATEX_HEADER: 	\frac{\partial^2 #1}{\partial #2\partial #3}
 #+LATEX_HEADER: }
 #+LATEX_HEADER: } 
-
 **** General math
 #+LATEX_HEADER: \newcommand\Real{\mathbb{R}}
 #+LATEX_HEADER: \newcommand\Rational{\mathbb{Q}}
@@ -1764,8 +1856,9 @@ bibliographystyle:apalike
 #+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
 #+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
 #+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
-
 #+LATEX_HEADER: \newcommand\Veta{\boldsymbol{\eta}}
 #+LATEX_HEADER: \newcommand\VX{\mathbf{X}}
-
 ** Notations
+
+
+

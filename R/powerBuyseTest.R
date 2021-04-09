@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jan  8 2021 (16:03) 
+## Last-Updated: Apr  9 2021 (11:10) 
 ##           By: Brice Ozenne
-##     Update #: 862
+##     Update #: 885
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -57,7 +57,7 @@
 ##' ## only point estimate
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
 ##'                formula = treatment ~ bin(toxicity), seed = 10,
-##'                method.inference = "none", trace = 4)
+##'                method.inference = "none", trace = 2)
 ##'
 ##' ## point estimate with rejection rate
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
@@ -101,10 +101,10 @@ powerBuyseTest <- function(sim,
                            trace = 1,
                            ...){
 
-    call <- match.call()$sim
-
+    call <- match.call()
+    
     ## ** normalize and check arguments
-    name.call <- names(match.call())
+    name.call <- names(call)
     option <- BuyseTest.options()
     if(is.null(conf.level)){
         conf.level <- option$conf.level
@@ -156,11 +156,12 @@ powerBuyseTest <- function(sim,
     if(!data.table::is.data.table(dt.tempo)){
         stop("The function defined by the argument \'sim\' must return a data.table object.\n")
     }
-    
+
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
                               data = NULL, model.tte = NULL, ...)
+    outArgs$call <- setNames(as.list(call),names(call))
 
     ## ** test arguments
     if(option$check){
@@ -231,7 +232,7 @@ powerBuyseTest <- function(sim,
         }else{
             method.loop <- lapply
         }
-        
+
         ls.simulation <- do.call(method.loop,
                                  args = list(X = 1:n.rep,
                                              FUN = function(X){
@@ -367,7 +368,7 @@ powerBuyseTest <- function(sim,
                                               endpoint.TTE = envir$outArgs$endpoint.TTE,
                                               status.TTE = envir$outArgs$status.TTE,
                                               iidNuisance = envir$outArgs$iidNuisance)
-
+    
     ## ** Point estimate for the largest sample size
     ## largest sample size
     outPoint <- .BuyseTest(envir = envir,
@@ -375,7 +376,7 @@ powerBuyseTest <- function(sim,
                            iid = envir$outArgs$iid,
                            pointEstimation = TRUE)
     keep.args <- c("index.C", "index.T", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf",
-                   "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling","call")
     allBT[[envir$n.sample.size]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
 
     ## ** Loop over other sample sizes
@@ -389,25 +390,25 @@ powerBuyseTest <- function(sim,
         sample.sizeT <- envir$sample.sizeT
         
         for(iSize in 1:(envir$n.sample.size-1)){
-                envir$outArgs[out.name] <- initializeData(data = rbind(data[index.C[1:sample.sizeC[iSize]]],
-                                                                       data[index.T[1:sample.sizeT[iSize]]]),
-                                                          type = envir$outArgs$type,
-                                                          endpoint = envir$outArgs$endpoint,
-                                                          Uendpoint = envir$outArgs$Uendpoint,
-                                                          D = envir$outArgs$D,
-                                                          scoring.rule = scoring.rule,
-                                                          status = envir$outArgs$status,
-                                                          Ustatus = envir$outArgs$Ustatus,
-                                                          method.inference = envir$outArgs$method.inference,
-                                                          censoring = envir$outArgs$censoring,
-                                                          strata = envir$outArgs$strata,
-                                                          treatment = envir$outArgs$treatment,
-                                                          hierarchical = envir$outArgs$hierarchical,
-                                                          copy = FALSE,
-                                                          keep.pairScore = envir$outArgs$keep.pairScore,
-                                                          endpoint.TTE = envir$outArgs$endpoint.TTE,
-                                                          status.TTE = envir$outArgs$status.TTE,
-                                                          iidNuisance = iidNuisance)
+            envir$outArgs[out.name] <- initializeData(data = rbind(data[index.C[1:sample.sizeC[iSize]]],
+                                                                   data[index.T[1:sample.sizeT[iSize]]]),
+                                                      type = envir$outArgs$type,
+                                                      endpoint = envir$outArgs$endpoint,
+                                                      Uendpoint = envir$outArgs$Uendpoint,
+                                                      D = envir$outArgs$D,
+                                                      scoring.rule = scoring.rule,
+                                                      status = envir$outArgs$status,
+                                                      Ustatus = envir$outArgs$Ustatus,
+                                                      method.inference = envir$outArgs$method.inference,
+                                                      censoring = envir$outArgs$censoring,
+                                                      strata = envir$outArgs$strata,
+                                                      treatment = envir$outArgs$treatment,
+                                                      hierarchical = envir$outArgs$hierarchical,
+                                                      copy = FALSE,
+                                                      keep.pairScore = envir$outArgs$keep.pairScore,
+                                                      endpoint.TTE = envir$outArgs$endpoint.TTE,
+                                                      status.TTE = envir$outArgs$status.TTE,
+                                                      iidNuisance = iidNuisance)
 
                 outPoint <- .BuyseTest(envir = envir,
                                        iid = envir$outArgs$iid,

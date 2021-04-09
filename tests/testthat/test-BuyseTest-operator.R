@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: jan  8 2021 (15:43) 
+## Last-Updated: Apr  9 2021 (12:50) 
 ##           By: Brice Ozenne
-##     Update #: 36
+##     Update #: 37
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -56,7 +56,6 @@ test_that("check - 1 pair",{
 })
 
 ## * many pairs
-data(veteran, package = "survival")
 test_that("check - many pairs",{
     ## original - twice same tte
     BT0 <- BuyseTest(trt ~ tte(time,status,threshold=5)+tte(time,status,threshold=0),

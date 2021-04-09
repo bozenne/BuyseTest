@@ -61,6 +61,8 @@ test_that("BuyseTest - binary (no strata)", {
     ## butils::object2script(test, digit = 6)
 
     expect_equal(test, GS, tol = 1e-6, scale = 1)
+    BT.bin@call <- list()
+    BT2@call <- list()
     expect_equal(BT.bin,BT2)
     
     ## *** count pairs
@@ -129,7 +131,8 @@ test_that("BuyseTest - continuous (no strata)", {
                winRatio = c(0.87804878, 0.93050193) )
 
     ## butils::object2script(test, digit = 6)
-
+    BT.cont@call <- list()
+    BT2@call <- list()
     expect_equal(test, GS, tol = 1e-6, scale = 1)
     expect_equal(BT.cont,BT2)
 
@@ -194,6 +197,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
                          )
 
         ## *** compatibility between BuyseTests
+        BT.tte@call <- list()
+        BT2@call <- list()
         expect_equal(BT.tte, BT2)
         expect_equal(sum(coef(BT.tte, statistic = "count.favorable", cumulative = FALSE)),
                      as.double(coef(BT.1tte, statistic = "count.favorable", cumulative = FALSE)))
@@ -282,6 +287,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
                      )
 
         ## *** compatibility between BuyseTests
+        BT.tte@call <- list()
+        BT2@call <- list()
         expect_equal(BT.tte, BT2)
 
         ## *** test against fixed value
@@ -388,6 +395,8 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron" ## method <- "Gehan"
                          scoring.rule=method)
   
         ## *** compatibility between BuyseTests
+        BT.mixed@call <- list()
+        BT2@call <- list()
         expect_equal(BT.mixed, BT2)
 
         ## *** test against fixed value
@@ -424,7 +433,6 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron" ## method <- "Gehan"
         }
         
         expect_equal(test, GS, tolerance = 1e-6, scale = 1)
-        expect_equal(BT.mixed,BT2)
 
         ## *** count pairs
         tableS <- summary(BT.mixed, print = FALSE, percentage = FALSE)$table

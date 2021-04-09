@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 2.2.6
-Date: 2021-03-16
+Version: 2.2.7
+Date: 2021-04-09
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
@@ -72,6 +72,7 @@ Collate:
     'S4-BuyseTest-coef.R'
     'S4-BuyseTest-confint.R'
     'S4-BuyseTest-get.R'
+    'S4-BuyseTest-sensitivity.R'
     'S4-BuyseTest-summary.R'
     'S4-BuyseTest-show.R'
     'S4-BuyseTest.options.R'

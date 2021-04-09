@@ -5,6 +5,7 @@ library(BuyseTest)
 library(lava)
 library(data.table)
 library(survival)
+xx <- capture.output(print(veteran))
 library(riskRegression)
 library(prodlim)
 

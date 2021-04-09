@@ -59,6 +59,7 @@ setMethod(f = "getCount",
 #' @param normalize [logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
 #' Otherwise not.
 #' @param cluster [numeric vector] return the H-decomposition aggregated by cluster.
+#' @param statistic [character] statistic relative to which the H-decomposition should be output.
 #' 
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
