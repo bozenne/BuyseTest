@@ -6,6 +6,8 @@
 - NEW FEATURE: getPseudovalue can be used to extract
   pseudo-observations corresponding to the net Benefit.
 - NEW FEATURE: model.tte can now accept survreg objects.
+- NEW FEATURE: function sensitivity to call BuyseTest over a grid of
+  threshold values.
 
 ** Internal change
 - fix bug in simBuyseTest when using negative correlation.
