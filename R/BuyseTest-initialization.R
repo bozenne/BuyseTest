@@ -170,29 +170,32 @@ initializeArgs <- function(status,
     ## if(any(type %in% 1:2)){
     ##     censoring[type %in% 1:2] <- as.character(NA)
     ## }
-    censoring.save <- censoring
-    censoring <- sapply(unname(censoring),function(iC){
-        if(identical(iC,"NA")){
-            return(0)
-        }else if(identical(iC,"right")){
-            return(1)
-        }else if(identical(iC,"left")){
-            return(2)
-        }else{
-            return(NA)
-        }
-    })
-    attr(censoring,"original") <- censoring.save
-    
+    if(!is.numeric(censoring)){
+        censoring.save <- censoring
+        censoring <- sapply(unname(censoring),function(iC){
+            if(identical(iC,"NA")){
+                return(0)
+            }else if(identical(iC,"right")){
+                return(1)
+            }else if(identical(iC,"left")){
+                return(2)
+            }else{
+                return(NA)
+            }
+        })
+        attr(censoring,"original") <- censoring.save
+    }
+
     ## ** scoring.rule
     ## WARNING: choices must be lower cases
     ##          remember to update check scoring.rule (in BuyseTest-check.R)
-    scoring.rule <- tolower(scoring.rule)
-    scoring.rule <- switch(scoring.rule,
-                           "gehan" = 0,
-                           "peron" = 1,
-                           NA
-                           )
+    if(is.character(scoring.rule)){
+        scoring.rule <- switch(tolower(scoring.rule),
+                               "gehan" = 0,
+                               "peron" = 1,
+                               NA
+                               )
+    }
 
     if (D.TTE == 0) {
         scoring.rule <- 0
@@ -280,7 +283,9 @@ initializeArgs <- function(status,
     }
 
     ## ** operator
-    operator <- sapply(operator, switch, ">0"=1, "<0"=-1, NA)
+    if(!is.numeric(operator)){
+        operator <- sapply(operator, switch, ">0"=1, "<0"=-1, NA)
+    }
 
     ## ** export
     return(list(
@@ -546,27 +551,36 @@ initializeFormula <- function(x){
     }
 
     ## ** extract endpoints and additional arguments 
-    threshold <- rep(NA, n.endpoint)
-    status <- rep("..NA..", n.endpoint)
-    endpoint <- rep(NA, n.endpoint)
-    operator <- rep(">0", n.endpoint)
-    censoring <- rep("right", n.endpoint)
-    weight <- rep(1, n.endpoint)
+    threshold <- NULL
+    status <- NULL
+    endpoint <- NULL
+    operator <- NULL
+    censoring <- NULL
+    weight <- NULL
+    type <- NULL
     validArgs <- c("endpoint","status","threshold","operator","weight","censoring")
 
     ## split around parentheses
     ls.x.endpoint <- strsplit(vec.x.endpoint, split = "(", fixed = TRUE)
 
-    type <- character(length = n.endpoint)
     for(iE in 1:n.endpoint){
+
         ## extract type
-        type[iE] <- tolower(ls.x.endpoint[[iE]][1])
-        if(type[iE] %in% c("b","bin","binary")){
+        candidate <- tolower(ls.x.endpoint[[iE]][1])
+        if(candidate %in% c("b","bin","binary")){
+            type <- c(type, candidate)
             iValidArgs <- setdiff(validArgs,c("status","threshold"))
-        }else if(type[iE] %in% c("c","cont","continuous")){
+        }else if(candidate %in% c("c","cont","continuous")){
+            type <- c(type, candidate)
             iValidArgs <- setdiff(validArgs,"status")
-        }else{ ## if(type[iE] %in% c("t","tte","time","timetoevent"))
+        }else if(candidate %in% c("t","tte","time","timetoevent")){
+            type <- c(type, candidate)
             iValidArgs <- validArgs
+        }else if(candidate %in% c("s","strat","strata")){
+            strata <- c(strata, gsub(")", replacement = "",ls.x.endpoint[[iE]][2]))
+            next
+        }else{
+            stop("initFormula: cannot convert the element ",paste(ls.x.endpoint[[iE]],collapse="(")," in the formula to a useful information.\n")
         }
         
         ## get each argument
@@ -613,7 +627,7 @@ initializeFormula <- function(x){
         }
 
         ## extract arguments
-        endpoint[iE] <- gsub("\"","",iArg[iName=="endpoint"])
+        endpoint <- c(endpoint,  gsub("\"","",iArg[iName=="endpoint"]))
         if("threshold" %in% iName){
             thresholdTempo <- try(eval(expr = parse(text = iArg[iName=="threshold"])), silent = TRUE)
             if(inherits(thresholdTempo,"try-error")){
@@ -632,24 +646,34 @@ initializeFormula <- function(x){
                      "cannot be used to specify the threshold \n")
             }
             
-            threshold[iE] <- as.numeric(thresholdTempo)
+            threshold <- c(threshold, as.numeric(thresholdTempo))
+        }else{
+            threshold <- c(threshold, NA)
         }
         if("status" %in% iName){
-            status[iE] <- gsub("\"","",iArg[iName=="status"])
+            status <- c(status, gsub("\"","",iArg[iName=="status"]))
+        }else{
+            status <- c(status, "..NA..")
         }
         if("operator" %in% iName){
-            operator[iE] <- gsub("\"","",iArg[iName=="operator"])
+            operator <- c(operator, gsub("\"","",iArg[iName=="operator"]))
+        }else{
+            operator <- c(operator, ">0")
         }
         if("weight" %in% iName){
-            weight[iE] <- as.numeric(eval(expr = parse(text = iArg[iName=="weight"])))
+            weight <- c(weight, as.numeric(eval(expr = parse(text = iArg[iName=="weight"]))))
+        }else{
+            weight <- c(weight, 1)
         }
         if("censoring" %in% iName){
-            censoring[iE] <- gsub("\"","",iArg[iName=="censoring"])
+            censoring <- c(censoring, gsub("\"","",iArg[iName=="censoring"]))
+        }else{
+            censoring <- c(censoring, "right")
         }
     }
 
     ## ** export
-    return(list(treatment = treatment,
+    out <- list(treatment = treatment,
                 type = type,
                 endpoint = endpoint,
                 threshold = threshold,
@@ -657,7 +681,8 @@ initializeFormula <- function(x){
                 operator = operator,
                 weight = weight,
                 censoring = censoring,
-                strata = strata))
+                strata = strata)
+    return(out)
 }
 
 

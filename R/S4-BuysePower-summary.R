@@ -104,7 +104,12 @@ setMethod(f = "summary",
 
               ## ** subset
               index.subset <- which((dt.res$endpoint %in% endpoint) * (dt.res$order == order.Hprojection) * (dt.res$transformation == transformation) == 1)
-              if(object@method.inference == "u-statistic"){                          
+              if(object@method.inference == "none"){                          
+                  dtS.res <- dt.res[index.subset,list(rep.estimate = sum(!is.na(.SD$estimate)),
+                                                      mean.estimate = mean(.SD$estimate, na.rm = TRUE)),
+                                    by = c("n.T","n.C","endpoint","statistic"),]
+                  col.value <- c("mean.estimate","rep.estimate")
+              }else{
                   dtS.res <- dt.res[index.subset,list(rep.estimate = sum(!is.na(.SD$estimate)),
                                                       rep.se = sum(!is.na(.SD$se)),
                                                       mean.estimate = mean(.SD$estimate, na.rm = TRUE),
@@ -113,11 +118,6 @@ setMethod(f = "summary",
                                                       rejection.rate = mean(.SD$p.value<=alpha, na.rm = TRUE)),
                                     by = c("n.T","n.C","endpoint","statistic"),]
                   col.value <- c("mean.estimate","sd.estimate","mean.se","rejection.rate","rep.estimate","rep.se")
-              }else{
-                  dtS.res <- dt.res[index.subset,list(rep.estimate = sum(!is.na(.SD$estimate)),
-                                                      mean.estimate = mean(.SD$estimate, na.rm = TRUE)),
-                                    by = c("n.T","n.C","endpoint","statistic"),]
-                  col.value <- c("mean.estimate","rep.estimate")
               }
               index.endpoint <- match(dtS.res$endpoint, valid.endpoint)
               dtS.res$endpoint <- object@endpoint[index.endpoint]
@@ -163,7 +163,7 @@ setMethod(f = "summary",
                                  c(" n.C",":","number of observations in the control group"),
                                  c(" mean.estimate",":","average estimate over simulations"),
                                  c(" sd.estimate",":","standard deviation of the estimate over simulations"))
-                      if(object@method.inference == "u-statistic"){                          
+                      if(object@method.inference != "none"){                          
                           M <- rbind(M,
                                      c(" mean.se",":","average estimated standard error of the estimate over simulations"),
                                      c(" rejection",":","frequency of the rejection of the null hypothesis over simulations")

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: jan  8 2021 (11:55) 
+## Last-Updated: Apr 15 2021 (10:54) 
 ##           By: Brice Ozenne
-##     Update #: 436
+##     Update #: 443
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -69,7 +69,7 @@ calcPeron <- function(data,
         if(fitter[iUTTE]=="prodlim"){
 
             if(tofit){
-                model.tte[[iUTTE]] <- do.call(prodlim::prodlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data), args))
+                model.tte[[iUTTE]] <- do.call(prodlim::prodlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
             }
 
         }else if(fitter[iUTTE]=="survreg"){
@@ -133,8 +133,8 @@ calcPeron <- function(data,
                                                                            "index.dCIF12" = iPred1.iTreat.afterJump$index)
 
                         if(iidNuisance){
-                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- cbind(iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat, cause = 1),
-                                                                               iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat, cause = 2))
+                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- cbind(lava::iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat, cause = 1),
+                                                                               lava::iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat, cause = 2))
                             out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
                         }
 
@@ -170,11 +170,9 @@ calcPeron <- function(data,
                         
 
                         if(iidNuisance){
-                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat)
+                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- lava::iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat)
                             out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
-
-                            model.tte[[iUTTE]]$peron
-                            if(any(is.na(out$iid[[iStoreJump]][[iUTTE]][[iStrata]]))){ browser() }
+                            if(any(is.na(out$iid[[iStoreJump]][[iUTTE]][[iStrata]]))){ stop("NA in the iid decomposition of the survival model. \n") }
 
                         }
                         out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind(time = iTime.jump, ## jump time

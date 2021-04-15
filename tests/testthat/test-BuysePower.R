@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: maj  6 2020 (16:02) 
+## Last-Updated: Apr 15 2021 (12:05) 
 ##           By: Brice Ozenne
-##     Update #: 40
+##     Update #: 41
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -151,7 +151,7 @@ test_that("1 tte endpoint - Peron", {
 test_that("Multiple endpoints", {    
     seqN <- c(10,50)
     nrep <- 5
-    formula <- treatment ~ tte(eventtime, status = status, threshold = 0.25) + bind(toxicity) + tte(eventtime, status = status, threshold = 0)
+    formula <- treatment ~ tte(eventtime, status = status, threshold = 0.25) + bin(toxicity) + tte(eventtime, status = status, threshold = 0)
 
     ## automatic
     e.tte <- powerBuyseTest(sim = simBuyseTest,

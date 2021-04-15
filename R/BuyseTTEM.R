@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: jan  8 2021 (12:02) 
+## Last-Updated: Apr 14 2021 (20:23) 
 ##           By: Brice Ozenne
-##     Update #: 634
+##     Update #: 636
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -610,13 +610,13 @@ predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = 
     if(type=="survival"){
         out$survival <- 1-table.cif[index.table,"cif"]
         if(iid){
-            out$survival.iid <- iid(object, strata = strata, treatment = treatment, cause = cause)[,out$index+1,drop=FALSE]
+            out$survival.iid <- lava::iid(object, strata = strata, treatment = treatment, cause = cause)[,out$index+1,drop=FALSE]
             out$survival.se <- sqrt(colSums(out$survival.iid^2))
         }
     }else{
         out$cif <- table.cif[index.table,"cif"]
         if(iid){
-            out$cif.iid <- iid(object, strata = strata, treatment = treatment, cause = cause)[,out$index+1,drop=FALSE]
+            out$cif.iid <- lava::iid(object, strata = strata, treatment = treatment, cause = cause)[,out$index+1,drop=FALSE]
             out$cif.se <- sqrt(colSums(out$cif.iid^2))
         }
     }

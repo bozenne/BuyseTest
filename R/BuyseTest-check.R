@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: feb 18 2021 (12:16) 
+## Last-Updated: Apr 15 2021 (11:01) 
 ##           By: Brice Ozenne
-##     Update #: 267
+##     Update #: 274
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -189,7 +189,13 @@ testArgs <- function(name.call,
         if(any(vec.class == FALSE) ){
             stop("BuyseTest: argument \'model.tte\' must be a list of \"",paste0(gsub("BuyseTTEM\\.","",valid.class), collapse = "\", or \""),"\" objects. \n")
         }
-        
+        test.prodlim.continuous <- sapply(model.tte, function(iModel){
+            inherits(iModel,"prodlim") & length(iModel$continuous.predictor>0)
+        })
+        if(any(test.prodlim.continuous)){
+            stop("Incorrect model for time to event: cannot handle continuous variables. \n",
+                 "Consider setting the argument \"discrete.level\" to a large value when calling prodlim for endpoint(s) \"",paste(names(test.prodlim.continuous)[test.prodlim.continuous], collapse = "\" \""),"\". \n")
+        }
         vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(all.vars(stats::update(stats::formula(model.tte[[1]]), "0~."))), sort(c(treatment,strata)))})
         if(any(vec.predictors == FALSE) ){
             stop("BuyseTest: argument \'model.tte\' must be a list of objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors. \n")

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: Apr  9 2021 (17:34) 
+## Last-Updated: Apr 15 2021 (11:50) 
 ##           By: Brice Ozenne
-##     Update #: 265
+##     Update #: 287
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,6 +41,8 @@
 #' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.
+#' @param cpus [integer, >0] the number of CPU to use. Default value is 1.
+#' @param trace [logical] Should the execution of the function be traced?
 #' @param ... argument passsed to the function \code{transformCIBP} of the riskRegression package.
 #'
 #' @details Simulateneous confidence intervals and adjusted p-values are computed using a single-step max-test approach via the function \code{transformCIBP} of the riskRegression package.
@@ -72,7 +74,9 @@
 #' @rdname S4BuyseTest-sensitivity
 setMethod(f = "sensitivity",
           signature = "S4BuyseTest",
-          definition = function(object, threshold, statistic = NULL, band = FALSE, conf.level = NULL, null = NULL, transformation = NULL, alternative = NULL, adj.p.value = FALSE, ...){
+          definition = function(object, threshold,
+                                statistic = NULL, band = FALSE, conf.level = NULL, null = NULL, transformation = NULL, alternative = NULL, adj.p.value = FALSE,
+                                trace = TRUE, cpus = 1, ...){
 
               ## ** normalize user input
               ## band
@@ -183,6 +187,10 @@ setMethod(f = "sensitivity",
               }
               ls.args$trace <- 0
 
+              if (cpus == "all") { 
+                  cpus <- parallel::detectCores() # this function detect the number of CPU cores 
+              }
+
               ## ** run BuyseTest
               n.se <- NROW(grid.threshold)
               test.varying <- apply(grid.threshold,2,function(iX){length(unique(iX))!=1})
@@ -191,18 +199,66 @@ setMethod(f = "sensitivity",
               }
               gridRed.threshold <- grid.threshold[,which(test.varying),drop=FALSE]
                   
-              ls.confint <- vector(mode="list", length = n.se)
-              ls.iid <- vector(mode="list", length = n.se)
-              
-              for(iSe in 1:n.se){
-                  iLS.args <- ls.args
-                  iLS.args$threshold <- as.double(grid.threshold[iSe,])
-                  iBT <- do.call(BuyseTest, args = iLS.args)
 
-                  iConfint <- confint(iBT, statistic = statistic, null = null, conf.level = conf.level, alternative = alternative, transformation = transformation)[n.endpoint,]
-                  ls.confint[[iSe]] <- data.frame(c(gridRed.threshold[iSe,,drop=FALSE], iConfint))
-                  if(iBT@method.inference=="u-statistic"){
-                      ls.iid[[iSe]] <- getIid(iBT, statistic = statistic)
+              if(trace>0){cat("Run ",n.se," GPC analyses: \n", sep = "")}
+              
+              if (cpus == 1) {
+                  ls.confint <- vector(mode="list", length = n.se)
+                  ls.iid <- vector(mode="list", length = n.se)
+
+                  if(trace>0){pb <- utils::txtProgressBar(max = n.se, style = 3)}
+
+                  for(iSe in 1:n.se){
+                      if(trace>0){utils::setTxtProgressBar(pb, iSe)}
+                      iLS.args <- ls.args
+                      iLS.args$threshold <- as.double(grid.threshold[iSe,])
+                      iBT <- do.call(BuyseTest, args = iLS.args)
+
+                      iConfint <- confint(iBT, statistic = statistic, null = null, conf.level = conf.level, alternative = alternative, transformation = transformation)[n.endpoint,]
+                      ls.confint[[iSe]] <- data.frame(c(gridRed.threshold[iSe,,drop=FALSE], iConfint))
+                      if(iBT@method.inference=="u-statistic"){
+                          ls.iid[[iSe]] <- getIid(iBT, statistic = statistic)
+                      }
+                  }
+
+                  if(trace>0){close(pb)}
+
+              }else{
+                  if(trace>0){
+                      cl <- suppressMessages(parallel::makeCluster(cpus, outfile = ""))
+                      pb <- utils::txtProgressBar(max = n.se, style = 3)          
+                  }else{
+                      cl <- parallel::makeCluster(cpus)
+                  }
+                  test.lazyeval <- sapply(ls.args,function(x){inherits(x,"name")})
+                  if(any(test.lazyeval)){
+                      toExport <- unlist(lapply(ls.args[test.lazyeval],deparse))
+                  }else{
+                      toExport <- NULL
+                  }
+
+                  i <- NULL ## [:forCRANcheck:] foreach
+                  ls.sensitivity <- foreach::`%dopar%`(
+                                                 foreach::foreach(i=1:n.se, .export = toExport), {                                           
+                                                     if(trace>0){utils::setTxtProgressBar(pb, i)}
+                                                     iLS.args <- ls.args
+                                                     iLS.args$threshold <- as.double(grid.threshold[i,])
+                                                     iBT <- do.call(BuyseTest, args = iLS.args)
+
+                                                     iConfint <- confint(iBT, statistic = statistic, null = null, conf.level = conf.level, alternative = alternative, transformation = transformation)[n.endpoint,]
+                                                     iOut <- list(confint = data.frame(c(gridRed.threshold[i,,drop=FALSE], iConfint)))
+                                                     if(iBT@method.inference=="u-statistic"){
+                                                         iOut[["iid"]] <- getIid(iBT, statistic = statistic)
+                                                     }
+                                                     return(iOut)
+                                                 })
+
+                  parallel::stopCluster(cl)
+                  if(trace>0){close(pb)}
+
+                  ls.confint <- lapply(ls.sensitivity,"[[","confint")
+                  if(object@method.inference=="u-statistic"){
+                      ls.iid <- lapply(ls.sensitivity,"[[","iid")
                   }
               }
               

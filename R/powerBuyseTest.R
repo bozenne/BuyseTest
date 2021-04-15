@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Apr  9 2021 (11:10) 
+## Last-Updated: Apr 15 2021 (11:59) 
 ##           By: Brice Ozenne
-##     Update #: 885
+##     Update #: 947
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,9 +31,7 @@
 #' @param n.rep [integer, >0] the number of simulations.
 #' @param null [numeric vector] For each statistic of interest, the null hypothesis to be tested.
 #' The vector should be named with the names of the statistics.
-#' @param cpus [integer, >0] the number of CPU to use.
-#' Only the permutation test can use parallel computation.
-#' Default value read from \code{BuyseTest.options()}.
+#' @param cpus [integer, >0] the number of CPU to use. Default value is 1.
 #' @param seed [integer, >0] the seed to consider for the simulation study.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
@@ -165,13 +163,28 @@ powerBuyseTest <- function(sim,
 
     ## ** test arguments
     if(option$check){
-        outTest <- do.call(testArgs, args = c(outArgs[setdiff(names(outArgs),"data")], list(data = dt.tempo)))        
-        if(!is.null(outArgs$strata)){
-            stop("Cannot use argument \'strata\' with powerBuyseTest \n")
+        index.pb <- which(outArgs$status[outArgs$type==3] == "..NA..")
+        if(length(index.pb)>0){
+            if(any(attr(outArgs$censoring,"original") %in% c("left","right") == FALSE)){
+                stop("BuyseTest: wrong specification of \'status\'. \n",
+                     "\'status\' must indicate a variable in data for TTE endpoints. \n",
+                     "\'censoring\' is used to indicate whether there is left or right censoring. \n",
+                     "Consider changing \'censoring =\' into \'status =\' when in the argument \'formula\' \n")
+            }else{        
+                stop("BuyseTest: wrong specification of \'status\'. \n",
+                     "\'status\' must indicate a variable in data for TTE endpoints. \n",
+                     "TTE endoints: ",paste(outArgs$endpoint[outArgs$type==3],collapse=" "),"\n",
+                     "proposed \'status\' for these endoints: ",paste(outArgs$status[outArgs$type==3],collapse=" "),"\n")
+            }
         }
-        if(outArgs$method.inference %in% c("none","u-statistic") == FALSE){
-            stop("Argument \'method.inference\' must be \"none\" or \"u-statistic\" \n")
-        }
+        ## outTest <- do.call(testArgs, args = outArgs)        
+        ##     outTest <- do.call(testArgs, args = c(outArgs[setdiff(names(outArgs),"data")], list(data = dt.tempo)))        
+        ##     if(!is.null(outArgs$strata)){
+        ##         stop("Cannot use argument \'strata\' with powerBuyseTest \n")
+        ##     }
+        ##     if(outArgs$method.inference %in% c("none","u-statistic") == FALSE){
+        ##         stop("Argument \'method.inference\' must be \"none\" or \"u-statistic\" \n")
+        ##     }
     }
 
     cpus <- outArgs$cpus
@@ -180,9 +193,9 @@ powerBuyseTest <- function(sim,
     
     ## ** initialization data
     outArgs$level.treatment <- levels(as.factor(dt.tempo[[outArgs$treatment]]))
-    outArgs$n.strata <- 1
-    outArgs$level.strata <- "1"
-    outArgs$allstrata <- NULL
+    ## outArgs$n.strata <- 1
+    ## outArgs$level.strata <- "1"
+    ## outArgs$allstrata <- NULL
 
     ## ** Display
     if (trace > 1) {
@@ -336,19 +349,25 @@ powerBuyseTest <- function(sim,
     out <- NULL
     allBT <- vector(mode = "list", length = envir$n.sample.size)
     
+    scoring.rule <- envir$outArgs$scoring.rule
+    iidNuisance <- envir$outArgs$iidNuisance
     n.endpoint <- length(envir$outArgs$endpoint)
     n.statistic <- length(statistic)
     rerun <- (envir$n.sample.size>1)
 
-    ## ** Initialize data
-    data <- envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax)
+    ## when creating S4 object
+    keep.args <- c("index.C", "index.T", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf",
+                   "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling","call")
 
+    ## when initializing data
     out.name <- c("data","M.endpoint","M.status",
                   "index.C","index.T","index.strata",
                   "level.treatment","level.strata", "method.score",
                   "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                   "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
 
+    ## ** Simulate data
+    data <- envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax)
 
     envir$outArgs[out.name] <- initializeData(data = data,
                                               type = envir$outArgs$type,
@@ -368,55 +387,81 @@ powerBuyseTest <- function(sim,
                                               endpoint.TTE = envir$outArgs$endpoint.TTE,
                                               status.TTE = envir$outArgs$status.TTE,
                                               iidNuisance = envir$outArgs$iidNuisance)
-    
-    ## ** Point estimate for the largest sample size
-    ## largest sample size
-    outPoint <- .BuyseTest(envir = envir,
-                           method.inference = "none",
-                           iid = envir$outArgs$iid,
-                           pointEstimation = TRUE)
-    keep.args <- c("index.C", "index.T", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf",
-                   "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling","call")
-    allBT[[envir$n.sample.size]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
 
+    ## save for subsetting the data set with other sample sizes
+    index.C <- envir$outArgs$index.C
+    index.T <- envir$outArgs$index.T
+
+    ## ** Point estimate for the largest sample size
+    if(envir$outArgs$method.inference %in% c("none","u-statistic")){
+        ## compute estimate and possibly uncertainty
+        outPoint <- .BuyseTest(envir = envir,
+                               method.inference = envir$outArgs$method.inference,
+                               iid = envir$outArgs$iid,
+                               pointEstimation = TRUE)
+
+        ## create S4 object
+        allBT[[envir$n.sample.size]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
+    }else{
+        data[["..strata.."]]  <- NULL
+        data[["..rowIndex.."]]  <- NULL
+        data[["..NA.."]]  <- NULL
+        allBT[[envir$n.sample.size]] <- BuyseTest(data = data, scoring.rule = envir$outArgs$scoring.rule, correction.uninf = envir$outArgs$correction.uninf, 
+                                                  model.tte = envir$outArgs$model.tte, method.inference = envir$outArgs$method.inference, n.resampling = envir$outArgs$n.resampling, 
+                                                  strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weight = envir$outArgs$weight, 
+                                                  neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
+                                                  trace = FALSE, treatment = envir$outArgs$treatment, endpoint = envir$outArgs$endpoint, 
+                                                  type = envir$outArgs$type, threshold = envir$outArgs$threshold, status = envir$outArgs$status, operator = envir$outArgs$operator, 
+                                                  censoring = envir$outArgs$censoring, strata = envir$outArgs$strata)
+    }
+    
     ## ** Loop over other sample sizes
     if(rerun>0){
-        n.sample.size <- envir$n.sample.size
-        scoring.rule <- envir$outArgs$scoring.rule
-        iidNuisance <- envir$outArgs$iidNuisance
-        index.C <- envir$outArgs$index.C
-        index.T <- envir$outArgs$index.T
-        sample.sizeC <- envir$sample.sizeC
-        sample.sizeT <- envir$sample.sizeT
         
         for(iSize in 1:(envir$n.sample.size-1)){
-            envir$outArgs[out.name] <- initializeData(data = rbind(data[index.C[1:sample.sizeC[iSize]]],
-                                                                   data[index.T[1:sample.sizeT[iSize]]]),
-                                                      type = envir$outArgs$type,
-                                                      endpoint = envir$outArgs$endpoint,
-                                                      Uendpoint = envir$outArgs$Uendpoint,
-                                                      D = envir$outArgs$D,
-                                                      scoring.rule = scoring.rule,
-                                                      status = envir$outArgs$status,
-                                                      Ustatus = envir$outArgs$Ustatus,
-                                                      method.inference = envir$outArgs$method.inference,
-                                                      censoring = envir$outArgs$censoring,
-                                                      strata = envir$outArgs$strata,
-                                                      treatment = envir$outArgs$treatment,
-                                                      hierarchical = envir$outArgs$hierarchical,
-                                                      copy = FALSE,
-                                                      keep.pairScore = envir$outArgs$keep.pairScore,
-                                                      endpoint.TTE = envir$outArgs$endpoint.TTE,
-                                                      status.TTE = envir$outArgs$status.TTE,
-                                                      iidNuisance = iidNuisance)
+            iData <- rbind(data[index.C[1:envir$sample.sizeC[iSize]]],
+                           data[index.T[1:envir$sample.sizeT[iSize]]])
+            
+            if(envir$outArgs$method.inference %in% c("none","u-statistic")){
+                envir$outArgs[out.name] <- initializeData(data = iData,
+                                                          type = envir$outArgs$type,
+                                                          endpoint = envir$outArgs$endpoint,
+                                                          Uendpoint = envir$outArgs$Uendpoint,
+                                                          D = envir$outArgs$D,
+                                                          scoring.rule = scoring.rule,
+                                                          status = envir$outArgs$status,
+                                                          Ustatus = envir$outArgs$Ustatus,
+                                                          method.inference = envir$outArgs$method.inference,
+                                                          censoring = envir$outArgs$censoring,
+                                                          strata = envir$outArgs$strata,
+                                                          treatment = envir$outArgs$treatment,
+                                                          hierarchical = envir$outArgs$hierarchical,
+                                                          copy = FALSE,
+                                                          keep.pairScore = envir$outArgs$keep.pairScore,
+                                                          endpoint.TTE = envir$outArgs$endpoint.TTE,
+                                                          status.TTE = envir$outArgs$status.TTE,
+                                                          iidNuisance = iidNuisance)
 
                 outPoint <- .BuyseTest(envir = envir,
                                        iid = envir$outArgs$iid,
-                                       method.inference = "none",
+                                       method.inference = envir$outArgs$method.inference,
                                        pointEstimation = TRUE)
 
                 allBT[[iSize]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
+            }else{
+                iData[["..strata.."]]  <- NULL
+                iData[["..rowIndex.."]]  <- NULL
+                iData[["..NA.."]]  <- NULL
+                allBT[[iSize]] <- BuyseTest(data = iData, scoring.rule = envir$outArgs$scoring.rule, correction.uninf = envir$outArgs$correction.uninf, 
+                                            model.tte = envir$outArgs$model.tte, method.inference = envir$outArgs$method.inference, n.resampling = envir$outArgs$n.resampling, 
+                                            strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weight = envir$outArgs$weight, 
+                                            neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
+                                            trace = FALSE, treatment = envir$outArgs$treatment, endpoint = envir$outArgs$endpoint, 
+                                            type = envir$outArgs$type, threshold = envir$outArgs$threshold, status = envir$outArgs$status, operator = envir$outArgs$operator, 
+                                            censoring = envir$outArgs$censoring, strata = envir$outArgs$strata)
+            }
         }
+
     }
 
     ## ** Inference
@@ -424,13 +469,13 @@ powerBuyseTest <- function(sim,
         for(iStatistic in statistic){
             for(iTransformation in transformation){
                 for(iOrder.Hprojection in order.Hprojection){
-                    iCI <- confint(allBT[[iSize]],
-                                   statistic = iStatistic,
-                                   null  = null[iStatistic],
-                                   conf.level  = conf.level,
-                                   alternative = alternative,
-                                   order.Hprojection = iOrder.Hprojection,
-                                   transformation = iTransformation)
+                    iCI <- suppressMessages(confint(allBT[[iSize]],
+                                                    statistic = iStatistic,
+                                                    null  = null[iStatistic],
+                                                    conf.level  = conf.level,
+                                                    alternative = alternative,
+                                                    order.Hprojection = iOrder.Hprojection,
+                                                    transformation = iTransformation))
 
                     out <- rbind(out,
                                  data.table::data.table(n.T = envir$sample.sizeC[[iSize]],

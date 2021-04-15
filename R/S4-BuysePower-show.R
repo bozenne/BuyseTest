@@ -28,10 +28,10 @@ setMethod(f = "show",
               outSummary$statistic <- NULL
               outSummary$rep.estimate <- NULL
               outSummary$rep.se <- NULL
-              if(object@method.inference == "u-statistic"){     
-                  col.value <- c("mean.estimate","sd.estimate","mean.se","rejection.rate")
-              }else{
+              if(object@method.inference == "none"){     
                   col.value <- c("mean.estimate")
+              }else{
+                  col.value <- c("mean.estimate","sd.estimate","mean.se","rejection.rate")
               }
               outSummary[,col.value] <- round(outSummary[,col.value], digits = 3)
               outSummary[duplicated(outSummary[,c("endpoint","threshold")]),c("endpoint","threshold")] <- as.character(NA)

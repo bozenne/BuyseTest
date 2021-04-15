@@ -19,6 +19,8 @@ sensitivity(object, ...)
   transformation = NULL,
   alternative = NULL,
   adj.p.value = FALSE,
+  trace = TRUE,
+  cpus = 1,
   ...
 )
 }
@@ -51,6 +53,10 @@ Default value read from \code{BuyseTest.options()}. Not relevant when using perm
 Default value read from \code{BuyseTest.options()}.}
 
 \item{adj.p.value}{[logical] should p-value adjusted for multiple comparisons be computed?}
+
+\item{trace}{[logical] Should the execution of the function be traced?}
+
+\item{cpus}{[integer, >0] the number of CPU to use. Default value is 1.}
 }
 \description{
 Evaluate the statistic of interest along various thresholds of clinical relevance.

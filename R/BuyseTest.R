@@ -383,7 +383,7 @@ BuyseTest <- function(formula,
 
     outPoint <- .BuyseTest(envir = envirBT,
                            iid = outArgs$iid,
-                           method.inference = "none",
+                           method.inference = "none", ## do not use outArgs$method.inference as when it is equal to "bootstrap" or "permutation" we need the point estimate first.
                            pointEstimation = TRUE)
 
     if (outArgs$trace > 1) {
@@ -575,7 +575,7 @@ calcSample <- function(envir, method.inference){
         data = data.table::data.table()
     )
 
-    if(method.inference == "none"){
+    if(method.inference %in% c("none","u-statistic")){
 
         ## ** no resampling
         if(envir$outArgs$n.strata==1){        

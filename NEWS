@@ -6,10 +6,13 @@
 - NEW FEATURE: getPseudovalue can be used to extract
   pseudo-observations corresponding to the net Benefit.
 - NEW FEATURE: model.tte can now accept survreg objects.
+- NEW FEATURE: enable to use ~ ... + strata(gender) (or ~ ... +
+  gender) in the formula interface of BuyseTest
 - NEW FEATURE: function sensitivity to call BuyseTest over a grid of
   threshold values.
 
 ** Internal change
+- fix bug in when using numeric variable for strata (prevent prodlim to switch to Stone-Beran estimator)
 - fix bug in simBuyseTest when using negative correlation.
 - fix bug in printGeneral when displaying the operator argument.
 - fix operator option moving it to the C++ code.
