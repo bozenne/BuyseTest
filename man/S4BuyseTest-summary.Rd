@@ -55,22 +55,25 @@ More precisely, the column:
 \itemize{
   \item \code{endpoint} lists the endpoints, by order of priority.
   \item \code{threshold} lists the threshold associated to each endpoint.
-  \item \code{total} lists the total number of pairs to be analyzed at the current priority.
-  \item \code{total(\%)} lists the total percentage of pairs to be analyzed at the current priority.
-  \item \code{favorable} lists the number of pairs classified in favor of the treatment at the current priority.
-  \item \code{favorable(\%)} lists the number of pairs classified in favor of the treatment at the current priority.
-  \item \code{unfavorable} lists the number of pairs classified in favor of the control at the current priority.
-  \item \code{unfavorable(\%)} lists the percentage of pairs classified in favor of the control at the current priority.
-  \item \code{neutral} lists the number of pairs classified as neutral at the current priority.
-  \item \code{neutral(\%)} lists the percentage of pairs classified as neutral at the current priority.
-  \item \code{uninf} lists the number of pairs that could not be classified at the current priority (due to missing values/censoring).
-  \item \code{uninf(\%)} lists the percentage of pairs that could not be classified at the current priority (due to missing values/censoring).
-  \item \code{delta} lists the value of the statistic (e.g. net benefit or win ratio) computed on the pairs analyzed at the current priority only.
-  \item \code{Delta} lists the value of the statistic (e.g. net benefit or win ratio) computed on all the pairs analyzed up to the current priority.
-  \item \code{Delta(\%)} lists the  net benefit or win ratio fraction (i.e. statistic up to the current priority divided by the final statistic).
+  \item \bold{weight:} lists the weight of each priority.
+  \item \bold{strata:} list the strata relative to which the results of the priority are displayed. If \code{"global"}, then the results are over all strata at a given priority.
+  \item \code{total} lists the number of pairs to be analyzed at the current priority (or strata).
+  \item \code{total(\%)} lists the percentage of pairs to be analyzed at the current priority (or strata).
+  \item \code{favorable} lists the number of pairs classified in favor of the treatment group at the current priority (or strata).
+  \item \code{favorable(\%)} lists the number of pairs classified in favor of the treatment group at the current priority (or strata).
+  \item \code{unfavorable} lists the number of pairs classified in favor of the control group at the current priority (or strata).
+  \item \code{unfavorable(\%)} lists the percentage of pairs classified in favor of the control group at the current priority (or strata).
+  \item \code{neutral} lists the number of pairs classified as neither in favor of the treatment group nor in favor of the control group at the current priority (or strata).
+  \item \code{neutral(\%)} lists the percentage of pairs classified as neither in favor of the treatment group nor in favor of the control group at the current priority (or strata).
+  \item \code{uninf} lists the number of pairs that could not be classified at the current priority (or strata) due to missing values/censoring.
+  \item \code{uninf(\%)} lists the percentage of pairs that could not be classified at the current priority (or strata) due to missing values/censoring.
+  \item \code{delta} lists the value of the priority-specific statistic (e.g. net benefit or win ratio), i.e. computed on the pairs analyzed at the current priority only.
+  \item \code{Delta} lists the value of the cumulative statistic (e.g. net benefit or win ratio), i.e. computed on all the pairs analyzed up to the current priority.
+  \item \code{Delta(\%)} lists the relative statistic (i.e. statistic up to the current priority divided by the final statistic).
   \item \code{information(\%)} lists the information fraction (i.e. number of favorable and unfavorable pairs up to the current priority divided by the final number of favorable and unfavorable pairs).
-  \item \code{CI} Confidence interval for the value of \code{Delta} (performed independently at each priority, no adjustment for multiple comparison).
-  \item \code{p.value} p-value for the test \code{Delta=0} (performed independently at each priority, no adjustment for multiple comparison).
+  \item \code{CI} lists the confidence intervals for \code{Delta} (not adjusted for multiple comparison).
+  \item \code{null} lists the null hypothesis (\code{Delta=null}).
+  \item \code{p.value} p-value relative to the null hypothesis (no adjustment for multiple comparison).
   \item \code{resampling} number of samples used to compute the confidence intervals or p-values from permutations or bootstrap samples.
 Only displayed if some bootstrap samples have been discarded, for example, they did not lead to sample any case or control.
 }

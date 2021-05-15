@@ -307,8 +307,6 @@ confint(BT, statistic = "winRatio")
 : time_20 
 :      NA
 
-\clearpage
-
 ** Stratified GPC
 
 GPC can be performed for subgroups of a categorical variable \hfill -
@@ -401,8 +399,17 @@ summary(BT.H)
 
 The hierarchy of the endpoint is defined from left (most important
 endpoint, here =time=) to right (least important endpoint, here
-=karno=). It is also possible to perform the comparisons on all
-endpoints setting the argument =hierarchical= to =FALSE=:
+=karno=). In the =summary= output, the confidence intervals and
+p.values are computed for the column =Delta=, i.e. here the net
+benefit for the first endpoint (line 1) and the the first and second
+endpoint (line 2). In other words, the last confidence interval and
+p-value is the one for the analysis over all endpoints (generally the
+one to report).
+
+\bigskip
+
+It is also possible to perform the comparisons on all pairs for all
+endpoints by setting the argument =hierarchical= to =FALSE=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.nH <- BuyseTest(ff2, hierarchical = FALSE, data = veteran, trace = 0)
 summary(BT.nH)

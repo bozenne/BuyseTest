@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: jan  5 2021 (12:16) 
+## Last-Updated: May 15 2021 (19:07) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -56,10 +56,10 @@ test_that("TTE with decreasing thresholds",{
     ## while GPC only over pairs with informative scores.
     ## the difference is expected to be small though in large samples
 
-    GS <- matrix(c(0, 0.13766049, 0.07000947, 0.08471151, 0, 0.11214375, 0.12563388, 0.13305876, 0, -0.08529558, -0.17549094, -0.17591136, 0, 0.34748762, 0.30731249, 0.33423682, 1, 0.22552443, 0.5786024, 0.52634371), 
+    GS <- matrix(c(0, 0.13766049, 0.07000947, 0.08471151, 0, 0.11214375, 0.12563388, 0.13305876, 0, -0.08529558, -0.17549094, -0.17591136, 0, 0.34748762, 0.30731249, 0.33423682, 0, 0, 0, 0, 1, 0.22552443, 0.5786024, 0.52634371), 
                  nrow = 4, 
-                 ncol = 5, 
-                 dimnames = list(c("eventtime1_5", "eventtime1_1", "eventtime1_0.5", "eventtime1_1e-12"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ncol = 6, 
+                 dimnames = list(c("eventtime1_5", "eventtime1_1", "eventtime1_0.5", "eventtime1_1e-12"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
 
     test <- confint(e.BT2)
@@ -83,10 +83,10 @@ test_that("different TTE with decreasing thresholds",{
     ## while GPC only over pairs with informative scores.
     ## the difference is expected to be small though in large samples
 
-    GS <- matrix(c(0.13766049, 0.29168224, 0.26716412, 0.26881354, 0.11214375, 0.14029539, 0.14634712, 0.14672071, -0.08529558, -0.00013978, -0.03506022, -0.03436758, 0.34748762, 0.53772357, 0.52461749, 0.52668769, 0.22552443, 0.05010665, 0.08231598, 0.08140938), 
+    GS <- matrix(c(0.13766049, 0.29168224, 0.26716412, 0.26881354, 0.11214375, 0.14029539, 0.14634712, 0.14672071, -0.08529558, -0.00013978, -0.03506022, -0.03436758, 0.34748762, 0.53772357, 0.52461749, 0.52668769, 0, 0, 0, 0, 0.22552443, 0.05010665, 0.08231598, 0.08140938), 
                  nrow = 4, 
-                 ncol = 5, 
-                 dimnames = list(c("eventtime1_1", "eventtime2_1", "eventtime1_0.25", "eventtime2_1e-12"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ncol = 6, 
+                 dimnames = list(c("eventtime1_1", "eventtime2_1", "eventtime1_0.25", "eventtime2_1e-12"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
     test <- confint(e.BT2)
     attr(test,"n.resampling") <- NULL

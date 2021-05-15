@@ -14,9 +14,6 @@ BuyseTest.options(..., reinitialise = FALSE)
 \description{
 Update or select global options for the BuyseTest package.
 }
-\details{
-It only affects the \code{\link{BuyseTest}} function
-}
 \examples{
 library(data.table)
 

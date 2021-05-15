@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: Apr  9 2021 (11:19) 
+## Last-Updated: May 15 2021 (19:00) 
 ##           By: Brice Ozenne
-##     Update #: 166
+##     Update #: 168
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -594,10 +594,10 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
 
     test <- confint(e.BT_ttebin)
     attr(test,"n.resampling") <- NULL
-    GS <- matrix(c(-0.33333333, -0.13333333, 0.24130536, 0.36004622, -0.70573842, -0.69241599, 0.18339631, 0.52579681, 0.20172157, 0.7144262), 
+    GS <- matrix(c(-0.33333333, -0.13333333, 0.24130536, 0.36004622, -0.70573842, -0.69241599, 0.18339631, 0.52579681, 0, 0, 0.20172157, 0.7144262), 
                  nrow = 2, 
-                 ncol = 5, 
-                 dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ncol = 6, 
+                 dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci","null", "p.value")) 
                  ) 
     expect_equal(test, GS, tol = 1e-6)
 
@@ -613,10 +613,10 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
 
     test <- confint(e.BT_ttebin)
     attr(test,"n.resampling") <- NULL
-    GS <- matrix(c(-0.33333333, -0.13333333, 0.23587679, 0.35518499, -0.69967949, -0.68733243, 0.17180423, 0.51874253, 0.19153767, 0.71069249), 
+    GS <- matrix(c(-0.33333333, -0.13333333, 0.23587679, 0.35518499, -0.69967949, -0.68733243, 0.17180423, 0.51874253, 0, 0, 0.19153767, 0.71069249), 
                  nrow = 2, 
-                 ncol = 5, 
-                 dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ncol = 6, 
+                 dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "null","p.value")) 
                  ) 
     expect_equal(test, GS, tol = 1e-6)
 
@@ -663,10 +663,10 @@ test_that("iid with nuisance parameters: 2 TTE",{
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
     attr(test,"n.resampling") <- NULL
-    GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.19937703, 0.2148585, 0.2408939, -0.14852611, -0.24811831, -0.43304747, 0.59828277, 0.54900838, 0.4468153, 0.20703017, 0.41296871, 0.97173422), 
+    GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.19937703, 0.2148585, 0.2408939, -0.14852611, -0.24811831, -0.43304747, 0.59828277, 0.54900838, 0.4468153, 0, 0, 0, 0.20703017, 0.41296871, 0.97173422), 
                  nrow = 3, 
-                 ncol = 5, 
-                 dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ncol = 6, 
+                 dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
 
     expect_equal(test, GS, tol = 1e-3)
@@ -682,10 +682,10 @@ test_that("iid with nuisance parameters: 2 TTE",{
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
     attr(test,"n.resampling") <- NULL
-    GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.17433724, 0.19140473, 0.21888023, -0.09657678, -0.20304112, -0.39734512, 0.5633411, 0.51495999, 0.41162398, 0.14902033, 0.35809689, 0.96889279), 
+    GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.17433724, 0.19140473, 0.21888023, -0.09657678, -0.20304112, -0.39734512, 0.5633411, 0.51495999, 0.41162398, 0, 0, 0, 0.14902033, 0.35809689, 0.96889279), 
                  nrow = 3, 
-                 ncol = 5, 
-                 dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "p.value")) 
+                 ncol = 6, 
+                 dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
 
     expect_equal(test, GS, tol = 1e-3)

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: jan  8 2021 (17:41) 
+## Last-Updated: May 15 2021 (18:52) 
 ##           By: Brice Ozenne
-##     Update #: 750
+##     Update #: 767
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -276,7 +276,7 @@ setMethod(f = "confint",
                                min = if("statistic"=="netBenefit"){-1}else{0},
                                max = if("statistic"=="winRatio"){Inf}else{1})
               }
-              
+
               ## ** method
               if(method.inference == "none"){
                   method.confint <- confint_none
@@ -421,7 +421,7 @@ setMethod(f = "confint",
                                                 endpoint = endpoint,
                                                 backtransform.delta = itrans.delta,
                                                 backtransform.se = itrans.se.delta))
-
+              
               ## do not output CI or p-value when the estimate has not been identified
               index.NA <- union(which(is.infinite(outConfint[,"estimate"])),which(is.na(outConfint[,"estimate"])))
               if(length(index.NA)>0){
@@ -451,8 +451,8 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
                                           endpoint, backtransform.delta, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
-                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
     
     ## ** point estimate
     outTable[,"estimate"] <- backtransform.delta(Delta)
@@ -475,6 +475,7 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
                                     )
 
     ## ** p-value
+    outTable[,"null"] <- backtransform.delta(null)
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
                "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),
@@ -490,11 +491,11 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
 ## * confint_percentileBootstrap (called by confint)
 confint_percentileBootstrap <- function(Delta, Delta.resampling,
                                         null, alternative, alpha,
-                                        endpoint, ...){
+                                        endpoint, backtransform.delta, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
-                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- Delta
@@ -516,6 +517,7 @@ confint_percentileBootstrap <- function(Delta, Delta.resampling,
                                     )
 
     ## ** p.values
+    outTable[, "null"] <- backtransform.delta(null)
     for(iE in 1:n.endpoint){
         outTable[iE, "p.value"] <- boot2pvalue(na.omit(Delta.resampling[,iE]), null = null, estimate = Delta[iE],
                                                alternative = alternative, FUN.ci = quantileCI)
@@ -536,8 +538,8 @@ confint_gaussian <- function(Delta, Delta.resampling,
                              endpoint, backtransform.delta, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
-                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- backtransform.delta(Delta)
@@ -559,6 +561,7 @@ confint_gaussian <- function(Delta, Delta.resampling,
                                                         "greater" = Inf
                                                         ))
     ## ** p-value
+    outTable[,"null"] <- backtransform.delta(null)
     outTable[,"p.value"] <- switch(alternative,
                                    "two.sided" = 2*(1-stats::pnorm(abs((Delta-null)/Delta.se))), 
                                    "less" = stats::pnorm((Delta-null)/Delta.se),
@@ -575,8 +578,8 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
                                        endpoint, backtransform.delta, backtransform.se, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
-                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- backtransform.delta(Delta)
@@ -603,6 +606,7 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     outTable[,"upper.ci"] <- backtransform.delta(Delta + Delta.qSup * Delta.se)
 
     ## ** p.value
+    outTable[,"null"] <- backtransform.delta(null)
     Delta.stat <- (Delta-null)/Delta.se
     Delta.stat.resampling <- (Delta.resampling-null)/Delta.se.resampling
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
@@ -634,8 +638,8 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
                                      endpoint, backtransform.delta, backtransform.se, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
-                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- backtransform.delta(Delta)
@@ -671,9 +675,10 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
         return(Delta[iE] + iQ * Delta.se[iE])
     }
 
+    outTable[, "null"] <- backtransform.delta(null)
     for(iE in 1:n.endpoint){ ## iE <- 1
         ## if(sign(mean(Delta.resampling[,iE]))!=sign(Delta[iE])){
-            ## warning("the estimate and the average bootstrap estimate do not have same sign \n")
+        ## warning("the estimate and the average bootstrap estimate do not have same sign \n")
         ## }
         outTable[iE, "p.value"] <- boot2pvalue(Delta.statH0.resampling[,iE], null = null, estimate = Delta[iE], ## note: estimate is not used to produce the ci, just for knowing the sign
                                                alternative = alternative, FUN.ci = quantileCI2, checkSign = FALSE)
@@ -702,8 +707,8 @@ confint_Ustatistic <- function(Delta, Delta.se, statistic, null,
                                endpoint, backtransform.delta, backtransform.se, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 5,
-                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- backtransform.delta(Delta)
@@ -725,6 +730,7 @@ confint_Ustatistic <- function(Delta, Delta.se, statistic, null,
                                                         ))
 
     ## ** p-value
+    outTable[,"null"] <- backtransform.delta(null)
     outTable[,"p.value"] <- switch(alternative,
                                    "two.sided" = 2*(1-stats::pnorm(abs((Delta-null)/Delta.se))), 
                                    "less" = stats::pnorm((Delta-null)/Delta.se),
@@ -744,8 +750,8 @@ confint_Ustatistic <- function(Delta, Delta.se, statistic, null,
 confint_none <- function(Delta, endpoint, ...){
 
     n.endpoint <- length(endpoint)
-    outTable <- matrix(NA, nrow = n.endpoint, ncol = 4,
-                       dimnames = list(endpoint, c("estimate","lower.ci","upper.ci","p.value")))
+    outTable <- matrix(NA, nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
     ## ** point estimate
     outTable[,"estimate"] <- Delta
