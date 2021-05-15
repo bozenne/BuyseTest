@@ -8,8 +8,6 @@
 #' @param ... options to be selected or updated
 #' @param reinitialise should all the global parameters be set to their default value
 #'         
-#' @details It only affects the \code{\link{BuyseTest}} function
-#' 
 #' @examples
 #' library(data.table)
 #' 
