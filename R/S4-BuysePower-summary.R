@@ -122,8 +122,8 @@ setMethod(f = "summary",
               index.endpoint <- match(dtS.res$endpoint, valid.endpoint)
               dtS.res$endpoint <- object@endpoint[index.endpoint]
               dtS.res$threshold <- object@threshold[index.endpoint]
-              if(any(object@type[index.endpoint]==1)){
-                  dtS.res$threshold[object@type[index.endpoint]==1] <- NA
+              if(any(object@type[index.endpoint]=="bin")){
+                  dtS.res$threshold[object@type[index.endpoint]=="bin"] <- NA
               }
               data.table::setkeyv(dtS.res, c("endpoint","n.T"))
               data.table::setcolorder(dtS.res, neworder = c("statistic","endpoint","threshold","n.T","n.C",col.value))

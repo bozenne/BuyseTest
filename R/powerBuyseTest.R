@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Apr 15 2021 (11:59) 
+## Last-Updated: May 15 2021 (22:50) 
 ##           By: Brice Ozenne
-##     Update #: 947
+##     Update #: 951
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -163,7 +163,7 @@ powerBuyseTest <- function(sim,
 
     ## ** test arguments
     if(option$check){
-        index.pb <- which(outArgs$status[outArgs$type==3] == "..NA..")
+        index.pb <- which(outArgs$status[outArgs$type=="tte"] == "..NA..")
         if(length(index.pb)>0){
             if(any(attr(outArgs$censoring,"original") %in% c("left","right") == FALSE)){
                 stop("BuyseTest: wrong specification of \'status\'. \n",
@@ -173,8 +173,8 @@ powerBuyseTest <- function(sim,
             }else{        
                 stop("BuyseTest: wrong specification of \'status\'. \n",
                      "\'status\' must indicate a variable in data for TTE endpoints. \n",
-                     "TTE endoints: ",paste(outArgs$endpoint[outArgs$type==3],collapse=" "),"\n",
-                     "proposed \'status\' for these endoints: ",paste(outArgs$status[outArgs$type==3],collapse=" "),"\n")
+                     "TTE endoints: ",paste(outArgs$endpoint[outArgs$type=="tte"],collapse=" "),"\n",
+                     "proposed \'status\' for these endoints: ",paste(outArgs$status[outArgs$type=="tte"],collapse=" "),"\n")
             }
         }
         ## outTest <- do.call(testArgs, args = outArgs)        
@@ -452,13 +452,25 @@ powerBuyseTest <- function(sim,
                 iData[["..strata.."]]  <- NULL
                 iData[["..rowIndex.."]]  <- NULL
                 iData[["..NA.."]]  <- NULL
-                allBT[[iSize]] <- BuyseTest(data = iData, scoring.rule = envir$outArgs$scoring.rule, correction.uninf = envir$outArgs$correction.uninf, 
-                                            model.tte = envir$outArgs$model.tte, method.inference = envir$outArgs$method.inference, n.resampling = envir$outArgs$n.resampling, 
-                                            strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weight = envir$outArgs$weight, 
+                allBT[[iSize]] <- BuyseTest(data = iData,
+                                            scoring.rule = envir$outArgs$scoring.rule,
+                                            correction.uninf = envir$outArgs$correction.uninf, 
+                                            model.tte = envir$outArgs$model.tte,
+                                            method.inference = envir$outArgs$method.inference,
+                                            n.resampling = envir$outArgs$n.resampling, 
+                                            strata.resampling = envir$outArgs$strata.resampling,
+                                            hierarchical = envir$outArgs$hierarchical,
+                                            weight = envir$outArgs$weight, 
                                             neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
-                                            trace = FALSE, treatment = envir$outArgs$treatment, endpoint = envir$outArgs$endpoint, 
-                                            type = envir$outArgs$type, threshold = envir$outArgs$threshold, status = envir$outArgs$status, operator = envir$outArgs$operator, 
-                                            censoring = envir$outArgs$censoring, strata = envir$outArgs$strata)
+                                            trace = FALSE,
+                                            treatment = envir$outArgs$treatment,
+                                            endpoint = envir$outArgs$endpoint, 
+                                            type = envir$outArgs$type,
+                                            threshold = envir$outArgs$threshold,
+                                            status = envir$outArgs$status,
+                                            operator = envir$outArgs$operator, 
+                                            censoring = envir$outArgs$censoring,
+                                            strata = envir$outArgs$strata)
             }
         }
 

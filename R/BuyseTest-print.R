@@ -49,11 +49,19 @@ printGeneral <- function(status,
         df.endpoint[,1] <- paste0("      ",weight)
         names(df.endpoint)[1] <- "      weight"
     }
+    
     df.endpoint$endpoint <- endpoint
-    df.endpoint$type <- c("binary","continuous","time to event")[type]
+    if(any(type=="gaus")){
+    df.endpoint$endpoint[type=="gaus"] <- paste0(df.endpoint$endpoint[type=="gaus"],",",status[type=="gaus"])
+    }
+    df.endpoint$type <- sapply(type,switch,
+                               "bin"="binary",
+                               "cont"="continuous",
+                               "tte"="time to event",
+                               "gaus"="gaussian")
     df.endpoint$operator <- ifelse(operator>0,"higher is favorable","lower is favorable")
-    df.endpoint$threshold[type!=1] <- threshold[type!=1]
-    df.endpoint$event[type==3] <- status[type==3]
+    df.endpoint$threshold[type!="bin"] <- threshold[type!="bin"]
+    df.endpoint$event[type=="tte"] <- status[type=="tte"]
     
     
     ## add white space
@@ -62,16 +70,16 @@ printGeneral <- function(status,
     df.endpoint$operator <- paste0(df.endpoint$operator," ")
     df.endpoint$threshold <- ifelse(is.na(df.endpoint$threshold),NA,paste0(df.endpoint$threshold," "))
 
-    if(all(type!=3)){
+    if(all(type!="tte")){
         df.endpoint$event <- NULL
-        if(all(type!=2)){
+        if(all(type=="bin")){
             df.endpoint$threshold <- NULL
         }
     }else{
-        txt.eventType <- sapply(status[type==3], function(iC){
+        txt.eventType <- sapply(status[type=="tte"], function(iC){
             return(paste0(" (",paste(sort(unique(M.status[,iC])), collapse = " "),")"))
         })
-        df.endpoint$event[type==3] <- paste0(df.endpoint$event[type==3],txt.eventType)
+        df.endpoint$event[type=="tte"] <- paste0(df.endpoint$event[type=="tte"],txt.eventType)
     }
     df.endpoint[is.na(df.endpoint)] <- ""
     

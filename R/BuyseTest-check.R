@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Apr 15 2021 (11:01) 
+## Last-Updated: May 20 2021 (22:55) 
 ##           By: Brice Ozenne
-##     Update #: 274
+##     Update #: 291
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -73,7 +73,7 @@ testArgs <- function(name.call,
     argnames <- c("treatment", "endpoint", "type", "threshold", "status", "strata")
 
     D <- length(endpoint) 
-    D.TTE <- sum(type == 3) # number of time to event endpoints
+    D.TTE <- sum(type == "tte") # number of time to event endpoints
     level.treatment <- levels(as.factor(data[[treatment]])) 
     if(is.null(strata)){
         n.strata <- 1
@@ -102,7 +102,7 @@ testArgs <- function(name.call,
     if(any(is.na(status))){
         stop("BuyseTest: \'status\' must not contain NA. \n")
     }
-    index.pb <- which(status[type==3] == "..NA..")
+    index.pb <- which(status[type=="tte"] == "..NA..") 
     if(length(index.pb)>0){
         if(all(attr(censoring,"original")[index.pb] %in% names(data))){
             stop("BuyseTest: wrong specification of \'status\'. \n",
@@ -112,17 +112,24 @@ testArgs <- function(name.call,
         }else{        
             stop("BuyseTest: wrong specification of \'status\'. \n",
                  "\'status\' must indicate a variable in data for TTE endpoints. \n",
-                 "TTE endoints: ",paste(endpoint[type==3],collapse=" "),"\n",
-                 "proposed \'status\' for these endoints: ",paste(status[type==3],collapse=" "),"\n")
+                 "TTE endoints: ",paste(endpoint[type=="tte"],collapse=" "),"\n",
+                 "proposed \'status\' for these endoints: ",paste(status[type=="tte"],collapse=" "),"\n")
         }
     }
-    if(any(status[type!=3] !="..NA..") ){
+    index.pb <- which(status[type=="gaussian"] == "..NA..") 
+    if(length(index.pb)>0){
+        stop("BuyseTest: wrong specification of \'std\'. \n",
+             "\'std\' must indicate a variable in data for Gaussian endpoints. \n",
+             "Gaussian endoints: ",paste(endpoint[type==4],collapse=" "),"\n",
+             "proposed \'gaussian\' for these endoints: ",paste(status[type==4],collapse=" "),"\n")
+    }
+    if(any(status[type %in% c("bin","cont")] !="..NA..") ){
         stop("BuyseTest: wrong specification of \'status\'. \n",
              "\'status\' must be \"..NA..\" for binary or continuous endpoints. \n",
-             "endoints : ",paste(endpoint[type!=3],collapse=" "),"\n",
-             "proposed \'status\' for these endoints: ",paste(status[type!=3],collapse=" "),"\n")
+             "endoints : ",paste(endpoint[type %in% c("bin","cont")],collapse=" "),"\n",
+             "proposed \'status\' for these endoints: ",paste(status[type %in% c("bin","cont")],collapse=" "),"\n")
     }
-    Ustatus.TTE <- unique(status[type==3])
+    Ustatus.TTE <- unique(status[type=="tte"])
 
     if(is.null(strata)){
         if(any(sapply(Ustatus.TTE, function(iS){sum(data[[iS]]!=0)})==0)){
@@ -143,7 +150,7 @@ testArgs <- function(name.call,
              "\'censoring\' must be \'as.character(NA)\', \"left\", or \"right\" \n",
              "incorrect \'censoring\' value(s): \"",paste(attr(censoring,"original")[is.na(censoring)], collapse = "\" \""),"\" \n")
     }
-    if(any(censoring[type==3]==0)){
+    if(any(censoring[type=="tte"]==0)){
         stop("BuyseTest: wrong specification of \'censoring\'. \n",
              "\'censoring\' must be \"left\" or \"right\" for TTE endpoints \n")
     }
@@ -163,14 +170,14 @@ testArgs <- function(name.call,
         stop("BuyseTest: wrong specification of \'scoring.rule\'. \n",
              "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\". \n")
     }
-    if(scoring.rule>0 && any(censoring>1)){
+    if(scoring.rule>0 && any(censoring=="left")){
         warning("The Peron's scoring rule does not support left-censored endpoints \n",
                 "For those endpoints, the Gehan's scoring rule will be used instead.")
     }
 
     ## ## ** model.tte
     if(!is.null(model.tte)){
-        endpoint.UTTE <- unique(endpoint[type==3])
+        endpoint.UTTE <- unique(endpoint[type=="tte"])
         D.UTTE <- length(endpoint.UTTE)
 
         if(!is.list(model.tte) || length(model.tte) != D.UTTE){
@@ -205,7 +212,7 @@ testArgs <- function(name.call,
     ## ** data (endpoints)
 
     ## *** binary endpoints
-    index.Bin <- which(type==1)
+    index.Bin <- which(type=="bin")
     if(length(index.Bin)>0){
         for(iBin in index.Bin){ ## iterY <- 1
             if(length(unique(na.omit(data[[endpoint[iBin]]])))>2){
@@ -219,7 +226,7 @@ testArgs <- function(name.call,
     }
 
     ## *** continuous endpoints
-    index.Cont <- which(type==2)
+    index.Cont <- which(type=="cont")
     if(length(index.Cont)>0){
         for(iCont in index.Cont){
             validNumeric(data[[endpoint[iCont]]],
@@ -235,8 +242,8 @@ testArgs <- function(name.call,
     }
 
     ## *** time to event endpoint
-    index.TTE <- which(type==3)
-    status.TTE <- status[type==3]
+    index.TTE <- which(type=="tte")
+    status.TTE <- status[type=="tte"]
     if(length(index.TTE)>0){
         validNames(data,
                    name1 = "data",
@@ -257,6 +264,23 @@ testArgs <- function(name.call,
                          name1 = status.TTE[which(index.TTE == iTTE)],
                          valid.values = valid.values.status,
                          valid.length = NULL,
+                         method = "BuyseTest")
+        }
+    }
+
+    ## *** Gaussian endpoints
+    index.Gaus <- which(type=="gaus")
+    if(length(index.Gaus)>0){
+        for(iGaus in index.Gaus){
+            validNumeric(data[[endpoint[iGaus]]],
+                         name1 = endpoint[iGaus],
+                         valid.length = NULL,
+                         refuse.NA =  FALSE,
+                         method = "BuyseTest")
+            validNumeric(data[[status[iGaus]]],
+                         name1 = status[iGaus],
+                         valid.length = NULL,
+                         refuse.NA =  FALSE,
                          method = "BuyseTest")
         }
     }
@@ -370,11 +394,11 @@ testArgs <- function(name.call,
                  method = "BuyseTest")
 
     ## check threshold at 1/2 for binary endpoints
-    if(any(threshold[type==1]!=1/2)){
+    if(any(threshold[type=="bin"]!=1/2)){
         stop("BuyseTest: wrong specification of \'threshold\'. \n",
              "\'threshold\' must be 1/2 for binary endpoints (or equivalently NA) \n",
-             "proposed \'threshold\' : ",paste(threshold[type==1],collapse=" "),"\n",
-             "binary endpoint(s) : ",paste(endpoint[type==1],collapse=" "),"\n")
+             "proposed \'threshold\' : ",paste(threshold[type=="bin"],collapse=" "),"\n",
+             "binary endpoint(s) : ",paste(endpoint[type=="bin"],collapse=" "),"\n")
     }
     
     ## Check that the thresholds related to the same endoints are strictly decreasing
@@ -392,7 +416,6 @@ testArgs <- function(name.call,
              "Endpoints must be used with strictly decreasing threshold when re-used with lower priority. \n",
              "Problematic endpoints: \"",paste0(names(vec.test)[vec.test>0], collapse = "\" \""),"\"\n")        
     }
-
     ## ** trace
     validInteger(trace,
                  valid.length = 1,
@@ -425,8 +448,8 @@ testArgs <- function(name.call,
     }
     
     ## ** type
-    if(any(type %in% 1:3 == FALSE)){
-        txt <- type[type %in% 1:3 == FALSE]
+    if(any(type %in% c("bin","cont","tte","gaus") == FALSE)){
+        txt <- type[type %in% c("bin","cont","tte","gaus") == FALSE]
         stop("BuyseTest: wrong specification of \'type\' \n",
              "valid values: \"binary\" \"continuous\" \"timetoevent\" \n",
              "incorrect values: \"",paste(txt, collapse = "\" \""),"\" \n")

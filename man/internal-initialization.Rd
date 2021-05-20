@@ -26,7 +26,6 @@ calcPeron(
   status.UTTE,
   D.TTE,
   D.UTTE,
-  type,
   level.strata,
   n.strata,
   strata,

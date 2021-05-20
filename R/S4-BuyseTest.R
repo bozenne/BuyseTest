@@ -148,7 +148,7 @@ methods::setMethod(
                  ## ** tableSurvival
 
                  ## ** type
-                 type <- stats::setNames(c("Binary","Continuous","TimeToEvent")[type], name.endpoint)
+                 type <- stats::setNames(type, name.endpoint)
 
                  ## ** endpoint
                  names(endpoint) <- name.endpoint

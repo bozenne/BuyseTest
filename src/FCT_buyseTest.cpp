@@ -52,7 +52,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param posT A list containing, for each strata, the unique identifier of each treatment observations.
 //' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
 //' @param weight Store the weight associated to each endpoint. Must have length D. 
-//' @param method The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.
+//' @param method The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).
 //' @param op The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.
 //' @param D The number of endpoints.
 //' @param D_UTTE The number of distinct time to event endpoints.
@@ -468,7 +468,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
   /// ** number of pairs
   int n_obs = endpoint.n_rows;
-  bool methodPeron = (method.max()>=4); // if >= 3 then the Peron's scoring rule is used
+  bool methodPeron = (method.max()>=5); // if >= 5 then the Peron's scoring rule is used
 
   // number of pairs
   arma::vec vecn_pairs(n_strata); // number of pairs sumed over the strats
@@ -664,17 +664,23 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		  if(iMethod == 1){ // continuous or binary endpoint
 			iPairScore = calcOnePair_Continuous(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 												threshold[iter_d]);
-		  }else if(iMethod == 2){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
+		  }else if(iMethod == 2){ // gaussian endpoint
+		    iPairScore = calcOnePair_Gaussian(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+						      endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
+						      status(indexStrataC[iter_C], index_status[iter_d]),
+						      status(indexStrataT[iter_T], index_status[iter_d]),
+						      threshold[iter_d]);		    
+		  }else if(iMethod == 3){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
 			iPairScore = calcOnePair_TTEgehan(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 											  status(indexStrataC[iter_C], index_status[iter_d]),
 											  status(indexStrataT[iter_T], index_status[iter_d]),
 											  threshold[iter_d]);
-		  }else if(iMethod == 3){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
+		  }else if(iMethod == 4){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
 			iPairScore = calcOnePair_TTEgehan2(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 											   status(indexStrataC[iter_C], index_status[iter_d]),
 											   status(indexStrataT[iter_T], index_status[iter_d]),
 											   threshold[iter_d]);
-		  }else if(iMethod == 4){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
+		  }else if(iMethod == 5){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
 
 			// note: iDscore_Dnuisance_C, iDscore_Dnuisance_T are initalized to 0 in calcOnePair_SurvPeron
 			iPairScore = calcOnePair_SurvPeron(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
@@ -688,7 +694,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 											   iDscore_Dnuisance_C_calcOnePair[iter_d], iDscore_Dnuisance_T_calcOnePair[iter_d],
 											   p_C(iter_strata, iter_d), p_T(iter_strata, iter_d), precompute, returnIID);
 
-		  }else if(iMethod == 5){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
+		  }else if(iMethod == 6){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
 			iPairScore = calcOnePair_CRPeron(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 											 endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
 											 status(indexStrataC[iter_C], index_status[iter_d]),
@@ -707,7 +713,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    iPairScore[0] = iPairScore[1];
 		    iPairScore[1] = iTempoOperatorDouble;
 
-		    if(returnIID > 1 && (iMethod >= 4)){
+		    if(returnIID > 1 && (iMethod >= 5)){
 		      iTempoOperatorCol = iDscore_Dnuisance_C_calcOnePair[iter_d].col(0);
 		      iDscore_Dnuisance_C_calcOnePair[iter_d].col(0) = iDscore_Dnuisance_C_calcOnePair[iter_d].col(1);
 		      iDscore_Dnuisance_C_calcOnePair[iter_d].col(1) = iTempoOperatorCol;
@@ -719,7 +725,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		  }
 
 		  // **** remove contribution from previously analyzed threshold of the same endpoint
-		  if( (iMethod >= 4) && (nUTTE_analyzedPeron_M1[iter_d]>iIndex_UTTE_d) ){  // endpoint already analyzed 
+		  if( (iMethod >= 5) && (nUTTE_analyzedPeron_M1[iter_d]>iIndex_UTTE_d) ){  // endpoint already analyzed 
 			iPairScore[0] -= iFavorable_UTTE[iIndex_UTTE_d];
 			iPairScore[1] -= iUnfavorable_UTTE[iIndex_UTTE_d];
 
@@ -745,7 +751,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScore[0] * iCumWeight;
 		  }
 		  // iid (nuisance) for the score
-		  if( (returnIID > 1) && (iMethod >= 4) ){
+		  if( (returnIID > 1) && (iMethod >= 5) ){
 			Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(0) * iCumWeight;
 			Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(0) * iCumWeight;
 		  }
@@ -774,7 +780,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		  }
       
 		  // iid (nuisance) for the score
-		  if( (returnIID > 1) && (iMethod >= 4) ){
+		  if( (returnIID > 1) && (iMethod >= 5) ){
 			Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(1) * iCumWeight;
 			Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(1) * iCumWeight;
 		  }
@@ -1063,7 +1069,7 @@ void updateIID(arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorabl
     }
 
     // *** iid of the proba/score
-    if(iMethod >= 4){
+    if(iMethod >= 5){
       iidNuisance_favorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(0)/vecn_pairs[iter_strata];
       iidNuisance_favorable.col(iter_d) += iid_survJumpT[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_T.col(0)/vecn_pairs[iter_strata];
       iidNuisance_unfavorable.col(iter_d) += iid_survJumpC[iIndex_UTTE][iter_strata] * iDscore_Dnuisance_C.col(1)/vecn_pairs[iter_strata];

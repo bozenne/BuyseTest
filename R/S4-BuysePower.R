@@ -27,7 +27,7 @@ setClass(
       n.rep = "numeric",
       results = "data.table",
       threshold = "numeric",
-      type = "numeric"
+      type = "character"
       )
 
 )

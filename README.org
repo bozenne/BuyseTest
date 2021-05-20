@@ -62,7 +62,7 @@ citation("BuyseTest")
 #+begin_example
 
 To cite the 'BuyseTest' package in publications use the citation from
-2020.
+2021.
 
 To cite the statistical method used by BuyseTes 'BuyseTest' package,
 use the citation from: (2010) when using BuyseTest binary/continous
@@ -70,8 +70,8 @@ endpoint or time to event endpoints with scoring.rule="Gehan", (2016)
 when using BuyseTest with time to event endpoint with
 scoring.rule="Peron".
 
-  Brice Ozenne and Julien Peron (2020). BuyseTest: Implementation of
-  the Generalized Pairwise Comparisons. R package version 1.9.1.
+  Brice Ozenne and Julien Peron (2021). BuyseTest: Implementation of
+  the Generalized Pairwise Comparisons. R package version 2.3.1.
 
   Buyse, M. (2010), Generalized pairwise comparisons of prioritized
   outcomes in the two-sample problem. Statistics in medicine, 29:
@@ -96,8 +96,8 @@ toBibtex(citation("BuyseTest"))
 @Manual{,
   title = {BuyseTest: Implementation of the Generalized Pairwise Comparisons},
   author = {Brice Ozenne and Julien Peron},
-  year = {2020},
-  note = {R package version 1.9.1},
+  year = {2021},
+  note = {R package version 2.3.1},
 }
 
 @Article{,

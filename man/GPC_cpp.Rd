@@ -98,7 +98,7 @@ GPC2_cpp(
 
 \item{weight}{Store the weight associated to each endpoint. Must have length D.}
 
-\item{method}{The index of the method used to score the pairs. Must have length D. 1 for continuous, 2 for Gehan, and 3 for Peron.}
+\item{method}{The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).}
 
 \item{op}{The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.}
 

@@ -474,11 +474,11 @@ setMethod(f = "summary",
                   }
                   
                   cat(" - treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
-                  if(any(object@type == "TimeToEvent") && any(attr(object@scoring.rule,"test.censoring"))){
+                  if(any(object@type == "tte") && any(attr(object@scoring.rule,"test.censoring"))){
                       
-                      if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==5)){
+                      if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){
                           txt.Peron <- "cif"
-                      }else if(all(attr(object@scoring.rule,"method.score")[object@type=="TimeToEvent"]==4)){
+                      }else if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="SurvPeron")){
                           txt.Peron <- "survival"
                       }else{
                           txt.Peron <- "survival/cif"

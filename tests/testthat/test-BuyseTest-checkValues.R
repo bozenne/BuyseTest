@@ -463,12 +463,12 @@ test_that(paste0("BuyseTest - Peron scoring rule with 2 TTE, one without censori
     
     BT.mixed <- BuyseTest(treatment ~ tte(eventtime2, status2, threshold = 0.5) + tte(eventtime1, status1.noC, threshold = 0),
                           data = dt.sim, scoring.rule = "Peron")
-    expect_equal(unname(attr(BT.mixed@scoring.rule,"method.score")), c(4,1))
+    expect_equal(unname(attr(BT.mixed@scoring.rule,"method.score")), c("SurvPeron","continuous"))
     ## summary(BT.mixed)
     BT.mixed <- BuyseTest(treatment ~ tte(eventtime1, status1.noC, threshold = 0) + tte(eventtime2, status2, threshold = 0.5),
                           data = dt.sim, scoring.rule = "Peron")
     ## summary(BT.mixed)
-    expect_equal(unname(attr(BT.mixed@scoring.rule,"method.score")), c(1,4))
+    expect_equal(unname(attr(BT.mixed@scoring.rule,"method.score")), c("continuous","SurvPeron"))
     
 })
 

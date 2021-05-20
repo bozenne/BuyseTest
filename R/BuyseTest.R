@@ -317,7 +317,6 @@ BuyseTest <- function(formula,
     if(option$check){
         outTest <- do.call(testArgs, args = outArgs)        
     }
-
     ## ** initialization data
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("data","M.endpoint","M.status",
@@ -345,14 +344,14 @@ BuyseTest <- function(formula,
                                         iidNuisance = outArgs$iidNuisance)
     
     if(option$check){
-        if(outArgs$iidNuisance && any(outArgs$method.score == 5)){
+        if(outArgs$iidNuisance && any(outArgs$method.score == "CRPeron")){
             warning("Inference via the asymptotic theory  for competing risks when using the Peron's scoring rule has not been validating \n",
                     "Consider setting \'method.inference\' to \"none\", \"bootstrap\", or \"permutation\" \n")
         }
-        ## if(outArgs$precompute && any(outArgs$method.score == 5)){
+        ## if(outArgs$precompute && any(outArgs$method.score == "CRPeron")){
         ##     stop("Option \'precompute\' is not available for the Peron scoring rule in the competing risk case \n")
         ## }
-        if(outArgs$precompute && any(outArgs$method.score == 5)){
+        if(outArgs$precompute && any(outArgs$method.score == "CRPeron")){
             outArgs$precompute <- FALSE
         }
     }
@@ -494,7 +493,6 @@ BuyseTest <- function(formula,
                              status.UTTE = envir$outArgs$status.UTTE,
                              D.TTE = envir$outArgs$D.TTE,
                              D.UTTE = envir$outArgs$D.UTTE,
-                             type = envir$outArgs$type,
                              threshold = envir$outArgs$threshold,
                              level.strata = envir$outArgs$level.strata,
                              n.strata = envir$outArgs$n.strata,
@@ -516,7 +514,7 @@ BuyseTest <- function(formula,
                                  posT = outSample$ls.posT,                     
                                  threshold = envir$outArgs$threshold,
                                  weight = envir$outArgs$weight,
-                                 method = envir$outArgs$method.score,
+                                 method = sapply(envir$outArgs$method.score, switch, "continuous" = 1, "gaussian" = 2, "TTEgehan" = 3, "TTEgehan2" = 4, "SurvPeron" = 5, "CRPeron" = 6),
                                  op = envir$outArgs$operator,
                                  D = envir$outArgs$D,
                                  D_UTTE = envir$outArgs$D.UTTE,

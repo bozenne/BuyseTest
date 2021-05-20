@@ -107,27 +107,21 @@ initializeArgs <- function(status,
     }
 
     ## ** type
-    if(!is.numeric(type)){
-        validType1 <- c("b","bin","binary")
-        validType2 <- c("c","cont","continuous")
-        validType3 <- c("t","tte","time","timetoevent") ## [if modified, remember to change the corresponding vector in initFormula]
-        type <- tolower(type)
+    validType1 <- paste0("^",c("b","bin","binary"),"$")
+    validType2 <- paste0("^",c("c","cont","continuous"),"$")
+    validType3 <- paste0("^",c("t","tte","time","timetoevent"),"$") ## [if modified, remember to change the corresponding vector in initFormula]
+    validType4 <- paste0("^",c("g","gaus","gaussian"),"$") ## [if modified, remember to change the corresponding vector in initFormula]
+    type <- tolower(type)
 
-        type[grep(paste(validType1,collapse="|"), type)] <- "1" 
-        type[grep(paste(validType2,collapse="|"), type)] <- "2" 
-        type[grep(paste(validType3,collapse="|"), type)] <- "3"
-        type <- sapply(type, function(iType){
-            switch(iType,
-                   "1" = 1, ## binary endpoint
-                   "2" = 2, ## continuous endpoint
-                   "3" = 3, ## time to event endpoint
-                   NA)})
-    }
+    type[grep(paste(validType1,collapse="|"), type)] <- "bin" 
+    type[grep(paste(validType2,collapse="|"), type)] <- "cont" 
+    type[grep(paste(validType3,collapse="|"), type)] <- "tte"
+    type[grep(paste(validType4,collapse="|"), type)] <- "gaus"
 
     ## ** endpoint
-    index.type3 <- which(type==3)    
-    endpoint.TTE <- endpoint[index.type3]
-    threshold.TTE <- threshold[index.type3]
+    index.typeTTE <- which(type=="tte")    
+    endpoint.TTE <- endpoint[index.typeTTE]
+    threshold.TTE <- threshold[index.typeTTE]
 
     D <- length(endpoint)
     D.TTE <- length(endpoint.TTE)
@@ -149,7 +143,7 @@ initializeArgs <- function(status,
         }else if(length(status) != D && length(status) == D.TTE){
             status.save <- status
             status <- rep("..NA..", D)
-            status[index.type3] <- status.save             
+            status[index.typeTTE] <- status.save             
         }
         
         if(is.null(censoring)){
@@ -157,34 +151,34 @@ initializeArgs <- function(status,
         }else if(length(status) != D && length(status) == D.TTE){
             censoring.save <- status
             censoring <- rep("right", D)
-            censoring[index.type3] <- status.save             
+            censoring[index.typeTTE] <- status.save             
         }
     }
 
     ## ** status
     Ustatus <- unique(status)
-    status.TTE <- status[index.type3]
+    status.TTE <- status[index.typeTTE]
     ## from now, status contains for each endpoint the name of variable indicating status (0) or event (1) or NA
 
     ## ** censoring
-    ## if(any(type %in% 1:2)){
-    ##     censoring[type %in% 1:2] <- as.character(NA)
+    ## ## if(any(type %in% 1:2)){
+    ## ##     censoring[type %in% 1:2] <- as.character(NA)
+    ## ## }
+    ## if(!is.numeric(censoring)){
+    ##     censoring.save <- censoring
+    ##     censoring <- sapply(unname(censoring),function(iC){
+    ##         if(identical(iC,"NA")){
+    ##             return(0)
+    ##         }else if(identical(iC,"right")){
+    ##             return(1)
+    ##         }else if(identical(iC,"left")){
+    ##             return(2)
+    ##         }else{
+    ##             return(NA)
+    ##         }
+    ##     })
+    ##     attr(censoring,"original") <- censoring.save
     ## }
-    if(!is.numeric(censoring)){
-        censoring.save <- censoring
-        censoring <- sapply(unname(censoring),function(iC){
-            if(identical(iC,"NA")){
-                return(0)
-            }else if(identical(iC,"right")){
-                return(1)
-            }else if(identical(iC,"left")){
-                return(2)
-            }else{
-                return(NA)
-            }
-        })
-        attr(censoring,"original") <- censoring.save
-    }
 
     ## ** scoring.rule
     ## WARNING: choices must be lower cases
@@ -207,14 +201,14 @@ initializeArgs <- function(status,
     ## ** threshold
     if(is.null(threshold)){
         threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
-        if(any(type==1)){threshold[type==1] <- 1/2} # except for threshold corresponding to binary endpoints that are set to NA.
+        if(any(type == "bin")){threshold[type=="bin"] <- 1/2} # except for threshold corresponding to binary endpoints that are set to NA.
     }else{
-        if(any(is.na(threshold[type==1]))){
-            index.tempo <- intersect(which(is.na(threshold)),which(type==1))
+        if(any(is.na(threshold[type=="bin"]))){
+            index.tempo <- intersect(which(is.na(threshold)),which(type=="bin"))
             threshold[index.tempo] <- 1/2
         }
-        if(any(is.na(threshold[type!=1]))){
-            index.tempo <- intersect(which(is.na(threshold)),which(type!=1))
+        if(any(is.na(threshold[type!="bin"]))){
+            index.tempo <- intersect(which(is.na(threshold)),which(type!="bin"))
             threshold[index.tempo] <- 10^{-12}
         }
         if(any(abs(stats::na.omit(threshold))<10^{-12})){
@@ -343,7 +337,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
 
     ## ** convert character/factor to numeric for binary endpoints
-    name.bin <- endpoint[which(type %in% 1)]
+    name.bin <- endpoint[which(type == "bin")]
     if(length(name.bin)>0){
         data.class <- sapply(data,class)
         test.num <- (data.class %in% c("numeric","integer"))
@@ -420,12 +414,22 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     test.censoring <- sapply(Ustatus, function(iC){any(data[[iC]]==0)})[status]
 
     method.score <- sapply(1:D, function(iE){ ## iE <- 1
-        if(type[iE] %in% 1:2 || (test.censoring[iE]==FALSE && test.CR[iE]==FALSE)){
-            return(1) ## 1 binary/continuous
-        }else if(scoring.rule == 0){ ## 2/3 Gehan (right/left censoring)
-            return(1 + censoring[iE])
-        }else{
-            return(4 + test.CR[iE]) ## 4/5 Peron (survival/competing risks)
+        if(type[iE] %in% c("bin","cont")){
+            return("continuous") 
+        }else if(type[iE] == "gaus"){
+            return("gaussian")
+        }else if(type[iE] == "tte"){
+            if(test.censoring[iE]==FALSE && test.CR[iE]==FALSE){
+                return("continuous")
+            }else if(scoring.rule == 0){ ## 3/4 Gehan (right/left censoring)
+                return(switch(censoring[iE],
+                              "left" = "TTEgehan2",
+                              "right" = "TTEgehan"))
+            }else if(scoring.rule == 1){
+                return(switch(as.character(test.CR[iE]),
+                              "FALSE" = "SurvPeron",
+                              "TRUE" = "CRPeron"))
+            }
         }
     })
     attr(method.score,"test.censoring") <- test.censoring
@@ -558,7 +562,9 @@ initializeFormula <- function(x){
     censoring <- NULL
     weight <- NULL
     type <- NULL
-    validArgs <- c("endpoint","status","threshold","operator","weight","censoring")
+    validArgs <- c("endpoint","mean",
+                   "status", "std",
+                   "threshold","operator","weight","censoring")
 
     ## split around parentheses
     ls.x.endpoint <- strsplit(vec.x.endpoint, split = "(", fixed = TRUE)
@@ -569,13 +575,16 @@ initializeFormula <- function(x){
         candidate <- tolower(ls.x.endpoint[[iE]][1])
         if(candidate %in% c("b","bin","binary")){
             type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,c("status","threshold"))
+            iValidArgs <- setdiff(validArgs,c("status","threshold","mean","std"))
         }else if(candidate %in% c("c","cont","continuous")){
             type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,"status")
+            iValidArgs <- setdiff(validArgs,c("status","mean","std"))
         }else if(candidate %in% c("t","tte","time","timetoevent")){
             type <- c(type, candidate)
-            iValidArgs <- validArgs
+            iValidArgs <- setdiff(validArgs,c("mean","std"))
+        }else if(candidate %in% c("g","gaus","gaussian")){
+            type <- c(type, candidate)
+            iValidArgs <- setdiff(validArgs, c("endpoint","status"))
         }else if(candidate %in% c("s","strat","strata")){
             strata <- c(strata, gsub(")", replacement = "",ls.x.endpoint[[iE]][2]))
             next
@@ -626,6 +635,14 @@ initializeFormula <- function(x){
             iName[setdiff(1:n.args,iIndex.name)] <- setdiff(iValidArgs,iiName)[1:n.missingNames]
         }
 
+        ## rename
+        if("mean" %in% iName){
+            iName[iName=="mean"] <- "endpoint"
+        }
+        if("std" %in% iName){
+        iName[iName=="std"] <- "status"
+        }
+        
         ## extract arguments
         endpoint <- c(endpoint,  gsub("\"","",iArg[iName=="endpoint"]))
         if("threshold" %in% iName){

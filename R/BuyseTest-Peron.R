@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: Apr 15 2021 (10:54) 
+## Last-Updated: May 15 2021 (22:48) 
 ##           By: Brice Ozenne
-##     Update #: 443
+##     Update #: 450
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,7 +30,6 @@ calcPeron <- function(data,
                       status.UTTE,
                       D.TTE,
                       D.UTTE,
-                      type,
                       level.strata,
                       n.strata,
                       strata,
@@ -64,7 +63,7 @@ calcPeron <- function(data,
     ## fit survival model and prepare for extracting survival
     for(iUTTE in 1:D.UTTE){ ## iUTTE <- 1
         ls.indexAssociatedEndpoint[[iUTTE]] <-  which(endpoint == endpoint.UTTE[iUTTE])
-        test.CR[iUTTE] <- any(method.score[ls.indexAssociatedEndpoint[[iUTTE]]]==5)
+        test.CR[iUTTE] <- any(method.score[ls.indexAssociatedEndpoint[[iUTTE]]]=="CRPeron")
 
         if(fitter[iUTTE]=="prodlim"){
 
@@ -212,11 +211,11 @@ calcPeron <- function(data,
     ## ** pre-compute integrals 
     for(iEndpoint in 1:length(endpoint)){ ## iEndpoint <- 1
 
-        if(!precompute || method.score[iEndpoint]<4){next} ## only relevant for survival/ competing risk with Peron
+        if(!precompute || method.score[iEndpoint] %in% c("continuous","gaussian")){next} ## only relevant for survival/ competing risk with Peron
     
         for(iStrata in 1:n.strata){  ## iStrata <- 1
 
-            if(method.score[iEndpoint]==4){
+            if(method.score[iEndpoint]=="SurvPeron"){
                 ## compute integral at any jump time
                 ls.intC <- calcIntegralSurv2_cpp(time = out$survJumpC[[iEndpoint]][[iStrata]][,"time"],
                                                  survival = out$survJumpC[[iEndpoint]][[iStrata]][,"survival"],
@@ -264,11 +263,12 @@ calcPeron <- function(data,
                                                                "int.dSurvivalT_0_lower" = ls.intT$intSurv_lower[index.dSurvivalT.0],
                                                                "int.dSurvivalT_0_upper" = ls.intT$intSurv_upper[index.dSurvivalT.0])
             }else{
+                stop("precompute terms for competing risks not implemented")
                 ## to be done
             }
 
             if(iidNuisance){
-                if(method.score[iEndpoint]==4){
+                if(method.score[iEndpoint]=="SurvPeron"){
                     colnames(ls.intC$intSurv_deriv) <- c("index.jump","time","index.param.surv","value.surv","index.param.dsurv1","value.dsurv1","index.param.dsurv2","value.dsurv2")
                     colnames(ls.intT$intSurv_deriv) <- c("index.jump","time","index.param.surv","value.surv","index.param.dsurv1","value.dsurv1","index.param.dsurv2","value.dsurv2")
                     out$survJumpC[[iEndpoint]][[iStrata]] <- ls.intC$intSurv_deriv
