@@ -10,6 +10,7 @@ getIid(
   object,
   endpoint = NULL,
   statistic = NULL,
+  add.halfNeutral = FALSE,
   normalize = TRUE,
   type = "all",
   cluster = NULL
@@ -19,6 +20,7 @@ getIid(
   object,
   endpoint = NULL,
   statistic = NULL,
+  add.halfNeutral = FALSE,
   normalize = TRUE,
   type = "all",
   cluster = NULL
@@ -31,6 +33,8 @@ getIid(
 If \code{NULL} returns the sum of the H-decomposition over all endpoints.}
 
 \item{statistic}{[character] statistic relative to which the H-decomposition should be output.}
+
+\item{add.halfNeutral}{[logical] should half of the neutral score be added to the favorable and unfavorable scores?}
 
 \item{normalize}{[logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
 Otherwise not.}

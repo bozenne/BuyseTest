@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: May 15 2021 (18:52) 
+## Last-Updated: aug  4 2021 (15:37) 
 ##           By: Brice Ozenne
-##     Update #: 767
+##     Update #: 770
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -189,9 +189,9 @@ setMethod(f = "confint",
                   if(identical(order.Hprojection,2) && !is.null(cluster)){
                       warning("Inference will be performed using a first order H projection. \n")
                   }
-                  ls.iid <- getIid(object, endpoint = 1:D, cluster = cluster)
-                  delta.favorable <- cumsum(colSums(object@count.favorable)*object@weight)/sum(object@n.pairs)
-                  delta.unfavorable <- cumsum(colSums(object@count.unfavorable)*object@weight)/sum(object@n.pairs)
+                  ls.iid <- getIid(object, endpoint = 1:D, cluster = cluster, statistic = c("favorable","unfavorable"))
+                  delta.favorable <- coef(object, statistic = "favorable", cumulative = TRUE)
+                  delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = TRUE)
                   keep.names <- dimnames(object@covariance)
                   object@covariance <- do.call(rbind, lapply(1:D, function(iE){ ## iE <- 1
                       iVar <- crossprod(ls.iid[[iE]])[c(1,4,2)]

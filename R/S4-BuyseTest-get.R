@@ -60,6 +60,7 @@ setMethod(f = "getCount",
 #' Otherwise not.
 #' @param cluster [numeric vector] return the H-decomposition aggregated by cluster.
 #' @param statistic [character] statistic relative to which the H-decomposition should be output.
+#' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 #' 
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -72,7 +73,8 @@ setMethod(f = "getCount",
 #' @rdname S4BuyseTest-getIid
 setMethod(f = "getIid",
           signature = "S4BuyseTest",
-          definition = function(object, endpoint = NULL, statistic = NULL, normalize = TRUE, type = "all", cluster = NULL){
+          definition = function(object, endpoint = NULL, statistic = NULL, add.halfNeutral = FALSE,
+                                normalize = TRUE, type = "all", cluster = NULL){
 
               option <- BuyseTest.options()
               n.obs <- NROW(object@iidAverage$favorable)
@@ -123,15 +125,30 @@ setMethod(f = "getIid",
                                  refuse.duplicates = TRUE,
                                  method = "getIid[S4BuyseTest]")
               }
+              
               ## ** extract favorable/unfavorable
-              delta.favorable <- colSums(object@count.favorable)/sum(object@n.pairs)
-              delta.unfavorable <- colSums(object@count.unfavorable)/sum(object@n.pairs)
-              Delta.favorable <- sum(delta.favorable)
-              Delta.unfavorable <- sum(delta.unfavorable)
+              delta.favorable <- coef(object, statistic = "favorable", cumulative = FALSE, add.halfNeutral = add.halfNeutral)
+              delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = FALSE, add.halfNeutral = add.halfNeutral)
+              Delta.favorable <- coef(object, statistic = "favorable", cumulative = TRUE, add.halfNeutral = add.halfNeutral)
+              Delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = TRUE, add.halfNeutral = add.halfNeutral)
+              
+              ## ** add neutral contribution
+              if(add.halfNeutral){
+                  factor <- 0.5
 
+                  if(type %in% c("all","u-statistic")){
+                      object@iidAverage[["favorable"]] <- object@iidAverage[["favorable"]] + factor * object@iidAverage[["neutral"]]
+                      object@iidAverage[["unfavorable"]] <- object@iidAverage[["unfavorable"]] + factor * object@iidAverage[["neutral"]]
+                  }
+                  if(type %in% c("all","nuisance") && (object@scoring.rule=="Peron")){
+                      object@iidNuisance[["favorable"]] <- object@iidNuisance[["favorable"]] + factor * object@iidNuisance[["neutral"]]
+                      object@iidNuisance[["unfavorable"]] <- object@iidNuisance[["unfavorable"]] + factor * object@iidNuisance[["neutral"]]
+                  }
+              }
+              
               ## ** extract H-decomposition
               if(type %in% c("all","u-statistic")){
-                  object.iid <- object@iidAverage
+                  object.iid <- object@iidAverage[c("favorable","unfavorable")]
               }else{
                   object.iid <- list(favorable = matrix(0, nrow = n.obs, ncol = n.endpoint,
                                                         dimnames = list(NULL, valid.endpoint)),
@@ -156,20 +173,21 @@ setMethod(f = "getIid",
                   object.iid$unfavorable[indexT,] <- length(indexT) * object.iid$unfavorable[indexT,]
 
                   ## remove centering
-                  object.iid$unfavorable <- sweep(object.iid$unfavorable, MARGIN = 2, FUN = "+", STATS = cumsum(delta.unfavorable*object@weight))
-                  object.iid$favorable <- sweep(object.iid$favorable, MARGIN = 2, FUN = "+", STATS = cumsum(delta.favorable*object@weight))
+                  object.iid$favorable <- sweep(object.iid$favorable, MARGIN = 2, FUN = "+", STATS = Delta.favorable)
+                  object.iid$unfavorable <- sweep(object.iid$unfavorable, MARGIN = 2, FUN = "+", STATS = Delta.unfavorable)
               }
+
               ## ** accumulate H-decomposition
               if(is.null(endpoint)){                  
                   ## iid decomposition over all endpoints
                   object.iid <- do.call(cbind,lapply(object.iid, function(iI){
-                      iIID <- iI[, NCOL(iI)]
+                      iIID <- iI[,n.endpoint]
                       if(!is.null(cluster)){
                           iIID <- tapply(iIID,cluster,sum)
                       }
                       return(iIID)
                   }))
-                  out <- matrix(NA, nrow = NROW(object.iid), ncol = length(statistic), dimnames = list(NULL, statistic))
+                  out <- matrix(NA, nrow = n.obs, ncol = length(statistic), dimnames = list(NULL, statistic))
                   if("favorable" %in% statistic){
                       out[,"favorable"] <- object.iid[,"favorable"]
                   }
@@ -180,7 +198,7 @@ setMethod(f = "getIid",
                       out[,"netBenefit"] <- object.iid[,"favorable"] - object.iid[,"unfavorable"]
                   }
                   if("winRatio" %in% statistic){
-                      out[,"winRatio"] <- object.iid[,"favorable"]/Delta.unfavorable - object.iid[,"unfavorable"]*Delta.favorable/Delta.unfavorable^2
+                      out[,"winRatio"] <- object.iid[,"favorable"]/Delta.unfavorable[n.endpoint] - object.iid[,"unfavorable"]*Delta.favorable[n.endpoint]/Delta.unfavorable[n.endpoint]^2
                   }
 
               }else{
@@ -192,7 +210,20 @@ setMethod(f = "getIid",
                           iIID <- cbind(favorable = tapply(iIID[,"favorable"],cluster,sum),
                                         unfavorable = tapply(iIID[,"unfavorable"],cluster,sum))
                       }
-                      return(iIID)
+                      iOut <- matrix(NA, nrow = n.obs, ncol = length(statistic), dimnames = list(NULL, statistic))
+                      if("favorable" %in% statistic){
+                          iOut[,"favorable"] <- iIID[,"favorable"]
+                      }
+                      if("unfavorable" %in% statistic){
+                          iOut[,"unfavorable"] <- iIID[,"unfavorable"]
+                      }
+                      if("netBenefit" %in% statistic){
+                          iOut[,"netBenefit"] <- iIID[,"favorable"] - iIID[,"unfavorable"]
+                      }
+                      if("winRatio" %in% statistic){
+                          iOut[,"winRatio"] <- iIID[,"favorable"]/Delta.unfavorable[iE] - iIID[,"unfavorable"]*Delta.favorable[iE]/Delta.unfavorable[iE]^2
+                      }
+                      return(iOut)
                   })
                   names(out) <- endpoint
               }
@@ -517,14 +548,14 @@ setMethod(f = "getPseudovalue",
               object.delta <- coef(object, statistic = statistic)[endpoint]
               count.favorable <- coef(object, statistic = "favorable")[endpoint]
               count.unfavorable <- coef(object, statistic = "unfavorable")[endpoint]
-              object.iid <- getIid(object, endpoint = endpoint)[[1]]
-              n <- NROW(object.iid)
+              object.iid <- getIid(object, endpoint = endpoint, statistic = c("favorable","unfavorable"))[[1]]
+              n.obs <- NROW(object.iid)
 
               out <- switch(statistic,
-                            "favorable" = n * object.iid[,"favorable"] + object.delta,
-                            "unfavorable" = n * object.iid[,"unfavorable"] + object.delta,
-                            "netBenefit" = n * (object.iid[,"favorable"] - object.iid[,"unfavorable"]) + object.delta,
-                            "winRatio" = n * (object.iid[,"favorable"] / count.unfavorable - object.iid[,"unfavorable"] * (count.favorable/count.unfavorable^2)) + object.delta,
+                            "favorable" = n.obs * object.iid[,"favorable"] + object.delta,
+                            "unfavorable" = n.obs * object.iid[,"unfavorable"] + object.delta,
+                            "netBenefit" = n.obs * (object.iid[,"favorable"] - object.iid[,"unfavorable"]) + object.delta,
+                            "winRatio" = n.obs * (object.iid[,"favorable"] / count.unfavorable - object.iid[,"unfavorable"] * (count.favorable/count.unfavorable^2)) + object.delta,
                             )
 
               ## ** export

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug  3 2021 (10:30) 
+## Last-Updated: aug  4 2021 (13:34) 
 ##           By: Brice Ozenne
-##     Update #: 228
+##     Update #: 246
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,6 +34,8 @@
 #' @param null [numeric, 0-1] the value against which the AUC should be compared when computing the p-value.
 #' @param conf.level [numeric, 0-1] the confidence level of the confidence intervals.
 #' @param transformation [logical] should a log-log transformation be used when computing the confidence intervals and the p-value.
+#' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
+#' Useful to match the usual definition of the AUC in presence of ties.
 #' 
 #' @details Compared to other functions computing the AUC (e.g. the auc fonction of the ROCR package),
 #' the AUC is defined here as P[Y>X] with a strict inequality sign (i.e. not P[Y>=X]).
@@ -60,14 +62,13 @@
 #'
 #' ## compute auc after 10-fold cross-validation
 #' auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
-#' 
-
-
+#'
 
 ## * Code - auc
 #' @export
-auc <- function(labels, predictions, fold = NULL, observation = NULL, direction = ">",
-                null = 0.5, conf.level = 0.95, transformation = FALSE){
+auc <- function(labels, predictions, fold = NULL, observation = NULL,
+                direction = ">", add.halfNeutral = TRUE,
+                null = 0.5, conf.level = 0.95, transformation = TRUE){
 
     ## ** Normalize user imput
     if(length(unique(labels))!=2){
@@ -139,13 +140,13 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
     if(direction==">"){
         out <- data.frame(fold = c(name.fold,"global"),
                           direction = ">",
-                          estimate = c(e.BT@count.favorable/e.BT@n.pairs,NA),
+                          estimate = c(coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral),NA),
                           se = NA,
                           stringsAsFactors = FALSE)
         if(!is.null(observation)){
             M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE, statistic = "favorable")[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE, statistic = "favorable", add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
                 iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
                 iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
                 return(iIID)
@@ -155,13 +156,13 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
     }else if(direction == "<"){
         out <- data.frame(fold = c(name.fold,"global"),
                           direction = "<",
-                          estimate = c(e.BT@count.unfavorable/e.BT@n.pairs, NA),
+                          estimate = c(coef(e.BT, statistic = "unfavorable", add.halfNeutral = add.halfNeutral),NA),
                           se = NA,
                           stringsAsFactors = FALSE)
         if(!is.null(observation)){
             M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE, statistic = "unfavorable")[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE, statistic = "unfavorable", add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
                 iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
                 iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
                 return(iIID)
@@ -178,14 +179,14 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL, direction 
         }
         for(iFold in 1:n.fold){ ## iFold <- 1
             iDirection <- c("favorable", "unfavorable")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
-            iCount <- as.double(slot(e.BT, paste0("count.",iDirection))[iFold])
+            iCount <- c(coef(e.BT, statistic = iDirection, add.halfNeutral = add.halfNeutral),NA)
             iVec <- observation[fold == name.fold[iFold]]
             
             out$direction[iFold] <- if(iDirection=="favorable"){">"}else{"<"}
             out$estimate[iFold] <- iCount/e.BT@n.pairs[iFold]
 
             if(!is.null(observation)){
-                M.iid[iVec,iFold] <- scale(getIid(e.BT, normalize = FALSE, statistic = iDirection)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
+                M.iid[iVec,iFold] <- scale(getIid(e.BT, normalize = FALSE, statistic = iDirection, add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
                 M.iid[intersect(iVec,indexC),iFold] <- M.iid[intersect(iVec,indexC),iFold]/n.C
                 M.iid[intersect(iVec,indexT),iFold] <- M.iid[intersect(iVec,indexT),iFold]/n.T
             }

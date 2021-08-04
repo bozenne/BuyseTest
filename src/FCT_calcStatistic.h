@@ -11,8 +11,9 @@
 // :cppFile:{FCT_buyseTest.cpp}:end:
 
 void calcStatistic(arma::cube& delta, arma::mat& Delta,
-                   const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
-                   arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
+                   const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, const arma::mat& Mcount_neutral, 
+                   arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidAverage_neutral,
+		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
 		   arma::mat& Mvar, int returnIID,
 		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
@@ -20,8 +21,9 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 
 // * calcStatistic
 void calcStatistic(arma::cube& delta, arma::mat& Delta,
-                   const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, 
-                   arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable,
+                   const arma::mat& Mcount_favorable, const arma::mat& Mcount_unfavorable, const arma::mat& Mcount_neutral, 
+                   arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidAverage_neutral,
+		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
 		   arma::mat& Mvar, int returnIID,
 		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
@@ -38,12 +40,14 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   // ** net benefit and win ratio
   arma::vec count_favorable(D);
   arma::vec count_unfavorable(D);
+  arma::vec count_neutral(D);
   arma::vec cumWcount_favorable(D);
   arma::vec cumWcount_unfavorable(D);
 
   // sum over strata
   count_favorable = arma::conv_to<arma::vec>::from(sum(Mcount_favorable,0));
   count_unfavorable = arma::conv_to<arma::vec>::from(sum(Mcount_unfavorable,0)); 
+  count_neutral = arma::conv_to<arma::vec>::from(sum(Mcount_neutral,0)); 
 
   // weight endpoints and cumulate over endpoints
   cumWcount_favorable = count_favorable;
@@ -75,6 +79,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   if(returnIID > 0){
     arma::vec delta_favorable = count_favorable/(double)(ntot_pair);
     arma::vec delta_unfavorable = count_unfavorable/(double)(ntot_pair);
+    arma::vec delta_neutral = count_neutral/(double)(ntot_pair);
     arma::vec cumWdelta_favorable = cumWcount_favorable/(double)(ntot_pair);
     arma::vec cumWdelta_unfavorable = cumWcount_unfavorable/(double)(ntot_pair);
 					   
@@ -84,11 +89,14 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
       iidAverage_favorable.rows(posT[iter_strata]) /= n_control[iter_strata];
       iidAverage_unfavorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
       iidAverage_unfavorable.rows(posT[iter_strata]) /= n_control[iter_strata];
+      iidAverage_neutral.rows(posC[iter_strata]) /= n_treatment[iter_strata];
+      iidAverage_neutral.rows(posT[iter_strata]) /= n_control[iter_strata];
     }
 	
     // *** center
     iidAverage_favorable.each_row() -= arma::conv_to<arma::rowvec>::from(delta_favorable);
     iidAverage_unfavorable.each_row() -= arma::conv_to<arma::rowvec>::from(delta_unfavorable);
+    iidAverage_neutral.each_row() -= arma::conv_to<arma::rowvec>::from(delta_neutral);
 
     // *** rescale
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
@@ -96,6 +104,8 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
       iidAverage_favorable.rows(posT[iter_strata]) /= ntot_treatment;
       iidAverage_unfavorable.rows(posC[iter_strata]) /= ntot_control;
       iidAverage_unfavorable.rows(posT[iter_strata]) /= ntot_treatment;
+      iidAverage_neutral.rows(posC[iter_strata]) /= ntot_control;
+      iidAverage_neutral.rows(posT[iter_strata]) /= ntot_treatment;
     }
 	
     // *** weight endpoints and cumulate them
@@ -107,12 +117,18 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     iidAverage_unfavorable.each_row() %= rowweight;
     iidAverage_unfavorable = cumsum(iidAverage_unfavorable,1);
 
+    iidAverage_neutral.each_row() %= rowweight;
+    iidAverage_neutral = cumsum(iidAverage_neutral,1);
+
     if(returnIID>1){
       iidNuisance_favorable.each_row() %= rowweight;
       iidNuisance_favorable = cumsum(iidNuisance_favorable,1);
   
       iidNuisance_unfavorable.each_row() %= rowweight;
       iidNuisance_unfavorable = cumsum(iidNuisance_unfavorable,1);
+
+      iidNuisance_neutral.each_row() %= rowweight;
+      iidNuisance_neutral = cumsum(iidNuisance_neutral,1);
     }
 	
     // *** sufficient statistics

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: maj 22 2020 (11:36) 
+## Last-Updated: aug  4 2021 (13:36) 
 ##           By: Brice Ozenne
-##     Update #: 33
+##     Update #: 36
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,11 +19,11 @@ if(FALSE){
     library(testthat)
     library(BuyseTest)
     library(data.table)
+    library(pROC)
+    library(cvAUC)
 }
 
 context("Check auc calculation vs. cvAUC")
-## library(pROC)
-## library(cvAUC)
 
 ## * Compare AUC and CI
 n <- 200
@@ -32,11 +32,13 @@ X <- rnorm(n)
 dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
                  X = X,
                  fold = unlist(lapply(1:10,function(iL){rep(iL,n/10)})))
+
 ## boxplot(X~Y, data = dt)
 ## ** no CV
 test_that("AUC - BuyseTest vs pROC",{
-    test <- auc(labels = dt$Y, predictions = dt$X, direction = ">")
-    test <- auc(labels = as.character(dt$Y), predictions = dt$X, direction = ">")
+    ## example from BuyseTest
+    test <- auc(labels = dt$Y, predictions = dt$X, direction = ">", transformation = FALSE)
+    test <- auc(labels = as.character(dt$Y), predictions = dt$X, direction = ">", transformation = FALSE)
     test2 <- cvAUC::cvAUC(predictions = dt$X,
                    labels = dt$Y)
     test3 <- cvAUC::ci.cvAUC(predictions = dt$X,
@@ -55,6 +57,13 @@ test_that("AUC - BuyseTest vs pROC",{
     ## butils::object2script(test, digit = 6)
     expect_equal(test$estimate, c(0.705443, 0.705443), tol = 1e-6)
     expect_equal(test$se, c(0.036287, 0.036287), tol = 1e-6)
+
+    ## example from pROC
+    data(aSAH, package = "pROC")
+    roc.s100b <- pROC::roc(aSAH$outcome, aSAH$s100b)
+    e.BTauc <- BuyseTest::auc(labels = aSAH$outcome, prediction = aSAH$s100b, transformation = FALSE)
+    expect_equal(e.BTauc[1,"estimate"],as.numeric(pROC::auc(roc.s100b)), tol = 1e-6)
+
 })
 
 ## ** with CV

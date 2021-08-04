@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: May 15 2021 (19:07) 
+## Last-Updated: aug  4 2021 (12:38) 
 ##           By: Brice Ozenne
-##     Update #: 18
+##     Update #: 19
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,6 +50,10 @@ test_that("TTE with decreasing thresholds",{
     e.BT2 <- BuyseTest(iFormula, data = dt.sim,
                        method.inference = "u-statistic", scoring.rule = "Peron")
 
+    ## range(e.BT1@iidAverage$favorable - e.BT2@iidAverage$favorable)
+    ## range(e.BT1@iidAverage$unfavorable - e.BT2@iidAverage$unfavorable)
+    ## range(e.BT1@iidAverage$neutral - e.BT2@iidAverage$neutral)
+    
     expect_equal(confint(e.BT1)[,"estimate"],confint(e.BT2)[,"estimate"], tol = 1e-6)
     expect_equal(confint(e.BT1)[,"se"],confint(e.BT2)[,"se"], tol = 1e-2)
     ## expected difference because GPC2 compute the influence function over all pairs,

@@ -10,9 +10,10 @@ auc(
   fold = NULL,
   observation = NULL,
   direction = ">",
+  add.halfNeutral = TRUE,
   null = 0.5,
   conf.level = 0.95,
-  transformation = FALSE
+  transformation = TRUE
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ Necessary to compute the standard error when using cross validation.}
 \item{direction}{[character] \code{">"} lead to estimate P[Y>X],
 \code{"<"} to estimate P[Y<X],
 and \code{"auto"} to estimate max(P[Y>X],P[Y<X]).}
+
+\item{add.halfNeutral}{[logical] should half of the neutral score be added to the favorable and unfavorable scores?
+Useful to match the usual definition of the AUC in presence of ties.}
 
 \item{null}{[numeric, 0-1] the value against which the AUC should be compared when computing the p-value.}
 

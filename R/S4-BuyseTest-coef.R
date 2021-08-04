@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: apr  6 2020 (10:50) 
+## Last-Updated: aug  4 2021 (14:27) 
 ##           By: Brice Ozenne
-##     Update #: 65
+##     Update #: 89
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,6 +30,8 @@
 #' Otherwise a summary statistic over all strata is returned.
 #' @param cumulative [logical] should the score be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
+#' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
+#' 
 #' @param ... ignored.
 #'
 #' @details
@@ -48,6 +50,7 @@
 #' \item \code{"pc.neutral"}: returns the percentage of neutral pairs.
 #' \item \code{"pc.uninf"}: returns the percentage of uninformative pairs.
 #' }
+#' 
 #' @keywords coef S4BuyseTest-method
 #' @author Brice Ozenne
 
@@ -60,6 +63,7 @@ setMethod(f = "coef",
                                 statistic = NULL,
                                 stratified = FALSE,
                                 cumulative = TRUE,
+                                add.halfNeutral = FALSE,
                                 ...){
 
               ## ** normalize arguments
@@ -85,15 +89,65 @@ setMethod(f = "coef",
                              valid.length = 1,
                              method = "coef[S4BuyseTest]")
 
+              if(add.halfNeutral && (statistic %in% c(type.count,type.pc))){
+                  stop("Argument \'add.halfNeutral\' can only be used for the following statistics: \"favorable\", \"unfavorable\", \"netBenefit\", \"winRatio\". \n")
+              }
+
+              ## ** add neutral contribution
+              if(add.halfNeutral){
+                  factor <- 0.5
+
+                  n.pairs <- object@n.pairs
+                  weight <- object@weight
+                  count.favorable <- object@count.favorable + factor * object@count.neutral
+                  count.unfavorable <- object@count.unfavorable + factor * object@count.neutral
+
+                  ## endpoint specific
+                  object@delta[,,"favorable"] <- sweep(count.favorable, FUN = "/", MARGIN = 1, STATS = n.pairs)
+                  object@delta[,,"unfavorable"] <- sweep(count.unfavorable, FUN = "/", MARGIN = 1, STATS = n.pairs)
+                  object@delta[,,"netBenefit"] <- sweep((count.favorable-count.unfavorable), FUN = "/", MARGIN = 1, STATS = n.pairs)
+                  object@delta[,,"winRatio"] <- count.favorable/count.unfavorable
+
+                  ## cumulative
+                  cumWcount.favorable <- cumsum(colSums(count.favorable)*weight)
+                  cumWcount.unfavorable <- cumsum(colSums(count.unfavorable)*weight)
+
+                  object@Delta[,"favorable"] <- cumWcount.favorable/sum(n.pairs)
+                  object@Delta[,"unfavorable"] <- cumWcount.unfavorable/sum(n.pairs)
+                  object@Delta[,"netBenefit"] <- (cumWcount.favorable-cumWcount.unfavorable)/sum(n.pairs)
+                  object@Delta[,"winRatio"] <- cumWcount.favorable/cumWcount.unfavorable
+              }
+
               ## ** extract information
               if(statistic %in% c("netBenefit","winRatio","favorable","unfavorable")){
-                  if(stratified || (cumulative==FALSE)){
+                  if((stratified==FALSE) && (cumulative==TRUE)){
+                      out <- slot(object, "Delta")[,statistic]
+                      names(out) <- paste0(object@endpoint,"_",object@threshold)
+
+                  }else if((stratified==FALSE) && (cumulative==FALSE)){
+                      if(statistic=="favorable"){
+                          out <- colSums(object@count.favorable)/sum(object@n.pairs)
+                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                      }else if(statistic=="unfavorable"){
+                          out <- colSums(object@count.unfavorable)/sum(object@n.pairs)
+                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                      }else if(statistic=="netBenefit"){
+                          out <- colSums(object@count.favorable-object@count.unfavorable)/sum(object@n.pairs)
+                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                      }else if(statistic=="winRatio"){
+                          out <- colSums(object@count.favorable)/colSums(object@count.unfavorable)
+                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                      }
+                      
+                  }else if(stratified==TRUE){
+                      
                       out <- slot(object, "delta")[,,statistic]
                       if(!is.matrix(out)){
                           out <- matrix(out, nrow = length(object@level.strata), ncol = length(object@endpoint),
                                         dimnames = list(object@level.strata,paste0(object@endpoint,"_",object@threshold)))
                       }
                       if(cumulative && length(object@endpoint)>1){
+                          out <- sweep(out, FUN = "*", MARGIN = 2, STATS = object@weight)
                           if(length(object@level.strata)==1){
                               out <- matrix(cumsum(out), nrow = 1,
                                             dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
@@ -102,12 +156,6 @@ setMethod(f = "coef",
                               out <- t(apply(out,1,cumsum))
                           }
                       }
-                      if(!stratified){
-                          out <- colSums(out)
-                      }
-                  }else{
-                      out <- slot(object, "Delta")[,statistic]
-                      names(out) <- paste0(object@endpoint,"_",object@threshold)
                   }
                   
               }else if(statistic %in% type.count){                  

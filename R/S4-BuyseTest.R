@@ -67,8 +67,10 @@ methods::setMethod(
                                    n_pairs, ## from cpp object
                                    iidAverage_favorable, ## from cpp object
                                    iidAverage_unfavorable, ## from cpp object
+                                   iidAverage_neutral, ## from cpp object
                                    iidNuisance_favorable, ## from cpp object
                                    iidNuisance_unfavorable, ## from cpp object
+                                   iidNuisance_neutral, ## from cpp object
                                    covariance, ## from cpp object
                                    tableScore, ## from cpp object
                                    tableSurvival = NULL, ## added to the cpp object by .BuyseTest when requested by the user
@@ -122,12 +124,20 @@ methods::setMethod(
                      colnames(iidAverage_unfavorable) <- name.endpoint
                  }
 
+                 if(!is.null(iidAverage_neutral) && NCOL(iidAverage_neutral)>0){
+                     colnames(iidAverage_neutral) <- name.endpoint
+                 }
+
                  if(!is.null(iidNuisance_favorable) && NCOL(iidNuisance_favorable)>0){
                      colnames(iidNuisance_favorable) <- name.endpoint
                  }
                  
                  if(!is.null(iidNuisance_unfavorable) && NCOL(iidNuisance_unfavorable)>0){
                      colnames(iidNuisance_unfavorable) <- name.endpoint
+                 }
+
+                 if(!is.null(iidNuisance_neutral) && NCOL(iidNuisance_neutral)>0){
+                     colnames(iidNuisance_neutral) <- name.endpoint
                  }
 
                  if(!is.null(covariance) && length(covariance)>0){
@@ -220,9 +230,11 @@ methods::setMethod(
                  .Object@delta <- delta
                  .Object@Delta <- Delta
                  .Object@iidAverage <- list(favorable = iidAverage_favorable,
-                                            unfavorable = iidAverage_unfavorable)
+                                            unfavorable = iidAverage_unfavorable,
+                                            neutral = iidAverage_neutral)
                  .Object@iidNuisance <- list(favorable = iidNuisance_favorable,
-                                             unfavorable = iidNuisance_unfavorable)
+                                             unfavorable = iidNuisance_unfavorable,
+                                             neutral = iidNuisance_neutral)
 
                  if(!is.null(covariance)){
                      .Object@covariance <- covariance
