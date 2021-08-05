@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug  4 2021 (13:34) 
+## Last-Updated: aug  5 2021 (18:19) 
 ##           By: Brice Ozenne
-##     Update #: 246
+##     Update #: 261
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -74,23 +74,21 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     if(length(unique(labels))!=2){
         stop("Argument \'labels\' must have exactly two different values \n")
     }
-    n.obs <- length(labels)
-    if(n.obs!=length(predictions)){
-        stop("Argument \'labels\' and \'predictions\' must have the same length \n")
-    }
+    n.obs <- length(labels)    
     if(!is.null(fold)){
-        if(n.obs!=length(fold)){
-            stop("When not NULL, argument \'fold\' must have the same length as argument  \'labels\' \n")
+        if(length(fold)!=length(predictions)){
+            stop("When not NULL, argument \'fold\' must have the same length as argument \'predictions\' \n")
         }
-        if(!is.null(observation)){
-            if(n.obs!=length(fold)){
-                stop("When not NULL, argument \'observation\' must have the same length as argument  \'labels\' \n")
-            }
-            if(!is.null(observation) && any(observation %in% 1:n.obs == FALSE)){
-                stop("When not NULL, argument \'observation\' must take integer values between 1 and ",n.obs,"\n", sep = "")
-            }
+        if(length(observation)!=length(predictions)){
+            stop("When argument \'fold\' is not NULL, argument \'observation\' must have the same length as argument \'predictions\' \n")
+        }
+        if(!is.null(observation) && any(observation %in% 1:n.obs == FALSE)){
+            stop("When not NULL, argument \'observation\' must take integer values between 1 and ",n.obs,"\n", sep = "")
         }
     }else{
+        if(n.obs!=length(predictions)){
+            stop("Argument \'labels\' and \'predictions\' must have the same length \n")
+        }
         if(!is.null(observation)){
             stop("Argument \'observation\' is only useful when argument \'fold\' is specified \n")
         }
@@ -101,7 +99,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         stop("Argument \'transformation\' must be TRUE or FALSE \n")
     }
     
-    df <- data.frame(Y = labels,
+    df <- data.frame(Y = labels[observation],
                      X = predictions,
                      stringsAsFactors = FALSE)
     formula <- Y ~ cont(X)
@@ -229,12 +227,15 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         out$upper <- as.double(out[,"estimate"] + qsup * out[,"se"])
         out$p.value <- 2*(1-stats::pnorm(abs(z.stat)))
     }
+
     ## ** Export
     class(out) <- append("BuyseTestAuc",class(out))
     attr(out, "contrast") <- e.BT@level.treatment
     attr(out, "n.fold") <- n.fold
     if(!is.null(observation)){
-        attr(out, "iid") <- M.iid
+        attr(out, "iid") <- cbind(sweep(M.iid, FUN = "*", MARGIN = 2, STATS = n.obs/n.obsfold),rowSums(M.iid))
+        colnames(attr(out, "iid")) <- c(name.fold,"global")
+        ## range(sqrt(diag(crossprod(attr(out, "iid")))) - out$se)
     }
     return(out)
  
@@ -289,148 +290,22 @@ confint.BuyseTestAuc <- function(object,...){
     rownames(out) <- NULL
     return(as.data.frame(out, stringsAsFactors = FALSE))
 }
+## ** iid.auc
+#' @title Extract the idd Decomposition for the AUC
+#'
+#' @description Extract the iid decompotion relative to AUC estimate.
+#' 
+#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
+#' @param ... not used. For compatibility with the generic function.
+#'
+#' @return A column vector.
+#' 
+#' @method iid BuyseTestAuc
+#' @export
+iid.BuyseTestAuc <- function(object,...){
+    return(attr(object,"iid")[,"global",drop=FALSE])
+}
 
-## ## ** .iid_logit
-## .iid_logit <- function(object, full){
 
-##     out <- NULL
-
-##     ## ** extract information
-##     X <- model.matrix(object)
-##     Y <- object$y
-##     n.obs <- NROW(Y)
-
-##     beta <- coef(object)
-##     name.beta <- names(beta)
-##     n.beta <- length(beta)
-##     if(full){
-##         name.Mbeta2 <- matrix(paste(matrix(name.beta, nrow = n.beta, ncol = n.beta, byrow = TRUE),
-##                                     matrix(name.beta, nrow = n.beta, ncol = n.beta, byrow = FALSE),
-##                                     sep = ","), nrow = n.beta, ncol = n.beta, dimnames = list(name.beta, name.beta))
-##         name.beta2 <- as.vector(name.Mbeta2)
-##     }
-    
-##     eta <- X %*% beta
-##     fit <- 1/(1+exp(-eta))
-##     epsilon <- Y - fit
-    
-##     ## ** score
-##     Mindiv.score <- apply(X, MARGIN = 2, FUN = "*", epsilon)
-##     ## range(Mindiv.score - lava::score(object,indiv =TRUE))
-
-##     ## ** score 2
-##     ls.score2 <- lapply(1:n.obs, FUN = function(iX){ crossprod(X[iX,,drop=FALSE])*epsilon[iX]^2 })
-##     score2 <- Reduce("+",ls.score2)
-##     ## range(score2 - crossprod(ls.score))
-##     if(full){
-##         Mindiv.score2 <- do.call(rbind,lapply(ls.score2,function(i){as.vector(i)}))
-##         colnames(Mindiv.score2) <- name.beta2
-##     }
-
-##     ## ** hessian
-##     ls.hessian <- lapply(1:n.obs, FUN = function(i){- crossprod(X[i,,drop=FALSE])* fit[i,1] * (1-fit[i,1])})
-##     hessian <- Reduce("+",ls.hessian)
-##     ## range(hessian - lava:::hessian.glm(object))
-##     if(full){
-##         Mindiv.hessian <- do.call(rbind,lapply(ls.hessian,function(i){as.vector(i)}))
-##         colnames(Mindiv.hessian) <- name.beta2
-##     }
-
-##     ## ** vcov
-##     information <- -hessian
-##     if(full){
-##         Mindiv.information  <- -Mindiv.hessian
-##     }
-
-##     vcov_model <- solve(information)
-##     ## range(vcov_model - vcov(object))
-##     if(full){
-##         Mindiv.vcov_model  <- -sweep(Mindiv.hessian, FUN = "*", STATS = as.vector(vcov_model)^2, MARGIN = 2)
-##     }
-
-##     vcov_robust <- vcov_model %*% score2 %*% vcov_model
-##     if(full){
-##         term1 <- sweep(Mindiv.vcov_model, FUN = "*", STATS = as.vector(score2 %*% vcov_model), MARGIN = 2)
-##         term2 <- sweep(Mindiv.score2, FUN = "*", STATS = as.vector(vcov_model %*% vcov_model), MARGIN = 2)
-##         ## Mindiv.vcov_robust  <- 2*term1+term2
-##         Mindiv.vcov_robust  <- Mindiv.hessian
-##     }
-
-##     ## ** iid
-##     ## iid.beta.model <- 
-##     ## ## vcov_model - crossprod(iid.beta_model)
-##     iid.beta.robust <- Mindiv.score %*% vcov_model
-##     ## vcov_robust - crossprod(iid.beta_robust)
-
-##     ## ** collect and export
-##     if(full){
-##         out <- cbind(iid.beta.robust, Mindiv.vcov_robust)
-##         attr(out,"Mname") <- name.Mbeta2
-##     }else{
-##         out <- iid.beta.robust
-##     }
-##     attr(out,"vcov") <- vcov_robust
-##     return(out)
-## }
-
-## ## ** .predict_logit
-## .predict_logit <- function(object, newdata, iid, transform){
-
-##     out <- list(estimate = NULL, se = NULL, iid.estimate = NULL, iid.se = NULL)
-
-##     ## ** extract information
-##     Xnew <- model.matrix(delete.response(terms(stats::formula(object))), data = newdata)
-##     beta <- coef(object)
-##     name.beta <- names(beta)
-##     Miid <- .iid_logit(object, full = iid)
-
-##     ## ** prediction
-##     out$estimate <- Xnew %*% beta
-##     if(iid){
-##         out$iid.estimate <- apply(Xnew, 1, function(iX){Miid[,name.beta,drop=FALSE] %*% iX})
-##     }
-##     ## ** se for predictions
-##     if(iid){
-##         out$se <- sqrt(colSums(out$iid.estimate^2))
-##     }else{
-##         out$se <- sqrt(rowSums(Xnew %*% attr(Miid,"vcov") * Xnew))
-##     }
-##     ## range(out$se - sqrt(diag(Xnew %*% attr(Miid,"vcov") %*% t(Xnew))))
-##     ## range(out$se - sqrt(rowSums(Xnew %*% attr(Miid,"vcov") * Xnew)))
-##     ## range(out$se[1] - sqrt(rowSums(Xnew[1,,drop=FALSE] %*% attr(Miid,"vcov") * Xnew[1,,drop=FALSE])))
-    
-##     ## Xnew[1,,drop=FALSE] %*% attr(Miid,"vcov")
-##     ## Xnew[1,,drop=FALSE] %*% attr(Miid,"vcov")[,1,drop=FALSE]
-##     ## apply(attr(Miid,"vcov"), MARGIN = 1, FUN = "%*%", t(Xnew[1,,drop=FALSE]))
-    
-    
-##     ## ** iid for se
-##     if(iid){
-##         Mname <- attr(Miid,"Mname")
-
-##         fit.var.iid <- Reduce("+",lapply(name.beta, function(iName){ ## iName <- name.beta[2]
-##             sweep(Miid[,Mname[,iName]] %*% t(Xnew), FUN = "*", STATS = Xnew[,iName], MARGIN = 2)
-##         }))
-##         ## tempo <- rowSums(do.call(cbind,lapply(name.beta, function(iName){ ## iName <- name.beta[2]
-##         ##     Miid[,Mname[,iName]] %*% t(Xnew[1,,drop=FALSE]) * Xnew[1,iName]
-##         ## })))
-##         ## range(fit.var.iid[,1]-tempo)
-##         out$iid.se <- sweep(fit.var.iid, FUN = "/", STATS = sqrt(2)*out$se, MARGIN = 2)
-##     }
-
-##     ## ** transform
-##     if(transform){
-##         if(iid){
-##             out$iid.estimate <- sweep(out$iid.estimate, FUN = "/", STATS = out$estimate, MARGIN = 2)
-##         }
-##         out$se <- out$se/out$estimate
-##         if(iid){
-##             out$iid.se <- sweep(out$iid.se, FUN = "/", STATS = out$se, MARGIN = 2)
-##         }
-##     }
-    
-##     ## ** export
-##     return(out)
-## }
 ######################################################################
 ### auc.R ends here
