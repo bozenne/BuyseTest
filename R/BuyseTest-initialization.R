@@ -471,6 +471,17 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                                      )
                           )
 
+    ## ** iid for gaussian endpoints
+    n.endpoint <- length(endpoint)
+    index.gaussiid <- which(type == "gaus")
+    if(length(index.gaussiid)>0 && any(!is.na(censoring[index.gaussiid]))){
+        index.gaussiid2 <- intersect(which(!is.na(censoring)),index.gaussiid)
+        for(iE in index.gaussiid2){ ## iE <- 1
+            skeletonPeron$survTimeC[[iE]] <- data[index.C,.(.(do.call(cbind,.SD[[1]]))), .SDcols = censoring[iE], by = "..strata.."][[2]]
+            skeletonPeron$survTimeT[[iE]] <- data[index.T,.(.(do.call(cbind,.SD[[1]]))), .SDcols = censoring[iE], by = "..strata.."][[2]]
+        }
+    }
+
     ## ** export
     keep.cols <- union(c(treatment, "..strata.."),
                        na.omit(attr(method.inference,"resampling-strata")))
@@ -506,7 +517,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 #' @rdname internal-initialization
 initializeFormula <- function(x){
 
-  validClass(x, valid.class = "formula")
+    validClass(x, valid.class = "formula")
     
     ## ** extract treatment
     treatment <- setdiff(all.vars(x), all.vars(stats::delete.response(stats::terms(x))))
@@ -564,6 +575,7 @@ initializeFormula <- function(x){
     type <- NULL
     validArgs <- c("endpoint","mean",
                    "status", "std",
+                   "iid",
                    "threshold","operator","weight","censoring")
 
     ## split around parentheses
@@ -575,23 +587,27 @@ initializeFormula <- function(x){
         candidate <- tolower(ls.x.endpoint[[iE]][1])
         if(candidate %in% c("b","bin","binary")){
             type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,c("status","threshold","mean","std"))
+            iValidArgs <- setdiff(validArgs,c("status","threshold","mean","std","iid"))
+            default.censoring <- "right"
         }else if(candidate %in% c("c","cont","continuous")){
             type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,c("status","mean","std"))
+            iValidArgs <- setdiff(validArgs,c("status","mean","std","iid"))
+            default.censoring <- "right"
         }else if(candidate %in% c("t","tte","time","timetoevent")){
             type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,c("mean","std"))
+            iValidArgs <- setdiff(validArgs,c("mean","std","iid"))
+            default.censoring <- "right"
         }else if(candidate %in% c("g","gaus","gaussian")){
             type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs, c("endpoint","status"))
+            iValidArgs <- setdiff(validArgs, c("endpoint","status","censoring"))
+            default.censoring <- as.character(NA)
         }else if(candidate %in% c("s","strat","strata")){
             strata <- c(strata, gsub(")", replacement = "",ls.x.endpoint[[iE]][2]))
             next
         }else{
             stop("initFormula: cannot convert the element ",paste(ls.x.endpoint[[iE]],collapse="(")," in the formula to a useful information.\n")
         }
-        
+
         ## get each argument
         iVec.args <- strsplit(gsub(")", replacement = "",ls.x.endpoint[[iE]][2]),
                               split = ",", fixed = TRUE)[[1]]
@@ -640,7 +656,10 @@ initializeFormula <- function(x){
             iName[iName=="mean"] <- "endpoint"
         }
         if("std" %in% iName){
-        iName[iName=="std"] <- "status"
+            iName[iName=="std"] <- "status"
+        }
+        if("iid" %in% iName){
+            iName[iName=="iid"] <- "censoring"
         }
         
         ## extract arguments
@@ -685,7 +704,7 @@ initializeFormula <- function(x){
         if("censoring" %in% iName){
             censoring <- c(censoring, gsub("\"","",iArg[iName=="censoring"]))
         }else{
-            censoring <- c(censoring, "right")
+            censoring <- c(censoring, default.censoring)
         }
     }
 

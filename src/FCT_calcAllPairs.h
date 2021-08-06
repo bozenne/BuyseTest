@@ -97,6 +97,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
   double iWeight=1;
   bool iUpdateRPNeutral;
   bool iUpdateRPUninf;
+  double iRho; arma::mat iMatRho;
 
   // counts
   count_favorable = 0;
@@ -197,7 +198,13 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
     }else if(method == 1){ // continuous or binary endpoint
       iPairScore = calcOnePair_Continuous(endpointT[iter_T] - endpointC[iter_C], threshold);
     }else if(method == 2){
-      iPairScore = calcOnePair_Gaussian(endpointT[iter_C], endpointC[iter_T], statusC[iter_C], statusT[iter_T], threshold);
+      if(survTimeC.n_rows>0){
+	iMatRho = arma::cor(survTimeC.col(iter_C), survTimeT.col(iter_T), 0);
+	iRho = iMatRho(0,0);
+      }else{
+	iRho = 0;
+      }
+      iPairScore = calcOnePair_Gaussian(endpointT[iter_C], endpointC[iter_T], statusC[iter_C], statusT[iter_T], iRho, threshold);
     }else if(method == 3){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
       iPairScore = calcOnePair_TTEgehan(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
     }else if(method == 4){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)

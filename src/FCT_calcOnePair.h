@@ -13,7 +13,7 @@
 inline std::vector< double > calcOnePair_Continuous(double diff, double threshold);
  
 double normalCDF(double mu, double sigma, double x);
-inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, double std_C, double std_T, double threshold);
+inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, double std_C, double std_T, double rho, double threshold);
 
 inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, double status_T, double threshold);
 
@@ -68,19 +68,20 @@ inline std::vector< double > calcOnePair_Continuous(double diff, double threshol
 double normalCDF(double mu, double sigma, double x){// Phi(-oo, x) 
   return 0.5 * (1 + std::erf((x-mu)/(sigma * std::sqrt(2))));
 }
-inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, double std_C, double std_T, double threshold){
+
+inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, double std_C, double std_T, double rho, double threshold){
 
   // ** initialize
   std::vector< double > score(4,0.0);
-  double diffstd = std::sqrt(std::pow(std_C,2.0) + std::pow(std_T,2.0));
-  
+  double diffstd = std::sqrt(std::pow(std_C,2.0) + std::pow(std_T,2.0) - 2*rho*std_C*std_T);
+  // Rcpp::Rcout << "( )" << std_C << " " << std_T << " " << rho << " " << 2*rho*std_C*std_T << " " << diffstd << std::endl;  
   // ** score
   if(R_IsNA(mean_T) || R_IsNA(mean_C) || R_IsNA(diffstd)){ // missing data: uninformative
     score[3] = 1.0;
   }else{
-    // P[Y>=X+t] = 1 - P[Y-X<t] where Y-X is N(muY-muX,\sqrt(sigamY^2+sigma^X))
+    // P[Y>=X+t] = 1 - P[Y-X<t] where Y-X is N(muY-muX,\sqrt(sigmaY^2+sigma^X-2 rho sigmaY sigmaX))
     score[0] = 1 - normalCDF(mean_T-mean_C,diffstd,threshold);
-    // P[X>=Y+t] = 1 - P[X-Y<t] where X-Y is N(muX-muY,\sqrt(sigamX^2+sigma^Y))
+    // P[X>=Y+t] = 1 - P[X-Y<t] where X-Y is N(muX-muY,\sqrt(sigmaX^2+sigma^Y-2 rho sigmaX sigmaY))
     score[1] = 1 - normalCDF(mean_C-mean_T,diffstd,threshold);
     score[2] = 1 - (score[0] + score[1]);
   }

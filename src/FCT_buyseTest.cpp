@@ -614,7 +614,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
   double iCumWeight; // current weight of the pair
   double iNewWeight; // remaining weight to analyze after the current endpoint
-
+  double iRho; arma::mat iMatRho;
+  
   std::vector< double > iPairScore;
   // ** loop over strata
   
@@ -688,10 +689,18 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	    iPairScore = calcOnePair_Continuous(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 						threshold[iter_d]);
 	  }else if(iMethod == 2){ // gaussian endpoint
+	    if(list_survTimeC[iter_d][iter_strata].n_rows>0){
+	      iMatRho = arma::cor(list_survTimeC[iter_d][iter_strata].col(iter_C), list_survTimeT[iter_d][iter_strata].col(iter_T),0);
+	      iRho = iMatRho(0,0);
+	    }else{
+	      iRho = 0;
+	    }
+	    
 	    iPairScore = calcOnePair_Gaussian(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 					      endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
 					      status(indexStrataC[iter_C], index_status[iter_d]),
 					      status(indexStrataT[iter_T], index_status[iter_d]),
+					      iRho,
 					      threshold[iter_d]);		    
 	  }else if(iMethod == 3){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
 	    iPairScore = calcOnePair_TTEgehan(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),

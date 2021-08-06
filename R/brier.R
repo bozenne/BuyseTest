@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: aug  5 2021 (19:02) 
+## Last-Updated: aug  6 2021 (13:18) 
 ##           By: Brice Ozenne
-##     Update #: 79
+##     Update #: 81
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,9 +17,11 @@
 
 if(FALSE){
 
-    warper <- function(n){
-        df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = rnorm(n))
+    warper <- function(n){ ## n <- 10
+
+        df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = as.factor(rbinom(n, size = 1, prob = 0.5)))
         e.logit <- glm(Y~X1+X2, data = df, family = binomial(link="logit"))
+       
         e.perf <- performance(e.logit, trace = FALSE, transformation = FALSE, fold.number = 0)
         e.Score <- riskRegression::Score(list(e.logit), formula = Y~1, data = df)
 
@@ -33,6 +35,13 @@ if(FALSE){
 
     warper(100)
 
+    M <- mvtnorm::rmvnorm(1e4, mean = c(0,1), sigma = matrix(c(1,0.5,0.5,1),2,2))
+    mean(M[,1]>M[,2])
+    mean(mvtnorm::rmvnorm(1e4, mean=-1,sigma=matrix(2-2*0.5))>0)
+    M <- mvtnorm::rmvnorm(1e4, mean = c(0,1), sigma = matrix(c(1,0,0,1),2,2))
+    mean(M[,1]>M[,2])
+    mean(mvtnorm::rmvnorm(1e4, mean=-1,sigma=matrix(2))>0)
+    
     n.sim <- 100
     ls.res <- pblapply(1:n.sim, function(iSim){
         rbind(cbind(sim = iSim, warper(100)),

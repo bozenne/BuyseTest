@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:55) 
 ## Version: 
-## Last-Updated: aug  5 2021 (12:16) 
+## Last-Updated: aug  6 2021 (13:05) 
 ##           By: Brice Ozenne
-##     Update #: 79
+##     Update #: 83
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,7 +47,19 @@
 ##' test2["se",] - sqrt(diag(crossprod(attr(test2,"iid")))) ## approximate
 ##' ## since it uses the robust estimator of the correlation
 ##' ## (and the modeled estimator of the variance)
+##'
+##' ## Sanity check (fully stratified model)
+##' df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = as.factor(rbinom(n, size = 1, prob = 0.5)))
+##' newdata <- data.frame(X1=c(0,1),X2=as.factor(0:1))
 ##' 
+##' e.logit <- glm(Y~X1+X2, data = df, family = binomial(link="logit"))
+##' e.predlogit <- .predict.logit(e.logit, newdata = newdata)
+##' cor(attr(e.predlogit,"iid"))
+##' 
+##' e.logitS <- glm(Y~X1*X2, data = df, family = binomial(link="logit"))
+##' e.predlogitS <- .predict.logit(e.logitS, newdata = newdata)
+##' cor(attr(e.predlogitS,"iid"))
+
 
 
 ## * .predict.logit (simulation study)

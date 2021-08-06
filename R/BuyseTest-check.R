@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: May 20 2021 (22:55) 
+## Last-Updated: aug  6 2021 (15:37) 
 ##           By: Brice Ozenne
-##     Update #: 291
+##     Update #: 294
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -143,17 +143,24 @@ testArgs <- function(name.call,
             warning("BuyseTest: time to event variables with only censored events in at least one strata \n")
         }
     }
-    
+
     ## ** censoring
-    if(any(is.na(censoring))){
-        stop("BuyseTest: wrong specification of \'censoring\'. \n",
-             "\'censoring\' must be \'as.character(NA)\', \"left\", or \"right\" \n",
-             "incorrect \'censoring\' value(s): \"",paste(attr(censoring,"original")[is.na(censoring)], collapse = "\" \""),"\" \n")
+    if(any(type=="gaus")){ ## iid has been internally stored in the censoring variable
+        censoring.gaus <- na.omit(censoring[type=="gaus"])
+        if(length(censoring.gaus)>0 && any(censoring.gaus %in% names(data) == FALSE)){
+            stop("BuyseTest: wrong specification of \'iid\'. \n",
+                 "\'iid\' must indicate a variable in argument \'data\'. \n",
+                 "incorrect \'iid\' value(s): \"",paste(censoring.gaus[censoring.gaus %in% names(data) == FALSE], collapse = "\" \""),"\" \n")
+        }
+    }else if(any(type=="tte")){
+        censoring.tte <- censoring[type=="tte"]
+        if(any(censoring.tte %in% c("left","right"))){
+            stop("BuyseTest: wrong specification of \'censoring\'. \n",
+                 "\'censoring\' must be \"left\", or \"right\" \n",
+                 "incorrect \'censoring\' value(s): \"",paste(censoring.tte[is.na(censoring.tte)], collapse = "\" \""),"\" \n")
+        }
     }
-    if(any(censoring[type=="tte"]==0)){
-        stop("BuyseTest: wrong specification of \'censoring\'. \n",
-             "\'censoring\' must be \"left\" or \"right\" for TTE endpoints \n")
-    }
+    
 
     ## ** cpus
     if(cpus>1){

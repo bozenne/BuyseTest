@@ -1,4 +1,5 @@
 if(FALSE){
+    library(mvtnorm)
     library(testthat)
     library(BuyseTest)
     library(data.table)
@@ -488,6 +489,80 @@ test_that("BuyseTest - left vs. right censoring", {
 
     expect_equal(as.double(coef(BT.left)), 0.1768116, tol = 1e-6)
 })
+
+## * Gaussian endpoint
+
+## ** uncorrelated
+
+test_that("BuyseTest - uncorrelated gaussians", {
+
+    GS.1 <- 1 - pnorm(0, mean = 1, sd = sqrt(2))
+    ## GS.1 - mean( rnorm(n.GS, mean = 1)> rnorm(n.GS, mean = 0))
+    df.1 <- data.frame(mean = 0:1, sd = 1, treatment = c("C","T"))
+    BTG.1 <- BuyseTest(treatment ~ gaus(mean, sd),
+                       data = df.1, method.inference = "none")
+    expect_equal(GS.1,as.double(coef(BTG.1, statistic = "favorable")),tol=1e-6)
+
+    GS.2 <- 1 - pnorm(0, mean = 1, sd = sqrt(4.25))
+    ## GS.2 - mean( rnorm(n.GS, mean = 1, sd = 0.5)> rnorm(n.GS, mean = 0, sd = 2))
+    df.2 <- data.frame(mean = 0:1, sd = c(2,0.5), treatment = c("C","T"))
+    BTG.2 <- BuyseTest(treatment ~ gaus(mean = mean, std = sd),
+                       data = df.2, method.inference = "none")
+    expect_equal(GS.2,as.double(coef(BTG.2, statistic = "favorable")),tol=1e-6)
+
+    GS.3 <- mean(c(GS.1, (1 - pnorm(0, mean = 1, sd = sqrt(5))), 1 - pnorm(0, mean = 1, sd = sqrt(1.25)), GS.2))
+    ## GS.3 - mean(c(GS.1,mean( rnorm(n.GS, mean = 1)> rnorm(n.GS, mean = 0, sd = 2)), mean( rnorm(n.GS, mean = 1, sd = 0.5)> rnorm(n.GS, mean = 0)),GS.2))
+    df.3 <- rbind(df.1,df.2)
+    BTG.3 <- BuyseTest(treatment ~ gaus(mean = mean, std = sd),
+                       data = df.3, method.inference = "none")
+    expect_equal(GS.3,as.double(coef(BTG.3, statistic = "favorable")),tol=1e-6)
+
+})
+
+## ** correlated
+
+
+complement <- function(rho, n) {## generate a dataset with given correlation
+    ## adapted from
+    ## https://stats.stackexchange.com/questions/15011/generate-a-random-variable-with-a-defined-correlation-to-an-existing-variables
+    x <- rnorm(n) 
+    y <- rnorm(n) 
+    y.perp <- residuals(lm(x ~ y))
+    z <- rho * sd(y.perp) * y + sqrt(1 - rho^2) * sd(y) * y.perp
+    return(list(Y=as.double(y),X=as.double(z)))
+}
+## cor(complement(rho = 0.5, n = 10))
+
+
+
+test_that("BuyseTest - correlated gaussians", {
+
+    GS.1 <- 1 - pnorm(0, mean = 1, sd = sqrt(1))
+    ## GS.1 - mean(apply(mvtnorm::rmvnorm(n.GS, mean = 0:1, sigma = matrix(c(1,0.5,0.5,1),2,2)),1, FUN = function(x){x[2]>x[1]}))
+    df.1$iid <- complement(rho = 0.5, n = 10)
+    BTG.1 <- BuyseTest(treatment ~ gaus(mean, sd, iid),
+                       data = df.1, method.inference = "none")
+    expect_equal(GS.1,as.double(coef(BTG.1, statistic = "favorable")),tol=1e-6)
+    
+    GS.2 <- 1 - pnorm(0, mean = 1, sd = sqrt(3.25)) ## 2^2+0.5^2-2*0.5*0.5*2
+    ## GS.2 - mean(apply(mvtnorm::rmvnorm(10*n.GS, mean = 0:1, sigma = matrix(c(0.5^2,0.5,0.5,2^2),2,2)),1, FUN = function(x){x[2]>x[1]}))
+    df.2$iid <- complement(rho = 0.5, n = 10)
+    BTG.2 <- BuyseTest(treatment ~ gaus(mean = mean, std = sd, iid),
+                       data = df.2, method.inference = "none")
+    expect_equal(GS.2,as.double(coef(BTG.2, statistic = "favorable")),tol=1e-6)
+
+    GS.3 <- mean(c(GS.1,
+              1 - pnorm(0, mean = 1, sd = sqrt(1.25-cor(df.1$iid[[1]],df.2$iid[[2]]))),
+              1 - pnorm(0, mean = 1, sd = sqrt(5-4*cor(df.1$iid[[2]],df.2$iid[[1]]))),
+              GS.2))
+    df.3 <- rbind(df.1,df.2)
+    ## GS.3 - c(GS.1,mean( rnorm(n.GS, mean = 1)> rnorm(n.GS, mean = 0, sd = 2)), mean( rnorm(n.GS, mean = 1, sd = 0.5)> rnorm(n.GS, mean = 0)),GS.2)
+    BTG.3 <- BuyseTest(treatment ~ gaus(mean = mean, std = sd, iid = iid),
+                       data = df.3, method.inference = "none")
+    expect_equal(GS.3,as.double(coef(BTG.3, statistic = "favorable")),tol=1e-6)
+
+})
+
 
 ## * dataset [save]
 ## dt.sim <- data.table("treatment" = c("C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T"), 

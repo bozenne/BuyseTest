@@ -8,6 +8,7 @@ library(survival)
 xx <- capture.output(print(veteran))
 library(riskRegression)
 library(prodlim)
+library(mvtnorm)
 
 ## * run tests
 ## setwd("~/Documents/GitHub/BuyseTest/tests/")
