@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: aug  5 2021 (18:02) 
+## Last-Updated: aug  9 2021 (09:37) 
 ##           By: Brice Ozenne
-##     Update #: 108
+##     Update #: 109
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -256,7 +256,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             cv.indexing[,"fold",iFold] <- iFold
             
             for(iO in 1:n.object){ ## iO <- 1
-                iObject <- update(object[[iO]], data = iDataTrain)
+                iObject <- stats::update(object[[iO]], data = iDataTrain)
                 
                 if(inherits(iObject,"ranger")){
                     iPred <- predict(iObject, data = iDataTest, type = "response")

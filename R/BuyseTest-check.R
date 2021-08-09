@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: aug  6 2021 (15:37) 
+## Last-Updated: aug  9 2021 (09:42) 
 ##           By: Brice Ozenne
-##     Update #: 294
+##     Update #: 298
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -154,10 +154,15 @@ testArgs <- function(name.call,
         }
     }else if(any(type=="tte")){
         censoring.tte <- censoring[type=="tte"]
-        if(any(censoring.tte %in% c("left","right"))){
+        if(any(is.na(censoring.tte))){
+            stop("BuyseTest: wrong specification of \'censoring\'. \n",
+                 "\'censoring\' must be \"left\", or \"right\" for time to event endpoints. \n",
+                 "incorrect \'censoring\' value(s): \"",paste(censoring.tte[is.na(censoring.tte)], collapse = "\" \""),"\" \n")
+        }
+        if(any(censoring.tte %in% c("left","right") == FALSE)){
             stop("BuyseTest: wrong specification of \'censoring\'. \n",
                  "\'censoring\' must be \"left\", or \"right\" \n",
-                 "incorrect \'censoring\' value(s): \"",paste(censoring.tte[is.na(censoring.tte)], collapse = "\" \""),"\" \n")
+                 "incorrect \'censoring\' value(s): \"",paste(censoring.tte[censoring.tte %in% c("left","right") == FALSE], collapse = "\" \""),"\" \n")
         }
     }
     

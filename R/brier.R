@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: aug  6 2021 (13:18) 
+## Last-Updated: aug  9 2021 (09:36) 
 ##           By: Brice Ozenne
-##     Update #: 81
+##     Update #: 82
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -49,7 +49,7 @@ if(FALSE){
     })
     dt.res  <- as.data.table(do.call(rbind,ls.res))
     head(dt.res)
-    dt.res[,.(se.model = mean(se), se.empirical = sd(estimate)),by = c("metric","method","model")]
+    dt.res[,.(se.model = mean(se), se.empirical = stats::sd(estimate)),by = c("metric","method","model")]
     dt.res[metric == "brier" & method == "internal",estimate]
 }
 
@@ -119,10 +119,10 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
         iBrier <- (predictions - labels)^2
         out$estimate <- mean(iBrier)
         if(is.null(iid)){
-            out$se <- sd(iBrier)/sqrt(n.obs)
+            out$se <- stats::sd(iBrier)/sqrt(n.obs)
         }else{
             iidAverage <- (iBrier-out$estimate)/(sqrt(n.obs)*sqrt(n.obs-1))
-            ## sqrt(crossprod(iidAverage)) - sd(iBrier)/sqrt(n.obs)
+            ## sqrt(crossprod(iidAverage)) - stats::sd(iBrier)/sqrt(n.obs)
             iidNuisance <-  rowMeans(sweep(iid, FUN = "*", MARGIN = 2, STATS = 2*predictions - labels))
             attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
             out$se <- sqrt(crossprod(attr(out,"iid")))
@@ -145,14 +145,14 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
         out$estimate <- mean(iBrier[Uobservation])
         ## out$estimate - mean(tapply((predictions-labels[observation])^2,fold,mean)) ## should be equal
         if(is.null(iid)){
-            out$se <- sd(iBrier[Uobservation])/sqrt(n.Uobservation)
+            out$se <- stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation)
             ## out$se - mean(tapply((predictions-labels[observation])^2,fold,sd)) ## no need to be equal
         }else{
             iidAverage <- rep(0, length = n.obs)
             iidNuisance <- rep(0, length = n.obs)
             
             iidAverage[Uobservation] <- (iBrier[Uobservation]-out$estimate)/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
-            ## sd(iBrier[Uobservation])/sqrt(n.Uobservation) - sqrt(crossprod(iidAverage)) ## should be equal
+            ## stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation) - sqrt(crossprod(iidAverage)) ## should be equal
             for(iFold in 1:n.fold){ ## iFold <- 1
                 iiFactor <- sapply(iFactor[observation[fold==iFold]],function(iVec){iVec[as.character(iFold)]})
                 iStat <- (2*predictions[fold==iFold] - labels[observation[fold==iFold]])*iiFactor

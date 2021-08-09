@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:55) 
 ## Version: 
-## Last-Updated: aug  6 2021 (13:05) 
+## Last-Updated: aug  9 2021 (09:49) 
 ##           By: Brice Ozenne
-##     Update #: 83
+##     Update #: 85
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,6 +31,7 @@
 
 ## * .predict.logit (examples)
 ##' @examples
+##' \dontrun{ ## will not run as .predict.logit is not exported
 ##' set.seed(10)
 ##' n <- 100
 ##' df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = rnorm(n))
@@ -59,6 +60,7 @@
 ##' e.logitS <- glm(Y~X1*X2, data = df, family = binomial(link="logit"))
 ##' e.predlogitS <- .predict.logit(e.logitS, newdata = newdata)
 ##' cor(attr(e.predlogitS,"iid"))
+##' }
 
 
 
@@ -120,7 +122,7 @@
     if(robust){
         Sigma.beta <- crossprod(iid.beta)
     }else{
-        Sigma.beta <- vcov(object)
+        Sigma.beta <- stats::vcov(object)
     }
 
     ## var.Xbeta <- X %*% Sigma.beta %*% t(X)

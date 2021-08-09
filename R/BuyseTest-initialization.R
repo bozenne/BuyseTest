@@ -477,8 +477,8 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     if(length(index.gaussiid)>0 && any(!is.na(censoring[index.gaussiid]))){
         index.gaussiid2 <- intersect(which(!is.na(censoring)),index.gaussiid)
         for(iE in index.gaussiid2){ ## iE <- 1
-            skeletonPeron$survTimeC[[iE]] <- data[index.C,.(.(do.call(cbind,.SD[[1]]))), .SDcols = censoring[iE], by = "..strata.."][[2]]
-            skeletonPeron$survTimeT[[iE]] <- data[index.T,.(.(do.call(cbind,.SD[[1]]))), .SDcols = censoring[iE], by = "..strata.."][[2]]
+            skeletonPeron$survTimeC[[iE]] <- data[index.C,list(list(do.call(cbind,.SD[[1]]))), .SDcols = censoring[iE], by = "..strata.."][[2]]
+            skeletonPeron$survTimeT[[iE]] <- data[index.T,list(list(do.call(cbind,.SD[[1]]))), .SDcols = censoring[iE], by = "..strata.."][[2]]
         }
     }
 
