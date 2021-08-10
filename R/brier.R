@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: aug  9 2021 (09:36) 
+## Last-Updated: aug  9 2021 (16:57) 
 ##           By: Brice Ozenne
-##     Update #: 82
+##     Update #: 97
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,43 +15,7 @@
 ## 
 ### Code:
 
-if(FALSE){
 
-    warper <- function(n){ ## n <- 10
-
-        df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = as.factor(rbinom(n, size = 1, prob = 0.5)))
-        e.logit <- glm(Y~X1+X2, data = df, family = binomial(link="logit"))
-       
-        e.perf <- performance(e.logit, trace = FALSE, transformation = FALSE, fold.number = 0)
-        e.Score <- riskRegression::Score(list(e.logit), formula = Y~1, data = df)
-
-        auc.Score <- data.frame(model = "logit1", method = "Score", metric = "auc",
-                                estimate = e.Score$AUC$score$AUC, se = e.Score$AUC$score$se, lower = e.Score$AUC$score$lower, upper = e.Score$AUC$score$upper, p.value = NA)
-        brier.Score <- data.frame(model = "logit1", method = "Score", metric = "brier",
-                                  estimate = e.Score$Brier$score$Brier[2], se = e.Score$Brier$score$se[2], lower = e.Score$Brier$score$lower[2], upper = e.Score$Brier$score$upper[2], p.value = NA)
-        e.perf <- rbind(e.perf, auc.Score, brier.Score)
-        return(e.perf)
-    }
-
-    warper(100)
-
-    M <- mvtnorm::rmvnorm(1e4, mean = c(0,1), sigma = matrix(c(1,0.5,0.5,1),2,2))
-    mean(M[,1]>M[,2])
-    mean(mvtnorm::rmvnorm(1e4, mean=-1,sigma=matrix(2-2*0.5))>0)
-    M <- mvtnorm::rmvnorm(1e4, mean = c(0,1), sigma = matrix(c(1,0,0,1),2,2))
-    mean(M[,1]>M[,2])
-    mean(mvtnorm::rmvnorm(1e4, mean=-1,sigma=matrix(2))>0)
-    
-    n.sim <- 100
-    ls.res <- pblapply(1:n.sim, function(iSim){
-        rbind(cbind(sim = iSim, warper(100)),
-              cbind(sim = iSim, warper(1000)))
-    })
-    dt.res  <- as.data.table(do.call(rbind,ls.res))
-    head(dt.res)
-    dt.res[,.(se.model = mean(se), se.empirical = stats::sd(estimate)),by = c("metric","method","model")]
-    dt.res[metric == "brier" & method == "internal",estimate]
-}
 
 ## * brier (code)
 brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NULL,
@@ -64,6 +28,7 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
     labels.factor <- as.factor(labels)
     labels.num <- as.numeric(labels.factor)
     n.obs <- length(labels)
+    if(identical(fold,0)){fold  <- NULL}
     if(!is.null(iid) && is.null(fold)){
         if(NCOL(iid) != n.obs){
             stop("Argument \'iid\' must have one column per observation. \n")
@@ -95,10 +60,14 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
             }
         }
     }else{
+        external <- FALSE
         if(n.obs!=length(predictions)){
             stop("Argument \'labels\' and \'predictions\' must have the same length. \n")
         }
-        if(!is.null(observation)){
+        if(identical(observation,"external")){
+            observation <- NULL
+            external <- TRUE
+        }else if(!is.null(observation)){
             stop("Argument \'observation\' is only useful when argument \'fold\' is specified \n")
         }
         observation <- 1:n.obs
@@ -118,14 +87,20 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
     if(is.null(fold)){
         iBrier <- (predictions - labels)^2
         out$estimate <- mean(iBrier)
+        iidAverage <- (iBrier-out$estimate)/(sqrt(n.obs)*sqrt(n.obs-1))
         if(is.null(iid)){
+            attr(out,"iid") <- iidAverage
             out$se <- stats::sd(iBrier)/sqrt(n.obs)
         }else{
-            iidAverage <- (iBrier-out$estimate)/(sqrt(n.obs)*sqrt(n.obs-1))
             ## sqrt(crossprod(iidAverage)) - stats::sd(iBrier)/sqrt(n.obs)
             iidNuisance <-  rowMeans(sweep(iid, FUN = "*", MARGIN = 2, STATS = 2*predictions - labels))
-            attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
-            out$se <- sqrt(crossprod(attr(out,"iid")))
+            if(external){
+                attr(out,"iid") <- c(iidNuisance/sqrt(n.obs), iidAverage)
+                out$se <- sqrt(crossprod(attr(out,"iid")))
+            }else{
+                attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
+                out$se <- sqrt(crossprod(attr(out,"iid")))
+            }
         }
     }
 
@@ -197,14 +172,17 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
 
 ## * Utilitites
 ## ** print.BuyseTestBrier
+##' @export
 print.BuyseTestBrier <- function(x, ...){
     print.data.frame(x)
 }
 ## ** coef.BuyseTestBrier
+##' @export
 coef.BuyseTestBrier <- function(object,...){
     object[,"estimate"]
 }
 ## ** confint.BuyseTestBrier
+##' @export
 confint.BuyseTestBrier <- function(object,...){
     attr(object, "iid") <- NULL
     attr(object, "constrast") <- NULL
@@ -212,6 +190,7 @@ confint.BuyseTestBrier <- function(object,...){
     return(object)
 }
 ## ** iid.BuyseTestBrier
+##' @export
 iid.BuyseTestBrier <- function(object,...){
     return(attr(object,"iid"))
 }

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug  5 2021 (18:19) 
+## Last-Updated: aug 10 2021 (09:30) 
 ##           By: Brice Ozenne
-##     Update #: 261
+##     Update #: 263
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -208,12 +208,16 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     qsup <- stats::qnorm(1-alpha/2)
 
     ## riskRegression:::transformCIBP(estimate = cbind(out$estimate), se = cbind(out$se), null = 1/2, conf.level =  0.95, type = "none",
-                                   ## ci = TRUE, band = FALSE, p.value = TRUE,
-                                   ## min.value = 0, max.value = 1)
+    ## ci = TRUE, band = FALSE, p.value = TRUE,
+    ## min.value = 0, max.value = 1)
     ## riskRegression:::transformCIBP(estimate = cbind(out$estimate), se = cbind(out$se), null = 1/2, conf.level =  0.95, type = "loglog",
-                                   ## ci = TRUE, band = FALSE, p.value = TRUE,
-                                   ## min.value = 0, max.value = 1)
-    if(transformation){
+    ## ci = TRUE, band = FALSE, p.value = TRUE,
+    ## min.value = 0, max.value = 1)
+    if(all(out$estimate==1)){
+        out$lower <- 1
+        out$upper <- 1
+        out$p.value <- as.numeric(null==1)
+    }else if(transformation){
         newse <- out$se / (- out$estimate * log(out$estimate))
         z.stat <- (log(-log(out$estimate)) - log(-log(null)))/newse
         
