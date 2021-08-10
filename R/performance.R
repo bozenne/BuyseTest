@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: aug 10 2021 (09:43) 
+## Last-Updated: aug 10 2021 (15:02) 
 ##           By: Brice Ozenne
-##     Update #: 192
+##     Update #: 208
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -111,6 +111,8 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
     if(is.null(name.response)){
         name.response <- all.vars(formula(object[[1]]))[1]
     }
+    ref.response <- sort(data[[name.response]], decreasing = TRUE)[1]
+
     ## null hypothesis
     if("brier" %in% names(null) == FALSE){
         stop("Argument \'null\' should be a vector with an element called brier. \n",
@@ -143,6 +145,9 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         }
         if(fold.size<1){
             fold.size <- ceiling(nobs.object * fold.size)
+        }
+        if(fold.size<2){
+            stop("Argument \'fold.size\' must be greater or equal to 2 (at least one sample in each category) \n")
         }
     }else if((!is.na(data) && !identical(data,FALSE))){
         data <- as.data.frame(data)
@@ -302,8 +307,15 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         nData.obs <- NROW(data)
 
         ## *** identify folds
+        index.response1 <- which(data[[name.response]]==ref.response)
+        index.response0 <- which(data[[name.response]]!=ref.response)
         fold.test <- do.call(cbind,lapply(1:fold.number, function(iFold){
-            sample(1:nData.obs, replace = FALSE, size = fold.size)
+            iSample <- c(sample(index.response0, size = 1), sample(index.response1, size = 1))
+            if(fold.size>2){
+                c(iSample,sample(setdiff(1:nData.obs,iSample), replace = FALSE, size = fold.size-2))
+            }else{
+                return(iSample)
+            }
         }))
         fold.train <- do.call(cbind,lapply(1:fold.number, function(iFold){
             setdiff(1:nData.obs,fold.test[,iFold])
@@ -359,7 +371,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             cv.brier <- cbind(cv.brier, p.value_comp = NA)
         }
 
-        for(iO in 1:n.object){
+        for(iO in 1:n.object){ ## iO <- 1
             if(trace){cat("*")}
             iObs <- as.double(cv.indexing[,"observation",])
             iFold <- as.double(cv.indexing[,"fold",])
