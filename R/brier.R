@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: aug  9 2021 (16:57) 
+## Last-Updated: aug 10 2021 (11:10) 
 ##           By: Brice Ozenne
-##     Update #: 97
+##     Update #: 102
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -177,11 +177,32 @@ print.BuyseTestBrier <- function(x, ...){
     print.data.frame(x)
 }
 ## ** coef.BuyseTestBrier
+##' @title Extract the Brier Score
+##'
+##' @description Extract the Brier score.
+##' 
+##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
+##' @param ... not used. For compatibility with the generic function.
+##'
+##' @return Estimated value for Brier score (numeric).  
+##' 
+##' @method coef BuyseTestBrier
+##' 
 ##' @export
 coef.BuyseTestBrier <- function(object,...){
     object[,"estimate"]
 }
 ## ** confint.BuyseTestBrier
+##' @title Extract the Brier Score with its Confidence Interval
+##'
+##' @description Extract the Brier score with its Confidence Interval and possibly a p-value.
+##' 
+##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
+##' @param ... not used. For compatibility with the generic function.
+##'
+##' @return Estimated value for the brier score, its standard error, the lower and upper bound of the confidence interval and the p-value.
+##' 
+##' @method confint BuyseTestBrier
 ##' @export
 confint.BuyseTestBrier <- function(object,...){
     attr(object, "iid") <- NULL
@@ -190,6 +211,16 @@ confint.BuyseTestBrier <- function(object,...){
     return(object)
 }
 ## ** iid.BuyseTestBrier
+##' @title Extract the idd Decomposition for the Brier Score
+##'
+##' @description Extract the iid decompotion relative to Brier score estimate.
+##' 
+##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
+##' @param ... not used. For compatibility with the generic function.
+##'
+##' @return A column vector.
+##' 
+##' @method iid BuyseTestBrier
 ##' @export
 iid.BuyseTestBrier <- function(object,...){
     return(attr(object,"iid"))
