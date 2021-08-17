@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: aug 10 2021 (15:02) 
+## Last-Updated: aug 17 2021 (19:06) 
 ##           By: Brice Ozenne
-##     Update #: 208
+##     Update #: 224
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -107,12 +107,27 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             }
         }
     }
+    data <- as.data.frame(data)
+
     ## extract name of the outcome variable
     if(is.null(name.response)){
         name.response <- all.vars(formula(object[[1]]))[1]
     }
     ref.response <- sort(data[[name.response]], decreasing = TRUE)[1]
 
+    if(is.character(data[[name.response]])){
+        data[[name.response]] <- as.factor(data[[name.response]])
+    }
+    if(is.factor(data[[name.response]])){
+        if(length(levels(data[[name.response]]))==2){
+            data[[name.response]] <- as.numeric(data[[name.response]])-1
+        }else stop("The column corresponding to the argument \'name.response\' should take exactly two different values. \n",
+                   "Unique values found: \"",paste0(levels(data[[name.response]]), collapse = "\" \""),"\".\n")
+    }else if(any(data[[name.response]] %in% 0:1 == FALSE)){
+        stop("The column corresponding to the argument \'name.response\' should correspond to a binary variable. \n",
+             "Unique values found: \"",paste0(levels(data[[name.response]]), collapse = "\" \""),"\".\n")
+    }
+    
     ## null hypothesis
     if("brier" %in% names(null) == FALSE){
         stop("Argument \'null\' should be a vector with an element called brier. \n",
@@ -370,26 +385,28 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             cv.auc <- cbind(cv.auc, p.value_comp = NA)
             cv.brier <- cbind(cv.brier, p.value_comp = NA)
         }
+        ls.auc <- setNames(vector(mode = "list", length = n.object), names.object)
+        ls.brier <- setNames(vector(mode = "list", length = n.object), names.object)
 
         for(iO in 1:n.object){ ## iO <- 1
             if(trace){cat("*")}
             iObs <- as.double(cv.indexing[,"observation",])
             iFold <- as.double(cv.indexing[,"fold",])
             iPred <- as.double(cv.predictions[,iO,])
-            iAUC <- auc(labels = data[[name.response]], predictions = iPred, fold = iFold, observation = iObs,
+            ls.auc[[iO]] <- auc(labels = data[[name.response]], predictions = iPred, fold = iFold, observation = iObs,
                         add.halfNeutral = TRUE, null = null["AUC"], conf.level = conf.level, transformation = transformation)
-            cv.auc[iO,] <- confint(iAUC)
-            cv.iid.auc[,iO] <- iid(iAUC)
+            cv.auc[iO,] <- confint(ls.auc[[iO]])
+            cv.iid.auc[,iO] <- iid(ls.auc[[iO]])
             if(iO>1){
                 iStat <- (cv.auc[iO,"estimate"] - cv.auc[iO-1,"estimate"]) / sqrt(crossprod(cv.iid.auc[,iO]-cv.iid.auc[,iO-1]))
                 cv.auc[iO,"p.value_comp"] <- 2*(1-stats::pnorm(abs(iStat)))
             }
 
-            ## sqrt(crossprod(rowMeans(attr(iAUC,"iid")))) - confint(iAUC)["se"]
-            iBrier <- brier(labels = data[[name.response]], predictions = iPred, fold = iFold, observation = iObs, iid = cv.iid[[iO]],
+            ## sqrt(crossprod(rowMeans(attr(ls.auc[[iO]],"iid")))) - confint(ls.auc[[iO]])["se"]
+            ls.brier[[iO]] <- brier(labels = data[[name.response]], predictions = iPred, fold = iFold, observation = iObs, iid = cv.iid[[iO]],
                            null = null["Brier"], conf.level = conf.level, transformation = transformation)
-            cv.brier[iO,] <- confint(iBrier)
-            cv.iid.brier[,iO] <- iid(iBrier)
+            cv.brier[iO,] <- confint(ls.brier[[iO]])
+            cv.iid.brier[,iO] <- iid(ls.brier[[iO]])
             if(iO>1){
                 iStat <- (cv.brier[iO,"estimate"] - cv.brier[iO-1,"estimate"]) / sqrt(crossprod(cv.iid.brier[,iO]-cv.iid.brier[,iO-1]))
                 cv.brier[iO,"p.value_comp"] <- 2*(1-stats::pnorm(abs(iStat)))
@@ -404,6 +421,8 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         if(is.null(attr(out,"iid"))){attr(out,"iid") <- list(auc = NULL, brier = NULL)}
         attr(out,"iid")$auc[["cv"]] <- cv.iid.auc
         attr(out,"iid")$brier[["cv"]] <- cv.iid.brier
+        attr(out,"auc") <- ls.auc
+        attr(out,"brier") <- ls.brier
         if(trace){cat("\n  done. \n")}
         
     }
