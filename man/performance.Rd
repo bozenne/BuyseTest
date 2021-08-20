@@ -44,17 +44,24 @@ Assess the performance in term of AUC and brier score of one or several binary c
 Currently limited to logistic regressions and random forest.
 }
 \examples{
-if(FALSE){
 ## Simulate data
 set.seed(10)
 n <- 100
-df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = rnorm(n))
+df.train <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = rnorm(n))
+df.test <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = rnorm(n))
 
 ## fit logistic model
-e.logit <- glm(Y~X1+X2, data = df, family = binomial(link="logit"))
+e.logit <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
 
+## assess performance on the training set (biased)
+## and external dataset
+performance(e.logit, newdata = df.test)
+
+## assess performance using cross validation
+set.seed(10)
 performance(e.logit, fold.number = 10)
-performance(e.logit, fold.number = 20)
-auc(labels = df$Y, predictions = fitted(e.logit))
+set.seed(10)
+\dontrun{
+performance(e.logit, fold.number = c(10,20,50))
 }
 }

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug 10 2021 (09:30) 
+## Last-Updated: aug 20 2021 (17:46) 
 ##           By: Brice Ozenne
-##     Update #: 263
+##     Update #: 269
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -134,7 +134,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
 
     name.fold <- e.BT@level.strata
     n.fold <- length(name.fold)
-
+browser()
     if(direction==">"){
         out <- data.frame(fold = c(name.fold,"global"),
                           direction = ">",
@@ -142,9 +142,10 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
                           se = NA,
                           stringsAsFactors = FALSE)
         if(!is.null(observation)){
-            M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
+            eIID.BT <- getIid(e.BT, normalize = FALSE, statistic = "favorable", add.halfNeutral = add.halfNeutral)
+            M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){ ## iVec <- observation[df$fold==df$fold[1]]
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE, statistic = "favorable", add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[iVec] <- scale(eIID.BT[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
                 iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
                 iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
                 return(iIID)
@@ -233,9 +234,15 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     }
 
     ## ** Export
+    if(is.null(fold)){
+        out <- out[out$fold=="global",]
+        rownames(out) <- NULL
+        attr(out, "n.fold") <- 0
+    }else{
+        attr(out, "n.fold") <- n.fold
+    }
     class(out) <- append("BuyseTestAuc",class(out))
     attr(out, "contrast") <- e.BT@level.treatment
-    attr(out, "n.fold") <- n.fold
     if(!is.null(observation)){
         attr(out, "iid") <- cbind(sweep(M.iid, FUN = "*", MARGIN = 2, STATS = n.obs/n.obsfold),rowSums(M.iid))
         colnames(attr(out, "iid")) <- c(name.fold,"global")
@@ -249,16 +256,16 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
 ## ** print.auc
 #' @export
 print.BuyseTestAuc <- function(x, ...){
-    if(NROW(x) < attr(x,"n.fold")){
-        print.data.frame(x)
-    }else{
-        label.upper <- paste0(attr(x,"contrast")[2],">",attr(x,"contrast")[1])
-        label.lower <- paste0(attr(x,"contrast")[1],">",attr(x,"contrast")[2])
-        x$direction <- sapply(x$direction, function(iD){
-            if(iD==">"){return(label.upper)}else if(iD=="<"){return(label.lower)}else{return(iD)}
-        })
-        print.data.frame(x[x$fold == "global",c("direction","estimate","se","lower","upper","p.value")], row.names = FALSE)
-    }
+    ##    if(attr(x,"n.fold")==0){
+        print.data.frame(x, ...)
+    ## }else{
+    ##     label.upper <- paste0(attr(x,"contrast")[2],">",attr(x,"contrast")[1])
+    ##     label.lower <- paste0(attr(x,"contrast")[1],">",attr(x,"contrast")[2])
+    ##     x$direction <- sapply(x$direction, function(iD){
+    ##         if(iD==">"){return(label.upper)}else if(iD=="<"){return(label.lower)}else{return(iD)}
+    ##     })
+    ##     print.data.frame(x[x$fold == "global",c("direction","estimate","se","lower","upper","p.value")], row.names = FALSE)
+    ## }
 }
 
 ## ** coef.auc
@@ -292,7 +299,7 @@ coef.BuyseTestAuc <- function(object,...){
 confint.BuyseTestAuc <- function(object,...){
     out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
     rownames(out) <- NULL
-    return(as.data.frame(out, stringsAsFactors = FALSE))
+    return(out)
 }
 ## ** iid.auc
 #' @title Extract the idd Decomposition for the AUC

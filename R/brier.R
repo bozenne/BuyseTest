@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: aug 10 2021 (11:10) 
+## Last-Updated: aug 20 2021 (16:01) 
 ##           By: Brice Ozenne
-##     Update #: 102
+##     Update #: 124
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,6 +47,9 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
         if(!is.null(observation) && any(observation %in% 1:n.obs == FALSE)){
             stop("When not NULL, argument \'observation\' must take integer values between 1 and ",n.obs,"\n", sep = "")
         }
+        if(any(sapply(tapply(observation,fold,duplicated),any))==TRUE){
+            stop("Cannot quantify uncertainty when the same observation appear several times in the same fold. \n")
+        }
         if(!is.null(iid)){
             if(n.fold!=dim(iid)[3]){
                 stop("The third dimension of argument \'iid\' should equal the number of folds. \n")
@@ -77,11 +80,23 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
     }
 
     ## ** prepare export
-    out <- data.frame(estimate = as.numeric(NA),
-                      se = as.numeric(NA),
-                      lower = as.numeric(NA),
-                      upper = as.numeric(NA),
-                      p.value = as.numeric(NA))
+    if(!is.null(fold)){
+        name.fold <- as.character(sort(unique(fold)))
+        n.fold <- length(name.fold)
+        out <- data.frame(fold = c(name.fold,"global"),
+                          estimate = as.numeric(NA),
+                          se = as.numeric(NA),
+                          lower = as.numeric(NA),
+                          upper = as.numeric(NA),
+                          p.value = as.numeric(NA))
+    }else{
+        out <- data.frame(fold = "global",
+                          estimate = as.numeric(NA),
+                          se = as.numeric(NA),
+                          lower = as.numeric(NA),
+                          upper = as.numeric(NA),
+                          p.value = as.numeric(NA))
+    }
 
     ## ** compute brier score
     if(is.null(fold)){
@@ -117,24 +132,32 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
                 iBrier[iObs] <- sum((predictions[observation==iObs] - labels[iObs])^2*iFactor[[iObs]])
             }
         }
-        out$estimate <- mean(iBrier[Uobservation])
-        ## out$estimate - mean(tapply((predictions-labels[observation])^2,fold,mean)) ## should be equal
+
+        out$estimate[match(name.fold,out$fold)] <- tapply((predictions-labels[observation])^2, fold, mean)[name.fold]
+        out$estimate[out$fold=="global"] <- mean(iBrier[Uobservation])
+        ## mean(iBrier[Uobservation]) - mean(out$estimate[1:10])
         if(is.null(iid)){
+            out$se[match(name.fold,out$fold)] <- tapply((predictions-labels[observation])^2, fold, function(iDiff){sqrt(var(iDiff)/length(iDiff))})[name.fold]
             out$se <- stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation)
             ## out$se - mean(tapply((predictions-labels[observation])^2,fold,sd)) ## no need to be equal
         }else{
             iidAverage <- rep(0, length = n.obs)
             iidNuisance <- rep(0, length = n.obs)
             
-            iidAverage[Uobservation] <- (iBrier[Uobservation]-out$estimate)/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
+            iidAverage[Uobservation] <- (iBrier[Uobservation]-out$estimate[out$fold=="global"])/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
             ## stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation) - sqrt(crossprod(iidAverage)) ## should be equal
             for(iFold in 1:n.fold){ ## iFold <- 1
                 iiFactor <- sapply(iFactor[observation[fold==iFold]],function(iVec){iVec[as.character(iFold)]})
-                iStat <- (2*predictions[fold==iFold] - labels[observation[fold==iFold]])*iiFactor
-                iidNuisance  <- iidNuisance + rowMeans(sweep(iid[,,iFold], FUN = "*", MARGIN = 2, STATS = iStat))
+                iStat <- 2*(predictions[fold==iFold] - labels[observation[fold==iFold]])
+                iidNuisance  <- iidNuisance + rowMeans(sweep(iid[,,iFold], FUN = "*", MARGIN = 2, STATS = iStat*iiFactor))
+
+                ## in each fold because of CV the training and test set are separate so the uncertainties are independent
+                term1 <- sd((predictions[fold==iFold] - labels[observation[fold==iFold]])^2)
+                term2 <- sqrt(crossprod(rowMeans(sweep(iid[,,iFold], FUN = "*", MARGIN = 2, STATS = iStat)))/sum(fold==iFold))
+                out[out$fold==name.fold[iFold],"se"] <- term1 + term2
             }
             attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
-            out$se <- sqrt(crossprod(attr(out,"iid")))
+            out$se[out$fold=="global"] <- sqrt(crossprod(attr(out,"iid")))
         }
     }   
 
@@ -205,10 +228,9 @@ coef.BuyseTestBrier <- function(object,...){
 ##' @method confint BuyseTestBrier
 ##' @export
 confint.BuyseTestBrier <- function(object,...){
-    attr(object, "iid") <- NULL
-    attr(object, "constrast") <- NULL
-    ## attr(object, "n.fold") <- NULL
-    return(object)
+    out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
+    rownames(out) <- NULL
+    return(out)
 }
 ## ** iid.BuyseTestBrier
 ##' @title Extract the idd Decomposition for the Brier Score
