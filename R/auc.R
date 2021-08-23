@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug 20 2021 (17:46) 
+## Last-Updated: aug 23 2021 (18:57) 
 ##           By: Brice Ozenne
-##     Update #: 269
+##     Update #: 276
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -85,6 +85,10 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         if(!is.null(observation) && any(observation %in% 1:n.obs == FALSE)){
             stop("When not NULL, argument \'observation\' must take integer values between 1 and ",n.obs,"\n", sep = "")
         }
+
+        if(any(tapply(observation,fold, function(iObs){any(duplicated(iObs))}))){
+            stop("The same observation cannot appear twice in the same fold. \n")
+        }
     }else{
         if(n.obs!=length(predictions)){
             stop("Argument \'labels\' and \'predictions\' must have the same length \n")
@@ -134,7 +138,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
 
     name.fold <- e.BT@level.strata
     n.fold <- length(name.fold)
-browser()
+
     if(direction==">"){
         out <- data.frame(fold = c(name.fold,"global"),
                           direction = ">",
@@ -143,11 +147,12 @@ browser()
                           stringsAsFactors = FALSE)
         if(!is.null(observation)){
             eIID.BT <- getIid(e.BT, normalize = FALSE, statistic = "favorable", add.halfNeutral = add.halfNeutral)
-            M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){ ## iVec <- observation[df$fold==df$fold[1]]
+            M.iid <- do.call(cbind,tapply(1:NROW(df), df$fold, function(iVec){ ## iVec <- observation[df$fold==df$fold[1]]
+                iVec2 <- observation[iVec]
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- scale(eIID.BT[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
-                iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
-                iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
+                iIID[iVec2] <- scale(eIID.BT[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
+                iIID[intersect(iVec2,indexC)] <- iIID[intersect(iVec2,indexC)]/n.C
+                iIID[intersect(iVec2,indexT)] <- iIID[intersect(iVec2,indexT)]/n.T
                 return(iIID)
             }))
         }
@@ -159,11 +164,13 @@ browser()
                           se = NA,
                           stringsAsFactors = FALSE)
         if(!is.null(observation)){
-            M.iid <- do.call(cbind,tapply(observation, df$fold, function(iVec){
+            eIID.BT <- getIid(e.BT, normalize = FALSE, statistic = "unfavorable", add.halfNeutral = add.halfNeutral)
+            M.iid <- do.call(cbind,tapply(1:NROW(df), df$fold, function(iVec){
+                iVec2 <- observation[iVec]
                 iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec] <- scale(getIid(e.BT, normalize = FALSE, statistic = "unfavorable", add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
-                iIID[intersect(iVec,indexC)] <- iIID[intersect(iVec,indexC)]/n.C
-                iIID[intersect(iVec,indexT)] <- iIID[intersect(iVec,indexT)]/n.T
+                iIID[iVec2] <- tapply(scale(eIID.BT[iVec,,drop=FALSE], center = TRUE, scale = FALSE),iVec2,sum)
+                iIID[intersect(iVec2,indexC)] <- iIID[intersect(iVec2,indexC)]/n.C
+                iIID[intersect(iVec2,indexT)] <- iIID[intersect(iVec2,indexT)]/n.T
                 return(iIID)
             }))
         }
@@ -179,15 +186,16 @@ browser()
         for(iFold in 1:n.fold){ ## iFold <- 1
             iDirection <- c("favorable", "unfavorable")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
             iCount <- c(coef(e.BT, statistic = iDirection, add.halfNeutral = add.halfNeutral),NA)
-            iVec <- observation[fold == name.fold[iFold]]
+            iVec <- (1:NROW(df))[fold == name.fold[iFold]]
+            iVec2 <- observation[iVec]
             
             out$direction[iFold] <- if(iDirection=="favorable"){">"}else{"<"}
             out$estimate[iFold] <- iCount/e.BT@n.pairs[iFold]
 
             if(!is.null(observation)){
-                M.iid[iVec,iFold] <- scale(getIid(e.BT, normalize = FALSE, statistic = iDirection, add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
-                M.iid[intersect(iVec,indexC),iFold] <- M.iid[intersect(iVec,indexC),iFold]/n.C
-                M.iid[intersect(iVec,indexT),iFold] <- M.iid[intersect(iVec,indexT),iFold]/n.T
+                M.iid[iVec2,iFold] <- scale(getIid(e.BT, normalize = FALSE, statistic = iDirection, add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
+                M.iid[intersect(iVec2,indexC),iFold] <- M.iid[intersect(iVec2,indexC),iFold]/n.C
+                M.iid[intersect(iVec2,indexT),iFold] <- M.iid[intersect(iVec2,indexT),iFold]/n.T
             }
         }
     }
