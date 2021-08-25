@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug 23 2021 (18:57) 
+## Last-Updated: aug 24 2021 (12:22) 
 ##           By: Brice Ozenne
-##     Update #: 276
+##     Update #: 285
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -105,6 +105,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     
     df <- data.frame(Y = labels[observation],
                      X = predictions,
+                     observation = observation,
                      stringsAsFactors = FALSE)
     formula <- Y ~ cont(X)
 
@@ -126,7 +127,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     indexT <- attr(e.BT@level.treatment,"indexT")
     n.T <- length(indexT)
     
-    ## ** Extra AUC
+    ## ** Extract AUC in each fold with its iid
     direction.save <- direction
     if(direction == "auto"){
         if(sum(e.BT@count.favorable)>=sum(e.BT@count.unfavorable)){
@@ -135,9 +136,80 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
             direction <- "<"
         }
     }
-
     name.fold <- e.BT@level.strata
     n.fold <- length(name.fold)
+    
+    out <- data.frame(fold = c(name.fold,"global"),
+                      direction = as.numeric(NA),
+                      estimate = 0,
+                      se = 0,
+                      stringsAsFactors = FALSE)
+
+    eIID.BT <- getIid(e.BT, normalize = FALSE, statistic = c("favorable","unfavorable"), add.halfNeutral = add.halfNeutral)
+    ePOINT.BT <- cbind(favorable = coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1],
+                       unfavorable = coef(e.BT, statistic = "unfavorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1])
+     
+    if(!is.null(observation)){
+        M.iid <- matrix(0, nrow = n.obs, ncol = n.fold)
+    }
+             
+    ## *** loop over folds
+    for(iFold in 1:n.fold){ ## iFold <- 2
+
+        iIndex <- (1:NROW(df))[fold == name.fold[iFold]]
+        iIndexC <- intersect(iIndex,indexC)
+        iIndexT <- intersect(iIndex,indexT)
+        iObs <- observation[iVec]
+
+        if(direction == "best"){
+            iDirection <- c(">", "<")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
+        }else{
+            iDirection <- direction
+        }
+
+        ## TO FIX INDEX CONFUSION!!!!
+        if(iDirection == ">"){
+            iPOINT.BT <- iPOINT.BT[iFold,"favorable"]
+
+            iIID.BT <- eIID.BT[iIndex,"favorable"]
+            iIID.fold <- vector(mode = "numeric", length = n.obs)
+            iIID.fold[] <- 
+                iIID.fold[iIndexC] <- (iIID[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
+            iIID.fold[iIndexT] <- (iIID[iIndexT] - ePOINT.BT[iFold,1])/length(iIndexT)
+        }else if(iDirection == "<"){
+            iIID.BT <- eIID.BT[iIndex,"unfavorable"]
+            iPOINT.BT <- iPOINT.BT[iFold,"unfavorable"]
+        }
+
+        out$direction[iFold] <- iDirection
+        out$estimate[iFold] <- iPOINT.BT
+        out$se[iFold] <- iPOINT.BT
+
+        if(!is.null(observation)){
+            
+            iIndex <- which(df$fold==iFold)
+            iVec <- observation[iIndex]
+
+                iIID[iVec] <- eIID.BT[iIndex,,drop=FALSE] - ePOINT.BT[iFold,1]
+                iIID[iIndexC] <- iIID[iIndexC]/length(iIndexC)
+                iIID[iIndexT] <- iIID[iIndexT]/length(iIndexT)
+                ## sqrt(crossprod(iIID))
+                ## confint(BuyseTest(formula, method.inference = "u-statistic", data = df[fold==1,], trace = 0), statistic = "favorable", transformation = FALSE)
+                ## eee <- BuyseTest(formula, method.inference = "u-statistic", data = df[fold==1,], trace = 0)
+                ## getIid(eee, statistic = "favorable")
+                return(iIID)
+            }))
+        }
+
+
+
+        if(!is.null(observation)){
+            M.iid[iVec2,iFold] <- scale(getIid(e.BT, normalize = FALSE, statistic = iDirection, add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
+            M.iid[intersect(iVec2,indexC),iFold] <- M.iid[intersect(iVec2,indexC),iFold]/n.C
+            M.iid[intersect(iVec2,indexT),iFold] <- M.iid[intersect(iVec2,indexT),iFold]/n.T
+        }
+
+    }
 
     if(direction==">"){
         out <- data.frame(fold = c(name.fold,"global"),
@@ -145,17 +217,11 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
                           estimate = c(coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral),NA),
                           se = NA,
                           stringsAsFactors = FALSE)
-        if(!is.null(observation)){
-            eIID.BT <- getIid(e.BT, normalize = FALSE, statistic = "favorable", add.halfNeutral = add.halfNeutral)
-            M.iid <- do.call(cbind,tapply(1:NROW(df), df$fold, function(iVec){ ## iVec <- observation[df$fold==df$fold[1]]
-                iVec2 <- observation[iVec]
-                iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec2] <- scale(eIID.BT[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
-                iIID[intersect(iVec2,indexC)] <- iIID[intersect(iVec2,indexC)]/n.C
-                iIID[intersect(iVec2,indexT)] <- iIID[intersect(iVec2,indexT)]/n.T
-                return(iIID)
-            }))
-        }
+
+        
+
+        
+
         ## colSums(M.iid^2)
     }else if(direction == "<"){
         out <- data.frame(fold = c(name.fold,"global"),
@@ -173,30 +239,6 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
                 iIID[intersect(iVec2,indexT)] <- iIID[intersect(iVec2,indexT)]/n.T
                 return(iIID)
             }))
-        }
-    }else if(direction == "best"){
-        out <- data.frame(fold = c(name.fold,"global"),
-                          direction = "best",
-                          estimate = 0,
-                          se = 0,
-                          stringsAsFactors = FALSE)
-        if(!is.null(observation)){
-            M.iid <- matrix(0, nrow = n.obs, ncol = n.fold)
-        }
-        for(iFold in 1:n.fold){ ## iFold <- 1
-            iDirection <- c("favorable", "unfavorable")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
-            iCount <- c(coef(e.BT, statistic = iDirection, add.halfNeutral = add.halfNeutral),NA)
-            iVec <- (1:NROW(df))[fold == name.fold[iFold]]
-            iVec2 <- observation[iVec]
-            
-            out$direction[iFold] <- if(iDirection=="favorable"){">"}else{"<"}
-            out$estimate[iFold] <- iCount/e.BT@n.pairs[iFold]
-
-            if(!is.null(observation)){
-                M.iid[iVec2,iFold] <- scale(getIid(e.BT, normalize = FALSE, statistic = iDirection, add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
-                M.iid[intersect(iVec2,indexC),iFold] <- M.iid[intersect(iVec2,indexC),iFold]/n.C
-                M.iid[intersect(iVec2,indexT),iFold] <- M.iid[intersect(iVec2,indexT),iFold]/n.T
-            }
         }
     }
     out$estimate[n.fold+1] <- mean(out$estimate[1:n.fold])

@@ -14,6 +14,8 @@ performance(
   null = c(brier = NA, AUC = 0.5),
   conf.level = 0.95,
   transformation = TRUE,
+  auc.type = "classical",
+  simplify = TRUE,
   trace = TRUE
 )
 }
@@ -37,6 +39,8 @@ performance(
 \item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.}
 
+\item{simplify}{[logical] Should the number of fold and the size of the fold used for the cross validation be removed from the output?}
+
 \item{trace}{[logical] Should the execution of the function be traced.}
 }
 \description{
@@ -51,17 +55,20 @@ df.train <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = 
 df.test <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = rnorm(n))
 
 ## fit logistic model
+e.null <- glm(Y~1, data = df.train, family = binomial(link="logit"))
 e.logit <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
 
 ## assess performance on the training set (biased)
 ## and external dataset
 performance(e.logit, newdata = df.test)
+performance(list(null = e.null, prop = e.logit), newdata = df.test)
 
 ## assess performance using cross validation
 set.seed(10)
 performance(e.logit, fold.number = 10)
 set.seed(10)
 \dontrun{
-performance(e.logit, fold.number = c(10,20,50))
+performance(list(null = e.null, prop = e.logit), fold.number = 10)
+performance(e.logit, fold.number = c(50,20,10))
 }
 }

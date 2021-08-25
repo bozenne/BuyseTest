@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: aug 20 2021 (17:35) 
+## Last-Updated: aug 24 2021 (11:33) 
 ##           By: Brice Ozenne
-##     Update #: 282
+##     Update #: 283
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,6 +27,8 @@
 ##' @param name.response [character] The name of the response variable (i.e. the one containing the categories).
 ##' @param null [numeric vector of length 2] the right-hand side of the null hypothesis relative to each metric.
 ##' @param conf.level [numeric] confidence level for the confidence intervals.
+##' @param auc.type [character] should the auc be computed approximating the predicted probability by a dirac (\code{"classical"}, usual AUC formula)
+##' or approximating the predicted probability by a normal distribution.
 ##' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 ##' Otherwise they are computed without any transformation.
 ##' @param trace [logical] Should the execution of the function be traced.

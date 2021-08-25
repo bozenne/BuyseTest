@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: aug 20 2021 (16:01) 
+## Last-Updated: aug 24 2021 (11:30) 
 ##           By: Brice Ozenne
-##     Update #: 124
+##     Update #: 125
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -137,7 +137,7 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
         out$estimate[out$fold=="global"] <- mean(iBrier[Uobservation])
         ## mean(iBrier[Uobservation]) - mean(out$estimate[1:10])
         if(is.null(iid)){
-            out$se[match(name.fold,out$fold)] <- tapply((predictions-labels[observation])^2, fold, function(iDiff){sqrt(var(iDiff)/length(iDiff))})[name.fold]
+            out$se[match(name.fold,out$fold)] <- tapply((predictions-labels[observation])^2, fold, function(iDiff){sqrt(stats::var(iDiff)/length(iDiff))})[name.fold]
             out$se <- stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation)
             ## out$se - mean(tapply((predictions-labels[observation])^2,fold,sd)) ## no need to be equal
         }else{
@@ -152,7 +152,7 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
                 iidNuisance  <- iidNuisance + rowMeans(sweep(iid[,,iFold], FUN = "*", MARGIN = 2, STATS = iStat*iiFactor))
 
                 ## in each fold because of CV the training and test set are separate so the uncertainties are independent
-                term1 <- sd((predictions[fold==iFold] - labels[observation[fold==iFold]])^2)
+                term1 <- stats::sd((predictions[fold==iFold] - labels[observation[fold==iFold]])^2)
                 term2 <- sqrt(crossprod(rowMeans(sweep(iid[,,iFold], FUN = "*", MARGIN = 2, STATS = iStat)))/sum(fold==iFold))
                 out[out$fold==name.fold[iFold],"se"] <- term1 + term2
             }

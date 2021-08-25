@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: aug 20 2021 (17:59) 
+## Last-Updated: aug 24 2021 (15:04) 
 ##           By: Brice Ozenne
-##     Update #: 38
+##     Update #: 40
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -55,8 +55,8 @@ test_that("AUC - BuyseTest vs pROC",{
     expect_equal(GS$ci[3], as.double(test3$ci[2]), tol = 1e-2)
 
     ## butils::object2script(test, digit = 6)
-    expect_equal(test$estimate, c(0.705443, 0.705443), tol = 1e-6)
-    expect_equal(test$se, c(0.036287, 0.036287), tol = 1e-6)
+    expect_equal(test$estimate, c(0.705443), tol = 1e-6)
+    expect_equal(test$se, c(0.036287), tol = 1e-6)
 
     ## example from pROC
     data(aSAH, package = "pROC")
@@ -89,6 +89,13 @@ test_that("AUC after CV - BuyseTest vs cvAUC",{
     ##              fold = dt$fold0, observation = 1:NROW(dt))
     
 })
+
+
+test.auc <- auc(label = c(0,0,0,0,1,1,1,1),
+                prediction = c(0.3,0.4,0.5,0.6,0.55,0.5,0.6,0.4,0.7,0.8),
+                observation = c(1,2,3,4,7,1,2,6,7,8),
+                fold = c(1,1,1,1,1,2,2,2,2,2),
+                direction = ">")
 
 ## * example
 y  <- c(1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1)
