@@ -77,13 +77,21 @@ setMethod(f = "getIid",
                                 normalize = TRUE, type = "all", cluster = NULL){
 
               option <- BuyseTest.options()
-              n.obs <- NROW(object@iidAverage$favorable)
+              if(is.null(cluster)){
+                  n.obs <- NROW(object@iidAverage$favorable)
+              }else{
+                  if(length(cluster) != NROW(object@iidAverage$favorable)){
+                      stop("Incorrect length for argument \'cluster\'. Should be of length ",NROW(object@iidAverage$favorable),".\n")
+                  }
+                  Ucluster <- sort(unique(cluster))
+                  n.obs <- length(Ucluster)
+              }
               valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
               n.endpoint <- length(valid.endpoint)
               if(!is.null(cluster) && !is.numeric(cluster)){
                   cluster <- as.numeric(as.factor(cluster))
               }
-              
+
               ## ** check arguments              
               if(is.numeric(endpoint)){
                   validInteger(endpoint,
@@ -105,7 +113,6 @@ setMethod(f = "getIid",
                   stop("No H-decomposition in the object \n",
                        "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
               }
-              validInteger(cluster, valid.length = n.obs, min = 1, max = n.obs, refuse.NA = TRUE, refuse.NULL = FALSE, refuse.duplicates = FALSE)
 
               if(is.null(statistic)){
                   statistic <- option$statistic

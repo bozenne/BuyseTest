@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug 24 2021 (12:22) 
+## Last-Updated: aug 27 2021 (17:45) 
 ##           By: Brice Ozenne
-##     Update #: 285
+##     Update #: 332
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,7 +68,7 @@
 #' @export
 auc <- function(labels, predictions, fold = NULL, observation = NULL,
                 direction = ">", add.halfNeutral = TRUE,
-                null = 0.5, conf.level = 0.95, transformation = TRUE){
+                null = 0.5, conf.level = 0.95, transformation = TRUE, order.Hprojection = 2){
 
     ## ** Normalize user imput
     if(length(unique(labels))!=2){
@@ -98,7 +98,8 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         }
         observation <- 1:n.obs
     }
-    direction <- match.arg(direction, c(">","<","auto","best"))
+    direction <- match.arg(direction, c(">","<","auto"), several.ok = TRUE)
+    
     if(!is.logical(transformation)){
         stop("Argument \'transformation\' must be TRUE or FALSE \n")
     }
@@ -107,150 +108,160 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
                      X = predictions,
                      observation = observation,
                      stringsAsFactors = FALSE)
-    formula <- Y ~ cont(X)
+    formula0 <- Y ~ cont(X)
 
     if(!is.null(fold)){
         df$fold <- fold
-        formula <- stats::update(formula,.~.+fold)
+        formula <- stats::update(formula0,.~.+fold)
+        name.fold <- sort(unique(df$fold))
+        n.fold <- length(name.fold)
     }else{
         df$fold <- 1
+        formula <- formula0
+        name.fold <- NULL
+        n.fold <- 0
     }
 
-    ## ** Perform GPC
-    order.save <- BuyseTest.options()$order.Hprojection
-
-    BuyseTest.options(order.Hprojection = 2)
-    e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0)
-    BuyseTest.options(order.Hprojection = order.save)
-    indexC <- attr(e.BT@level.treatment,"indexC")
-    n.C <- length(indexC)
-    indexT <- attr(e.BT@level.treatment,"indexT")
-    n.T <- length(indexT)
+    if(!identical(direction,"auto") && (length(direction) %in% c(1,max(n.fold,1)) == FALSE)){
+        stop("Argument \'direction\' must have length 1 or the number of folds (here ",n.fold,"). \n")
+    }
     
-    ## ** Extract AUC in each fold with its iid
+    ## ** Prepare 
+    ## *** Make sure that all prediction are in the increasing means outcome direction
     direction.save <- direction
     if(direction == "auto"){
         if(sum(e.BT@count.favorable)>=sum(e.BT@count.unfavorable)){
-            direction <- ">"
+            direction <- rep(">",max(n.fold,1))
         }else{
-            direction <- "<"
+            direction <- rep("<",max(n.fold,1))
+            df$X <- -df$X
         }
+        Udirection <- as.character(NA)
+    }else if(length(direction)==1){
+        if(direction=="<"){
+            df$X <- -df$X
+        }
+        direction <- rep(direction, max(n.fold,1))
+        Udirection <- direction.save
+    }else{
+        for(iFold in 1:n.fold){
+            if(direction[iFold]=="<"){
+                df[df$fold==name.fold[iFold],"X"] <- -df[df$fold==name.fold[iFold],"X"]
+            }
+        }
+        Udirection <- as.character(NA)
     }
-    name.fold <- e.BT@level.strata
-    n.fold <- length(name.fold)
-    
-    out <- data.frame(fold = c(name.fold,"global"),
-                      direction = as.numeric(NA),
-                      estimate = 0,
-                      se = 0,
-                      stringsAsFactors = FALSE)
 
-    eIID.BT <- getIid(e.BT, normalize = FALSE, statistic = c("favorable","unfavorable"), add.halfNeutral = add.halfNeutral)
-    ePOINT.BT <- cbind(favorable = coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1],
-                       unfavorable = coef(e.BT, statistic = "unfavorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1])
-     
-    if(!is.null(observation)){
-        M.iid <- matrix(0, nrow = n.obs, ncol = n.fold)
+    if(is.null(fold)){
+        out <- data.frame(fold = "global",
+                          direction = direction,
+                          estimate = 0,
+                          se = 0,
+                          stringsAsFactors = FALSE)
+    }else{
+        out <- data.frame(fold = c(name.fold,"global"),
+                          direction = c(direction,Udirection),
+                          estimate = 0,
+                          se = 0,
+                          stringsAsFactors = FALSE)
     }
+    attr(out,"iid") <- matrix(0, nrow = n.obs, ncol = n.fold+1)
+
+    ## ** Global AUC
+    order.save <- BuyseTest.options()$order.Hprojection
+    BuyseTest.options(order.Hprojection = order.Hprojection)
+
+    ## run BT
+    e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0)
+
+    ## store
+    out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
+    attr(out,"iid")[sort(unique(observation)),n.fold+1] <- getIid(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral, cluster = observation)
+    if(add.halfNeutral && any(abs(e.BT@iidAverage$neutral[,1])>1e-10) || any(duplicated(observation))){
+        out[out$fold=="global","se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,n.fold+1]))) ## no second order term
+    }else{
+        out[out$fold=="global","se"] <- as.double(confint(e.BT, statistic = "favorable")[,"se"]) ## no contribution of the neutral pairs
+    }
+    
+    ## ** Fold-specific AUC
+    if(is.null(fold)){
+        BuyseTest.options(order.Hprojection = order.save)
+    }else{
              
     ## *** loop over folds
-    for(iFold in 1:n.fold){ ## iFold <- 2
+    for(iFold in 1:n.fold){ ## iFold <- 1
 
-        iIndex <- (1:NROW(df))[fold == name.fold[iFold]]
-        iIndexC <- intersect(iIndex,indexC)
-        iIndexT <- intersect(iIndex,indexT)
-        iObs <- observation[iVec]
-
-        if(direction == "best"){
-            iDirection <- c(">", "<")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
-        }else{
-            iDirection <- direction
-        }
-
-        ## TO FIX INDEX CONFUSION!!!!
-        if(iDirection == ">"){
-            iPOINT.BT <- iPOINT.BT[iFold,"favorable"]
-
-            iIID.BT <- eIID.BT[iIndex,"favorable"]
-            iIID.fold <- vector(mode = "numeric", length = n.obs)
-            iIID.fold[] <- 
-                iIID.fold[iIndexC] <- (iIID[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
-            iIID.fold[iIndexT] <- (iIID[iIndexT] - ePOINT.BT[iFold,1])/length(iIndexT)
-        }else if(iDirection == "<"){
-            iIID.BT <- eIID.BT[iIndex,"unfavorable"]
-            iPOINT.BT <- iPOINT.BT[iFold,"unfavorable"]
-        }
-
-        out$direction[iFold] <- iDirection
-        out$estimate[iFold] <- iPOINT.BT
-        out$se[iFold] <- iPOINT.BT
-
-        if(!is.null(observation)){
+        if(order.Hprojection==2){
+            ## subset
+            iData <- df[df$fold==name.fold[iFold],,drop=FALSE]
             
-            iIndex <- which(df$fold==iFold)
-            iVec <- observation[iIndex]
+            ## run BT
+            iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = iData, trace = 0)
+            
+            ## store
+            out[out$fold==name.fold[iFold],"estimate"] <- as.double(coef(iE.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
+            attr(out,"iid")[iData$observation,iFold] <- getIid(iE.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral)
+                    
+            if(add.halfNeutral && any(abs(iE.BT@iidAverage$neutral[,1])>1e-10)){
+                out[out$fold==name.fold[iFold],"se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,iFold]))) ## no second order term
+            }else{
+                out[out$fold==name.fold[iFold],"se"] <- as.double(confint(iE.BT, statistic = "favorable")[,"se"]) ## no contribution of the neutral pairs
+            }
 
-                iIID[iVec] <- eIID.BT[iIndex,,drop=FALSE] - ePOINT.BT[iFold,1]
-                iIID[iIndexC] <- iIID[iIndexC]/length(iIndexC)
-                iIID[iIndexT] <- iIID[iIndexT]/length(iIndexT)
-                ## sqrt(crossprod(iIID))
-                ## confint(BuyseTest(formula, method.inference = "u-statistic", data = df[fold==1,], trace = 0), statistic = "favorable", transformation = FALSE)
-                ## eee <- BuyseTest(formula, method.inference = "u-statistic", data = df[fold==1,], trace = 0)
-                ## getIid(eee, statistic = "favorable")
-                return(iIID)
-            }))
-        }
-
-
-
-        if(!is.null(observation)){
-            M.iid[iVec2,iFold] <- scale(getIid(e.BT, normalize = FALSE, statistic = iDirection, add.halfNeutral = add.halfNeutral)[iVec,,drop=FALSE], center = TRUE, scale = FALSE)
-            M.iid[intersect(iVec2,indexC),iFold] <- M.iid[intersect(iVec2,indexC),iFold]/n.C
-            M.iid[intersect(iVec2,indexT),iFold] <- M.iid[intersect(iVec2,indexT),iFold]/n.T
-        }
-
-    }
-
-    if(direction==">"){
-        out <- data.frame(fold = c(name.fold,"global"),
-                          direction = ">",
-                          estimate = c(coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral),NA),
-                          se = NA,
-                          stringsAsFactors = FALSE)
-
-        
-
-        
-
-        ## colSums(M.iid^2)
-    }else if(direction == "<"){
-        out <- data.frame(fold = c(name.fold,"global"),
-                          direction = "<",
-                          estimate = c(coef(e.BT, statistic = "unfavorable", add.halfNeutral = add.halfNeutral),NA),
-                          se = NA,
-                          stringsAsFactors = FALSE)
-        if(!is.null(observation)){
-            eIID.BT <- getIid(e.BT, normalize = FALSE, statistic = "unfavorable", add.halfNeutral = add.halfNeutral)
-            M.iid <- do.call(cbind,tapply(1:NROW(df), df$fold, function(iVec){
-                iVec2 <- observation[iVec]
-                iIID <- vector(mode = "numeric", length = n.obs)
-                iIID[iVec2] <- tapply(scale(eIID.BT[iVec,,drop=FALSE], center = TRUE, scale = FALSE),iVec2,sum)
-                iIID[intersect(iVec2,indexC)] <- iIID[intersect(iVec2,indexC)]/n.C
-                iIID[intersect(iVec2,indexT)] <- iIID[intersect(iVec2,indexT)]/n.T
-                return(iIID)
-            }))
-        }
-    }
-    out$estimate[n.fold+1] <- mean(out$estimate[1:n.fold])
-    
-    if(!is.null(observation)){
-        if(!is.null(fold)){
-            n.obsfold <- tapply(observation,fold,function(vecObs){length(unique(vecObs))})
         }else{
-            n.obsfold <- n.obs
+            browser()
+            indexC <- attr(e.BT@level.treatment,"indexC")
+            n.C <- length(indexC)
+            indexT <- attr(e.BT@level.treatment,"indexT")
+            n.T <- length(indexT)
+    
+            ePOINT.BT <- cbind(favorable = coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1],
+                               unfavorable = coef(e.BT, statistic = "unfavorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1])
+     
+        
+            iIndex <- (1:NROW(df))[df$fold == name.fold[iFold]]
+            iIndexC <- intersect(iIndex,indexC)
+            iIndexT <- intersect(iIndex,indexT)
+            iObs <- observation[iIndex]
+            iObsC <- observation[iIndexC]
+            iObsT <- observation[iIndexT]
+
+            if(direction == "best"){
+                iDirection <- c(">", "<")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
+            }else{
+                iDirection <- direction
+            }
+            if(iDirection == ">"){
+                iPOINT.BT <- ePOINT.BT[iFold,"favorable"]
+                iIID.BT <- getIid(e.BT, normalize = FALSE, statistic = c("favorable"), add.halfNeutral = add.halfNeutral)
+            }else if(iDirection == "<"){
+                iIID.BT <- eIID.BT[iIndex,"unfavorable"]
+                iPOINT.BT <- getIid(e.BT, normalize = FALSE, statistic = c("unfavorable"), add.halfNeutral = add.halfNeutral)
+            }
+
+            M.iid[iObsC,iFold] <- (iIID.BT[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
+            M.iid[iObsC,iFold+1] <- M.iid[iObsC,iFold+1] + (iIID.BT[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
+            M.iid[iObsT,iFold] <- (iIID.BT[iIndexT] - ePOINT.BT[iFold,1])/length(iIndexT)
+            M.iid[iObsT,iFold+1] <- M.iid[iObsT,iFold+1] + (iIID.BT[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
+            ## should be equal when no cross validation (up to 2nd order term)
+            ## range(M.iid[,iFold] - getIid(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
+            ## confint(e.BT, statistic = "favorable", transformation = FALSE)[,"se"] - sqrt(crossprod(M.iid[,iFold]))
+            ## e.BT@covariance[,"favorable"] - crossprod(M.iid[,iFold])
+
+
+            out$direction[iFold] <- iDirection
+            out$estimate[iFold] <- iPOINT.BT
+            if(!is.null(fold) || (add.halfNeutral && any(abs(e.BT@iidAverage$neutral[iIndex,1])>1e-10)) ){
+                out$se[iFold] <- sqrt(sum(M.iid[,iFold]^2))
+            }else if(direction == ">"){
+                out$se[iFold] <- sqrt(e.BT@covariance[,"favorable"]) ## missing term for neutral pairs
+            }else if(direction == "<"){
+                out$se[iFold] <- sqrt(e.BT@covariance[,"unfavorable"]) ## missing term for neutral pairs
+            }
         }
-        out$se[1:n.fold] <- sqrt(colSums(M.iid^2))*(n.obs/n.obsfold)
-        out$se[n.fold+1] <- sqrt(sum(rowSums(M.iid)^2))
+    }
+
+        BuyseTest.options(order.Hprojection = order.save)
     }
 
     ## ** P-value and confidence interval
@@ -284,20 +295,9 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     }
 
     ## ** Export
-    if(is.null(fold)){
-        out <- out[out$fold=="global",]
-        rownames(out) <- NULL
-        attr(out, "n.fold") <- 0
-    }else{
-        attr(out, "n.fold") <- n.fold
-    }
+    attr(out, "n.fold") <- n.fold
     class(out) <- append("BuyseTestAuc",class(out))
     attr(out, "contrast") <- e.BT@level.treatment
-    if(!is.null(observation)){
-        attr(out, "iid") <- cbind(sweep(M.iid, FUN = "*", MARGIN = 2, STATS = n.obs/n.obsfold),rowSums(M.iid))
-        colnames(attr(out, "iid")) <- c(name.fold,"global")
-        ## range(sqrt(diag(crossprod(attr(out, "iid")))) - out$se)
-    }
     return(out)
  
 }
