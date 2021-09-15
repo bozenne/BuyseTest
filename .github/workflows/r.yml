@@ -17,10 +17,10 @@ jobs:
         run: |
           sudo apt-get install -y pandoc libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
    
-      - uses:  r-lib/actions/setup-r@ffe45a39586f073cc2e9af79c4ba563b657dc6e3
-        with:
-          use-public-rspm: true
-
+        - uses: r-lib/actions/setup-r@v1
+          with:
+            use-public-rspm: true
+ 
       - name: Install R dependencies
         run: |
           install.packages("remotes", repos="https://cloud.r-project.org")
