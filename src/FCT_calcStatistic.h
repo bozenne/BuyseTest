@@ -82,7 +82,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     arma::vec delta_neutral = count_neutral/(double)(ntot_pair);
     arma::vec cumWdelta_favorable = cumWcount_favorable/(double)(ntot_pair);
     arma::vec cumWdelta_unfavorable = cumWcount_unfavorable/(double)(ntot_pair);
-					   
+
     // *** compute expectation from sum
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
       iidAverage_favorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];

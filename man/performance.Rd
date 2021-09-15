@@ -39,6 +39,9 @@ performance(
 \item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.}
 
+\item{auc.type}{[character] should the auc be computed approximating the predicted probability by a dirac (\code{"classical"}, usual AUC formula)
+or approximating the predicted probability by a normal distribution.}
+
 \item{simplify}{[logical] Should the number of fold and the size of the fold used for the cross validation be removed from the output?}
 
 \item{trace}{[logical] Should the execution of the function be traced.}
@@ -60,15 +63,15 @@ e.logit <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
 
 ## assess performance on the training set (biased)
 ## and external dataset
-performance(e.logit, newdata = df.test)
-performance(list(null = e.null, prop = e.logit), newdata = df.test)
+BuyseTest::performance(e.logit, newdata = df.test)
+BuyseTest::performance(list(null = e.null, prop = e.logit), newdata = df.test)
 
 ## assess performance using cross validation
 set.seed(10)
-performance(e.logit, fold.number = 10)
+BuyseTest::performance(e.logit, fold.number = 10)
 set.seed(10)
 \dontrun{
-performance(list(null = e.null, prop = e.logit), fold.number = 10)
-performance(e.logit, fold.number = c(50,20,10))
+BuyseTest::performance(list(null = e.null, prop = e.logit), fold.number = 10)
+BuyseTest::performance(e.logit, fold.number = c(50,20,10))
 }
 }

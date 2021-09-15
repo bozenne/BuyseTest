@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: aug 24 2021 (11:33) 
+## Last-Updated: sep 15 2021 (14:59) 
 ##           By: Brice Ozenne
-##     Update #: 283
+##     Update #: 290
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,16 +47,16 @@
 ##'
 ##' ## assess performance on the training set (biased)
 ##' ## and external dataset
-##' performance(e.logit, newdata = df.test)
-##' performance(list(null = e.null, prop = e.logit), newdata = df.test)
+##' BuyseTest::performance(e.logit, newdata = df.test)
+##' BuyseTest::performance(list(null = e.null, prop = e.logit), newdata = df.test)
 ##' 
 ##' ## assess performance using cross validation
 ##' set.seed(10)
-##' performance(e.logit, fold.number = 10)
+##' BuyseTest::performance(e.logit, fold.number = 10)
 ##' set.seed(10)
 ##' \dontrun{
-##' performance(list(null = e.null, prop = e.logit), fold.number = 10)
-##' performance(e.logit, fold.number = c(50,20,10))
+##' BuyseTest::performance(list(null = e.null, prop = e.logit), fold.number = 10)
+##' BuyseTest::performance(e.logit, fold.number = c(50,20,10))
 ##' }
 
 ## * performance
@@ -273,7 +273,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         if(is.null(attr(out,"iid"))){attr(out,"iid") <- list(auc = NULL, brier = NULL)}
         attr(out,"iid")$auc[["internal"]] <- internal.iid.auc
         attr(out,"iid")$brier[["internal"]] <- internal.iid.brier
-        if(trace){cat("\n  done. \n")}
+        if(trace){cat(" done. \n")}
     }
 
     ## ** external performance
@@ -333,7 +333,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             }
 
             iAUC <- auc(labels = newdata[[name.response]], predictions = external.predictions[,iO],
-                        add.halfNeutral = TRUE, null = null["AUC"], conf.level = conf.level, transformation = transformation)
+                                   add.halfNeutral = TRUE, null = null["AUC"], conf.level = conf.level, transformation = transformation)
             external.auc[iO,c("model","estimate","se","lower","upper","p.value")] <- cbind(model = names.object[iO],confint(iAUC))
             external.iid.auc[,iO] <- iid(iAUC)
             if(iO>1){
@@ -351,7 +351,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         if(is.null(attr(out,"iid"))){attr(out,"iid") <- list(auc = NULL, brier = NULL)}
         attr(out,"iid")$auc[["external"]] <- external.iid.auc
         attr(out,"iid")$brier[["external"]] <- external.iid.brier
-        if(trace){cat("\n  done. \n")}
+        if(trace){cat(" done. \n")}
     }
 
     ## ** CV performance
@@ -477,7 +477,6 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                 }
             }
         }
-        
         ## *** export
         out <- rbind(out,
                      cbind(method = "cv", metric = "auc", cv.auc),
@@ -494,7 +493,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         attr(out,"iid")$brier[["cv"]] <- cv.iid.brier
         attr(out,"auc") <- ls.auc
         attr(out,"brier") <- ls.brier
-        if(trace){cat("\n  done. \n")}
+        if(trace){cat(" done. \n")}
         
     }
 

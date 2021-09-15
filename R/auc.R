@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: aug 27 2021 (17:45) 
+## Last-Updated: sep 15 2021 (14:58) 
 ##           By: Brice Ozenne
-##     Update #: 332
+##     Update #: 380
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,14 +31,16 @@
 #' @param direction [character] \code{">"} lead to estimate P[Y>X],
 #' \code{"<"} to estimate P[Y<X],
 #' and \code{"auto"} to estimate max(P[Y>X],P[Y<X]).
+#' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
+#' Useful to match the usual definition of the AUC in presence of ties.
 #' @param null [numeric, 0-1] the value against which the AUC should be compared when computing the p-value.
 #' @param conf.level [numeric, 0-1] the confidence level of the confidence intervals.
 #' @param transformation [logical] should a log-log transformation be used when computing the confidence intervals and the p-value.
-#' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
-#' Useful to match the usual definition of the AUC in presence of ties.
+#' @param order.Hprojection [1,2] the order of the H-projection used to linear the statistic when computing the standard error.
+#' 2 is involves more calculations but is more accurate in small samples. Only active when the \code{fold} argument is \code{NULL}.
 #' 
-#' @details Compared to other functions computing the AUC (e.g. the auc fonction of the ROCR package),
-#' the AUC is defined here as P[Y>X] with a strict inequality sign (i.e. not P[Y>=X]).
+#' @details The iid decomposition of the AUC is based on a first order decomposition.
+#' So its squared value will not exactly match the square of the standard error estimated with a second order H-projection.
 #'
 #' @return A \emph{data.frame} containing for each fold the AUC value with its standard error (when computed).
 #' The last line of the data.frame contains the global AUC value with its standard error.
@@ -58,10 +60,10 @@
 #'                  fold = unlist(lapply(1:10,function(iL){rep(iL,n/10)})))
 #'
 #' ## compute auc
-#' auc(labels = dt$Y, predictions = dt$X, direction = ">")
+#' BuyseTest::auc(labels = dt$Y, predictions = dt$X, direction = ">")
 #'
 #' ## compute auc after 10-fold cross-validation
-#' auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
+#' BuyseTest::auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
 #'
 
 ## * Code - auc
@@ -165,103 +167,75 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
                           se = 0,
                           stringsAsFactors = FALSE)
     }
-    attr(out,"iid") <- matrix(0, nrow = n.obs, ncol = n.fold+1)
+    attr(out,"iid") <- matrix(NA, nrow = n.obs, ncol = n.fold+1, dimnames = list(NULL,c(name.fold,"global")))
 
     ## ** Global AUC
-    order.save <- BuyseTest.options()$order.Hprojection
-    BuyseTest.options(order.Hprojection = order.Hprojection)
+    ## WARNING: cannot use the "global" results as if there is not the same number of pairs in all strata
+    ##          it will weight differently the strata-specific AUCs
+    if(is.null(fold)){
+        order.save <- BuyseTest.options()$order.Hprojection
+        BuyseTest.options(order.Hprojection = order.Hprojection)
+    }
 
-    ## run BT
     e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0)
 
+    if(is.null(fold)){
+        BuyseTest.options(order.Hprojection = order.save)
+    }
+
     ## store
-    out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
-    attr(out,"iid")[sort(unique(observation)),n.fold+1] <- getIid(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral, cluster = observation)
-    if(add.halfNeutral && any(abs(e.BT@iidAverage$neutral[,1])>1e-10) || any(duplicated(observation))){
-        out[out$fold=="global","se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,n.fold+1]))) ## no second order term
+    if(is.null(fold)){
+        out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
+        attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral) ## no need for cluster argument when fold=NULL
+        if(add.halfNeutral && any(abs(e.BT@iidAverage$neutral[,1])>1e-10) || any(duplicated(observation))){
+            out[out$fold=="global","se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,out$fold=="global"]))) ## no second order term
+        }else{
+            out[out$fold=="global","se"] <- as.double(confint(e.BT, statistic = "favorable")[,"se"]) ## no contribution of the neutral pairs
+        }
     }else{
-        out[out$fold=="global","se"] <- as.double(confint(e.BT, statistic = "favorable")[,"se"]) ## no contribution of the neutral pairs
+        attr(out,"iid")[] <- 0
     }
     
     ## ** Fold-specific AUC
-    if(is.null(fold)){
-        BuyseTest.options(order.Hprojection = order.save)
-    }else{
-             
-    ## *** loop over folds
-    for(iFold in 1:n.fold){ ## iFold <- 1
+    if(!is.null(fold)){
+        ePOINT.BT <- coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1]
+        iIID.BT <- getIid(e.BT, normalize = FALSE, statistic = "favorable", add.halfNeutral = add.halfNeutral)
 
-        if(order.Hprojection==2){
-            ## subset
-            iData <- df[df$fold==name.fold[iFold],,drop=FALSE]
-            
-            ## run BT
-            iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = iData, trace = 0)
-            
-            ## store
-            out[out$fold==name.fold[iFold],"estimate"] <- as.double(coef(iE.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
-            attr(out,"iid")[iData$observation,iFold] <- getIid(iE.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral)
-                    
-            if(add.halfNeutral && any(abs(iE.BT@iidAverage$neutral[,1])>1e-10)){
-                out[out$fold==name.fold[iFold],"se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,iFold]))) ## no second order term
-            }else{
-                out[out$fold==name.fold[iFold],"se"] <- as.double(confint(iE.BT, statistic = "favorable")[,"se"]) ## no contribution of the neutral pairs
-            }
+        indexC <- attr(e.BT@level.treatment,"indexC")
+        n.C <- length(indexC)
+        indexT <- attr(e.BT@level.treatment,"indexT")
+        n.T <- length(indexT)
+        n.obs <- n.C + n.T
 
-        }else{
-            browser()
-            indexC <- attr(e.BT@level.treatment,"indexC")
-            n.C <- length(indexC)
-            indexT <- attr(e.BT@level.treatment,"indexT")
-            n.T <- length(indexT)
-    
-            ePOINT.BT <- cbind(favorable = coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1],
-                               unfavorable = coef(e.BT, statistic = "unfavorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1])
-     
-        
-            iIndex <- (1:NROW(df))[df$fold == name.fold[iFold]]
+        ## *** loop over folds
+        for(iFold in 1:n.fold){ ## iFold <- 1
+
+            iIndex <- (1:n.obs)[df$fold == name.fold[iFold]]
             iIndexC <- intersect(iIndex,indexC)
             iIndexT <- intersect(iIndex,indexT)
             iObs <- observation[iIndex]
             iObsC <- observation[iIndexC]
             iObsT <- observation[iIndexT]
 
-            if(direction == "best"){
-                iDirection <- c(">", "<")[which.max(c(e.BT@count.favorable[iFold],e.BT@count.unfavorable[iFold]))][1]
-            }else{
-                iDirection <- direction
-            }
-            if(iDirection == ">"){
-                iPOINT.BT <- ePOINT.BT[iFold,"favorable"]
-                iIID.BT <- getIid(e.BT, normalize = FALSE, statistic = c("favorable"), add.halfNeutral = add.halfNeutral)
-            }else if(iDirection == "<"){
-                iIID.BT <- eIID.BT[iIndex,"unfavorable"]
-                iPOINT.BT <- getIid(e.BT, normalize = FALSE, statistic = c("unfavorable"), add.halfNeutral = add.halfNeutral)
-            }
+            out[out$fold==name.fold[iFold],"estimate"] <- as.double(ePOINT.BT[iFold])
+                
+            ## fold-specific iid
+            ## center around the expected value and scale by the number of observations in the group of the fold
+            attr(out,"iid")[iObsC,out$fold==name.fold[iFold]] <- (iIID.BT[iIndexC,1] - ePOINT.BT[iFold])/length(iIndexC)
+            attr(out,"iid")[iObsT,out$fold==name.fold[iFold]] <- (iIID.BT[iIndexT,1] - ePOINT.BT[iFold])/length(iIndexT)
+            out[out$fold==name.fold[iFold],"se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,out$fold==name.fold[iFold]]))) ## no second order term
+            ## iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = df[df$fold==name.fold[iFold],,drop=FALSE], trace = 0)
+            ## confint(iE.BT, statistic = "favorable")
+            ## sqrt(crossprod(getIid(iE.BT, statistic = "favorable")))
 
-            M.iid[iObsC,iFold] <- (iIID.BT[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
-            M.iid[iObsC,iFold+1] <- M.iid[iObsC,iFold+1] + (iIID.BT[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
-            M.iid[iObsT,iFold] <- (iIID.BT[iIndexT] - ePOINT.BT[iFold,1])/length(iIndexT)
-            M.iid[iObsT,iFold+1] <- M.iid[iObsT,iFold+1] + (iIID.BT[iIndexC] - ePOINT.BT[iFold,1])/length(iIndexC)
-            ## should be equal when no cross validation (up to 2nd order term)
-            ## range(M.iid[,iFold] - getIid(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
-            ## confint(e.BT, statistic = "favorable", transformation = FALSE)[,"se"] - sqrt(crossprod(M.iid[,iFold]))
-            ## e.BT@covariance[,"favorable"] - crossprod(M.iid[,iFold])
-
-
-            out$direction[iFold] <- iDirection
-            out$estimate[iFold] <- iPOINT.BT
-            if(!is.null(fold) || (add.halfNeutral && any(abs(e.BT@iidAverage$neutral[iIndex,1])>1e-10)) ){
-                out$se[iFold] <- sqrt(sum(M.iid[,iFold]^2))
-            }else if(direction == ">"){
-                out$se[iFold] <- sqrt(e.BT@covariance[,"favorable"]) ## missing term for neutral pairs
-            }else if(direction == "<"){
-                out$se[iFold] <- sqrt(e.BT@covariance[,"unfavorable"]) ## missing term for neutral pairs
-            }
+            ## global iid
+            ## center around the expected value and scale by the number of observations in the group
+            attr(out,"iid")[iObsC,out$fold=="global"] <- attr(out,"iid")[iObsC,out$fold=="global"] + (iIID.BT[iIndexC,1] - ePOINT.BT[iFold])/n.C
+            attr(out,"iid")[iObsT,out$fold=="global"] <- attr(out,"iid")[iObsT,out$fold=="global"] + (iIID.BT[iIndexT,1] - ePOINT.BT[iFold])/n.T
         }
-    }
 
-        BuyseTest.options(order.Hprojection = order.save)
+        out[out$fold=="global","estimate"] <- mean(out[out$fold!="global","estimate"])
+        out[out$fold=="global","se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,out$fold=="global"]))) ## no second order term
     }
 
     ## ** P-value and confidence interval
