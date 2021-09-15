@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:55) 
 ## Version: 
-## Last-Updated: aug  9 2021 (09:49) 
+## Last-Updated: sep 15 2021 (16:27) 
 ##           By: Brice Ozenne
-##     Update #: 85
+##     Update #: 86
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,7 +50,9 @@
 ##' ## (and the modeled estimator of the variance)
 ##'
 ##' ## Sanity check (fully stratified model)
-##' df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = as.factor(rbinom(n, size = 1, prob = 0.5)))
+##' df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1),
+##'                  X1 = rnorm(n),
+##'                  X2 = as.factor(rbinom(n, size = 1, prob = 0.5)))
 ##' newdata <- data.frame(X1=c(0,1),X2=as.factor(0:1))
 ##' 
 ##' e.logit <- glm(Y~X1+X2, data = df, family = binomial(link="logit"))

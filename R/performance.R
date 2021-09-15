@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: sep 15 2021 (14:59) 
+## Last-Updated: sep 15 2021 (16:31) 
 ##           By: Brice Ozenne
-##     Update #: 290
+##     Update #: 291
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -181,7 +181,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         if(fold.size<2){
             stop("Argument \'fold.size\' must be greater or equal to 2 (at least one sample in each category) \n")
         }
-    }else if((!is.na(data) && !identical(data,FALSE))){
+    }else if(!identical(data,NA) && !identical(data,FALSE)){
         data <- as.data.frame(data)
     }
     auc.type <- match.arg(auc.type,c("classical","probabilistic"))
@@ -200,7 +200,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
     }
     
     ## ** internal performance
-    if(!is.na(data) && !identical(data,FALSE)){
+    if(!identical(data,NA) && !identical(data,FALSE)){
         if(trace){cat("- assess internal performance: ")}
         nData.obs <- NROW(data)
 
@@ -277,7 +277,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
     }
 
     ## ** external performance
-    if(!is.null(newdata) && !is.na(newdata) && !identical(newdata,FALSE)){
+    if(!is.null(newdata) && !identical(newdata,NA) && !identical(newdata,FALSE)){
         if(trace){cat("- assess external performance: ")}
         nNewdata.obs <- NROW(newdata)
 

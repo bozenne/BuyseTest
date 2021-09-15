@@ -512,6 +512,11 @@ void correctionPairs(int method, double zeroPlus,
 					 std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_C, std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_T, int returnIID,
 					 bool neutralAsUninf, bool keepScore, bool updateRP){
 
+  // if(count_uninf/(count_favorable+count_unfavorable+count_neutral+count_uninf)>0.1){
+  //    Rcpp::warning("Large proportion of uninformative pairs: make sure that the correction makes sense. \n") 
+  // }
+    
+  
   // compute factor
   double factorFavorable;
   double factorUnfavorable;
@@ -623,6 +628,10 @@ void correctionIPW(int method, double zeroPlus,
 				   std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_C, std::vector<std::vector< arma::sp_mat >>& Dweight_Dnuisance_T,
 				   std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_C, std::vector< arma::sp_mat >& RP_Dscore_Dnuisance_T, int returnIID,
 				   bool neutralAsUninf, bool keepScore, bool updateRP){
+
+  // if(count_uninf/(count_favorable+count_unfavorable+count_neutral+count_uninf)>0.1){
+  //    Rcpp::warning("Large proportion of uninformative pairs: make sure that the correction makes sense. \n") 
+  // }
 
   // compute factor
   double factor;
