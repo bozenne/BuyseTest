@@ -85,17 +85,16 @@
 #' 
 #' \bold{Handling missing values}
 #' \itemize{
-#'   \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints.
+#'   \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints using information from the survival curves.
 #' The Gehan's scoring rule (argument \code{scoring.rule="Gehan"}) only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral
 #' while the "Peron"'s scoring rule (argument \code{scoring.rule="Peron"}) uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified.
-#' The Peron's scoring rule is the recommanded scoring rule but only handles right-censoring.
-#'   \item \code{correction.uninf}: indicates how to handle missing values that could not be classified by the scoring rule. \code{0} treat them as uninformative:
-#' if \code{neutral.as.uninf=FALSE}  - this is an equivalent to complete case analysis -
-#' while for \code{neutral.as.uninf=TRUE} uninformative pairs are treated as neutral, i.e., analyzed at the following endpoint (if any).
-#' However both will (in general) lead to biased estimates for the proportion of favorable, unfavorable, or neutral pairs.
-#' Inverse probability of censoring weights (IPCW, \code{correction.uninf=2}) is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.
-#' Imputing the average score of the informative pairs (\code{correction.uninf=1}) is the recommanded approach.
-#' Note that both corrections will convert the whole proportion of uninformative pairs of a given endpoint into favorable, unfavorable, or neutral pairs. \cr \cr
+#' The Peron's scoring rule is the recommanded scoring rule but only handles right-censoring. 
+#'   \item \code{correction.uninf}: indicates how to handle missing values that could not be classified by the scoring rule.  \describe{
+#'    \item{\code{correction.uninf=0}}{ treat them as uninformative: this is an equivalent to complete case analysis when \code{neutral.as.uninf=FALSE}, while when \code{neutral.as.uninf=TRUE}, uninformative pairs are treated as neutral, i.e., analyzed at the following endpoint (if any). This approach will (generally) lead to biased estimates for the proportion of favorable, unfavorable, or neutral pairs.}
+#'    \item{\code{correction.uninf=1}}{ imputes to the uninformative pairs the average score of the informative pairs, i.e. assumes that uninformative pairs would on average behave like informative pairs. This is therefore the recommanded approach when this assumption is resonnable, typically when the the tail of the survival function estimated by the Kaplan–Meier method is close to 0.}
+#'    \item{\code{correction.uninf=2}}{ uses inverse probability of censoring weights (IPCW), i.e. up-weight informative pairs to represent uninformative pairs. It also assumes that uninformative pairs would on average behave like informative pairs and is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.}
+#' }
+#' Note that both corrections will convert the whole proportion of uninformative pairs of a given endpoint into favorable, unfavorable, or neutral pairs. See Peron et al (2021) for further details and recommandations \cr \cr
 #' }
 #' 
 #'
@@ -142,9 +141,10 @@
 #' @references 
 #' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-#' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239  \cr 
+#' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
 #' On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 #' On inference in GPC using the U-statistic theory: I. Bebu, J. M. Lachin (2015). \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
+#' On the how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. 
 #'
 #' @seealso 
 #' \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
@@ -502,6 +502,19 @@ BuyseTest <- function(formula,
                              out = envir$outArgs$skeletonPeron,
                              fitter = envir$outArgs$fitter.model.tte,
                              args = envir$outArgs$args.model.tte)
+
+        
+        index.test <- which(envir$outArgs$method.score == "SurvPeron")
+        if(!grepl("permutation|bootstrap",method.inference) && envir$outArgs$correction.uninf>0 && length(index.test)>0){
+            envir$outArgs$method.score
+            maxLastSurv <- setNames(sapply(outSurv$lastSurv[index.test],max),envir$outArgs$endpoint[index.test])[!duplicated(envir$outArgs$endpoint[index.test])]
+            Wtau <- BuyseTest.options("warning.correction")
+            if(any(maxLastSurv>Wtau)){
+                warning("Some of the survival curves for endpoint(s) \"",paste(names(which(maxLastSurv>Wtau)),collapse = "\", \""),"\" are unknown beyond a survival of ",Wtau,".\n",
+                         "The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. \n",
+                         "This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown. \n")
+            }
+        }
     }
 
     ## ** Perform GPC

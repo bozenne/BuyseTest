@@ -41,7 +41,9 @@ test2["se",] - sqrt(diag(crossprod(attr(test2,"iid")))) ## approximate
 ## (and the modeled estimator of the variance)
 
 ## Sanity check (fully stratified model)
-df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = as.factor(rbinom(n, size = 1, prob = 0.5)))
+df <- data.frame(Y = rbinom(n, prob = 0.5, size = 1),
+                 X1 = rnorm(n),
+                 X2 = as.factor(rbinom(n, size = 1, prob = 0.5)))
 newdata <- data.frame(X1=c(0,1),X2=as.factor(0:1))
 
 e.logit <- glm(Y~X1+X2, data = df, family = binomial(link="logit"))

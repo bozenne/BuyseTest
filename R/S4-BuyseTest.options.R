@@ -40,7 +40,8 @@ setClass(
       statistic = "character",
       summary.display = "list",
       trace = "numeric",
-      transformation = "logical"
+      transformation = "logical",
+      warning.correction = "numeric"
   ),
 
 ### ** Check validity of the object
@@ -119,10 +120,10 @@ setClass(
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       validCharacter(object@strata.resampling,
-                   name1 = "@n.resampling",
-                   valid.values = c(as.character(NA),"treatment","strata"),
-                   valid.length = 1,
-                   method = "Class BuyseTest.options")
+                     name1 = "@n.resampling",
+                     valid.values = c(as.character(NA),"treatment","strata"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
       validLogical(object@neutral.as.uninf,
                    name1 = "@neutral.as.uninf",
                    valid.length = 1,
@@ -159,6 +160,12 @@ setClass(
                    method = "Class BuyseTest.options")
       validLogical(object@transformation,
                    name1 = "@transformation",
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validNumeric(object@warning.correction,
+                   name1 = "@warning.correction",
+                   min = 0,
+                   max = 1,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       return(TRUE)} 

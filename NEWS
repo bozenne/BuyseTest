@@ -1,5 +1,14 @@
 # -*- mode: org -*-
 
+* Version 2.3
+
+** User visible changes
+- NEW FEATURE: performance function has been added.
+  
+** Internal change
+- the auc function has been partially re-written.
+- add warning when using a correction and the survival curve is partially unknown.
+
 * Version 2.2
 
 ** User visible changes

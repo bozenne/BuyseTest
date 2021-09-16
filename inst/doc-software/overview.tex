@@ -1,4 +1,4 @@
-% Created 2021-08-04 on 14:52
+% Created 2021-09-16 to 12:40
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -200,7 +200,7 @@ linkcolor=[rgb]{0,0,0.5},
  pdftitle={Overview of the package BuyseTest},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.1 (Org mode 9.4.5)},
+ pdfcreator={Emacs 27.2 (Org mode 9.4.4)},
  pdflang={English}
  }
 \begin{document}
@@ -348,7 +348,7 @@ loaded via a namespace (and not attached):
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org986aa25}
+\label{sec:org49eab25}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -446,7 +446,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:orgf52ccc2}
+\label{sec:orga55eb2d}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -537,7 +537,7 @@ time_20
 \end{verbatim}
 
 \subsection{Stratified GPC}
-\label{sec:orga1f017d}
+\label{sec:org58de1fa}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -596,7 +596,7 @@ weighted by the empirical proportion of pairs for each strata.
 \clearpage
 
 \subsection{Using multiple endpoints}
-\label{sec:org4b718b4}
+\label{sec:org80497ab}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -701,7 +701,7 @@ This has been refered as the O’Brien test in the litterature
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:org9037e7c}
+\label{sec:orge91dcfb}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -735,7 +735,7 @@ score as usual and then switch them around if the operator equals
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org9cc985a}
+\label{sec:org644b4c8}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -807,7 +807,7 @@ So in this case no pair is analyzed at second priority.
 \clearpage
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org0e5c4bd}
+\label{sec:org016aec8}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
@@ -929,7 +929,7 @@ increase by a factor 5 to 10 compared to the point estimate alone
 \clearpage
 
 \subsection{Sensitivity analysis}
-\label{sec:orgd4c87de}
+\label{sec:orgaf86ee5}
 
 The choice of the threshold of clinical relevance if somehow
 subjective and it is recommended to see how the results vary as a
@@ -1036,7 +1036,7 @@ Note that the autoplot function cannot be used when more than 2
 thresholds are varied at the same time.
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org75356b5}
+\label{sec:org4545d45}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -1045,7 +1045,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orgd860d8b}
+\label{sec:orgda5f4a6}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -1134,7 +1134,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org19c9276}
+\label{sec:orgd6141f6}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} and
@@ -1179,7 +1179,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org4f6d464}
+\label{sec:orgf7bac9f}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1294,7 +1294,7 @@ survivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:orgf2235ec}
+\label{sec:org15aaf49}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1386,7 +1386,7 @@ upperBound 0.5058685   0.3770426
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:orga0593c1}
+\label{sec:org9ea73fa}
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
@@ -1483,7 +1483,7 @@ estimator.
 \end{itemize}
 
 \subsection{Gehan's scoring rule}
-\label{sec:org661a153}
+\label{sec:orgbe4b9a6}
 In the example, Gehan's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1504,7 +1504,7 @@ leads to many uninformative pairs (about 60\%) and an estimate much
 closer to 0 than the truth.
 
 \subsection{Peron's scoring rule}
-\label{sec:orgdde7f9e}
+\label{sec:org0f638bf}
 In the example, Peron's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1651,7 +1651,7 @@ defining an appropriate \texttt{BuyseTTEM} method. Looking at the code use
 for defining \texttt{BuyseTTEM.survreg} can be helpful.
 
 \subsection{Correction via inverse probability-of-censoring weights (IPCW)}
-\label{sec:orgeb9a7cb}
+\label{sec:org6acaeea}
 
 With IPCW, the weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
@@ -1720,7 +1720,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsection{Correction at the pair level}
-\label{sec:org64f6301}
+\label{sec:orgd9a6ed8}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1779,11 +1779,83 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 1: 0.1131029   0.3464344 0.5404627
 \end{verbatim}
 
+\subsection{Note on the use of the corrections}
+\label{sec:orgc41a4a8}
+
+As mentioned in \cite{peron2021correcting}, the corrections (at the pair
+level or IPCW) are assumes that uninformative pairs would on average
+behave like informative pairs. This is typically the case under the
+proportional hazard assumption. However that may not be the case with
+other distributions, e.g.:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10);n <- 250; 
+df <- rbind(data.frame(group = "T1", time = rweibull(n, shape = 1, scale = 2), status = 1),
+	    data.frame(group = "T2", time = rweibull(n, shape = 2, scale = 1.8), status = 1))
+df$censoring <- runif(NROW(df),0,2)
+df$timeC <- pmin(df$time,df$censoring)
+df$statusC <- as.numeric(df$time<=df$censoring)
+plot(prodlim(Hist(time,status)~group, data = df)); title("complete data");
+plot(prodlim(Hist(timeC,statusC)~group, data = df)); title("right-censored data");
+\end{lstlisting}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{./figures/plot-crossingSurv.pdf}
+\end{center}
+
+Here the net benefit that we would have estimated with complete data:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest.options(method.inference = "none")
+e.ref <- BuyseTest(group ~ tte(time,status), data = df, trace = FALSE)
+s.ref <- summary(e.ref, print = FALSE)$table[1,c("favorable","unfavorable","neutral","uninf","Delta")]
+s.ref
+\end{lstlisting}
+
+\begin{verbatim}
+  favorable unfavorable neutral uninf    Delta
+1   50.2048     49.7952       0     0 0.004096
+\end{verbatim}
+
+
+can be taken as a reference. Violation of the assumption will in this
+example have a substantial impact and lead to a worse estimate with
+the correction:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.correction <- BuyseTest(group ~ tte(timeC,statusC)+cont(time), data = df, trace = FALSE, correction.uninf = TRUE)
+s.correction <- summary(e.correction, print = FALSE)$table[1,c("favorable","unfavorable","neutral","uninf","Delta")]
+\end{lstlisting}
+
+\begin{verbatim}
+Advarselsbesked:
+I .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
+  Some of the survival curves for endpoint(s) "timeC" are unknown beyond a survival of 0.25.
+The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. 
+This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown.
+\end{verbatim}
+
+
+than without:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.Peron <- BuyseTest(group ~ tte(timeC,statusC), data = df, trace = FALSE)
+s.Peron <- summary(e.Peron,print = FALSE)$table[1,c("favorable","unfavorable","neutral","uninf","Delta")]
+rbind("reference" = s.ref,
+      "no correction" = s.Peron,
+      "correction" = s.correction)
+\end{lstlisting}
+\begin{verbatim}
+              favorable unfavorable neutral    uninf      Delta
+reference      50.20480    49.79520       0  0.00000 0.00409600
+no correction  49.09253    39.74775       0 11.15972 0.09344778
+correction     55.25931    44.74069       0  0.00000 0.10518628
+\end{verbatim}
+
 
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:org8b8ba16}
+\label{sec:orga5c8b52}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -1843,7 +1915,7 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:org56262dc}
+\label{sec:org301cf29}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
@@ -1938,7 +2010,7 @@ summary(powerW)
 \clearpage
 
 \section{Modifying default options}
-\label{sec:org45d7ec4}
+\label{sec:orga635c78}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -1990,7 +2062,7 @@ BuyseTest.options(reinitialise = TRUE)
 
 
 \section*{References}
-\label{sec:orga281537}
+\label{sec:orgdd1de91}
 \begingroup
 \renewcommand{\section}[2]{}
 

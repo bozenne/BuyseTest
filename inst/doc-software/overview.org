@@ -1468,6 +1468,83 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 :    favorable unfavorable   neutral
 : 1: 0.1131029   0.3464344 0.5404627
 
+** Note on the use of the corrections
+
+As mentioned in cite:peron2021correcting, the corrections (at the pair
+level or IPCW) are assumes that uninformative pairs would on average
+behave like informative pairs. This is typically the case under the
+proportional hazard assumption. However that may not be the case with
+other distributions, e.g.:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10);n <- 250; 
+df <- rbind(data.frame(group = "T1", time = rweibull(n, shape = 1, scale = 2), status = 1),
+            data.frame(group = "T2", time = rweibull(n, shape = 2, scale = 1.8), status = 1))
+df$censoring <- runif(NROW(df),0,2)
+df$timeC <- pmin(df$time,df$censoring)
+df$statusC <- as.numeric(df$time<=df$censoring)
+plot(prodlim(Hist(time,status)~group, data = df)); title("complete data");
+plot(prodlim(Hist(timeC,statusC)~group, data = df)); title("right-censored data");
+#+END_SRC
+#+RESULTS:
+
+
+
+#+ATTR_LaTeX: :width 0.8\textwidth :placement [!h]
+[[./figures/plot-crossingSurv.pdf]]
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+pdf(file.path("figures","plot-crossingSurv.pdf"), width = 10)
+par(mfrow = c(1,2))
+plot(prodlim(Hist(time,status)~group, data = df), atrisk = FALSE); title("complete data");
+plot(prodlim(Hist(timeC,statusC)~group, data = df), atrisk = FALSE); title("right-censored data");
+dev.off()
+#+END_SRC
+#+RESULTS:
+: windows 
+:       2
+
+
+Here the net benefit that we would have estimated with complete data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(method.inference = "none")
+e.ref <- BuyseTest(group ~ tte(time,status), data = df, trace = FALSE)
+s.ref <- summary(e.ref, print = FALSE)$table[1,c("favorable","unfavorable","neutral","uninf","Delta")]
+s.ref
+#+END_SRC
+
+#+RESULTS:
+:   favorable unfavorable neutral uninf    Delta
+: 1   50.2048     49.7952       0     0 0.004096
+
+can be taken as a reference. Violation of the assumption will in this
+example have a substantial impact and lead to a worse estimate with
+the correction:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.correction <- BuyseTest(group ~ tte(timeC,statusC)+cont(time), data = df, trace = FALSE, correction.uninf = TRUE)
+s.correction <- summary(e.correction, print = FALSE)$table[1,c("favorable","unfavorable","neutral","uninf","Delta")]
+#+END_SRC
+
+#+RESULTS:
+: Advarselsbesked:
+: I .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
+:   Some of the survival curves for endpoint(s) "timeC" are unknown beyond a survival of 0.25.
+: The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. 
+: This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown.
+
+than without:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+  e.Peron <- BuyseTest(group ~ tte(timeC,statusC), data = df, trace = FALSE)
+  s.Peron <- summary(e.Peron,print = FALSE)$table[1,c("favorable","unfavorable","neutral","uninf","Delta")]
+  rbind("reference" = s.ref,
+        "no correction" = s.Peron,
+        "correction" = s.correction)
+#+END_SRC
+#+RESULTS:
+:               favorable unfavorable neutral    uninf      Delta
+: reference      50.20480    49.79520       0  0.00000 0.00409600
+: no correction  49.09253    39.74775       0 11.15972 0.09344778
+: correction     55.25931    44.74069       0  0.00000 0.10518628
+
 \clearpage
 
 * Simulating data using =simBuyseTest=

@@ -12,6 +12,13 @@ P{\'e}ron, J., Buyse, M., Ozenne, B., Roche, L., and Roy, P. (2018).
   outcomes in the presence of censoring.
 \newblock {\em Statistical methods in medical research}, 27(4):1230--1239.
 
+\bibitem[P{\'e}ron et~al., 2021]{peron2021correcting}
+P{\'e}ron, J., Idlhaj, M., Maucort-Boulch, D., Giai, J., Roy, P., Collette, L.,
+  Buyse, M., and Ozenne, B. (2021).
+\newblock Correcting the bias of the net benefit estimator due to
+  right-censored observations.
+\newblock {\em Biometrical Journal}, 63(4):893--906.
+
 \bibitem[Verbeeck et~al., 2019]{verbeeck2019generalized}
 Verbeeck, J., Spitzer, E., de~Vries, T., van Es, G., Anderson, W., Van~Mieghem,
   N., Leon, M., Molenberghs, G., and Tijssen, J. (2019).

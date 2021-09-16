@@ -23,7 +23,16 @@
 #' Simultaneously analysis of several endpoints is performed by prioritizing the endpoints, assigning the highest priority to the endpoint considered the most clinically relevant.
 #' The endpoint with highest priority is analyzed first, and neutral and uninformative pair are analyzed regarding endpoint of lower priority.
 #'
-#' @references Examples of application in clinical studies: \cr 
+#' @references
+#' Method papers on the GPC procedure and its extensions:
+#' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+#' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
+#' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
+#' On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
+#' On inference in GPC using the U-statistic theory: I. Bebu, J. M. Lachin (2015). \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
+#' On the how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. \cr
+#' 
+#' Examples of application in clinical studies: \cr 
 #' J. Peron, P. Roy, K. Ding, W. R. Parulekar, L. Roche, M. Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalized pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 #' J. Peron, P. Roy, T. Conroy, F. Desseigne, M. Ychou, S. Gourgou-Bourgade, T. Stanbury, L. Roche, B. Ozenne, M. Buyse (2016). \bold{An assessment of the benefit-risk balance of FOLFORINOX in metastatic pancreatic adenocarcinoma}. \emph{Oncotarget} 7:82953-60, 2016. \cr
 #'
