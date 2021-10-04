@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: okt  4 2021 (21:05) 
+## Last-Updated: okt  4 2021 (21:39) 
 ##           By: Brice Ozenne
-##     Update #: 131
+##     Update #: 133
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -211,7 +211,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             colnames(linfct) <- names(vec.beta)
         }else{
             if(any(vec.name %in% colnames(linfct) == FALSE)){
-                stop("Missing column \"",paste0(vec.name[vec.name%in%colnames(linfct)==FALSE],collapse="\" \""),"\" in argument \'constrast\'. \n")
+                stop("Missing column \"",paste0(vec.name[vec.name%in%colnames(linfct)==FALSE],collapse="\" \""),"\" in argument \'linfct\'. \n")
             }
             linfct <- linfct[,vec.name,drop=FALSE]
         }
@@ -225,7 +225,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
                           "favorable" = 0.5,
                           "unfavorable" = 0.5), n.beta)
     }else{
-        if(length(rhs) != NROW(constrast)){
+        if(length(rhs) != NROW(linfct)){
             stop("Length of argument \'rhs\' does not match the number of row of argument \'contrast\' (",length(rhs)," vs. ",NROW(linfct),"). \n")
         }
     }
