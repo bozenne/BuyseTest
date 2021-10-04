@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 2.3.3
-Date: 2021-09-16
+Version: 2.3.4
+Date: 2021-10-04
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
@@ -55,6 +55,7 @@ RoxygenNote: 7.1.1
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
+    'BuyseMultComp.R'
     'BuyseTTEM.R'
     'BuyseTest-Peron.R'
     'BuyseTest-check.R'

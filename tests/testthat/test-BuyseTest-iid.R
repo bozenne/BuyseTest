@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: aug  4 2021 (14:18) 
+## Last-Updated: okt  4 2021 (20:17) 
 ##           By: Brice Ozenne
-##     Update #: 170
+##     Update #: 174
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -298,15 +298,15 @@ test_that("iid: TTE and no strata",{
                            scoring.rule = "Gehan",
                            method.inference = "u-statistic")
 
-    expect_equal(confint(e.BT_tte1)[1,],
-                 confint(e.BT_tte2)[2,],
-                 tol = 1e-6)
-    expect_equal(confint(e.BT_tte1)[1,],
-                 confint(e.BT_tte3)[1,],
-                 tol = 1e-6)
-    expect_equal(confint(e.BT_tte3)[1,],
-                 confint(e.BT_tte3)[2,],
-                 tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte1)[1,],
+                      confint(e.BT_tte2)[2,],
+                      tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte1)[1,],
+                      confint(e.BT_tte3)[1,],
+                      tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte3)[1,],
+                      confint(e.BT_tte3)[2,],
+                      tol = 1e-6)
 })
 
 ## ** Two endpoints
@@ -365,7 +365,7 @@ test_that("iid: two endpoints (no strata - first order)", {
 
     ## cluster argument
     expect_equal(unname(getIid(e.BT, cluster = 1:NROW(dtS))), unname(getIid(e.BT)), tol = 1e-6)
-    expect_equal(confint(e.BT, cluster = 1:NROW(dtS)),  confint(e.BT), tol = 1e-6)
+    expect_equivalent(confint(e.BT, cluster = 1:NROW(dtS)),  confint(e.BT), tol = 1e-6)
 })
 
 test_that("iid: two endpoints (no strata - second order)", {
@@ -466,7 +466,7 @@ test_that("iid: two endpoints (strata)", {
     
     ## cluster argument
     expect_equal(unname(getIid(e.BT, cluster = 1:NROW(dtS))), unname(getIid(e.BT)), tol = 1e-6)
-    expect_equal(confint(e.BT, cluster = 1:NROW(dtS)),  confint(e.BT), tol = 1e-6)
+    expect_equivalent(confint(e.BT, cluster = 1:NROW(dtS)),  confint(e.BT), tol = 1e-6)
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
@@ -552,24 +552,24 @@ test_that("iid with nuisance parameters: 1 TTE",{
     expect_equal(e.BT_tte5@covariance["unfavorable"],e.BT_tte5.bis@covariance["favorable"])
 
     ## results does not depend on previously used thresholds
-    expect_equal(confint(e.BT_tte1)[1,],
-                 confint(e.BT_tte2)[2,],
-                 tol = 1e-6)
-    expect_equal(confint(e.BT_tte1)[1,],
-                 confint(e.BT_tte3)[1,],
-                 tol = 1e-6)
-    expect_equal(confint(e.BT_tte2)[2,],
-                 confint(e.BT_tte3)[2,],
-                 tol = 1e-6)
-    expect_equal(confint(e.BT_tte3)[1,],
-                 confint(e.BT_tte3)[2,],
-                 tol = 1e-6)
-    expect_equal(confint(e.BT_tte1)[1,],
-                 confint(e.BT_tte4)[2,],
-                 tol = 1e-6)
-    expect_equal(confint(e.BT_tte1)[1,],
-                 confint(e.BT_tte5)[3,],
-                 tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte1)[1,],
+                      confint(e.BT_tte2)[2,],
+                      tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte1)[1,],
+                      confint(e.BT_tte3)[1,],
+                      tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte2)[2,],
+                      confint(e.BT_tte3)[2,],
+                      tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte3)[1,],
+                      confint(e.BT_tte3)[2,],
+                      tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte1)[1,],
+                      confint(e.BT_tte4)[2,],
+                      tol = 1e-6)
+    expect_equivalent(confint(e.BT_tte1)[1,],
+                      confint(e.BT_tte5)[3,],
+                      tol = 1e-6)
     
 })
 
@@ -594,12 +594,15 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
 
     test <- confint(e.BT_ttebin)
     attr(test,"n.resampling") <- NULL
+    attr(test,"iid") <- NULL
+    attr(test,"transform") <- NULL
+    attr(test,"backtransform") <- NULL
     GS <- matrix(c(-0.33333333, -0.13333333, 0.24130536, 0.36004622, -0.70573842, -0.69241599, 0.18339631, 0.52579681, 0, 0, 0.20172157, 0.7144262), 
                  nrow = 2, 
                  ncol = 6, 
                  dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci","null", "p.value")) 
                  ) 
-    expect_equal(test, GS, tol = 1e-6)
+    expect_equal(test, as.data.frame(GS), tol = 1e-6)
 
     ## exponential approximation of the survival when computing the influence function
     e.TTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid=TRUE, iid.surv="prodlim")
@@ -613,12 +616,15 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
 
     test <- confint(e.BT_ttebin)
     attr(test,"n.resampling") <- NULL
+    attr(test,"iid") <- NULL
+    attr(test,"transform") <- NULL
+    attr(test,"backtransform") <- NULL
     GS <- matrix(c(-0.33333333, -0.13333333, 0.23587679, 0.35518499, -0.69967949, -0.68733243, 0.17180423, 0.51874253, 0, 0, 0.19153767, 0.71069249), 
                  nrow = 2, 
                  ncol = 6, 
                  dimnames = list(c("eventtime_1", "toxicity_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "null","p.value")) 
                  ) 
-    expect_equal(test, GS, tol = 1e-6)
+    expect_equal(test, as.data.frame(GS), tol = 1e-6)
 
     ## GS <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
                     ## data = dt, 
@@ -663,13 +669,16 @@ test_that("iid with nuisance parameters: 2 TTE",{
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
     attr(test,"n.resampling") <- NULL
+    attr(test,"iid") <- NULL
+    attr(test,"transform") <- NULL
+    attr(test,"backtransform") <- NULL
     GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.19937703, 0.2148585, 0.2408939, -0.14852611, -0.24811831, -0.43304747, 0.59828277, 0.54900838, 0.4468153, 0, 0, 0, 0.20703017, 0.41296871, 0.97173422), 
                  nrow = 3, 
                  ncol = 6, 
                  dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
 
-    expect_equal(test, GS, tol = 1e-3)
+    expect_equal(test, as.data.frame(GS), tol = 1e-3)
 
     ## exponential approximation of the survival when computing the influence function
     e.TTEM <- list(BuyseTTEM(Hist(eventtime1,status1)~treatment, data = dt.sim, iid=TRUE, iid.surv="prodlim"),
@@ -682,13 +691,16 @@ test_that("iid with nuisance parameters: 2 TTE",{
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
     attr(test,"n.resampling") <- NULL
+    attr(test,"iid") <- NULL
+    attr(test,"transform") <- NULL
+    attr(test,"backtransform") <- NULL
     GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.17433724, 0.19140473, 0.21888023, -0.09657678, -0.20304112, -0.39734512, 0.5633411, 0.51495999, 0.41162398, 0, 0, 0, 0.14902033, 0.35809689, 0.96889279), 
                  nrow = 3, 
                  ncol = 6, 
                  dimnames = list(c("eventtime1_1", "eventtime2_1", "toxicity1_0.5"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
 
-    expect_equal(test, GS, tol = 1e-3)
+    expect_equal(test, as.data.frame(GS), tol = 1e-3)
 })
 
 ## * normalization iid

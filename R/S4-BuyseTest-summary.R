@@ -315,6 +315,7 @@ setMethod(f = "summary",
                   table[index.global,"CIinf.Delta"] <- outConfint[,"lower.ci"]
                   table[index.global,"CIsup.Delta"] <- outConfint[,"upper.ci"]
               }
+
               table[index.global,"null"] <- outConfint[,"null"]
               table[index.global,"p.value"] <- outConfint[,"p.value"]
               table[index.global,"n.resampling"] <- attr(outConfint,"n.resampling")

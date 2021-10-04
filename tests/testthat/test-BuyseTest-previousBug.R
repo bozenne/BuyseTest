@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: Apr 15 2021 (11:59) 
+## Last-Updated: okt  4 2021 (20:11) 
 ##           By: Brice Ozenne
-##     Update #: 189
+##     Update #: 192
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -260,8 +260,8 @@ dt <- simBuyseTest(50)
 test_that("same p.value (permutation test) for winRatio and net Benefit", {
     e.perm <- BuyseTest(treatment ~ bin(toxicity), data = dt,
                         method.inference = "permutation", n.resampling = 100, trace = 0)
-    netBenefit.perm <- confint(e.perm, statistic = "netBenefit")
-    winRatio.perm <- confint(e.perm, statistic = "winRatio")
+    netBenefit.perm <- suppressWarnings(confint(e.perm, statistic = "netBenefit"))
+    winRatio.perm <- suppressWarnings(confint(e.perm, statistic = "winRatio"))
 
     Delta.netBenefit <- coef(e.perm, statistic = "netBenefit")
     Delta.winRatio <- coef(e.perm, statistic = "winRatio")
@@ -279,8 +279,8 @@ test_that("same p.value (permutation test) for winRatio and net Benefit", {
     expect_equal(unname(manual["winRatio.log"]), winRatio.perm[,"p.value"])
 
     ## note CI are not agreeing with p-values
-    confint(e.perm, statistic = "netBenefit", conf.level = 1-0.48)
-    confint(e.perm, statistic = "winRatio", conf.level = 1-0.48)
+    suppressWarnings(confint(e.perm, statistic = "netBenefit", conf.level = 1-0.48))
+    suppressWarnings(confint(e.perm, statistic = "winRatio", conf.level = 1-0.48))
 
 })
 
@@ -443,7 +443,7 @@ test_that("last time is a tie with both event and censor",{
     test <- BuyseTest(bras ~ tte(OS, status = etat),
                       data = dt, method.inference = "u-statistic", scoring.rule = "Peron",
                       trace = 0)
-    expect_equal(as.double(c(coef(test,"count.favorable"),coef(test,"count.unfavorable"),coef(test,"count.neutral"))),
+    expect_equal(as.double(c(coef(test, statistic = "count.favorable"),coef(test, statistic = "count.unfavorable"),coef(test, statistic = "count.neutral"))),
                  c(892.6111, 520.3092,   0.0000 ), tol = 1e-3)
 
     ## dt[c(1,36)]
@@ -458,7 +458,7 @@ test_that("one group with only censoring, one group with no censoring",{
 
     e.Peron <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0),
                          data = dt, scoring.rule = "Peron")
-    expect_equal(as.double(coef(e.Peron,"netBenefit")),1)
+    expect_equal(as.double(coef(e.Peron, statistic = "netBenefit")),1)
 
     dt2 <- data.table("treatment" = c(rep("C",10),rep("T",10)),
                       "time" = c(1:10,1:10),
@@ -466,14 +466,14 @@ test_that("one group with only censoring, one group with no censoring",{
 
     e2.Peron <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0),
                           data = dt2, scoring.rule = "Peron")
-    expect_equal(as.double(coef(e2.Peron,"netBenefit")),0.9)
+    expect_equal(as.double(coef(e2.Peron, statistic =  "netBenefit")),0.9)
 
     dt3 <- data.table("treatment" = c("C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T"), 
                       "time" = c(0.302, 0.307, 0.336, 0.347, 0.348, 0.459, 0.494, 0.525, 0.587, 0.588, 0.098, 0.116, 0.180, 0.229, 0.306, 0.318, 0.452, 0.485, 1.025, 1.339), 
                       "status" = c(0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
     e3.Peron <- BuyseTest(treatment ~ tte(time, status = status, threshold = 0),
                           data = dt3, scoring.rule = "Peron")
-    expect_equal(as.double(coef(e3.Peron,"netBenefit")),0.733333333)
+    expect_equal(as.double(coef(e3.Peron, statistic = "netBenefit")),0.733333333)
 })
 ## * brice ozenne : 02/18/21 12:00 subset factor strata
 test_that("subset factor strata",{

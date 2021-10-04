@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: Apr  9 2021 (12:50) 
+## Last-Updated: okt  4 2021 (20:18) 
 ##           By: Brice Ozenne
-##     Update #: 37
+##     Update #: 38
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,10 +68,10 @@ test_that("check - many pairs",{
     BT2 <- BuyseTest(trt ~ tte(time,status,threshold=5,operator="<0")+tte(time,status,threshold=0,operator="<0"),
                      data=veteran, method.inference = "u-statistic")
 
-    expect_equal(confint(BT0)[,"estimate"], -confint(BT)[,"estimate"], tol = 1e-6)
-    expect_equal(confint(BT0)[,c("se","p.value")], confint(BT)[,c("se","p.value")], tol = 1e-6)
-    expect_equal(confint(BT), confint(BT2))
-    expect_equal(confint(BT), confint(BT2))
+    expect_equivalent(confint(BT0)[,"estimate"], -confint(BT)[,"estimate"], tol = 1e-6)
+    expect_equivalent(confint(BT0)[,c("se","p.value")], confint(BT)[,c("se","p.value")], tol = 1e-6)
+    expect_equivalent(confint(BT), confint(BT2))
+    expect_equivalent(confint(BT), confint(BT2))
 
     ## original -  tte + bin
     BT0 <- BuyseTest(trt ~ tte(time,status,threshold=5)+bin(prior),
@@ -85,10 +85,10 @@ test_that("check - many pairs",{
     BT2 <- BuyseTest(trt ~ tte(time,status,threshold=5,operator="<0")+bin(prior,operator="<0"),
                      data=veteran, method.inference = "u-statistic")
 
-    expect_equal(confint(BT0)[,"estimate"], -confint(BT)[,"estimate"], tol = 1e-6)
-    expect_equal(confint(BT0)[,c("se","p.value")], confint(BT)[,c("se","p.value")], tol = 1e-2)
-    expect_equal(confint(BT), confint(BT2), tol = 1e-2)
-    expect_equal(confint(BT), confint(BT2), tol = 1e-2)
+    expect_equivalent(confint(BT0)[,"estimate"], -confint(BT)[,"estimate"], tol = 1e-6)
+    expect_equivalent(confint(BT0)[,c("se","p.value")], confint(BT)[,c("se","p.value")], tol = 1e-2)
+    expect_equivalent(confint(BT), confint(BT2), tol = 1e-2)
+    expect_equivalent(confint(BT), confint(BT2), tol = 1e-2)
     ## expected difference in se because GPC2 compute the influence function over all pairs,
     ## while GPC only over pairs with informative scores.
     ## the difference is expected to be small though in large samples

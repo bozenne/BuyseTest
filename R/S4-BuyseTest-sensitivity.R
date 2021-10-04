@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: Apr 15 2021 (11:50) 
+## Last-Updated: okt  4 2021 (19:28) 
 ##           By: Brice Ozenne
-##     Update #: 287
+##     Update #: 299
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -283,16 +283,24 @@ setMethod(f = "sensitivity",
                                       "winRatio" = Inf,
                                       "favorable" = 1,
                                       "unfavorable" = 1)
-                  if(transformation){
+
+                  ## temporary fix: the next few lines should be remove when riskRegression will be updated
+                  if(statistic %in% c("none","netBenefit","winRatio") || !inherits(try(riskRegression::transformCIBP(estimate = 1, se = 1, type = "atanh2", seed = NA, band = FALSE, alternative = "two.sided"),silent=TRUE),"try-error")){
                       type <- switch(statistic,
                                      "netBenefit" = "atanh",
                                      "winRatio" = "log",
-                                     "favorable" = "cloglog",## note: note the same transformation as confint
-                                     "unfavorable" = "cloglog") ## note: note the same transformation as confint
+                                     "favorable" = "cloglog",## note: not the same transformation as confint
+                                     "unfavorable" = "cloglog", ## note: not the same transformation as confint
+                                     "none" = "none") 
                   }else{
-                      type <- "none"
+                      type <- switch(statistic,
+                                     "netBenefit" = "atanh",
+                                     "winRatio" = "log",
+                                     "favorable" = "atanh2",
+                                     "unfavorable" = "atanh2",
+                                     "none" = "none") 
                   }
-
+                  
                   dots <- list(...)
                   if("seed" %in% names(dots) == FALSE){
                       dots$seed <- NA
@@ -300,6 +308,7 @@ setMethod(f = "sensitivity",
                   if("method.band" %in% names(dots) == FALSE){
                       dots$method.band <- "maxT-integration"
                   }
+                  
                   iBand <- do.call(riskRegression::transformCIBP,
                                    args = c(list(estimate = rbind(df.confint$estimate),
                                                  se = rbind(df.confint$se),

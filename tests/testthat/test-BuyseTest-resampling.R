@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: dec  6 2020 (11:34) 
+## last-updated: okt  4 2021 (20:20) 
 ##           By: Brice Ozenne
-##     Update #: 184
+##     Update #: 186
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -47,8 +47,8 @@ test_that("permutation", {
                          method.inference = "studentized permutation", n.resampling = 5)
 
     ## ** summary (two.sided)
-    outSummaryPerc <- summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "percentile", transform = FALSE)
-    outSummaryStud <- summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "studentized", transform = FALSE)
+    outSummaryPerc <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "percentile", transform = FALSE))
+    outSummaryStud <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "studentized", transform = FALSE))
     ## summary(BT.perm)
     ##       Generalized pairwise comparisons with 2 prioritized endpoints
 
@@ -76,8 +76,8 @@ test_that("permutation", {
                  p.value)
        
     ## ** summary (greater)
-    outSummaryPerc <- summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "percentile")
-    outSummaryStud <- summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "studentized")
+    outSummaryPerc <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "percentile"))
+    outSummaryStud <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "studentized"))
     
     p.value <- c(mean(BT.perm@Delta[1,"netBenefit"]/sqrt(BT.perm@covariance[1,"netBenefit"]) <= BT.perm@DeltaResampling[,1,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,1,"netBenefit"])),
                  mean(BT.perm@Delta[2,"netBenefit"]/sqrt(BT.perm@covariance[2,"netBenefit"]) <= BT.perm@DeltaResampling[,2,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,2,"netBenefit"])))
@@ -90,8 +90,8 @@ test_that("permutation", {
                  p.value)
 
     ## ** summary (less)
-    outSummaryPerc <- summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "percentile")
-    outSummaryStud <- summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "studentized")
+    outSummaryPerc <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "percentile"))
+    outSummaryStud <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "studentized"))
     
     p.value <- c(mean(BT.perm@Delta[1,"netBenefit"]/sqrt(BT.perm@covariance[1,"netBenefit"]) >= BT.perm@DeltaResampling[,1,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,1,"netBenefit"])),
                  mean(BT.perm@Delta[2,"netBenefit"]/sqrt(BT.perm@covariance[2,"netBenefit"]) >= BT.perm@DeltaResampling[,2,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,2,"netBenefit"])))
@@ -136,8 +136,8 @@ test_that("stratified permutation", {
                          method.inference = "studentized permutation", n.resampling = 5)
 
     ## ** summary (two.sided)
-    outSummaryPerc <- summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "percentile", transform = FALSE)
-    outSummaryStud <- summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "studentized", transform = FALSE)
+    outSummaryPerc <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "percentile", transform = FALSE))
+    outSummaryStud <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "studentized", transform = FALSE))
     ##       Generalized pairwise comparisons with 2 prioritized endpoints and 3 strata
 
     ## > statistic       : net benefit (delta: endpoint specific, Delta: global) 
@@ -171,8 +171,8 @@ test_that("stratified permutation", {
                  p.value)
 
     ## ** summary (greater)
-    outSummaryPerc <- summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "percentile")
-    outSummaryStud <- summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "studentized")
+    outSummaryPerc <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "percentile"))
+    outSummaryStud <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "greater", method.ci.resampling = "studentized"))
     
     p.value <- c(mean(BT.perm@Delta[1,"netBenefit"]/sqrt(BT.perm@covariance[1,"netBenefit"]) <= BT.perm@DeltaResampling[,1,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,1,"netBenefit"])),
                  mean(BT.perm@Delta[2,"netBenefit"]/sqrt(BT.perm@covariance[2,"netBenefit"]) <= BT.perm@DeltaResampling[,2,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,2,"netBenefit"])))
@@ -185,8 +185,8 @@ test_that("stratified permutation", {
                  p.value)
 
     ## ** summary (less)
-    outSummaryPerc <- summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "percentile")
-    outSummaryStud <- summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "studentized")
+    outSummaryPerc <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "percentile"))
+    outSummaryStud <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "less", method.ci.resampling = "studentized"))
     
     p.value <- c(mean(BT.perm@Delta[1,"netBenefit"]/sqrt(BT.perm@covariance[1,"netBenefit"]) >= BT.perm@DeltaResampling[,1,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,1,"netBenefit"])),
                  mean(BT.perm@Delta[2,"netBenefit"]/sqrt(BT.perm@covariance[2,"netBenefit"]) >= BT.perm@DeltaResampling[,2,"netBenefit"]/sqrt(BT.perm@covarianceResampling[,2,"netBenefit"])))
@@ -489,7 +489,7 @@ test_that("compare with t-test (two.sided)", {
     ## just to see what to expect
     res.tt <- t.test(y = df[df$Group=="T","score"], x = df[df$Group=="C","score"], alternative = "two.sided")
 
-    ls.res <- list(perm = confint(e.perm, alternative = "two.sided"),
+    ls.res <- list(perm = suppressWarnings(confint(e.perm, alternative = "two.sided")),
                    percboot = confint(e.boot, alternative = "two.sided", method.ci.resampling = "percentile"),
                    gausboot = confint(e.boot, alternative = "two.sided", method.ci.resampling = "gaussian", transformation = FALSE),
                    gausboot.trans = confint(e.boot, alternative = "two.sided", method.ci.resampling = "gaussian", transformation = TRUE),
@@ -524,7 +524,7 @@ test_that("compare with t-test (greater)", {
     ## just to see what to expect
     res.tt <- t.test(y = df[df$Group=="T","score"], x = df[df$Group=="C","score"], alternative = "greater")
 
-    ls.res <- list(perm = confint(e.perm, alternative = "greater"),
+    ls.res <- list(perm = suppressWarnings(confint(e.perm, alternative = "greater")),
                    percboot = confint(e.boot, alternative = "greater", method.ci.resampling = "percentile"),
                    gausboot = confint(e.boot, alternative = "greater", method.ci.resampling = "gaussian", transformation = FALSE),
                    gausboot.trans = confint(e.boot, alternative = "greater", method.ci.resampling = "gaussian", transformation = TRUE),
@@ -563,7 +563,7 @@ test_that("compare with t-test (less)", {
     ## just to see what to expect
     res.tt <- t.test(y = df[df$Group=="T","score"], x = df[df$Group=="C","score"], alternative = "less")
 
-    ls.res <- list(perm = confint(e.perm, alternative = "less"),
+    ls.res <- list(perm = suppressWarnings(confint(e.perm, alternative = "less")),
                    percboot = confint(e.boot, alternative = "less", method.ci.resampling = "percentile"),
                    gausboot = confint(e.boot, alternative = "less", method.ci.resampling = "gaussian", transformation = FALSE),
                    gausboot.trans = confint(e.boot, alternative = "less", method.ci.resampling = "gaussian", transformation = TRUE),

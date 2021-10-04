@@ -3,7 +3,9 @@
 * Version 2.3
 
 ** User visible changes
+- NEW FEATURE: BuyseMultComp to adjust for multiple comparisons over strata or endpoints.
 - NEW FEATURE: performance function has been added.
+- confint for BuyseTest object now returns a data.frame instead of a matrix
   
 ** Internal change
 - the auc function has been partially re-written.

@@ -8,6 +8,7 @@
 \usage{
 \S4method{confint}{S4BuyseTest}(
   object,
+  endpoint = NULL,
   statistic = NULL,
   null = NULL,
   conf.level = NULL,
@@ -20,6 +21,9 @@
 }
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}}
+
+\item{endpoint}{[character] for which endpoint(s) the confidence intervals should be output?
+If \code{NULL} returns the confidence intervals for all endpoints.}
 
 \item{statistic}{[character] the statistic summarizing the pairwise comparison:
 \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),

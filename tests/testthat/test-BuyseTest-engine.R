@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: aug  4 2021 (12:38) 
+## Last-Updated: okt  4 2021 (20:13) 
 ##           By: Brice Ozenne
-##     Update #: 19
+##     Update #: 20
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,7 +68,10 @@ test_that("TTE with decreasing thresholds",{
 
     test <- confint(e.BT2)
     attr(test,"n.resampling") <- NULL
-    expect_equal(GS, test, tol = 1e-6)
+    attr(test,"iid") <- NULL
+    attr(test,"transform") <- NULL
+    attr(test,"backtransform") <- NULL
+    expect_equal(as.data.frame(GS), test, tol = 1e-6)
 })
 
 test_that("different TTE with decreasing thresholds",{
@@ -94,7 +97,10 @@ test_that("different TTE with decreasing thresholds",{
                  ) 
     test <- confint(e.BT2)
     attr(test,"n.resampling") <- NULL
-    expect_equal(GS, test, tol = 1e-3)
+    attr(test,"iid") <- NULL
+    attr(test,"transform") <- NULL
+    attr(test,"backtransform") <- NULL
+    expect_equal(as.data.frame(GS), test, tol = 1e-3)
 })
 
 

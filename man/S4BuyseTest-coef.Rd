@@ -8,6 +8,7 @@
 \usage{
 \S4method{coef}{S4BuyseTest}(
   object,
+  endpoint = NULL,
   statistic = NULL,
   stratified = FALSE,
   cumulative = TRUE,
@@ -17,6 +18,9 @@
 }
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}
+
+\item{endpoint}{[character] for which endpoint(s) the summary statistic should be output?
+If \code{NULL} returns the summary statistic for all endpoints.}
 
 \item{statistic}{[character] the type of summary statistic. See the detail section.}
 

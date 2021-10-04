@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: aug  4 2021 (14:27) 
+## Last-Updated: okt  4 2021 (18:32) 
 ##           By: Brice Ozenne
-##     Update #: 89
+##     Update #: 95
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,6 +26,8 @@
 #' 
 #' @param object output of \code{\link{BuyseTest}}
 #' @param statistic [character] the type of summary statistic. See the detail section.
+#' @param endpoint [character] for which endpoint(s) the summary statistic should be output?
+#' If \code{NULL} returns the summary statistic for all endpoints.
 #' @param stratified [logical] should the summary statistic be strata-specific?
 #' Otherwise a summary statistic over all strata is returned.
 #' @param cumulative [logical] should the score be cumulated over endpoints?
@@ -60,6 +62,7 @@
 setMethod(f = "coef",
           signature = "S4BuyseTest",
           definition = function(object,
+                                endpoint = NULL,
                                 statistic = NULL,
                                 stratified = FALSE,
                                 cumulative = TRUE,
@@ -68,11 +71,12 @@ setMethod(f = "coef",
 
               ## ** normalize arguments
               option <- BuyseTest.options()
+
+              ## statistic
               if(is.null(statistic)){
                   statistic <- option$statistic
               }
 
-              
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
@@ -91,6 +95,25 @@ setMethod(f = "coef",
 
               if(add.halfNeutral && (statistic %in% c(type.count,type.pc))){
                   stop("Argument \'add.halfNeutral\' can only be used for the following statistics: \"favorable\", \"unfavorable\", \"netBenefit\", \"winRatio\". \n")
+              }
+
+              ## endpoint
+              if(!is.null(endpoint)){
+                  valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+                  n.endpoint <- length(valid.endpoint)
+                  if(is.numeric(endpoint)){
+                      validInteger(endpoint,
+                                   name1 = "endpoint",
+                                   min = 1, max = length(valid.endpoint),
+                                   valid.length = NULL,
+                                   method = "iid[BuyseTest]")
+                      endpoint <- valid.endpoint[endpoint]
+                  }else{
+                      validCharacter(endpoint,
+                                     valid.length = 1:length(valid.endpoint),
+                                     valid.values = valid.endpoint,
+                                     refuse.NULL = FALSE)
+                  }
               }
 
               ## ** add neutral contribution
@@ -192,7 +215,13 @@ setMethod(f = "coef",
               }
               
                  
-
+              if(!is.null(endpoint)){
+                  if(!stratified){
+                      out <- out[endpoint]
+                  }else{
+                      out <- out[,endpoint,drop=FALSE]
+                  }
+              }
               return(out)
 
           })
