@@ -8,7 +8,7 @@
 #' 
 #' \code{initializeArgs}: Normalize the argument 
 #' \itemize{
-#' \item scoring.rule, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
+#' \item scoring.rule, neutral.as.uninf, add.halfNeutral, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 #' \item formula: call \code{initializeFormula} to extract arguments.
 #' \item type: convert to numeric.
 #' \item status: only keep status relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
@@ -46,6 +46,7 @@ initializeArgs <- function(status,
                            strata.resampling = NULL,
                            name.call,
                            neutral.as.uninf = NULL,
+                           add.halfNeutral = NULL,
                            operator = NULL,
                            censoring,
                            option,
@@ -67,6 +68,7 @@ initializeArgs <- function(status,
     if(is.null(n.resampling)){ n.resampling <- option$n.resampling }
     if(is.null(strata.resampling)){ strata.resampling <- option$strata.resampling }
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
+    if(is.null(add.halfNeutral)){ add.halfNeutral <- option$add.halfNeutral }
     if(is.null(trace)){ trace <- option$trace }
     fitter.model.tte <- option$fitter.model.tte
     engine <- option$engine
@@ -308,6 +310,7 @@ initializeArgs <- function(status,
         n.resampling = n.resampling,
         hierarchical = hierarchical,
         neutral.as.uninf = neutral.as.uninf,
+        add.halfNeutral = add.halfNeutral,
         operator = operator,
         censoring = censoring,
         order.Hprojection = option$order.Hprojection,

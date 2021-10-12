@@ -31,6 +31,7 @@
 #' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
 #' @param neutral.as.uninf [logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 #' See Details, section "Handling missing values".
+#' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
 #' @param seed [integer, >0] the seed to consider when performing resampling.
 #' If \code{NULL} no seed is set.
@@ -252,6 +253,7 @@ BuyseTest <- function(formula,
                       hierarchical = NULL,
                       weight = NULL,
                       neutral.as.uninf = NULL,
+                      add.halfNeutral = NULL,
                       keep.pairScore = NULL,
                       seed = NULL,
                       cpus = NULL,
@@ -302,6 +304,7 @@ BuyseTest <- function(formula,
                               strata.resampling = strata.resampling,
                               name.call = name.call,
                               neutral.as.uninf = neutral.as.uninf,
+                              add.halfNeutral = add.halfNeutral,
                               operator = operator,
                               censoring = censoring,
                               option = option,
@@ -453,7 +456,7 @@ BuyseTest <- function(formula,
     if(outArgs$trace > 1){
         cat("Gather the results in a S4BuyseTest object \n")
     }
-    keep.args <- c("index.T", "index.C", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf",
+    keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
                    "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling")
     BuyseTest.object <- do.call("S4BuyseTest", args = c(list(call = setNames(as.list(mycall),names(mycall))),
                                                         outPoint, outArgs[keep.args], outResampling))
@@ -550,6 +553,7 @@ BuyseTest <- function(formula,
                                  hierarchical = envir$outArgs$hierarchical,
                                  hprojection = envir$outArgs$order.Hprojection,
                                  neutralAsUninf = envir$outArgs$neutral.as.uninf,
+                                 addHalfNeutral = envir$outArgs$add.halfNeutral,
                                  keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                                  precompute = envir$outArgs$precompute,
                                  returnIID = iid + iid*envir$outArgs$iidNuisance,

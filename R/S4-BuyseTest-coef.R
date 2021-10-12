@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: okt  4 2021 (18:32) 
+## Last-Updated: okt 12 2021 (18:02) 
 ##           By: Brice Ozenne
-##     Update #: 95
+##     Update #: 99
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,7 +32,6 @@
 #' Otherwise a summary statistic over all strata is returned.
 #' @param cumulative [logical] should the score be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
-#' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 #' 
 #' @param ... ignored.
 #'
@@ -66,7 +65,6 @@ setMethod(f = "coef",
                                 statistic = NULL,
                                 stratified = FALSE,
                                 cumulative = TRUE,
-                                add.halfNeutral = FALSE,
                                 ...){
 
               ## ** normalize arguments
@@ -93,10 +91,6 @@ setMethod(f = "coef",
                              valid.length = 1,
                              method = "coef[S4BuyseTest]")
 
-              if(add.halfNeutral && (statistic %in% c(type.count,type.pc))){
-                  stop("Argument \'add.halfNeutral\' can only be used for the following statistics: \"favorable\", \"unfavorable\", \"netBenefit\", \"winRatio\". \n")
-              }
-
               ## endpoint
               if(!is.null(endpoint)){
                   valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
@@ -114,31 +108,6 @@ setMethod(f = "coef",
                                      valid.values = valid.endpoint,
                                      refuse.NULL = FALSE)
                   }
-              }
-
-              ## ** add neutral contribution
-              if(add.halfNeutral){
-                  factor <- 0.5
-
-                  n.pairs <- object@n.pairs
-                  weight <- object@weight
-                  count.favorable <- object@count.favorable + factor * object@count.neutral
-                  count.unfavorable <- object@count.unfavorable + factor * object@count.neutral
-
-                  ## endpoint specific
-                  object@delta[,,"favorable"] <- sweep(count.favorable, FUN = "/", MARGIN = 1, STATS = n.pairs)
-                  object@delta[,,"unfavorable"] <- sweep(count.unfavorable, FUN = "/", MARGIN = 1, STATS = n.pairs)
-                  object@delta[,,"netBenefit"] <- sweep((count.favorable-count.unfavorable), FUN = "/", MARGIN = 1, STATS = n.pairs)
-                  object@delta[,,"winRatio"] <- count.favorable/count.unfavorable
-
-                  ## cumulative
-                  cumWcount.favorable <- cumsum(colSums(count.favorable)*weight)
-                  cumWcount.unfavorable <- cumsum(colSums(count.unfavorable)*weight)
-
-                  object@Delta[,"favorable"] <- cumWcount.favorable/sum(n.pairs)
-                  object@Delta[,"unfavorable"] <- cumWcount.unfavorable/sum(n.pairs)
-                  object@Delta[,"netBenefit"] <- (cumWcount.favorable-cumWcount.unfavorable)/sum(n.pairs)
-                  object@Delta[,"winRatio"] <- cumWcount.favorable/cumWcount.unfavorable
               }
 
               ## ** extract information
@@ -176,7 +145,7 @@ setMethod(f = "coef",
                                             dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
                                             )
                           }else{
-                              out <- t(apply(out,1,cumsum))
+                              out <- .rowCumSum_cpp(out)
                           }
                       }
                   }
@@ -189,7 +158,7 @@ setMethod(f = "coef",
                                         dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
                                         )
                       }else{
-                          out <- t(apply(out,1,cumsum))
+                          out <- .rowCumSum_cpp(out)
                       }
                   }
                   if(!stratified){
@@ -205,7 +174,7 @@ setMethod(f = "coef",
                                         dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
                                         )
                       }else{
-                          out <- t(apply(out,1,cumsum))
+                          out <- .rowCumSum_cpp(out)
                       }
                   }
                   if(!stratified){

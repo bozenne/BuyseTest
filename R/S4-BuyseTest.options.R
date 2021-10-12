@@ -34,6 +34,7 @@ setClass(
       n.resampling = "numeric",
       strata.resampling = "character",
       neutral.as.uninf = "logical",
+      add.halfNeutral = "logical",
       order.Hprojection = "numeric",
       precompute = "logical",
       print.display = "character",
@@ -126,6 +127,10 @@ setClass(
                      method = "Class BuyseTest.options")
       validLogical(object@neutral.as.uninf,
                    name1 = "@neutral.as.uninf",
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
+      validLogical(object@add.halfNeutral,
+                   name1 = "@add.halfNeutral",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
       validInteger(object@order.Hprojection,

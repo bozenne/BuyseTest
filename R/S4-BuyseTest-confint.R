@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt  4 2021 (19:10) 
+## Last-Updated: okt 11 2021 (14:49) 
 ##           By: Brice Ozenne
-##     Update #: 810
+##     Update #: 825
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -339,24 +339,31 @@ setMethod(f = "confint",
               
               ## ** transformation
               if(transformation){
+                  
+                  if(object@hierarchical){
+                      trans.weight <- 1
+                  }else{
+                      trans.weight <- sum(object@weight)
+                  }
+
                   trans.delta <- switch(statistic,
-                                        "netBenefit" = function(x){if(is.null(x)){x}else{atanh(x)}},
+                                        "netBenefit" = function(x){if(is.null(x)){x}else{atanh(x/trans.weight)}},
                                         "winRatio" = function(x){if(is.null(x)){x}else{log(x)}},
-                                        "favorable" = function(x){if(is.null(x)){x}else{atanh(2*(x-1/2))}},
-                                        "unfavorable" = function(x){if(is.null(x)){x}else{atanh(2*(x-1/2))}}
+                                        "favorable" = function(x){if(is.null(x)){x}else{atanh(2*(x/trans.weight-1/2))}},
+                                        "unfavorable" = function(x){if(is.null(x)){x}else{atanh(2*(x/trans.weight-1/2))}}
                                         )
                   itrans.delta <- switch(statistic,                                         
-                                         "netBenefit" = function(x){if(is.null(x)){x}else{tanh(x)}}, 
+                                         "netBenefit" = function(x){if(is.null(x)){x}else{trans.weight*tanh(x)}}, 
                                          "winRatio" = function(x){if(is.null(x)){x}else{exp(x)}},
-                                         "favorable" = function(x){if(is.null(x)){x}else{tanh(x)/2+1/2}},
-                                         "unfavorable" = function(x){if(is.null(x)){x}else{tanh(x)/2+1/2}}
+                                         "favorable" = function(x){if(is.null(x)){x}else{trans.weight*(tanh(x)/2+1/2)}},
+                                         "unfavorable" = function(x){if(is.null(x)){x}else{trans.weight*(tanh(x)/2+1/2)}}
                                          )                  
                   trans.se.delta <- switch(statistic,
                                            "netBenefit" = function(x,se){
                                                if(is.null(se)){
                                                    out <- se
                                                }else{
-                                                   out <- se/(1-x^2)
+                                                   out <- (se/trans.weight)/(1-(x/trans.weight)^2)
                                                    if(any(na.omit(se)==0)){
                                                        out[se==0] <- 0
                                                    }
@@ -378,7 +385,7 @@ setMethod(f = "confint",
                                                if(is.null(se)){
                                                    out <- se
                                                }else{
-                                                   out <- 2*se/(1-(2*(x-1/2))^2)
+                                                   out <- 2*(se/trans.weight)/(1-(2*(x/trans.weight-1/2))^2)
                                                    if(any(na.omit(se)==0)){
                                                        out[se==0] <- 0
                                                    }
@@ -389,7 +396,7 @@ setMethod(f = "confint",
                                                if(is.null(se)){
                                                    out <- se
                                                }else{
-                                                   out <- 2*se/(1-(2*(x-1/2))^2)
+                                                   out <- 2*(se/trans.weight)/(1-(2*(x/trans.weight-1/2))^2)
                                                    if(any(na.omit(se)==0)){
                                                        out[se==0] <- 0
                                                    }
@@ -401,7 +408,7 @@ setMethod(f = "confint",
                                                 if(is.null(se)){
                                                     out <- se
                                                 }else{
-                                                    out <- se*(1-itrans.delta(x)^2)
+                                                    out <- trans.weight*se*(1-itrans.delta(x)^2)
                                                     if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
@@ -423,7 +430,7 @@ setMethod(f = "confint",
                                                 if(is.null(se)){
                                                     out <- se
                                                 }else{
-                                                    out <- (se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
+                                                    out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
                                                     if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
@@ -434,7 +441,7 @@ setMethod(f = "confint",
                                                 if(is.null(se)){
                                                     out <- se
                                                 }else{
-                                                    out <- (se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
+                                                    out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
                                                     if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
@@ -519,6 +526,7 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
                                           null, alternative, alpha,
                                           endpoint, backtransform.delta, ...){
 
+    
     n.endpoint <- length(endpoint)
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
                        dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
@@ -531,17 +539,17 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
 
     ## ** confidence interval
     Delta.resamplingH0 <- apply(Delta.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)
-    outTable[,"lower.ci"] <- switch(alternative,
-                                    "two.sided" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = alpha/2, na.rm = TRUE),
-                                    "less" = -Inf,
-                                    "greater" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = alpha, na.rm = TRUE)
-                                    )
+    outTable[,"lower.ci"] <- backtransform.delta(switch(alternative,
+                                                        "two.sided" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = alpha/2, na.rm = TRUE),
+                                                        "less" = -Inf,
+                                                        "greater" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = alpha, na.rm = TRUE)
+                                                        ))
     
-    outTable[,"upper.ci"] <- switch(alternative,
-                                    "two.sided" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha/2, na.rm = TRUE),
-                                    "less" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha, na.rm = TRUE),
-                                    "greater" = Inf
-                                    )
+    outTable[,"upper.ci"] <- backtransform.delta(switch(alternative,
+                                                        "two.sided" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha/2, na.rm = TRUE),
+                                                        "less" = Delta + apply(Delta.resamplingH0, MARGIN = 2, FUN = stats::quantile, probs = 1 - alpha, na.rm = TRUE),
+                                                        "greater" = Inf
+                                                        ))
 
     ## ** p-value
     outTable[,"null"] <- backtransform.delta(null)

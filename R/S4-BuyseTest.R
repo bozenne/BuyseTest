@@ -34,6 +34,7 @@ setClass(
       scoring.rule = "character",
       hierarchical = "logical",
       neutral.as.uninf = "logical",
+      add.halfNeutral = "logical",
       correction.uninf = "numeric",
       method.inference = "character",
       strata = "vector",
@@ -76,6 +77,7 @@ methods::setMethod(
                                    tableSurvival = NULL, ## added to the cpp object by .BuyseTest when requested by the user
                                    index.C,
                                    index.T,
+                                   index.strata,
                                    type,
                                    endpoint,
                                    level.strata,
@@ -83,6 +85,7 @@ methods::setMethod(
                                    scoring.rule,
                                    hierarchical,
                                    neutral.as.uninf,
+                                   add.halfNeutral,
                                    correction.uninf,
                                    method.inference,
                                    method.score,
@@ -164,8 +167,8 @@ methods::setMethod(
                  names(endpoint) <- name.endpoint
 
                  ## ** level.strata
-                 ## attr(outArgs$level.strata,"index") <- outArgs$index.strata
-                 
+                 attr(level.strata,"index") <- index.strata
+
                  ## ** level.treatment
                  attr(level.treatment,"indexC") <- index.C
                  attr(level.treatment,"indexT") <- index.T
@@ -181,6 +184,8 @@ methods::setMethod(
                  ## ** hierarchical
                  
                  ## ** neutral.as.uninf
+
+                 ## ** add.halfNeutral
                  
                  ## ** correction.uninf
                  
@@ -250,6 +255,7 @@ methods::setMethod(
                  .Object@scoring.rule <- scoring.rule
                  .Object@hierarchical <- hierarchical
                  .Object@neutral.as.uninf <- neutral.as.uninf
+                 .Object@add.halfNeutral <- add.halfNeutral
                  .Object@correction.uninf <- correction.uninf
                  .Object@method.inference <- method.inference
                  .Object@strata <- strata

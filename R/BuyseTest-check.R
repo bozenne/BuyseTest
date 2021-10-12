@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: aug  9 2021 (09:42) 
+## Last-Updated: okt 12 2021 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 298
+##     Update #: 299
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,6 +38,7 @@ testArgs <- function(name.call,
                      strata.resampling,
                      hierarchical,
                      neutral.as.uninf,
+                     add.halfNeutral,
                      operator,
                      censoring,
                      seed,
@@ -364,6 +365,11 @@ testArgs <- function(name.call,
     ## ** neutral.as.uninf
     validLogical(neutral.as.uninf,
                  valid.length = D,
+                 method = "BuyseTest")
+
+    ## ** add.halfNeutral
+    validLogical(add.halfNeutral,
+                 valid.length = 1,
                  method = "BuyseTest")
 
     ## ** operator

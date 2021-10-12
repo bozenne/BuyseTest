@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: May 15 2021 (22:50) 
+## Last-Updated: okt 12 2021 (10:49) 
 ##           By: Brice Ozenne
-##     Update #: 951
+##     Update #: 953
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -356,7 +356,7 @@ powerBuyseTest <- function(sim,
     rerun <- (envir$n.sample.size>1)
 
     ## when creating S4 object
-    keep.args <- c("index.C", "index.T", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf",
+    keep.args <- c("index.C", "index.T", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
                    "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling","call")
 
     ## when initializing data
@@ -409,7 +409,7 @@ powerBuyseTest <- function(sim,
         allBT[[envir$n.sample.size]] <- BuyseTest(data = data, scoring.rule = envir$outArgs$scoring.rule, correction.uninf = envir$outArgs$correction.uninf, 
                                                   model.tte = envir$outArgs$model.tte, method.inference = envir$outArgs$method.inference, n.resampling = envir$outArgs$n.resampling, 
                                                   strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weight = envir$outArgs$weight, 
-                                                  neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
+                                                  neutral.as.uninf = envir$outArgs$neutral.as.uninf, add.halfNeutral = envir$outArgs$add.halfNeutral, 
                                                   trace = FALSE, treatment = envir$outArgs$treatment, endpoint = envir$outArgs$endpoint, 
                                                   type = envir$outArgs$type, threshold = envir$outArgs$threshold, status = envir$outArgs$status, operator = envir$outArgs$operator, 
                                                   censoring = envir$outArgs$censoring, strata = envir$outArgs$strata)
@@ -462,6 +462,7 @@ powerBuyseTest <- function(sim,
                                             hierarchical = envir$outArgs$hierarchical,
                                             weight = envir$outArgs$weight, 
                                             neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
+                                            add.halfNeutral = envir$outArgs$add.halfNeutral, 
                                             trace = FALSE,
                                             treatment = envir$outArgs$treatment,
                                             endpoint = envir$outArgs$endpoint, 

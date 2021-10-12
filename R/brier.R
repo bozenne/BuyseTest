@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: aug 24 2021 (11:30) 
+## Last-Updated: okt 12 2021 (18:03) 
 ##           By: Brice Ozenne
-##     Update #: 125
+##     Update #: 128
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -108,7 +108,7 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
             out$se <- stats::sd(iBrier)/sqrt(n.obs)
         }else{
             ## sqrt(crossprod(iidAverage)) - stats::sd(iBrier)/sqrt(n.obs)
-            iidNuisance <-  rowMeans(sweep(iid, FUN = "*", MARGIN = 2, STATS = 2*predictions - labels))
+            iidNuisance <-  rowMeans(.rowMultiply_cpp(iid, 2*predictions - labels))
             if(external){
                 attr(out,"iid") <- c(iidNuisance/sqrt(n.obs), iidAverage)
                 out$se <- sqrt(crossprod(attr(out,"iid")))
@@ -149,11 +149,11 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
             for(iFold in 1:n.fold){ ## iFold <- 1
                 iiFactor <- sapply(iFactor[observation[fold==iFold]],function(iVec){iVec[as.character(iFold)]})
                 iStat <- 2*(predictions[fold==iFold] - labels[observation[fold==iFold]])
-                iidNuisance  <- iidNuisance + rowMeans(sweep(iid[,,iFold], FUN = "*", MARGIN = 2, STATS = iStat*iiFactor))
+                iidNuisance  <- iidNuisance + rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat*iiFactor))
 
                 ## in each fold because of CV the training and test set are separate so the uncertainties are independent
                 term1 <- stats::sd((predictions[fold==iFold] - labels[observation[fold==iFold]])^2)
-                term2 <- sqrt(crossprod(rowMeans(sweep(iid[,,iFold], FUN = "*", MARGIN = 2, STATS = iStat)))/sum(fold==iFold))
+                term2 <- sqrt(crossprod(rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat)))/sum(fold==iFold))
                 out[out$fold==name.fold[iFold],"se"] <- term1 + term2
             }
             attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)

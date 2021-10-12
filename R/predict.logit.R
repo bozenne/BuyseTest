@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:55) 
 ## Version: 
-## Last-Updated: sep 15 2021 (16:27) 
+## Last-Updated: okt 12 2021 (18:03) 
 ##           By: Brice Ozenne
-##     Update #: 86
+##     Update #: 88
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -138,7 +138,7 @@
     if(robust == FALSE){
         seR.beta <- sqrt(colSums(iid.beta^2))
         se.beta <- sqrt(diag(Sigma.beta))
-        iid.beta  <- sweep(iid.beta, FUN =  "*", MARGIN = 2, STATS = se.beta/seR.beta)
+        iid.beta  <- .rowMultiply_cpp(iid.beta, se.beta/seR.beta)
     }
     iid.pred <- iid.beta %*% t(.colMultiply_cpp(X, scale = exp(-Xbeta)/(1+exp(-Xbeta))^2))
     ## colSums(iid.pred)
@@ -155,8 +155,8 @@
     iid.var.Xbeta <- do.call(rbind,lapply(1:n.obs, FUN = function(iObs){rowSums((X %*% iid.Sigma.beta[,,iObs]) * X)}))
     iid.var.e2XB_1eXb4 <- iid.beta %*% t(.colMultiply_cpp(X, scale = -2*exp(-2*Xbeta)/(1+exp(-Xbeta))^4 + 4*exp(-3*Xbeta)/(1+exp(-Xbeta))^5))
     ## colSums(iid.var.Xbeta)
-    iid.var.pred <- sweep(iid.var.Xbeta, FUN = "*", MARGIN = 2, STATS = exp(-2*Xbeta)  / (1+exp(-Xbeta))^4) + sweep(iid.var.e2XB_1eXb4, FUN = "*", MARGIN = 2, STATS = var.Xbeta) 
-    iid.se.pred <- sweep(iid.var.pred, FUN = "/", MARGIN = 2, STATS = 2*se.pred)
+    iid.var.pred <- .rowMultiply_cpp(iid.var.Xbeta, exp(-2*Xbeta)  / (1+exp(-Xbeta))^4) + rowMultiply_cpp(iid.var.e2XB_1eXb4, var.Xbeta) 
+    iid.se.pred <- rowScale_cpp(iid.var.pred, 2*se.pred)
     
     ## ** set correct level
     if(!is.null(level)){

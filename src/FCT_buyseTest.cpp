@@ -75,6 +75,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param hierarchical Should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)? Otherwise all pairs will be compaired for all endpoint (full GPC).
 //' @param hprojection Order of the H-projection used to compute the variance.
 //' @param neutralAsUninf Should paired classified as neutral be re-analyzed using endpoints of lower priority? 
+//' @param addHalfNeutral Should half of the neutral score be added to the favorable and unfavorable scores?
 //' @param keepScore Should the result of each pairwise comparison be kept?
 //' @param precompute Have the integrals relative to the survival be already computed and stored in list_survTimeC/list_survTimeT and list_survJumpC/list_survJumpT (derivatives)
 //' @param returnIID Should the iid be computed?
@@ -123,6 +124,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   bool hierarchical,
 		   int hprojection,
 		   std::vector<bool> neutralAsUninf,
+		   bool addHalfNeutral,
 		   bool keepScore,
 		   bool precompute,
 		   int returnIID,
@@ -413,7 +415,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		Mvar, returnIID,
 		posC, posT, 
                 D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		weight, hprojection, pairScore, keepScore);
+		weight, addHalfNeutral, hprojection, pairScore, keepScore);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,
@@ -469,6 +471,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    bool hierarchical,
 		    int hprojection,
 		    std::vector<bool> neutralAsUninf,
+		    bool addHalfNeutral,
 		    bool keepScore,
 		    bool precompute,
 		    int returnIID,
@@ -992,12 +995,12 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   if(debug>0){Rcpp::Rcout << "Compute summary statistics" << std::endl;}
   calcStatistic(delta, Delta, 
 		Mcount_favorable, Mcount_unfavorable, Mcount_neutral,
-		 iidAverage_favorable, iidAverage_unfavorable, iidAverage_neutral,
+		iidAverage_favorable, iidAverage_unfavorable, iidAverage_neutral,
 		iidNuisance_favorable, iidNuisance_unfavorable, iidNuisance_neutral,
-		 Mvar, returnIID,
-		 posC, posT, 
-		 D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		 weight, hprojection, pairScore, keepScore);
+		Mvar, returnIID,
+		posC, posT, 
+		D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
+		weight, addHalfNeutral, hprojection, pairScore, keepScore);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,

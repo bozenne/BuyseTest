@@ -474,7 +474,7 @@ setMethod(f = "summary",
                       cat(" - inference       : ",txt.method, sep = "")
                   }
                   
-                  cat(" - treatment groups: ",object@level.treatment[1]," (control) vs. ",object@level.treatment[2]," (treatment) \n", sep = "")
+                  cat(" - treatment groups: ",object@level.treatment[2]," (treatment) vs. ",object@level.treatment[1]," (control) \n", sep = "")
                   if(any(object@type == "tte") && any(attr(object@scoring.rule,"test.censoring"))){
                       
                       if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){

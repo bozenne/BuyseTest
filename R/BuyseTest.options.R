@@ -49,6 +49,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    n.resampling = 1000,
                    strata.resampling = as.character(NA),
                    neutral.as.uninf = TRUE,
+                   add.halfNeutral = FALSE,
                    order.Hprojection = 1,
                    precompute = TRUE,
                    print.display = c("endpoint","threshold","delta","Delta"),
