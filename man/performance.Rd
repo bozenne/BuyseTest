@@ -2,7 +2,7 @@
 % Please edit documentation in R/performance.R
 \name{performance}
 \alias{performance}
-\title{Assess Performance of a Classifier}
+\title{Assess Performance of a Classifier (EXPERIMENTAL)}
 \usage{
 performance(
   object,

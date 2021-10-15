@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt 11 2021 (14:49) 
+## Last-Updated: okt 14 2021 (19:46) 
 ##           By: Brice Ozenne
-##     Update #: 825
+##     Update #: 830
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -514,7 +514,9 @@ setMethod(f = "confint",
                   
               ## ** export
               if(attr(method.inference,"permutation")){
-                  warning("Confidence intervals are computed under the null hypothesis and therefore may not be valid. \n")
+                  if(is.null(attr(conf.level,"warning.permutation")) || !identical(attr(conf.level,"warning.permutation"),FALSE)){
+                      warning("Confidence intervals are computed under the null hypothesis and therefore may not be valid. \n")
+                  }
                   attr(outConfint,"warning") <- "Confidence intervals are computed under the null hypothesis"
               }
               return(outConfint)

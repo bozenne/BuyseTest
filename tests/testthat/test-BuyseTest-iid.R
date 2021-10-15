@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: okt 11 2021 (16:52) 
+## Last-Updated: okt 14 2021 (19:16) 
 ##           By: Brice Ozenne
-##     Update #: 175
+##     Update #: 190
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,6 +25,9 @@ if(FALSE){
 context("Check correct computation of the variance \n")
 var2 <- function(x){var(x)*(length(x)-1)/length(x)}
 cov2 <- function(x,y){cov(x,y)*(length(x)-1)/length(x)}
+coef2 <- function(x){
+    do.call(cbind,setNames(lapply(c("favorable","unfavorable","netBenefit"), function(iStat){coef(x, statistic = iStat)}),c("favorable","unfavorable","netBenefit")))
+}
 
 ## * Settings
 BuyseTest.options(check = TRUE,
@@ -33,25 +36,11 @@ BuyseTest.options(check = TRUE,
                   trace = 0)
 
 ## * iid average
-## data binary
-d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
-d2 <- rbind(cbind(d, strata = 1),
-            cbind(d, strata = 2),
-            cbind(d, strata = 3))
-
-## data continue,TTE
-n <- 5
-set.seed(10)
-dt <- simBuyseTest(n)
-dtS <- rbind(cbind(S = 1, dt), cbind(S = 2, dt), cbind(S = 3, dt))
-dtS$score1 <- dtS$score
-dtS$score2 <- dtS$score
-dtS[S == 1, score1 := 1]
-dtS[S > 1, score2 := 1]
 
 ## ** 1 binary variable
 ## *** no strata
 ## equal number in each group
+d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
 
 test_that("iid: binary and no strata (balanced groups)", {
     ## first order
@@ -122,81 +111,118 @@ test_that("iid: binary and no strata (unbalanced groups)", {
     expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0) )
 })
 
-
 ## *** strata
+d2 <- rbind(cbind(d, strata = 1),
+            cbind(d, strata = 2),
+            cbind(d, strata = 3))
+
 test_that("iid: binary with strata (balanced groups)", {
-    ## first order
-    BuyseTest.options(order.Hprojection = 1)
-    e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                      data = d2, 
-                      method.inference = "u-statistic", keep.pairScore = TRUE)
-    e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
+    for(iOrder in 1:2){ ## iOrder <- 1
+        BuyseTest.options(order.Hprojection = iOrder)
 
-    expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(1/16, 1/16, -1/16, 1/4, 4)/3 )
+        e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
+                          data = d2, keep.pairScore = FALSE,
+                          method.inference = "u-statistic")
+        e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
+                           data = d2, keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+        ebebu.BT <- BuyseTest(group ~ bin(toxicity) + strata,
+                              data = d2, keep.pairScore = TRUE,
+                              method.inference = "u-statistic-bebu")
 
-    expect_equal(as.double(getIid(e.BT, statistic = "favorable")), rep(c(-1/8,1/8,1/8,-1/8),3)/3)
-    expect_equal(as.double(getIid(e.BT, statistic = "unfavorable")), rep(c(1/8,-1/8,-1/8,1/8),3)/3)
+        expect_equal(e.BT@covariance,e2.BT@covariance)
+        expect_equal(e.BT@covariance,ebebu.BT@covariance)
 
-    ## second order
-    BuyseTest.options(order.Hprojection = 2)
-    e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                      data = d2, keep.pairScore = FALSE,
+        ls.BT <- lapply(split(d2,d2$strata), function(iData){
+            BuyseTest(group ~ bin(toxicity), data = iData,
                       method.inference = "u-statistic")
-    e1.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2, keep.pairScore = TRUE,
-                       method.inference = "u-statistic")
-    e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
+        })
+        
+        M.estimate <- do.call(rbind,lapply(ls.BT, function(iBT){coef2(iBT)}))
+        M.covariance <- do.call(rbind,lapply(ls.BT, function(iBT){iBT@covariance[,c(1:2,4)]}))
+        n.pair <- sapply(ls.BT, function(iBT){iBT@n.pairs})
+        ntot.pair <- sum(n.pair)
+        weight <- n.pair/ntot.pair
+
+        expect_equal(colSums(riskRegression::colMultiply_cpp(M.estimate,weight)),as.double(coef2(e.BT)))
+        expect_equal(colSums(riskRegression::colMultiply_cpp(M.covariance,weight^2)),as.double(e.BT@covariance[,c(1:2,4)]))
+        expect_equal(
+            as.double(getIid(e.BT, statistic = "netBenefit", normalize = FALSE)),
+            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", normalize = FALSE)))
+        )
+
+        if(iOrder==1){
+            expect_equal(as.double(e.BT@covariance), c(1/16, 1/16, -1/16, 1/4, 4)/3 )
+        }else{
+            expect_equal(as.double(e.BT@covariance), c(5/64, 5/64, -3/64, 1/4, 4)/3 )
+        }
+        expect_equal(as.double(getIid(e.BT, statistic = "favorable")), rep(c(-1/8,1/8,1/8,-1/8),3)/3)
+        expect_equal(as.double(getIid(e.BT, statistic = "unfavorable")), rep(c(1/8,-1/8,-1/8,1/8),3)/3)
+    }
     
-    expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
-    expect_equal(e.BT@covariance, e2.BT@covariance)
-    
-    expect_equal(as.double(e.BT@covariance), c(5/64, 5/64, -3/64, 1/4, 4)/3 )
 })
 
 d2.bis <- rbind(cbind(d.bis, strata = 1),
-                cbind(d.bis, strata = 2),
+                cbind(d, strata = 2),
                 cbind(d.bis, strata = 3))
 
 test_that("iid: binary and strata (unbalanced groups)", {
-    ## first order
-    BuyseTest.options(order.Hprojection = 1)
-    e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                      data = d2.bis, 
-                      method.inference = "u-statistic")
-    e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
-    
-    expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0)/3 )
+    for(iOrder in 1:2){ ## iOrder <- 2
+        BuyseTest.options(order.Hprojection = iOrder)
 
-    expect_equal(as.double(getIid(e.BT, statistic = "favorable")), rep(c(0,0,0,0),3)/3)
-    expect_equal(as.double(getIid(e.BT, statistic = "unfavorable")), rep(c(0,-1/9,-1/9,2/9),3)/3)
+        e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
+                          data = d2.bis, keep.pairScore = FALSE,
+                          method.inference = "u-statistic")
+        e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
+                           data = d2.bis, keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+        ebebu.BT <- BuyseTest(group ~ bin(toxicity) + strata,
+                              data = d2.bis, keep.pairScore = TRUE,
+                              method.inference = "u-statistic-bebu")
+        ## 0 0.1875 0
+        expect_equal(e.BT@covariance, e2.BT@covariance)
+        expect_equal(e.BT@covariance, ebebu.BT@covariance)
 
-    ## second order
-    BuyseTest.options(order.Hprojection = 2)
-    e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                      data = d2.bis, keep.pairScore = FALSE,
-                      method.inference = "u-statistic")
-    e1.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic")
-    e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                       data = d2.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
-    
-    expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
-    expect_equal(e.BT@covariance, e2.BT@covariance)
-    
-    expect_equal(as.double(e.BT@covariance), c(0, 2/27, 0, 2/27, 0)/3 )
+        ls.BT <- lapply(split(d2.bis,d2.bis$strata), function(iData){
+            suppressWarnings(BuyseTest(group ~ bin(toxicity), data = iData,
+                                       method.inference = "u-statistic"))
+        })
+        
+        M.estimate <- do.call(rbind,lapply(ls.BT, function(iBT){coef2(iBT)}))
+        M.covariance <- do.call(rbind,lapply(ls.BT, function(iBT){iBT@covariance[,c(1:2,4)]}))
+        n.pair <- sapply(ls.BT, function(iBT){iBT@n.pairs})
+        ntot.pair <- sum(n.pair)
+        weight <- n.pair/ntot.pair
+
+        expect_equal(colSums(riskRegression::colMultiply_cpp(M.estimate,weight)),as.double(coef2(e.BT)))
+        expect_equal(colSums(riskRegression::colMultiply_cpp(M.covariance,weight^2)),as.double(e.BT@covariance[,c(1:2,4)]))
+        expect_equal(
+            as.double(getIid(e.BT, statistic = "netBenefit", normalize = FALSE)),
+            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", normalize = FALSE)))
+        )
+
+        if(iOrder==1){
+            expect_equal(as.double(e.BT@covariance), c(0.01, 0.02333333, -0.01, 0.05333333, 0.21399177), tol = 1e-7 )
+        }else{
+            expect_equal(as.double(e.BT@covariance), c(0.0125, 0.02583333, -0.0075, 0.05333333, 0.22633745), tol = 1e-7 )
+        }
+        expect_equal(as.double(getIid(e.BT, statistic = "favorable")), c(0, 0, 0, 0, -0.05, 0.05, 0.05, -0.05, 0, 0, 0, 0), tol = 1e-7)
+        expect_equal(as.double(getIid(e.BT, statistic = "unfavorable")), c(0, -0.03333333, -0.03333333, 0.06666667, 0.05, -0.05, -0.05, 0.05, 0, -0.03333333, -0.03333333, 0.06666667), tol = 1e-7)
+    }
+
 })
 
 ## ** 1 continuous variable
+n <- 5
+set.seed(10)
+dt <- simBuyseTest(n)
+
+dtS <- rbind(cbind(S = 1, dt), cbind(S = 2, dt), cbind(S = 3, dt))
+dtS$score1 <- dtS$score
+dtS$score2 <- dtS$score
+dtS[S == 1, score1 := 1]
+dtS[S > 1, score2 := 1]
+
 test_that("Manual calculation of second order H projection (no strata)",{
 
     BuyseTest.options(order.Hprojection = 1)
@@ -279,6 +305,7 @@ test_that("Manual calculation of second order H projection (strata)",{
 })
 
 ## ** 1 TTE variable
+
 test_that("iid: TTE and no strata",{
     BuyseTest.options(order.Hprojection = 1)
 
@@ -445,51 +472,66 @@ test_that("iid: two endpoints (no strata - second order)", {
 })
 
 ## *** strata
+
 test_that("iid: two endpoints (strata)", {
 
-    ## first order
+    for(iOrder in 1:2){ ## iOrder <- 2
+        BuyseTest.options(order.Hprojection = iOrder)
+
+        e.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
+                          data = dtS,
+                          method.inference = "u-statistic")
+        e2.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
+                           data = dtS, keep.pairScore = TRUE,
+                           method.inference = "u-statistic")
+        ebebu.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
+                           data = dtS, keep.pairScore = TRUE,
+                           method.inference = "u-statistic-bebu")
+
+        expect_equal(e.BT@covariance,e2.BT@covariance)
+        expect_equal(e.BT@covariance,ebebu.BT@covariance)
+
+        ls.BT <- lapply(split(dtS,dtS$S), function(iData){
+            BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1), data = iData,
+                      method.inference = "u-statistic")
+        })
+        
+        ls.estimate <- lapply(ls.BT, function(iBT){coef2(iBT)})
+        ls.covariance <- lapply(ls.BT, function(iBT){iBT@covariance[,c(1:2,4)]})
+        n.pair <- sapply(ls.BT, function(iBT){iBT@n.pairs})
+        ntot.pair <- sum(n.pair)
+        weight <- n.pair/ntot.pair
+        
+        expect_equal(Reduce("+",lapply(1:length(weight), function(iS){ls.estimate[[iS]]*weight[iS]})),coef2(e.BT), tol = 1e-7)
+        expect_equal(Reduce("+",lapply(1:length(weight), function(iS){ls.covariance[[iS]]*weight[iS]^2})),e.BT@covariance[,c(1:2,4)])
+        
+        expect_equal(
+            as.double(getIid(e.BT, statistic = "netBenefit", normalize = FALSE)),
+            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", normalize = FALSE)))
+        )
+
+        if(iOrder==1){
+            expect_equal(as.double(e.BT@covariance[2,]), c(0.01408, 0.00085333, -0.00149333, 0.01792, 108), tol = 1e-6 )
+        }else{
+            expect_equal(as.double(e.BT@covariance[2,]), c(0.014592, 0.00119467, -0.00145067, 0.018688, 138.4), tol = 1e-6 )
+        }
+    }
+})
+
+## *** cluster
+dtS <- rbind(cbind(S = 1, dt, id = 1:NROW(dt)), cbind(S = 2, dt, id = 1:NROW(dt)), cbind(S = 3, dt, id = 1:NROW(dt)))
+
+test_that("cluster option", {
     BuyseTest.options(order.Hprojection = 1)
-    e0.BT <- BuyseTest(treatment ~ cont(score, threshold = 1) + S,
+    e.BT <- BuyseTest(treatment ~ cont(score, threshold = 1) + bin(toxicity),
+                      data = dt,
+                      method.inference = "u-statistic")
+    e3.BT <- BuyseTest(treatment ~ cont(score, threshold = 1) + bin(toxicity) + S,
                        data = dtS,
                        method.inference = "u-statistic")
-    e.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                      data = dtS,
-                      method.inference = "u-statistic")
-    e2.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                       data = dtS, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
 
-    expect_equal(as.double(e0.BT@covariance), as.double(e.BT@covariance[2,]))
-    expect_equal(e.BT@covariance, e2.BT@covariance)
-    expect_equal(as.double(e0.BT@covariance),
-                 c(0.01408, 0.00085333, -0.00149333, 0.01792, 108), tol = 1e-6 )
-    
-    ## cluster argument
-    expect_equal(unname(getIid(e.BT, cluster = 1:NROW(dtS))), unname(getIid(e.BT)), tol = 1e-6)
-    expect_equivalent(confint(e.BT, cluster = 1:NROW(dtS)),  confint(e.BT), tol = 1e-6)
-
-    ## second order
-    BuyseTest.options(order.Hprojection = 2)
-    e.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                      data = dtS,
-                      method.inference = "u-statistic") ## neglect some terms
-    e1.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                      data = dtS, keep.pairScore = TRUE,
-                      method.inference = "u-statistic")
-    e2.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                       data = dtS, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu") ## neglect some terms
-
-    ## expect_equal(e.BT@covariance, e1.BT@covariance, tol = 1e-4) ## imperfect match
-    expect_equal(e.BT@covariance, e2.BT@covariance)
-    remaining.pairs <- e1.BT@tablePairScore[[2]]$index.pair
-
-    expect_equal(e1.BT@tablePairScore[[1]][index.pair %in% remaining.pairs,.(index.C,index.T)],
-                 e1.BT@tablePairScore[[2]][,.(index.C,index.T)])
-    expect_equal(as.double(e1.BT@covariance["score2_1",]),
-                 c(0.014592, 0.00119467, -0.00145067, 0.018688, 138.4), tol = 1e-6 )
-
-
+    expect_equal(getIid(e.BT),getIid(e3.BT, cluster = dtS$id), tol = 1e-6)
+    expect_equivalent(as.data.frame(confint(e.BT)),as.data.frame(confint(e3.BT, cluster = dtS$id)), tol = 1e-6)
 })
 
 ## * iid Peron
@@ -518,8 +560,7 @@ test_that("iid with nuisance parameters: 1 TTE",{
     e.BT_tte1.bis <- BuyseTest(treatment2 ~ tte(eventtime, status, threshold = 1),
                                data = dt, trace = 0, 
                                keep.pairScore = TRUE,
-                               method.inference = "u-statistic")
-        
+                               method.inference = "u-statistic")       
     e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
                            data = dt, trace = 0, 
                            keep.pairScore = TRUE,
@@ -632,6 +673,7 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
                     ## method.inference = "bootstrap")
 })
 
+
 ## ** 2 TTE variables
 n.patients <- c(20,20)
 set.seed(10)
@@ -701,6 +743,36 @@ test_that("iid with nuisance parameters: 2 TTE",{
                  ) 
 
     expect_equal(test, as.data.frame(GS), tol = 1e-3)
+})
+
+
+
+## ** 1 TTE with strata
+test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
+    BuyseTest.options(order.Hprojection = 1)
+
+    e.BT_tteS <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + toxicity1,
+                           data = dt.sim, 
+                           method.inference = "u-statistic")
+    e.BT_tteS@covariance
+
+    ls.BT_tteS <- lapply(split(dt.sim,dt.sim$toxicity1), function(iData){
+        BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1), data = iData,
+                  method.inference = "u-statistic")
+    })
+        
+    M.estimate <- do.call(rbind,lapply(ls.BT_tteS, function(iBT){coef2(iBT)}))
+    M.covariance <- do.call(rbind,lapply(ls.BT_tteS, function(iBT){iBT@covariance[,c(1:2,4)]}))
+    n.pair <- sapply(ls.BT_tteS, function(iBT){iBT@n.pairs})
+    ntot.pair <- sum(n.pair)
+    weight <- n.pair/ntot.pair
+
+    expect_equal(colSums(riskRegression::colMultiply_cpp(M.estimate,weight)),as.double(coef2(e.BT_tteS)))
+    expect_equal(colSums(riskRegression::colMultiply_cpp(M.covariance,weight^2)),as.double(e.BT_tteS@covariance[,c(1:2,4)]))
+
+    test <- as.double(getIid(e.BT_tteS, statistic = "netBenefit", normalize = FALSE))
+    GS <- unlist(lapply(ls.BT_tteS, getIid, statistic = "netBenefit", normalize = FALSE))
+    expect_equal(test[unlist(split(1:NROW(dt.sim),dt.sim$toxicity1))], unname(GS), tol = 1e-7)
 })
 
 ## * normalization iid

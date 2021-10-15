@@ -1,7 +1,7 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  15 OCT 2021 10:14
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  15 OCT 2021 11:49
 entering extended mode
-**./overview.tex
-(overview.tex
+**./wilcoxonTest.tex
+(wilcoxonTest.tex
 LaTeX2e <2021-06-01> patch level 1
 L3 programming layer <2021-07-12>
 (C:\Program Files\MiKTeX 2.9\tex/latex/base\article.cls
@@ -1113,8 +1113,8 @@ File: l3backend-pdftex.def 2021-08-04 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count371
 \l__pdf_internal_box=\box134
 )
-(overview.aux)
-\openout1 = `overview.aux'.
+(wilcoxonTest.aux)
+\openout1 = `wilcoxonTest.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 206.
 LaTeX Font Info:    ... okay on input line 206.
@@ -1135,7 +1135,8 @@ LaTeX Font Info:    ... okay on input line 206.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 206.
 LaTeX Font Info:    ... okay on input line 206.
 \c@lstlisting=\count372
- (C:\Program Files\MiKTeX 2.9\tex/context/base/mkii\supp-pdf.mkii
+
+(C:\Program Files\MiKTeX 2.9\tex/context/base/mkii\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count373
 \scratchdimen=\dimen322
@@ -1205,9 +1206,9 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 206.
 LaTeX Info: Redefining \pageref on input line 206.
 LaTeX Info: Redefining \nameref on input line 206.
- (overview.out) (overview.out)
+ (wilcoxonTest.out) (wilcoxonTest.out)
 \@outlinefile=\write5
-\openout5 = `overview.out'.
+\openout5 = `wilcoxonTest.out'.
 
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
@@ -1258,28 +1259,12 @@ LaTeX Font Info:    Trying to load font information for U+stmry on input line 2
 09.
 
 (C:\Users\hpl802\AppData\Roaming\MiKTeX\2.9\tex/latex/stmaryrd\ustmry.fd)
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 214.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 214.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 214.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 223.
-LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
-32.
-
-(C:\Program Files\MiKTeX 2.9\tex/latex/lm\ts1lmr.fd
-File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
-)
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
-32.
+15.
 
 (C:\Program Files\MiKTeX 2.9\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [1
-
-{C:/Users/hpl802/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+)
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 )
@@ -1288,86 +1273,40 @@ File: lstlang2.sty 2020/03/24 1.8d listings language file
 )
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang3.sty
 File: lstlang3.sty 2020/03/24 1.8d listings language file
-) [2
-
-] [3]
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <17.28> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 366.
- [4
-
-]
+)
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 434.
+(Font)              <10.95> on input line 227.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <8> on input line 227.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <6> on input line 227.
+ [1
 
-[5
-
-] [6] [7] [8
-
-] [9] [10
-
-] [11
-
-] [12
-
-] [13]
-<./figures/gg-sensitivity1.pdf, id=266, 361.35pt x 216.81pt>
-File: ./figures/gg-sensitivity1.pdf Graphic file (type pdf)
-<use ./figures/gg-sensitivity1.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 988.
-
-(pdftex.def)             Requested size: 270.3012pt x 162.18033pt.
- [14
-
- <./figures/gg-sensitivity1.pdf>]
-<./figures/gg-sensitivity2.pdf, id=290, 505.89pt x 216.81pt>
-File: ./figures/gg-sensitivity2.pdf Graphic file (type pdf)
-<use ./figures/gg-sensitivity2.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1044
-.
-(pdftex.def)             Requested size: 540.60239pt x 231.68996pt.
-
-[15 <./figures/gg-sensitivity2.pdf>] [16] [17] [18] [19] [20] [21
-
-] [22
-
-]
-[23] [24] [25] [26]
-<./figures/plot-crossingSurv.pdf, id=507, 722.7pt x 505.89pt>
-File: ./figures/plot-crossingSurv.pdf Graphic file (type pdf)
-<use ./figures/plot-crossingSurv.pdf>
-Package pdftex.def Info: ./figures/plot-crossingSurv.pdf  used on input line 18
-14.
-(pdftex.def)             Requested size: 432.48355pt x 302.74124pt.
- [27 <./figures/plot-crossingSurv.pdf>] [28] [29
-
-] [30
-
-]
-[31
-
-] [32
-
-] (overview.bbl)
+{C:/Users/hpl802/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <12> on input line 267.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <5> on input line 270.
+ [2] [3]
 \Changes@OutFile=\write6
-\openout6 = `overview.soc'.
+\openout6 = `wilcoxonTest.soc'.
 
 \tf@loc=\write7
-\openout7 = `overview.loc'.
+\openout7 = `wilcoxonTest.loc'.
 
- [33
-
-] (overview.aux)
-Package rerunfilecheck Info: File `overview.out' has not changed.
-(rerunfilecheck)             Checksum: 5FAE80B4BB9EA8BC1FBDAD13421A2F2F;5614.
+ [4]
+(wilcoxonTest.aux)
+Package rerunfilecheck Info: File `wilcoxonTest.out' has not changed.
+(rerunfilecheck)             Checksum: 154234A2FDB08E3ED3639DDE191E1ECF;313.
  ) 
 Here is how much of TeX's memory you used:
- 30769 strings out of 478868
- 541136 string characters out of 2856724
- 1213094 words of memory out of 3000000
- 47675 multiletter control sequences out of 15000+600000
- 479050 words of font info for 106 fonts, out of 8000000 for 9000
+ 30072 strings out of 478868
+ 530957 string characters out of 2856724
+ 1314092 words of memory out of 3000000
+ 47306 multiletter control sequences out of 15000+600000
+ 478021 words of font info for 103 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 114i,8n,117p,605b,1888s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 114i,8n,117p,609b,1877s stack positions out of 5000i,500n,10000p,200000b,80000s
 pdfTeX warning (dest): name{Hfootnote.3} has been referenced but does not exi
 st, replaced by a fixed one
 
@@ -1377,27 +1316,20 @@ pdfTeX warning (dest): name{Hfootnote.2} has been referenced but does not exist
 pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exist
 , replaced by a fixed one
 
-{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathex.enc}{C:/Program Files
-/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathit.enc}{C:/Program Files/MiKTeX 2.9/fonts
-/enc/dvips/lm/lm-ec.enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ts1.
-enc}{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathsy.enc}{C:/Program F
-iles/MiKTeX 2.9/fonts/enc/dvips/lm/lm-rm.enc}<C:/Program Files/MiKTeX 2.9/fonts
-/type1/public/lm/lmbx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/
-lmex10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmmi12.pfb><C:/Pr
-ogram Files/MiKTeX 2.9/fonts/type1/public/lm/lmmi6.pfb><C:/Program Files/MiKTeX
- 2.9/fonts/type1/public/lm/lmmi8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/p
-ublic/lm/lmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr12.pfb
-><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr17.pfb><C:/Program Files
-/MiKTeX 2.9/fonts/type1/public/lm/lmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/t
-ype1/public/lm/lmr8.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmri
-12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Progra
-m Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy8.pfb><C:/Program Files/MiKTeX 2.9
-/fonts/type1/public/lm/lmtk10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publ
-ic/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt12.pfb>
-<C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on overview.pdf (33 pages, 503159 bytes).
+{C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.enc}{C:/Program Files/MiK
+TeX 2.9/fonts/enc/dvips/lm/lm-mathsy.enc}<C:/Program Files/MiKTeX 2.9/fonts/typ
+e1/public/lm/lmbx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmbx
+6.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr10.pfb><C:/Program 
+Files/MiKTeX 2.9/fonts/type1/public/lm/lmr12.pfb><C:/Program Files/MiKTeX 2.9/f
+onts/type1/public/lm/lmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/
+lm/lmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Pro
+gram Files/MiKTeX 2.9/fonts/type1/public/lm/lmri12.pfb><C:/Program Files/MiKTeX
+ 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/
+public/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt12.
+pfb>
+Output written on wilcoxonTest.pdf (4 pages, 264841 bytes).
 PDF statistics:
- 771 PDF objects out of 1000 (max. 8388607)
- 374 named destinations out of 1000 (max. 500000)
- 204 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 156 PDF objects out of 1000 (max. 8388607)
+ 56 named destinations out of 1000 (max. 500000)
+ 29 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: maj 22 2020 (11:26) 
+## Last-Updated: okt 14 2021 (19:04) 
 ##           By: Brice Ozenne
-##     Update #: 68
+##     Update #: 69
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -89,7 +89,7 @@ test_that("Full data - no correction", {
 formula <- treatment ~ tte(time1, status1, threshold = 0.5) + cont(score1, 1) + bin(toxicity1) + tte(time1, status1, threshold = 0.25) + cont(score1, 0.5)
 
 test_that("Full data", {
-    BT.mixed <- BuyseTest(formula, data = dt.sim, scoring.rule = "Peron", correction.uninf = TRUE)
+    BT.mixed <- suppressWarnings(BuyseTest(formula, data = dt.sim, scoring.rule = "Peron", correction.uninf = TRUE))
 
     expect_equal(as.double(BT.mixed@n.pairs),
                  prod(table(dt.sim$treatment)))

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: sep 15 2021 (16:31) 
+## Last-Updated: okt 14 2021 (19:19) 
 ##           By: Brice Ozenne
-##     Update #: 291
+##     Update #: 292
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,7 @@
 ## 
 ### Code:
 
-##' @title Assess Performance of a Classifier
+##' @title Assess Performance of a Classifier (EXPERIMENTAL)
 ##' @description Assess the performance in term of AUC and brier score of one or several binary classifiers.
 ##' Currently limited to logistic regressions and random forest.
 ##'

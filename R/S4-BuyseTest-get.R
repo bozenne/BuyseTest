@@ -100,7 +100,7 @@ setMethod(f = "getIid",
               indexC <- attr(object@level.treatment,"indexC")
               indexT <- attr(object@level.treatment,"indexT")
               indexStrata <- attr(object@level.strata,"index")
-                  
+              
               ## ** check arguments              
               if(is.numeric(endpoint)){
                   validInteger(endpoint,
@@ -159,8 +159,12 @@ setMethod(f = "getIid",
                                      )
               }
               if(type %in% c("all","nuisance") && (object@scoring.rule=="Peron")){
-                  object.iid$favorable <- object.iid$favorable + object@iidNuisance$favorable
-                  object.iid$unfavorable <- object.iid$unfavorable + object@iidNuisance$unfavorable
+                  if(length(object@iidNuisance$favorable)>0){
+                      object.iid$favorable <- object.iid$favorable + object@iidNuisance$favorable
+                  } ## otherwise model.tte has been passed as argument and there is no uncertainty regarding nuisance
+                  if(length(object@iidNuisance$unfavorable)>0){
+                      object.iid$unfavorable <- object.iid$unfavorable + object@iidNuisance$unfavorable
+                  } ## otherwise model.tte has been passed as argument and there is no uncertainty regarding nuisance
               }
 
               if(normalize==FALSE){
@@ -168,12 +172,22 @@ setMethod(f = "getIid",
                       iStrataC <- intersect(indexC,indexStrata[[iter_strata]])
                       iStrataT <- intersect(indexT,indexStrata[[iter_strata]])
 
-                      ## remove scaling 
+                      ## remove scaling (pooling across strata)
+                      if(n.strata>1){
+                          object.iid$favorable[c(iStrataC,iStrataT),] <- object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE] / (n.pairs[iter_strata] / ntot.pair);
+                          object.iid$unfavorable[c(iStrataC,iStrataT),] <- object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE] / (n.pairs[iter_strata] / ntot.pair);
+                      }
+
+                      if(!is.null(attr(normalize,"skipScaleCenter")) && identical(attr(normalize,"skipScaleCenter"),TRUE)){next}
+                      
+                      ## remove scaling (by the sample size: \sum_i IF_i^2 -> 1/n^2 \sum_i IF_i^2)
                       object.iid$favorable[iStrataC,] <- length(iStrataC) * object.iid$favorable[iStrataC,,drop=FALSE]
                       object.iid$favorable[iStrataT,] <- length(iStrataT) * object.iid$favorable[iStrataT,,drop=FALSE]
 
                       object.iid$unfavorable[iStrataC,] <- length(iStrataC) * object.iid$unfavorable[iStrataC,,drop=FALSE]
                       object.iid$unfavorable[iStrataT,] <- length(iStrataT) * object.iid$unfavorable[iStrataT,,drop=FALSE]
+
+                      if(!is.null(attr(normalize,"skipCenter")) && identical(attr(normalize,"skipCenter"),TRUE)){next}
 
                       ## remove centering
                       object.iid$favorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE], - delta.favorable[iter_strata,,drop=FALSE])
@@ -181,18 +195,8 @@ setMethod(f = "getIid",
                   }
 
               }
-              if(cumulative && n.endpoint > 1){
 
-                  ## *** rescale to account for the pooling across strata i.e. T = \sum_s n_pair(s) T(s) / n_tot
-                  if(n.strata>1){
-                      for(iter_strata in 1:n.strata){  ## iter_strata <- 1
-                          iStrataC <- intersect(indexC,indexStrata[[iter_strata]])
-                          iStrataT <- intersect(indexT,indexStrata[[iter_strata]])
-                          
-                          object.iid$favorable[c(iStrataC,iStrataT),] <- object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE] * n.pairs[iter_strata] / ntot.pair;
-                          object.iid$unfavorable[c(iStrataC,iStrataT),] <- object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE] * n.pairs[iter_strata] / ntot.pair;
-                      }
-                  }
+              if(cumulative && n.endpoint > 1){
               
                   ## *** weight endpoints and cumulate them to obtain (cumulative) first order projection
                   keep.names <- list(favorable = colnames(object.iid$favorable),

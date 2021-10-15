@@ -22,6 +22,7 @@ testArgs(
   strata.resampling,
   hierarchical,
   neutral.as.uninf,
+  add.halfNeutral,
   operator,
   censoring,
   seed,

@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 2.3.4
-Date: 2021-10-04
+Version: 2.3.5
+Date: 2021-10-15
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
@@ -16,7 +16,8 @@ Description: Implementation of the Generalized Pairwise Comparisons (GPC)
 			 one group performs better than a random observation drawn from the other group (Mann-Whitney parameter).
 			 The net benefit and win ratio statistics,
 			 i.e. the difference and ratio between the probabilities relative to the intervention and control groups,
-			 can then also be estimated. Confidence intervals and p-values are obtained using permutations, a non-parametric bootstrap, or the asymptotic theory.
+			 can then also be estimated. Confidence intervals and p-values are obtained based on asymptotic results (Ozenne 2021 <doi:10.1177/09622802211037067>),
+			 non-parametric bootstrap, or permutations.
 			 The software enables the use of thresholds of minimal importance difference,
 			 stratification, non-prioritized endpoints (O Brien test), and can handle right-censoring and competing-risks.
 License: GPL-3

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt  4 2021 (20:11) 
+## Last-Updated: okt 14 2021 (19:00) 
 ##           By: Brice Ozenne
-##     Update #: 192
+##     Update #: 195
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -490,4 +490,33 @@ test_that("subset factor strata",{
                     data = dtR, trace = FALSE)
     expect_equal(confint(test),confint(GS), tol = 1e-6)
 
+})
+
+## * Mickaël De Backer : Oct 11, 2021 11:04:31 transformation and variance strata
+test_that("backtransformation after permutation",{
+    gpc_ex1 <- BuyseTest(trt~cont(time),
+                         data=veteran, seed = 10, n.resampling = 100,
+                         method.inference = "permutation") 
+    test <- suppressWarnings(confint(gpc_ex1, statistic='winratio') )
+    expect_true(test$estimate < test$upper.ci)
+    expect_true(test$estimate > test$lower.ci)
+})
+
+test_that("U-stat with stratification",{
+    for(iOrder in 1:2){
+        BuyseTest.options(order.Hprojection = iOrder)
+        GPC.stratified <- BuyseTest(trt~cont(time) + celltype,
+                                    data=veteran,
+                                    method.inference = "u-statistic")
+        ls.GPC <- lapply(split(veteran, veteran$celltype), function(iData){
+            BuyseTest(trt~cont(time), data=iData,
+                      method.inference = "u-statistic")
+        })
+
+        weights.strata <- GPC.stratified@n.pairs/sum(GPC.stratified@n.pairs)
+        expect_equivalent(sum(weights.strata*coef(GPC.stratified,statistic="netBenefit",stratified = TRUE)),
+                          coef(GPC.stratified,statistic="netBenefit"), tol = 1e-6)
+        expect_equivalent(sum(weights.strata^2*sapply(ls.GPC,function(iGPC){iGPC@covariance[,"netBenefit"]})),
+                          GPC.stratified@covariance[,"netBenefit"], tol = 1e-6)
+    }
 })

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: okt  4 2021 (21:39) 
+## Last-Updated: okt 15 2021 (11:40) 
 ##           By: Brice Ozenne
-##     Update #: 133
+##     Update #: 143
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -245,7 +245,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
                         "favorable" = 1,
                         "unfavorable" = 1)
 
-    if(statistic %in% c("none","netBenefit","winRatio") || inherits(try(riskRegression::transformCIBP(estimate = 1, se = 1, type = "atanh2", seed = NA, band = FALSE, alternative = "two.sided"),silent=TRUE),"try-error")){
+    if(statistic %in% c("none","netBenefit","winRatio") || inherits(try(riskRegression::transformCIBP(estimate = 0.5, se = cbind(0.1), type = "atanh2", seed = NA, band = FALSE, alternative = "two.sided", p.value = TRUE, ci = TRUE, conf.level = 0.95, min.value = -Inf, max.value = Inf, null = 0.5),silent=TRUE),"try-error")){
         type <- switch(statistic,
                        "netbenefit" = "atanh",
                        "winratio" = "log",
@@ -290,6 +290,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     }else{
         rownames(out) <- iName
     }
+    attr(out,"iid") <- A.iid[,,1]
     attr(out,"linfct") <- linfct
     attr(out,"quantileBand") <- iBand$quantile
     attr(out,"quantileBand") <- iBand$quantile

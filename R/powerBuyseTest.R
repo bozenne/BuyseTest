@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 12 2021 (10:49) 
+## Last-Updated: okt 15 2021 (09:24) 
 ##           By: Brice Ozenne
-##     Update #: 953
+##     Update #: 998
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -53,9 +53,9 @@
 ##' 
 ##' #### Using simBuyseTest ####
 ##' ## only point estimate
-##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
+##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), n.rep = 10,
 ##'                formula = treatment ~ bin(toxicity), seed = 10,
-##'                method.inference = "none", trace = 2)
+##'                method.inference = "none", trace = 2, keep.pairScore = FALSE)
 ##'
 ##' ## point estimate with rejection rate
 ##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
@@ -118,9 +118,6 @@ powerBuyseTest <- function(sim,
     }
     alpha <- 1 - conf.level
     
-    if("keep.pairScore" %in% name.call){
-        stop("\'keep.pairScore\' is not an argument of powerBuyseTest \n")
-    }
     if(is.null(sample.sizeC) && is.null(sample.sizeT)){
         sample.sizeC <- sample.size
         sample.sizeT <- sample.size
@@ -160,6 +157,9 @@ powerBuyseTest <- function(sim,
     outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
                               data = NULL, model.tte = NULL, ...)
     outArgs$call <- setNames(as.list(call),names(call))
+    ## if((outArgs$keep.pairScore == FALSE) && ("keep.pairScore" %in% names(call) == FALSE) && (outArgs$method.inference %in% c("none","u-statistic")) && (outArgs$correction.uninf==0) && all(outArgs$scoring.rule<=0) ){
+    ##     outArgs$keep.pairScore <- TRUE
+    ## }
 
     ## ** test arguments
     if(option$check){
@@ -294,9 +294,7 @@ powerBuyseTest <- function(sim,
                       "calcSample",
                       "calcPeron",
                       "pairScore2dt",
-                      "inferenceUstatistic",
                       "confint_Ustatistic",
-                      ".iid2cov",
                       "validNumeric")
 
         ## try sim
@@ -356,7 +354,7 @@ powerBuyseTest <- function(sim,
     rerun <- (envir$n.sample.size>1)
 
     ## when creating S4 object
-    keep.args <- c("index.C", "index.T", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
+    keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
                    "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling","call")
 
     ## when initializing data
@@ -417,64 +415,100 @@ powerBuyseTest <- function(sim,
     
     ## ** Loop over other sample sizes
     if(rerun>0){
-        
+        ## test.bebu <- envir$outArgs$keep.pairScore && (envir$outArgs$method.inference %in% c("none","u-statistic")) && all(scoring.rule <= 4) && (envir$outArgs$correction.uninf == 0)
+
         for(iSize in 1:(envir$n.sample.size-1)){
-            iData <- rbind(data[index.C[1:envir$sample.sizeC[iSize]]],
-                           data[index.T[1:envir$sample.sizeT[iSize]]])
-            
-            if(envir$outArgs$method.inference %in% c("none","u-statistic")){
-                envir$outArgs[out.name] <- initializeData(data = iData,
-                                                          type = envir$outArgs$type,
-                                                          endpoint = envir$outArgs$endpoint,
-                                                          Uendpoint = envir$outArgs$Uendpoint,
-                                                          D = envir$outArgs$D,
-                                                          scoring.rule = scoring.rule,
-                                                          status = envir$outArgs$status,
-                                                          Ustatus = envir$outArgs$Ustatus,
-                                                          method.inference = envir$outArgs$method.inference,
-                                                          censoring = envir$outArgs$censoring,
-                                                          strata = envir$outArgs$strata,
-                                                          treatment = envir$outArgs$treatment,
-                                                          hierarchical = envir$outArgs$hierarchical,
-                                                          copy = FALSE,
-                                                          keep.pairScore = envir$outArgs$keep.pairScore,
-                                                          endpoint.TTE = envir$outArgs$endpoint.TTE,
-                                                          status.TTE = envir$outArgs$status.TTE,
-                                                          iidNuisance = iidNuisance)
 
-                outPoint <- .BuyseTest(envir = envir,
-                                       iid = envir$outArgs$iid,
-                                       method.inference = envir$outArgs$method.inference,
-                                       pointEstimation = TRUE)
+            ## if(test.bebu){ REMOVED AS IT IS SLOWER TO KEEP pairScore THAN RE-RUN THE C++ CODE
 
-                allBT[[iSize]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
-            }else{
-                iData[["..strata.."]]  <- NULL
-                iData[["..rowIndex.."]]  <- NULL
-                iData[["..NA.."]]  <- NULL
-                allBT[[iSize]] <- BuyseTest(data = iData,
-                                            scoring.rule = envir$outArgs$scoring.rule,
-                                            correction.uninf = envir$outArgs$correction.uninf, 
-                                            model.tte = envir$outArgs$model.tte,
-                                            method.inference = envir$outArgs$method.inference,
-                                            n.resampling = envir$outArgs$n.resampling, 
-                                            strata.resampling = envir$outArgs$strata.resampling,
-                                            hierarchical = envir$outArgs$hierarchical,
-                                            weight = envir$outArgs$weight, 
-                                            neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
-                                            add.halfNeutral = envir$outArgs$add.halfNeutral, 
-                                            trace = FALSE,
-                                            treatment = envir$outArgs$treatment,
-                                            endpoint = envir$outArgs$endpoint, 
-                                            type = envir$outArgs$type,
-                                            threshold = envir$outArgs$threshold,
-                                            status = envir$outArgs$status,
-                                            operator = envir$outArgs$operator, 
-                                            censoring = envir$outArgs$censoring,
-                                            strata = envir$outArgs$strata)
-            }
+            ##     outCov2 <- inferenceUstatisticBebu(tablePairScore = allBT[[envir$n.sample.size]]@tablePairScore,
+            ##                                        subset.C = 1:envir$sample.sizeC[iSize],
+            ##                                        subset.T = 1:envir$sample.sizeT[iSize],
+            ##                                        order = envir$outArgs$order.Hprojection,
+            ##                                        weight = envir$outArgs$weight,
+            ##                                        n.pairs = envir$sample.sizeC[iSize]*envir$sample.sizeT[iSize],
+            ##                                        n.C = envir$sample.sizeC[iSize],
+            ##                                        n.T = envir$sample.sizeT[iSize],
+            ##                                        level.strata = envir$outArgs$level.strata,
+            ##                                        n.strata = envir$outArgs$n.strata,
+            ##                                        n.endpoint = n.endpoint,
+            ##                                        endpoint = envir$outArgs$endpoint)
+                
+            ##     outPoint2 <- list(count_favorable = outCov2$count_favorable,
+            ##                       count_unfavorable = outCov2$count_unfavorable,
+            ##                       count_neutral = outCov2$count_neutral,
+            ##                       count_uninf = outCov2$count_uninf, ## outPoint$count_uninf
+            ##                       delta = outCov2$delta,
+            ##                       Delta = outCov2$Delta, ## outPoint$Delta
+            ##                       n_pairs = outCov2$n.pairs,
+            ##                       iidAverage_favorable = matrix(nrow = 0, ncol = 0),
+            ##                       iidAverage_unfavorable = matrix(nrow = 0, ncol = 0),
+            ##                       iidAverage_neutral = matrix(nrow = 0, ncol = 0),
+            ##                       iidNuisance_favorable = matrix(nrow = 0, ncol = 0),
+            ##                       iidNuisance_unfavorable = matrix(nrow = 0, ncol = 0),
+            ##                       iidNuisance_neutral = matrix(nrow = 0, ncol = 0),
+            ##                       covariance = outCov2$Sigma,
+            ##                       tableScore = list()                                  
+            ##                       )
+
+            ##     allBT[[iSize]] <- do.call("S4BuyseTest", args = c(outPoint2, envir$outArgs[keep.args]))
+            ## }else{
+                iData <- rbind(data[index.C[1:envir$sample.sizeC[iSize]]],
+                               data[index.T[1:envir$sample.sizeT[iSize]]])
+
+                if(envir$outArgs$method.inference %in% c("none","u-statistic")){
+                    envir$outArgs[out.name] <- initializeData(data = iData,
+                                                              type = envir$outArgs$type,
+                                                              endpoint = envir$outArgs$endpoint,
+                                                              Uendpoint = envir$outArgs$Uendpoint,
+                                                              D = envir$outArgs$D,
+                                                              scoring.rule = scoring.rule,
+                                                              status = envir$outArgs$status,
+                                                              Ustatus = envir$outArgs$Ustatus,
+                                                              method.inference = envir$outArgs$method.inference,
+                                                              censoring = envir$outArgs$censoring,
+                                                              strata = envir$outArgs$strata,
+                                                              treatment = envir$outArgs$treatment,
+                                                              hierarchical = envir$outArgs$hierarchical,
+                                                              copy = FALSE,
+                                                              keep.pairScore = envir$outArgs$keep.pairScore,
+                                                              endpoint.TTE = envir$outArgs$endpoint.TTE,
+                                                              status.TTE = envir$outArgs$status.TTE,
+                                                              iidNuisance = iidNuisance)
+
+                    outPoint <- .BuyseTest(envir = envir,
+                                           iid = envir$outArgs$iid,
+                                           method.inference = envir$outArgs$method.inference,
+                                           pointEstimation = TRUE)
+
+                    allBT[[iSize]] <- do.call("S4BuyseTest", args = c(outPoint, envir$outArgs[keep.args]))
+                }else{
+                    iData[["..strata.."]]  <- NULL
+                    iData[["..rowIndex.."]]  <- NULL
+                    iData[["..NA.."]]  <- NULL
+                    allBT[[iSize]] <- BuyseTest(data = iData,
+                                                scoring.rule = envir$outArgs$scoring.rule,
+                                                correction.uninf = envir$outArgs$correction.uninf, 
+                                                model.tte = envir$outArgs$model.tte,
+                                                method.inference = envir$outArgs$method.inference,
+                                                n.resampling = envir$outArgs$n.resampling, 
+                                                strata.resampling = envir$outArgs$strata.resampling,
+                                                hierarchical = envir$outArgs$hierarchical,
+                                                weight = envir$outArgs$weight, 
+                                                neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
+                                                add.halfNeutral = envir$outArgs$add.halfNeutral, 
+                                                trace = FALSE,
+                                                treatment = envir$outArgs$treatment,
+                                                endpoint = envir$outArgs$endpoint, 
+                                                type = envir$outArgs$type,
+                                                threshold = envir$outArgs$threshold,
+                                                status = envir$outArgs$status,
+                                                operator = envir$outArgs$operator, 
+                                                censoring = envir$outArgs$censoring,
+                                                strata = envir$outArgs$strata)
+                }
+            ## }
         }
-
     }
 
     ## ** Inference

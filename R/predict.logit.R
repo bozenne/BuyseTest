@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:55) 
 ## Version: 
-## Last-Updated: okt 12 2021 (18:03) 
+## Last-Updated: okt 14 2021 (19:23) 
 ##           By: Brice Ozenne
-##     Update #: 88
+##     Update #: 90
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -155,8 +155,8 @@
     iid.var.Xbeta <- do.call(rbind,lapply(1:n.obs, FUN = function(iObs){rowSums((X %*% iid.Sigma.beta[,,iObs]) * X)}))
     iid.var.e2XB_1eXb4 <- iid.beta %*% t(.colMultiply_cpp(X, scale = -2*exp(-2*Xbeta)/(1+exp(-Xbeta))^4 + 4*exp(-3*Xbeta)/(1+exp(-Xbeta))^5))
     ## colSums(iid.var.Xbeta)
-    iid.var.pred <- .rowMultiply_cpp(iid.var.Xbeta, exp(-2*Xbeta)  / (1+exp(-Xbeta))^4) + rowMultiply_cpp(iid.var.e2XB_1eXb4, var.Xbeta) 
-    iid.se.pred <- rowScale_cpp(iid.var.pred, 2*se.pred)
+    iid.var.pred <- .rowMultiply_cpp(iid.var.Xbeta, exp(-2*Xbeta)  / (1+exp(-Xbeta))^4) + .rowMultiply_cpp(iid.var.e2XB_1eXb4, var.Xbeta) 
+    iid.se.pred <- .rowScale_cpp(iid.var.pred, 2*se.pred)
     
     ## ** set correct level
     if(!is.null(level)){

@@ -246,6 +246,9 @@ setMethod(f = "summary",
               type.display <- setdiff(type.display,rm.display)
 
               ## ** compute confidence intervals and p-values
+              if(attr(method.inference,"permutation")){
+                  attr(conf.level,"warning.permutation") <- FALSE
+              }
               outConfint  <- confint(object, conf.level = conf.level, statistic = statistic, ...)
 
               ## ** generate summary table
@@ -406,7 +409,7 @@ setMethod(f = "summary",
               }
 
               ## *** select relevant columns
-              table.print <- table.print[,type.display]
+              table.print <- table.print[,type.display,drop=FALSE]
               ##              type.display[type.display %in% names(table.print) == FALSE]
               if(identical(percentage,TRUE) & any(vec.tfunu %in% type.display)){
                   names(table.print)[names(table.print) %in% vec.tfunu] <- paste0(names(table.print)[names(table.print) %in% vec.tfunu],"(%)")

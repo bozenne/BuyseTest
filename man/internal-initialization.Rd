@@ -51,6 +51,7 @@ initializeArgs(
   strata.resampling = NULL,
   name.call,
   neutral.as.uninf = NULL,
+  add.halfNeutral = NULL,
   operator = NULL,
   censoring,
   option,
@@ -94,7 +95,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \details{
 \code{initializeArgs}: Normalize the argument 
 \itemize{
-\item scoring.rule, neutral.as.uninf, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
+\item scoring.rule, neutral.as.uninf, add.halfNeutral, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 \item formula: call \code{initializeFormula} to extract arguments.
 \item type: convert to numeric.
 \item status: only keep status relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.

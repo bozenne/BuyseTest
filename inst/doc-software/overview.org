@@ -91,7 +91,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '2.3.2'
+: [1] '2.3.5'
 
 For completness, the details of the R session used to generate this
 document are:
@@ -101,7 +101,7 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 4.0.3 (2020-10-10)
+R version 4.1.1 (2021-08-10)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 10 x64 (build 19042)
 
@@ -116,30 +116,46 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] survival_3.2-10   BuyseTest_2.3.2   spelling_2.2      roxygen2_7.1.1    butils.base_1.2  
-[6] Rcpp_1.0.7        data.table_1.14.0 devtools_2.4.0    usethis_2.0.1    
+ [1] prodlim_2019.11.13 ggplot2_3.3.5      survival_3.2-13    BuyseTest_2.3.5   
+ [5] spelling_2.2       roxygen2_7.1.1     butils.base_1.2    Rcpp_1.0.7        
+ [9] data.table_1.14.2  devtools_2.4.2     usethis_2.0.1     
 
 loaded via a namespace (and not attached):
- [1] tidyselect_1.1.0         xfun_0.22                remotes_2.3.0           
- [4] purrr_0.3.4              lattice_0.20-41          splines_4.0.3           
- [7] generics_0.1.0           colorspace_2.0-2         vctrs_0.3.8             
-[10] testthat_3.0.2           stats4_4.0.3             prodlim_2019.11.13      
-[13] utf8_1.2.2               rlang_0.4.11             pkgbuild_1.2.0          
-[16] pillar_1.6.2             glue_1.4.2               withr_2.4.2             
-[19] sessioninfo_1.1.1        foreach_1.5.1            lifecycle_1.0.0         
-[22] lava_1.6.9               stringr_1.4.0            munsell_0.5.0           
-[25] gtable_0.3.0             codetools_0.2-16         memoise_2.0.0           
-[28] knitr_1.33               RcppArmadillo_0.10.6.0.0 callr_3.7.0             
-[31] fastmap_1.1.0            doParallel_1.0.16        ps_1.6.0                
-[34] parallel_4.0.3           fansi_0.5.0              scales_1.1.1            
-[37] cachem_1.0.4             desc_1.3.0               pkgload_1.2.1           
-[40] fs_1.5.0                 digest_0.6.27            ggplot2_3.3.5           
-[43] stringi_1.5.3            processx_3.5.1           dplyr_1.0.5             
-[46] rprojroot_2.0.2          grid_4.0.3               cli_3.0.1               
-[49] tools_4.0.3              magrittr_2.0.1           tibble_3.1.3            
-[52] crayon_1.4.1             pkgconfig_2.0.3          Matrix_1.2-18           
-[55] ellipsis_0.3.2           xml2_1.3.2               prettyunits_1.1.1       
-[58] iterators_1.0.13         R6_2.5.0                 compiler_4.0.3
+  [1] TH.data_1.1-0             colorspace_2.0-2          ellipsis_0.3.2           
+  [4] rprojroot_2.0.2           htmlTable_2.2.1           RcppArmadillo_0.10.7.0.0 
+  [7] base64enc_0.1-3           fs_1.5.0                  rstudioapi_0.13          
+ [10] farver_2.1.0              listenv_0.8.0             MatrixModels_0.5-0       
+ [13] remotes_2.4.0             fansi_0.5.0               mvtnorm_1.1-3            
+ [16] xml2_1.3.2                codetools_0.2-18          splines_4.1.1            
+ [19] doParallel_1.0.16         cachem_1.0.6              knitr_1.36               
+ [22] pkgload_1.2.1             Formula_1.2-4             cluster_2.1.2            
+ [25] png_0.1-7                 riskRegression_2021.10.08 compiler_4.1.1           
+ [28] backports_1.2.1           assertthat_0.2.1          Matrix_1.3-4             
+ [31] fastmap_1.1.0             cli_3.0.1                 htmltools_0.5.2          
+ [34] quantreg_5.86             prettyunits_1.1.1         tools_4.1.1              
+ [37] gtable_0.3.0              glue_1.4.2                dplyr_1.0.7              
+ [40] vctrs_0.3.8               nlme_3.1-152              conquer_1.0.2            
+ [43] iterators_1.0.13          xfun_0.26                 stringr_1.4.0            
+ [46] globals_0.14.0            ps_1.6.0                  testthat_3.0.4           
+ [49] lifecycle_1.0.1           future_1.22.1             polspline_1.1.19         
+ [52] MASS_7.3-54               zoo_1.8-9                 scales_1.1.1             
+ [55] parallel_4.1.1            sandwich_3.0-1            SparseM_1.81             
+ [58] RColorBrewer_1.1-2        memoise_2.0.0             gridExtra_2.3            
+ [61] rms_6.2-0                 rpart_4.1-15              latticeExtra_0.6-29      
+ [64] stringi_1.7.5             desc_1.3.0                foreach_1.5.1            
+ [67] checkmate_2.0.0           pkgbuild_1.2.0            lava_1.6.10              
+ [70] mets_1.2.9                rlang_0.4.11              pkgconfig_2.0.3          
+ [73] matrixStats_0.61.0        lattice_0.20-44           purrr_0.3.4              
+ [76] htmlwidgets_1.5.4         labeling_0.4.2            cmprsk_2.2-10            
+ [79] processx_3.5.2            tidyselect_1.1.1          parallelly_1.28.1        
+ [82] magrittr_2.0.1            R6_2.5.1                  generics_0.1.0           
+ [85] Hmisc_4.6-0               multcomp_1.4-17           DBI_1.1.1                
+ [88] pillar_1.6.3              foreign_0.8-81            withr_2.4.2              
+ [91] nnet_7.3-16               tibble_3.1.5              future.apply_1.8.1       
+ [94] crayon_1.4.1              utf8_1.2.2                timereg_2.0.0            
+ [97] jpeg_0.1-9                grid_4.1.1                callr_3.7.0              
+[100] digest_0.6.28             numDeriv_2016.8-1.1       stats4_4.1.1             
+[103] munsell_0.5.0             sessioninfo_1.1.1
 #+end_example
 
 \clearpage
@@ -248,7 +264,7 @@ summary(BT)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
@@ -272,7 +288,7 @@ summary(BT, percentage = FALSE)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total favorable unfavorable neutral uninf   Delta CI [2.5% ; 97.5%]
@@ -298,7 +314,7 @@ summary(BT, statistic = "winRatio")
  - null hypothesis : Delta == 1 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
@@ -317,9 +333,6 @@ confint(BT, statistic = "winRatio")
 #+RESULTS:
 :          estimate        se  lower.ci upper.ci null   p.value
 : time_20 0.8116692 0.1896937 0.5133887 1.283252    1 0.3719466
-: attr(,"n.resampling")
-: time_20 
-:      NA
 
 ** Stratified GPC
 
@@ -361,7 +374,7 @@ summary(BTstrata, type.display = c("endpoint","threshold","strata",
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - uninformative pairs: no contribution
  - results
@@ -399,7 +412,7 @@ summary(BT.H)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - neutral pairs   : re-analyzed using lower priority endpoints
  - results
@@ -437,7 +450,7 @@ summary(BT.nH)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - neutral pairs   : re-analyzed using lower priority endpoints
  - results
@@ -445,8 +458,8 @@ summary(BT.nH)
      time     2e+01      1      100        37.78          46.54      15.68        0 -0.0877
     karno     1e-12      1      100        41.82          44.95      13.24        0 -0.0313
    Delta CI [2.5% ; 97.5%] p.value 
- -0.0877  [-0.2735;0.1045] 0.37162 
- -0.1190  [-0.4346;0.2226] 0.49821
+ -0.0877  [-0.2776;0.1039] 0.36977 
+ -0.1190  [-0.4534;0.2222] 0.49514
 #+end_example
 
 In that case the score of a pair is the weighted sum of the score
@@ -468,7 +481,7 @@ summary(BT.nHw)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - neutral pairs   : re-analyzed using lower priority endpoints
  - results
@@ -502,7 +515,7 @@ summary(BTinv)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
@@ -550,7 +563,7 @@ summary(BT.pair)
 
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
- - treatment groups: No (control) vs. Yes (treatment) 
+ - treatment groups: Yes (treatment) vs. No (control) 
  - neutral pairs   : re-analyzed using lower priority endpoints
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
@@ -573,7 +586,7 @@ summary(BT.pair2)
 
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
- - treatment groups: No (control) vs. Yes (treatment) 
+ - treatment groups: Yes (treatment) vs. No (control) 
  - neutral pairs   : ignored at lower priority endpoints
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%) delta Delta
@@ -608,7 +621,7 @@ summary(BT.perm)
  - confidence level: 0.95 
  - inference       : permutation test with 1000 samples 
                      p-value computed using the permutation distribution 
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta p.value 
@@ -635,7 +648,7 @@ summary(BT.boot)
  - confidence level: 0.95 
  - inference       : bootstrap resampling with 1000 samples 
                      CI computed using the percentile method; p-value by test inversion 
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
@@ -662,7 +675,7 @@ summary(BT.ustat)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 1 (control) vs. 2 (treatment) 
+ - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
@@ -711,18 +724,17 @@ BTse.ustat[,c("time","estimate","se","lower.ci","upper.ci","null","lower.band","
 
 #+RESULTS:
 #+begin_example
-Loading required namespace: riskRegression
         time    estimate         se    lower.ci   upper.ci null  lower.band upper.band
-1    0.00000 -0.08752774 0.10041203 -0.27851884 0.11012263    0 -0.32431818  0.1595850
-2   55.55556 -0.08095829 0.08957699 -0.25229456 0.09530004    0 -0.29384015  0.1395753
-3  111.11111 -0.03170177 0.07463991 -0.17629003 0.11422560    0 -0.21208933  0.1507749
-4  166.66667  0.01896964 0.06452954 -0.10713643 0.14447503    0 -0.13879383  0.1757941
-5  222.22222  0.03315614 0.05523512 -0.07506821 0.14060850    0 -0.10238620  0.1674898
-6  277.77778  0.04217485 0.04654025 -0.04914025 0.13279075    0 -0.07227129  0.1555248
-7  333.33333  0.04112991 0.03946828 -0.03631838 0.11808708    0 -0.05596374  0.1374529
-8  388.88889  0.04075638 0.03300933 -0.02402114 0.10519310    0 -0.04046915  0.1214468
-9  444.44444  0.04097871 0.03027888 -0.01844156 0.10011054    0 -0.03353487  0.1150393
-10 500.00000  0.03517173 0.02769280 -0.01915553 0.08929191    0 -0.03295362  0.1029718
+1    0.00000 -0.08752774 0.10041203 -0.27851884 0.11012263    0 -0.32433538  0.1596037
+2   55.55556 -0.08095829 0.08957699 -0.25229456 0.09530004    0 -0.29385580  0.1395921
+3  111.11111 -0.03170177 0.07463991 -0.17629003 0.11422560    0 -0.21210288  0.1507888
+4  166.66667  0.01896964 0.06452954 -0.10713643 0.14447503    0 -0.13880586  0.1758060
+5  222.22222  0.03315614 0.05523512 -0.07506821 0.14060850    0 -0.10239659  0.1675000
+6  277.77778  0.04217485 0.04654025 -0.04914025 0.13279075    0 -0.07228010  0.1555335
+7  333.33333  0.04112991 0.03946828 -0.03631838 0.11808708    0 -0.05597123  0.1374603
+8  388.88889  0.04075638 0.03300933 -0.02402114 0.10519310    0 -0.04047542  0.1214530
+9  444.44444  0.04097871 0.03027888 -0.01844156 0.10011054    0 -0.03354062  0.1150449
+10 500.00000  0.03517173 0.02769280 -0.01915553 0.08929191    0 -0.03295888  0.1029770
 #+end_example
 
 Here by setting the argument =band= to =TRUE=, we obtain confidence
@@ -750,6 +762,33 @@ ggsave(autoplot(BTse.ustat), filename = file.path("figures","gg-sensitivity1.pdf
        width = 5, height = 3)
 #+END_SRC
 #+RESULTS:
+#+begin_example
+Fejl i grDevices::pdf(file = filename, ..., version = version) : 
+  kan ikke åbne fil 'figures/gg-sensitivity1.pdf'
+1: BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5), 
+       model.tte = e.survreg, data = dt, scoring.rule = "Peron", 
+       trace = 0)
+2: do.call("S4BuyseTest", args = c(list(call = setNames(as.list(mycall), 
+       names(mycall))), outPoint, outArgs[keep.args], outResampling)) at BuyseTest.R#445
+3: S4BuyseTest(call = list(BuyseTest, formula = treatment ~ tte(eventtime, 
+       status, threshold = 0.5), data = dt, scoring.rule = "Peron", 
+       model.tte = e.survreg, trace = 0), count_favorable = structure(28505.426661134, .Dim = c(1L, 
+   1L)), count_unfavorable = structure(82110.1715616352, .Dim = c(1L, 
+   1L)), count_neutral = structure(139364.29756625, .Dim = c(1L, 
+    ...
+4: new("S4BuyseTest", ...) at S4-BuyseTest.R#291
+5: initialize(value, ...)
+6: initialize(value, ...)
+7: .local(.Object, ...)
+8: (function (cl, name, valueClass) 
+   {
+       ClassDef <- getClass(cl)
+       slotClass <- ClassDef@slots[[name]]
+       if (is.null(slotClass)) 
+    ... at S4-BuyseTest.R#263
+9: getClass(cl)
+10: getClassDef(Class, where)
+#+end_example
 
 With multiple endpoints, the thresholds can be specified using a list:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -806,6 +845,13 @@ ggsave(autoplot(BTse.H, col = NA), filename = file.path("figures","gg-sensitivit
        width = 7, height = 3)
 #+END_SRC
 #+RESULTS:
+: Fejl i grDevices::pdf(file = filename, ..., version = version) : 
+:   kan ikke åbne fil 'figures/gg-sensitivity2.pdf'
+: 1: ggsave(autoplot(BTse.ustat), filename = file.path("figures", 
+:        "gg-sensitivity1.pdf"), width = 5, height = 3)
+: 2: dev(filename = filename, width = dim[1], height = dim[2], bg = bg, 
+:        ...)
+: 3: grDevices::pdf(file = filename, ..., version = version)
 
 Note that the autoplot function cannot be used when more than 2
 thresholds are varied at the same time.
@@ -1137,7 +1183,7 @@ In presence of censoring or missing values, it is often not be
  following dataset:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
-dt <- simBuyseTest(5e2, latent = TRUE, argsCont = NULL,
+dt <- simBuyseTest(1e2, latent = TRUE, argsCont = NULL,
                    argsTTE = list(scale.T = 1/2, scale.C = 1,
                                   scale.Censoring.C = 1, scale.Censoring.T = 1))
 dt[, eventtimeCensoring := NULL]
@@ -1147,12 +1193,12 @@ head(dt)
 
 #+RESULTS:
 :    treatment eventtimeUncensored eventtime status toxicity eta_toxicity status1
-: 1:         C           1.3499793 0.4546612      0      yes  -0.30786498       1
-: 2:         C           1.3022440 0.8234702      0       no   0.75808558       1
-: 3:         C           0.9800451 0.3656312      0      yes  -0.57386341       1
-: 4:         C           0.1809881 0.1809881      1      yes  -0.93874446       1
-: 5:         C           0.2747980 0.2747980      1      yes  -0.02769932       1
-: 6:         C           0.1351895 0.1351895      1      yes  -1.06624865       1
+: 1:         C           0.2135567 0.2135567      1      yes  -0.07945702       1
+: 2:         C           0.3422379 0.3422379      1       no   1.18175155       1
+: 3:         C           1.3933222 1.3933222      1       no   2.18614406       1
+: 4:         C           0.6737702 0.1961599      0       no   0.40617493       1
+: 5:         C           0.5642992 0.5642992      1      yes  -0.73835910       1
+: 6:         C           1.1039218 0.1764950      0      yes  -1.95648670       1
 
 where we have the uncensored event times (=eventtimeUncensored=) as well as the censored event
 times (=eventtime=). The percentage of censored observations is:
@@ -1161,7 +1207,7 @@ times (=eventtime=). The percentage of censored observations is:
 #+END_SRC
 
 #+RESULTS:
-: [1] 46
+: [1] 44
 
 We would like to be able to recover the net benefit estimated with the uncensored event times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -1171,8 +1217,8 @@ BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
 #+END_SRC
 
 #+RESULTS:
-:             endpoint threshold   Delta
-:  eventtimeUncensored       0.5 -0.2314
+:             endpoint threshold  Delta
+:  eventtimeUncensored       0.5 -0.271
 
 using the censored survival times.
 
@@ -1217,9 +1263,9 @@ summary(e.G, print=FALSE)$table.print
 
 #+RESULTS:
 :    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-: 1 eventtime       0.5      100         4.27          13.09      20.42    62.22 -0.0881
-:   CI [2.5% ; 97.5%]    p.value significance
-: 1 [-0.1146;-0.0616] 8.7323e-11          ***
+: 1 eventtime       0.5      100         4.67          14.39      20.44     60.5 -0.0972
+:   CI [2.5% ; 97.5%]   p.value significance
+: 1 [-0.1594;-0.0342] 0.0025149           **
 
 leads to many uninformative pairs (about 60%) and an estimate much
 closer to 0 than the truth.
@@ -1234,9 +1280,9 @@ summary(e.P, print=FALSE)$table.print
 
 #+RESULTS:
 :    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-: 1 eventtime       0.5      100        14.61          40.43      44.96        0 -0.2583
+: 1 eventtime       0.5      100        11.17          43.34      44.12     1.37 -0.3216
 :   CI [2.5% ; 97.5%]    p.value significance
-: 1 [-0.3292;-0.1844] 2.6247e-11          ***
+: 1   [-0.4584;-0.17] 5.3851e-05          ***
 leads to no uninformative pairs. Indeed the last observation in each group is an (uncensored) event:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt[,.SD[which.max(eventtime)],by="treatment"]
@@ -1244,8 +1290,8 @@ dt[,.SD[which.max(eventtime)],by="treatment"]
 
 #+RESULTS:
 :    treatment eventtimeUncensored eventtime status toxicity eta_toxicity status1
-: 1:         C            2.996981  2.996981      1      yes   -1.7655076       1
-: 2:         T            2.210059  2.210059      1       no    0.2101617       1
+: 1:         C            2.668629  2.668629      1      yes   -1.9256436       1
+: 2:         T            1.674053  1.588657      0      yes   -0.8647272       1
 so the full survival curve could be identified. As a result the estimate is very close to the
 truth. 
 
@@ -1270,9 +1316,9 @@ summary(e.P1, print=FALSE)$table.print
 
 #+RESULTS:
 :    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-: 1 eventtime       0.5      100        14.61          40.43      44.96        0 -0.2583
+: 1 eventtime       0.5      100        11.17          43.34      44.12     1.37 -0.3216
 :   CI [2.5% ; 97.5%]    p.value significance
-: 1 [-0.3029;-0.2124] < 2.22e-16          ***
+: 1 [-0.4187;-0.2173] 6.5701e-09          ***
 
 Note that the CI/p-value have changed since, unless stated otherwise,
 =BuyseTest= assumes no uncertainty about the survival model when using
@@ -1287,9 +1333,9 @@ summary(e.P2, print=FALSE)$table.print
 
 #+RESULTS:
 :    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-: 1 eventtime       0.5      100        14.61          40.43      44.96        0 -0.2583
+: 1 eventtime       0.5      100        11.17          43.34      44.12     1.37 -0.3216
 :   CI [2.5% ; 97.5%]    p.value significance
-: 1 [-0.3292;-0.1844] 2.6247e-11          ***
+: 1   [-0.4584;-0.17] 5.3851e-05          ***
 
 \bigskip
 
@@ -1312,9 +1358,9 @@ summary(e.P3, print=FALSE)$table.print
 #+END_SRC
 #+RESULTS:
 :    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-: 1 eventtime       0.5      100         11.4          32.84      55.75     0.01 -0.2144
+: 1 eventtime       0.5      100        11.88          34.19      53.92     0.01 -0.2231
 :   CI [2.5% ; 97.5%]    p.value significance
-: 1  [-0.2704;-0.157] 7.0655e-13          ***
+: 1 [-0.3455;-0.0932] 0.00085702          ***
 
 Internally the survival curve is discretized using 1000 points
 starting from survival = 1 to survival = 0.001 (this is why there is a
@@ -1330,7 +1376,7 @@ str(e.TTEM$peron$jumpSurvHaz[[1]][[1]])
 #+RESULTS:
 : 'data.frame':	2500 obs. of  3 variables:
 :  $ index.jump: logi  NA NA NA NA NA NA ...
-:  $ time.jump : num  0 0.000272 0.000566 0.000867 0.001175 ...
+:  $ time.jump : num  0 0.000307 0.000632 0.000964 0.001301 ...
 :  $ survival  : num  1 1 0.999 0.999 0.998 ...
 
 and then passing to =BuyseTest=:
@@ -1343,9 +1389,9 @@ summary(e.P4, print=FALSE)$table.print
 
 #+RESULTS:
 :    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-: 1 eventtime       0.5      100         11.4          32.84      55.76        0 -0.2144
+: 1 eventtime       0.5      100        11.87          34.18      53.94     0.01 -0.2231
 :   CI [2.5% ; 97.5%]    p.value significance
-: 1  [-0.2704;-0.157] 7.0011e-13          ***
+: 1 [-0.3455;-0.0932] 0.00085776          ***
 
 It is therefore possible to extend the approach to other model by
 defining an appropriate =BuyseTTEM= method. Looking at the code use
@@ -1370,12 +1416,12 @@ summary(BT)
 
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
- - treatment groups: C (control) vs. T (treatment) 
+ - treatment groups: T (treatment) vs. C (control) 
  - censored pairs  : deterministic score or uninformative
  - uninformative pairs: no contribution, their weight is passed to the informative pairs using IPCW
  - results
   endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
- eventtime       0.5      100        11.31          34.64      54.05        0 -0.2333
+ eventtime       0.5      100        11.82          36.43      51.75        0 -0.2461
 #+end_example
 
 
@@ -1398,10 +1444,10 @@ iScore[,.SD[1],
 
 #+RESULTS:
 :    favorable unfavorable neutral uninf favorableC unfavorableC neutralC uninfC
-: 1:         0           0       0     1   0.000000     0.000000 0.000000      0
-: 2:         0           1       0     0   0.000000     2.647043 0.000000      0
-: 3:         0           0       1     0   0.000000     0.000000 2.647043      0
-: 4:         1           0       0     0   2.647043     0.000000 0.000000      0
+: 1:         0           0       1     0   0.000000     0.000000 2.531646      0
+: 2:         0           1       0     0   0.000000     2.531646 0.000000      0
+: 3:         0           0       0     1   0.000000     0.000000 0.000000      0
+: 4:         1           0       0     0   2.531646     0.000000 0.000000      0
 
 We can see that the favorable/unfavorable/neutral pairs have seen
 their contribution multiplied by:
@@ -1410,7 +1456,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 #+END_SRC
 
 #+RESULTS:
-: [1] 2.647043
+: [1] 2.531646
 
 i.e. the inverse probability of being informative. 
 
@@ -1432,12 +1478,12 @@ summary(BT)
 
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
- - treatment groups: C (control) vs. T (treatment) 
+ - treatment groups: T (treatment) vs. C (control) 
  - censored pairs  : deterministic score or uninformative
  - uninformative pairs: score equals the averaged score of all informative pairs
  - results
   endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
- eventtime       0.5      100        11.31          34.64      54.05        0 -0.2333
+ eventtime       0.5      100        11.82          36.43      51.75        0 -0.2461
 #+end_example
 
 
@@ -1451,9 +1497,9 @@ iScore[,.SD[1],
 
 #+RESULTS:
 :    favorable unfavorable neutral uninf favorableC unfavorableC  neutralC uninfC
-: 1:         0           0       0     1  0.1131029    0.3464344 0.5404627      0
+: 1:         0           0       1     0  0.0000000    0.0000000 1.0000000      0
 : 2:         0           1       0     0  0.0000000    1.0000000 0.0000000      0
-: 3:         0           0       1     0  0.0000000    0.0000000 1.0000000      0
+: 3:         0           0       0     1  0.1182278    0.3643038 0.5174684      0
 : 4:         1           0       0     0  1.0000000    0.0000000 0.0000000      0
 
 we can see that the corrected probability have not changed for the
@@ -1466,7 +1512,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 
 #+RESULTS:
 :    favorable unfavorable   neutral
-: 1: 0.1131029   0.3464344 0.5404627
+: 1: 0.1182278   0.3643038 0.5174684
 
 ** Note on the use of the corrections
 
@@ -1500,8 +1546,15 @@ plot(prodlim(Hist(timeC,statusC)~group, data = df), atrisk = FALSE); title("righ
 dev.off()
 #+END_SRC
 #+RESULTS:
-: windows 
-:       2
+: Fejl i pdf(file.path("figures", "plot-crossingSurv.pdf"), width = 10) : 
+:   kan ikke åbne fil 'figures/plot-crossingSurv.pdf'
+: 1: ggsave(autoplot(BTse.H, col = NA), filename = file.path("figures", 
+:        "gg-sensitivity2.pdf"), width = 7, height = 3)
+: 2: dev(filename = filename, width = dim[1], height = dim[2], bg = bg, 
+:        ...)
+: 3: grDevices::pdf(file = filename, ..., version = version)
+: null device 
+:           1
 
 
 Here the net benefit that we would have estimated with complete data:
@@ -1654,8 +1707,8 @@ null <- c("netBenefit" = 0)
 #+RESULTS:
 
 Naming the value is important since that will indicate which statistic
-should be used (here the net benefit). We can assess the power of the
-Wilcoxon's test using the following syntax:
+should be used (here the net benefit). We can assess the power of a
+test based on the net benefit using the following syntax:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 powerW <- powerBuyseTest(sim = simFCT, 
                          sample.size = c(5,10,20,30,50,100),
@@ -1681,21 +1734,18 @@ summary(powerW)
         with 1000 samples
 
  - statistic   : net benefit (null hypothesis Delta=0)
- endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
-        Y     1e-12   5   5        0.2432      0.3825  0.3328          0.091
-                     10  10        0.2531      0.2715  0.2441          0.161
-                     20  20        0.2471      0.1851  0.1751          0.264
-                     30  30        0.2489      0.1514  0.1432           0.38
-                     50  50        0.2456       0.116  0.1112          0.551
-                    100 100         0.246      0.0811  0.0787          0.847
+ endpoint threshold n.T n.C mean.estimate
+        Y     1e-12   5   5        0.2425
+                     10  10        0.2526
+                     20  20        0.2469
+                     30  30        0.2488
+                     50  50        0.2455
+                    100 100         0.246
 
  n.T          : number of observations in the treatment group
  n.C          : number of observations in the control group
  mean.estimate: average estimate over simulations
  sd.estimate  : standard deviation of the estimate over simulations
- mean.se      : average estimated standard error of the estimate over simulations
- rejection    : frequency of the rejection of the null hypothesis over simulations
-(standard error: H-projection of order 1| p-value: after transformation)
 #+end_example
 
 \clearpage
@@ -1731,12 +1781,12 @@ summary(BT)
 
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
- - treatment groups: C (control) vs. T (treatment) 
+ - treatment groups: T (treatment) vs. C (control) 
  - censored pairs  : deterministic score or uninformative
  - uninformative pairs: score equals the averaged score of all informative pairs
  - results
   endpoint threshold   Delta information(%)
- eventtime       0.5 -0.2333            100
+ eventtime       0.5 -0.2461            100
 #+end_example
 
 

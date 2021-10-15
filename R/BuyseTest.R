@@ -40,8 +40,6 @@
 #' See Details, section "Statistical inference".
 #' @param trace [integer] should the execution of the function be traced ? \code{0} remains silent
 #' and \code{1}-\code{3} correspond to a more and more verbose output in the console.
-#' @param keep.comparison Obsolete. Alias for 'keep.pairScore'.
-#' @param method.tte Obsolete. Alias for 'scoring.rule'.
 #' 
 #' @details
 #'
@@ -144,12 +142,14 @@
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 #' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
 #' On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
-#' On inference in GPC using the U-statistic theory: I. Bebu, J. M. Lachin (2015). \bold{Large sample inference for a win ratio analysis of a composite outcome based on prioritized components}. \emph{Biostatistics} 17(1):178-187 \cr
+#' On inference in GPC using the U-statistic theory: Ozenne B, Budtz-Jorgensen E, Peron J (2021). \bold{The asymptotic distribution of the Net Benefit estimator in presence of right-censoring}. \emph{Statistical Methods in Medical Research} 2021 doi:10.1177/09622802211037067 \cr
 #' On the how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. 
 #'
 #' @seealso 
 #' \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
+#' \code{\link{S4BuyseTest-confint}} for exporting estimates with confidence intervals and p-values. \cr
 #' \code{\link{S4BuyseTest-class}} for a presentation of the \code{S4BuyseTest} object. \cr
+#' \code{\link{S4BuyseTest-sensitivity}} for performing a sensitivity analysis on the choice of the threshold(s). \cr
 #' \code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
 #' @keywords function BuyseTest
 #' @author Brice Ozenne
@@ -265,23 +265,13 @@ BuyseTest <- function(formula,
                       status = NULL,
                       operator = NULL,
                       censoring = NULL,
-                      strata = NULL, 
-                      keep.comparison,
-                      method.tte){
+                      strata = NULL){
 
     mycall <- match.call()
     name.call <- names(mycall)
     option <- BuyseTest.options()
 
     ## ** compatibility with previous version
-    if(!missing(keep.comparison)){
-        stop("Argument \'keep.comparison\' is obsolete. \n",
-             "It has been replaced by the argument \'keep.pairScore\' \n")
-    }
-    if(!missing(method.tte)){
-        stop("Argument \'method.tte\' is obsolete. \n",
-             "It has been replaced by the argument \'scoring.rule\' \n")
-    }
     if(!is.null(method.inference) && (method.inference=="asymptotic")){
         stop("Value \"asymptotic\" for argument \'method.inference\' is obsolete. \n",
              "Use \"u-statistic\" instead \n")
@@ -420,11 +410,7 @@ BuyseTest <- function(formula,
 
     outResampling <- NULL
     if(outArgs$method.inference == "u-statistic"){
-        ## done in the C++ code
-        ## outCovariance <- inferenceUstatistic(tablePairScore = outPoint$tableScore, order = option$order.Hprojection,
-        ##                                      count.favorable = colSums(outPoint$count_favorable), count.unfavorable = colSums(outPoint$count_unfavorable),
-        ##                                      n.pairs = sum(outPoint$n_pairs), n.C = length(envirBT$outArgs$index.C), n.T = length(envirBT$outArgs$index.T),
-        ##                                      level.strata = outArgs$level.strata, n.strata = outArgs$n.strata, endpoint = outArgs$endpoint)
+        ## done in the C++ code        
     }else if(outArgs$method.inference == "u-statistic-bebu"){
         if(outArgs$keep.pairScore == FALSE){
             stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"u-statistic-bebu\" \n")
@@ -434,8 +420,6 @@ BuyseTest <- function(formula,
         outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tableScore,
                                                  order = option$order.Hprojection,
                                                  weight = outArgs$weight,
-                                                 count.favorable = colSums(outPoint$count_favorable),
-                                                 count.unfavorable = colSums(outPoint$count_unfavorable),
                                                  n.pairs = outPoint$n_pairs,
                                                  n.C = length(envirBT$outArgs$index.C),
                                                  n.T = length(envirBT$outArgs$index.T),

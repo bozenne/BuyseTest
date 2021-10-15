@@ -68,9 +68,9 @@ library(data.table)
 
 #### Using simBuyseTest ####
 ## only point estimate
-powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
+powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), n.rep = 10,
                formula = treatment ~ bin(toxicity), seed = 10,
-               method.inference = "none", trace = 2)
+               method.inference = "none", trace = 2, keep.pairScore = FALSE)
 
 ## point estimate with rejection rate
 powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: okt 12 2021 (10:50) 
+## Last-Updated: okt 13 2021 (16:10) 
 ##           By: Brice Ozenne
-##     Update #: 299
+##     Update #: 302
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -131,6 +131,11 @@ testArgs <- function(name.call,
              "proposed \'status\' for these endoints: ",paste(status[type %in% c("bin","cont")],collapse=" "),"\n")
     }
     Ustatus.TTE <- unique(status[type=="tte"])
+
+    if(any(Ustatus.TTE %in% names(data) == FALSE)){
+        stop("BuyseTest: variable(s) \'status\': \"",paste0(Ustatus.TTE[Ustatus.TTE %in% names(data) == FALSE], collapse = "\" \""),"\" \n",
+             "not found in argument \'data\'.\n")
+    }
 
     if(is.null(strata)){
         if(any(sapply(Ustatus.TTE, function(iS){sum(data[[iS]]!=0)})==0)){

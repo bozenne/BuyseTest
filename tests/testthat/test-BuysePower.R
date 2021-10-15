@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: Apr 15 2021 (12:05) 
+## Last-Updated: okt 14 2021 (19:02) 
 ##           By: Brice Ozenne
-##     Update #: 41
+##     Update #: 42
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,6 +22,8 @@ if(FALSE){
 }
 
 context("Check BuysePower \n")
+
+BuyseTest.options(order.Hprojection = 1)
 
 ## * 1 binary endpoint
 if(FALSE){ ## to save computation time for CRAN check

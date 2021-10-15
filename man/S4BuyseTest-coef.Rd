@@ -12,7 +12,6 @@
   statistic = NULL,
   stratified = FALSE,
   cumulative = TRUE,
-  add.halfNeutral = FALSE,
   ...
 )
 }
@@ -29,8 +28,6 @@ Otherwise a summary statistic over all strata is returned.}
 
 \item{cumulative}{[logical] should the score be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}
-
-\item{add.halfNeutral}{[logical] should half of the neutral score be added to the favorable and unfavorable scores?}
 
 \item{...}{ignored.}
 }

@@ -37,6 +37,7 @@ GPC_cpp(
   hierarchical,
   hprojection,
   neutralAsUninf,
+  addHalfNeutral,
   keepScore,
   precompute,
   returnIID,
@@ -75,6 +76,7 @@ GPC2_cpp(
   hierarchical,
   hprojection,
   neutralAsUninf,
+  addHalfNeutral,
   keepScore,
   precompute,
   returnIID,
@@ -143,6 +145,8 @@ GPC2_cpp(
 \item{hprojection}{Order of the H-projection used to compute the variance.}
 
 \item{neutralAsUninf}{Should paired classified as neutral be re-analyzed using endpoints of lower priority?}
+
+\item{addHalfNeutral}{Should half of the neutral score be added to the favorable and unfavorable scores?}
 
 \item{keepScore}{Should the result of each pairwise comparison be kept?}
 

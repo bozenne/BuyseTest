@@ -2,7 +2,7 @@
 % Please edit documentation in R/auc.R
 \name{auc}
 \alias{auc}
-\title{Estimation of the Area Under the ROC Curve}
+\title{Estimation of the Area Under the ROC Curve (EXPERIMENTAL)}
 \usage{
 auc(
   labels,
@@ -14,7 +14,8 @@ auc(
   null = 0.5,
   conf.level = 0.95,
   transformation = TRUE,
-  order.Hprojection = 2
+  order.Hprojection = 2,
+  pooling = "mean"
 )
 }
 \arguments{
@@ -43,6 +44,9 @@ Useful to match the usual definition of the AUC in presence of ties.}
 
 \item{order.Hprojection}{[1,2] the order of the H-projection used to linear the statistic when computing the standard error.
 2 is involves more calculations but is more accurate in small samples. Only active when the \code{fold} argument is \code{NULL}.}
+
+\item{pooling}{[character] method used to compute the global AUC from the fold-specific AUC: either an empirical average \code{"mean"}
+or a weighted average with weights proportional to the number of pairs of observations in each fold \code{"pairs"}.}
 }
 \value{
 A \emph{data.frame} containing for each fold the AUC value with its standard error (when computed).

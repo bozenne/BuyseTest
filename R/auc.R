@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: sep 15 2021 (14:58) 
+## Last-Updated: okt 14 2021 (19:25) 
 ##           By: Brice Ozenne
-##     Update #: 380
+##     Update #: 428
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 ## * Documentation - auc
-#' @title Estimation of the Area Under the ROC Curve
+#' @title Estimation of the Area Under the ROC Curve (EXPERIMENTAL)
 #' @name auc
 #' 
 #' @description Estimation of the Area Under the ROC curve, possibly after cross validation,
@@ -33,6 +33,8 @@
 #' and \code{"auto"} to estimate max(P[Y>X],P[Y<X]).
 #' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 #' Useful to match the usual definition of the AUC in presence of ties.
+#' @param pooling [character] method used to compute the global AUC from the fold-specific AUC: either an empirical average \code{"mean"}
+#' or a weighted average with weights proportional to the number of pairs of observations in each fold \code{"pairs"}.
 #' @param null [numeric, 0-1] the value against which the AUC should be compared when computing the p-value.
 #' @param conf.level [numeric, 0-1] the confidence level of the confidence intervals.
 #' @param transformation [logical] should a log-log transformation be used when computing the confidence intervals and the p-value.
@@ -70,7 +72,7 @@
 #' @export
 auc <- function(labels, predictions, fold = NULL, observation = NULL,
                 direction = ">", add.halfNeutral = TRUE,
-                null = 0.5, conf.level = 0.95, transformation = TRUE, order.Hprojection = 2){
+                null = 0.5, conf.level = 0.95, transformation = TRUE, order.Hprojection = 2, pooling = "mean"){
 
     ## ** Normalize user imput
     if(length(unique(labels))!=2){
@@ -101,6 +103,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         observation <- 1:n.obs
     }
     direction <- match.arg(direction, c(">","<","auto"), several.ok = TRUE)
+    pooling <- match.arg(pooling, c("pairs","mean"), several.ok = TRUE)
     
     if(!is.logical(transformation)){
         stop("Argument \'transformation\' must be TRUE or FALSE \n")
@@ -170,72 +173,71 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     attr(out,"iid") <- matrix(NA, nrow = n.obs, ncol = n.fold+1, dimnames = list(NULL,c(name.fold,"global")))
 
     ## ** Global AUC
-    ## WARNING: cannot use the "global" results as if there is not the same number of pairs in all strata
-    ##          it will weight differently the strata-specific AUCs
-    if(is.null(fold)){
-        order.save <- BuyseTest.options()$order.Hprojection
+    order.save <- BuyseTest.options()$order.Hprojection
+    if(order.save!=order.Hprojection){
         BuyseTest.options(order.Hprojection = order.Hprojection)
+        on.exit(BuyseTest.options(order.Hprojection = order.save))
     }
 
-    e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0)
-
-    if(is.null(fold)){
-        BuyseTest.options(order.Hprojection = order.save)
-    }
+    e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0, add.halfNeutral = add.halfNeutral)
 
     ## store
     if(is.null(fold)){
-        out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral))
-        attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, statistic = "favorable", add.halfNeutral = add.halfNeutral) ## no need for cluster argument when fold=NULL
-        if(add.halfNeutral && any(abs(e.BT@iidAverage$neutral[,1])>1e-10) || any(duplicated(observation))){
-            out[out$fold=="global","se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,out$fold=="global"]))) ## no second order term
-        }else{
-            out[out$fold=="global","se"] <- as.double(confint(e.BT, statistic = "favorable")[,"se"]) ## no contribution of the neutral pairs
-        }
-    }else{
+        out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable"))
+        out[out$fold=="global","se"] <- as.double(confint(e.BT, statistic = "favorable")[,"se"])  ## may differ from iid when second order H-decomposition
+        attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, normalize = TRUE, statistic = "favorable") ## no need for cluster argument when fold=NULL
+    }else if(pooling == "mean"){ ## Here: strata have the same weigth
+        ## WARNING: cannot use the "global" results as if there is not the same number of pairs in all strata
+        ##          it will weight differently the strata-specific AUCs
         attr(out,"iid")[] <- 0
+    }else if(pooling  == "pairs"){ ## Here: strata are weigthed according to the number of pairs
+        out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable"))
+        out[out$fold=="global","se"] <- as.double(confint(e.BT, cluster = observation, statistic = "favorable")[,"se"])
+        attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, cluster = observation, normalize = TRUE, statistic = "favorable") 
+        ## sqrt(as.double(crossprod(attr(out,"iid")[,out$fold=="global"])))        
     }
     
     ## ** Fold-specific AUC
     if(!is.null(fold)){
-        ePOINT.BT <- coef(e.BT, statistic = "favorable", stratified = TRUE, add.halfNeutral = add.halfNeutral)[,1]
-        iIID.BT <- getIid(e.BT, normalize = FALSE, statistic = "favorable", add.halfNeutral = add.halfNeutral)
+        if(order.Hprojection==1){
+            ePOINT.BT <- coef(e.BT, statistic = "favorable", stratified = TRUE)[,1]
 
-        indexC <- attr(e.BT@level.treatment,"indexC")
-        n.C <- length(indexC)
-        indexT <- attr(e.BT@level.treatment,"indexT")
-        n.T <- length(indexT)
-        n.obs <- n.C + n.T
+            normWithinStrata <- FALSE
+            attr(normWithinStrata, "skipScaleCenter") <- TRUE
 
-        ## *** loop over folds
-        for(iFold in 1:n.fold){ ## iFold <- 1
+            iIID.BT <- getIid(e.BT, normalize = normWithinStrata, statistic = "favorable")[,1]
 
-            iIndex <- (1:n.obs)[df$fold == name.fold[iFold]]
-            iIndexC <- intersect(iIndex,indexC)
-            iIndexT <- intersect(iIndex,indexT)
-            iObs <- observation[iIndex]
-            iObsC <- observation[iIndexC]
-            iObsT <- observation[iIndexT]
+            out[match(name.fold,out$fold),"estimate"] <- as.double(ePOINT.BT)
+            out[match(name.fold,out$fold),"se"] <- sqrt(as.double(tapply(iIID.BT, fold, crossprod)))
 
-            out[out$fold==name.fold[iFold],"estimate"] <- as.double(ePOINT.BT[iFold])
-                
-            ## fold-specific iid
-            ## center around the expected value and scale by the number of observations in the group of the fold
-            attr(out,"iid")[iObsC,out$fold==name.fold[iFold]] <- (iIID.BT[iIndexC,1] - ePOINT.BT[iFold])/length(iIndexC)
-            attr(out,"iid")[iObsT,out$fold==name.fold[iFold]] <- (iIID.BT[iIndexT,1] - ePOINT.BT[iFold])/length(iIndexT)
-            out[out$fold==name.fold[iFold],"se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,out$fold==name.fold[iFold]]))) ## no second order term
-            ## iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = df[df$fold==name.fold[iFold],,drop=FALSE], trace = 0)
+            ## iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = df[df$fold==name.fold[2],,drop=FALSE], trace = 0, add.halfNeutral = add.halfNeutral)
             ## confint(iE.BT, statistic = "favorable")
-            ## sqrt(crossprod(getIid(iE.BT, statistic = "favorable")))
 
-            ## global iid
-            ## center around the expected value and scale by the number of observations in the group
-            attr(out,"iid")[iObsC,out$fold=="global"] <- attr(out,"iid")[iObsC,out$fold=="global"] + (iIID.BT[iIndexC,1] - ePOINT.BT[iFold])/n.C
-            attr(out,"iid")[iObsT,out$fold=="global"] <- attr(out,"iid")[iObsT,out$fold=="global"] + (iIID.BT[iIndexT,1] - ePOINT.BT[iFold])/n.T
+            for(iFold in 1:n.fold){
+                attr(out,"iid")[observation[fold==name.fold[iFold]],iFold] <- iIID.BT[fold==name.fold[iFold]]
+            }
+            
+        }else{
+            for(iFold in 1:n.fold){ ## iFold <- 1
+                iData <- df[df$fold==name.fold[iFold],,drop=FALSE]
+                iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = iData,
+                                   trace = 0, add.halfNeutral = add.halfNeutral)
+                iConfint <- confint(iE.BT, statistic = "favorable")
+                out[match(name.fold[iFold],out$fold),"estimate"] <- as.double(iConfint$estimate)
+                out[match(name.fold[iFold],out$fold),"se"] <- as.double(iConfint$se)
+                    
+                attr(out,"iid")[iData$observation,iFold] <- getIid(iE.BT, normalize = TRUE, statistic = "favorable")
+            }
         }
 
-        out[out$fold=="global","estimate"] <- mean(out[out$fold!="global","estimate"])
-        out[out$fold=="global","se"] <- as.double(sqrt(crossprod(attr(out,"iid")[,out$fold=="global"]))) ## no second order term
+        if(pooling == "mean"){ ## same weight to each fold
+            attr(out,"iid")[,"global"] <- rowMeans(attr(out,"iid")[,1:n.fold])
+
+            out[out$fold=="global","estimate"] <- mean(out[out$fold!="global","estimate"]) 
+            out[out$fold=="global","se"] <- sqrt(as.double(crossprod(attr(out,"iid")[,"global"]))) ## may not match sum(out[out$fold!="global","se"]^2)/n.fold^2 with non-independent folds
+            ## also does not have 2nd order term
+        }
+
     }
 
     ## ** P-value and confidence interval
@@ -253,6 +255,10 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         out$lower <- 1
         out$upper <- 1
         out$p.value <- as.numeric(null==1)
+    }else if(all(out$estimate==0)){
+        out$lower <- 0
+        out$upper <- 0
+        out$p.value <- as.numeric(null==0)
     }else if(transformation){
         newse <- out$se / (- out$estimate * log(out$estimate))
         z.stat <- (log(-log(out$estimate)) - log(-log(null)))/newse
