@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: okt 12 2021 (18:02) 
+## Last-Updated: okt 20 2021 (09:13) 
 ##           By: Brice Ozenne
-##     Update #: 99
+##     Update #: 103
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -132,7 +132,6 @@ setMethod(f = "coef",
                       }
                       
                   }else if(stratified==TRUE){
-                      
                       out <- slot(object, "delta")[,,statistic]
                       if(!is.matrix(out)){
                           out <- matrix(out, nrow = length(object@level.strata), ncol = length(object@endpoint),
@@ -145,7 +144,9 @@ setMethod(f = "coef",
                                             dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
                                             )
                           }else{
+                              keep.dimnames <- dimnames(out)
                               out <- .rowCumSum_cpp(out)
+                              dimnames(out) <- keep.dimnames
                           }
                       }
                   }
@@ -158,7 +159,9 @@ setMethod(f = "coef",
                                         dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
                                         )
                       }else{
+                          keep.dimnames <- dimnames(out)
                           out <- .rowCumSum_cpp(out)
+                          dimnames(out) <- keep.dimnames
                       }
                   }
                   if(!stratified){
@@ -174,7 +177,9 @@ setMethod(f = "coef",
                                         dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
                                         )
                       }else{
+                          keep.dimnames <- dimnames(out)
                           out <- .rowCumSum_cpp(out)
+                          dimnames(out) <- keep.dimnames
                       }
                   }
                   if(!stratified){
