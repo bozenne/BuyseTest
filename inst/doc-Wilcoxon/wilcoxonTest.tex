@@ -1,4 +1,4 @@
-% Created 2021-10-15 fr 11:49
+% Created 2021-10-24 Sun 10:41
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -200,7 +200,7 @@ linkcolor=[rgb]{0,0,0.5},
  pdftitle={Wilcoxon test via GPC},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.2 (Org mode 9.4.4)},
+ pdfcreator={Emacs 26.3 (Org mode 9.4.6)},
  pdflang={English}
  }
 \begin{document}
@@ -208,7 +208,7 @@ linkcolor=[rgb]{0,0,0.5},
 \maketitle
 
 \section{Single Wilcoxon test}
-\label{sec:org1e74dc3}
+\label{sec:orgf1c07e0}
 
 Generalized Pairwise comparisons include the Wilcoxon rank sum test as
 a specific case. \newline Consider the following dataset (from the example
@@ -235,8 +235,8 @@ data:  value by group
 W = 58, p-value = 0.1329
 alternative hypothesis: true location shift is not equal to 0
 
-Advarselsbesked:
-I wilcox.test.default(x = c(1.83, 0.5, 1.62, 2.48, 1.68, 1.88,  :
+Warning message:
+In wilcox.test.default(x = c(1.83, 0.5, 1.62, 2.48, 1.68, 1.88,  :
   cannot compute exact p-value with ties
 \end{verbatim}
 
@@ -305,8 +305,8 @@ confint(eperm.BT, statistic = "favorable")
 \begin{verbatim}
              estimate       se  lower.ci  upper.ci null p.value
 value_1e-12 0.2839506 0.140185 0.1050267 0.5725376  0.5  0.1242
-Advarselsbesked:
-I .local(object, ...) :
+Warning message:
+In .local(object, ...) :
   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
 \end{verbatim}
 
@@ -320,7 +320,7 @@ BuyseTest.options(order.Hprojection=2)
 eU.BT <- BuyseTest(group ~ cont(value), data = df,
 		  method.inference = "u-statistic",
 		  add.halfNeutral = TRUE, trace = FALSE)
-confint(e.BT, statistic = "favorable")
+confint(eU.BT, statistic = "favorable")
 \end{lstlisting}
 
 \begin{verbatim}
@@ -347,13 +347,13 @@ confint(etperm.BT, statistic = "favorable")
 \begin{verbatim}
              estimate        se  lower.ci  upper.ci null p.value
 value_1e-12 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
-Advarselsbesked:
-I .local(object, ...) :
+Warning message:
+In .local(object, ...) :
   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
 \end{verbatim}
 
 \section{Multiple Wilcoxon tests}
-\label{sec:org3658132}
+\label{sec:orgc55ca47}
 
 Consider now the case where we would like to compare one reference
 group (here strata \texttt{a}) to multiple treatment groups (here strata
@@ -393,11 +393,11 @@ e.mc[,c("estimate","se","p.value","adj.p.value")]
 \end{lstlisting}
 
 \begin{verbatim}
-       estimate        se   p.value adj.p.value
-b-a=0 0.4090909 0.1558762 0.5684920   0.9260487
-c-a=0 0.4375000 0.1504794 0.6810731   0.9755069
-d-a=0 0.2500000 0.1039600 0.0475426   0.1254142
-e-a=0 0.3333333 0.1395624 0.2697305   0.5846015
+       estimate        se    p.value adj.p.value
+b-a=0 0.4090909 0.1558762 0.58233805   0.9341655
+c-a=0 0.4375000 0.1504794 0.68874960   0.9776452
+d-a=0 0.2500000 0.1039600 0.06798526   0.1754300
+e-a=0 0.3333333 0.1395624 0.29901488   0.6323694
 \end{verbatim}
 
 

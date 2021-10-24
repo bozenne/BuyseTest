@@ -13,6 +13,8 @@ df <- rbind(data.frame(value = x, group="x"),
             data.frame(value = y, group="y"))
 #+END_SRC
 
+#+RESULTS:
+
 We can perform a Wilcoxon test using the =wilcox.test= function:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 wilcox.test(value ~ group, data = df)
@@ -27,8 +29,8 @@ data:  value by group
 W = 58, p-value = 0.1329
 alternative hypothesis: true location shift is not equal to 0
 
-Advarselsbesked:
-I wilcox.test.default(x = c(1.83, 0.5, 1.62, 2.48, 1.68, 1.88,  :
+Warning message:
+In wilcox.test.default(x = c(1.83, 0.5, 1.62, 2.48, 1.68, 1.88,  :
   cannot compute exact p-value with ties
 #+end_example
 
@@ -96,8 +98,8 @@ confint(eperm.BT, statistic = "favorable")
 #+RESULTS:
 :              estimate       se  lower.ci  upper.ci null p.value
 : value_1e-12 0.2839506 0.140185 0.1050267 0.5725376  0.5  0.1242
-: Advarselsbesked:
-: I .local(object, ...) :
+: Warning message:
+: In .local(object, ...) :
 :   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
 
 The estimate is precisely the same and the p-value approximately the
@@ -108,7 +110,7 @@ BuyseTest.options(order.Hprojection=2)
 eU.BT <- BuyseTest(group ~ cont(value), data = df,
                   method.inference = "u-statistic",
                   add.halfNeutral = TRUE, trace = FALSE)
-confint(e.BT, statistic = "favorable")
+confint(eU.BT, statistic = "favorable")
 #+END_SRC
 
 #+RESULTS:
@@ -132,8 +134,8 @@ confint(etperm.BT, statistic = "favorable")
 #+RESULTS:
 :              estimate        se  lower.ci  upper.ci null p.value
 : value_1e-12 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
-: Advarselsbesked:
-: I .local(object, ...) :
+: Warning message:
+: In .local(object, ...) :
 :   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
 
 * Multiple Wilcoxon tests
@@ -172,11 +174,11 @@ e.mc[,c("estimate","se","p.value","adj.p.value")]
 #+END_SRC
 
 #+RESULTS:
-:        estimate        se   p.value adj.p.value
-: b-a=0 0.4090909 0.1558762 0.5684920   0.9260487
-: c-a=0 0.4375000 0.1504794 0.6810731   0.9755069
-: d-a=0 0.2500000 0.1039600 0.0475426   0.1254142
-: e-a=0 0.3333333 0.1395624 0.2697305   0.5846015
+:        estimate        se    p.value adj.p.value
+: b-a=0 0.4090909 0.1558762 0.58233805   0.9341655
+: c-a=0 0.4375000 0.1504794 0.68874960   0.9776452
+: d-a=0 0.2500000 0.1039600 0.06798526   0.1754300
+: e-a=0 0.3333333 0.1395624 0.29901488   0.6323694
 
 Here the smallest p-value has been multiplied by a factor 2.64 instead
 of 4. This is thanks to the rather strong correlation between the test
