@@ -93,7 +93,7 @@ initializeArgs <- function(status,
             warning("Argument",if(sum(test.null)>1){"s"}," \'",paste(txt, collpase="\' \'"),if(sum(test.null)>1){" are "}else{" is "}," ignored when argument \'formula\' has been specified\n")
         }
         
-        resFormula <- initializeFormula(formula)
+        resFormula <- initializeFormula(formula, hierarchical = hierarchical)
 
         treatment <- resFormula$treatment
         type <- resFormula$type
@@ -131,14 +131,18 @@ initializeArgs <- function(status,
     Uendpoint <- unique(endpoint) 
     Uendpoint.TTE <- unique(endpoint.TTE) 
     
-    ## ** default values 
+    ## ** default values
     if(is.null(formula)){
 
         if(is.null(operator)){
             operator <- rep(">0",D)
         }
         if(is.null(weight)){
-            weight <- rep(1,D)
+            if(hierarchical){
+                weight <- rep(1,D)
+            }else{
+                weight <- rep(1/D,D)
+            }
         }
         if(is.null(status)){
             status <- rep("..NA..",D)
@@ -518,7 +522,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 
 ## * initializeFormula
 #' @rdname internal-initialization
-initializeFormula <- function(x){
+initializeFormula <- function(x, hierarchical){
 
     validClass(x, valid.class = "formula")
     
@@ -701,8 +705,10 @@ initializeFormula <- function(x){
         }
         if("weight" %in% iName){
             weight <- c(weight, as.numeric(eval(expr = parse(text = iArg[iName=="weight"]))))
-        }else{
+        }else if(hierarchical){
             weight <- c(weight, 1)
+        }else{
+            weight <- c(weight, as.numeric(NA))
         }
         if("censoring" %in% iName){
             censoring <- c(censoring, gsub("\"","",iArg[iName=="censoring"]))
@@ -712,6 +718,11 @@ initializeFormula <- function(x){
     }
 
     ## ** export
+    if(all(is.na(weight))){
+        weight <- rep(1/length(weight), length(weight))
+    }else if(sum(weight, na.rm = TRUE)<1){
+        weight[!is.na(weight)] <- (1-sum(weight, na.rm = TRUE))/sum(is.na(weight))
+    }
     out <- list(treatment = treatment,
                 type = type,
                 endpoint = endpoint,

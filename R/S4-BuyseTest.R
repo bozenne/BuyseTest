@@ -101,7 +101,8 @@ methods::setMethod(
                  name.endpoint <- paste0(endpoint,"_",threshold)
                  
                  ## ** call
-                 
+                 call <- call[-1]
+
                  ## ** count
                  dimnames(count_favorable) <- list(level.strata, name.endpoint)
                  dimnames(count_unfavorable) <- list(level.strata, name.endpoint)
@@ -247,7 +248,7 @@ methods::setMethod(
                  .Object@tablePairScore <- tableScore
 
                  ## *** required additional information
-                 .Object@call <- call[-1]      
+                 .Object@call <- call
                  .Object@type <- type
                  .Object@endpoint <- endpoint
                  .Object@level.strata <- level.strata

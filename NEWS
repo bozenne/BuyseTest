@@ -3,7 +3,7 @@
 * Version 2.3
 
 ** User visible changes
-- NEW FEATURE: BuyseMultComp to adjust for multiple comparisons over strata or endpoints.
+- NEW FEATURE: BuyseMultComp to adjust for multiple comparisons (e.g. over endpoints).
 - NEW FEATURE: performance function has been added.
 - confint for BuyseTest object now returns a data.frame instead of a matrix
 - fix bug when computing the variance in stratified GPC with method.inference="u-statistics" (>2.3.5)

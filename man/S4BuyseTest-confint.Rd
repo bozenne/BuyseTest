@@ -10,6 +10,7 @@
   object,
   endpoint = NULL,
   statistic = NULL,
+  cumulative = TRUE,
   null = NULL,
   conf.level = NULL,
   alternative = NULL,
@@ -31,6 +32,9 @@ If \code{NULL} returns the confidence intervals for all endpoints.}
 \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
 \code{"unfavorable"} displays the proportion in favor of the control.
 Default value read from \code{BuyseTest.options()}.}
+
+\item{cumulative}{[logical] should the summary statistic be cumulated over endpoints?
+Otherwise display the contribution of each endpoint.}
 
 \item{null}{[numeric] right hand side of the null hypothesis (used for the computation of the p-value).}
 

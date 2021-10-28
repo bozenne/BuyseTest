@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // GPC_cpp
 Rcpp::List GPC_cpp(arma::mat endpoint, arma::mat status, std::vector< arma::uvec > indexC, std::vector< arma::uvec > posC, std::vector< arma::uvec > indexT, std::vector< arma::uvec > posT, std::vector< double > threshold, arma::vec weight, arma::vec method, std::vector< int > op, unsigned int D, unsigned int D_UTTE, unsigned int n_strata, arma::vec nUTTE_analyzedPeron_M1, std::vector<unsigned int> index_endpoint, std::vector<unsigned int> index_status, std::vector<int> index_UTTE, std::vector< std::vector< arma::mat > > list_survTimeC, std::vector< std::vector< arma::mat > > list_survTimeT, std::vector< std::vector< arma::mat > > list_survJumpC, std::vector< std::vector< arma::mat > > list_survJumpT, std::vector< arma::mat > list_lastSurv, arma::mat p_C, arma::mat p_T, std::vector< std::vector< arma::mat > > iid_survJumpC, std::vector< std::vector< arma::mat > > iid_survJumpT, double zeroPlus, int correctionUninf, bool hierarchical, int hprojection, std::vector<bool> neutralAsUninf, bool addHalfNeutral, bool keepScore, bool precompute, int returnIID, int debug);
 RcppExport SEXP _BuyseTest_GPC_cpp(SEXP endpointSEXP, SEXP statusSEXP, SEXP indexCSEXP, SEXP posCSEXP, SEXP indexTSEXP, SEXP posTSEXP, SEXP thresholdSEXP, SEXP weightSEXP, SEXP methodSEXP, SEXP opSEXP, SEXP DSEXP, SEXP D_UTTESEXP, SEXP n_strataSEXP, SEXP nUTTE_analyzedPeron_M1SEXP, SEXP index_endpointSEXP, SEXP index_statusSEXP, SEXP index_UTTESEXP, SEXP list_survTimeCSEXP, SEXP list_survTimeTSEXP, SEXP list_survJumpCSEXP, SEXP list_survJumpTSEXP, SEXP list_lastSurvSEXP, SEXP p_CSEXP, SEXP p_TSEXP, SEXP iid_survJumpCSEXP, SEXP iid_survJumpTSEXP, SEXP zeroPlusSEXP, SEXP correctionUninfSEXP, SEXP hierarchicalSEXP, SEXP hprojectionSEXP, SEXP neutralAsUninfSEXP, SEXP addHalfNeutralSEXP, SEXP keepScoreSEXP, SEXP precomputeSEXP, SEXP returnIIDSEXP, SEXP debugSEXP) {

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: okt 20 2021 (09:13) 
+## Last-Updated: okt 28 2021 (09:26) 
 ##           By: Brice Ozenne
-##     Update #: 103
+##     Update #: 104
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,7 +30,7 @@
 #' If \code{NULL} returns the summary statistic for all endpoints.
 #' @param stratified [logical] should the summary statistic be strata-specific?
 #' Otherwise a summary statistic over all strata is returned.
-#' @param cumulative [logical] should the score be cumulated over endpoints?
+#' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
 #' 
 #' @param ... ignored.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: okt 15 2021 (11:40) 
+## Last-Updated: okt 28 2021 (12:40) 
 ##           By: Brice Ozenne
-##     Update #: 143
+##     Update #: 172
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,8 @@
 ##' \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
 ##' \code{"unfavorable"} displays the proportion in favor of the control.
 ##' Default value read from \code{BuyseTest.options()}.
+#' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
+#' Otherwise display the contribution of each endpoint.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
@@ -43,37 +45,51 @@
 #' @param ... argument passsed to the function \code{transformCIBP} of the riskRegression package.
 #'
 #' @details Simulateneous confidence intervals and adjusted p-values are computed using a single-step max-test approach via the function \code{transformCIBP} of the riskRegression package.
-#'
+#' This corresponds to the single-step Dunnett described in Dmitrienko et al (2013) in table 2 and section 7.
+#'  
+#' @references Dmitrienko, A. and D'Agostino, R., Sr (2013), Traditional multiplicity adjustment methods in clinical trials. Statist. Med., 32: 5172-5218. https://doi.org/10.1002/sim.5990
+#' 
 #' @examples
-#' ## simulate data
+#' #### simulate data ####
 #' set.seed(10)
 #' df.data <- simBuyseTest(1e2, n.strata = 3)
-#' df.data$id <- paste0("Id",1:NROW(df.data))
 #'
-#' ## adjustment over endpoints
+#' #### adjustment for all univariate analyses ####
 #' ff1 <- treatment ~ TTE(eventtime, status = status, threshold = 0.1)
 #' ff2 <- update(ff1, .~. + cont(score, threshold = 1))
 #' BT2 <- BuyseTest(ff2, data= df.data, trace = FALSE)
 #'
 #' ## (require riskRegression >= 2021.10.04 to match)
-#' confint(BT2) ## not adjusted
-#' BuyseMultComp(BT2, endpoint = 1:2) ## adjusted
+#' confint(BT2, cumulative = FALSE) ## not adjusted
+#' confintAdj <- BuyseMultComp(BT2, cumulative = FALSE, endpoint = 1:2) ## adjusted
+#' confintAdj
+#' cor(attr(confintAdj,"iid")) ## correlation between test-statistic
 #' 
-#' ## adjustment strata
-#' BT1a <- BuyseTest(treatment ~ TTE(eventtime, status = status, threshold = 0.1),
-#'                  data= df.data[strata == "a",], trace = FALSE)
-#' BT1b <- BuyseTest(treatment ~ TTE(eventtime, status = status, threshold = 0.1),
-#'                  data= df.data[strata == "b",], trace = FALSE)
-#' BT1c <- BuyseTest(treatment ~ TTE(eventtime, status = status, threshold = 0.1),
-#'                  data= df.data[strata == "c",], trace = FALSE)
-#' rbind(a = confint(BT1a), b = confint(BT1b), c = confint(BT1c)) ## not adjusted
-#' BuyseMultComp(list(a = BT1a, b = BT1b, c = BT1c))
-#' BuyseMultComp(list(a = BT1a, b = BT1b, c = BT1c), cluster = "id")
+#' #### 2- adjustment for multi-arm trial ####
+#' ## case where we have more than two treatment groups
+#' ## here strata will represent the treatment groups
+#' df.data$strata <- as.character(df.data$strata)
+#' df.data$id <- paste0("Id",1:NROW(df.data)) ## define id variable
+#' 
+#' BT1ba <- BuyseTest(strata ~ TTE(eventtime, status = status, threshold = 1),
+#'                    data= df.data[strata %in% c("a","b"),], trace = FALSE)
+#' BT1ca <- BuyseTest(strata ~ TTE(eventtime, status = status, threshold = 0.1),
+#'                    data= df.data[strata %in% c("a","c"),], trace = FALSE)
+#' BT1cb <- BuyseTest(strata ~ TTE(eventtime, status = status, threshold = 0.1),
+#'                    data= df.data[strata %in% c("b","c"),], trace = FALSE)
+#' rbind("b-a" = confint(BT1ba),
+#'       "c-a" = confint(BT1ca),
+#'       "c-b" = confint(BT1cb)) ## not adjusted
+#' confintAdj <- BuyseMultComp(list("b-a" = BT1ba, "c-a" = BT1ca, "c-b" = BT1cb),
+#'                             cluster = "id")
+#' confintAdj
+#' dim(attr(confintAdj,"iid")) ## number of subjects x number of analyses
+#' cor(attr(confintAdj,"iid"))
 
 ## * BuyseMultComp (code)
 ##' @rdname BuyseMultComp
 ##' @export
-BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, endpoint = NULL, statistic = NULL, 
+BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, endpoint = NULL, statistic = NULL, cumulative = TRUE,
                           conf.level = NULL, alternative = NULL, transformation = NULL, ...){
 
     ## ** normalize arguments
@@ -105,31 +121,52 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
 
     ## endpoint
     if(test.list){
-        ls.valid.endpoint <- unique(lapply(object,function(iBT){paste0(iBT@endpoint,"_",iBT@threshold)}))
-        if(length(ls.valid.endpoint)==1){
-            valid.endpoint <- ls.valid.endpoint[[1]]
+        valid.endpoint <- lapply(object,function(iBT){paste0(iBT@endpoint,"_",iBT@threshold)})
+        if(is.null(endpoint)){
+            endpoint <- unlist(lapply(valid.endpoint, function(iE){iE[length(iE)]}))
+        }else if(is.vector(endpoint)){
+            if(length(endpoint)==1){
+                endpoint <- rep(endpoint, n.object)
+            }else if(length(endpoint)!=n.object){
+                stop("Argument \'endpoint\' misspecified. \n",
+                     "Should have length 1 or length ",n.object," (i.e. the number of objects in the list). \n")
+            }
+            if(is.numeric(endpoint)){
+                for(iE in 1:length(endpoint)){
+                    if(endpoint[iE]<=0 || endpoint[iE]>=length(valid.endpoint[[iE]])){
+                        stop("The ",iE," element in argument \'endpoint\' should be between 1 and ",length(valid.endpoint[[iE]]),". \n")
+                    }
+                }
+            }else{
+                for(iE in 1:length(endpoint)){
+                    if(endpoint[iE] %in% valid.endpoint[[iE]] == FALSE){
+                        stop("The ",iE," element in argument \'endpoint\' should one \"",paste(valid.endpoint[[iE]],collapse = "\" \""),"\". \n")
+                    }
+                }
+            }
         }else{
-            stop("Cannot handle BuyseTest objects with different endpoints. \n")
+            stop("Argument \'endpoint\' should be a vector. \n")
         }
     }else{
         valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+        if(is.null(endpoint)){
+            endpoint <- valid.endpoint[length(valid.endpoint)]
+        }else if(is.numeric(endpoint)){
+            validInteger(endpoint,
+                         name1 = "endpoint",
+                         min = 1, max = length(valid.endpoint),
+                         valid.length = NULL,
+                         method = "iid[BuyseTest]")
+            endpoint <- valid.endpoint[endpoint]
+        }else{
+            validCharacter(endpoint,
+                           valid.length = 1:length(valid.endpoint),
+                           valid.values = valid.endpoint,
+                           refuse.NULL = FALSE)
+        }
+        n.endpoint <- length(endpoint)
     }
-    if(is.null(endpoint)){
-        endpoint <- valid.endpoint[length(valid.endpoint)]
-    }else if(is.numeric(endpoint)){
-        validInteger(endpoint,
-                     name1 = "endpoint",
-                     min = 1, max = length(valid.endpoint),
-                     valid.length = NULL,
-                     method = "iid[BuyseTest]")
-        endpoint <- valid.endpoint[endpoint]
-    }else{
-        validCharacter(endpoint,
-                       valid.length = 1:length(valid.endpoint),
-                       valid.values = valid.endpoint,
-                       refuse.NULL = FALSE)
-    }
-    n.endpoint <- length(endpoint)
+    
 
     ## conf.level
     if(is.null(conf.level)){
@@ -147,34 +184,33 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     }
     ## ** extract iid and coefficients
     if(test.list){
-        if(n.endpoint>1){
-            ls.iName <- lapply(name.object,paste0,paste0(": ",endpoint))
-            iName <- unlist(ls.iName)
-        }else{
-            ls.iName <- as.list(name.object)
+        if(all(duplicated(endpoint)[-1])){
             iName <- name.object
+        }else{
+            iName <- paste0(name.object,": ",endpoint)
         }
-        vec.beta <- stats::setNames(unlist(lapply(object, coef, endpoint = endpoint, statistic = statistic)), iName)
-        vec.se <- stats::setNames(unlist(lapply(object, function(iO){confint(iO, endpoint = endpoint, statistic = statistic)$se})), iName)
-        ls.iid <- lapply(1:length(object), function(iO){ ## iO <- 1
-            iIID <- do.call(cbind,getIid(object[[iO]], endpoint = endpoint, statistic = statistic))
-            colnames(iIID) <- ls.iName[[iO]]
+        vec.beta <- stats::setNames(unlist(lapply(1:n.object, function(iO){coef(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative)})), iName)
+        vec.se <- stats::setNames(unlist(lapply(1:n.object, function(iO){confint(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative)$se})), iName)
+        ls.iid <- lapply(1:n.object, function(iO){ ## iO <- 1
+            iIID <- do.call(cbind,getIid(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative))
+            colnames(iIID) <- iName[iO]
             return(iIID)
         })
         if(is.null(cluster)){
-            seqn.id <- sapply(ls.iid,NROW)
-            cumseqn.id <- cumsum(seqn.id)
-            n.id <- cumseqn.id[n.object]
-            M.iid <- matrix(0, nrow = n.id, ncol = n.object*n.endpoint, dimnames = list(NULL, iName))
-            for(iObject in 1:length(name.object)){
-                iStart <- c(1,cumseqn.id+1)[iObject]
-                iStop <- cumseqn.id[iObject]
-                M.iid[iStart:iStop,ls.iName[[iObject]]] <- ls.iid[[iObject]]
-            }
+            ## seqn.id <- sapply(ls.iid,NROW)
+            ## cumseqn.id <- cumsum(seqn.id)
+            ## n.id <- cumseqn.id[n.object]
+            ## M.iid <- matrix(0, nrow = n.id, ncol = n.object*n.endpoint, dimnames = list(NULL, iName))
+            ## for(iObject in 1:length(name.object)){
+            ##     iStart <- c(1,cumseqn.id+1)[iObject]
+            ##     iStop <- cumseqn.id[iObject]
+            ##     M.iid[iStart:iStop,iName[iObject]] <- ls.iid[[iObject]]
+            ## }
+            stop("The argument \'cluster\' must be specified to identify the common individuals across the BuyseTest object. \n")
         }else{
-            ## try to retrieve data
+            ## retrieve data
             cluster.var <- cluster
-            cluster <- try(lapply(object, function(iO){as.character(eval(iO@call$data)[[cluster.var]]) }), silent = TRUE)
+            cluster <- try(lapply(object, function(iO){as.character(iO@call$data[[cluster.var]]) }), silent = TRUE)
             if(inherits(cluster, "try-error")){
                 stop("Could not retrieve the column \"cluster\" from the evaluation of the call of the BuyseTest objects. \n")
             }
@@ -182,17 +218,17 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             Ucluster <- unique(unlist(cluster))
             n.id <- length(Ucluster)
             ## store iid according to the clusters
-            M.iid <- matrix(0, nrow = n.id, ncol = n.object*n.endpoint, dimnames = list(NULL, iName))
-            for(iObject in 1:length(name.object)){
-                M.iid[match(cluster[[iObject]],Ucluster),ls.iName[[iObject]]] <- ls.iid[[iObject]]
+            M.iid <- matrix(0, nrow = n.id, ncol = n.object, dimnames = list(NULL, iName))
+            for(iObject in 1:n.object){
+                M.iid[match(cluster[[iObject]],Ucluster),iName[iObject]] <- ls.iid[[iObject]]
             }
         }
     }else{
         iName <- endpoint
 
-        vec.beta <- stats::setNames(coef(object, endpoint = endpoint, statistic = statistic), iName)
-        vec.se <- stats::setNames(confint(object, endpoint = endpoint, statistic = statistic)$se, iName)
-        M.iid <- do.call(cbind,getIid(object, endpoint = endpoint, statistic = statistic))
+        vec.beta <- stats::setNames(coef(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative), iName)
+        vec.se <- stats::setNames(confint(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative)$se, iName)
+        M.iid <- do.call(cbind,getIid(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative))
         colnames(M.iid) <- iName
     }
 
@@ -284,10 +320,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     out <- data.frame(estimate = as.double(vec.beta), se = as.double(vec.se),
                       lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
                       lower.band = as.double(iBand$lowerBand), upper.band = as.double(iBand$upperBand), adj.p.value = as.double(iBand$adj.p.value))
-    if(test.list && n.endpoint > 1){
-        out <- cbind(model = sapply(name.object, rep, length(endpoint)), endpoint = rep(endpoint, length(object)), out)
-        rownames(out) <- NULL
-    }else{
+    if(test.list){
         rownames(out) <- iName
     }
     attr(out,"iid") <- A.iid[,,1]

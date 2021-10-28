@@ -85,7 +85,7 @@ initializeData(
   iidNuisance
 )
 
-initializeFormula(x)
+initializeFormula(x, hierarchical)
 
 calcSample(envir, method.inference)
 }

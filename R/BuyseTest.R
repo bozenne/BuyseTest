@@ -442,7 +442,12 @@ BuyseTest <- function(formula,
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
                    "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling")
-    BuyseTest.object <- do.call("S4BuyseTest", args = c(list(call = setNames(as.list(mycall),names(mycall))),
+    mycall2 <- setNames(as.list(mycall),names(mycall))
+    if(!missing(formula)){
+        mycall2$formula <- formula ## change name of the variable into actual value
+    }
+    mycall2$data <- data ## change name of the variable into actual value
+    BuyseTest.object <- do.call("S4BuyseTest", args = c(list(call = mycall2),
                                                         outPoint, outArgs[keep.args], outResampling))
     
     if(outArgs$trace > 1){

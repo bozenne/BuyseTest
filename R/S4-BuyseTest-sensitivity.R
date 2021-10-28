@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: okt  4 2021 (19:28) 
+## Last-Updated: okt 28 2021 (10:19) 
 ##           By: Brice Ozenne
-##     Update #: 299
+##     Update #: 301
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -181,7 +181,7 @@ setMethod(f = "sensitivity",
               if("formula" %in% names(ls.args)){
                   ls.args$formula <- NULL
 
-                  args.tempo <- initializeFormula(eval(object@call$formula))
+                  args.tempo <- initializeFormula(object@call$formula, hierarchical = object@hierarchical)
                   ls.args[names(args.tempo)] <- args.tempo
 
               }

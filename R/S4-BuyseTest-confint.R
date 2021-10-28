@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt 14 2021 (19:46) 
+## Last-Updated: okt 28 2021 (12:26) 
 ##           By: Brice Ozenne
-##     Update #: 830
+##     Update #: 858
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,8 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param endpoint [character] for which endpoint(s) the confidence intervals should be output?
 #' If \code{NULL} returns the confidence intervals for all endpoints.
+#' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
+#' Otherwise display the contribution of each endpoint.
 #' @param null [numeric] right hand side of the null hypothesis (used for the computation of the p-value).
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
@@ -111,6 +113,7 @@ setMethod(f = "confint",
           definition = function(object,
                                 endpoint = NULL,
                                 statistic = NULL,
+                                cumulative = TRUE,
                                 null = NULL,
                                 conf.level = NULL,
                                 alternative = NULL,
@@ -167,11 +170,15 @@ setMethod(f = "confint",
                                  method = "confint[S4BuyseTest]")
 
                   if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
-                      stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap has been performed\n",
+                      stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap/permutation has been performed.\n",
                            "Consider setting \'method.ci.resampling\' to \"percentile\" or \"gaussian\" \n",
-                           "or setting \'method.inference\' to \"studentized bootstrap\" when calling BuyseTest. \n")
+                           "or setting \'method.inference\' to \"studentized bootstrap\" or \"studentized permutation\" when calling BuyseTest. \n")
                   }
-                  
+                  if(method.ci.resampling == "studentized" && cumulative == FALSE){
+                      stop("Endpoint specific confidence intervals are not available with studentized bootstrap/permutation. \n",
+                           "Consider applying the BuyseTest function separately to each endpoint \n",
+                           "or set \'method.inference\' to \"studentized bootstrap\" or \"studentized permutation\" when calling BuyseTest. \n")
+                  }
               }else if(!is.null(method.ci.resampling)){
                   warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")                  
               }
@@ -193,9 +200,9 @@ setMethod(f = "confint",
                       if(identical(order.Hprojection,2) && !is.null(cluster)){
                           warning("Inference will be performed using a first order H projection. \n")
                       }
-                      ls.iid <- getIid(object, endpoint = 1:D, cluster = cluster, statistic = c("favorable","unfavorable"))
-                      delta.favorable <- coef(object, statistic = "favorable", cumulative = TRUE)
-                      delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = TRUE)
+                      ls.iid <- getIid(object, endpoint = 1:D, cluster = cluster, statistic = c("favorable","unfavorable"), cumulative = cumulative)
+                      delta.favorable <- coef(object, statistic = "favorable", cumulative = cumulative)
+                      delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = cumulative)
                       keep.names <- dimnames(object@covariance)
 
                       ls.iid <- setNames(lapply(1:D, function(iD){
@@ -218,11 +225,11 @@ setMethod(f = "confint",
                       ## }))
                       Delta.iid <- lapply(ls.iid, function(iIID){iIID[,statistic,drop=FALSE]})
                   }else{
-                      Delta.iid <- getIid(object, endpoint = 1:D, cluster = cluster, statistic = statistic)
+                      Delta.iid <- getIid(object, endpoint = 1:D, cluster = cluster, statistic = statistic, cumulative = cumulative)
                   }
                   
               }
-              
+                       
               validNumeric(conf.level,
                            name1 = "conf.level",
                            min = 0, max = 1,
@@ -266,7 +273,7 @@ setMethod(f = "confint",
               }
 
               all.endpoint <- paste0(object@endpoint,"_",object@threshold)
-              Delta <- slot(object, name = "Delta")[,statistic]
+              Delta <- coef(object, statistic = statistic, cumulative = cumulative, stratified = FALSE)
 
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
                   Delta.resampling <- slot(object, name = "DeltaResampling")[,,statistic]
@@ -283,13 +290,30 @@ setMethod(f = "confint",
                   }else{
                       Delta.se.resampling <- NULL
                   }
+                  if(cumulative==FALSE &&  length(all.endpoint)>1){
+                      ## only for point estimate as studentized returns an error
+                      for(iE in 2:length(all.endpoint)){
+                          if(statistic %in% c("netbenefit","favorable","unfavorable")){
+                              Delta.resampling[,iE] <- Delta.resampling[,iE] - Delta.resampling[,iE-1]
+                          }else if(statistic == "winratio"){
+                              Delta.resampling[,iE] <- (slot(object, name = "DeltaResampling")[,iE,"favorable"]-slot(object, name = "DeltaResampling")[,iE-1,"favorable"])/(slot(object, name = "DeltaResampling")[,iE,"unfavorable"]-slot(object, name = "DeltaResampling")[,iE-1,"unfavorable"])
+                          }
+                      }
+                  }
               }else{
                   Delta.resampling <- NULL
                   Delta.se.resampling <- NULL
               }
               
               if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
-                  Delta.se <- sqrt(object@covariance[,statistic])
+                  if(cumulative){
+                      Delta.se <- sqrt(object@covariance[,statistic])
+                  }else{
+                      if(attr(method.inference,"hprojection")==2){
+                          warning("Inference will be performed using a first order H projection. \n")
+                      }
+                      Delta.se <- sqrt(unlist(lapply(Delta.iid, function(iIID){sum(iIID^2)})))
+                  }
               }else{
                   Delta.se <- NULL
               }              
@@ -339,7 +363,6 @@ setMethod(f = "confint",
               
               ## ** transformation
               if(transformation){
-                  
                   if(object@hierarchical){
                       trans.weight <- 1
                   }else{
@@ -408,7 +431,7 @@ setMethod(f = "confint",
                                                 if(is.null(se)){
                                                     out <- se
                                                 }else{
-                                                    out <- trans.weight*se*(1-itrans.delta(x)^2)
+                                                    out <- trans.weight*se*(1-(itrans.delta(x)/trans.weight)^2)
                                                     if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
@@ -430,7 +453,7 @@ setMethod(f = "confint",
                                                 if(is.null(se)){
                                                     out <- se
                                                 }else{
-                                                    out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
+                                                    out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)/trans.weight-1/2))^2)
                                                     if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
@@ -441,7 +464,7 @@ setMethod(f = "confint",
                                                 if(is.null(se)){
                                                     out <- se
                                                 }else{
-                                                    out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)-1/2))^2)
+                                                    out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)/trans.weight-1/2))^2)
                                                     if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }

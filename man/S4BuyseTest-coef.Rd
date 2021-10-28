@@ -26,7 +26,7 @@ If \code{NULL} returns the summary statistic for all endpoints.}
 \item{stratified}{[logical] should the summary statistic be strata-specific?
 Otherwise a summary statistic over all strata is returned.}
 
-\item{cumulative}{[logical] should the score be cumulated over endpoints?
+\item{cumulative}{[logical] should the summary statistic be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}
 
 \item{...}{ignored.}

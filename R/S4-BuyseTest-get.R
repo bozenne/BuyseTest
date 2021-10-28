@@ -145,9 +145,14 @@ setMethod(f = "getIid",
               ## ** extract favorable/unfavorable
               delta.favorable <- coef(object, statistic = "favorable", cumulative = FALSE, stratified = TRUE)
               delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = FALSE, stratified = TRUE)
-              Delta.favorable <- coef(object, statistic = "favorable", cumulative = TRUE, stratified = FALSE)
-              Delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = TRUE, stratified = FALSE)
-                            
+              if(cumulative){
+                  Delta.favorable <- coef(object, statistic = "favorable", cumulative = TRUE, stratified = FALSE)
+                  Delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = TRUE, stratified = FALSE)
+              }else{
+                  Delta.favorable <- colSums(delta.favorable)
+                  Delta.unfavorable <- colSums(delta.unfavorable)
+              }
+              
               ## ** extract H-decomposition
               if(type %in% c("all","u-statistic")){
                   object.iid <- object@iidAverage[c("favorable","unfavorable")]
@@ -229,7 +234,7 @@ setMethod(f = "getIid",
                       out[,"netBenefit"] <- object.iid[,"favorable"] - object.iid[,"unfavorable"]
                   }
                   if("winRatio" %in% statistic){
-                      out[,"winRatio"] <- object.iid[,"favorable"]/Delta.unfavorable[n.endpoint] - object.iid[,"unfavorable"]*Delta.favorable[n.endpoint]/Delta.unfavorable[n.endpoint]^2
+                          out[,"winRatio"] <- object.iid[,"favorable"]/Delta.unfavorable[n.endpoint] - object.iid[,"unfavorable"]*Delta.favorable[n.endpoint]/Delta.unfavorable[n.endpoint]^2 + sum(object.iid[,"favorable"])/sum(object.iid[,"unfavorable"])
                   }
 
               }else{
@@ -252,7 +257,7 @@ setMethod(f = "getIid",
                           iOut[,"netBenefit"] <- iIID[,"favorable"] - iIID[,"unfavorable"]
                       }
                       if("winRatio" %in% statistic){
-                          iOut[,"winRatio"] <- iIID[,"favorable"]/Delta.unfavorable[iE] - iIID[,"unfavorable"]*Delta.favorable[iE]/Delta.unfavorable[iE]^2
+                          iOut[,"winRatio"] <- iIID[,"favorable"]/Delta.unfavorable[iE] - iIID[,"unfavorable"]*Delta.favorable[iE]/Delta.unfavorable[iE]^2 + sum(iIID[,"favorable"])/sum(iIID[,"unfavorable"])
                       }
                       return(iOut)
                   })

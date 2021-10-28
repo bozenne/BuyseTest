@@ -11,6 +11,7 @@ BuyseMultComp(
   rhs = NULL,
   endpoint = NULL,
   statistic = NULL,
+  cumulative = TRUE,
   conf.level = NULL,
   alternative = NULL,
   transformation = NULL,
@@ -37,6 +38,9 @@ If NULL, then it is assumed that the BuyseTest objects correspond to different g
 \code{"unfavorable"} displays the proportion in favor of the control.
 Default value read from \code{BuyseTest.options()}.}
 
+\item{cumulative}{[logical] should the summary statistic be cumulated over endpoints?
+Otherwise display the contribution of each endpoint.}
+
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
 
@@ -54,30 +58,45 @@ Adjustment p-values and confidence estimated via GPC for multiple comparisons.
 }
 \details{
 Simulateneous confidence intervals and adjusted p-values are computed using a single-step max-test approach via the function \code{transformCIBP} of the riskRegression package.
+This corresponds to the single-step Dunnett described in Dmitrienko et al (2013) in table 2 and section 7.
 }
 \examples{
-## simulate data
+#### simulate data ####
 set.seed(10)
 df.data <- simBuyseTest(1e2, n.strata = 3)
-df.data$id <- paste0("Id",1:NROW(df.data))
 
-## adjustment over endpoints
+#### adjustment for all univariate analyses ####
 ff1 <- treatment ~ TTE(eventtime, status = status, threshold = 0.1)
 ff2 <- update(ff1, .~. + cont(score, threshold = 1))
 BT2 <- BuyseTest(ff2, data= df.data, trace = FALSE)
 
 ## (require riskRegression >= 2021.10.04 to match)
-confint(BT2) ## not adjusted
-BuyseMultComp(BT2, endpoint = 1:2) ## adjusted
+confint(BT2, cumulative = FALSE) ## not adjusted
+confintAdj <- BuyseMultComp(BT2, cumulative = FALSE, endpoint = 1:2) ## adjusted
+confintAdj
+cor(attr(confintAdj,"iid")) ## correlation between test-statistic
 
-## adjustment strata
-BT1a <- BuyseTest(treatment ~ TTE(eventtime, status = status, threshold = 0.1),
-                 data= df.data[strata == "a",], trace = FALSE)
-BT1b <- BuyseTest(treatment ~ TTE(eventtime, status = status, threshold = 0.1),
-                 data= df.data[strata == "b",], trace = FALSE)
-BT1c <- BuyseTest(treatment ~ TTE(eventtime, status = status, threshold = 0.1),
-                 data= df.data[strata == "c",], trace = FALSE)
-rbind(a = confint(BT1a), b = confint(BT1b), c = confint(BT1c)) ## not adjusted
-BuyseMultComp(list(a = BT1a, b = BT1b, c = BT1c))
-BuyseMultComp(list(a = BT1a, b = BT1b, c = BT1c), cluster = "id")
+#### 2- adjustment for multi-arm trial ####
+## case where we have more than two treatment groups
+## here strata will represent the treatment groups
+df.data$strata <- as.character(df.data$strata)
+df.data$id <- paste0("Id",1:NROW(df.data)) ## define id variable
+
+BT1ba <- BuyseTest(strata ~ TTE(eventtime, status = status, threshold = 1),
+                   data= df.data[strata \%in\% c("a","b"),], trace = FALSE)
+BT1ca <- BuyseTest(strata ~ TTE(eventtime, status = status, threshold = 0.1),
+                   data= df.data[strata \%in\% c("a","c"),], trace = FALSE)
+BT1cb <- BuyseTest(strata ~ TTE(eventtime, status = status, threshold = 0.1),
+                   data= df.data[strata \%in\% c("b","c"),], trace = FALSE)
+rbind("b-a" = confint(BT1ba),
+      "c-a" = confint(BT1ca),
+      "c-b" = confint(BT1cb)) ## not adjusted
+confintAdj <- BuyseMultComp(list("b-a" = BT1ba, "c-a" = BT1ca, "c-b" = BT1cb),
+                            cluster = "id")
+confintAdj
+dim(attr(confintAdj,"iid")) ## number of subjects x number of analyses
+cor(attr(confintAdj,"iid"))
+}
+\references{
+Dmitrienko, A. and D'Agostino, R., Sr (2013), Traditional multiplicity adjustment methods in clinical trials. Statist. Med., 32: 5172-5218. https://doi.org/10.1002/sim.5990
 }
