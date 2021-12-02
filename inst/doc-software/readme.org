@@ -1,0 +1,22 @@
+Instructions to run to prepare the vignette (to run before installing the package)
+
+- export R code
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+## devtools::build_vignettes("BuyseTest", quiet = FALSE) ## generate the META folder
+setwd(pathGitHub())
+butils:::extractRchunk(file = "./BuyseTest/inst/doc-software/overview.org", newfile = "./BuyseTest/doc/overview.R", overwrite = TRUE)
+#+END_SRC
+
+#+RESULTS:
+
+- move to directory containing the package, compress vignette pdf file, and copy to =doc= and =vignettes= directories
+#+BEGIN_SRC shell
+cd ~/Documents/GitHub/BuyseTest/inst/doc-software/
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=overview-compress.pdf overview.pdf
+cp overview-compress.pdf ../../doc/overview.pdf 
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=overview-compress.pdf overview.pdf
+cp overview-compress.pdf ../../vignettes/overview.pdf 
+#+END_SRC
+
+#+RESULTS:
+

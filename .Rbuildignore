@@ -15,3 +15,5 @@ inst/todo.org
 .github/
 LICENSE
 ^appveyor\.yml$
+^doc$
+^Meta$
