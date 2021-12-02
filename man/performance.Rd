@@ -10,6 +10,7 @@ performance(
   newdata = NA,
   fold.size = 1/10,
   fold.number = 0,
+  individual.fit = FALSE,
   name.response = NULL,
   null = c(brier = NA, AUC = 0.5),
   conf.level = 0.95,

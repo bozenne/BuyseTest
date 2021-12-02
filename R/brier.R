@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: okt 12 2021 (18:03) 
+## Last-Updated: dec  2 2021 (12:24) 
 ##           By: Brice Ozenne
-##     Update #: 128
+##     Update #: 143
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -126,9 +126,10 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
         
         iBrier <- rep(0, length = n.obs)
         iFactor <- vector(mode = "list", length = n.obs)
-        for(iObs in 1:n.obs){
+        for(iObs in 1:n.obs){ ## iObs <- 1
+
             if(any(observation==iObs)){
-                iFactor[[iObs]] <- setNames(n.Uobservation/(nFold.obs[fold[observation==iObs]]*n.fold),fold[observation==iObs])
+                iFactor[[iObs]] <- setNames(n.Uobservation/(nFold.obs[as.character(fold[observation==iObs])]*n.fold),fold[observation==iObs])
                 iBrier[iObs] <- sum((predictions[observation==iObs] - labels[iObs])^2*iFactor[[iObs]])
             }
         }
@@ -147,13 +148,13 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
             iidAverage[Uobservation] <- (iBrier[Uobservation]-out$estimate[out$fold=="global"])/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
             ## stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation) - sqrt(crossprod(iidAverage)) ## should be equal
             for(iFold in 1:n.fold){ ## iFold <- 1
-                iiFactor <- sapply(iFactor[observation[fold==iFold]],function(iVec){iVec[as.character(iFold)]})
-                iStat <- 2*(predictions[fold==iFold] - labels[observation[fold==iFold]])
+                iiFactor <- sapply(iFactor[observation[fold==name.fold[iFold]]],function(iVec){iVec[name.fold[iFold]]})
+                iStat <- 2*(predictions[fold==name.fold[iFold]] - labels[observation[fold==name.fold[iFold]]])
                 iidNuisance  <- iidNuisance + rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat*iiFactor))
 
                 ## in each fold because of CV the training and test set are separate so the uncertainties are independent
-                term1 <- stats::sd((predictions[fold==iFold] - labels[observation[fold==iFold]])^2)
-                term2 <- sqrt(crossprod(rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat)))/sum(fold==iFold))
+                term1 <- stats::sd((predictions[fold==name.fold[iFold]] - labels[observation[fold==name.fold[iFold]]])^2)
+                term2 <- sqrt(crossprod(rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat)))/sum(fold==name.fold[iFold]))
                 out[out$fold==name.fold[iFold],"se"] <- term1 + term2
             }
             attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)

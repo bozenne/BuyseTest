@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:55) 
 ## Version: 
-## Last-Updated: okt 14 2021 (19:23) 
+## Last-Updated: dec  1 2021 (18:28) 
 ##           By: Brice Ozenne
-##     Update #: 90
+##     Update #: 91
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -97,8 +97,8 @@
     if (!inherits(object,"glm")){
         stop("Only implemented for glm objects. \n")
     }
-    if (object$family$family!="binomial"){
-        stop("Not implemented for other families than binomial. \n")
+    if (object$family$family %in% c("binomial","quasibinomial") == FALSE){
+        stop("Not implemented for other families than binomial or quasibinomial. \n")
     }
     if (object$family$link!="logit"){
         stop("Not implemented for other link function than logit. \n")

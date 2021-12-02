@@ -444,28 +444,16 @@ calling =BuyseTest=, e.g.:
 ff2w <- trt ~ tte(time, threshold = 20, status = "status", weight = 0.8)
 ff2w <- update.formula(ff2w, . ~ . + cont(karno, threshold = 0, weight = 0.2))
 BT.nHw <- BuyseTest(ff2w, hierarchical = FALSE, data = veteran, trace = 0)
-summary(BT.nHw)
+summary(BT.nHw, print = FALSE)$table.print[,-13]
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-       Generalized pairwise comparisons with 2 endpoints
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : H-projection of order 1
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - censored pairs  : probabilistic score based on the survival curves
- - neutral pairs   : re-analyzed using lower priority endpoints
- - results
- endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
-     time     2e+01    0.8      100        37.78          46.54      15.68        0 -0.0877
-    karno     1e-12    0.2      100        41.82          44.95      13.24        0 -0.0313
-   Delta CI [2.5% ; 97.5%] p.value 
- -0.0701  [-0.2204;0.0834] 0.37073 
- -0.0764  [-0.2504;0.1024] 0.40269
-#+end_example
+:   endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
+: 1     time     2e+01    0.8      100        37.78          46.54      15.68        0 -0.0877
+: 3    karno     1e-12    0.2      100        41.82          44.95      13.24        0 -0.0313
+:     Delta CI [2.5% ; 97.5%] p.value
+: 1 -0.0701  [-0.2204;0.0834] 0.37073
+: 3 -0.0764  [-0.2504;0.1024] 0.40269
 
 This has been refered as the O’Brien test in the litterature
 (cite:verbeeck2019generalized, section 3.2). Alternatively, one may be
