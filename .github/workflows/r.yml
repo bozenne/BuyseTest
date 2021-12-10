@@ -24,8 +24,8 @@ jobs:
       - name: Install R dependencies
         run: |
           install.packages("remotes", repos="https://cloud.r-project.org")
+          install.packages("rcmdcheck", repos="https://cloud.r-project.org")
           remotes::install_deps(".", dep=T, upgrade=T) 
-          remotes::install_cran(c("rcmdcheck"))
         shell: Rscript {0}
 
       - uses: r-lib/actions/setup-tinytex@master   
