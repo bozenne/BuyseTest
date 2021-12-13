@@ -31,6 +31,8 @@ performance(
 
 \item{fold.number}{[integer] When strictly positive, the number of fold used in the cross-validation. If 0 then no cross validation is performed.}
 
+\item{individual.fit}{[logical] If \code{TRUE} the predictive model is refit for each individual using only the predictors with non missing values.}
+
 \item{name.response}{[character] The name of the response variable (i.e. the one containing the categories).}
 
 \item{null}{[numeric vector of length 2] the right-hand side of the null hypothesis relative to each metric.}

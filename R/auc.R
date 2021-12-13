@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: okt 14 2021 (19:25) 
+## Last-Updated: dec  9 2021 (11:57) 
 ##           By: Brice Ozenne
-##     Update #: 428
+##     Update #: 440
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -78,7 +78,6 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     if(length(unique(labels))!=2){
         stop("Argument \'labels\' must have exactly two different values \n")
     }
-    n.obs <- length(labels)    
     if(!is.null(fold)){
         if(length(fold)!=length(predictions)){
             stop("When not NULL, argument \'fold\' must have the same length as argument \'predictions\' \n")
@@ -86,14 +85,21 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         if(length(observation)!=length(predictions)){
             stop("When argument \'fold\' is not NULL, argument \'observation\' must have the same length as argument \'predictions\' \n")
         }
-        if(!is.null(observation) && any(observation %in% 1:n.obs == FALSE)){
-            stop("When not NULL, argument \'observation\' must take integer values between 1 and ",n.obs,"\n", sep = "")
+        if(length(labels)!=length(predictions)){ ##  either the user provides the outcome for each observation
+            n.obs <- length(labels)
+            if(!is.null(observation) && any(observation %in% 1:n.obs == FALSE)){
+                stop("When not NULL, argument \'observation\' must take integer values between 1 and ",n.obs,"\n", sep = "")
+            }
+        }else{ ## or the user provides the outcome for each prediction (i.e. several times the same value as some predictions correspond to the same obs)
+            n.obs <- length(unique(observation))
+            observation <- as.numeric(as.factor(observation))
         }
 
         if(any(tapply(observation,fold, function(iObs){any(duplicated(iObs))}))){
             stop("The same observation cannot appear twice in the same fold. \n")
         }
     }else{
+        n.obs <- length(labels)    
         if(n.obs!=length(predictions)){
             stop("Argument \'labels\' and \'predictions\' must have the same length \n")
         }
@@ -108,11 +114,17 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     if(!is.logical(transformation)){
         stop("Argument \'transformation\' must be TRUE or FALSE \n")
     }
-    
-    df <- data.frame(Y = labels[observation],
-                     X = predictions,
-                     observation = observation,
-                     stringsAsFactors = FALSE)
+    if(length(labels)==length(predictions)){
+        df <- data.frame(Y = labels,
+                         X = predictions,
+                         observation = observation,
+                         stringsAsFactors = FALSE)
+    }else{
+        df <- data.frame(Y = labels[observation],
+                         X = predictions,
+                         observation = observation,
+                         stringsAsFactors = FALSE)
+    }
     formula0 <- Y ~ cont(X)
 
     if(!is.null(fold)){
@@ -178,7 +190,6 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         BuyseTest.options(order.Hprojection = order.Hprojection)
         on.exit(BuyseTest.options(order.Hprojection = order.save))
     }
-
     e.BT <- BuyseTest(formula, method.inference = "u-statistic", data = df, trace = 0, add.halfNeutral = add.halfNeutral)
 
     ## store
