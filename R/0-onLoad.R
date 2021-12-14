@@ -6,3 +6,6 @@ BuyseTest.env <- new.env() # create a specific environment for the package
   
    BuyseTest.options(reinitialise = TRUE) # generate .BuyseTest-options when loading the package   
 }
+
+riskRegression_transformT <- get("transformT", envir = asNamespace("riskRegression"), inherits = FALSE)
+riskRegression_transformIID <- get("transformIID", envir = asNamespace("riskRegression"), inherits = FALSE)

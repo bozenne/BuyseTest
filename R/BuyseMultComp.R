@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: okt 28 2021 (12:40) 
+## Last-Updated: Dec 14 2021 (17:28) 
 ##           By: Brice Ozenne
-##     Update #: 172
+##     Update #: 230
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,6 +37,8 @@
 #' Otherwise display the contribution of each endpoint.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param band [logical] Should confidence intervals and p-values adjusted for multiple comparisons be computed.
+#' @param global [logical] Should global test (intersection of all null hypotheses) be made? 
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
@@ -63,7 +65,7 @@
 #' confint(BT2, cumulative = FALSE) ## not adjusted
 #' confintAdj <- BuyseMultComp(BT2, cumulative = FALSE, endpoint = 1:2) ## adjusted
 #' confintAdj
-#' cor(attr(confintAdj,"iid")) ## correlation between test-statistic
+#' cor(confintAdj$iid) ## correlation between test-statistic
 #' 
 #' #### 2- adjustment for multi-arm trial ####
 #' ## case where we have more than two treatment groups
@@ -81,16 +83,16 @@
 #'       "c-a" = confint(BT1ca),
 #'       "c-b" = confint(BT1cb)) ## not adjusted
 #' confintAdj <- BuyseMultComp(list("b-a" = BT1ba, "c-a" = BT1ca, "c-b" = BT1cb),
-#'                             cluster = "id")
+#'                             cluster = "id", global = TRUE)
 #' confintAdj
-#' dim(attr(confintAdj,"iid")) ## number of subjects x number of analyses
-#' cor(attr(confintAdj,"iid"))
+#' dim(confintAdj$iid) ## number of subjects x number of analyses
+#' cor(confintAdj$iid)
 
 ## * BuyseMultComp (code)
 ##' @rdname BuyseMultComp
 ##' @export
 BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, endpoint = NULL, statistic = NULL, cumulative = TRUE,
-                          conf.level = NULL, alternative = NULL, transformation = NULL, ...){
+                          conf.level = NULL, band = TRUE, global = FALSE, alternative = NULL, transformation = NULL, ...){
 
     ## ** normalize arguments
     option <- BuyseTest.options()
@@ -182,6 +184,20 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     if(is.null(transformation)){
         transformation <- option$transformation
     }
+
+    ## type of transformation
+    if(transformation){
+        type <- switch(statistic,
+                       "netbenefit" = "atanh",
+                       "winratio" = "log",
+                       "favorable" = "atanh2",
+                       "unfavorable" = "atanh2",
+                       "none" = "none") 
+    }else{
+        type <- "none"
+    }
+    
+
     ## ** extract iid and coefficients
     if(test.list){
         if(all(duplicated(endpoint)[-1])){
@@ -190,7 +206,6 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             iName <- paste0(name.object,": ",endpoint)
         }
         vec.beta <- stats::setNames(unlist(lapply(1:n.object, function(iO){coef(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative)})), iName)
-        vec.se <- stats::setNames(unlist(lapply(1:n.object, function(iO){confint(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative)$se})), iName)
         ls.iid <- lapply(1:n.object, function(iO){ ## iO <- 1
             iIID <- do.call(cbind,getIid(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative))
             colnames(iIID) <- iName[iO]
@@ -227,7 +242,6 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
         iName <- endpoint
 
         vec.beta <- stats::setNames(coef(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative), iName)
-        vec.se <- stats::setNames(confint(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative)$se, iName)
         M.iid <- do.call(cbind,getIid(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative))
         colnames(M.iid) <- iName
     }
@@ -235,7 +249,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     n.beta <- length(vec.beta)
     vec.name <- names(vec.beta)
 
-    ## ** create linfct matrix
+    ## ** create and apply linfct matrix
     if(is.null(linfct)){
         linfct <- diag(1, nrow = n.beta, ncol = n.beta)
         dimnames(linfct) = list(vec.name,vec.name)
@@ -247,11 +261,18 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             colnames(linfct) <- names(vec.beta)
         }else{
             if(any(vec.name %in% colnames(linfct) == FALSE)){
-                stop("Missing column \"",paste0(vec.name[vec.name%in%colnames(linfct)==FALSE],collapse="\" \""),"\" in argument \'linfct\'. \n")
+                stop("Missing column \"",paste0(vec.name[vec.name %in% colnames(linfct)==FALSE],collapse="\" \""),"\" in argument \'linfct\'. \n")
             }
             linfct <- linfct[,vec.name,drop=FALSE]
         }
     }
+    vec.Cbeta <- t(linfct %*% vec.beta)
+    M.Ciid <- M.iid  %*% t(linfct)
+    n.C <- NROW(linfct)
+
+    vec.Cse <- rbind(sqrt(diag(crossprod(M.Ciid))))
+    A.Ciid <- array(NA, dim = c(NROW(M.Ciid), NCOL(M.Ciid),1))
+    A.Ciid[,,1] <- M.Ciid
 
     ## ** create rhs vector
     if(is.null(rhs)){
@@ -259,17 +280,35 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
                           "netbenefit" = 0,
                           "winratio" = 1,
                           "favorable" = 0.5,
-                          "unfavorable" = 0.5), n.beta)
+                          "unfavorable" = 0.5), n.C)
     }else{
-        if(length(rhs) != NROW(linfct)){
+        if(length(rhs) != n.C){
             stop("Length of argument \'rhs\' does not match the number of row of argument \'contrast\' (",length(rhs)," vs. ",NROW(linfct),"). \n")
         }
     }
-    ## ** perform adjustment for multiple comparisons
-    requireNamespace("riskRegression")
-    A.iid <- array(NA, dim = c(NROW(M.iid), NCOL(M.iid),1))
-    A.iid[,,1] <- M.iid
+    
 
+    ## ** perform global test (single multivariate Wald test)
+    if(global){
+        if(transformation){
+            vec.CbetaTrans <- riskRegression_transformT(estimate = vec.Cbeta, se = 1 , null = rhs, type = type, alternative = alternative)
+            M.cSigmaTrans <- crossprod(riskRegression_transformIID(estimate = vec.Cbeta, iid = A.Ciid, type = type)[,,1])
+            dimnames(M.cSigmaTrans) <- list(colnames(M.iid),colnames(M.iid))
+        }else{
+            vec.CbetaTrans <- vec.Cbeta
+            M.CsigmaTrans <- crossprod(M.Ciid)
+        }
+        iStat <- try(as.double(vec.CbetaTrans %*% solve(M.cSigmaTrans) %*% t(vec.CbetaTrans), silent = TRUE))
+        if(inherits(iStat,"try-error")){
+            out.chisq <- iStat
+        }else{
+            out.chisq <- data.frame(statistic = iStat, df = n.C, p.value = 1 - stats::pchisq(iStat, df = n.C))
+        }
+    }else{
+        out.chisq <- data.frame(statistic = NA, df = NA, p.value = NA)
+    }
+
+    ## ** perform adjustment for multiple comparisons (several univariate Wald test)
     min.value <- switch(statistic,
                         "netBenefit" = -1,
                         "winRatio" = 0,
@@ -281,22 +320,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
                         "favorable" = 1,
                         "unfavorable" = 1)
 
-    if(statistic %in% c("none","netBenefit","winRatio") || inherits(try(riskRegression::transformCIBP(estimate = 0.5, se = cbind(0.1), type = "atanh2", seed = NA, band = FALSE, alternative = "two.sided", p.value = TRUE, ci = TRUE, conf.level = 0.95, min.value = -Inf, max.value = Inf, null = 0.5),silent=TRUE),"try-error")){
-        type <- switch(statistic,
-                       "netbenefit" = "atanh",
-                       "winratio" = "log",
-                       "favorable" = "cloglog",## note: not the same transformation as confint
-                       "unfavorable" = "cloglog", ## note: not the same transformation as confint
-                       "none" = "none") 
-    }else{
-        type <- switch(statistic,
-                       "netbenefit" = "atanh",
-                       "winratio" = "log",
-                       "favorable" = "atanh2",
-                       "unfavorable" = "atanh2",
-                       "none" = "none") 
-    }
-
+    
     dots <- list(...)
     if("seed" %in% names(dots) == FALSE){
         dots$seed <- NA
@@ -304,32 +328,75 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     if("method.band" %in% names(dots) == FALSE){
         dots$method.band <- "maxT-integration"
     }
+    requireNamespace("riskRegression")
 
     iBand <- do.call(riskRegression::transformCIBP,
-                     args = c(list(estimate = rbind(vec.beta),
-                                   se = rbind(vec.se),
-                                   iid = A.iid,
+                     args = c(list(estimate = vec.Cbeta,
+                                   se = vec.Cse,
+                                   iid = A.Ciid,
                                    null = rhs,
                                    conf.level = conf.level,
                                    alternative = alternative,
                                    ci = TRUE, type = type, min.value = min.value, max.value = max.value,
-                                   band = TRUE, p.value = TRUE),
+                                   band = band, p.value = TRUE),
                               dots))
 
     ## ** export
-    out <- data.frame(estimate = as.double(vec.beta), se = as.double(vec.se),
-                      lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
-                      lower.band = as.double(iBand$lowerBand), upper.band = as.double(iBand$upperBand), adj.p.value = as.double(iBand$adj.p.value))
-    if(test.list){
-        rownames(out) <- iName
+    out <- list(table.uni = NULL,
+                table.multi = out.chisq,
+                iid = M.Ciid,
+                linfct = linfct,
+                quantileBand = iBand$quantile
+                )
+    if(band){
+        out$table.uni <- data.frame(estimate = as.double(vec.Cbeta), se = as.double(vec.Cse),
+                          lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
+                          lower.band = as.double(iBand$lowerBand), upper.band = as.double(iBand$upperBand), adj.p.value = as.double(iBand$adj.p.value))
+    }else{
+        out$table.uni <- data.frame(estimate = as.double(vec.Cbeta), se = as.double(vec.Cse),
+                                    lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
+                                    lower.band = NA, upper.band = NA, adj.p.value = NA)
     }
-    attr(out,"iid") <- A.iid[,,1]
-    attr(out,"linfct") <- linfct
-    attr(out,"quantileBand") <- iBand$quantile
-    attr(out,"quantileBand") <- iBand$quantile
+    
+    if(test.list){
+        rownames(out$table.uni) <- iName
+    }
+    class(out) <- append("BuyseMultComp",class(out))
     return(out)
 }
         
+## * as.data.frame.BuyseMultComp
+##' @export
+as.data.frame.BuyseMultComp <- function(x, row.names = NULL, optional = FALSE, ...){
+    return(as.data.frame(x$table.uni, row.names = row.names, optional = optional, ...))
+}
 
+## * as.data.table.BuyseMultComp
+##' @export
+as.data.table.BuyseMultComp <- function(x, keep.rownames = NULL, ...){
+    return(as.data.table(x$table.uni, keep.rownames = keep.rownames, ...))
+}
+
+## * print.BuyseMultComp
+##' @export
+print.BuyseMultComp <- function(x, ...){
+    dots <- list(...)
+    
+    if(!all(is.na(x$table.multi))){
+        cat("  - Multivariate test: p.value = ",x$table.multi[,"p.value"]," (df = ",x$table.multi[,"df"],")\n",sep="")
+    }
+    cat("  - Univariate tests:\n",sep="")
+    if(any(dots$cols %in% names(x$table.uni) == FALSE) ){
+        stop("Incorrect argument \'cols\'. \n",
+             "Valid values: \"",paste(names(x$table.uni), collapse = "\" \""),"\".\n")
+    }
+    if(!is.null(dots$cols)){
+        print(x$table.uni[,dots$cols,drop=FALSE])
+    }else{
+        print(x$table.uni)
+    }
+    
+    return(invisible(NULL))
+}
 ##----------------------------------------------------------------------
 ### multcomp.R ends here

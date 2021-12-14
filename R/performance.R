@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: dec 10 2021 (11:14) 
+## Last-Updated: Dec 14 2021 (17:27) 
 ##           By: Brice Ozenne
-##     Update #: 513
+##     Update #: 516
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -233,7 +233,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             object.iformula[[iO]] <- apply(iTest.na,1,function(iRow){
                 if(any(iRow)){
                     iNewFF <- as.formula(paste(".~.-",paste(colnames(iTest.na)[iRow],collapse="-")))
-                    return(update(object.formula[[iO]],iNewFF))
+                    return(stats::update(object.formula[[iO]],iNewFF))
                 }else{
                     return(object.formula[[iO]])
                 }
@@ -254,7 +254,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                 attr(newdata.missingPattern[[iO]],"formula") <- lapply(attr(newdata.missingPattern[[iO]],"index"),function(iObs){ ## iObs <- 3
                     iVar.rm <- colnames(iTest.na)[iTest.na[iObs[1],]]
                     if(length(iVar.rm)>0){
-                        return(update(object.formula[[iO]],as.formula(paste(".~.-",paste(iVar.rm,collapse="-")))))
+                        return(stats::update(object.formula[[iO]],as.formula(paste(".~.-",paste(iVar.rm,collapse="-")))))
                     }else{
                         return(object.formula[[iO]])
                     }
@@ -593,7 +593,6 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                 for(iO in 1:n.object){ ## iO <- 1
 
                     if(individual.fit){
-                        browser()
                         for(iObs in 1:fold.size){ ## iObs <- 3
                             iObject <- stats::update(object[[iO]], formula = object.iformula[[iO]][[iFoldTest[iObs]]], data = iDataTrain)
                             iPerf <- .performance_predict(iObject, n.obs = nobs.object-fold.size[iSubFold], newdata = iDataTest[iObs,], auc.type = auc.type)
@@ -602,8 +601,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                                 if(auc.type == "probabilistic"){
                                     cv.se.predictions[index.iFoldTest[iObs],iO,iFold] <- as.double(iPerf$se)
                                 }
-                                browser()
-                                cv.iid[[iO]][fold.train[,iFold][setdiff(1:NROW(iDataTrain),iObject$na.action)],index.iFoldTest[iObs],iFold] <- iPerf$iid
+                                cv.iid[[iO]][iFoldTrain[,iFold][setdiff(1:NROW(iDataTrain),iObject$na.action)],index.iFoldTest[iObs],iFold] <- iPerf$iid
                             }
                         }
                     }else{

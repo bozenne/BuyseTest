@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt 28 2021 (12:26) 
+## Last-Updated: Dec 14 2021 (16:46) 
 ##           By: Brice Ozenne
-##     Update #: 858
+##     Update #: 863
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -247,7 +247,7 @@ setMethod(f = "confint",
                            name1 = "transformation",
                            valid.length = 1,
                            method = "confint[S4BuyseTest]")
-              
+
               ## endpoint
               if(!is.null(endpoint)){
                   valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
