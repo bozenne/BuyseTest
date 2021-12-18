@@ -25,6 +25,7 @@ jobs:
         run: |
           install.packages("remotes", repos="https://cloud.r-project.org")
           install.packages("rcmdcheck", repos="https://cloud.r-project.org")
+          install.packages("riskRegression", repos="https://cloud.r-project.org")
           remotes::install_deps(".", dep=T, upgrade=T) 
         shell: Rscript {0}
 
