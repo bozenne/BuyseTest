@@ -10,7 +10,7 @@
 
 // :cppFile:{FCT_buyseTest.cpp}:end:
 
-arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold,
+arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold, double restriction,
 					   arma::colvec statusC, arma::colvec statusT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 					   arma::rowvec lastSurv, 					   
@@ -64,7 +64,7 @@ void add4vec(std::vector<int>& Vrow,
 //         RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T
 //         matPairScore
 // author Brice Ozenne
-arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold,
+arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold, double restriction,
 					   arma::colvec statusC, arma::colvec statusT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 					   arma::rowvec lastSurv,
@@ -210,7 +210,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
     }else if(method == 4){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
       iPairScore = calcOnePair_TTEgehan2(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold);
     }else if(method == 5){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
-      iPairScore = calcOnePair_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
+      iPairScore = calcOnePair_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold, restriction,
 					 survTimeC.row(iter_C), survTimeT.row(iter_T),
 					 survJumpC, survJumpT, lastSurv(0), lastSurv(1),
 					 iDscore_Dnuisance_C, iDscore_Dnuisance_T,

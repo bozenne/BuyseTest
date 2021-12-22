@@ -67,6 +67,8 @@ Simulateneous confidence intervals and adjusted p-values are computed using a si
 \examples{
 
 \dontrun{
+require(ggplot2)
+
 ## simulate data
 set.seed(10)
 df.data <- simBuyseTest(1e2, n.strata = 2)

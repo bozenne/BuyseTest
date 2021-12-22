@@ -34,7 +34,13 @@ setMethod(f = "show",
                   col.value <- c("mean.estimate","sd.estimate","mean.se","rejection.rate")
               }
               outSummary[,col.value] <- round(outSummary[,col.value], digits = 3)
-              outSummary[duplicated(outSummary[,c("endpoint","threshold")]),c("endpoint","threshold")] <- as.character(NA)
+              outSummary[duplicated(outSummary[,c("endpoint","restriction","threshold")]),c("endpoint","restriction","threshold")] <- as.character(NA)
+              if(all(is.na(outSummary$restriction))){
+                  outSummary$restriction <- NULL
+              }
+              if(all(is.na(outSummary$threshold))){
+                  outSummary$threshold <- NULL
+              }
               outSummary[] <- lapply(outSummary, as.character)
               outSummary[is.na(outSummary)] <- ""
               print(outSummary, row.names = FALSE, quote = FALSE)

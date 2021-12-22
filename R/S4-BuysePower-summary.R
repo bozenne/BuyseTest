@@ -46,7 +46,7 @@ setMethod(f = "summary",
               null <- slot(object, name = "null")
 
               ## ** normalize and check arguments
-              valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+              valid.endpoint <- names(object@endpoint)
               valid.statistic <- unique(dt.res$statistic)
               valid.order <- unique(dt.res$order)
               valid.transformation <- unique(dt.res$transformation)
@@ -122,11 +122,12 @@ setMethod(f = "summary",
               index.endpoint <- match(dtS.res$endpoint, valid.endpoint)
               dtS.res$endpoint <- object@endpoint[index.endpoint]
               dtS.res$threshold <- object@threshold[index.endpoint]
+              dtS.res$restriction <- object@restriction[index.endpoint]
               if(any(object@type[index.endpoint]=="bin")){
                   dtS.res$threshold[object@type[index.endpoint]=="bin"] <- NA
               }
               data.table::setkeyv(dtS.res, c("endpoint","n.T"))
-              data.table::setcolorder(dtS.res, neworder = c("statistic","endpoint","threshold","n.T","n.C",col.value))
+              data.table::setcolorder(dtS.res, neworder = c("statistic","endpoint","restriction","threshold","n.T","n.C",col.value))
 
               ## ** print              
               if(print){
@@ -136,12 +137,21 @@ setMethod(f = "summary",
 
                   
                   for(iStatistic in statistic){
-                      name.statistic <- switch(iStatistic,
-                                               "netBenefit" = "net benefit",
-                                               "winRatio" = "win ratio",
-                                               "favorable" = "proportion in favor of treatment",
-                                               "unfavorable" = "proportion in favor of control"
-                                               )
+                      if(all(is.na(object@restriction))){
+                          name.statistic <- switch(iStatistic,
+                                                   "netBenefit" = "net benefit",
+                                                   "winRatio" = "win ratio",
+                                                   "favorable" = "proportion in favor of treatment",
+                                                   "unfavorable" = "proportion in favor of control"
+                                                   )
+                      }else{
+                          name.statistic <- switch(iStatistic,
+                                                   "netBenefit" = "restricted net benefit",
+                                                   "winRatio" = "restricted win ratio",
+                                                   "favorable" = "restricted proportion in favor of treatment",
+                                                   "unfavorable" = "restricted proportion in favor of control"
+                                                   )
+                      }
                       cat(" - statistic   : ",name.statistic," (null hypothesis Delta=",null[statistic],")\n", sep = "")
 
                       df.print <- as.data.frame(dtS.res[dtS.res$statistic == iStatistic])
@@ -151,7 +161,13 @@ setMethod(f = "summary",
                           df.print$rep.estimate <- NULL
                           df.print$rep.se <- NULL
                       }
-                      df.print[duplicated(df.print[,c("endpoint","threshold")]),c("endpoint","threshold")] <- as.character(NA)
+                      df.print[duplicated(df.print[,c("endpoint","restriction","threshold")]),c("endpoint","restriction","threshold")] <- as.character(NA)
+                      if(all(is.na(df.print$restriction))){
+                          df.print$restriction <- NULL
+                      }
+                      if(all(is.na(df.print$threshold))){
+                          df.print$threshold <- NULL
+                      }
                       df.print[] <- lapply(df.print, as.character)
                       df.print[is.na(df.print)] <- ""
                       print(df.print, row.names = FALSE, quote = FALSE)

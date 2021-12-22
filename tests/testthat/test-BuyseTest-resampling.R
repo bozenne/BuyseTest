@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: okt  4 2021 (20:20) 
+## last-updated: Dec 21 2021 (17:34) 
 ##           By: Brice Ozenne
-##     Update #: 186
+##     Update #: 187
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -27,6 +27,7 @@ BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   keep.survival = FALSE,
                   order.Hprojection = 1,
+                  add.1.pperm = FALSE,
                   trace = 0)
 n.patients <- 100
 method <- "Peron"

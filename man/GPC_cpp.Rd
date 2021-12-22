@@ -13,6 +13,7 @@ GPC_cpp(
   indexT,
   posT,
   threshold,
+  restriction,
   weight,
   method,
   op,
@@ -52,6 +53,7 @@ GPC2_cpp(
   indexT,
   posT,
   threshold,
+  restriction,
   weight,
   method,
   op,
@@ -97,6 +99,8 @@ GPC2_cpp(
 \item{posT}{A list containing, for each strata, the unique identifier of each treatment observations.}
 
 \item{threshold}{Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints.}
+
+\item{restriction}{Store the restriction time associated to each endpoint. Must have length D.}
 
 \item{weight}{Store the weight associated to each endpoint. Must have length D.}
 

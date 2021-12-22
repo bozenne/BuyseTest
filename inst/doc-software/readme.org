@@ -3,7 +3,7 @@ Instructions to run to prepare the vignette (to run before installing the packag
 - export R code
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ## devtools::build_vignettes("BuyseTest", quiet = FALSE) ## generate the META folder
-setwd(pathGitHub())
+setwd(butils.base::pathGitHub())
 butils:::extractRchunk(file = "./BuyseTest/inst/doc-software/overview.org", newfile = "./BuyseTest/doc/overview.R", overwrite = TRUE)
 #+END_SRC
 

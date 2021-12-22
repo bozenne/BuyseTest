@@ -28,6 +28,7 @@ BuyseTest(
   status = NULL,
   operator = NULL,
   censoring = NULL,
+  restriction = NULL,
   strata = NULL
 )
 }
@@ -82,7 +83,7 @@ See Details, section "Statistical inference".}
 \item{trace}{[integer] should the execution of the function be traced ? \code{0} remains silent
 and \code{1}-\code{3} correspond to a more and more verbose output in the console.}
 
-\item{treatment, endpoint, type, threshold, status, operator, censoring, strata}{Alternative to \code{formula} for describing the GPC model.
+\item{treatment, endpoint, type, threshold, status, operator, censoring, restriction, strata}{Alternative to \code{formula} for describing the GPC model.
 See Details, section "Specification of the GPC model".}
 }
 \value{
@@ -112,6 +113,7 @@ a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
 or a time to event outcome  (\code{"t"}, \code{"tte"}, \code{"time"}, or \code{"timetoevent"})
   \item \code{censoring}: [character vector] is the endpoint subject to right or left censoring (\code{"left"} or \code{"right"}). The default is right-censoring.
+  \item \code{restriction}: [numeric vector] value above which any difference is classified as neutral.
   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 }
 The formula interface can be more concise, especially when considering few outcomes, but may be more difficult to apprehend for new users.

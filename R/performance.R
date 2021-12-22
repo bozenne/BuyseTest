@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: Dec 14 2021 (17:27) 
+## Last-Updated: Dec 21 2021 (16:49) 
 ##           By: Brice Ozenne
-##     Update #: 516
+##     Update #: 518
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,6 +34,8 @@
 ##' Otherwise they are computed without any transformation.
 ##' @param trace [logical] Should the execution of the function be traced.
 ##' @param simplify [logical] Should the number of fold and the size of the fold used for the cross validation be removed from the output?
+##'
+##' @details WARNING: this function is still in development. In particular standard errors, confidence intervals, and p-values should not be trusted.
 ##' 
 ##' @examples
 ##' ## Simulate data

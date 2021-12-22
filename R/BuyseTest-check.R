@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: okt 13 2021 (16:10) 
+## Last-Updated: Dec 22 2021 (15:40) 
 ##           By: Brice Ozenne
-##     Update #: 302
+##     Update #: 317
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -41,6 +41,7 @@ testArgs <- function(name.call,
                      add.halfNeutral,
                      operator,
                      censoring,
+                     restriction,
                      seed,
                      strata,
                      threshold,
@@ -171,7 +172,14 @@ testArgs <- function(name.call,
                  "incorrect \'censoring\' value(s): \"",paste(censoring.tte[censoring.tte %in% c("left","right") == FALSE], collapse = "\" \""),"\" \n")
         }
     }
-    
+
+    ## ** restriction
+    if(any(type[which(!is.na(restriction))] %in% c("tte","cont") == FALSE)){
+        stop("Type(s) \"",paste(unique(setdiff(type[which(!is.na(restriction))], c("tte","cont"))), collapse = "\" \""),"\" do not support argument restriction. \n")
+    }
+    if(any(type[which(!is.na(restriction))] %in% c("tte","cont") == FALSE)){
+        stop("Type(s) \"",paste(unique(setdiff(type[which(!is.na(restriction))], c("tte","cont"))), collapse = "\" \""),"\" do not support argument restriction. \n")
+    }
 
     ## ** cpus
     if(cpus>1){
@@ -379,10 +387,16 @@ testArgs <- function(name.call,
 
     ## ** operator
     if(any(is.na(operator))){
-        stop("BuyseTest: Wrong specification of \'operator\'. \n",
+        stop("BuyseTest: wrong specification of \'operator\'. \n",
              "Should be either \"<0\" (lower is better) or \">0\" (higher is better)")
     }
 
+    ## ** restriction
+    if(any(tapply(restriction,endpoint,function(iRestriction){length(unique(iRestriction))})>1)){
+        stop("BuyseTest: wrong specification of \'restriction\'. \n",
+             "Should not vary when the same endpoint is used at different priorities.")
+    }
+    
     ## ** seed
     validInteger(seed,
                  valid.length = 1,
@@ -417,9 +431,9 @@ testArgs <- function(name.call,
                  method = "BuyseTest")
 
     ## check threshold at 1/2 for binary endpoints
-    if(any(threshold[type=="bin"]!=1/2)){
+    if(any(threshold[type=="bin"]>1e-12)){
         stop("BuyseTest: wrong specification of \'threshold\'. \n",
-             "\'threshold\' must be 1/2 for binary endpoints (or equivalently NA) \n",
+             "\'threshold\' must be 1e-12 for binary endpoints (or equivalently NA) \n",
              "proposed \'threshold\' : ",paste(threshold[type=="bin"],collapse=" "),"\n",
              "binary endpoint(s) : ",paste(endpoint[type=="bin"],collapse=" "),"\n")
     }

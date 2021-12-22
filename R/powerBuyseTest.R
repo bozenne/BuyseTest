@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: okt 15 2021 (09:24) 
+## Last-Updated: Dec 20 2021 (20:43) 
 ##           By: Brice Ozenne
-##     Update #: 998
+##     Update #: 1000
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -332,6 +332,7 @@ powerBuyseTest <- function(sim,
         conf.level = conf.level,
         endpoint =  outArgs$endpoint,
         threshold =  outArgs$threshold,
+        restriction =  outArgs$restriction,
         type =  outArgs$type,
         null = null,
         n.rep = n.rep,      
@@ -355,7 +356,7 @@ powerBuyseTest <- function(sim,
 
     ## when creating S4 object
     keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling","call")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weight","n.resampling","call")
 
     ## when initializing data
     out.name <- c("data","M.endpoint","M.status",
@@ -409,7 +410,7 @@ powerBuyseTest <- function(sim,
                                                   strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weight = envir$outArgs$weight, 
                                                   neutral.as.uninf = envir$outArgs$neutral.as.uninf, add.halfNeutral = envir$outArgs$add.halfNeutral, 
                                                   trace = FALSE, treatment = envir$outArgs$treatment, endpoint = envir$outArgs$endpoint, 
-                                                  type = envir$outArgs$type, threshold = envir$outArgs$threshold, status = envir$outArgs$status, operator = envir$outArgs$operator, 
+                                                  type = envir$outArgs$type, threshold = envir$outArgs$threshold, restriction = envir$outArgs$restriction, status = envir$outArgs$status, operator = envir$outArgs$operator, 
                                                   censoring = envir$outArgs$censoring, strata = envir$outArgs$strata)
     }
     
@@ -502,6 +503,7 @@ powerBuyseTest <- function(sim,
                                                 endpoint = envir$outArgs$endpoint, 
                                                 type = envir$outArgs$type,
                                                 threshold = envir$outArgs$threshold,
+                                                restriction = envir$outArgs$restriction,
                                                 status = envir$outArgs$status,
                                                 operator = envir$outArgs$operator, 
                                                 censoring = envir$outArgs$censoring,

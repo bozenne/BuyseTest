@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:54) 
 ## Version: 
-## Last-Updated: mar 26 2020 (13:28) 
+## Last-Updated: Dec 21 2021 (17:01) 
 ##           By: Brice Ozenne
-##     Update #: 130
+##     Update #: 137
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -22,7 +22,8 @@ pairScore2dt <- function(pairScore,
                          level.strata,
                          n.strata,
                          endpoint,
-                         threshold){
+                         threshold,
+                         restriction){
     
     ## Rcpp outputs vector: convert to matrix and rename
     name.tempo <- c("strata",
@@ -46,8 +47,8 @@ pairScore2dt <- function(pairScore,
         pairScore2[[iL]][, c("indexWithinStrata.C") := .SD$indexWithinStrata.C + 1]
         data.table::setkeyv(pairScore2[[iL]], c("index.T","index.C"))
     }
-    names(pairScore2) <- paste0(endpoint,"_",threshold)
-
+    names(pairScore2) <- paste0(endpoint,ifelse(!is.na(restriction),paste0("_r",restriction),""),ifelse(threshold>1e-12,paste0("_t",threshold),""))
+    
     return(pairScore2)
 }
 

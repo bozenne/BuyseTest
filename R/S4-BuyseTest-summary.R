@@ -181,11 +181,21 @@ setMethod(f = "summary",
                                min = 1,
                                max = length(option$summary.display),
                                valid.length = 1)
+
                   type.display <- option$summary.display[[type.display]]
+                  if(all(is.na(object@restriction))){
+                      type.display <- setdiff(type.display, "restriction")
+                  }
+                  if(all(abs(object@threshold)<=1e-12)){
+                      type.display <- setdiff(type.display, "threshold")
+                  }
+                  if(length(unique(object@weight))==1){
+                      type.display <- setdiff(type.display, "weight")
+                  }
               }else{
                   validCharacter(type.display,
                                  name1 = "type.display",
-                                 valid.values = c("endpoint","threshold","strata","weight","total","favorable","unfavorable","neutral","uninf","information(%)",
+                                 valid.values = c("endpoint","restriction","threshold","strata","weight","total","favorable","unfavorable","neutral","uninf","information(%)",
                                                   "delta","Delta","Delta(%)",
                                                   "p.value","CI","significance"),
                                  valid.length = NULL)
@@ -253,9 +263,9 @@ setMethod(f = "summary",
 
               ## ** generate summary table
               ## *** prepare
-              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=19),
+              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=20),
                                   stringsAsFactors = FALSE)
-              names(table) <- c("endpoint","threshold","weight","strata",
+              names(table) <- c("endpoint","restriction","threshold","weight","strata",
                                 "total","favorable","unfavorable","neutral","uninf",
                                 "delta","Delta","Delta(%)","information(%)",
                                 "CIinf.Delta","CIsup.Delta","null","p.value","significance","n.resampling")
@@ -268,6 +278,7 @@ setMethod(f = "summary",
               table[index.global,"uninf"] <- colSums(object@count.uninf)
               table[index.global,"total"] <- rowSums(table[index.global,c("favorable","unfavorable","neutral","uninf")])
             
+              table[index.global,"restriction"] <- object@restriction
               table[index.global,"endpoint"] <- object@endpoint
               table[index.global,"threshold"] <- object@threshold
               table[index.global,"weight"] <- object@weight
@@ -371,6 +382,10 @@ setMethod(f = "summary",
               }
               
               ## *** convert NA to ""
+              table.print$threshold[table.print$threshold<=1e-12] <- ""
+              if(any(is.na(table.print$restriction))){
+                  table.print[is.na(table.print$restriction), "restriction"] <- ""
+              }
               if(any(is.na(table.print$Delta))){
                   table.print[is.na(table.print$Delta), "Delta"] <- ""
               }
@@ -428,11 +443,17 @@ setMethod(f = "summary",
                   ## *** display
                   cat("       Generalized pairwise comparisons ",txt.endpoint,txt.strata,"\n\n", sep = "")
                   if(statistic == "winRatio"){
-                      cat(" - statistic       : win ratio (delta: endpoint specific, Delta: global) \n",
+                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"win ratio (delta: endpoint specific, Delta: global) \n",
                           " - null hypothesis : Delta == 1 \n", sep = "")
-                  }else {
-                      cat(" - statistic       : net benefit (delta: endpoint specific, Delta: global) \n",
+                  }else if(statistic == "netBenefit"){
+                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"net benefit (delta: endpoint specific, Delta: global) \n",
                           " - null hypothesis : Delta == 0 \n", sep = "")
+                  }else if(statistic == "favorable"){
+                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of treatment (delta: endpoint specific, Delta: global) \n",
+                          " - null hypothesis : Delta == 1/2 \n", sep = "")
+                  }else if(statistic == "favorable"){
+                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of control (delta: endpoint specific, Delta: global) \n",
+                          " - null hypothesis : Delta == 1/2 \n", sep = "")
                   }
                   if(method.inference != "none"){
                       cat(" - confidence level: ",1-alpha," \n", sep = "")

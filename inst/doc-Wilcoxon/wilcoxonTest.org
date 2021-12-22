@@ -10,13 +10,6 @@ library(riskRegression)
 
 #+RESULTS:
 :results:
-riskRegression version 2021.10.10
-
-Attaching package: ‘riskRegression’
-
-The following objects are masked from ‘package:BuyseTest’:
-
-    boot2pvalue, discreteRoot
 :end:
 
 * Single Wilcoxon test
@@ -63,8 +56,8 @@ wmwTest(value ~ group, data = df, method = "asymptotic")
 #+RESULTS:
 #+begin_example
 
-	Wilcoxon-Mann-Whitney test with continuity correction (confidence
-	interval requires proportional odds assumption, but test does not)
+	Wilcoxon-Mann-Whitney test with continuity correction (confidence interval
+	requires proportional odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, tie factor = 0.99794, p-value = 0.1329
@@ -90,8 +83,8 @@ wmwTest(value ~ group, data = df, method = "exact.ce")
 #+RESULTS:
 #+begin_example
 
-	exact Wilcoxon-Man-Whitney test (confidence interval requires
-	proportional odds assumption, but test does not)
+	exact Wilcoxon-Man-Whitney test (confidence interval requires proportional odds
+	assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, p-value = 0.1299
@@ -114,8 +107,8 @@ confint(eperm.BT, statistic = "favorable")
 #+END_SRC
 
 #+RESULTS:
-:              estimate       se  lower.ci  upper.ci null p.value
-: value_1e-12 0.2839506 0.140185 0.1050267 0.5725376  0.5  0.1242
+:        estimate       se  lower.ci  upper.ci null   p.value
+: value 0.2839506 0.140185 0.1050267 0.5725376  0.5 0.1242876
 : Warning message:
 : In .local(object, ...) :
 :   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
@@ -132,8 +125,8 @@ confint(eU.BT, statistic = "favorable")
 #+END_SRC
 
 #+RESULTS:
-:              estimate        se   lower.ci  upper.ci null   p.value
-: value_1e-12 0.2839506 0.1401461 0.09313769 0.6049215  0.5 0.1796262
+:        estimate        se   lower.ci  upper.ci null   p.value
+: value 0.2839506 0.1401461 0.09313769 0.6049215  0.5 0.1796262
 
 Unsuprisingly, we get the same estimate. However the p-value seems
 quite a bit different. This might be explained by the fact that this
@@ -150,8 +143,8 @@ confint(etperm.BT, statistic = "favorable")
 #+END_SRC
 
 #+RESULTS:
-:              estimate        se  lower.ci  upper.ci null p.value
-: value_1e-12 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
+:        estimate        se  lower.ci  upper.ci null p.value
+: value 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
 : Warning message:
 : In .local(object, ...) :
 :   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
@@ -229,7 +222,7 @@ Here the smallest p-value has been multiplied by a factor 2.64 instead
 of 4. This is thanks to the rather strong correlation between the test
 statistics:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-M.cor <- cov2cor(crossprod(attr(e.mc,"iid")))
+M.cor <- cov2cor(crossprod(e.mc$iid))
 dimnames(M.cor) <- list(names(ls.BT),names(ls.BT))
 M.cor
 #+END_SRC

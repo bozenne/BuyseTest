@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: okt 14 2021 (19:02) 
+## Last-Updated: Dec 21 2021 (17:43) 
 ##           By: Brice Ozenne
-##     Update #: 42
+##     Update #: 43
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -179,7 +179,7 @@ test_that("Multiple endpoints", {
         GS <- rbind(GS,do.call(rbind,iLs))
     }
 
-    GS.S <- GS[endpoint == "eventtime_1e-12", .(mean.estimate = mean(estimate), sd.estimate = sd(estimate), mean.se =  mean(se), "rejection.rate" =  mean(p.value <= 0.05)), by = "n.T"]
+    GS.S <- GS[endpoint == "eventtime", .(mean.estimate = mean(estimate), sd.estimate = sd(estimate), mean.se =  mean(se), "rejection.rate" =  mean(p.value <= 0.05)), by = "n.T"]
     
     test <- summary(e.tte, print = FALSE)[,.SD,.SDcols = names(GS.S)]
     expect_equal(unlist(GS.S),unlist(test), tol = 1e-6)

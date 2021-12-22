@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: okt 28 2021 (12:38) 
+## Last-Updated: Dec 21 2021 (17:49) 
 ##           By: Brice Ozenne
-##     Update #: 199
+##     Update #: 203
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -534,3 +534,30 @@ test_that("U-stat with stratification",{
                           GPC.stratified@covariance[,"netBenefit"], tol = 1e-6)
     }
 })
+
+## * SamSalvaggio (issue #9 on Github): 21 december 2021 permutation
+test_that("p-value with permutation",{
+    set.seed(1)
+    dt <- simBuyseTest(50, argsCont = list(mu.T = 100, mu.C = 1)) ## extremely large difference so always in favor of treatment
+    GPC.perm <- BuyseTest(treatment~cont(score),
+                          data=dt, trace = FALSE,
+                          method.inference = "permutation")
+    BuyseTest.options(add.1.pperm = FALSE)
+    expect_equal(suppressWarnings(confint(GPC.perm)$p.value), 0)
+    BuyseTest.options(add.1.pperm = TRUE)
+    expect_equal(suppressWarnings(confint(GPC.perm)$p.value), 1/1001)
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+

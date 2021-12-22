@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: Dec 14 2021 (17:28) 
+## Last-Updated: Dec 20 2021 (21:13) 
 ##           By: Brice Ozenne
-##     Update #: 230
+##     Update #: 234
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -123,7 +123,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
 
     ## endpoint
     if(test.list){
-        valid.endpoint <- lapply(object,function(iBT){paste0(iBT@endpoint,"_",iBT@threshold)})
+        valid.endpoint <- lapply(object,function(iBT){names(iBT@endpoint)})
         if(is.null(endpoint)){
             endpoint <- unlist(lapply(valid.endpoint, function(iE){iE[length(iE)]}))
         }else if(is.vector(endpoint)){
@@ -150,7 +150,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             stop("Argument \'endpoint\' should be a vector. \n")
         }
     }else{
-        valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+        valid.endpoint <- names(object@endpoint)
         if(is.null(endpoint)){
             endpoint <- valid.endpoint[length(valid.endpoint)]
         }else if(is.numeric(endpoint)){

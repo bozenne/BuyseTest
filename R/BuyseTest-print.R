@@ -21,6 +21,7 @@ printGeneral <- function(status,
                          neutral.as.uninf,
                          correction.uninf,
                          operator,
+                         restriction,
                          strata,
                          threshold,
                          trace,
@@ -38,8 +39,8 @@ printGeneral <- function(status,
 
     ## ** Prepare
     ## endpoint
-    name.col <- c("NA", "endpoint","type","operator","threshold","event")
-    df.endpoint <- data.frame(matrix(NA, nrow = D, ncol = 6,
+    name.col <- c("NA", "endpoint","type","operator","restriction","threshold","event")
+    df.endpoint <- data.frame(matrix(NA, nrow = D, ncol = 7,
                                      dimnames = list(NULL, name.col)
                                      ), stringsAsFactors = FALSE)
     if(hierarchical){
@@ -61,6 +62,7 @@ printGeneral <- function(status,
                                "gaus"="gaussian")
     df.endpoint$operator <- ifelse(operator>0,"higher is favorable","lower is favorable")
     df.endpoint$threshold[type!="bin"] <- threshold[type!="bin"]
+    df.endpoint$restriction <- restriction
     df.endpoint$event[type=="tte"] <- status[type=="tte"]
     
     
@@ -68,13 +70,18 @@ printGeneral <- function(status,
     df.endpoint$endpoint <- paste0(df.endpoint$endpoint," ")
     df.endpoint$type <- paste0(df.endpoint$type," ")
     df.endpoint$operator <- paste0(df.endpoint$operator," ")
-    df.endpoint$threshold <- ifelse(is.na(df.endpoint$threshold),NA,paste0(df.endpoint$threshold," "))
-
+    if(all(threshold <= 1e-12)){
+        df.endpoint$threshold <- NULL
+    }else{
+        df.endpoint$threshold <- ifelse(df.endpoint$threshold<=1e-12,NA,paste0(df.endpoint$threshold," "))
+    }
+    if(all(is.na(restriction))){
+        df.endpoint$restriction <- NULL
+    }else{
+        df.endpoint$restriction <- ifelse(is.na(df.endpoint$restriction),NA,paste0(df.endpoint$restriction," "))
+    }
     if(all(type!="tte")){
-        df.endpoint$event <- NULL
-        if(all(type=="bin")){
-            df.endpoint$threshold <- NULL
-        }
+        df.endpoint$event <- NULL        
     }else{
         txt.eventType <- sapply(status[type=="tte"], function(iC){
             return(paste0(" (",paste(sort(unique(M.status[,iC])), collapse = " "),")"))

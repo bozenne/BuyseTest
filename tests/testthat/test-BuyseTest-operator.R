@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: okt  4 2021 (20:18) 
+## Last-Updated: Dec 21 2021 (17:06) 
 ##           By: Brice Ozenne
-##     Update #: 38
+##     Update #: 39
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,6 +16,7 @@
 ### Code:
 
 if(FALSE){
+    library(survival)
     library(testthat)
     library(BuyseTest)
     library(data.table)
