@@ -307,7 +307,8 @@ BuyseTest <- function(formula,
                               trace = trace,
                               treatment = treatment,
                               type = type,
-                              weight = weight)
+                              weight = weight,
+                              envir = parent.frame())
 
     ## ** test arguments
     if(option$check){

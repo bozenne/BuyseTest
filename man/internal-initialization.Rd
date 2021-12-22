@@ -63,7 +63,8 @@ initializeArgs(
   trace = NULL,
   treatment,
   type,
-  weight
+  weight,
+  envir
 )
 
 initializeData(
@@ -87,7 +88,7 @@ initializeData(
   iidNuisance
 )
 
-initializeFormula(x, hierarchical)
+initializeFormula(x, hierarchical, envir)
 
 calcSample(envir, method.inference)
 }

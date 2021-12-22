@@ -57,7 +57,8 @@ initializeArgs <- function(status,
                            trace = NULL,
                            treatment,
                            type,
-                           weight){
+                           weight,
+                           envir){
 
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
@@ -95,7 +96,7 @@ initializeArgs <- function(status,
             warning("Argument",if(sum(test.null)>1){"s"}," \'",paste(txt, collpase="\' \'"),if(sum(test.null)>1){" are "}else{" is "}," ignored when argument \'formula\' has been specified\n")
         }
         
-        resFormula <- initializeFormula(formula, hierarchical = hierarchical)
+        resFormula <- initializeFormula(formula, hierarchical = hierarchical, envir = envir)
 
         treatment <- resFormula$treatment
         type <- resFormula$type
@@ -523,7 +524,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 
 ## * initializeFormula
 #' @rdname internal-initialization
-initializeFormula <- function(x, hierarchical){
+initializeFormula <- function(x, hierarchical, envir){
 
     validClass(x, valid.class = "formula")
     
@@ -676,8 +677,12 @@ initializeFormula <- function(x, hierarchical){
         if("threshold" %in% iName){
             thresholdTempo <- try(eval(expr = parse(text = iArg[iName=="threshold"])), silent = TRUE)
             if(inherits(thresholdTempo,"try-error")){
-                stop(iArg[iName=="threshold"]," does not refer to a valid threshold \n",
-                     "Should be numeric or the name of a variable in the global workspace \n")
+                thresholdTempo <- try(eval(expr = parse(text = iArg[iName=="threshold"]), envir = envir), silent = TRUE)
+
+                if(inherits(thresholdTempo,"try-error")){
+                    stop(iArg[iName=="threshold"]," does not refer to a valid threshold \n",
+                         "Should be numeric or the name of a variable in the global workspace \n")
+                }
             }
                 
             if(inherits(thresholdTempo, "function")){
@@ -718,7 +723,28 @@ initializeFormula <- function(x, hierarchical){
             censoring <- c(censoring, default.censoring)
         }
         if("restriction" %in% iName){
-            restriction <- c(restriction, as.numeric(eval(expr = parse(text = iArg[iName=="restriction"]))))
+            restrictionTempo <- try(eval(expr = parse(text = iArg[iName=="restriction"])), silent = TRUE)
+            if(inherits(restrictionTempo,"try-error")){
+                restrictionTempo <- try(eval(expr = parse(text = iArg[iName=="restriction"]), envir = envir), silent = TRUE)
+
+                if(inherits(restrictionTempo,"try-error")){
+                    stop(iArg[iName=="restriction"]," does not refer to a valid restriction \n",
+                         "Should be numeric or the name of a variable in the global workspace \n")
+                }
+            }
+                
+            if(inherits(restrictionTempo, "function")){
+                packageTempo <- environmentName(environment(restrictionTempo))
+                if(nchar(packageTempo)>0){
+                    txt <- paste0("(package ",packageTempo,")")
+                }else{
+                    txt <- ""
+                }
+                stop(iArg[iName=="restriction"]," is already defined as a function ",txt,"\n",
+                     "cannot be used to specify the restriction \n")
+            }
+            
+            restriction <- c(restriction, as.numeric(restrictionTempo))
         }else{
             restriction <- c(restriction, as.numeric(NA))
         }
