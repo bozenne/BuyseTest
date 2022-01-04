@@ -263,10 +263,10 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
   // ** initialize
   double diff = endpoint_T-endpoint_C;
   std::vector< double > score(4,0.0); // [0] favorable, [1] unfavorable, [2] test neutral [3] test uniformative
-  double upperFavorable;
-  double upperUnfavorable;
-  bool testRestrictionC = (R_IsNA(restriction) || endpoint_C+threshold < restriction);
-  bool testRestrictionT = (R_IsNA(restriction) || endpoint_T+threshold < restriction);
+  double upperFavorable = 0.0;
+  double upperUnfavorable = 0.0;
+  bool testNoRestrictionC = (R_IsNA(restriction) || endpoint_C+threshold < restriction);
+  bool testNoRestrictionT = (R_IsNA(restriction) || endpoint_T+threshold < restriction);
   
   if(returnIID > 1){
     Dscore_Dnuisance_C.fill(0.0); // initialized to 0
@@ -286,9 +286,10 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
   // Rcpp::Rcout << " (" << status_T << ";" << status_C << ")";
   // ** compute favorable and unfavorable
   if(status_T == 0.5 && status_C==0.5){
+
     // both restricted so neutral pair
-    upperFavorable = 0;
-    upperUnfavorable = 0;      
+    // score[0] = score[1] = upperFavorable =  upperUnfavorable = 0;      
+
   }else if(status_T==1 || status_T==0.5){
     if(status_C==1 || status_C==0.5){
      // Rcpp::Rcout << "(1) ";
@@ -310,7 +311,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
     }else{ // status_C==0 
 
       // favorable
-      if(diff >= threshold && testRestrictionC){
+      if(diff >= threshold && testNoRestrictionC){
 	// Rcpp::Rcout << "(2+a) ";
 	if(R_IsNA(survTimeT(1))==false){
 	  score[0] = 1.0 - survTimeT(1)/survTimeC(2); // 1-[Sc(x_i-tau)/Sc(y_j)]
@@ -328,8 +329,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	  }
 	}	
       }else {
-	// score[0] = 0.0;
-	upperFavorable = score[0];
+	// score[0] = upperFavorable = 0.0;
       }
 
       // unfavorable
@@ -337,7 +337,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	if(diff <= -threshold){ 
 	  score[1] = 1.0;
 	  upperUnfavorable = score[1];
-	}else if(testRestrictionT){
+	}else if(testNoRestrictionT){
 	  // Rcpp::Rcout << "(2-b) " << "";
 	  if((R_IsNA(survTimeT(3))==false) & (survTimeT(3) > 0)){
 	    score[1] = survTimeT(3)/survTimeC(2); //  [Sc(x_i+tau)/Sc(y_j)]
@@ -354,9 +354,12 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	    // Dscore_Dnuisance_C(survTimeC(8),2) -= lastSurvC/pow(survTimeC(2),2); // derivative regarding Sc(y_j)
 	    // }
 	  }
+	}else{ // cannot be unfavorable when the outcome in the treatment group is close to the restriction (i.e. difference below threshold)
+	  // score[1] = upperUnfavorable = 0.0;
 	}
+	
       }else{ // cannot be unfavorable when pair in the treatment group restricted
-	upperUnfavorable = 0.0;
+	// score[1] = upperUnfavorable = 0.0;
       }
 
     }
@@ -370,7 +373,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	if(diff >= threshold){ // 
 	  score[0] = 1.0;
 	  upperFavorable = score[0];
-	}else if(testRestrictionC){
+	}else if(testNoRestrictionC){
 	  // Rcpp::Rcout << "(3+b) ";
 	  if((R_IsNA(survTimeC(6))==false) && (survTimeC(6) > 0)){
 	    score[0] = survTimeC(6)/survTimeT(5); // [St(y_j+tau)/St(x_i)]
@@ -387,13 +390,15 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	    // Dscore_Dnuisance_T(survTimeT(11),2) -= lastSurvT/pow(survTimeT(5),2); // derivative regarding St(x_i)
 	    // }
 	  }
+	}else{ // cannot be favorable when the outcome in the control group is close to the restriction (i.e. difference below threshold)
+	  // score[0] = upperFavorable = 0.0;
 	}
       }else{ // cannot be favorable when pair in the control group restricted
-	upperFavorable = 0.0;
+	  // score[0] = upperFavorable = 0.0;
       }
 
       // unfavorable
-      if(diff <= -threshold && testRestrictionT){
+      if(diff <= -threshold && testNoRestrictionT){
 	// Rcpp::Rcout << "(3-a) ";
 	if(R_IsNA(survTimeC(4))==false){
 	  score[1] = 1.0 - survTimeC(4)/survTimeT(5); // 1-[St(y_j-tau)/St(x_i)]
@@ -411,8 +416,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	  }
 	}
       }else{
-	// score[1] = 0.0;
-	upperUnfavorable = score[1];
+	// score[1] = upperUnfavorable = 0.0;
       }
       
      }else{ // status_T==0 && status_C==0
@@ -470,7 +474,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	  }
 	}
 
-      }else if(testRestrictionC){
+      }else if(testNoRestrictionC){
 	// Rcpp::Rcout << "(4+b) ";
 
 	if(precompute){
@@ -497,6 +501,9 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	    Dscore_Dnuisance_T.col(0) -= intDscore_Dnuisance_T/denom;
 	  }
 	}
+      }else{
+	// cannot be favorable when the outcome in the control group is close to the restriction (i.e. difference below threshold)
+	// score[0] = upperFavorable = 0.0;
       }
       
       // unfavorable
@@ -542,7 +549,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	  }
 	}
 		
-      }else if(testRestrictionT){
+      }else if(testNoRestrictionT){
 	// Rcpp::Rcout << "(4-b) ";
 	    
 	if(precompute){
@@ -569,6 +576,9 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	    Dscore_Dnuisance_T.col(1) -= intDscore_Dnuisance_T/denom;
 	  }
 	}
+      }else{
+	// cannot be unfavorable when the outcome in the treatment group is close to the restriction (i.e. difference below threshold)
+	// score[1] = upperUnfavorable = 0.0;
       }
       // Rcpp::Rcout << std::endl;
     }

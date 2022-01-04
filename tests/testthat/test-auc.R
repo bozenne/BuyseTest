@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: okt 14 2021 (18:40) 
+## Last-Updated: Jan  4 2022 (10:25) 
 ##           By: Brice Ozenne
-##     Update #: 59
+##     Update #: 60
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -107,11 +107,12 @@ test_that("AUC after CV - BuyseTest vs cvAUC",{
     expect_equal(test[test$fold=="global", "se"], 0.0357925, tol = 1e-6)
 
     ## another example
-    test.auc <- BuyseTest::auc(label = c(0,0,0,0,1,1,1,1),
-                               prediction = c(0.3,0.4,0.5,0.6,0.55,0.5,0.6,0.4,0.7,0.8),
-                               observation = c(1,2,3,4,7,1,2,6,7,8),
-                               fold = c(1,1,1,1,1,2,2,2,2,2),
-                               direction = ">")
+    ## remove warning for uncertainty estimation (P-value/confidence intervals will not be valid with only one observation.)
+    test.auc <- suppressWarnings(BuyseTest::auc(label = c(0,0,0,0,1,1,1,1),
+                                                prediction = c(0.3,0.4,0.5,0.6,0.55,0.5,0.6,0.4,0.7,0.8),
+                                                observation = c(1,2,3,4,7,1,2,6,7,8),
+                                                fold = c(1,1,1,1,1,2,2,2,2,2),
+                                                direction = ">"))
     test.auc
     
 })
