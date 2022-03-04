@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: mar  4 2022 (09:58) 
+## Last-Updated: mar  4 2022 (10:18) 
 ##           By: Brice Ozenne
-##     Update #: 41
+##     Update #: 42
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,13 +29,14 @@
 ##' @param cpus [integer, >0] the number of CPU to use. If strictly greater than 1, resampling is perform in parallel. 
 ##' @param seed [integer, >0] seed used to ensure reproducibility.
 ##' @param trace [logical] Should the execution of the function be traced.
+##' @param ... arguments passed to \code{\link{performance}}.
 ##' 
 
 ## * performanceResample (code)
 ##' @export
 performanceResample <- function(object, data = NULL, name.response = NULL,
                                 type.resampling, n.resampling = 1000, fold.number = 100, conf.level = 0.95,
-                                cpus = 1, seed = NULL, trace = TRUE){
+                                cpus = 1, seed = NULL, trace = TRUE, ...){
 
     ## ** fix randomnesss
     if(!is.null(seed)){

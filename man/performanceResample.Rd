@@ -14,7 +14,8 @@ performanceResample(
   conf.level = 0.95,
   cpus = 1,
   seed = NULL,
-  trace = TRUE
+  trace = TRUE,
+  ...
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ performanceResample(
 \item{seed}{[integer, >0] seed used to ensure reproducibility.}
 
 \item{trace}{[logical] Should the execution of the function be traced.}
+
+\item{...}{arguments passed to \code{\link{performance}}.}
 }
 \description{
 Use resampling to quantify uncertainties about the performance of one or several binary classifiers evaluated via cross-validation.
