@@ -27,8 +27,9 @@ setClass(
       n.rep = "numeric",
       results = "data.table",
       threshold = "numeric",
+      restriction = "numeric",
       type = "character"
-      )
+  )
 
 )
 
@@ -45,16 +46,18 @@ methods::setMethod(
                                    n.rep,
                                    results,
                                    threshold,
+                                   restriction,
                                    type){
 
                  .Object@alternative <- alternative
                  .Object@method.inference <- method.inference
                  .Object@conf.level <- conf.level
-                 .Object@endpoint <- endpoint
+                 .Object@endpoint <- stats::setNames(endpoint,paste0(endpoint,ifelse(!is.na(restriction),paste0("_r",restriction),""),ifelse(threshold>1e-12,paste0("_t",threshold),"")))
                  .Object@null <- null
                  .Object@n.rep <- n.rep
                  .Object@results <- results
                  .Object@threshold <- threshold
+                 .Object@restriction <- restriction
                  .Object@type <- type
                  
                  ## validObject(.Object)

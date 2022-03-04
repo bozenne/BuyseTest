@@ -32,33 +32,34 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
     if (reinitialise == TRUE) {
         assign(".BuyseTest-options", 
                new("BuyseTest.options",
-                   alternative = "two.sided",
-                   args.model.tte = list(),
-                   check = TRUE,
-                   conf.level = 0.95,
-                   cpus = 1,
-                   debug = -1,
-                   engine = "GPC2_cpp",
-                   fitter.model.tte = "prodlim",
-                   hierarchical = TRUE,
-                   keep.pairScore = FALSE,
-                   keep.survival = FALSE,
-                   method.inference = "u-statistic",
-                   scoring.rule = "Peron",               
-                   correction.uninf = 0,               
-                   n.resampling = 1000,
-                   strata.resampling = as.character(NA),
-                   neutral.as.uninf = TRUE,
-                   add.halfNeutral = FALSE,
-                   order.Hprojection = 1,
-                   precompute = TRUE,
-                   print.display = c("endpoint","threshold","delta","Delta"),
-                   statistic = "netBenefit",               
-                   summary.display = list(c("endpoint","threshold","weight","strata","total","favorable","unfavorable","neutral","uninf","delta","Delta","CI","p.value","significance"),
-                                          c("endpoint","threshold","weight","strata","favorable","unfavorable","delta","Delta","Delta(%)","information(%)")),
-                   transformation = TRUE,
-                   trace = 2,
-                   warning.correction = 0.25), 
+                   alternative = "two.sided", ## type of alternative hypothesis when doing hypothesis testing: less, greater, two.sided
+                   args.model.tte = list(), ## additional argument passed to prodlim when fitting the survival model in BuyseTest() --> calcPeron
+                   check = TRUE, ## should arguments be checked when running BuyseTest()
+                   conf.level = 0.95, ## coverage of confidence intervals 
+                   cpus = 1, ## cpus used to performance inference via resampling in BuyseTest()
+                   debug = -1, ## hidden argument in BuyseTest to display progress of the C++ code
+                   engine = "GPC2_cpp", ## C++ function used to perform GPC calculation for BuyseTest()
+                   fitter.model.tte = "prodlim", ## survival model in BuyseTest() --> calcPeron
+                   hierarchical = TRUE, ## default value of argument hierarchical in BuyseTest()
+                   keep.pairScore = FALSE, ## default value of argument keep.pairScore in BuyseTest()
+                   keep.survival = FALSE, ## hidden argument to export survival values for the Peron Scoring rule in BuyseTest()
+                   method.inference = "u-statistic", ## default value of argument method.inference in BuyseTest()
+                   scoring.rule = "Peron", ## default value of argument scoring.rule in BuyseTest()               
+                   correction.uninf = 0, ## default value of argument correction.uninf in BuyseTest()               
+                   n.resampling = 1000, ## default value of argument n.resampling in BuyseTest()
+                   strata.resampling = as.character(NA), ## default value of argument strata.resampling in BuyseTest()
+                   neutral.as.uninf = TRUE, ## default value of argument neutral.as.uninf in BuyseTest()
+                   add.halfNeutral = FALSE, ## default value of argument add.halfNeutral in BuyseTest()
+                   add.1.pperm = TRUE, ## if TRUE p-value are computed as (#more extreme+1)/(#perm + 1) otherwise #more exterme/#perm
+                   order.Hprojection = 1, ## hidden argument in BuyseTest() to control the type of H-projection when using method.inference="u-statistic". Can be 1 or 2
+                   precompute = TRUE, ## hidden argument in BuyseTest() to pre-compute integrals over time before the C++ routine
+                   print.display = c("endpoint","restriction","threshold","delta","Delta"), ## what to display when showing a S4BuyseTest object 
+                   statistic = "netBenefit",  ## what is the default statistic output by summary, confint ...
+                   summary.display = list(c("endpoint","restriction","threshold","weight","strata","total","favorable","unfavorable","neutral","uninf","delta","Delta","CI","p.value","significance"),
+                                          c("endpoint","restriction","threshold","weight","strata","favorable","unfavorable","delta","Delta","Delta(%)","information(%)")),
+                   transformation = TRUE, ## should p-value/CI be computed after transformation (and appropriate backtransformation)
+                   trace = 2, ## default value of argument trace in BuyseTest()
+                   warning.correction = 0.25), ## display a warning when the correction lead to a very large change in estimate
                envir = BuyseTest.env)
     
     return(invisible(get(".BuyseTest-options", envir = BuyseTest.env)))

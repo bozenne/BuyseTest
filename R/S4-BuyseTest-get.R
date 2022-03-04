@@ -87,7 +87,7 @@ setMethod(f = "getIid",
                   Ucluster <- sort(unique(cluster))
                   n.obs <- length(Ucluster)
               }
-              valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+              valid.endpoint <- names(object@endpoint)
               n.endpoint <- length(valid.endpoint)
               if(!is.null(cluster) && !is.numeric(cluster)){
                   cluster <- as.numeric(as.factor(cluster))
@@ -542,7 +542,7 @@ setMethod(f = "getPseudovalue",
               ## ** normalize arguments
 
               ## endpoint
-              valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+              valid.endpoint <- names(object@endpoint)
 
               if(is.null(endpoint)){
                   endpoint <- utils::tail(valid.endpoint,1)

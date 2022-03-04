@@ -25,6 +25,7 @@ testArgs(
   add.halfNeutral,
   operator,
   censoring,
+  restriction,
   seed,
   strata,
   threshold,

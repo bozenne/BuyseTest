@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: dec 10 2021 (09:33) 
+## Last-Updated: Dec 21 2021 (10:31) 
 ##           By: Brice Ozenne
-##     Update #: 302
+##     Update #: 314
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,6 +50,8 @@
 #' @examples
 #' 
 #' \dontrun{
+#' require(ggplot2)
+#' 
 #' ## simulate data
 #' set.seed(10)
 #' df.data <- simBuyseTest(1e2, n.strata = 2)
@@ -308,24 +310,44 @@ setMethod(f = "sensitivity",
                   if("method.band" %in% names(dots) == FALSE){
                       dots$method.band <- "maxT-integration"
                   }
-                  
+
                   iBand <- do.call(riskRegression::transformCIBP,
-                                   args = c(list(estimate = rbind(df.confint$estimate),
-                                                 se = rbind(df.confint$se),
-                                                 iid = A.iid,
+                                   args = c(list(estimate = rbind(df.confint$estimate[df.confint$se>0]),
+                                                 se = rbind(df.confint$se[df.confint$se>0]),
+                                                 iid = A.iid[,df.confint$se>0,,drop=FALSE],
                                                  null = null,
                                                  conf.level = conf.level,
                                                  alternative = alternative,
                                                  ci = TRUE, type = type, min.value = min.value, max.value = max.value,
                                                  band = TRUE, p.value = adj.p.value),
                                             dots))
-
                   attr(df.confint,"quantileBand") <- iBand$quantile
-                  df.confint$lower.band <- iBand$lowerBand[1,]
-                  df.confint$upper.band <- iBand$upperBand[1,]
+                  df.confint$lower.band <- rep(0,length(df.confint$se))
+                  df.confint$lower.band[df.confint$se>0] <- iBand$lowerBand[1,]
+                  df.confint$upper.band <- rep(0,length(df.confint$se))
+                  df.confint$upper.band[df.confint$se>0] <- iBand$upperBand[1,]
                   if(adj.p.value==TRUE){
-                      df.confint$adj.p.value <- iBand$adj.p.value[1,]
+                      df.confint$adj.p.value <- rep(1,length(df.confint$se))
+                      df.confint$adj.p.value[df.confint$se>0] <- iBand$adj.p.value[1,]
                   }
+         
+                  ## iBand <- do.call(riskRegression::transformCIBP,
+                  ##                  args = c(list(estimate = rbind(df.confint$estimate),
+                  ##                                se = rbind(df.confint$se),
+                  ##                                iid = A.iid,
+                  ##                                null = null,
+                  ##                                conf.level = conf.level,
+                  ##                                alternative = alternative,
+                  ##                                ci = TRUE, type = type, min.value = min.value, max.value = max.value,
+                  ##                                band = TRUE, p.value = adj.p.value),
+                  ##                           dots))
+
+                  ## attr(df.confint,"quantileBand") <- iBand$quantile
+                  ## df.confint$lower.band <- iBand$lowerBand[1,]
+                  ## df.confint$upper.band <- iBand$upperBand[1,]
+                  ## if(adj.p.value==TRUE){
+                  ##     df.confint$adj.p.value <- iBand$adj.p.value[1,]
+                  ## }
               }
 
               ## ** export

@@ -30,6 +30,7 @@ calcPeron(
   n.strata,
   strata,
   threshold,
+  restriction,
   precompute,
   iidNuisance,
   out
@@ -54,6 +55,7 @@ initializeArgs(
   add.halfNeutral = NULL,
   operator = NULL,
   censoring,
+  restriction,
   option,
   seed = NULL,
   strata,
@@ -61,7 +63,8 @@ initializeArgs(
   trace = NULL,
   treatment,
   type,
-  weight
+  weight,
+  envir
 )
 
 initializeData(
@@ -85,7 +88,7 @@ initializeData(
   iidNuisance
 )
 
-initializeFormula(x, hierarchical)
+initializeFormula(x, hierarchical, envir)
 
 calcSample(envir, method.inference)
 }
@@ -99,7 +102,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \item formula: call \code{initializeFormula} to extract arguments.
 \item type: convert to numeric.
 \item status: only keep status relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
-\item threshold: set default threshold to 1e-12 expect for binary variable where it is set to 1/2.
+\item threshold: set default threshold to 1e-12.
 the rational being we consider a pair favorable if X>Y ie X>=Y+1e-12.
 When using a threshold e.g. 5 we want X>=Y+5 and not X>Y+5, especially when the measurement is discrete. \cr
 \item data: convert to data.table object.

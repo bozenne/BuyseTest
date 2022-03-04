@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: okt 28 2021 (09:26) 
+## Last-Updated: Dec 20 2021 (21:14) 
 ##           By: Brice Ozenne
-##     Update #: 104
+##     Update #: 107
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -93,7 +93,7 @@ setMethod(f = "coef",
 
               ## endpoint
               if(!is.null(endpoint)){
-                  valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+                  valid.endpoint <- names(object@endpoint)
                   n.endpoint <- length(valid.endpoint)
                   if(is.numeric(endpoint)){
                       validInteger(endpoint,
@@ -114,34 +114,34 @@ setMethod(f = "coef",
               if(statistic %in% c("netBenefit","winRatio","favorable","unfavorable")){
                   if((stratified==FALSE) && (cumulative==TRUE)){
                       out <- slot(object, "Delta")[,statistic]
-                      names(out) <- paste0(object@endpoint,"_",object@threshold)
+                      names(out) <- names(object@endpoint)
 
                   }else if((stratified==FALSE) && (cumulative==FALSE)){
                       if(statistic=="favorable"){
                           out <- colSums(object@count.favorable)/sum(object@n.pairs)
-                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                          names(out) <- names(object@endpoint)
                       }else if(statistic=="unfavorable"){
                           out <- colSums(object@count.unfavorable)/sum(object@n.pairs)
-                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                          names(out) <- names(object@endpoint)
                       }else if(statistic=="netBenefit"){
                           out <- colSums(object@count.favorable-object@count.unfavorable)/sum(object@n.pairs)
-                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                          names(out) <- names(object@endpoint)
                       }else if(statistic=="winRatio"){
                           out <- colSums(object@count.favorable)/colSums(object@count.unfavorable)
-                          names(out) <- paste0(object@endpoint,"_",object@threshold)
+                          names(out) <- names(object@endpoint)
                       }
                       
                   }else if(stratified==TRUE){
                       out <- slot(object, "delta")[,,statistic]
                       if(!is.matrix(out)){
                           out <- matrix(out, nrow = length(object@level.strata), ncol = length(object@endpoint),
-                                        dimnames = list(object@level.strata,paste0(object@endpoint,"_",object@threshold)))
+                                        dimnames = list(object@level.strata,names(object@endpoint)))
                       }
                       if(cumulative && length(object@endpoint)>1){
                           out <- sweep(out, FUN = "*", MARGIN = 2, STATS = object@weight)
                           if(length(object@level.strata)==1){
                               out <- matrix(cumsum(out), nrow = 1,
-                                            dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
+                                            dimnames = list(object@level.strata, names(object@endpoint))
                                             )
                           }else{
                               keep.dimnames <- dimnames(out)
@@ -156,7 +156,7 @@ setMethod(f = "coef",
                   if(cumulative && length(object@endpoint)>1){
                       if(length(object@level.strata)==1){
                           out <- matrix(cumsum(out), nrow = 1,
-                                        dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
+                                        dimnames = list(object@level.strata, names(object@endpoint))
                                         )
                       }else{
                           keep.dimnames <- dimnames(out)
@@ -174,7 +174,7 @@ setMethod(f = "coef",
                   if(cumulative && length(object@endpoint)>1){
                       if(length(object@level.strata)==1){
                           out <- matrix(cumsum(out), nrow = 1,
-                                        dimnames = list(object@level.strata, paste0(object@endpoint,"_",object@threshold))
+                                        dimnames = list(object@level.strata, names(object@endpoint))
                                         )
                       }else{
                           keep.dimnames <- dimnames(out)

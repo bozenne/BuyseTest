@@ -1,4 +1,4 @@
-% Created 2021-10-24 Sun 10:41
+% Created 2021-12-22 Wed 12:25
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -208,7 +208,7 @@ linkcolor=[rgb]{0,0,0.5},
 \maketitle
 
 \section{Single Wilcoxon test}
-\label{sec:orgf1c07e0}
+\label{sec:org6d04e8b}
 
 Generalized Pairwise comparisons include the Wilcoxon rank sum test as
 a specific case. \newline Consider the following dataset (from the example
@@ -251,8 +251,8 @@ wmwTest(value ~ group, data = df, method = "asymptotic")
 
 \begin{verbatim}
 
-	Wilcoxon-Mann-Whitney test with continuity correction (confidence
-	interval requires proportional odds assumption, but test does not)
+	Wilcoxon-Mann-Whitney test with continuity correction (confidence interval
+	requires proportional odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, tie factor = 0.99794, p-value = 0.1329
@@ -278,8 +278,8 @@ wmwTest(value ~ group, data = df, method = "exact.ce")
 
 \begin{verbatim}
 
-	exact Wilcoxon-Man-Whitney test (confidence interval requires
-	proportional odds assumption, but test does not)
+	exact Wilcoxon-Man-Whitney test (confidence interval requires proportional odds
+	assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, p-value = 0.1299
@@ -303,8 +303,8 @@ confint(eperm.BT, statistic = "favorable")
 \end{lstlisting}
 
 \begin{verbatim}
-             estimate       se  lower.ci  upper.ci null p.value
-value_1e-12 0.2839506 0.140185 0.1050267 0.5725376  0.5  0.1242
+       estimate       se  lower.ci  upper.ci null   p.value
+value 0.2839506 0.140185 0.1050267 0.5725376  0.5 0.1242876
 Warning message:
 In .local(object, ...) :
   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
@@ -324,8 +324,8 @@ confint(eU.BT, statistic = "favorable")
 \end{lstlisting}
 
 \begin{verbatim}
-             estimate        se   lower.ci  upper.ci null   p.value
-value_1e-12 0.2839506 0.1401461 0.09313769 0.6049215  0.5 0.1796262
+       estimate        se   lower.ci  upper.ci null   p.value
+value 0.2839506 0.1401461 0.09313769 0.6049215  0.5 0.1796262
 \end{verbatim}
 
 
@@ -345,60 +345,90 @@ confint(etperm.BT, statistic = "favorable")
 \end{lstlisting}
 
 \begin{verbatim}
-             estimate        se  lower.ci  upper.ci null p.value
-value_1e-12 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
+       estimate        se  lower.ci  upper.ci null p.value
+value 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
 Warning message:
 In .local(object, ...) :
   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
 \end{verbatim}
 
 \section{Multiple Wilcoxon tests}
-\label{sec:orgc55ca47}
+\label{sec:org75960c2}
 
 Consider now the case where we would like to compare one reference
 group (here strata \texttt{a}) to multiple treatment groups (here strata
-\texttt{b,c,d,e}). We can apply the GPC procedure to each pair of group:
+\texttt{b,c,d,e}). We will consider the following dataset:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 set.seed(35)
 dt <- simBuyseTest(n.T=25, n.strata = 5)
 dt$id <- paste0("id",1:NROW(dt))
 dt$strata <- as.character(dt$strata) 
-ls.BT <- list("b-a=0" = BuyseTest(strata ~ cont(score), data = dt[dt$strata %in% c("a","b"),], add.halfNeutral = TRUE, trace = FALSE),
-	      "c-a=0" = BuyseTest(strata ~ cont(score), data = dt[dt$strata %in% c("a","c"),], add.halfNeutral = TRUE, trace = FALSE),
-	      "d-a=0" = BuyseTest(strata ~ cont(score), data = dt[dt$strata %in% c("a","d"),], add.halfNeutral = TRUE, trace = FALSE),
-	      "e-a=0" = BuyseTest(strata ~ cont(score), data = dt[dt$strata %in% c("a","e"),], add.halfNeutral = TRUE, trace = FALSE))
-M.confint <- do.call(rbind,lapply(ls.BT,confint, statistic = "favorable"))
-cbind(M.confint,adj.p.value = p.adjust(M.confint[,"p.value"], method = "holm"))
+head(dt)
 \end{lstlisting}
 
 \begin{verbatim}
-       estimate        se  lower.ci  upper.ci null   p.value adj.p.value
-b-a=0 0.4090909 0.1558762 0.1636179 0.7101478  0.5 0.5684920   1.0000000
-c-a=0 0.4375000 0.1504794 0.1900359 0.7205413  0.5 0.6810731   1.0000000
-d-a=0 0.2500000 0.1039600 0.1010765 0.4970240  0.5 0.0475426   0.1901704
-e-a=0 0.3333333 0.1395624 0.1274089 0.6312937  0.5 0.2697305   0.8091916
+   treatment  eventtime status toxicity      score strata  id
+1:         C 0.03384999      1      yes  0.4777913      b id1
+2:         C 0.65039474      0       no -1.1048190      d id2
+3:         C 1.00647502      1       no -0.1407630      b id3
+4:         C 0.01129603      1      yes -0.5512507      a id4
+5:         C 0.22249748      1       no  1.0465250      d id5
+6:         C 0.07400412      0       no -2.0053855      d id6
+\end{verbatim}
+
+
+\clearpage
+
+We can apply the GPC procedure to each pair of group:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest.options(order.Hprojection=1);BuyseTest.options(trace=0)
+
+ls.BT <- list("b-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+				  data = dt[dt$strata %in% c("a","b"),]),
+	      "c-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+				  data = dt[dt$strata %in% c("a","c"),]),
+	      "d-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+				  data = dt[dt$strata %in% c("a","d"),]),
+	      "e-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+				  data = dt[dt$strata %in% c("a","e"),])
+	      )
+
+M.confint <- do.call(rbind,lapply(ls.BT,confint, statistic = "favorable"))
+cbind(M.confint,adj.p.value = p.adjust(M.confint[,"p.value"], method = "bonferroni"))
+\end{lstlisting}
+
+\begin{verbatim}
+       estimate        se  lower.ci  upper.ci null    p.value adj.p.value
+b-a=0 0.4090909 0.1542200 0.1654639 0.7073759  0.5 0.56434599   1.0000000
+c-a=0 0.4375000 0.1465755 0.1948678 0.7142379  0.5 0.67306460   1.0000000
+d-a=0 0.2500000 0.1010153 0.1039078 0.4893302  0.5 0.04143057   0.1657223
+e-a=0 0.3333333 0.1360828 0.1308601 0.6241219  0.5 0.25767454   1.0000000
 \end{verbatim}
 
 
 
 Because we compare the treatment groups to the same reference, the
 test statistics are correlated and a Bonferroni adjustment would not
-be optimal. Instead we can perform a max-test adjustment using the
-\texttt{BuyseMultComp} function:
+be optimal. A better (but still not optimal adjustment) is the
+max-test adjustment which can be obtained via the \texttt{BuyseMultComp} function:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id")
-e.mc[,c("estimate","se","p.value","adj.p.value")]
+e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id", global = TRUE)
+print(e.mc, cols = c("estimate","se","p.value","adj.p.value"))
 \end{lstlisting}
 
 \begin{verbatim}
+  - Multivariate test: p.value = 0.2645493 (df = 4)
+  - Univariate tests:
        estimate        se    p.value adj.p.value
-b-a=0 0.4090909 0.1558762 0.58233805   0.9341655
-c-a=0 0.4375000 0.1504794 0.68874960   0.9776452
-d-a=0 0.2500000 0.1039600 0.06798526   0.1754300
-e-a=0 0.3333333 0.1395624 0.29901488   0.6323694
+b-a=0 0.4090909 0.1542200 0.56434599   0.9289219
+c-a=0 0.4375000 0.1465755 0.67306460   0.9752151
+d-a=0 0.2500000 0.1010153 0.04143057   0.1223430
+e-a=0 0.3333333 0.1360828 0.25767454   0.5831344
 \end{verbatim}
+
 
 
 Here the smallest p-value has been multiplied by a factor 2.64 instead
@@ -406,7 +436,7 @@ of 4. This is thanks to the rather strong correlation between the test
 statistics:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-M.cor <- cov2cor(crossprod(attr(e.mc,"iid")))
+M.cor <- cov2cor(crossprod(e.mc$iid))
 dimnames(M.cor) <- list(names(ls.BT),names(ls.BT))
 M.cor
 \end{lstlisting}

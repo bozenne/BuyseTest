@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar  3 2022 (17:53) 
+## Last-Updated: mar  4 2022 (10:16) 
 ##           By: Brice Ozenne
-##     Update #: 860
+##     Update #: 861
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -247,10 +247,10 @@ setMethod(f = "confint",
                            name1 = "transformation",
                            valid.length = 1,
                            method = "confint[S4BuyseTest]")
-              
+
               ## endpoint
               if(!is.null(endpoint)){
-                  valid.endpoint <- paste0(object@endpoint,"_",object@threshold)
+                  valid.endpoint <- names(object@endpoint)
                   n.endpoint <- length(valid.endpoint)
                   if(is.numeric(endpoint)){
                       validInteger(endpoint,
@@ -272,7 +272,7 @@ setMethod(f = "confint",
                   method.inference[] <- "none" ## uses [] to not remove the attributees of method.inference
               }
 
-              all.endpoint <- paste0(object@endpoint,"_",object@threshold)
+              all.endpoint <- names(object@endpoint)
               Delta <- coef(object, statistic = statistic, cumulative = cumulative, stratified = FALSE)
 
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
@@ -578,13 +578,23 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
 
     ## ** p-value
     outTable[,"null"] <- backtransform.delta(null)
-    outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-        switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-               "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),
-               "less" = mean(Delta[iE] >= Delta.resampling[,iE], na.rm = TRUE),
-               "greater" = mean(Delta[iE] <= Delta.resampling[,iE], na.rm = TRUE)
-               )
-    })
+    if(BuyseTest.options()$add.1.pperm){
+        outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
+            switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
+                   "two.sided" = (1+sum(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE))/(1+sum(!is.na(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null)))),
+                   "less" = (1+sum(Delta[iE] >= Delta.resampling[,iE], na.rm = TRUE))/(1+sum(!is.na(Delta[iE] >= Delta.resampling[,iE]))),
+                   "greater" = (1+sum(Delta[iE] <= Delta.resampling[,iE], na.rm = TRUE))/(1+sum(!is.na(Delta[iE] <= Delta.resampling[,iE])))
+                   )
+        })
+    }else{
+        outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
+            switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
+                   "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),
+                   "less" = mean(Delta[iE] >= Delta.resampling[,iE], na.rm = TRUE),
+                   "greater" = mean(Delta[iE] <= Delta.resampling[,iE], na.rm = TRUE)
+                   )
+        })
+    }
 
     ## ** export
     return(outTable)
@@ -714,6 +724,7 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     outTable[,"null"] <- backtransform.delta(null)
     Delta.stat <- (Delta-null)/Delta.se
     Delta.stat.resampling <- (Delta.resampling-null)/Delta.se.resampling
+
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
         switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
                "two.sided" = mean(abs(Delta.stat[iE]) <= abs(Delta.stat.resampling[,iE]), na.rm = TRUE),

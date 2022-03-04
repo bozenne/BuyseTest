@@ -1,7 +1,7 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 2.3.8
+Version: 2.3.10
 Date: 2022-03-04
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
@@ -36,6 +36,7 @@ Imports:
     lava,
     parallel,
     prodlim,
+    riskRegression,
     stats,
     stats4,
     utils
@@ -45,7 +46,6 @@ Suggests:
     pbapply,
     pROC,
     R.rsp,
-    riskRegression,
     survival,
     testthat
 LinkingTo: Rcpp, RcppArmadillo

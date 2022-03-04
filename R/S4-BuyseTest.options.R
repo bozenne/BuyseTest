@@ -35,6 +35,7 @@ setClass(
       strata.resampling = "character",
       neutral.as.uninf = "logical",
       add.halfNeutral = "logical",
+      add.1.pperm = "logical",
       order.Hprojection = "numeric",
       precompute = "logical",
       print.display = "character",
@@ -47,7 +48,7 @@ setClass(
 
 ### ** Check validity of the object
   validity = function(object){
-      validNames.summary <- c("endpoint","threshold","weight","strata","total","favorable","unfavorable","neutral","uninf","information(%)",
+      validNames.summary <- c("endpoint","restriction","threshold","weight","strata","total","favorable","unfavorable","neutral","uninf","information(%)",
                               "delta","Delta","Delta(%)",
                               "p.value","CI","significance")
       

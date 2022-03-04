@@ -20,6 +20,7 @@ printGeneral(
   neutral.as.uninf,
   correction.uninf,
   operator,
+  restriction,
   strata,
   threshold,
   trace,

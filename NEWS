@@ -7,8 +7,13 @@
 - NEW FEATURE: performance function has been added.
 - confint for BuyseTest object now returns a data.frame instead of a matrix
 - fix bug when computing the variance in stratified GPC with method.inference="u-statistics" (>2.3.5)
+- small modification of how p-values are computed when using permutation: (1+#more extreme)/(1+#perm) instead of (#more extreme)/(1/#perm)
+- rename endpoints: endpoint_t#_r# where the first # is the thresholld
+  and the second the restriction. When the threshold is below 1e-12,
+  then _t# is omitted. When no restriction then _r# is omitted.
   
 ** Internal change
+- add restriction
 - the auc function has been partially re-written.
 - add warning when using a correction and the survival curve is partially unknown.
 

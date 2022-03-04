@@ -7,7 +7,7 @@
 #' @param formula [formula] a symbolic description of the GPC model,
 #' typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
 #' See Details, section "Specification of the GPC model".
-#' @param treatment,endpoint,type,threshold,status,operator,censoring,strata Alternative to \code{formula} for describing the GPC model.
+#' @param treatment,endpoint,type,threshold,status,operator,censoring,restriction,strata Alternative to \code{formula} for describing the GPC model.
 #' See Details, section "Specification of the GPC model".
 #' @param data [data.frame] dataset.
 #' @param scoring.rule [character] method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
@@ -63,6 +63,7 @@
 #' a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
 #' or a time to event outcome  (\code{"t"}, \code{"tte"}, \code{"time"}, or \code{"timetoevent"})
 #'   \item \code{censoring}: [character vector] is the endpoint subject to right or left censoring (\code{"left"} or \code{"right"}). The default is right-censoring.
+#'   \item \code{restriction}: [numeric vector] value above which any difference is classified as neutral.
 #'   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 #' }
 #' The formula interface can be more concise, especially when considering few outcomes, but may be more difficult to apprehend for new users.
@@ -143,7 +144,7 @@
 #' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
 #' On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 #' On inference in GPC using the U-statistic theory: Ozenne B, Budtz-Jorgensen E, Peron J (2021). \bold{The asymptotic distribution of the Net Benefit estimator in presence of right-censoring}. \emph{Statistical Methods in Medical Research} 2021 doi:10.1177/09622802211037067 \cr
-#' On the how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. 
+#' On how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. 
 #'
 #' @seealso 
 #' \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
@@ -265,6 +266,7 @@ BuyseTest <- function(formula,
                       status = NULL,
                       operator = NULL,
                       censoring = NULL,
+                      restriction = NULL,
                       strata = NULL){
 
     mycall <- match.call()
@@ -301,10 +303,12 @@ BuyseTest <- function(formula,
                               seed = seed,
                               strata = strata,
                               threshold = threshold,
+                              restriction = restriction,
                               trace = trace,
                               treatment = treatment,
                               type = type,
-                              weight = weight)
+                              weight = weight,
+                              envir = parent.frame())
 
     ## ** test arguments
     if(option$check){
@@ -335,7 +339,7 @@ BuyseTest <- function(formula,
                                         endpoint.TTE = outArgs$endpoint.TTE,
                                         status.TTE = outArgs$status.TTE,
                                         iidNuisance = outArgs$iidNuisance)
-    
+
     if(option$check){
         if(outArgs$iidNuisance && any(outArgs$method.score == "CRPeron")){
             warning("Inference via the asymptotic theory  for competing risks when using the Peron's scoring rule has not been validating \n",
@@ -400,7 +404,8 @@ BuyseTest <- function(formula,
                                             level.strata = outArgs$level.strata,
                                             n.strata = outArgs$n.strata,
                                             endpoint = outArgs$endpoint,
-                                            threshold = outArgs$threshold)
+                                            threshold = outArgs$threshold,
+                                            restriction = outArgs$restriction)
     }
     
     ## ** Inference
@@ -441,7 +446,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","weight","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weight","n.resampling")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -486,6 +491,7 @@ BuyseTest <- function(formula,
                              D.TTE = envir$outArgs$D.TTE,
                              D.UTTE = envir$outArgs$D.UTTE,
                              threshold = envir$outArgs$threshold,
+                             restriction = envir$outArgs$restriction,
                              level.strata = envir$outArgs$level.strata,
                              n.strata = envir$outArgs$n.strata,
                              strata = envir$outArgs$strata,
@@ -494,17 +500,37 @@ BuyseTest <- function(formula,
                              out = envir$outArgs$skeletonPeron,
                              fitter = envir$outArgs$fitter.model.tte,
                              args = envir$outArgs$args.model.tte)
-
         
         index.test <- which(envir$outArgs$method.score == "SurvPeron")
-        if(!grepl("permutation|bootstrap",method.inference) && envir$outArgs$correction.uninf>0 && length(index.test)>0){
-            envir$outArgs$method.score
+        if(!grepl("permutation|bootstrap",method.inference) && envir$outArgs$correction.uninf>0 && length(index.test)>0 && all(is.na(envir$outArgs$restriction))){
             maxLastSurv <- setNames(sapply(outSurv$lastSurv[index.test],max),envir$outArgs$endpoint[index.test])[!duplicated(envir$outArgs$endpoint[index.test])]
             Wtau <- BuyseTest.options("warning.correction")
             if(any(maxLastSurv>Wtau)){
                 warning("Some of the survival curves for endpoint(s) \"",paste(names(which(maxLastSurv>Wtau)),collapse = "\", \""),"\" are unknown beyond a survival of ",Wtau,".\n",
-                         "The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. \n",
-                         "This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown. \n")
+                        "The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. \n",
+                        "This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown. \n")
+            }
+        }
+    }
+
+    ## ** Restriction
+    if(any(!is.na(envir$outArgs$restriction))){
+        ## index restricted endpoint
+        index.rendpoint <- setdiff(which(!is.na(envir$outArgs$restriction)), ## non-NA value
+                                   which(duplicated(envir$outArgs$index.endpoint))) ## not already visitied
+        for(iE in index.rendpoint){ ## iE <- 1
+            iRestriction <- envir$outArgs$restriction[iE]
+
+            if(envir$outArgs$operator[iE]==1){ ## ">0"
+                if(envir$outArgs$method.score[iE] %in% c("TTEgehan","SurvPeron","CRPeron")){ ## right censoring
+                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]>iRestriction,iE] <- 1/2
+                }
+                envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]>iRestriction,iE] <- iRestriction
+            }else if(envir$outArgs$operator[iE]==-1){ ## "<0"
+                if(envir$outArgs$method.score[iE] %in% c("TTEgehan2")){ ## left censoring
+                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]<iRestriction,iE] <- 1/2
+                }
+                envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]<iRestriction,iE] <- iRestriction
             }
         }
     }
@@ -518,6 +544,7 @@ BuyseTest <- function(formula,
                                  indexT = outSample$ls.indexT,                     
                                  posT = outSample$ls.posT,                     
                                  threshold = envir$outArgs$threshold,
+                                 restriction = envir$outArgs$restriction,
                                  weight = envir$outArgs$weight,
                                  method = sapply(envir$outArgs$method.score, switch, "continuous" = 1, "gaussian" = 2, "TTEgehan" = 3, "TTEgehan2" = 4, "SurvPeron" = 5, "CRPeron" = 6),
                                  op = envir$outArgs$operator,
@@ -551,7 +578,6 @@ BuyseTest <- function(formula,
     
     ## print(range(resBT$iidNuisance_favorable))
     ## print(range(resBT$iidNuisance_unfavorable))
-    
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 

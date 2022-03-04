@@ -53,6 +53,9 @@ or approximating the predicted probability by a normal distribution.}
 Assess the performance in term of AUC and brier score of one or several binary classifiers.
 Currently limited to logistic regressions and random forest.
 }
+\details{
+WARNING: this function is still in development. In particular standard errors, confidence intervals, and p-values should not be trusted.
+}
 \examples{
 ## Simulate data
 set.seed(10)

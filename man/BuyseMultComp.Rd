@@ -13,6 +13,8 @@ BuyseMultComp(
   statistic = NULL,
   cumulative = TRUE,
   conf.level = NULL,
+  band = TRUE,
+  global = FALSE,
   alternative = NULL,
   transformation = NULL,
   ...
@@ -44,6 +46,10 @@ Otherwise display the contribution of each endpoint.}
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
 
+\item{band}{[logical] Should confidence intervals and p-values adjusted for multiple comparisons be computed.}
+
+\item{global}{[logical] Should global test (intersection of all null hypotheses) be made?}
+
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 Default value read from \code{BuyseTest.options()}.}
 
@@ -74,7 +80,7 @@ BT2 <- BuyseTest(ff2, data= df.data, trace = FALSE)
 confint(BT2, cumulative = FALSE) ## not adjusted
 confintAdj <- BuyseMultComp(BT2, cumulative = FALSE, endpoint = 1:2) ## adjusted
 confintAdj
-cor(attr(confintAdj,"iid")) ## correlation between test-statistic
+cor(confintAdj$iid) ## correlation between test-statistic
 
 #### 2- adjustment for multi-arm trial ####
 ## case where we have more than two treatment groups
@@ -92,10 +98,10 @@ rbind("b-a" = confint(BT1ba),
       "c-a" = confint(BT1ca),
       "c-b" = confint(BT1cb)) ## not adjusted
 confintAdj <- BuyseMultComp(list("b-a" = BT1ba, "c-a" = BT1ca, "c-b" = BT1cb),
-                            cluster = "id")
+                            cluster = "id", global = TRUE)
 confintAdj
-dim(attr(confintAdj,"iid")) ## number of subjects x number of analyses
-cor(attr(confintAdj,"iid"))
+dim(confintAdj$iid) ## number of subjects x number of analyses
+cor(confintAdj$iid)
 }
 \references{
 Dmitrienko, A. and D'Agostino, R., Sr (2013), Traditional multiplicity adjustment methods in clinical trials. Statist. Med., 32: 5172-5218. https://doi.org/10.1002/sim.5990
