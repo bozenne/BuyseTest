@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: mar  4 2022 (10:18) 
+## Last-Updated: mar  4 2022 (16:45) 
 ##           By: Brice Ozenne
-##     Update #: 42
+##     Update #: 50
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -62,7 +62,7 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         attr(initData,"internal") <- FALSE
     }
     initPerf <- performance(object, data = initData, name.response = name.response,
-                            fold.number = fold.number, conf.level = NA, trace = FALSE)
+                            fold.number = fold.number, conf.level = NA, trace = FALSE, ...)
 
     if(is.null(data)){
         data <- attr(initPerf,"data")

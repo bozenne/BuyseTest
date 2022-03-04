@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: mar  4 2022 (10:15) 
+## Last-Updated: mar  4 2022 (18:15) 
 ##           By: Brice Ozenne
-##     Update #: 637
+##     Update #: 696
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -72,6 +72,12 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
     ## ** normalize user input
     ## convert object into a list of models with names
     if(inherits(object,"ranger")){
+        if(any(names(object$call)[-1]=="")){
+            stop("All arguments must be named when calling ranger. \n")
+        }
+        if("probability" %in% names(object$call) == FALSE || object$call$probability == FALSE){
+            stop("Argument \'probability\' must be set to TRUE when calling ranger. \n")
+        }
         object <- list(ranger1 = object)
     }else  if(inherits(object,"randomForest")){
         object <- list(randomForest1 = object)
@@ -88,6 +94,12 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
     }else{
         possible.names <- lapply(1:length(object), function(iO){
             if(inherits(object[[iO]],"ranger")){
+                if(any(names(object[[iO]]$call)[-1]=="")){
+                    stop("All arguments must be named when calling ranger. \n")
+                }
+                if("probability" %in% names(object[[iO]]$call) == FALSE || object[[iO]]$call$probability == FALSE){
+                    stop("Argument \'probability\' must be set to TRUE when calling ranger. \n")
+                }
                 return(paste0("ranger",iO))
             }else if(inherits(object[[iO]],"randomForest")){
                 return(paste0("randomForest",iO))
@@ -105,17 +117,6 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         })
         if(is.null(names(object))){
             names(object) <- possible.names
-        }
-    }
-
-    if(individual.fit){
-        for(iO in 1:length(object)){
-            test.formula <- try(stats::formula(object[[iO]]),silent = TRUE)
-            if(inherits(test.formula,"try-error")){
-                stop("Could not extract the formula from one of the model in argument \'object\'. \n",
-                     "Consider explicitely naming the argument \'formula\' when fitting the model. \n",
-                     "Error when calling stats::formula: ",test.formula[1],"\n")
-            }
         }
     }
 
@@ -299,7 +300,8 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             }
         })))
         if(length(nobs.object)!=1){
-            stop("The training set seems to differ in size between models. \n")
+            message("The training set seems to differ in size between models. \n")
+            nobs.object <- max(nobs.object)
         }
     }
 
@@ -633,20 +635,34 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
 
                 index.iFoldTest <- (1+sum(c(0,fold.size)[1:iSubFold])):sum(fold.size[1:iSubFold])
                 cv.indexing[index.iFoldTest,"observation",iFold] <- iFoldTest
-                
+
                 for(iO in 1:n.object){ ## iO <- 1
 
                     if(individual.fit){
-                        for(iObs in 1:fold.size){ ## iObs <- 3
-                            iObject <- stats::update(object[[iO]], formula = object.iformula[[iO]][[iFoldTest[iObs]]], data = iDataTrain)
-                            iPerf <- .performance_predict(iObject, n.obs = nobs.object-fold.size[iSubFold], newdata = iDataTest[iObs,], auc.type = auc.type, se = se)
-                            if(!is.null(iPerf)){ ## convergence check
-                                cv.predictions[index.iFoldTest[iObs],iO,iFold] <- as.double(iPerf$estimate)
-                                if(se){
-                                    if(auc.type == "probabilistic"){
-                                        cv.se.predictions[index.iFoldTest[iObs],iO,iFold] <- as.double(iPerf$se)
+
+                        iAll.pattern <- unique(data.missingPattern[[iO]][iFoldTest])
+                        iFormula.pattern <- attr(data.missingPattern[[iO]],"formula")
+                        
+                        for(iPattern in 1:length(iAll.pattern)){ ## iPattern <- 2
+                            iName.pattern <- as.character(iAll.pattern[iPattern])
+                            index.iFoldTest.pattern <- iFoldTest %in% which(data.missingPattern[[iO]]==iName.pattern)
+                            iDataTest.pattern <- iDataTest[index.iFoldTest.pattern,,drop=FALSE]
+                            if(NROW(iDataTest.pattern)>0){
+                                iDataTrain.pattern <- iDataTrain[,all.vars(iFormula.pattern[[iName.pattern]]),drop=FALSE]
+                                iIndex <- which(rowSums(is.na(iDataTrain.pattern)) == 0)
+                                iObject <- stats::update(object[[iO]], formula = iFormula.pattern[[iName.pattern]], data = iDataTrain.pattern[iIndex,,drop=FALSE])
+
+                                ## iObject <- stats::update(object[[iO]], formula = iFormula.pattern[[iName.pattern]], data = iDataTrain.pattern[iIndex,,drop=FALSE])
+                                iPred <- .performance_predict(iObject, n.obs = length(iIndex), newdata = iDataTest.pattern, auc.type = auc.type, se = se)
+                                
+                                if(!is.null(iPred)){ ## convergence check
+                                    cv.predictions[index.iFoldTest[index.iFoldTest.pattern],iO,iFold] <- as.double(iPred$estimate)
+                                    if(se){
+                                        if(auc.type == "probabilistic"){
+                                            cv.se.predictions[index.iFoldTest[index.iFoldTest.pattern],iO,iFold] <- as.double(iPred$se)
+                                        }
+                                        cv.iid[[iO]][iFoldTrain[iIndex],index.iFoldTest[index.iFoldTest.pattern],iFold] <- iPred$iid
                                     }
-                                    cv.iid[[iO]][iFoldTrain[setdiff(1:NROW(iDataTrain),iObject$na.action)],index.iFoldTest[iObs],iFold] <- iPerf$iid
                                 }
                             }
                         }
@@ -794,12 +810,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
     if(inherits(object,"ranger")){
         if(auc.type == "classical"){
             iPred <- predict(object, data = newdata, type = "response")
-            if(is.matrix(object$predictions)){
-                out$estimate <- iPred$predictions[,which(object$forest$class.values==1)]
-            }else{
-                warning("0/1 predictions are used instead of probabilities. \n")
-                out$estimate <- iPred$predictions
-            }
+            out$estimate <- iPred$predictions[,which(object$forest$class.values==1)]
         }else if(auc.type == "probabilistic"){
             iPred <- predict(object, data = newdata, type = "se")
             out$estimate <- iPred$predictions[,which(object$forest$class.values==1)]
