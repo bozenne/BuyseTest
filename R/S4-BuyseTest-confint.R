@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: okt 28 2021 (12:26) 
+## Last-Updated: mar  3 2022 (17:53) 
 ##           By: Brice Ozenne
-##     Update #: 858
+##     Update #: 860
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -619,9 +619,12 @@ confint_percentileBootstrap <- function(Delta, Delta.resampling,
                                     )
 
     ## ** p.values
-    outTable[, "null"] <- backtransform.delta(null)
-    for(iE in 1:n.endpoint){
-        outTable[iE, "p.value"] <- boot2pvalue(na.omit(Delta.resampling[,iE]), null = null, estimate = Delta[iE],
+    if(length(null)==1 && n.endpoint>1){
+        null <- rep(null, n.endpoint)
+    }
+    for(iE in which(!is.na(null))){
+        outTable[iE, "null"] <- backtransform.delta(null[iE])
+        outTable[iE, "p.value"] <- boot2pvalue(na.omit(Delta.resampling[,iE]), null = null[iE], estimate = Delta[iE],
                                                alternative = alternative, FUN.ci = quantileCI)
     }
     ## quantileCI(Delta.resampling[,iE], alternative = "two.sided", p.value = 0.64, sign.estimate = 1)

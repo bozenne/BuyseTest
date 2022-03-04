@@ -29,7 +29,7 @@ performance(
 
 \item{fold.size}{[double, >0] Either the size of the test dataset (when >1) or the fraction of the dataset (when <1) to be used for testing when using cross-validation.}
 
-\item{fold.number}{[integer] When strictly positive, the number of fold used in the cross-validation. If 0 then no cross validation is performed.}
+\item{fold.number}{[integer] When strictly positive, the number of folds used in the cross-validation. If 0 then no cross validation is performed.}
 
 \item{individual.fit}{[logical] If \code{TRUE} the predictive model is refit for each individual using only the predictors with non missing values.}
 
@@ -66,15 +66,15 @@ e.logit <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
 
 ## assess performance on the training set (biased)
 ## and external dataset
-BuyseTest::performance(e.logit, newdata = df.test)
-BuyseTest::performance(list(null = e.null, prop = e.logit), newdata = df.test)
+performance(e.logit, newdata = df.test)
+performance(list(null = e.null, prop = e.logit), newdata = df.test)
 
 ## assess performance using cross validation
-set.seed(10)
-BuyseTest::performance(e.logit, fold.number = 10)
-set.seed(10)
 \dontrun{
-BuyseTest::performance(list(null = e.null, prop = e.logit), fold.number = 10)
-BuyseTest::performance(e.logit, fold.number = c(50,20,10))
+set.seed(10)
+performance(e.logit, fold.number = 10, conf.level = NA)
+set.seed(10)
+performance(list(null = e.null, prop = e.logit), fold.number = 10)
+performance(e.logit, fold.number = c(50,20,10))
 }
 }

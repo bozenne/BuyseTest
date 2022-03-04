@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: dec  2 2021 (12:24) 
+## Last-Updated: mar  3 2022 (09:50) 
 ##           By: Brice Ozenne
-##     Update #: 143
+##     Update #: 154
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,8 +25,15 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
     if(length(unique(labels))!=2){
         stop("Argument \'labels\' must have exactly two different values. \n")
     }
-    labels.factor <- as.factor(labels)
-    labels.num <- as.numeric(labels.factor)
+    if(is.numeric(labels)){
+        labels.num <- labels
+        labels.factor <- as.factor(labels)
+    }else if(is.factor(labels)){
+        labels.num <- as.numeric(labels)-1
+        labels.factor <- labels
+    }else{
+        stop("Argument \'labels\' must a numeric or factor vector. \n")
+    }
     n.obs <- length(labels)
     if(identical(fold,0)){fold  <- NULL}
     if(!is.null(iid) && is.null(fold)){
@@ -78,7 +85,12 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
     if(!is.logical(transformation)){
         stop("Argument \'transformation\' must be TRUE or FALSE \n")
     }
-
+    if(is.na(conf.level)){
+        se <- FALSE
+    }else{
+        se <- TRUE
+    }
+    
     ## ** prepare export
     if(!is.null(fold)){
         name.fold <- as.character(sort(unique(fold)))
@@ -100,21 +112,23 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
 
     ## ** compute brier score
     if(is.null(fold)){
-        iBrier <- (predictions - labels)^2
+        iBrier <- (predictions - labels.num)^2
         out$estimate <- mean(iBrier)
-        iidAverage <- (iBrier-out$estimate)/(sqrt(n.obs)*sqrt(n.obs-1))
-        if(is.null(iid)){
-            attr(out,"iid") <- iidAverage
-            out$se <- stats::sd(iBrier)/sqrt(n.obs)
-        }else{
-            ## sqrt(crossprod(iidAverage)) - stats::sd(iBrier)/sqrt(n.obs)
-            iidNuisance <-  rowMeans(.rowMultiply_cpp(iid, 2*predictions - labels))
-            if(external){
-                attr(out,"iid") <- c(iidNuisance/sqrt(n.obs), iidAverage)
-                out$se <- sqrt(crossprod(attr(out,"iid")))
+        if(se){
+            iidAverage <- (iBrier-out$estimate)/(sqrt(n.obs)*sqrt(n.obs-1))
+            if(is.null(iid)){
+                attr(out,"iid") <- iidAverage
+                out$se <- stats::sd(iBrier)/sqrt(n.obs)
             }else{
-                attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
-                out$se <- sqrt(crossprod(attr(out,"iid")))
+                ## sqrt(crossprod(iidAverage)) - stats::sd(iBrier)/sqrt(n.obs)
+                iidNuisance <-  rowMeans(.rowMultiply_cpp(iid, 2*predictions - labels.num))
+                if(external){
+                    attr(out,"iid") <- c(iidNuisance/sqrt(n.obs), iidAverage)
+                    out$se <- sqrt(crossprod(attr(out,"iid")))
+                }else{
+                    attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
+                    out$se <- sqrt(crossprod(attr(out,"iid")))
+                }
             }
         }
     }
@@ -130,60 +144,64 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
 
             if(any(observation==iObs)){
                 iFactor[[iObs]] <- setNames(n.Uobservation/(nFold.obs[as.character(fold[observation==iObs])]*n.fold),fold[observation==iObs])
-                iBrier[iObs] <- sum((predictions[observation==iObs] - labels[iObs])^2*iFactor[[iObs]])
+                iBrier[iObs] <- sum((predictions[observation==iObs] - labels.num[iObs])^2*iFactor[[iObs]])
             }
         }
 
-        out$estimate[match(name.fold,out$fold)] <- tapply((predictions-labels[observation])^2, fold, mean)[name.fold]
+        out$estimate[match(name.fold,out$fold)] <- tapply((predictions-labels.num[observation])^2, fold, mean)[name.fold]
         out$estimate[out$fold=="global"] <- mean(iBrier[Uobservation])
         ## mean(iBrier[Uobservation]) - mean(out$estimate[1:10])
-        if(is.null(iid)){
-            out$se[match(name.fold,out$fold)] <- tapply((predictions-labels[observation])^2, fold, function(iDiff){sqrt(stats::var(iDiff)/length(iDiff))})[name.fold]
-            out$se <- stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation)
-            ## out$se - mean(tapply((predictions-labels[observation])^2,fold,sd)) ## no need to be equal
-        }else{
-            iidAverage <- rep(0, length = n.obs)
-            iidNuisance <- rep(0, length = n.obs)
+        if(se){
+            if(is.null(iid)){
+                out$se[match(name.fold,out$fold)] <- tapply((predictions-labels.num[observation])^2, fold, function(iDiff){sqrt(stats::var(iDiff)/length(iDiff))})[name.fold]
+                out$se <- stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation)
+                ## out$se - mean(tapply((predictions-labels[observation])^2,fold,sd)) ## no need to be equal
+            }else{
+                iidAverage <- rep(0, length = n.obs)
+                iidNuisance <- rep(0, length = n.obs)
             
             iidAverage[Uobservation] <- (iBrier[Uobservation]-out$estimate[out$fold=="global"])/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
             ## stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation) - sqrt(crossprod(iidAverage)) ## should be equal
             for(iFold in 1:n.fold){ ## iFold <- 1
                 iiFactor <- sapply(iFactor[observation[fold==name.fold[iFold]]],function(iVec){iVec[name.fold[iFold]]})
-                iStat <- 2*(predictions[fold==name.fold[iFold]] - labels[observation[fold==name.fold[iFold]]])
+                iStat <- 2*(predictions[fold==name.fold[iFold]] - labels.num[observation[fold==name.fold[iFold]]])
                 iidNuisance  <- iidNuisance + rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat*iiFactor))
 
                 ## in each fold because of CV the training and test set are separate so the uncertainties are independent
-                term1 <- stats::sd((predictions[fold==name.fold[iFold]] - labels[observation[fold==name.fold[iFold]]])^2)
+                term1 <- stats::sd((predictions[fold==name.fold[iFold]] - labels.num[observation[fold==name.fold[iFold]]])^2)
                 term2 <- sqrt(crossprod(rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat)))/sum(fold==name.fold[iFold]))
                 out[out$fold==name.fold[iFold],"se"] <- term1 + term2
             }
-            attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
-            out$se[out$fold=="global"] <- sqrt(crossprod(attr(out,"iid")))
+                attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
+                out$se[out$fold=="global"] <- sqrt(crossprod(attr(out,"iid")))
+            }
         }
     }   
 
     ## ** P-value and confidence interval
-    alpha <- 1-conf.level
-    qinf <- stats::qnorm(alpha/2)
-    qsup <- stats::qnorm(1-alpha/2)
+    if(se){
+        alpha <- 1-conf.level
+        qinf <- stats::qnorm(alpha/2)
+        qsup <- stats::qnorm(1-alpha/2)
     
-    if(transformation){
-        newse <- out$se / out$estimate
-        out$lower <- as.double(out$estimate * exp(qinf * newse))
-        out$upper <- as.double(out$estimate * exp(qsup * newse))
+        if(transformation){
+            newse <- out$se / out$estimate
+            out$lower <- as.double(out$estimate * exp(qinf * newse))
+            out$upper <- as.double(out$estimate * exp(qsup * newse))
 
-        if(!is.na(null)){
-            z.stat <- (log(out$estimate) - log(null))/newse
-            out$p.value <- 2*(1-stats::pnorm(abs(z.stat)))
-        }
-    }else{
+            if(!is.na(null)){
+                z.stat <- (log(out$estimate) - log(null))/newse
+                out$p.value <- 2*(1-stats::pnorm(abs(z.stat)))
+            }
+        }else{
     
-        out$lower <- as.double(out[,"estimate"] + qinf * out[,"se"])
-        out$upper <- as.double(out[,"estimate"] + qsup * out[,"se"])
+            out$lower <- as.double(out[,"estimate"] + qinf * out[,"se"])
+            out$upper <- as.double(out[,"estimate"] + qsup * out[,"se"])
 
-        if(!is.na(null)){
-            z.stat <- as.double((out[,"estimate"]-null)/out[,"se"])
-            out$p.value <- 2*(1-stats::pnorm(abs(z.stat)))
+            if(!is.na(null)){
+                z.stat <- as.double((out[,"estimate"]-null)/out[,"se"])
+                out$p.value <- 2*(1-stats::pnorm(abs(z.stat)))
+            }
         }
     }
 

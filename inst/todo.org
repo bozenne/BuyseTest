@@ -1,5 +1,7 @@
 * TODO pre-compute for comepting risk (in BuyseTest-Peron)
 * TODO Article JSS
+* TODO exact permutation p-values
+See function permp in package statmod
 
 
 

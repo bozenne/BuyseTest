@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  9 2021 (10:04) 
 ## Version: 
-## Last-Updated: dec  9 2021 (13:24) 
+## Last-Updated: mar  4 2022 (09:56) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 49
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,6 +16,7 @@
 ### Code:
 
 
+## * as.data.table.performance
 ##' @title Convert Performance Objet to data.table
 ##' @description Extract the AUC/brier score values or the prediction into a data.table format.
 ##'
@@ -97,10 +98,10 @@ as.data.table.performance <- function(x, type = "metric", format = NULL, keep.ro
             setkeyv(iNewx, c("fold","model","prediction"))
             ## se: among those who have the outcome P[score>=threshold|Y=1]
             ## sp: among those who do not have the outcome P[score<threshold|Y=0]
-            iOut <- iNewx[,.("observation"=c(NA,.SD$observation),
-                             "threshold"=c(0,.SD$prediction),
-                             "se"=rev(cumsum(c(0,rev(.SD$outcome))==1))/sum(.SD$outcome==1),
-                             "sp"=cumsum(c(1,.SD$outcome)==0)/sum(.SD$outcome==0)), ## below threshold classified as 1: sp is the number of 0 divided by the number of negative
+            iOut <- iNewx[,list("observation"=c(NA,.SD$observation),
+                                "threshold"=c(0,.SD$prediction),
+                                "se"=rev(cumsum(c(0,rev(.SD$outcome))==1))/sum(.SD$outcome==1),
+                                "sp"=cumsum(c(1,.SD$outcome)==0)/sum(.SD$outcome==0)), ## below threshold classified as 1: sp is the number of 0 divided by the number of negative
                           by = c("fold","model")]
             out <- rbind(out,iOut)
         }
@@ -113,6 +114,14 @@ as.data.table.performance <- function(x, type = "metric", format = NULL, keep.ro
         }
         return(out)
     }
+}
+
+## * as.data.table.performanceResample
+##' @export
+as.data.table.performanceResample <- function(x, ...){
+
+    return(as.data.table(attr(x,"original"), ...))
+
 }
 
 ##----------------------------------------------------------------------

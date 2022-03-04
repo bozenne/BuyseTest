@@ -71,10 +71,10 @@ dt <- data.table(Y = as.factor(rbinom(n, size = 1, prob = 1/(1+exp(1/2-X)))),
                  fold = unlist(lapply(1:10,function(iL){rep(iL,n/10)})))
 
 ## compute auc
-BuyseTest::auc(labels = dt$Y, predictions = dt$X, direction = ">")
+auc(labels = dt$Y, predictions = dt$X, direction = ">")
 
 ## compute auc after 10-fold cross-validation
-BuyseTest::auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
+auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
 
 }
 \references{

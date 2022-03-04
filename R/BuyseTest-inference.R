@@ -29,7 +29,15 @@ inferenceResampling <- function(envir){
     
     ## ** computation
     if (cpus == 1) { ## *** sequential resampling test
-        if (!is.null(seed)) {set.seed(seed)} # set the seed
+        if(!is.null(seed)){
+            if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
+                old <- .Random.seed # to save the current seed
+                on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
+            }else{
+                on.exit(rm(.Random.seed, envir=.GlobalEnv))
+            }
+            set.seed(seed)
+        }
 
         if (trace > 0) {
             requireNamespace("pbapply")
@@ -47,8 +55,6 @@ inferenceResampling <- function(envir){
                                                              )
                                               })
                                  )
-
-        if(!is.null(seed)){rm(.Random.seed, envir=.GlobalEnv)} # restaure original seed
     }else { ## *** parallel resampling test
 
         ## define cluster
