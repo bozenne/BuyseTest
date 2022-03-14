@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: mar  3 2022 (09:50) 
+## Last-Updated: mar 14 2022 (16:11) 
 ##           By: Brice Ozenne
-##     Update #: 154
+##     Update #: 171
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -118,18 +118,18 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
             iidAverage <- (iBrier-out$estimate)/(sqrt(n.obs)*sqrt(n.obs-1))
             if(is.null(iid)){
                 attr(out,"iid") <- iidAverage
-                out$se <- stats::sd(iBrier)/sqrt(n.obs)
+                ## se: stats::sd(iBrier)/sqrt(n.obs)
             }else{
                 ## sqrt(crossprod(iidAverage)) - stats::sd(iBrier)/sqrt(n.obs)
                 iidNuisance <-  rowMeans(.rowMultiply_cpp(iid, 2*predictions - labels.num))
                 if(external){
-                    attr(out,"iid") <- c(iidNuisance/sqrt(n.obs), iidAverage)
-                    out$se <- sqrt(crossprod(attr(out,"iid")))
-                }else{
-                    attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
-                    out$se <- sqrt(crossprod(attr(out,"iid")))
+                    browser()
+                    attr(out,"iid") <- c(iidNuisance, iidAverage)
+                }else{                    
+                    attr(out,"iid") <- iidAverage + iidNuisance
                 }
             }
+            out$se <- sqrt(crossprod(attr(out,"iid")))
         }
     }
 

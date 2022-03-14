@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: mar  4 2022 (16:45) 
+## Last-Updated: mar 14 2022 (15:46) 
 ##           By: Brice Ozenne
-##     Update #: 50
+##     Update #: 52
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,7 +38,7 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
                                 type.resampling, n.resampling = 1000, fold.number = 100, conf.level = 0.95,
                                 cpus = 1, seed = NULL, trace = TRUE, ...){
 
-    ## ** fix randomnesss
+    ## ** fix randomness
     if(!is.null(seed)){
         if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
             old <- .Random.seed # to save the current seed
@@ -62,7 +62,7 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         attr(initData,"internal") <- FALSE
     }
     initPerf <- performance(object, data = initData, name.response = name.response,
-                            fold.number = fold.number, conf.level = NA, trace = FALSE, ...)
+                            fold.number = fold.number, conf.level = NA, trace = FALSE, seed = NULL, ...)
 
     if(is.null(data)){
         data <- attr(initPerf,"data")
@@ -79,14 +79,14 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
 
         warperResampling <- function(i){
             dataResample[[name.response]] <- sample(data[[name.response]])
-            iPerf <- suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, ...))
+            iPerf <- suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...))
             return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
         }
     }else if(type.resampling=="bootstrap"){
         warperResampling <- function(i){
             dataResample <- data[sample(NROW(data), size = NROW(data), replace = TRUE),,drop=FALSE]
             attr(dataResample,"internal") <- FALSE ## only do CV
-            iPerf <- suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, ...))
+            iPerf <- suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...))
             return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
         }
     }

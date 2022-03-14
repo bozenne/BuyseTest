@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: dec  7 2020 (17:22) 
+## Last-Updated: mar 14 2022 (11:59) 
 ##           By: Brice Ozenne
-##     Update #: 260
+##     Update #: 261
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,7 +40,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
     iSet <- 1:n.grid
     factor <- c(-1,1)[increasing+1]
 
-### ** Check
+    ## ** Check
     if(check){
         value.grid[1] <- fn(grid[1])
         value.grid[n.grid] <- fn(grid[n.grid])
@@ -68,7 +68,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
     }
 
     
-### ** Expore the grid using dichotomic search
+    ## ** Expore the grid using dichotomic search
     while(iter <= n.grid && ncv && length(iSet)>0){
         iMiddle <- ceiling(length(iSet)/2)
         iIndexInSet <- iSet[iMiddle]
@@ -100,7 +100,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
                 
     }
 
-### ** If did not find a value whose image matched tol, give the closest solution
+    ## ** If did not find a value whose image matched tol, give the closest solution
     if(ncv){
         iIndexInSet <- which.min(abs(value.grid))
 

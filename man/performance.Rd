@@ -13,11 +13,12 @@ performance(
   individual.fit = FALSE,
   name.response = NULL,
   null = c(brier = NA, AUC = 0.5),
-  conf.level = 0.95,
+  conf.level = NA,
   transformation = TRUE,
   auc.type = "classical",
   simplify = TRUE,
-  trace = TRUE
+  trace = TRUE,
+  seed = NULL
 )
 }
 \arguments{
@@ -48,6 +49,8 @@ or approximating the predicted probability by a normal distribution.}
 \item{simplify}{[logical] Should the number of fold and the size of the fold used for the cross validation be removed from the output?}
 
 \item{trace}{[logical] Should the execution of the function be traced.}
+
+\item{seed}{[integer, >0] seed used to ensure reproducibility.}
 }
 \description{
 Assess the performance in term of AUC and brier score of one or several binary classifiers.

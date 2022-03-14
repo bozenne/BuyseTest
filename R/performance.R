@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: mar  4 2022 (18:15) 
+## Last-Updated: mar 14 2022 (16:15) 
 ##           By: Brice Ozenne
-##     Update #: 696
+##     Update #: 724
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,6 +34,7 @@
 ##' Otherwise they are computed without any transformation.
 ##' @param trace [logical] Should the execution of the function be traced.
 ##' @param simplify [logical] Should the number of fold and the size of the fold used for the cross validation be removed from the output?
+##' @param seed [integer, >0] seed used to ensure reproducibility.
 ##'
 ##' @details WARNING: this function is still in development. In particular standard errors, confidence intervals, and p-values should not be trusted.
 ##' 
@@ -66,8 +67,19 @@
 ##' @export
 performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fold.number = 0,
                         individual.fit = FALSE, name.response = NULL,
-                        null = c(brier = NA, AUC = 0.5), conf.level = 0.95, transformation = TRUE, auc.type = "classical",
-                        simplify = TRUE, trace = TRUE){
+                        null = c(brier = NA, AUC = 0.5), conf.level = NA, transformation = TRUE, auc.type = "classical",
+                        simplify = TRUE, trace = TRUE, seed = NULL){
+
+    ## ** fix randomness
+    if(!is.null(seed)){
+        if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
+            old <- .Random.seed # to save the current seed
+            on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
+        }else{
+            on.exit(rm(.Random.seed, envir=.GlobalEnv))
+        }
+        set.seed(seed)
+    }
 
     ## ** normalize user input
     ## convert object into a list of models with names
@@ -89,8 +101,10 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             stop("Cannot handle glm with link other than logit. \n")
         }
         object <- list(logit1 = object)
-    }else if(!is.list(object)){
-        stop("Argument \'object\' should be a \'glm\' object, a \'ranger\' object, or a list containing \'glm\' or \'ranger\' objects. \n")
+    }else if(inherits(object,"miss.glm")){
+        object <- list(logit1 = object)
+    } else if(!is.list(object)){
+        stop("Argument \'object\' should be a \'glm\' object, a \'miss.glm\' object, or a \'ranger\' object. \n")
     }else{
         possible.names <- lapply(1:length(object), function(iO){
             if(inherits(object[[iO]],"ranger")){
@@ -111,8 +125,10 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                     stop("Cannot handle glm with link other than logit. \n")
                 }
                 return(paste0("logit",iO))
+            }else if(inherits(object[[iO]],"miss.glm")){
+                ## nothing
             }else{
-                stop("Argument \'object\' should be a \'glm\' object, a \'ranger\' object, or a list containing \'glm\' or \'ranger\' objects. \n")
+                stop("Argument \'object\' should be a list containing \'glm\', \'miss.glm\' or \'ranger\' objects. \n")
             }
         })
         if(is.null(names(object))){
@@ -375,7 +391,11 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                 for(iPattern in 1:length(iIndex.pattern)){ ## iPattern <- 1
                     iName.pattern <- names(iIndex.pattern)[iPattern]
                     iData <- data[,all.vars(iFormula.pattern[[iPattern]]),drop=FALSE]
-                    iIndex <- which(rowSums(is.na(iData)) == 0)
+                    if(inherits(object[[iO]],"miss.glm")){
+                        iIndex <- 1:NROW(iData)
+                    }else{
+                        iIndex <- which(rowSums(is.na(iData)) == 0)
+                    }
                     iObject <- stats::update(object[[iO]], formula = iFormula.pattern[[iPattern]], data = iData[iIndex,,drop=FALSE])
                     iPred <- .performance_predict(iObject, n.obs = length(iIndex), newdata = data[iIndex.pattern[[iPattern]],,drop=FALSE], auc.type = auc.type, se = se)
                     
@@ -429,7 +449,6 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                     internal.auc[iO,"p.value_comp"] <- 2*(1-stats::pnorm(abs(iStat)))
                 }
             }
-
             iBrier <- brier(labels = data$XXresponseXX, predictions = internal.predictions[,iO], iid = internal.iid[[iO]],
                             null = null["Brier"], conf.level = conf.level, transformation = transformation)
             internal.brier[iO,c("model","estimate","se","lower","upper","p.value")] <- cbind(model = names.object[iO],confint(iBrier))
@@ -490,7 +509,12 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                     iName.pattern <- names(iIndex.pattern)[iPattern]
                     if(is.null(iPred.pattern[[iName.pattern]])){ ## new pattern
                         iData <- data[,all.vars(iFormula.pattern[[iPattern]]),drop=FALSE]
-                        iIndex2.pattern <- which(rowSums(is.na(iData))==0)
+                        if(inherits(object[[iO]],"miss.glm")){
+                            iIndex2.pattern <- 1:NROW(iData)
+                        }else{
+                            iIndex2.pattern <- which(rowSums(is.na(iData))==0)
+                        }
+                        
                         iObject <- stats::update(object[[iO]], formula = iFormula.pattern[[iPattern]], data = iData[iIndex2.pattern,,drop=FALSE])
 
                         iNewdata <- newdata[iIndex.pattern[[iPattern]],all.vars(iFormula.pattern[[iPattern]]),drop=FALSE]
@@ -604,8 +628,8 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
         })
         
         ## *** get predictions
-        cv.indexing <- array(NA, dim = c(sum(fold.size), 2, fold.number),
-                             dimnames = list(NULL, c("observation","fold"), NULL))
+        cv.indexing <- array(NA, dim = c(sum(fold.size), 3, fold.number),
+                             dimnames = list(NULL, c("observation","fold","split"), NULL))
         cv.predictions <- array(NA, dim = c(sum(fold.size), n.object, fold.number),
                                 dimnames = list(NULL, names.object, NULL))
         if(se){
@@ -624,18 +648,20 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             if(trace){
                 utils::setTxtProgressBar(pb, iFold)
             }
+            
             cv.indexing[,"fold",iFold] <- iFold
             
-            for(iSubFold in 1:fold.group){ ## iFold <- 1
-                iFoldTest <- na.omit(fold.test[[iFold]][iSubFold,])
+            for(iSplit in 1:fold.group){ ## iFold <- 1
+                iFoldTest <- na.omit(fold.test[[iFold]][iSplit,])
                 iFoldTrain <- setdiff(1:nobs.object,iFoldTest)
 
                 iDataTrain <- data[iFoldTrain,,drop=FALSE]
                 iDataTest <- data[iFoldTest,,drop=FALSE]
 
-                index.iFoldTest <- (1+sum(c(0,fold.size)[1:iSubFold])):sum(fold.size[1:iSubFold])
+                index.iFoldTest <- (1+sum(c(0,fold.size)[1:iSplit])):sum(fold.size[1:iSplit])
                 cv.indexing[index.iFoldTest,"observation",iFold] <- iFoldTest
-
+                cv.indexing[index.iFoldTest,"split",iFold] <- iSplit
+            
                 for(iO in 1:n.object){ ## iO <- 1
 
                     if(individual.fit){
@@ -649,9 +675,13 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                             iDataTest.pattern <- iDataTest[index.iFoldTest.pattern,,drop=FALSE]
                             if(NROW(iDataTest.pattern)>0){
                                 iDataTrain.pattern <- iDataTrain[,all.vars(iFormula.pattern[[iName.pattern]]),drop=FALSE]
-                                iIndex <- which(rowSums(is.na(iDataTrain.pattern)) == 0)
+                                if(inherits(object[[iO]],"miss.glm")){
+                                    iIndex <- 1:NROW(iDataTrain.pattern)
+                                }else{
+                                    iIndex <- which(rowSums(is.na(iDataTrain.pattern)) == 0)
+                                }
                                 iObject <- stats::update(object[[iO]], formula = iFormula.pattern[[iName.pattern]], data = iDataTrain.pattern[iIndex,,drop=FALSE])
-
+                                
                                 ## iObject <- stats::update(object[[iO]], formula = iFormula.pattern[[iName.pattern]], data = iDataTrain.pattern[iIndex,,drop=FALSE])
                                 iPred <- .performance_predict(iObject, n.obs = length(iIndex), newdata = iDataTest.pattern, auc.type = auc.type, se = se)
                                 
@@ -668,7 +698,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                         }
                     }else{
                         iObject <- stats::update(object[[iO]], data = iDataTrain)
-                        iPred <- .performance_predict(iObject, n.obs = nobs.object-fold.size[iSubFold], newdata = iDataTest, auc.type = auc.type, se = se)
+                        iPred <- .performance_predict(iObject, n.obs = nobs.object-fold.size[iSplit], newdata = iDataTest, auc.type = auc.type, se = se)
                         if(!is.null(iPred)){ ## convergence check
                             cv.predictions[index.iFoldTest,iO,iFold] <- as.double(iPred$estimate)
                             if(se){
@@ -721,9 +751,12 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                         iCV.iid <- iCV.iid[,,-iFold.NA,drop=FALSE]
                     }
                     iFold <- iFold[iFold %in% iFold.NA == FALSE]
+                    if(length(iFold)==0){
+                        stop("No fold without missing predicted value. \n")
+                    }
                 }
                 
-                ## auc                
+                ## auc
                 iAUC <- auc(labels = data$XXresponseXX, predictions = iPred, fold = iFold, observation = iObs,
                             add.halfNeutral = TRUE, null = null["AUC"], conf.level = conf.level, transformation = transformation)
                 cv.auc[iCurrent,setdiff(name.col,"p.value_comp")] <- cbind(model = names.object[iO], confint(iAUC), foldCV.number = fold.allnumber[iNumber], foldCV.size = sum(fold.size))
@@ -819,7 +852,7 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             }
         }
     }else if(inherits(object,"randomForest")){
-        out$estimate <- predict(object, newdata = newdata, type = "prob")[,2]
+        out$estimate <- stats::predict(object, newdata = newdata, type = "prob")[,2]
     }else if(inherits(object,"glm")){
         if(object$converged==FALSE){return(NULL)}
         if(se){
@@ -830,8 +863,13 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
             }
             out$iid <- attr(iPred,"iid")
         }else{
-            out$estimate <- predict(object, newdata = newdata, type = "response")
+            out$estimate <- stats::predict(object, newdata = newdata, type = "response")
         }
+    }else if(inherits(object,"miss.glm")){
+
+        Xb <- stats::model.matrix(stats::formula(object), newdata) %*% stats::coef(object)
+        out$estimate <- as.double(1/(1+exp(-Xb)))
+
     }
 
     ##
