@@ -339,7 +339,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	  upperUnfavorable = score[1];
 	}else if(testNoRestrictionT){
 	  // Rcpp::Rcout << "(2-b) " << "";
-	  if((R_IsNA(survTimeT(3))==false) & (survTimeT(3) > 0)){
+	  if((R_IsNA(survTimeT(3))==false) && (survTimeT(3) > 0)){
 	    score[1] = survTimeT(3)/survTimeC(2); //  [Sc(x_i+tau)/Sc(y_j)]
 	    upperUnfavorable = score[1];
 	    if(returnIID>1){ // if((returnIID>1) && (survTimeT(3)>0)){
@@ -716,7 +716,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	    Dscore_Dnuisance_C(cifTimeC_vec(14),1) += -1/denomC + score[1]/denomC; // derivative regarding F_2^C(Ct) (i.e. cifTimeC_vec(7))
 	  }
         }
-        if((R_IsNA(cifTimeT_vec(3)) == false) & (R_IsNA(cifTimeT_vec(1)) == false)) {
+        if((R_IsNA(cifTimeT_vec(3)) == false) && (R_IsNA(cifTimeT_vec(1)) == false)) {
           score[2] = (cifTimeT_vec(3) - cifTimeT_vec(1))/denomC;
 	  if(returnIID>1){
 	    Dscore_Dnuisance_C(cifTimeC_vec(9),2) += score[2]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
@@ -725,7 +725,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	    Dscore_Dnuisance_C(cifTimeT_vec(8),2) += -1/denomC; // derivative regarding F_1^C(Tt-\tau) (i.e. cifTimeT_vec(1))
 	  }
 
-        } else if ((R_IsNA(cifTimeT_vec(3)) == true) & (R_IsNA(cifTimeT_vec(1)) == false)) {
+        } else if ((R_IsNA(cifTimeT_vec(3)) == true) && (R_IsNA(cifTimeT_vec(1)) == false)) {
           score[2] = (lastCif1C - cifTimeT_vec(1))/denomC;
 	  if(returnIID>1){
 	    Dscore_Dnuisance_C(cifTimeC_vec(9),2) += score[2]/denomC; // derivative regarding F_1^C(Ct) (i.e. cifTimeC_vec(2))
@@ -821,7 +821,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	    Dscore_Dnuisance_T(cifTimeT_vec(14),1) += score[1]/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	  }
         }
-        if((R_IsNA(cifTimeC_vec(6)) == false) & (R_IsNA(cifTimeC_vec(4)) == false)) {
+        if((R_IsNA(cifTimeC_vec(6)) == false) && (R_IsNA(cifTimeC_vec(4)) == false)) {
           score[2] = (cifTimeC_vec(6) - cifTimeC_vec(4))/denomT;
 	  if(returnIID>1){
 	    Dscore_Dnuisance_T(cifTimeC_vec(13),2) += 1/denomT; // derivative regarding F_1^T(Ct+\tau) (i.e. cifTimeT_vec(6))
@@ -829,7 +829,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	    Dscore_Dnuisance_T(cifTimeT_vec(12),2) += score[2]/denomT; // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
 	    Dscore_Dnuisance_T(cifTimeT_vec(14),2) += score[2]/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	  }
-        } else if ((R_IsNA(cifTimeC_vec(6)) == true) & (R_IsNA(cifTimeC_vec(4)) == false)) {
+        } else if ((R_IsNA(cifTimeC_vec(6)) == true) && (R_IsNA(cifTimeC_vec(4)) == false)) {
           score[2] = (lastCif1T - cifTimeC_vec(4))/denomT;
 	  if(returnIID>1){
 	    Dscore_Dnuisance_T(Dscore_Dnuisance_T.n_rows/2 -1,2) += 1/denomT; // derivative regarding F_1^T(\infty) (i.e. lastCif1T)
@@ -1324,7 +1324,7 @@ double calcIntegralCif_cpp(const arma::mat& cifJump, double start_val, double st
     double CIF_t = cifTimeT(5);
     int indexCIF_t = cifTimeT(12);
     for(int i = 0; i<nJump; i++){
-      if((cifJump(i,0) > start_val) & (cifJump(i,0) <= stop_val)) {
+      if((cifJump(i,0) > start_val) && (cifJump(i,0) <= stop_val)) {
 	if(R_IsNA(cifJump(i,2))){
 	  integral = integral + (lastCIF - CIF_t)*cifJump(i, 3);
 	  if(returnDeriv){

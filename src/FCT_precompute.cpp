@@ -66,10 +66,16 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
   // ** loop over time
   if(lastdSurv > 0){
     // add extra contribution to the bound after the last jump (minus because dSurv = (0 - surv(tmax))
-    if((nJump > 0) && (survival[nJump-1]>=0) && arma::is_finite(survival[nJump-1])){ // <0 and is_finite test whether it is a missing value (NA in R)
+    if(nJump<=0){ // should never be used as by default the time 0 is included so nJump is at least 1
+      intSurv_upper[0] = - lastSurv * lastdSurv;
+    }else if((survival[nJump-1]>=0) && arma::is_finite(survival[nJump-1])){ // <0 and is_finite test whether it is a missing value (NA in R)
       intSurv_upper[nJump] = - survival[nJump-1] * lastdSurv;
     }else{
-      intSurv_upper[nJump] = - lastSurv * lastdSurv;
+      if(abs(nJump) > intSurv_upper.size()-1){
+	// throw std::runtime_error("This should not happen");
+      }else{
+	intSurv_upper[nJump] = - lastSurv * lastdSurv;
+      }
     }
   }
 
