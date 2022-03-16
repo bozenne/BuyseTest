@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: mar 14 2022 (15:46) 
+## Last-Updated: mar 16 2022 (13:57) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 61
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,6 +29,7 @@
 ##' @param cpus [integer, >0] the number of CPU to use. If strictly greater than 1, resampling is perform in parallel. 
 ##' @param seed [integer, >0] seed used to ensure reproducibility.
 ##' @param trace [logical] Should the execution of the function be traced.
+##' @param filename [character] Prefix for the files containing each result.
 ##' @param ... arguments passed to \code{\link{performance}}.
 ##' 
 
@@ -36,7 +37,7 @@
 ##' @export
 performanceResample <- function(object, data = NULL, name.response = NULL,
                                 type.resampling, n.resampling = 1000, fold.number = 100, conf.level = 0.95,
-                                cpus = 1, seed = NULL, trace = TRUE, ...){
+                                cpus = 1, seed = NULL, trace = TRUE, filename = NULL, ...){
 
     ## ** fix randomness
     if(!is.null(seed)){
@@ -63,6 +64,13 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
     }
     initPerf <- performance(object, data = initData, name.response = name.response,
                             fold.number = fold.number, conf.level = NA, trace = FALSE, seed = NULL, ...)
+    if(!is.null(filename)){
+        if(!is.null(seed)){
+            filename <- paste0(filename,"-seed",seed)
+        }
+        saveRDS(initPerf, file = paste0(filename,".rds"))
+    }
+                
 
     if(is.null(data)){
         data <- attr(initPerf,"data")
@@ -79,15 +87,31 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
 
         warperResampling <- function(i){
             dataResample[[name.response]] <- sample(data[[name.response]])
-            iPerf <- suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...))
-            return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
+            iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...)),
+                         silent = FALSE)
+            if(inherits(iPerf, "try-error")){
+                return(NULL)
+            }else{
+                if(!is.null(filename)){
+                    saveRDS(cbind(sample = i, iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
+                }
+                return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
+            }
         }
     }else if(type.resampling=="bootstrap"){
         warperResampling <- function(i){
             dataResample <- data[sample(NROW(data), size = NROW(data), replace = TRUE),,drop=FALSE]
             attr(dataResample,"internal") <- FALSE ## only do CV
-            iPerf <- suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...))
-            return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
+            iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...)),
+                         silent = FALSE)
+            if(inherits(iPerf, "try-error")){
+                return(NULL)
+            }else{
+                if(!is.null(filename)){
+                    saveRDS(cbind(sample = i, iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
+                }
+                return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
+            }
         }
     }
     ## warperResampling(5)

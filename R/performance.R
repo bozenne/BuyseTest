@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: mar 14 2022 (16:15) 
+## Last-Updated: mar 16 2022 (13:42) 
 ##           By: Brice Ozenne
-##     Update #: 724
+##     Update #: 725
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -752,7 +752,9 @@ performance <- function(object, data = NULL, newdata = NA, fold.size = 1/10, fol
                     }
                     iFold <- iFold[iFold %in% iFold.NA == FALSE]
                     if(length(iFold)==0){
-                        stop("No fold without missing predicted value. \n")
+                        cv.auc[iCurrent,] <- NA
+                        cv.brier[iCurrent,] <- NA
+                        next
                     }
                 }
                 

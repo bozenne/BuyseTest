@@ -15,6 +15,7 @@ performanceResample(
   cpus = 1,
   seed = NULL,
   trace = TRUE,
+  filename = NULL,
   ...
 )
 }
@@ -38,6 +39,8 @@ performanceResample(
 \item{seed}{[integer, >0] seed used to ensure reproducibility.}
 
 \item{trace}{[logical] Should the execution of the function be traced.}
+
+\item{filename}{[character] Prefix for the files containing each result.}
 
 \item{...}{arguments passed to \code{\link{performance}}.}
 }
