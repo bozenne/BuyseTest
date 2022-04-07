@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: mar 14 2022 (16:04) 
+## Last-Updated: apr  6 2022 (18:18) 
 ##           By: Brice Ozenne
-##     Update #: 452
+##     Update #: 455
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -77,6 +77,9 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     ## ** Normalize user imput
     if(length(unique(labels))!=2){
         stop("Argument \'labels\' must have exactly two different values \n")
+    }
+    if(any(is.na(predictions))){
+        warning("Missing values in argument \'predictions'. \n")
     }
     if(!is.null(fold)){
         if(length(fold)!=length(predictions)){

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: mar 14 2022 (16:11) 
+## Last-Updated: apr  5 2022 (17:56) 
 ##           By: Brice Ozenne
-##     Update #: 171
+##     Update #: 179
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -154,24 +154,27 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
         if(se){
             if(is.null(iid)){
                 out$se[match(name.fold,out$fold)] <- tapply((predictions-labels.num[observation])^2, fold, function(iDiff){sqrt(stats::var(iDiff)/length(iDiff))})[name.fold]
-                out$se <- stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation)
+                out$se[out$fold=="global"] <- stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation)
                 ## out$se - mean(tapply((predictions-labels[observation])^2,fold,sd)) ## no need to be equal
+                attr(out,"iid") <- rep(0, length = n.obs)
+                attr(out,"iid")[Uobservation] <- (iBrier[Uobservation]-out$estimate[out$fold=="global"])/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
+                ## out$se[out$fold=="global"] - sqrt(crossprod(attr(out,"iid")))
             }else{
                 iidAverage <- rep(0, length = n.obs)
                 iidNuisance <- rep(0, length = n.obs)
             
-            iidAverage[Uobservation] <- (iBrier[Uobservation]-out$estimate[out$fold=="global"])/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
-            ## stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation) - sqrt(crossprod(iidAverage)) ## should be equal
-            for(iFold in 1:n.fold){ ## iFold <- 1
-                iiFactor <- sapply(iFactor[observation[fold==name.fold[iFold]]],function(iVec){iVec[name.fold[iFold]]})
-                iStat <- 2*(predictions[fold==name.fold[iFold]] - labels.num[observation[fold==name.fold[iFold]]])
-                iidNuisance  <- iidNuisance + rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat*iiFactor))
+                iidAverage[Uobservation] <- (iBrier[Uobservation]-out$estimate[out$fold=="global"])/(sqrt(n.Uobservation)*sqrt(n.Uobservation-1))
+                ## stats::sd(iBrier[Uobservation])/sqrt(n.Uobservation) - sqrt(crossprod(iidAverage)) ## should be equal
+                for(iFold in 1:n.fold){ ## iFold <- 1
+                    iiFactor <- sapply(iFactor[observation[fold==name.fold[iFold]]],function(iVec){iVec[name.fold[iFold]]})
+                    iStat <- 2*(predictions[fold==name.fold[iFold]] - labels.num[observation[fold==name.fold[iFold]]])
+                    iidNuisance  <- iidNuisance + rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat*iiFactor))
 
-                ## in each fold because of CV the training and test set are separate so the uncertainties are independent
-                term1 <- stats::sd((predictions[fold==name.fold[iFold]] - labels.num[observation[fold==name.fold[iFold]]])^2)
-                term2 <- sqrt(crossprod(rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat)))/sum(fold==name.fold[iFold]))
-                out[out$fold==name.fold[iFold],"se"] <- term1 + term2
-            }
+                    ## in each fold because of CV the training and test set are separate so the uncertainties are independent
+                    term1 <- stats::sd((predictions[fold==name.fold[iFold]] - labels.num[observation[fold==name.fold[iFold]]])^2)
+                    term2 <- sqrt(crossprod(rowMeans(.rowMultiply_cpp(iid[,,iFold], iStat)))/sum(fold==name.fold[iFold]))
+                    out[out$fold==name.fold[iFold],"se"] <- term1 + term2
+                }
                 attr(out,"iid") <- iidAverage + iidNuisance/sqrt(n.obs)
                 out$se[out$fold=="global"] <- sqrt(crossprod(attr(out,"iid")))
             }

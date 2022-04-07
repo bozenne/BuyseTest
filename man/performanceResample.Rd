@@ -8,9 +8,9 @@ performanceResample(
   object,
   data = NULL,
   name.response = NULL,
-  type.resampling,
+  type.resampling = "permutation",
   n.resampling = 1000,
-  fold.number = 100,
+  fold.repetition = 0,
   conf.level = 0.95,
   cpus = 1,
   seed = NULL,
@@ -30,7 +30,7 @@ performanceResample(
 
 \item{n.resampling}{[integer,>0] Nnumber of bootstrap samples or permutations.}
 
-\item{fold.number}{[integer,>0] Nnumber of folds used in the cross-validation. Should be strictly positive.}
+\item{fold.repetition}{[integer,>0] Nnumber of folds used in the cross-validation. Should be strictly positive.}
 
 \item{conf.level}{[numeric, 0-1] confidence level for the confidence intervals.}
 
@@ -46,4 +46,7 @@ performanceResample(
 }
 \description{
 Use resampling to quantify uncertainties about the performance of one or several binary classifiers evaluated via cross-validation.
+}
+\details{
+WARNING: using bootstrap after cross-validation may not provide valid variance/CI/p-value estimates.
 }

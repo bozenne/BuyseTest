@@ -4,7 +4,13 @@
 \alias{as.data.table.performance}
 \title{Convert Performance Objet to data.table}
 \usage{
-\method{as.data.table}{performance}(x, type = "metric", format = NULL, keep.rownames = FALSE, ...)
+\method{as.data.table}{performance}(
+  x,
+  type = "performance",
+  format = NULL,
+  keep.rownames = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{object of class \code{"performance"}.}

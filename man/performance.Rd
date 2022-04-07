@@ -2,18 +2,21 @@
 % Please edit documentation in R/performance.R
 \name{performance}
 \alias{performance}
-\title{Assess Performance of a Classifier (EXPERIMENTAL)}
+\title{Assess Performance of a Classifier}
 \usage{
 performance(
   object,
   data = NULL,
   newdata = NA,
-  fold.size = 1/10,
-  fold.number = 0,
   individual.fit = FALSE,
+  impute = "none",
   name.response = NULL,
+  fold.size = 1/10,
+  fold.repetition = 0,
+  fold.balance = FALSE,
   null = c(brier = NA, AUC = 0.5),
-  conf.level = NA,
+  conf.level = 0.95,
+  se = TRUE,
   transformation = TRUE,
   auc.type = "classical",
   simplify = TRUE,
@@ -28,17 +31,25 @@ performance(
 
 \item{newdata}{[data.frame] an external data used to assess the performance.}
 
-\item{fold.size}{[double, >0] Either the size of the test dataset (when >1) or the fraction of the dataset (when <1) to be used for testing when using cross-validation.}
+\item{individual.fit}{[logical] if \code{TRUE} the predictive model is refit for each individual using only the predictors with non missing values.}
 
-\item{fold.number}{[integer] When strictly positive, the number of folds used in the cross-validation. If 0 then no cross validation is performed.}
+\item{impute}{[character] in presence of missing value in the regressors of the training dataset, should a complete case analysis be performed (\code{"none"})
+or should the median/mean (\code{"median"}/\code{"mean"}) value be imputed.}
 
-\item{individual.fit}{[logical] If \code{TRUE} the predictive model is refit for each individual using only the predictors with non missing values.}
+\item{name.response}{[character] the name of the response variable (i.e. the one containing the categories).}
 
-\item{name.response}{[character] The name of the response variable (i.e. the one containing the categories).}
+\item{fold.size}{[double, >0] either the size of the test dataset (when >1) or the fraction of the dataset (when <1) to be used for testing when using cross-validation.}
+
+\item{fold.repetition}{[integer] when strictly positive, the number of folds used in the cross-validation. If 0 then no cross validation is performed.}
+
+\item{fold.balance}{[logical] should the outcome distribution in the folds of the cross-validation be similar to the one of the original dataset?}
 
 \item{null}{[numeric vector of length 2] the right-hand side of the null hypothesis relative to each metric.}
 
 \item{conf.level}{[numeric] confidence level for the confidence intervals.}
+
+\item{se}{[logical] should the uncertainty about AUC/brier be computed?
+When \code{TRUE} adapt the method of LeDell et al. (2015) to repeated cross-validation for the AUC and the brier score.}
 
 \item{transformation}{[logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 Otherwise they are computed without any transformation.}
@@ -46,7 +57,7 @@ Otherwise they are computed without any transformation.}
 \item{auc.type}{[character] should the auc be computed approximating the predicted probability by a dirac (\code{"classical"}, usual AUC formula)
 or approximating the predicted probability by a normal distribution.}
 
-\item{simplify}{[logical] Should the number of fold and the size of the fold used for the cross validation be removed from the output?}
+\item{simplify}{[logical] should the number of fold and the size of the fold used for the cross validation be removed from the output?}
 
 \item{trace}{[logical] Should the execution of the function be traced.}
 
@@ -55,9 +66,6 @@ or approximating the predicted probability by a normal distribution.}
 \description{
 Assess the performance in term of AUC and brier score of one or several binary classifiers.
 Currently limited to logistic regressions and random forest.
-}
-\details{
-WARNING: this function is still in development. In particular standard errors, confidence intervals, and p-values should not be trusted.
 }
 \examples{
 ## Simulate data
@@ -78,9 +86,12 @@ performance(list(null = e.null, prop = e.logit), newdata = df.test)
 ## assess performance using cross validation
 \dontrun{
 set.seed(10)
-performance(e.logit, fold.number = 10, conf.level = NA)
+performance(e.logit, fold.repetition = 10, se = FALSE)
 set.seed(10)
-performance(list(null = e.null, prop = e.logit), fold.number = 10)
-performance(e.logit, fold.number = c(50,20,10))
+performance(list(null = e.null, prop = e.logit), fold.repetition = 10)
+performance(e.logit, fold.repetition = c(50,20,10))
 }
+}
+\references{
+LeDell E, Petersen M, van der Laan M. Computationally efficient confidence intervals for cross-validated area under the ROC curve estimates. Electron J Stat. 2015;9(1):1583-1607. doi:10.1214/15-EJS1035
 }

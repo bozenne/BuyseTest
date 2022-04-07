@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  9 2021 (10:04) 
 ## Version: 
-## Last-Updated: mar  4 2022 (10:15) 
+## Last-Updated: apr  7 2022 (10:40) 
 ##           By: Brice Ozenne
-##     Update #: 50
+##     Update #: 82
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,31 +28,27 @@
 ##' @param ... Not used. For compatibility with the generic method.
 ##' 
 ##' @export
-as.data.table.performance <- function(x, type = "metric", format = NULL, keep.rownames = FALSE, ...){
+as.data.table.performance <- function(x, type = "performance", format = NULL, keep.rownames = FALSE, ...){
 
     ## ** normalize user input
     if(length(type)!=1){
         stop("Argument \'type\' must have length 1.")
     }
-    type <- match.arg(type, c("metric",
+    type <- match.arg(type, c("performance",
                               "prediction",paste0("prediction-",names(attr(x,"prediction"))),
-                              "roc",paste0("roc-",names(attr(x,"prediction")))))
+                              "roc",paste0("roc-",names(attr(x,"prediction"))),
+                              "fold"))
     if(!is.null(format)){
         format <- match.arg(format, c("long","wide"))
     }
 
 
     ## ** extract data
-    if(type=="metric"){
-        attr(x,"prediction") <- NULL
-        attr(x,"iid") <- NULL
-        attr(x,"auc") <- NULL
-        attr(x,"brier") <- NULL
-        class(x) <- setdiff(class(x), "performance")
-        return(x)
+    if(type=="performance"){
+        return(x$performance)
     }else if(type %in% c("prediction","prediction-internal","prediction-external","prediction-cv")){
-        x.prediction <- attr(x,"prediction")
-        x.response <- attr(x,"response")
+        x.prediction <- x$prediction
+        x.response <- x$response
         out <- NULL
         if(type=="prediction-internal"){
             x.prediction <- x.prediction["internal"]
@@ -65,11 +61,17 @@ as.data.table.performance <- function(x, type = "metric", format = NULL, keep.ro
             x.response <- x.response["cv"]
         }
 
-        for(iType in names(x.prediction)){ ## iType <- names(x.prediction)[2]
+        for(iType in names(x.prediction)){ ## iType <- names(x.prediction)[3]
             if(iType == "internal"){
-                iX.prediction <- data.table(method = "internal", outcome = x.response[[iType]], x.prediction[[iType]], observation = 1:NROW(x.prediction[[iType]]), fold = as.numeric(NA))
+
+                iX.prediction <- data.table(method = "internal", outcome = x.response[[iType]], x.prediction[[iType]], observation = 1:NROW(x.prediction[[iType]]),
+                                            repetition = as.numeric(NA), fold = as.numeric(NA))
+
             }else if(iType == "external"){
-                iX.prediction <- data.table(method = "external", outcome = x.response[[iType]], x.prediction[[iType]], observation = 1:NROW(x.prediction[[iType]]), fold = as.numeric(NA))
+
+                iX.prediction <- data.table(method = "external", outcome = x.response[[iType]], x.prediction[[iType]], observation = 1:NROW(x.prediction[[iType]]),
+                                            repetition = as.numeric(NA), fold = as.numeric(NA))
+
             }else if(iType == "cv"){
 
                 iX <- x.prediction[[iType]]
@@ -83,7 +85,7 @@ as.data.table.performance <- function(x, type = "metric", format = NULL, keep.ro
         }
 
         if(!is.null(format) && format == "long"){
-            out <- data.table::melt(out, id.vars = c("method","outcome","observation","fold"),
+            out <- data.table::melt(out, id.vars = intersect(names(out),c("method","outcome","observation","repetition","fold")),
                                     variable.name = "model", value.name = "prediction")
         }
         return(out)
@@ -102,16 +104,26 @@ as.data.table.performance <- function(x, type = "metric", format = NULL, keep.ro
                                 "threshold"=c(0,.SD$prediction),
                                 "se"=rev(cumsum(c(0,rev(.SD$outcome))==1))/sum(.SD$outcome==1),
                                 "sp"=cumsum(c(1,.SD$outcome)==0)/sum(.SD$outcome==0)), ## below threshold classified as 1: sp is the number of 0 divided by the number of negative
-                          by = c("fold","model")]
+                          by = c("repetition","model")]
             out <- rbind(out,iOut)
         }
 
         if(!is.null(format) && format == "wide"){
-            out <- data.table::dcast(out, formula = fold+observation~model,
+            out <- data.table::dcast(out, formula = repetition+observation~model,
                                      value.var = c("threshold","se","sp"),sep=".")
         }else{
-            out <- out[order(out$fold,out$model,1-out$sp,out$se)]
+            out <- out[order(out[["repetition"]],out$model,1-out$sp,out$se)]
         }
+        return(out)
+    }else if(type == "fold"){
+
+        if("cv" %in% names(x$prediction) == FALSE){
+            message("No fold to extract as no cross-validation was performed. \n")
+            return(NULL)
+        }
+
+        out <- as.data.table(do.call(rbind,lapply(1:dim(attr(x$prediction$cv,"index"))[3], function(k){attr(x$prediction$cv,"index")[,,k]})))
+
         return(out)
     }
 }

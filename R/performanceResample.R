@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: mar 16 2022 (13:57) 
+## Last-Updated: apr  7 2022 (14:39) 
 ##           By: Brice Ozenne
-##     Update #: 61
+##     Update #: 107
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,19 +24,20 @@
 ##' @param name.response [character] The name of the response variable (i.e. the one containing the categories).
 ##' @param type.resampling [character] Should non-parametric bootstrap (\code{"bootstrap"}) or permutation of the outcome (\code{"permutation"}) be used.
 ##' @param n.resampling [integer,>0] Nnumber of bootstrap samples or permutations.
-##' @param fold.number [integer,>0] Nnumber of folds used in the cross-validation. Should be strictly positive.
+##' @param fold.repetition [integer,>0] Nnumber of folds used in the cross-validation. Should be strictly positive.
 ##' @param conf.level [numeric, 0-1] confidence level for the confidence intervals.
 ##' @param cpus [integer, >0] the number of CPU to use. If strictly greater than 1, resampling is perform in parallel. 
 ##' @param seed [integer, >0] seed used to ensure reproducibility.
 ##' @param trace [logical] Should the execution of the function be traced.
 ##' @param filename [character] Prefix for the files containing each result.
 ##' @param ... arguments passed to \code{\link{performance}}.
-##' 
+##'
+##' @details WARNING: using bootstrap after cross-validation may not provide valid variance/CI/p-value estimates.
 
 ## * performanceResample (code)
 ##' @export
 performanceResample <- function(object, data = NULL, name.response = NULL,
-                                type.resampling, n.resampling = 1000, fold.number = 100, conf.level = 0.95,
+                                type.resampling = "permutation", n.resampling = 1000, fold.repetition = 0, conf.level = 0.95,
                                 cpus = 1, seed = NULL, trace = TRUE, filename = NULL, ...){
 
     ## ** fix randomness
@@ -50,20 +51,12 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         set.seed(seed)
     }
 
-    ## ** normalize arguments
-    if(fold.number<=0){
-        stop("Argument \'fold.number\' should be strictly positive. \n")
-    }
+    ## ** Normalize arguments
     type.resampling <- match.arg(type.resampling, c("permutation", "bootstrap"))
 
-    if(is.null(data)){            
-        initData <- FALSE
-    }else{
-        initData <- data
-        attr(initData,"internal") <- FALSE
-    }
-    initPerf <- performance(object, data = initData, name.response = name.response,
-                            fold.number = fold.number, conf.level = NA, trace = FALSE, seed = NULL, ...)
+    ## ** Point estimate
+    initPerf <- performance(object, data = data, name.response = name.response,
+                            fold.repetition = fold.repetition, se = FALSE, trace = FALSE, seed = NULL, ...)
     if(!is.null(filename)){
         if(!is.null(seed)){
             filename <- paste0(filename,"-seed",seed)
@@ -73,44 +66,48 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
                 
 
     if(is.null(data)){
-        data <- attr(initPerf,"data")
+        data <- initPerf$data
     }
     if(is.null(name.response)){
-        name.response <- attr(initPerf,"name.response")
+        name.response <- initPerf$name.response
     }
     data[["XXresponseXX"]] <- NULL
 
     ## ** single run function
     if(type.resampling=="permutation"){
         dataResample <- as.data.frame(data)
-        attr(dataResample,"internal") <- FALSE ## only do CV
+        attr(dataResample,"internal") <- attr(data,"internal") ## only do CV
 
         warperResampling <- function(i){
             dataResample[[name.response]] <- sample(data[[name.response]])
-            iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...)),
+            iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.repetition = fold.repetition,
+                                                      trace = trace-1, se = FALSE, seed = NULL, ...)),
                          silent = FALSE)
             if(inherits(iPerf, "try-error")){
                 return(NULL)
             }else{
+                dt.iPerf <- as.data.table(iPerf, type = "performance")
                 if(!is.null(filename)){
-                    saveRDS(cbind(sample = i, iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
+                    saveRDS(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
                 }
-                return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
+                return(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]))
             }
         }
     }else if(type.resampling=="bootstrap"){
         warperResampling <- function(i){
             dataResample <- data[sample(NROW(data), size = NROW(data), replace = TRUE),,drop=FALSE]
-            attr(dataResample,"internal") <- FALSE ## only do CV
-            iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.number = fold.number, trace = trace-1, conf.level = NA, seed = NULL, ...)),
+            attr(dataResample,"internal") <- attr(data,"internal") ## only do CV
+            iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.repetition = fold.repetition,
+                                                      trace = trace-1, se = FALSE, seed = NULL, ...)),
                          silent = FALSE)
             if(inherits(iPerf, "try-error")){
                 return(NULL)
             }else{
+                dt.iPerf <- as.data.table(iPerf, type = "performance")
                 if(!is.null(filename)){
-                    saveRDS(cbind(sample = i, iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
+                    saveRDS(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
                 }
-                return(cbind(sample = i, iPerf[,c("metric","model","estimate")]))
+                return(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]))
             }
         }
     }
@@ -173,12 +170,23 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         data.table::setnames(dt.resampling, old = "estimate", new ="estimate.perm")
         dt.initPerf <- as.data.table(as.list(initPerf))
         dt.merge <- dt.resampling[dt.initPerf, on = c("metric","model")]
-        out <- rbind(dt.merge[dt.merge$metric == "auc", list(estimate = mean(.SD$estimate), se = NA, lower = NA, upper = NA,
-                                                             p.value = mean(abs(.SD$estimate)<=abs(.SD$estimate.perm)),
-                                                             p.value_comp = NA), by= c("metric","model")],
-                     dt.merge[dt.merge$metric == "brier", list(estimate = mean(.SD$estimate), se = NA, lower = NA, upper = NA,
-                                                               p.value = mean(.SD$estimate>.SD$estimate.perm),
-                                                               p.value_comp = NA), by= c("metric","model")])
+        if(length(unique(dt.merge$model))>1){
+            dt.merge[,c("delta","delta.perm") := list(c(NA,.SD$estimate[-1]-.SD$estimate[-length(.SD$estimate)]),
+                                                      c(NA,.SD$estimate.perm[-1]-.SD$estimate.perm[-length(.SD$estimate.perm)])),
+                     by = c("sample","metric","method")]
+            
+            
+
+        }else{
+            dt.merge[,c("delta","delta.perm") := as.numeric(NA)]
+        }
+        
+        out <- dt.merge[, list(estimate = mean(.SD$estimate), resample = mean(.SD$estimate.perm), se.resample = stats::sd(.SD$estimate.perm),
+                               p.value = mean(abs(.SD$estimate)<=abs(.SD$estimate.perm)),
+                               p.value_comp = mean(abs(.SD$delta)<=abs(.SD$delta.perm))),
+                        by = c("metric","model")]
+
+
     }else if(type.resampling=="bootstrap"){
         vec.estimate <- initPerf[,"estimate"]
         M.resampling <- as.matrix(dcast(dt.resampling, value.var = "estimate", formula = sample~metric+model))[,-1,drop=FALSE]

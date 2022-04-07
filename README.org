@@ -48,7 +48,7 @@ install.packages("BuyseTest")
 
 or download the development version from =GitHub=:
 #+BEGIN_SRC R :exports both :eval never
-library(devtools)
+library(remotes)
 install_github("bozenne/BuyseTest")
 #+END_SRC
 
