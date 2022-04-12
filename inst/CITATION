@@ -2,9 +2,9 @@ year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
 vers <- paste("R package version", meta$Version)
 
 citHeader(paste("To cite the 'BuyseTest' package in publications use the citation from ",year,".\n
-                 To cite the statistical method used by BuyseTes 'BuyseTest' package, use the citation from:
+                 To cite the statistical method used by the 'BuyseTest' package, use the citation from:
         (2010) when using BuyseTest binary/continous endpoint or time to event endpoints with scoring.rule=\"Gehan\",
-        (2016) when using BuyseTest with time to event endpoint with scoring.rule=\"Peron\".",sep=""))
+        (2016) when using BuyseTest with time to event endpoint with scoring.rule=\"Peron\" (default value in the package).",sep=""))
 
 
 

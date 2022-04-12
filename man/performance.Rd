@@ -34,7 +34,7 @@ performance(
 \item{individual.fit}{[logical] if \code{TRUE} the predictive model is refit for each individual using only the predictors with non missing values.}
 
 \item{impute}{[character] in presence of missing value in the regressors of the training dataset, should a complete case analysis be performed (\code{"none"})
-or should the median/mean (\code{"median"}/\code{"mean"}) value be imputed.}
+or should the median/mean (\code{"median"}/\code{"mean"}) value be imputed. For categorical variables, the most frequent value is imputed.}
 
 \item{name.response}{[character] the name of the response variable (i.e. the one containing the categories).}
 

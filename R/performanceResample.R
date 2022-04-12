@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: apr  7 2022 (14:39) 
+## Last-Updated: apr 12 2022 (10:56) 
 ##           By: Brice Ozenne
-##     Update #: 107
+##     Update #: 117
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -53,7 +53,7 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
 
     ## ** Normalize arguments
     type.resampling <- match.arg(type.resampling, c("permutation", "bootstrap"))
-
+    
     ## ** Point estimate
     initPerf <- performance(object, data = data, name.response = name.response,
                             fold.repetition = fold.repetition, se = FALSE, trace = FALSE, seed = NULL, ...)
@@ -88,9 +88,9 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
             }else{
                 dt.iPerf <- as.data.table(iPerf, type = "performance")
                 if(!is.null(filename)){
-                    saveRDS(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
+                    saveRDS(cbind(sample = i, dt.iPerf[,c("method","metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
                 }
-                return(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]))
+                return(cbind(sample = i, dt.iPerf[,c("method","metric","model","estimate")]))
             }
         }
     }else if(type.resampling=="bootstrap"){
@@ -105,9 +105,9 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
             }else{
                 dt.iPerf <- as.data.table(iPerf, type = "performance")
                 if(!is.null(filename)){
-                    saveRDS(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
+                    saveRDS(cbind(sample = i, dt.iPerf[,c("method","metric","model","estimate")]), file = paste0(filename,"-",type.resampling,i,".rds"))
                 }
-                return(cbind(sample = i, dt.iPerf[,c("metric","model","estimate")]))
+                return(cbind(sample = i, dt.iPerf[,c("method","metric","model","estimate")]))
             }
         }
     }
@@ -169,7 +169,7 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
     if(type.resampling=="permutation"){
         data.table::setnames(dt.resampling, old = "estimate", new ="estimate.perm")
         dt.initPerf <- as.data.table(as.list(initPerf))
-        dt.merge <- dt.resampling[dt.initPerf, on = c("metric","model")]
+        dt.merge <- dt.resampling[dt.initPerf, on = c("method","metric","model")]
         if(length(unique(dt.merge$model))>1){
             dt.merge[,c("delta","delta.perm") := list(c(NA,.SD$estimate[-1]-.SD$estimate[-length(.SD$estimate)]),
                                                       c(NA,.SD$estimate.perm[-1]-.SD$estimate.perm[-length(.SD$estimate.perm)])),
@@ -184,16 +184,17 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         out <- dt.merge[, list(estimate = mean(.SD$estimate), resample = mean(.SD$estimate.perm), se.resample = stats::sd(.SD$estimate.perm),
                                p.value = mean(abs(.SD$estimate)<=abs(.SD$estimate.perm)),
                                p.value_comp = mean(abs(.SD$delta)<=abs(.SD$delta.perm))),
-                        by = c("metric","model")]
+                        by = c("method","metric","model")]
 
 
     }else if(type.resampling=="bootstrap"){
-        vec.estimate <- initPerf[,"estimate"]
-        M.resampling <- as.matrix(dcast(dt.resampling, value.var = "estimate", formula = sample~metric+model))[,-1,drop=FALSE]
-        out.metric <- sapply(strsplit(colnames(M.resampling), split = "_", fixed = TRUE),"[[",1)
-        out.model <- as.character(mapply(x = paste0("^",out.metric,"_"), y = colnames(M.resampling), FUN = function(x,y){gsub(pattern = x, replacement = "", x = y)}))
+        vec.estimate <- initPerf$performance[["estimate"]]
+        M.resampling <- as.matrix(dcast(dt.resampling, value.var = "estimate", formula = sample~method+metric+model))[,-1,drop=FALSE]
+        out.method <- sapply(strsplit(colnames(M.resampling), split = "_", fixed = TRUE),"[[",1)
+        out.metric <- sapply(strsplit(colnames(M.resampling), split = "_", fixed = TRUE),"[[",2)
+        out.model <- as.character(mapply(x = paste0("^",out.method,"_",out.metric,"_"), y = colnames(M.resampling), FUN = function(x,y){gsub(pattern = x, replacement = "", x = y)}))
 
-        out <- data.frame(metric = out.metric, model = out.model,
+        out <- data.frame(method = out.method, metric = out.metric, model = out.model,
                           confint_percentileBootstrap(Delta = vec.estimate,
                                                       Delta.resampling = M.resampling,
                                                       null = c(auc = 0.5, brier = NA)[out.metric], alternative = "two.sided", alpha = 1-conf.level,
@@ -205,7 +206,6 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         Mauc.resampling <- M.resampling[,out.metric=="auc",drop=FALSE]
         Mbrier.resampling <- M.resampling[,out.metric=="brier",drop=FALSE]
         if(length(vecauc.estimate)>1){
-                
             deltaout <- confint_percentileBootstrap(Delta = c(0,vecauc.estimate[-length(vecauc.estimate)] - vecauc.estimate[-1],
                                                               0,vecbrier.estimate[-length(vecbrier.estimate)] - vecbrier.estimate[-1]),
                                                     Delta.resampling = cbind(0,Mauc.resampling[,-ncol(Mauc.resampling)] - Mauc.resampling[,-1],
