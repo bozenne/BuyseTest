@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  6 2022 (14:56) 
 ## Version: 
-## Last-Updated: apr  7 2022 (15:57) 
+## Last-Updated: apr 12 2022 (14:42) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 28
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,6 +40,7 @@ summary.performance <- function(object, digits = c(3,3), print = TRUE, ...){
 }
 
 ## * summary.performance
+##' @method print performance
 ##' @export
 print.performance <- function(x, ...){
     out <- summary(x)
