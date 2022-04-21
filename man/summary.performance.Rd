@@ -4,10 +4,12 @@
 \alias{summary.performance}
 \title{Summary Method for Performance Objects}
 \usage{
-\method{summary}{performance}(object, digits = c(3, 3), print = TRUE, ...)
+\method{summary}{performance}(object, order.model = NULL, digits = c(3, 3), print = TRUE, ...)
 }
 \arguments{
 \item{object}{output of performance.}
+
+\item{order.model}{[character vector] ordering of the models.}
 
 \item{digits}{[numeric vector of length 2] number of digits used for the estimates and p-values.}
 

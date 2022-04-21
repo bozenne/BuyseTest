@@ -76,20 +76,24 @@ df.test <- data.frame(Y = rbinom(n, prob = 0.5, size = 1), X1 = rnorm(n), X2 = r
 
 ## fit logistic model
 e.null <- glm(Y~1, data = df.train, family = binomial(link="logit"))
-e.logit <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
+e.logit1 <- glm(Y~X1, data = df.train, family = binomial(link="logit"))
+e.logit2 <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
 
 ## assess performance on the training set (biased)
 ## and external dataset
-performance(e.logit, newdata = df.test)
-performance(list(null = e.null, prop = e.logit), newdata = df.test)
+performance(e.logit1, newdata = df.test)
+e.perf <- performance(list(null = e.null, p1 = e.logit1, p2 = e.logit2),
+                      newdata = df.test)
+e.perf
+summary(e.perf, order.model = c("null","p2","p1"))
 
 ## assess performance using cross validation
 \dontrun{
 set.seed(10)
-performance(e.logit, fold.repetition = 10, se = FALSE)
+performance(e.logit1, fold.repetition = 10, se = FALSE)
 set.seed(10)
-performance(list(null = e.null, prop = e.logit), fold.repetition = 10)
-performance(e.logit, fold.repetition = c(50,20,10))
+performance(list(null = e.null, prop = e.logit1), fold.repetition = 10)
+performance(e.logit1, fold.repetition = c(50,20,10))
 }
 }
 \references{

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: apr 12 2022 (11:56) 
+## Last-Updated: apr 21 2022 (12:18) 
 ##           By: Brice Ozenne
-##     Update #: 1160
+##     Update #: 1188
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -52,20 +52,24 @@
 ##'
 ##' ## fit logistic model
 ##' e.null <- glm(Y~1, data = df.train, family = binomial(link="logit"))
-##' e.logit <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
+##' e.logit1 <- glm(Y~X1, data = df.train, family = binomial(link="logit"))
+##' e.logit2 <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
 ##'
 ##' ## assess performance on the training set (biased)
 ##' ## and external dataset
-##' performance(e.logit, newdata = df.test)
-##' performance(list(null = e.null, prop = e.logit), newdata = df.test)
+##' performance(e.logit1, newdata = df.test)
+##' e.perf <- performance(list(null = e.null, p1 = e.logit1, p2 = e.logit2),
+##'                       newdata = df.test)
+##' e.perf
+##' summary(e.perf, order.model = c("null","p2","p1"))
 ##' 
 ##' ## assess performance using cross validation
 ##' \dontrun{
 ##' set.seed(10)
-##' performance(e.logit, fold.repetition = 10, se = FALSE)
+##' performance(e.logit1, fold.repetition = 10, se = FALSE)
 ##' set.seed(10)
-##' performance(list(null = e.null, prop = e.logit), fold.repetition = 10)
-##' performance(e.logit, fold.repetition = c(50,20,10))
+##' performance(list(null = e.null, prop = e.logit1), fold.repetition = 10)
+##' performance(e.logit1, fold.repetition = c(50,20,10))
 ##' }
 
 ## * performance
@@ -87,7 +91,10 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     }
     
     ## ** fix randomness
-    if(!is.null(seed)){
+    stop.after.init <- FALSE
+    if(identical(seed,"only")){
+        stop.after.init <- TRUE
+    } else if(!is.null(seed)){
         if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
             old <- .Random.seed # to save the current seed
             on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
@@ -157,6 +164,10 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     ## sapply(fold.test, function(x){max(x, na.rm=TRUE)})
     ## sapply(fold.test, function(x){sum(!is.na(x))})
 
+    if(stop.after.init){
+        return(fold.test)
+    }
+    
     ## ** predictions
     if(trace){
         cat("    Assessment of the predictive performance of ",n.object," model", if(n.object>1){"s"},"\n\n",sep="")
@@ -173,7 +184,7 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
             cat(paste(txt, collapse = " and "), sep = "")
         }
         if(internal){
-            data.test <- rbind(data, newdata)
+            data.test <- rbind(data, newdata[,colnames(data),drop=FALSE])
         }else{
             data.test <- newdata
         }
@@ -230,7 +241,7 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     }
     
     ## *** cross validation
-    if(fold.repetition>0){
+    if(any(fold.repetition>0)){
 
         if(trace){
             if(internal||external){
@@ -540,7 +551,17 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     
     ## ** export
     if(save.data){out$data <- data}
-    out$name.response <- name.response
+    out$args <- list(individual.fit = individual.fit,
+                     impute = impute,
+                     name.response = name.response,
+                     fold.size = fold.size,
+                     fold.repetition = fold.repetition,
+                     fold.balance = fold.balance,
+                     null = null,
+                     conf.level = conf.level,
+                     transformation = transformation,
+                     auc.type = auc.type,
+                     seed = seed)
     rownames(out$performance) <- NULL
     class(out) <- append("performance",class(out))
     return(out)
@@ -683,6 +704,9 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
         if(any(is.na(newdata[[name.response]]))){
             stop("Cannot handle missing data in the outcome variable (argument newdata). \n")
         }
+        if(any(names(data) %in% names(newdata) == FALSE)){
+            stop("Argument \'newdata\' should contain column(s) \"",paste(names(data)[names(data) %in% names(newdata) == FALSE], collapse = "\" \""),"\" \n")
+        }
     }
 
 
@@ -755,10 +779,10 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     if(is.na(fold.repetition) || is.null(fold.repetition)){
         fold.repetition <- 0
     }
-    if(fold.repetition<0){
+    if(any(fold.repetition<0)){
         stop("Argument \'fold.repetition\' must be positive \n")
     }
-    if(fold.repetition %% 1 >0){
+    if(any(fold.repetition %% 1 > 0)){
         stop("Argument \'fold.repetition\' must be an integer \n")
     }
 
@@ -994,7 +1018,6 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
         fold.size <- 0
         fold.test <- NULL
     }
-
 
     ## ** export
     out <- list(data = data,
