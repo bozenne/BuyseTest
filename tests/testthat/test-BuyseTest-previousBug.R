@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: Dec 21 2021 (17:49) 
+## Last-Updated: maj  9 2022 (13:19) 
 ##           By: Brice Ozenne
-##     Update #: 203
+##     Update #: 205
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -384,8 +384,8 @@ test_that("BuyseTest - hierarchical", {
 test_that("simBuyseTest - rate vs. scale", {
     scale <- 2
 
-    args <- list(scale.T = scale, scale.Censoring.T = scale+1,
-                 scale.C = scale, scale.Censoring.C = scale+1,
+    args <- list(scale.T = scale, scale.censoring.T = scale+1,
+                 scale.C = scale, scale.censoring.C = scale+1,
                  scale.CR =  scale)
     set.seed(10)
     test <- simBuyseTest(1e4, argsBin = NULL, argsCont = NULL, argsTTE = args,
@@ -400,7 +400,7 @@ test_that("simBuyseTest - rate vs. scale", {
 
 ## * graemeleehickey (issue #6 on Github): 15 march 2020 powerBuyseTest
 
-args <- list(scale.T = c((3:5) / 10), scale.Censoring.T = rep(1, 3))
+args <- list(scale.T = c((3:5) / 10), scale.censoring.T = rep(1, 3))
 simFCT <- function(n.C, n.T) {
   simBuyseTest(100, argsBin = NULL, argsCont = NULL, argsTTE = args)
 }

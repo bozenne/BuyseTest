@@ -28,7 +28,8 @@
 #' \itemize{
 #'     \item\code{p.T} list of probabilities for the values taken by each endpoint (categorical endpoint, treatment group). 
 #'     \item\code{p.C} same as \code{p.T} but for the control group. 
-#'     \item\code{rho.T} value of the regression coefficient between the underlying latent variable and the survival time. 
+#'     \item\code{rho.T} value of the regression coefficient between the underlying latent variable and the survival time.
+#'     Only implemented for weibull distributed survival times.
 #'     \item\code{rho.C} same as \code{rho.T} but for the control group. 
 #'     \item\code{name} names of the binary variables.
 #' }
@@ -45,20 +46,29 @@
 #' Arguments in the list \code{argsTTE}:
 #'     \itemize{
 #'     \item\code{CR} should competing risks be simulated? 
-#'     \item\code{scale.T,scale.C,scale.CR,scale.Censoring.T,scale.Censoring.C} scale parameter of the Weibull distribution for, respectively,
+#'     \item\code{scale.T,scale.C,scale.CR,scale.censoring.T,scale.censoring.C} scale parameter of the Weibull distribution for, respectively,
 #'      the event of interest in the treatment group,
 #'      the event of interest in the control group,
 #'      the competing event in both groups,
 #'      the censoring mechanism in the treatment group,
 #'      the censoring mechanism in the control group
-#'     \item\code{shape.T,shape.C,shape.CR,shape.Censoring.T,shape.Censoring.C} shape parameter of the Weibull distribution for, respectively,
+#'     \item\code{shape.T,shape.C,shape.CR,shape.censoring.T,shape.censoring.C} shape parameter of the Weibull distribution for, respectively,
 #'      the event of interest in the treatment group,
 #'      the event of interest in the control group,
 #'      the competing event in both groups,
 #'      the censoring mechanism in the treatment group,
 #'      the censoring mechanism in the control group
+#'     \item\code{dist.T,dist.C,dist.CR,dist.censoring.T,dist.censoring.C} type of distribution (\code{"weibull"}, \code{"uniform"}, \code{"piecewiseExp"}) for, respectively,
+#'      the event of interest in the treatment group,
+#'      the event of interest in the control group,
+#'      the competing event in both groups,
+#'      the censoring mechanism in the treatment group,
+#'      the censoring mechanism in the control group.
+#'      For uniform distirbutions the (scale,shape) parameters becomes the support (min, max) of the censoring distribution.
+#'      For piecewise exponential distributions the (scale,shape) should be lists of numeric (see example)
+#'      and the shape parameters becomes the time parameters (first element should be 0).
 #'     \item\code{name} names of the time to event variables. 
-#'     \item\code{nameCensoring} names of the event type indicators. 
+#'     \item\code{name.censoring} names of the event type indicators. #'      
 #'     }
 #'     
 #' @examples
@@ -93,7 +103,8 @@
 #' c(sd(dt.cont$score1), sd(dt.cont$score2), sd(dt.cont$score3))
 #' 
 #' #### only TTE endpoints ####
-#' args <- list(scale.T = c(3:5/10), scale.Censoring.T = rep(1,3))
+#' ## weibull distributed
+#' args <- list(scale.T = c(3:5/10), scale.censoring.T = rep(1,3))
 #' dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 #' 1/c(sum(dt.tte$eventtime1)/sum(dt.tte$status1),
 #'   sum(dt.tte$eventtime2)/sum(dt.tte$status2),
@@ -103,9 +114,38 @@
 #'   sum(dt.tte$eventtime2)/sum(dt.tte$status2==0),
 #'   sum(dt.tte$eventtime3)/sum(dt.tte$status3==0))
 #'
+#' hist(dt.tte$eventtime1)
+#' 
+#' ## uniform distributed
+#' args <- list(scale.T = 0, shape.T = 1, dist.T = "uniform", scale.censoring.T = 1e5,
+#'              scale.C = 0, shape.C = 2, dist.C = "uniform", scale.censoring.C = 1e5)
+#' dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
+#' 
+#' par(mfrow=c(1,2))
+#' hist(dt.tte$eventtime[dt.tte$treatment=="C"])
+#' hist(dt.tte$eventtime[dt.tte$treatment=="T"])
+#'
+#' ## piecewise constant exponential distributed
+#' ## time [0;4]: scale parameter 10
+#' ## time [4;12]: scale parameter 13
+#' ## time [12;18.]: scale parameter 18
+#' ## time [18.5;36]: scale parameter 31
+#' ## after that: scale parameter 37
+#' vec.scale <- list(c(10,13,18,31,100))
+#' vec.time <- list(c(0,4,12,18.5,36))
+#' args <- list(scale.T = vec.scale, shape.T = vec.time, dist.T = "piecewiseExp",
+#'              scale.C = 10, shape.C = 1, dist.C = "weibull",
+#'              scale.censoring.T = 1e5)
+#' dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
+#'
+#' if(require(prodlim)){
+#' plot(prodlim(Hist(eventtime,status)~treatment, data = dt.tte))
+#' }
+#' 
 #' #### correlated categorical / time to event endpoint ####
+#' ## WARNING: only for weibull distributed time to event endpoint
 #' args.bin <- list(p.T = list(c(low=0.1,moderate=0.5,high=0.4)), rho.T = 1)
-#' args.tte <- list(scale.T = 2, scale.Censoring.T = 1)
+#' args.tte <- list(scale.T = 2, scale.censoring.T = 1)
 #' dt.corr <- simBuyseTest(n, argsBin = args.bin, argsCont = NULL, argsTTE = args.tte)
 #' 
 #' 1/(sum(dt.corr$eventtime)/sum(dt.corr$status))
@@ -178,6 +218,11 @@ simBuyseTest <- function(n.T, n.C = NULL,
         shape.C <- NULL
     }
     if(!is.null(argsBin)){
+        testW.T <- !is.null(argsTTE$dist.T) && any("weibull" %in% argsTTE$dist.T == FALSE)
+        testW.C <- !is.null(argsTTE$dist.C) && any("weibull" %in% argsTTE$dist.C == FALSE)
+        if((testW.T || testW.C) && (!is.null(argsBin$rho.T) || !is.null(argsBin$rho.C))){
+            stop("Simulating correlated survival times and categorical outcomes only implemented for weibull distributed times")
+        }
         newLVM <- do.call("simBuyseTest_bin", args = c(list(modelT = mT.lvm, modelC = mC.lvm, check = option$check,
                                                             latentTTE = latentTTE,
                                                             scale.T = scale.T, scale.C = scale.C, shape.T = shape.T, shape.C = shape.C),
@@ -404,34 +449,43 @@ simBuyseTest_TTE <- function(modelT,
                              modelC,
                              CR = FALSE,
                              scale.T = 1/2,
-                             scale.C = NULL,
-                             scale.CR = NULL,
                              shape.T = rep(1, length(scale.T)),
+                             dist.T = rep("weibull", length(scale.T)),
+                             scale.C = NULL,
                              shape.C = NULL,
+                             dist.C = NULL,
+                             scale.CR = NULL,
                              shape.CR = NULL,
-                             scale.Censoring.T = rep(1, length(scale.T)),
-                             scale.Censoring.C = NULL,
-                             shape.Censoring.T = rep(1, length(scale.T)),
-                             shape.Censoring.C = NULL,
+                             dist.CR = NULL,
+                             scale.censoring.T = rep(1, length(scale.T)),
+                             shape.censoring.T = rep(1, length(scale.T)),
+                             dist.censoring.T = rep("weibull", length(scale.T)),
+                             scale.censoring.C = NULL,
+                             shape.censoring.C = NULL,
+                             dist.censoring.C = NULL,
                              name = NULL,
-                             nameCensoring = NULL,
+                             name.censoring = NULL,
                              check){
-    
+
     ## ** initialisation
     n.endpoints <- length(scale.T)
     if(is.null(name)){ 
         if(n.endpoints == 1){name <- "eventtime"}else{name <- paste0("eventtime",1:n.endpoints)}
     }
-    if(is.null(nameCensoring)){ 
-        if(n.endpoints == 1){nameCensoring <- "status"}else{nameCensoring <- paste0("status",1:n.endpoints)}
+    if(is.null(name.censoring)){ 
+        if(n.endpoints == 1){name.censoring <- "status"}else{name.censoring <- paste0("status",1:n.endpoints)}
     }
     if(is.null(scale.C)){scale.C <- scale.T}
-    if(is.null(scale.CR)){scale.CR <- scale.T}
-    if(is.null(scale.Censoring.C)){scale.Censoring.C <- scale.Censoring.T}
-
     if(is.null(shape.C)){shape.C <- shape.T}
+    if(is.null(dist.C)){dist.C <- dist.T}
+    
+    if(is.null(scale.CR)){scale.CR <- scale.T}
     if(is.null(shape.CR)){shape.CR <- shape.T}
-    if(is.null(shape.Censoring.C)){shape.Censoring.C <- shape.Censoring.T}
+    if(is.null(dist.CR)){dist.CR <- dist.T}
+    
+    if(is.null(scale.censoring.C)){scale.censoring.C <- scale.censoring.T}
+    if(is.null(shape.censoring.C)){shape.censoring.C <- shape.censoring.T}
+    if(is.null(dist.censoring.C)){dist.censoring.C <- dist.censoring.T}
 
     name0 <- paste0(name,"Uncensored")
     if(CR){
@@ -441,88 +495,148 @@ simBuyseTest_TTE <- function(modelT,
 
     ## ** tests
     if(check){
+        ## Note: scale and shape are list of numeric when considering piecewise constant hazards
+        validNumeric(scale.T,
+                     valid.length = NULL, unlist = is.list(scale.T),
+                     method = "simBuyseTest")
+        validNumeric(shape.T,
+                     valid.length = n.endpoints, unlist = is.list(shape.T),
+                     method = "simBuyseTest")
+        validCharacter(dist.T,
+                       valid.values = c("weibull","uniform","piecewiseExp"),
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")  
+
+        validNumeric(scale.C,
+                     valid.length = n.endpoints, unlist = is.list(scale.C),
+                     min = 0,
+                     method = "simBuyseTest")
+        validNumeric(shape.C,
+                     valid.length = n.endpoints, unlist = is.list(shape.C),
+                     min = 0,
+                     method = "simBuyseTest")
+        validCharacter(dist.C,
+                       valid.values = c("weibull","uniform","piecewiseExp"),
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")  
+
         validLogical(CR,
                      valid.length = 1,
                      method = "simBuyseTest")
-        
-        validNumeric(scale.T,
-                     valid.length = NULL,
-                     method = "simBuyseTest")
-        validNumeric(scale.C,
-                     valid.length = n.endpoints,
-                     min = 0,
-                     method = "simBuyseTest")
         if(CR){
             validNumeric(scale.CR,
-                         valid.length = n.endpoints,
+                         valid.length = n.endpoints, unlist = is.list(scale.CR),
                          min = 0,
                          method = "simBuyseTest")
-        }
-        validNumeric(scale.Censoring.T,
-                     valid.length = n.endpoints,
-                     min = 0,
-                     method = "simBuyseTest")
-        validNumeric(scale.Censoring.C,
-                     valid.length = n.endpoints,
-                     min = 0,
-                     method = "simBuyseTest")
-
-        validNumeric(shape.T,
-                     valid.length = NULL,
-                     method = "simBuyseTest")
-        validNumeric(shape.C,
-                     valid.length = n.endpoints,
-                     min = 0,
-                     method = "simBuyseTest")
-        if(CR){
             validNumeric(shape.CR,
-                         valid.length = n.endpoints,
+                         valid.length = n.endpoints, unlist = is.list(shape.CR),
                          min = 0,
                          method = "simBuyseTest")
+            validCharacter(dist.CR,
+                           valid.values = c("weibull","uniform","piecewiseExp"),
+                           valid.length = n.endpoints,
+                           method = "simBuyseTest")  
         }
-        validNumeric(shape.Censoring.T,
-                     valid.length = n.endpoints,
+
+        validNumeric(scale.censoring.T,
+                     valid.length = n.endpoints, unlist = is.list(scale.censoring.T),
                      min = 0,
                      method = "simBuyseTest")
-        validNumeric(shape.Censoring.C,
-                     valid.length = n.endpoints,
+        validNumeric(shape.censoring.T,
+                     valid.length = n.endpoints, unlist = is.list(shape.censoring.T),
                      min = 0,
                      method = "simBuyseTest")
+        validCharacter(dist.censoring.T,
+                       valid.values = c("weibull","uniform","piecewiseExp"),
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")  
+
+        validNumeric(scale.censoring.C,
+                     valid.length = n.endpoints, unlist = is.list(scale.censoring.C),
+                     min = 0,
+                     method = "simBuyseTest")
+        validNumeric(shape.censoring.C,
+                     valid.length = n.endpoints, unlist = is.list(shape.censoring.C),
+                     min = 0,
+                     method = "simBuyseTest")
+        validCharacter(dist.censoring.C,
+                       valid.values = c("weibull","uniform","piecewiseExp"),
+                       valid.length = n.endpoints,
+                       method = "simBuyseTest")  
 
         validCharacter(name,
                        valid.length = n.endpoints,
                        method = "simBuyseTest")
-        validCharacter(nameCensoring,
+        validCharacter(name.censoring,
                        valid.length = n.endpoints,
                        method = "simBuyseTest")  
     }
     
     ## ** model
     for(iterE in 1:n.endpoints){
-        allvarE <- c(name[iterE], name0[iterE], nameC[iterE], nameCensoring[iterE])
+        allvarE <- c(name[iterE], name0[iterE], nameC[iterE], name.censoring[iterE])
         if(any(allvarE %in% lava::vars(modelT))){
             stop("simBuyseTest_TTE: variable already in the LVM \n",
                  "variable: ",paste(allvarE[allvarE %in% lava::vars(modelT)], collapse = " "),"\n")
         }
-        lava::distribution(modelT, name0[iterE]) <- lava::weibull.lvm(scale = scale.T[iterE], shape = 1/shape.T[iterE])
-        lava::distribution(modelT, nameC[iterE]) <- lava::weibull.lvm(scale = scale.Censoring.T[iterE], shape = 1/shape.Censoring.T[iterE])
+        if(dist.T[iterE]=="uniform"){
+            lava::distribution(modelT, name0[iterE]) <- lava::uniform.lvm(a = scale.T[[iterE]], b = shape.T[[iterE]])
+        }else if(dist.T[iterE]=="weibull"){
+            lava::distribution(modelT, name0[iterE]) <- lava::weibull.lvm(scale = scale.T[[iterE]], shape = 1/shape.T[[iterE]])
+        }else if(dist.T[iterE]=="piecewiseExp"){
+            lava::distribution(modelT, name0[iterE]) <- lava::coxExponential.lvm(scale = scale.T[[iterE]], timecut = shape.T[[iterE]])
+        }
+        if(dist.censoring.T[iterE]=="uniform"){
+            lava::distribution(modelT, nameC[iterE]) <- lava::uniform.lvm(a = scale.censoring.T[[iterE]], b = shape.censoring.T[[iterE]])
+        }else if(dist.censoring.T[iterE]=="weibull"){
+            lava::distribution(modelT, nameC[iterE]) <- lava::weibull.lvm(scale = scale.censoring.T[[iterE]], shape = 1/shape.censoring.T[[iterE]])
+        }else if(dist.censoring.T[iterE]=="piecewiseExp"){
+            lava::distribution(modelT, nameC[iterE]) <- lava::coxExponential.lvm(scale = scale.censoring.T[[iterE]], timecut = shape.censoring.T[[iterE]])
+        }
+
         if(CR){
-            lava::distribution(modelT, nameCR[iterE]) <- lava::weibull.lvm(scale = scale.CR[iterE], shape = 1/shape.CR[iterE])
+            if(dist.CR[iterE]=="uniform"){
+                lava::distribution(modelT, nameCR[iterE]) <- lava::uniform.lvm(a = scale.CR[[iterE]], b = shape.CR[[iterE]])
+            }else if(dist.CR[iterE]=="weibull"){
+                lava::distribution(modelT, nameCR[iterE]) <- lava::weibull.lvm(scale = scale.CR[[iterE]], shape = 1/shape.CR[[iterE]])
+            }else if(dist.CR[iterE]=="piecewiseExp"){
+                lava::distribution(modelT, nameCR[iterE]) <- lava::coxExponential.lvm(scale = scale.CR[[iterE]], timecut = shape.CR[[iterE]])
+            }
             txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
         }        
-        modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), nameCensoring[iterE])
+        modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), name.censoring[iterE])
 
-        lava::distribution(modelC, name0[iterE]) <- lava::weibull.lvm(scale = scale.C[iterE], shape = 1/shape.C[iterE])
-        lava::distribution(modelC, nameC[iterE]) <- lava::weibull.lvm(scale = scale.Censoring.C[iterE], shape = 1/shape.Censoring.C[iterE])
+        if(dist.C[iterE]=="uniform"){
+            lava::distribution(modelC, name0[iterE]) <- lava::uniform.lvm(a = scale.C[[iterE]], b = shape.C[[iterE]])
+        }else if(dist.C[iterE]=="weibull"){
+            lava::distribution(modelC, name0[iterE]) <- lava::weibull.lvm(scale = scale.C[[iterE]], shape = 1/shape.C[[iterE]])
+        }else if(dist.C[iterE]=="piecewiseExp"){
+            lava::distribution(modelC, name0[iterE]) <- lava::coxExponential.lvm(scale = scale.C[[iterE]], timecut = shape.C[[iterE]])
+        }
+                
+        if(dist.censoring.C[iterE]=="uniform"){
+            lava::distribution(modelC, nameC[iterE]) <- lava::uniform.lvm(a = scale.censoring.C[[iterE]], b = shape.censoring.C[[iterE]])
+        }else if(dist.censoring.C[iterE]=="weibull"){
+            lava::distribution(modelC, nameC[iterE]) <- lava::weibull.lvm(scale = scale.censoring.C[[iterE]], shape = 1/shape.censoring.C[[iterE]])
+        }else if(dist.censoring.C[iterE]=="piecewiseExp"){
+            lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(scale = scale.censoring.C[[iterE]], timecut = shape.censoring.C[[iterE]])
+        }
+
         if(CR){
-            lava::distribution(modelC, nameCR[iterE]) <- lava::weibull.lvm(scale = scale.CR[iterE], shape = 1/shape.CR[iterE])
+            if(dist.CR[iterE]=="uniform"){
+                lava::distribution(modelC, nameCR[iterE]) <- lava::uniform.lvm(a = scale.CR[[iterE]], b = shape.CR[[iterE]])
+            }else if(dist.CR[iterE]=="weibull"){
+                lava::distribution(modelC, nameCR[iterE]) <- lava::weibull.lvm(scale = scale.CR[[iterE]], shape = 1/shape.CR[[iterE]])
+            }else if(dist.CR[iterE]=="piecewiseExp"){
+                lava::distribution(modelC, nameCR[iterE]) <- lava::coxExponential.lvm(scale = scale.CR[[iterE]], timecut = shape.CR[[iterE]])
+            }
             txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
         }
-        modelC <- lava::eventTime(modelC, stats::as.formula(txtSurv), nameCensoring[iterE])
+        modelC <- lava::eventTime(modelC, stats::as.formula(txtSurv), name.censoring[iterE])
 
         if(CR){
             formula.latent <- as.formula(paste0("~",name0[iterE],"+",nameC[iterE],"+",nameCR[iterE]))

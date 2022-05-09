@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: apr 21 2022 (11:22) 
+## Last-Updated: apr 22 2022 (10:10) 
 ##           By: Brice Ozenne
-##     Update #: 169
+##     Update #: 172
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -179,14 +179,6 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
                                                       conf.level = conf.level)
 
     ## ** gather results
-    alpha <- 1-conf.level
-    ls.args <- list(type.resampling = type.resampling,
-                    conf.level = conf.level,
-                    n.resampling = n.resampling,
-                    fold.repetition = fold.repetition,
-                    seed = seed,
-                    filename = filename)
-
     out <- list(call = match.call(),
                 response = initPerf$response,
                 performance = new.performance,

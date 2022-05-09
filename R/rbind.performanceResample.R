@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 21 2022 (10:05) 
 ## Version: 
-## Last-Updated: apr 21 2022 (12:14) 
+## Last-Updated: apr 22 2022 (10:08) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 34
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -96,12 +96,13 @@ rbind.performance <- function(..., tolerance = 1e-5){
     if(any(duplicated(unlist(lapply(ls.resampling, function(iL){unique(iL$sample)}))))){
         stop("Same sample name among different performance objects. \n")
     }
-    
-    resampling <- do.call(rbind,ls.resampling)
-    resampling$sample <- as.numeric(factor(resampling$sample))
-    out$args$n.resampling <- max(resampling$sample)
+
+    out$resampling <- do.call(rbind,ls.resampling)
+    out$resampling$sample <- as.numeric(factor(out$resampling$sample))
+    out$resampling <- out$resampling[order(out$resampling$sample),]
+    out$args$n.resampling <- max(out$resampling$sample)
     out$performance <- .performanceResample_inference(performance = out$performance[,c("method","metric","model","estimate")],
-                                                      resampling = resampling,
+                                                      resampling = out$resampling,
                                                       type.resampling = out$args$type.resampling,
                                                       conf.level = out$args$conf.level)
 
@@ -109,4 +110,4 @@ rbind.performance <- function(..., tolerance = 1e-5){
 }
 
 ##----------------------------------------------------------------------
-### rbind.performanceResample.R ends here
+### rbind.performance.R ends here

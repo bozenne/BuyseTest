@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: okt 14 2021 (19:04) 
+## Last-Updated: maj  9 2022 (13:18) 
 ##           By: Brice Ozenne
-##     Update #: 69
+##     Update #: 70
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -38,7 +38,7 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
                        n.C = n.patients[2],
                        argsBin = list(p.T = list(c(0.5,0.5),c(0.25,0.75))),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
-                       argsTTE = list(scale.T = 1:3, scale.Censoring.T = rep(1,3)))
+                       argsTTE = list(scale.T = 1:3, scale.censoring.T = rep(1,3)))
 dt.sim[eventtime1 >= 1, status1 := 0]
 dt.sim[, time1 := eventtime1]
 dt.sim[eventtime1 >= 1, time1 := 1]

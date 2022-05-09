@@ -11,6 +11,7 @@
 - rename endpoints: endpoint_t#_r# where the first # is the thresholld
   and the second the restriction. When the threshold is below 1e-12,
   then _t# is omitted. When no restriction then _r# is omitted.
+- additional arguments in simBuyseTest to specify the type of distribution: weibull, uniform, or piecewise exponential.
   
 ** Internal change
 - add restriction

@@ -20,7 +20,7 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
                        n.C = n.patients[2],
                        argsBin = list(p.T = list(c(0.5,0.5),c(0.25,0.75))),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
-                       argsTTE = list(scale.T = 1:3, scale.Censoring.T = rep(1,3)))
+                       argsTTE = list(scale.T = 1:3, scale.censoring.T = rep(1,3)))
 ## butils::object2script(dt.sim)
 dt.sim$status1.noC <- 1
 
