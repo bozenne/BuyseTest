@@ -52,7 +52,8 @@ Arguments in the list \code{argsBin}:
 \itemize{
     \item\code{p.T} list of probabilities for the values taken by each endpoint (categorical endpoint, treatment group). 
     \item\code{p.C} same as \code{p.T} but for the control group. 
-    \item\code{rho.T} value of the regression coefficient between the underlying latent variable and the survival time. 
+    \item\code{rho.T} value of the regression coefficient between the underlying latent variable and the survival time.
+    Only implemented for weibull distributed survival times.
     \item\code{rho.C} same as \code{rho.T} but for the control group. 
     \item\code{name} names of the binary variables.
 }
@@ -69,20 +70,29 @@ Arguments in the list \code{argsCont}:
 Arguments in the list \code{argsTTE}:
     \itemize{
     \item\code{CR} should competing risks be simulated? 
-    \item\code{scale.T,scale.C,scale.CR,scale.Censoring.T,scale.Censoring.C} scale parameter of the Weibull distribution for, respectively,
+    \item\code{scale.T,scale.C,scale.CR,scale.censoring.T,scale.censoring.C} scale parameter of the Weibull distribution for, respectively,
      the event of interest in the treatment group,
      the event of interest in the control group,
      the competing event in both groups,
      the censoring mechanism in the treatment group,
      the censoring mechanism in the control group
-    \item\code{shape.T,shape.C,shape.CR,shape.Censoring.T,shape.Censoring.C} shape parameter of the Weibull distribution for, respectively,
+    \item\code{shape.T,shape.C,shape.CR,shape.censoring.T,shape.censoring.C} shape parameter of the Weibull distribution for, respectively,
      the event of interest in the treatment group,
      the event of interest in the control group,
      the competing event in both groups,
      the censoring mechanism in the treatment group,
      the censoring mechanism in the control group
+    \item\code{dist.T,dist.C,dist.CR,dist.censoring.T,dist.censoring.C} type of distribution (\code{"weibull"}, \code{"uniform"}, \code{"piecewiseExp"}) for, respectively,
+     the event of interest in the treatment group,
+     the event of interest in the control group,
+     the competing event in both groups,
+     the censoring mechanism in the treatment group,
+     the censoring mechanism in the control group.
+     For uniform distirbutions the (scale,shape) parameters becomes the support (min, max) of the censoring distribution.
+     For piecewise exponential distributions the (scale,shape) should be lists of numeric (see example)
+     and the shape parameters becomes the time parameters (first element should be 0).
     \item\code{name} names of the time to event variables. 
-    \item\code{nameCensoring} names of the event type indicators. 
+    \item\code{name.censoring} names of the event type indicators. #'      
     }
 }
 \examples{
@@ -117,7 +127,8 @@ c(mean(dt.cont$score1), mean(dt.cont$score2), mean(dt.cont$score3))
 c(sd(dt.cont$score1), sd(dt.cont$score2), sd(dt.cont$score3))
 
 #### only TTE endpoints ####
-args <- list(scale.T = c(3:5/10), scale.Censoring.T = rep(1,3))
+## weibull distributed
+args <- list(scale.T = c(3:5/10), scale.censoring.T = rep(1,3))
 dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 1/c(sum(dt.tte$eventtime1)/sum(dt.tte$status1),
   sum(dt.tte$eventtime2)/sum(dt.tte$status2),
@@ -127,9 +138,38 @@ dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
   sum(dt.tte$eventtime2)/sum(dt.tte$status2==0),
   sum(dt.tte$eventtime3)/sum(dt.tte$status3==0))
 
+hist(dt.tte$eventtime1)
+
+## uniform distributed
+args <- list(scale.T = 0, shape.T = 1, dist.T = "uniform", scale.censoring.T = 1e5,
+             scale.C = 0, shape.C = 2, dist.C = "uniform", scale.censoring.C = 1e5)
+dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
+
+par(mfrow=c(1,2))
+hist(dt.tte$eventtime[dt.tte$treatment=="C"])
+hist(dt.tte$eventtime[dt.tte$treatment=="T"])
+
+## piecewise constant exponential distributed
+## time [0;4]: scale parameter 10
+## time [4;12]: scale parameter 13
+## time [12;18.]: scale parameter 18
+## time [18.5;36]: scale parameter 31
+## after that: scale parameter 37
+vec.scale <- list(c(10,13,18,31,100))
+vec.time <- list(c(0,4,12,18.5,36))
+args <- list(scale.T = vec.scale, shape.T = vec.time, dist.T = "piecewiseExp",
+             scale.C = 10, shape.C = 1, dist.C = "weibull",
+             scale.censoring.T = 1e5)
+dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
+
+if(require(prodlim)){
+plot(prodlim(Hist(eventtime,status)~treatment, data = dt.tte))
+}
+
 #### correlated categorical / time to event endpoint ####
+## WARNING: only for weibull distributed time to event endpoint
 args.bin <- list(p.T = list(c(low=0.1,moderate=0.5,high=0.4)), rho.T = 1)
-args.tte <- list(scale.T = 2, scale.Censoring.T = 1)
+args.tte <- list(scale.T = 2, scale.censoring.T = 1)
 dt.corr <- simBuyseTest(n, argsBin = args.bin, argsCont = NULL, argsTTE = args.tte)
 
 1/(sum(dt.corr$eventtime)/sum(dt.corr$status))

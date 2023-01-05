@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: Dec 21 2021 (17:44) 
+## Last-Updated: maj  9 2022 (13:19) 
 ##           By: Brice Ozenne
-##     Update #: 22
+##     Update #: 23
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,7 +36,7 @@ dt.sim <- simBuyseTest(n.T = n.patients[1],
                        n.C = n.patients[2],
                        argsBin = NULL,
                        argsCont = NULL,
-                       argsTTE = list(scale.T = 1:2, scale.Censoring.T = rep(1,2)))
+                       argsTTE = list(scale.T = 1:2, scale.censoring.T = rep(1,2)))
 
 ## * Compare
 test_that("TTE with decreasing thresholds",{

@@ -32,6 +32,7 @@
 #' @param method the name of the function using the argument.
 #' @param check.fsep display a warning when the separator is not correctly specified in 
 #' @param addPP add ": " after the name of the function in the error message.
+#' @param unlist [logical] flatten argument before check.
 #' 
 #' @return An invisible \code{TRUE} or an error message.
 #' 
@@ -367,7 +368,8 @@ validNumeric <- function(value1,
                          refuse.NULL = TRUE,
                          refuse.duplicates = FALSE, 
                          method = NULL,
-                         addPP = TRUE){
+                         addPP = TRUE,
+                         unlist = FALSE){
     
     if(!is.null(method) && addPP){
         method <- paste0(method, ": ")
@@ -388,6 +390,10 @@ validNumeric <- function(value1,
         }
         
 #### check NA
+        if(unlist){
+            value1 <- unlist(value1)
+        }
+        
         if(refuse.NA == TRUE && any(is.na(value1))){
             stop(method, "\'", name1, "\' must not contain any NA \n", 
                  "index of NA values : ", paste(which(is.na(value1)), collapse = " "), "\n")

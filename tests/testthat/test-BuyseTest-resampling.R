@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: Dec 21 2021 (17:34) 
+## last-updated: maj  9 2022 (13:18) 
 ##           By: Brice Ozenne
-##     Update #: 187
+##     Update #: 188
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -38,7 +38,7 @@ dt.sim <- simBuyseTest(n.T = n.patients,
                        n.C = n.patients,
                        argsBin = list(p.T = list(c(0.5,0.5),c(0.25,0.75))),
                        argsCont = list(mu.T = 1:3, sigma.T = rep(1,3)),
-                       argsTTE = list(scale.T = 1:3, scale.Censoring.T = rep(1,3)),
+                       argsTTE = list(scale.T = 1:3, scale.censoring.T = rep(1,3)),
                        n.strata = 3)
 
 ## * Permutation

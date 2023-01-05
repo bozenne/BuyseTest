@@ -3,9 +3,8 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: Jan  5 2023 (12:40) 
 ##           By: Brice Ozenne
-##     Update #: 862
+##     Update #: 863
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,7 +39,7 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param transformation [logical]  should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
+#' @param transformation [logical]  should the CI be computed on the inverse hyperbolic tangent scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
 #' Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.
 #' @param order.Hprojection [integer, 1-2] order of the H-decomposition used to compute the variance.

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: apr  7 2022 (15:13) 
+## Last-Updated: apr 21 2022 (12:18) 
 ##           By: Brice Ozenne
-##     Update #: 1112
+##     Update #: 1188
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,7 +26,7 @@
 ##' @param fold.repetition [integer] when strictly positive, the number of folds used in the cross-validation. If 0 then no cross validation is performed.
 ##' @param fold.balance [logical] should the outcome distribution in the folds of the cross-validation be similar to the one of the original dataset?
 ##' @param impute [character] in presence of missing value in the regressors of the training dataset, should a complete case analysis be performed (\code{"none"})
-##' or should the median/mean (\code{"median"}/\code{"mean"}) value be imputed.
+##' or should the median/mean (\code{"median"}/\code{"mean"}) value be imputed. For categorical variables, the most frequent value is imputed.
 ##' @param individual.fit [logical] if \code{TRUE} the predictive model is refit for each individual using only the predictors with non missing values.
 ##' @param name.response [character] the name of the response variable (i.e. the one containing the categories).
 ##' @param null [numeric vector of length 2] the right-hand side of the null hypothesis relative to each metric.
@@ -52,20 +52,24 @@
 ##'
 ##' ## fit logistic model
 ##' e.null <- glm(Y~1, data = df.train, family = binomial(link="logit"))
-##' e.logit <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
+##' e.logit1 <- glm(Y~X1, data = df.train, family = binomial(link="logit"))
+##' e.logit2 <- glm(Y~X1+X2, data = df.train, family = binomial(link="logit"))
 ##'
 ##' ## assess performance on the training set (biased)
 ##' ## and external dataset
-##' performance(e.logit, newdata = df.test)
-##' performance(list(null = e.null, prop = e.logit), newdata = df.test)
+##' performance(e.logit1, newdata = df.test)
+##' e.perf <- performance(list(null = e.null, p1 = e.logit1, p2 = e.logit2),
+##'                       newdata = df.test)
+##' e.perf
+##' summary(e.perf, order.model = c("null","p2","p1"))
 ##' 
 ##' ## assess performance using cross validation
 ##' \dontrun{
 ##' set.seed(10)
-##' performance(e.logit, fold.repetition = 10, se = FALSE)
+##' performance(e.logit1, fold.repetition = 10, se = FALSE)
 ##' set.seed(10)
-##' performance(list(null = e.null, prop = e.logit), fold.repetition = 10)
-##' performance(e.logit, fold.repetition = c(50,20,10))
+##' performance(list(null = e.null, prop = e.logit1), fold.repetition = 10)
+##' performance(e.logit1, fold.repetition = c(50,20,10))
 ##' }
 
 ## * performance
@@ -87,7 +91,10 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     }
     
     ## ** fix randomness
-    if(!is.null(seed)){
+    stop.after.init <- FALSE
+    if(identical(seed,"only")){
+        stop.after.init <- TRUE
+    } else if(!is.null(seed)){
         if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
             old <- .Random.seed # to save the current seed
             on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
@@ -138,7 +145,8 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
                                    fold.balance = fold.balance,
                                    fold.group = fold.group,
                                    fold.test = fold.test,
-                                   internal = internal)
+                                   internal = internal,
+                                   trace = trace)
 
     data <- init.data$data
     newdata <- init.data$newdata
@@ -151,12 +159,15 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     nobs.newdata <- NROW(newdata)
     fold.size <- init.data$fold.size
     fold.test <- init.data$fold.test
-
     ## any(sapply(fold.test, function(x){any(duplicated(x))}))
     ## sapply(fold.test, function(x){min(x, na.rm=TRUE)})
     ## sapply(fold.test, function(x){max(x, na.rm=TRUE)})
     ## sapply(fold.test, function(x){sum(!is.na(x))})
 
+    if(stop.after.init){
+        return(fold.test)
+    }
+    
     ## ** predictions
     if(trace){
         cat("    Assessment of the predictive performance of ",n.object," model", if(n.object>1){"s"},"\n\n",sep="")
@@ -173,7 +184,7 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
             cat(paste(txt, collapse = " and "), sep = "")
         }
         if(internal){
-            data.test <- rbind(data, newdata)
+            data.test <- rbind(data, newdata[,colnames(data),drop=FALSE])
         }else{
             data.test <- newdata
         }
@@ -230,7 +241,7 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     }
     
     ## *** cross validation
-    if(fold.repetition>0){
+    if(any(fold.repetition>0)){
 
         if(trace){
             if(internal||external){
@@ -273,7 +284,6 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
                 indexData.iFoldTrain <- setdiff(1:nobs.object,indexData.iFoldTest)
                 
                 indexStore.iFoldTest <- (1+sum(c(0,fold.size)[1:iFold])):sum(fold.size[1:iFold])
-                
                 cv.indexing[indexStore.iFoldTest,"observation",iRepeat] <- indexData.iFoldTest
                 cv.indexing[indexStore.iFoldTest,"fold",iRepeat] <- iFold
 
@@ -282,7 +292,7 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
                         iOut <- droplevels(iModel[indexData.iFoldTest])
                         attr(iOut, "index") <- lapply(attr(iModel, "index"), FUN = function(iVec){which(indexData.iFoldTest %in% iVec)})
                         attr(iOut, "index")[sapply(attr(iOut, "index"), length)==0] <- NULL
-                        attr(iOut, "formula") <- attr(iModel, "formula")
+                        attr(iOut, "formula") <- attr(iModel, "formula")[names(attr(iOut, "index"))]
                         return(iOut)
                     })
                 }else{
@@ -541,7 +551,17 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     
     ## ** export
     if(save.data){out$data <- data}
-    out$name.response <- name.response
+    out$args <- list(individual.fit = individual.fit,
+                     impute = impute,
+                     name.response = name.response,
+                     fold.size = fold.size,
+                     fold.repetition = fold.repetition,
+                     fold.balance = fold.balance,
+                     null = null,
+                     conf.level = conf.level,
+                     transformation = transformation,
+                     auc.type = auc.type,
+                     seed = seed)
     rownames(out$performance) <- NULL
     class(out) <- append("performance",class(out))
     return(out)
@@ -684,6 +704,9 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
         if(any(is.na(newdata[[name.response]]))){
             stop("Cannot handle missing data in the outcome variable (argument newdata). \n")
         }
+        if(any(names(data) %in% names(newdata) == FALSE)){
+            stop("Argument \'newdata\' should contain column(s) \"",paste(names(data)[names(data) %in% names(newdata) == FALSE], collapse = "\" \""),"\" \n")
+        }
     }
 
 
@@ -756,10 +779,10 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
     if(is.na(fold.repetition) || is.null(fold.repetition)){
         fold.repetition <- 0
     }
-    if(fold.repetition<0){
+    if(any(fold.repetition<0)){
         stop("Argument \'fold.repetition\' must be positive \n")
     }
-    if(fold.repetition %% 1 >0){
+    if(any(fold.repetition %% 1 > 0)){
         stop("Argument \'fold.repetition\' must be an integer \n")
     }
 
@@ -814,7 +837,7 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
 ## initialize data and missing data patterns
 .performance_init <- function(object, data, newdata,
                               individual.fit, name.response,
-                              fold.size, fold.repetition, fold.balance, fold.group, fold.test, internal){
+                              fold.size, fold.repetition, fold.balance, fold.group, fold.test, internal, trace){
 
     ## ** extract reference level of the outcome variable
     ref.response <- sort(data[[name.response]], decreasing = TRUE)[1]
@@ -882,7 +905,9 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
         }
     })))
     if(length(nobs.object)!=1){
-        message("The training set seems to differ in size between models: ",paste0(nobs.object, collapse = ", "),". \n")
+        if(trace){
+            message("The training set seems to differ in size between models: ",paste0(nobs.object, collapse = ", "),". \n")
+        }
         nobs.object <- max(nobs.object)
     }
 
@@ -905,6 +930,7 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
 
         for(iO in 1:length(object)){ ## iO <- 1
             iTest.na <- is.na(data[,object.xvar[[iO]],drop=FALSE])
+            ## fields::image.plot(iTest.na)
             object.iformula[[iO]] <- apply(iTest.na,1,function(iRow){
                 if(any(iRow)){
                     iNewFF <- as.formula(paste(".~.-",paste(colnames(iTest.na)[iRow],collapse="-")))
@@ -987,11 +1013,11 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
             }
             return(iM)
         })
+
     }else{
         fold.size <- 0
         fold.test <- NULL
     }
-
 
     ## ** export
     out <- list(data = data,
@@ -1076,7 +1102,11 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
         data.train0 <- data.train
         col.impute <- names(which(colSums(is.na(data.train))>0))
         for(iCol in col.impute){ ## iCol <- "X1"
-            data.train[is.na(data.train[[iCol]]),iCol] <- do.call(impute, args = list(data.train[[iCol]], na.rm = TRUE))
+            if(is.numeric(data.train[[iCol]])){
+                data.train[is.na(data.train[[iCol]]),iCol] <- do.call(impute, args = list(data.train[[iCol]], na.rm = TRUE))
+            }else{
+                data.train[is.na(data.train[[iCol]]),iCol] <- names(sort(table(data.train[[iCol]], useNA = "no"), decreasing = TRUE))[1]
+            }
         }
     }
 
@@ -1162,11 +1192,16 @@ performance <- function(object, data = NULL, newdata = NA, individual.fit = FALS
 ##' @param n.fold number of folds.
 ##' @noRd
 .balanceFold <- function(n.obs, n.fold){
+    if(n.obs < n.fold){
+        return(c(lapply(1:(n.fold-n.obs), function(i){NULL}),as.list(1:n.obs)))
+    }
+
     ## number of observations per fold
     nobs.fold <- rep(floor(n.obs/n.fold),n.fold)
     nobs.fold <- nobs.fold + c(rep(1,n.obs-sum(nobs.fold)),rep(0,n.fold-(n.obs-sum(nobs.fold)))) 
     ## list of indexes
-    out <- mapply(x = cumsum(c(0,nobs.fold[-n.fold]-1)+1), y = cumsum(nobs.fold), function(x,y){x:y})
+    out <- mapply(x = cumsum(c(0,nobs.fold[-n.fold]-1)+1), y = cumsum(nobs.fold), function(x,y){list(x:y)})
+
     return(out)
 }
 ##----------------------------------------------------------------------

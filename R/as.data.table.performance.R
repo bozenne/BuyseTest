@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  9 2021 (10:04) 
 ## Version: 
-## Last-Updated: apr  7 2022 (10:40) 
+## Last-Updated: apr 21 2022 (10:34) 
 ##           By: Brice Ozenne
-##     Update #: 82
+##     Update #: 93
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,17 +35,16 @@ as.data.table.performance <- function(x, type = "performance", format = NULL, ke
         stop("Argument \'type\' must have length 1.")
     }
     type <- match.arg(type, c("performance",
-                              "prediction",paste0("prediction-",names(attr(x,"prediction"))),
-                              "roc",paste0("roc-",names(attr(x,"prediction"))),
+                              "prediction",paste0("prediction-",names(x$prediction)),
+                              "roc",paste0("roc-",names(x$prediction)),
                               "fold"))
     if(!is.null(format)){
         format <- match.arg(format, c("long","wide"))
     }
 
-
     ## ** extract data
     if(type=="performance"){
-        return(x$performance)
+        return(as.data.table(x$performance))
     }else if(type %in% c("prediction","prediction-internal","prediction-external","prediction-cv")){
         x.prediction <- x$prediction
         x.response <- x$response
@@ -97,7 +96,7 @@ as.data.table.performance <- function(x, type = "performance", format = NULL, ke
         for(iMethod in Umethod){
 
             iNewx <- newx[newx$method==iMethod]
-            setkeyv(iNewx, c("fold","model","prediction"))
+            setkeyv(iNewx, c("repetition","model","prediction"))
             ## se: among those who have the outcome P[score>=threshold|Y=1]
             ## sp: among those who do not have the outcome P[score<threshold|Y=0]
             iOut <- iNewx[,list("observation"=c(NA,.SD$observation),
@@ -131,8 +130,7 @@ as.data.table.performance <- function(x, type = "performance", format = NULL, ke
 ## * as.data.table.performanceResample
 ##' @export
 as.data.table.performanceResample <- function(x, ...){
-
-    return(as.data.table(attr(x,"original"), ...))
+    return(as.data.table(unclass(x)))
 
 }
 

@@ -89,7 +89,8 @@ validNumeric(
   refuse.NULL = TRUE,
   refuse.duplicates = FALSE,
   method = NULL,
-  addPP = TRUE
+  addPP = TRUE,
+  unlist = FALSE
 )
 
 validPath(
@@ -134,6 +135,8 @@ validPath(
 \item{required.values}{values that must appear in the argument}
 
 \item{refuse.values}{values that must not appear in the argument}
+
+\item{unlist}{[logical] flatten argument before check.}
 
 \item{extension}{filter the files by the type of extension.}
 
