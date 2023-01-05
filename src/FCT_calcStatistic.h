@@ -17,7 +17,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 		   arma::mat& Mvar, int returnIID,
 		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
-		   const arma::vec& weight, bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
+		   const arma::vec& weight, double pool, bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
 
 // * calcStatistic
 void calcStatistic(arma::cube& delta, arma::mat& Delta,
@@ -27,14 +27,14 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 		   arma::mat& Mvar, int returnIID,
 		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
-		   const arma::vec& weight, bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
+		   const arma::vec& weight, double pool, bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
   
   // ** total number of pairs and patients in each arm
   double ntot_pair = 0;
   for(int iter_strata = 0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
     ntot_pair += n_pairs[iter_strata];
   }
-    
+
   // ** add neutral score
   if(addHalfNeutral){
     Mcount_favorable += 0.5*Mcount_neutral;
@@ -70,6 +70,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   // weight and cumulate endpoints
   // cumsum:  For matrix X, return a matrix containing the cumulative sum of elements in each column (dim = 0), or each row (dim = 1)
   arma::rowvec rowweight = arma::conv_to<arma::rowvec>::from(weight);
+  arma::vec poolweight;
 
   arma::mat cumWcount_favorable = Mcount_favorable;
   cumWcount_favorable.each_row() %= rowweight; 
@@ -78,11 +79,18 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   arma::mat cumWcount_unfavorable = Mcount_unfavorable;
   cumWcount_unfavorable.each_row() %= rowweight;
   cumWcount_unfavorable = arma::cumsum(cumWcount_unfavorable,1); 
-  
-  // Mann Whitney parameter equals number of favorable pairs divided by the number of pairs (i.e. proportion in favor of the treatment)  
-  Delta.col(0) = arma::trans(arma::sum(cumWcount_favorable,0))/(double)(ntot_pair);
-  Delta.col(1) = arma::trans(arma::sum(cumWcount_unfavorable,0))/(double)(ntot_pair);
 
+  // Mann Whitney parameter equals number of favorable pairs divided by the number of pairs (i.e. proportion in favor of the treatment)
+  if(pool==0){
+    Delta.col(0) = arma::trans(arma::sum(cumWcount_favorable,0))/(double)(ntot_pair);
+    Delta.col(1) = arma::trans(arma::sum(cumWcount_unfavorable,0))/(double)(ntot_pair);
+  }else if(pool==1){
+    poolweight = (1/n_pairs)*(n_control*n_treatment)/(n_control+n_treatment)/sum((n_control*n_treatment)/(n_control+n_treatment));
+    
+    Delta.col(0) = arma::trans(arma::sum(cumWcount_favorable,0));
+    Delta.col(1) = arma::trans(arma::sum(cumWcount_unfavorable,0));
+  }
+  
   // net benefit equals (number of favorable pairs minus number of unfavorable pairs) divided by number of pairs
   Delta.col(2) = Delta.col(0) - Delta.col(1);
 
@@ -280,7 +288,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     // indeed (A-B)' = A' - B' so (A-B)^'2 = A'A' + B'B'  - 2*A'B'
     Mvar.col(3) = Mvar.col(0) + Mvar.col(1) - 2 * Mvar.col(2);
     // var(A/B) = var(A)/B^2 + var(B)*(A^2/B^4) - 2*cov(A,B)A/B^3
-    // indeed (A/B)' = A'/B - B'A/B^2 so (A/B)^'2 = A'A'/B^2 + B'B'A^2/B^2 - 2B'A' A/B^3
+    // indeed (A/B)' = A'/B - B'A/B^2 so (A/B)^'2 = A'A'/B^2 + B'B'A^2/B^4 - 2B'A' A/B^3
     Mvar.col(4) = Mvar.col(0)/pow(Delta.col(1), 2) + Mvar.col(1) % pow(Delta.col(0),2)/pow(Delta.col(1),4) - 2 * Mvar.col(2) % Delta.col(0)/pow(Delta.col(1), 3);
     // Mann-Whitney parameter is the same as the proportion in favor of treatment
     // check if no variability then set var(win ratio) to 0.

@@ -54,6 +54,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param restriction Store the restriction time associated to each endpoint. Must have length D. 
 //' @param weight Store the weight associated to each endpoint. Must have length D. 
 //' @param method The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).
+//' @param pool The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size) or 1 (Mantel Haenszel weights).
 //' @param op The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.
 //' @param D The number of endpoints.
 //' @param D_UTTE The number of distinct time to event endpoints.
@@ -104,6 +105,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   std::vector< double > restriction,
 		   arma::vec weight,
 		   arma::vec method,
+		   int pool,
 		   std::vector< int > op,
 		   unsigned int D,
 		   unsigned int D_UTTE,
@@ -417,7 +419,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		Mvar, returnIID,
 		posC, posT, 
                 D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		weight, addHalfNeutral, hprojection, pairScore, keepScore);
+		weight, pool, addHalfNeutral, hprojection, pairScore, keepScore);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,
@@ -452,6 +454,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    std::vector< double > restriction,
 		    arma::vec weight,
 		    arma::vec method,
+		    int pool,
 		    std::vector< int > op,
 		    unsigned int D,
 		    unsigned int D_UTTE,
@@ -1003,7 +1006,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		Mvar, returnIID,
 		posC, posT, 
 		D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		weight, addHalfNeutral, hprojection, pairScore, keepScore);
+		weight, pool, addHalfNeutral, hprojection, pairScore, keepScore);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,

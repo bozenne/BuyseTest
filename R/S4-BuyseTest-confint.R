@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
-## Last-Updated: mar  4 2022 (10:16) 
+## Last-Updated: Jan  5 2023 (12:40) 
 ##           By: Brice Ozenne
-##     Update #: 861
+##     Update #: 862
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -465,7 +465,7 @@ setMethod(f = "confint",
                                                     out <- se
                                                 }else{
                                                     out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)/trans.weight-1/2))^2)
-                                                    if(any(na.omit(se)==0)){
+n                                                    if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
                                                 }

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Dec 22 2021 (15:40) 
+## Last-Updated: Nov  7 2022 (12:25) 
 ##           By: Brice Ozenne
-##     Update #: 317
+##     Update #: 318
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,6 +32,7 @@ testArgs <- function(name.call,
                      iidNuisance,
                      keep.pairScore,
                      scoring.rule,
+                     pool.strata,
                      model.tte,
                      method.inference,
                      n.resampling,
@@ -201,7 +202,13 @@ testArgs <- function(name.call,
                 "For those endpoints, the Gehan's scoring rule will be used instead.")
     }
 
-    ## ## ** model.tte
+    ## ** pool.strata
+    if(is.na(pool.strata)){
+        stop("BuyseTest: wrong specification of \'pool.strata\'. \n",
+             "valid values: \"Buyse\" or \"MH\". \n")
+    }
+
+    ## ** model.tte
     if(!is.null(model.tte)){
         endpoint.UTTE <- unique(endpoint[type=="tte"])
         D.UTTE <- length(endpoint.UTTE)

@@ -8,7 +8,7 @@
 #' 
 #' \code{initializeArgs}: Normalize the argument 
 #' \itemize{
-#' \item scoring.rule, neutral.as.uninf, add.halfNeutral, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
+#' \item scoring.rule, pool.strata, neutral.as.uninf, add.halfNeutral, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 #' \item formula: call \code{initializeFormula} to extract arguments.
 #' \item type: convert to numeric.
 #' \item status: only keep status relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.
@@ -41,6 +41,7 @@ initializeArgs <- function(status,
                            keep.pairScore = NULL,
                            method.inference = NULL,
                            scoring.rule = NULL,
+                           pool.strata = NULL,
                            model.tte,
                            n.resampling = NULL,
                            strata.resampling = NULL,
@@ -64,6 +65,7 @@ initializeArgs <- function(status,
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
     if(is.null(scoring.rule)){ scoring.rule <- option$scoring.rule }
+    if(is.null(pool.strata)){ pool.strata <- option$pool.strata }
     if(is.null(hierarchical)){ hierarchical <- option$hierarchical }
     if(is.null(correction.uninf)){ correction.uninf <- option$correction.uninf }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
@@ -215,6 +217,18 @@ initializeArgs <- function(status,
         }
     }
 
+    ## ** pool.strata
+    if(is.character(pool.strata)){
+        pool.strata <- switch(tolower(pool.strata),
+                               "buyse" = 0,
+                               "mh" = 1,
+                               "cmh" = 1,
+                               NA
+                               )
+    }else{
+        pool.strata <- NA
+    }
+    
     ## ** threshold
     if(any(is.na(threshold))){
         threshold[which(is.na(threshold))] <- 10^{-12}
@@ -310,6 +324,7 @@ initializeArgs <- function(status,
         keep.pairScore = keep.pairScore,
         keep.survival = option$keep.survival,
         scoring.rule = scoring.rule,
+        pool.strata = pool.strata,
         model.tte = model.tte,
         method.inference = method.inference,
         n.resampling = n.resampling,
