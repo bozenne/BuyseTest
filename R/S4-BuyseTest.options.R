@@ -143,7 +143,7 @@ setClass(
                    method = "Class BuyseTest.options")
       validCharacter(object@pool.strata,
                      name1 = "@pool.strata",
-                     valid.values = c("Buyse","MH"),
+                     valid.values = c("Buyse","CMH","equal","var-favorable","var-unfavorable","var-netBenefit","var-winRatio"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
       validLogical(object@precompute,

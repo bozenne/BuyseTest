@@ -13,6 +13,11 @@
 #' @param scoring.rule [character] method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
 #' Can be \code{"Gehan"} or \code{"Peron"}.
 #' See Details, section "Handling missing values".
+#' @param pool.strata [character] weights used to combine estimates across strata. Can be
+#' \code{"Buyse"} to weight proportionnally to the number of pairs in the strata,
+#' \code{"CMH"} to weight proportionnally to the ratio between the number of pairs in the strata and the number of observations in the strata.
+#' \code{"equal"} to weight equally each strata,
+#' or \code{"var-netBenefit"} to weight each strata proportionally to the precision of its estimated net benefit (similar syntax for the win ratio: \code{"var-winRatio"})
 #' @param correction.uninf [integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
 #' 0 indicates no correction, 1 impute the average score of the informative pairs, and 2 performs IPCW.
 #' See Details, section "Handling missing values".
@@ -27,7 +32,7 @@
 #' See Details, section "Statistical inference".
 #' @param hierarchical [logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)?
 #' Otherwise all pairs will be compaired for all endpoint (full GPC).
-#' @param weight [numeric vector] weights used to cumulating the pairwise scores over the endpoints.
+#' @param weightEndpoint [numeric vector] weights used to cumulating the pairwise scores over the endpoints.
 #' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
 #' @param neutral.as.uninf [logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 #' See Details, section "Handling missing values".
@@ -123,7 +128,12 @@
 #' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. \cr \cr
 #' }
 #'
-#'
+#' \bold{Pooling results across strata} the relative contribution of each strata to the global estimator is decided by \cr
+#' \itemize{
+#' \item \code{"CMH"} weights: Cochran-Mantel-Haenszel type weights which are optimal if the odds ratios are constant across strata.
+#' \item \code{"Buyse"} weights: optimal if the risk difference is constant across strata. \cr \cr
+#' }
+#' 
 #' \bold{Default values} \cr
 #' The default of the arguments
 #' \code{scoring.rule}, \code{correction.uninf}, \code{method.inference}, \code{n.resampling},
@@ -253,7 +263,7 @@ BuyseTest <- function(formula,
                       n.resampling = NULL,
                       strata.resampling = NULL,
                       hierarchical = NULL,
-                      weight = NULL,
+                      weightEndpoint = NULL,
                       neutral.as.uninf = NULL,
                       add.halfNeutral = NULL,
                       keep.pairScore = NULL,
@@ -309,7 +319,7 @@ BuyseTest <- function(formula,
                               trace = trace,
                               treatment = treatment,
                               type = type,
-                              weight = weight,
+                              weightEndpoint = weightEndpoint,
                               envir = parent.frame())
 
     ## ** test arguments
@@ -426,7 +436,7 @@ BuyseTest <- function(formula,
         ## direct computation of the variance
         outCovariance <- inferenceUstatisticBebu(tablePairScore = outPoint$tableScore,
                                                  order = option$order.Hprojection,
-                                                 weight = outArgs$weight,
+                                                 weightEndpoint = outArgs$weightEndpoint,
                                                  n.pairs = outPoint$n_pairs,
                                                  n.C = length(envirBT$outArgs$index.C),
                                                  n.T = length(envirBT$outArgs$index.T),
@@ -448,7 +458,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weight","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightEndpoint","pool.strata","n.resampling")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -547,7 +557,7 @@ BuyseTest <- function(formula,
                                  posT = outSample$ls.posT,                     
                                  threshold = envir$outArgs$threshold,
                                  restriction = envir$outArgs$restriction,
-                                 weight = envir$outArgs$weight,
+                                 weightEndpoint = envir$outArgs$weightEndpoint,
                                  method = sapply(envir$outArgs$method.score, switch, "continuous" = 1, "gaussian" = 2, "TTEgehan" = 3, "TTEgehan2" = 4, "SurvPeron" = 5, "CRPeron" = 6),
                                  pool = envir$outArgs$pool.strata,
                                  op = envir$outArgs$operator,
@@ -578,9 +588,7 @@ BuyseTest <- function(formula,
                                  returnIID = iid + iid*envir$outArgs$iidNuisance,
                                  debug = envir$outArgs$debug
                                  ))
-    
-    ## print(range(resBT$iidNuisance_favorable))
-    ## print(range(resBT$iidNuisance_unfavorable))
+
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
@@ -588,8 +596,12 @@ BuyseTest <- function(formula,
         }
         return(resBT)
     }else{
+        ## index <- 5
+        ## resBT$Delta[,index]
+        ## sum(resBT$delta[,,index][,1] * resBT$weightStrata)
         return(list(delta = resBT$delta,
                     Delta = resBT$Delta,
+                    weightStrata = resBT$weightStrata,
                     covariance = resBT$covariance))
     }
 }

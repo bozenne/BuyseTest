@@ -52,7 +52,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param posT A list containing, for each strata, the unique identifier of each treatment observations.
 //' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
 //' @param restriction Store the restriction time associated to each endpoint. Must have length D. 
-//' @param weight Store the weight associated to each endpoint. Must have length D. 
+//' @param weightEndpoint Store the weight associated to each endpoint. Must have length D. 
 //' @param method The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).
 //' @param pool The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size) or 1 (Mantel Haenszel weights).
 //' @param op The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.
@@ -103,9 +103,9 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   std::vector< arma::uvec > posT,
 		   std::vector< double > threshold,
 		   std::vector< double > restriction,
-		   arma::vec weight,
+		   arma::vec weightEndpoint,
 		   arma::vec method,
-		   int pool,
+		   double pool,
 		   std::vector< int > op,
 		   unsigned int D,
 		   unsigned int D_UTTE,
@@ -406,6 +406,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
   arma::cube delta(n_strata,D,4); // cube containing the endpoint and strata specific statistics: favorable; unfavorable; netBenefit; winRatio;
   arma::mat Delta(D,4); // matrix containing for each endpoint the overall statistics: favorable; unfavorable; netBenefit; winRatio;
   arma::mat Mvar; // variance-covariance of the overall statistics for each endpoint
+  arma::vec poolWeight(n_strata); // weights used to pool estimates across strata
   if(returnIID > 0){
     Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
     Mvar.fill(0.0);
@@ -413,13 +414,13 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 
   if(debug>0){Rcpp::Rcout << "Compute summary statistics" << std::endl;}
   calcStatistic(delta, Delta, 
-                Mcount_favorable, Mcount_unfavorable, Mcount_neutral,
+                Mcount_favorable, Mcount_unfavorable, Mcount_neutral, Mcount_uninf,
 		iidAverage_favorable, iidAverage_unfavorable, iidAverage_neutral,
 		iidNuisance_favorable, iidNuisance_unfavorable, iidNuisance_neutral,
 		Mvar, returnIID,
 		posC, posT, 
                 D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		weight, pool, addHalfNeutral, hprojection, pairScore, keepScore);
+		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,
@@ -436,7 +437,8 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 			    Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
 			    Rcpp::Named("iidNuisance_neutral") = iidNuisance_neutral,
 			    Rcpp::Named("covariance") = Mvar,
-			    Rcpp::Named("tableScore")  = pairScore
+			    Rcpp::Named("tableScore")  = pairScore,
+			    Rcpp::Named("weightStrata")  = poolWeight
 			    ));
 }
 
@@ -452,9 +454,9 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    std::vector< arma::uvec > posT,
 		    std::vector< double > threshold,
 		    std::vector< double > restriction,
-		    arma::vec weight,
+		    arma::vec weightEndpoint,
 		    arma::vec method,
-		    int pool,
+		    double pool,
 		    std::vector< int > op,
 		    unsigned int D,
 		    unsigned int D_UTTE,
@@ -990,23 +992,24 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   
   // ** proportion in favor of treatment
   // Rcpp::Rcout << std::endl << " compute statistics" << std::endl;
-  arma::cube delta(n_strata,D,4); // cube containing the endpoint and strata specific statistics: favorable; unfavorable; netBenefit; winRatio;
-  arma::mat Delta(D,4); // matrix containing for each endpoint the overall statistics: favorable; unfavorable; netBenefit; winRatio;
+  arma::cube delta(n_strata,D,6); // cube containing the endpoint and strata specific statistics: favorable; unfavorable; neutral; uninf; netBenefit; winRatio;
+  arma::mat Delta(D,6); // matrix containing for each endpoint the overall statistics: favorable; unfavorable; neutral; uninf; netBenefit; winRatio;
   arma::mat Mvar; // variance-covariance of the overall statistics for each endpoint
+  arma::vec poolWeight(n_strata); // weights used to pool estimates across strata
   if(returnIID > 0){
     Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
     Mvar.fill(0.0);
   }
-
+    
   if(debug>0){Rcpp::Rcout << "Compute summary statistics" << std::endl;}
   calcStatistic(delta, Delta, 
-		Mcount_favorable, Mcount_unfavorable, Mcount_neutral,
+		Mcount_favorable, Mcount_unfavorable, Mcount_neutral, Mcount_uninf,
 		iidAverage_favorable, iidAverage_unfavorable, iidAverage_neutral,
 		iidNuisance_favorable, iidNuisance_unfavorable, iidNuisance_neutral,
 		Mvar, returnIID,
 		posC, posT, 
 		D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		weight, pool, addHalfNeutral, hprojection, pairScore, keepScore);
+		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,
@@ -1023,7 +1026,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			    Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
 			    Rcpp::Named("iidNuisance_neutral") = iidNuisance_neutral,
 			    Rcpp::Named("covariance") = Mvar,
-			    Rcpp::Named("tableScore")  = pairScore
+			    Rcpp::Named("tableScore")  = pairScore,
+			    Rcpp::Named("weightStrata")  = poolWeight
 			    ));
 }
 

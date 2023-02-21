@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Dec 20 2021 (20:43) 
+## Last-Updated: Feb 14 2023 (11:24) 
 ##           By: Brice Ozenne
-##     Update #: 1000
+##     Update #: 1001
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -356,7 +356,7 @@ powerBuyseTest <- function(sim,
 
     ## when creating S4 object
     keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weight","n.resampling","call")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightEndpoint","n.resampling","call")
 
     ## when initializing data
     out.name <- c("data","M.endpoint","M.status",
@@ -407,7 +407,7 @@ powerBuyseTest <- function(sim,
         data[["..NA.."]]  <- NULL
         allBT[[envir$n.sample.size]] <- BuyseTest(data = data, scoring.rule = envir$outArgs$scoring.rule, correction.uninf = envir$outArgs$correction.uninf, 
                                                   model.tte = envir$outArgs$model.tte, method.inference = envir$outArgs$method.inference, n.resampling = envir$outArgs$n.resampling, 
-                                                  strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weight = envir$outArgs$weight, 
+                                                  strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weightEndpoint = envir$outArgs$weightEndpoint, 
                                                   neutral.as.uninf = envir$outArgs$neutral.as.uninf, add.halfNeutral = envir$outArgs$add.halfNeutral, 
                                                   trace = FALSE, treatment = envir$outArgs$treatment, endpoint = envir$outArgs$endpoint, 
                                                   type = envir$outArgs$type, threshold = envir$outArgs$threshold, restriction = envir$outArgs$restriction, status = envir$outArgs$status, operator = envir$outArgs$operator, 
@@ -426,7 +426,7 @@ powerBuyseTest <- function(sim,
             ##                                        subset.C = 1:envir$sample.sizeC[iSize],
             ##                                        subset.T = 1:envir$sample.sizeT[iSize],
             ##                                        order = envir$outArgs$order.Hprojection,
-            ##                                        weight = envir$outArgs$weight,
+            ##                                        weightEndpoint = envir$outArgs$weightEndpoint,
             ##                                        n.pairs = envir$sample.sizeC[iSize]*envir$sample.sizeT[iSize],
             ##                                        n.C = envir$sample.sizeC[iSize],
             ##                                        n.T = envir$sample.sizeT[iSize],
@@ -495,7 +495,7 @@ powerBuyseTest <- function(sim,
                                                 n.resampling = envir$outArgs$n.resampling, 
                                                 strata.resampling = envir$outArgs$strata.resampling,
                                                 hierarchical = envir$outArgs$hierarchical,
-                                                weight = envir$outArgs$weight, 
+                                                weightEndpoint = envir$outArgs$weightEndpoint, 
                                                 neutral.as.uninf = envir$outArgs$neutral.as.uninf, 
                                                 add.halfNeutral = envir$outArgs$add.halfNeutral, 
                                                 trace = FALSE,

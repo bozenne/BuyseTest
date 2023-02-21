@@ -189,7 +189,7 @@ setMethod(f = "summary",
                   if(all(abs(object@threshold)<=1e-12)){
                       type.display <- setdiff(type.display, "threshold")
                   }
-                  if(length(unique(object@weight))==1){
+                  if(length(unique(object@weightEndpoint))==1){
                       type.display <- setdiff(type.display, "weight")
                   }
               }else{
@@ -272,26 +272,33 @@ setMethod(f = "summary",
             
               index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
 
-              table[index.global,"favorable"] <- colSums(object@count.favorable)
-              table[index.global,"unfavorable"] <- colSums(object@count.unfavorable)
-              table[index.global,"neutral"] <- colSums(object@count.neutral)
-              table[index.global,"uninf"] <- colSums(object@count.uninf)
+              if(identical(percentage, TRUE)){
+                  table[index.global,"favorable"] <- coef(object, statistic = "pc.favorable", stratified = FALSE, cumulative = TRUE)
+                  table[index.global,"unfavorable"] <- coef(object, statistic = "pc.unfavorable", stratified = FALSE, cumulative = TRUE)
+                  table[index.global,"neutral"] <- coef(object, statistic = "pc.neutral", stratified = FALSE, cumulative = TRUE)
+                  table[index.global,"uninf"] <- coef(object, statistic = "pc.uninf", stratified = FALSE, cumulative = TRUE)
+              }else{
+                  table[index.global,"favorable"] <- coef(object, statistic = "count.favorable", stratified = FALSE, cumulative = TRUE)
+                  table[index.global,"unfavorable"] <- coef(object, statistic = "count.unfavorable", stratified = FALSE, cumulative = TRUE)
+                  table[index.global,"neutral"] <- coef(object, statistic = "count.neutral", stratified = FALSE, cumulative = TRUE)
+                  table[index.global,"uninf"] <- coef(object, statistic = "count.uninf", stratified = FALSE, cumulative = TRUE)
+              }
               table[index.global,"total"] <- rowSums(table[index.global,c("favorable","unfavorable","neutral","uninf")])
-            
+
               table[index.global,"restriction"] <- object@restriction
               table[index.global,"endpoint"] <- object@endpoint
               table[index.global,"threshold"] <- object@threshold
-              table[index.global,"weight"] <- object@weight
+              table[index.global,"weight"] <- object@weightEndpoint
               table[index.global,"strata"] <- "global"
 
               if(statistic=="netBenefit"){ ##
-                  table[index.global,"delta"] <- (colSums(object@count.favorable)-colSums(object@count.unfavorable))/sum(object@n.pairs)
+                  table[index.global,"delta"] <- coef(object, statistic = "netBenefit")
               }else if(statistic == "winRatio"){
-                  table[index.global,"delta"] <- colSums(object@count.favorable)/colSums(object@count.unfavorable)
+                  table[index.global,"delta"] <- coef(object, statistic = "winRatio")
               }else if(statistic == "favorable"){
-                  table[index.global,"delta"] <- colSums(object@count.favorable)/sum(object@n.pairs)
+                  table[index.global,"delta"] <- coef(object, statistic = "favorable")
               }else if(statistic == "unfavorable"){
-                  table[index.global,"delta"] <- colSums(object@count.unfavorable)/sum(object@n.pairs)
+                  table[index.global,"delta"] <- coef(object, statistic = "unfavorable")
               }
               table[index.global,"Delta"] <- Delta
               table[index.global,"Delta(%)"] <- 100*Delta/Delta[n.endpoint]
@@ -299,31 +306,26 @@ setMethod(f = "summary",
               for(iStrata in 1:n.strata){
                   index.strata <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1+iStrata
               
-                  table[index.strata,"favorable"] <- object@count.favorable[iStrata,]
-                  table[index.strata,"unfavorable"] <- object@count.unfavorable[iStrata,]
-                  table[index.strata,"neutral"] <- object@count.neutral[iStrata,]
-                  table[index.strata,"uninf"] <- object@count.uninf[iStrata,]
+                  if(identical(percentage, TRUE)){
+                      browser()
+                  }else{
+                      table[index.strata,"favorable"] <- object@count.favorable[iStrata,]
+                      table[index.strata,"unfavorable"] <- object@count.unfavorable[iStrata,]
+                      table[index.strata,"neutral"] <- object@count.neutral[iStrata,]
+                      table[index.strata,"uninf"] <- object@count.uninf[iStrata,]
+                  }
                   table[index.strata,"total"] <- rowSums(table[index.strata,c("favorable","unfavorable","neutral","uninf")])
               
                   table[index.strata,"strata"] <- object@level.strata[iStrata]
                   table[index.strata,"endpoint"] <- object@endpoint
                   table[index.strata,"threshold"] <- object@threshold
-                  table[index.strata,"weight"] <- object@weight
+                  table[index.strata,"weight"] <- object@weightEndpoint
                   table[index.strata,"delta"] <- delta[iStrata,]
               }
 
               ## *** information fraction and co
               table[index.global,"information(%)"] <- 100*cumsum(colSums(object@count.favorable+object@count.unfavorable)/sum(object@count.favorable+object@count.unfavorable))
-
-              ## *** convert to percentage
-              if(identical(percentage, TRUE)){
-                  table[,"favorable"] <- 100*table[,"favorable"]/table[1,"total"]
-                  table[,"unfavorable"] <- 100*table[,"unfavorable"]/table[1,"total"]
-                  table[,"neutral"] <- 100*table[,"neutral"]/table[1,"total"]
-                  table[,"uninf"] <- 100*table[,"uninf"]/table[1,"total"]
-                  table[,"total"] <- 100*table[,"total"]/table[1,"total"]
-              }
-              
+             
               ## *** compute CI and p-value
               if(!attr(method.inference,"permutation")){
                   table[index.global,"CIinf.Delta"] <- outConfint[,"lower.ci"]

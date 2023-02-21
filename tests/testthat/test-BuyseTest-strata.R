@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: Jan  5 2023 (12:40) 
+## Last-Updated: Feb 21 2023 (12:38) 
 ##           By: Brice Ozenne
-##     Update #: 9
+##     Update #: 35
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,14 +16,13 @@
 ### Code:
 
 if(FALSE){
-    library(testthat)
     library(BuyseTest)
     library(data.table)
 
     library(testthat)
 }
 
-context("Check BuyseTest without strata")
+context("Check stratification in BuyseTest")
 
 
 ## * simulate data
@@ -34,35 +33,129 @@ dt.strata <- cbind(id = 1:n,
                    simBuyseTest(n,
                                 n.strata = 3,
                                 argsBin = list(name = "Y_1"),
-                                argsCont = NULL,
+                                argsCont = list(name = "Y_2"),
                                 argsTTE = NULL,
                                 names.strata = "stratum"))
 dt.strata$Y_1 <- as.numeric(dt.strata$Y_1)-1
 dt.strata$stratum <- as.numeric(dt.strata$stratum)
 dt.strata <- dt.strata[order(dt.strata$stratum),]
 
+all.stat <- c("count.favorable","count.unfavorable","count.neutral","count.uninf","netBenefit","winRatio","favorable","unfavorable","neutral","uninf")
+
 ## * No strata
 test_that("no strata (equivalence glm)",{
-    ## GS <- WINS::win.stat(data = dt.strata, summary.print = FALSE,
+    ## GS.glm <- WINS::win.stat(data = dt.strata, summary.print = FALSE,
     ##                      ep_type = c("bin"),
     ##                      arm.name = c("T","C"), tau = 0, priority = 1,
     ##                      alpha = 0.05, digit = 3, censoring_adjust = "No",
     ##                      weight = "unstratified", pvalue = "two-sided")
-    ## c(GS$Win_statistic$Win_Ratio[1],GS$Win_statistic$Net_Benefit[1])
+    ## c(GS.glm$Win_statistic$Win_Ratio[1],GS.glm$Win_statistic$Net_Benefit[1])
 
     e.glmLOGIT <- glm(Y_1 ~ treatment, data = dt.strata, family = binomial(link="logit"))
     e.glmID <- glm(Y_1 ~ treatment, data = dt.strata, family = binomial(link="identity"))
+    GS.glm <- c(WR = as.double(exp(coef(e.glmLOGIT)["treatmentT"])),
+                NB = as.double(coef(e.glmID)["treatmentT"])
+                )
 
-    GS <- c(WR = as.double(exp(coef(e.glmLOGIT)["treatmentT"])),
-            NB = as.double(coef(e.glmID)["treatmentT"])
-            )
-
-    e.BT <- BuyseTest(treatment ~ bin(Y_1), data = dt.strata, trace = FALSE)
+    ## ** check equivalence glm
+    e.BT <- BuyseTest(treatment ~ bin(Y_1), data = dt.strata, trace = FALSE,
+                      method.inference = "u-statistic")
+    ## summary(e.BT)
     test <- c(WR = as.double(coef(e.BT, statistic = "winRatio")),
               NB = as.double(coef(e.BT, statistic = "netBenefit"))
               )
 
-    expect_equal(test, GS, tol = 1e-5)
+    expect_equal(test, GS.glm, tol = 1e-5)
+
+})
+
+test_that("no strata (check coef)",{
+
+    ## ** one endpoint
+    e.BT <- BuyseTest(treatment ~ bin(Y_1), data = dt.strata, trace = FALSE,
+                      method.inference = "bootstrap", n.resampling = 10)
+
+    ## GS.coef <- sapply(all.stat, function(iStat){unname(coef(e.BT, statistic = iStat))})
+    GS.coef <- c("count.favorable" = 2448, "count.unfavorable" = 2548, "count.neutral" = 5004, "count.uninf" = 0,
+                 "netBenefit" = -0.01, "winRatio" = 0.96075353, "favorable" = 0.2448, "unfavorable" = 0.2548, "neutral" = 0.5004, "uninf" = 0)
+
+    for(iStat in all.stat){
+        expect_equal(as.double(coef(e.BT, statistic = iStat)),
+                     as.double(GS.coef[iStat]), tol = 1e-5)        
+        if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
+            expect_equal(coef(e.BT, statistic = iStat),
+                         coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
+            expect_equal(as.double(coef(e.BT, statistic = iStat)),
+                         as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE)), tol = 1e-5)
+        }
+        expect_equal(coef(e.BT, statistic = iStat),
+                     coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE), tol = 1e-5)
+        expect_equal(as.double(coef(e.BT, statistic = iStat)),
+                     as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE)), tol = 1e-5)
+
+        if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
+            if(iStat %in% c("neutral","uninf") == FALSE){
+                expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
+                             coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+                expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
+                             as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)), tol = 1e-5)
+            }
+            expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
+                         coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE), tol = 1e-5)
+            expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
+                         as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)), tol = 1e-5)
+        }
+    }
+
+    ## ** two endpoints
+    e.BT2 <- BuyseTest(treatment ~ bin(Y_1) + cont(Y_2), data = dt.strata, trace = FALSE,
+                      method.inference = "bootstrap", n.resampling = 10)
+
+    test <- c(WR = as.double(coef(e.BT2, statistic = "winRatio", endpoint = "Y_1")),
+              NB = as.double(coef(e.BT2, statistic = "netBenefit", endpoint = "Y_1"))
+              )
+
+    expect_equal(test, c("WR" = 0.96075353, "NB" = -0.01), tol = 1e-5)
+
+    for(iStat in all.stat){ ## iStat <- "count.favorable"
+        expect_equal(as.double(coef(e.BT2, statistic = iStat, endpoint = "Y_1")),
+                     as.double(GS.coef[iStat]), tol = 1e-5)
+        if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
+            expect_equal(coef(e.BT2, statistic = iStat),
+                         coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
+            expect_equal(as.double(coef(e.BT2, statistic = iStat)),
+                         as.double(coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE)), tol = 1e-5)
+        }
+
+        test1 <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE)
+        test2 <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE)
+        if(iStat %in% c("count.neutral","neutral","count.uninf","uninf")){
+            expect_equal(coef(e.BT2, statistic = iStat), test1, tol = 1e-5)
+            expect_equal(unname(coef(e.BT2, statistic = iStat)), as.double(test2), tol = 1e-5)
+        }else if(iStat != "winRatio"){
+            expect_equal(coef(e.BT2, statistic = iStat), cumsum(test1), tol = 1e-5)
+            expect_equal(unname(coef(e.BT2, statistic = iStat)), cumsum(test2), tol = 1e-5)
+        }
+
+        if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
+            if(iStat %in% c("neutral","uninf") == FALSE){
+                expect_equal(coef(e.BT2, statistic = iStat, resampling = TRUE),
+                             coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+                expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)),
+                             as.double(coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)), tol = 1e-5)
+            }
+
+            test1 <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE)
+            test2 <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)
+            if(iStat %in% c("neutral","uninf")){
+                expect_equal(coef(e.BT2, statistic = iStat, resampling = TRUE), test1, tol = 1e-5)
+                expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)), as.double(test2), tol = 1e-5)
+            }else if(iStat != "winRatio"){        
+                expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), .rowCumSum_cpp(test1), tol = 1e-5)
+                expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), unname(cbind(test2[,,"Y_1"], test2[,,"Y_1"]+test2[,,"Y_2"])), tol = 1e-5)
+            }
+        }
+    }
 })
 
 ## * Strata (historical weight)
@@ -74,14 +167,16 @@ test_that("strata (historical weight)",{
     ##                      alpha = 0.05, digit = 3, censoring_adjust = "No",
     ##                      weight = "equal", pvalue = "two-sided")
     ## c(GS$Win_statistic$Win_Ratio[1],GS$Win_statistic$Net_Benefit[1])
-    GS <- c("WR" = 1.33187773, "NB" = 0.06859206)
+    GS <- c("WR" = 0.99196326, "NB" = -0.00209895)
 
-    e.BT <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, trace = FALSE)
+    ## ** check equivalence WINS
+    e.BT <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, trace = FALSE,
+                      method.inference = "u-statistic")
     ls.eBT <- by(dt.strata, INDICES = dt.strata$stratum, FUN = function(iData){
         BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE)
     })
 
-    ## point estimate
+    ## *** point estimate
     test <- c(WR = as.double(coef(e.BT, statistic = "winRatio")),
               NB = as.double(coef(e.BT, statistic = "netBenefit"))
               )
@@ -92,44 +187,195 @@ test_that("strata (historical weight)",{
     n.pairs <- sapply(ls.eBT, function(iBT){iBT@n.pairs})
     weight <- n.pairs/sum(n.pairs)
 
-    expect_equal(unname(test["NB"]),
-                 weighted.mean(sapply(ls.eBT, coef, statistic = "netBenefit"), weight))
-    expect_equal(unname(test["WR"]),
-                 sum(count.favorable)/sum(count.unfavorable))
+    expect_equal(unname(test["NB"]), weighted.mean(sapply(ls.eBT, coef, statistic = "netBenefit"), weight))
+    expect_equal(unname(test["WR"]), sum(count.favorable)/sum(count.unfavorable))
 
-    ## iid
-    test.iid <- do.call(rbind,lapply(1:3, function(iS){(ls.eBT[[iS]]@iidAverage$favorable - ls.eBT[[iS]]@iidAverage$unfavorable)*weight[[iS]]}))
-
-    GS.iid <- e.BT@iidAverage$favorable - e.BT@iidAverage$unfavorable
-    expect_equal(test.iid, GS.iid, tol = 1e-5)
-
-
-    e.BT@covariance
-
-    GS.iid <- e.BT@iidAverage$favorable/sum(count.unfavorable) - e.BT@iidAverage$unfavorable*(sum(count.favorable)/sum(count.unfavorable)^2) 
-    crossprod(GS.iid)
-
-    0.00147339/sum(count.unfavorable)^2 + 0.001064895*sum(count.favorable)^2/sum(count.unfavorable)^4 + 2*0.001135432*sum(count.favorable)/sum(count.unfavorable)^3
-    0.00147339 0.001064895 -0.001135432 0.004809149 0.1495202
+    ## *** iid
+    testNB.iid <- do.call(rbind,lapply(1:3, function(iS){(ls.eBT[[iS]]@iidAverage$favorable - ls.eBT[[iS]]@iidAverage$unfavorable)*weight[[iS]]}))
+    ## WR deduce from the global iid and global Delta
+    GS.iid <- list(NB = e.BT@iidAverage$favorable - e.BT@iidAverage$unfavorable,
+                   WR = e.BT@iidAverage$favorable/e.BT@Delta[,"unfavorable"] - e.BT@iidAverage$unfavorable*(e.BT@Delta[,"favorable"]/e.BT@Delta[,"unfavorable"]^2)
+                   )
+    GS.sigma2 <- list(NB = e.BT@covariance[,"netBenefit"],
+                      WR = e.BT@covariance[,"winRatio"]
+                      )
+    expect_equal(testNB.iid, GS.iid$NB, tol = 1e-5)
+    expect_equal(crossprod(testNB.iid)[1,1], GS.sigma2$NB, tol = 1e-5)
+  
 })
 
+test_that("strata (check coef)",{
 
-## * Strata (historical weight)
-test_that("strata (MH weights)",{
-ecount.favorable <- coef(e.BT, statistic = "count.favorable", stratified = TRUE)[,1]
-ecount.unfavorable <- coef(e.BT, statistic = "count.unfavorable", stratified = TRUE)[,1]
-count.strata <- table(ddd$stratum)
-n.pairs <- e.BT@n.pairs
 
-res_mix_equalU$Win_statistic$Win_Ratio
-coef(e.BT, statistic = "winRatio")
-sum(ecount.favorable)/sum(ecount.unfavorable)
-## weighted.mean(ecount.favorable/ecount.unfavorable, n.pairs/sum(n.pairs))
+  ## ** one endpoint
+  e.BT <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, trace = FALSE,
+                      method.inference = "bootstrap", n.resampling = 10)
 
-res_mix_equalU$Win_statistic$Net_Benefit
-coef(e.BT, statistic = "netBenefit")
-sum(ecount.favorable)/sum(n.pairs) - sum(ecount.unfavorable)/sum(n.pairs)
-weighted.mean(ecount.favorable/n.pairs - ecount.unfavorable/n.pairs, n.pairs/sum(n.pairs))
+  ## GS.coef <- sapply(all.stat, function(iStat){unname(coef(e.BT, statistic = iStat))})
+  GS.coef <- c("count.favorable" = 864, "count.unfavorable" = 871, "count.neutral" = 1600, "count.uninf" = 0,
+               "netBenefit" = -0.00209895, "winRatio" = 0.99196326, "favorable" = 0.25907046, "unfavorable" = 0.26116942, "neutral" = 0.47976012, "uninf" = 0)
+
+  for(iStat in all.stat){ ## iStat <- "favorable"
+      expect_equal(as.double(coef(e.BT, statistic = iStat)),
+                   as.double(GS.coef[iStat]), tol = 1e-5)        
+      if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
+          expect_equal(coef(e.BT, statistic = iStat),
+                       coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
+          test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE)
+          if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf")){
+              expect_equal(as.double(coef(e.BT, statistic = iStat)), as.double(sum(test)), tol = 1e-5)
+          }else if(iStat != "winRatio"){
+              expect_equal(as.double(coef(e.BT, statistic = iStat)), as.double(sum(test * e.BT@weightStrata)), tol = 1e-5)
+          }
+      }
+      expect_equal(coef(e.BT, statistic = iStat),
+                   coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE), tol = 1e-5)
+      test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE)
+      if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf")){
+          expect_equal(as.double(coef(e.BT, statistic = iStat)), as.double(sum(test)), tol = 1e-5)
+      }else if(iStat != "winRatio"){
+          expect_equal(as.double(coef(e.BT, statistic = iStat)), as.double(sum(test * e.BT@weightStrata)), tol = 1e-5)
+      }
+
+      if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
+          if(iStat %in% c("neutral","uninf") == FALSE){
+              expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
+                           coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+              test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)
+              if(iStat != "winRatio"){
+                  expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
+                               as.double(rowSums(test[,,1] * e.BT@weightStrataResampling)), tol = 1e-5)
+              }
+          }
+          expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
+                       coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE), tol = 1e-5)
+          test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)
+          if(iStat != "winRatio"){
+              expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
+                           as.double(rowSums(test[,,1] * e.BT@weightStrataResampling)), tol = 1e-5)
+          }
+      }
+  }
+
+  ## ** two endpoints
+  e.BT2 <- BuyseTest(treatment ~ bin(Y_1) + cont(Y_2) + stratum, data = dt.strata, trace = FALSE,
+                     method.inference = "bootstrap", n.resampling = 10)
+
+  for(iStat in all.stat){ ## iStat <- "favorable"
+      if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
+          expect_equal(coef(e.BT2, statistic = iStat),
+                       coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
+          test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE)
+          if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf")){
+              expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(test)), tol = 1e-5)
+          }else if(iStat != "winRatio"){
+              expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(.colMultiply_cpp(test, e.BT2@weightStrata))), tol = 1e-5)
+          }
+      }
+
+      test <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE)
+      if(iStat %in% c("count.neutral","neutral","count.uninf","uninf")){
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(test), tol = 1e-5)
+      }else if(iStat != "winRatio"){
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(cumsum(test)), tol = 1e-5)
+      }
+      test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE)
+      if(iStat %in% c("count.neutral","count.uninf")){
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(test)), tol = 1e-5)
+      }else if(iStat %in% c("count.favorable","count.unfavorable")){
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(cumsum(colSums(test))), tol = 1e-5)
+      }else if(iStat %in% c("neutral","uninf")){
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(.colMultiply_cpp(test, e.BT2@weightStrata))), tol = 1e-5)
+      }else if(iStat != "winRatio"){
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(cumsum(colSums(.colMultiply_cpp(test, e.BT2@weightStrata)))), tol = 1e-5)
+      }
+
+      if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
+          if(iStat %in% c("neutral","uninf") == FALSE){
+              expect_equal(coef(e.BT2, statistic = iStat, resampling = TRUE),
+                           coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+              test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)
+              if(iStat != "winRatio"){
+                  expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)),
+                               c(as.double(rowSums(test[,,1] * e.BT2@weightStrataResampling)), as.double(rowSums(test[,,2] * e.BT2@weightStrataResampling))), tol = 1e-5)
+              }
+          }
+          test <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE)
+          if(iStat %in% c("neutral","uninf")){
+              expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)),
+                           unname(test), tol = 1e-5)
+          }else if(iStat != "winRatio"){
+              expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)),
+                           unname(.rowCumSum_cpp(test)), tol = 1e-5)
+          }
+          test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)
+          if(iStat %in% c("neutral","uninf")){
+              expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)),
+                           c(as.double(rowSums(test[,,1] * e.BT2@weightStrataResampling)), as.double(rowSums((test[,,2]) * e.BT2@weightStrataResampling))), tol = 1e-5)
+          }else if(iStat != "winRatio"){
+              expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)),
+                           c(as.double(rowSums(test[,,1] * e.BT2@weightStrataResampling)), as.double(rowSums((test[,,1]+test[,,2]) * e.BT2@weightStrataResampling))), tol = 1e-5)
+          }
+      }
+  }
+
+})
+
+## * Strata (CMH weight)
+test_that("strata (CMH weights)",{
+
+    ## GS.WINS <- WINS::win.stat(data = dt.strata, summary.print = FALSE,
+    ##                           ep_type = c("bin"),
+    ##                           arm.name = c("T","C"), tau = 0, priority = 1,
+    ##                           alpha = 0.05, digit = 3, censoring_adjust = "No",
+    ##                           weight = "MH-type", pvalue = "two-sided")
+    ## c(GS$Win_statistic$Win_Ratio[1],GS$Win_statistic$Net_Benefit[1])
+    GS.WINS <- c("WR" = 1.35779279, "NB" = 0.07341819)
+    GS.stats <- mantelhaen.test(xtabs(data = dt.strata, ~ treatment + Y_1 + stratum))
+
+    e.BT <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, pool.strata = "CMH", trace = FALSE)
+    ls.eBT <- by(dt.strata, INDICES = dt.strata$stratum, FUN = function(iData){
+        BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE)
+    })
+    ecount.favorable <- coef(e.BT, statistic = "count.favorable", stratified = TRUE)[,1]
+    ecount.unfavorable <- coef(e.BT, statistic = "count.unfavorable", stratified = TRUE)[,1]
+    ecount.strata <- table(dt.strata$stratum)
+    ecount.pairs <- e.BT@n.pairs
+    weight <- ecount.pairs/count.strata
+
+    ## estimate
+    test <- list(FA = weighted.mean( ecount.favorable/ecount.pairs, weight),
+                 UN = weighted.mean( ecount.unfavorable/ecount.pairs, weight),
+                 NB = weighted.mean( ecount.favorable/ecount.pairs, weight) - weighted.mean( ecount.unfavorable/ecount.pairs, weight),
+                 WR = weighted.mean( ecount.favorable/ecount.pairs, weight) / weighted.mean( ecount.unfavorable/ecount.pairs, weight)
+                 )
+    expect_equal(unname(GS["NB"]), test$NB, tol = 1e-5)
+    expect_equal(unname(GS["WR"]), test$WR, tol = 1e-5)
+    expect_equal(unname(GS.stats$estimate), test$WR, tol = 1e-5)
+    expect_equal(as.double(e.BT@Delta), as.double(test), tol = 1e-5)
+
+
+    e.BTopt1 <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, pool.strata = "var-favorable", trace = FALSE)
+    e.BTopt2 <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, pool.strata = "var-unfavorable", trace = FALSE)
+    e.BTopt3 <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, pool.strata = "var-netBenefit", trace = FALSE)
+    e.BTopt4 <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, pool.strata = "var-winRatio", trace = FALSE)
+
+    test.optimal <- c(FA = as.double(coef(e.BTopt1, statistic = "favorable")),
+                      UN = as.double(coef(e.BTopt2, statistic = "unfavorable")),
+                      NB = as.double(coef(e.BTopt3, statistic = "netBenefit")),
+                      WR = as.double(coef(e.BTopt4, statistic = "winRatio")))
+  
+    GS.optimal <- c(FA = weighted.mean( ecount.favorable/ecount.pairs,
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "favorable"))[,"se"]^(-2)),
+                    UN = weighted.mean( ecount.unfavorable/ecount.pairs,
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "unfavorable"))[,"se"]^(-2)),
+                    NB = weighted.mean( (ecount.favorable-ecount.unfavorable)/ecount.pairs,
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "netBenefit"))[,"se"]^(-2)),
+                    WR = weighted.mean( ecount.favorable/ecount.unfavorable,
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "winRatio"))[,"se"]^(-2))
+                    )
+    
+    expect_equal(test.optimal, GS.optimal, tol = 1e-5)
 })
 
 

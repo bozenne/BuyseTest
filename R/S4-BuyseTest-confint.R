@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 863
+##     Update #: 867
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -206,7 +206,7 @@ setMethod(f = "confint",
 
                       ls.iid <- setNames(lapply(1:D, function(iD){
                           cbind(ls.iid[[iD]],
-                                "covariance" = ls.iid[[iD]][,"favorable"]*ls.iid[[iD]][,"unfavorable"],
+                                "covariance" = ls.iid[[iD]][,"favorable"] * ls.iid[[iD]][,"unfavorable"],
                                 "netBenefit" = ls.iid[[iD]][,"favorable"] - ls.iid[[iD]][,"unfavorable"],
                                 "winRatio" = ls.iid[[iD]][,"favorable"]/delta.unfavorable[iD] - ls.iid[[iD]][,"unfavorable"]*delta.favorable[iD]/delta.unfavorable[iD]^2 
                                 )
@@ -305,14 +305,7 @@ setMethod(f = "confint",
               }
               
               if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
-                  if(cumulative){
-                      Delta.se <- sqrt(object@covariance[,statistic])
-                  }else{
-                      if(attr(method.inference,"hprojection")==2){
-                          warning("Inference will be performed using a first order H projection. \n")
-                      }
-                      Delta.se <- sqrt(unlist(lapply(Delta.iid, function(iIID){sum(iIID^2)})))
-                  }
+                  Delta.se <- sqrt(object@covariance[,statistic])
               }else{
                   Delta.se <- NULL
               }              
@@ -365,7 +358,7 @@ setMethod(f = "confint",
                   if(object@hierarchical){
                       trans.weight <- 1
                   }else{
-                      trans.weight <- sum(object@weight)
+                      trans.weight <- sum(object@weightEndpoint)
                   }
 
                   trans.delta <- switch(statistic,
@@ -464,7 +457,7 @@ setMethod(f = "confint",
                                                     out <- se
                                                 }else{
                                                     out <- trans.weight*(se/2)*(1-(2*(itrans.delta(x)/trans.weight-1/2))^2)
-n                                                    if(any(na.omit(se)==0)){
+                                                    if(any(na.omit(se)==0)){
                                                         out[se==0] <- 0
                                                     }
                                                 }

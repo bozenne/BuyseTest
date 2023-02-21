@@ -58,7 +58,7 @@ initializeArgs <- function(status,
                            trace = NULL,
                            treatment,
                            type,
-                           weight,
+                           weightEndpoint,
                            envir){
 
     ## ** apply default options
@@ -91,7 +91,7 @@ initializeArgs <- function(status,
                        threshold = !missing(threshold) && !is.null(threshold),
                        treatment = !missing(treatment) && !is.null(treatment),
                        type = !missing(type) && !is.null(type),
-                       weight = !missing(weight) && !is.null(weight)
+                       weightEndpoint = !missing(weightEndpoint) && !is.null(weightEndpoint)
                        )
         if(any(test.null)){
             txt <- names(test.null)[test.null]
@@ -105,7 +105,7 @@ initializeArgs <- function(status,
         endpoint <- resFormula$endpoint
         threshold <- resFormula$threshold
         status <- resFormula$status
-        weight <- resFormula$weight
+        weightEndpoint <- resFormula$weightEndpoint
         operator <- resFormula$operator
         censoring <- resFormula$censoring
         restriction <- resFormula$restriction
@@ -150,11 +150,11 @@ initializeArgs <- function(status,
         if(is.null(operator)){
             operator <- rep(">0",D)
         }
-        if(is.null(weight)){
+        if(is.null(weightEndpoint)){
             if(hierarchical){
-                weight <- rep(1,D)
+                weightEndpoint <- rep(1,D)
             }else{
-                weight <- rep(1/D,D)
+                weightEndpoint <- rep(1/D,D)
             }
         }
         if(is.null(status)){
@@ -218,13 +218,22 @@ initializeArgs <- function(status,
     }
 
     ## ** pool.strata
-    if(is.character(pool.strata)){
-        pool.strata <- switch(tolower(pool.strata),
+    if(is.null(strata)){
+        pool.strata <- 0
+        attr(pool.strata,"original") <- "none"
+    }else if(is.character(pool.strata)){
+        pool.strata_save <- tolower(pool.strata)
+        pool.strata <- switch(pool.strata_save,
                                "buyse" = 0,
-                               "mh" = 1,
                                "cmh" = 1,
+                               "equal" = 2,
+                               "var-favorable" = 3.1,
+                               "var-unfavorable" = 3.2,
+                               "var-netbenefit" = 3.3,
+                               "var-winratio" = 3.4,
                                NA
-                               )
+                              )
+        attr(pool.strata,"original") <- pool.strata_save
     }else{
         pool.strata <- NA
     }
@@ -344,7 +353,7 @@ initializeArgs <- function(status,
         type = type,
         Uendpoint = Uendpoint,
         Ustatus = Ustatus,
-        weight = weight,
+        weightEndpoint = weightEndpoint,
         debug = option$debug
     ))
 }
@@ -596,7 +605,7 @@ initializeFormula <- function(x, hierarchical, envir){
     operator <- NULL
     censoring <- NULL
     restriction <- NULL
-    weight <- NULL
+    weightEndpoint <- NULL
     type <- NULL
     validArgs <- c("endpoint","mean",
                    "status", "std",
@@ -726,11 +735,11 @@ initializeFormula <- function(x, hierarchical, envir){
             operator <- c(operator, ">0")
         }
         if("weight" %in% iName){
-            weight <- c(weight, as.numeric(eval(expr = parse(text = iArg[iName=="weight"]))))
+            weightEndpoint <- c(weightEndpoint, as.numeric(eval(expr = parse(text = iArg[iName=="weight"]))))
         }else if(hierarchical){
-            weight <- c(weight, 1)
+            weightEndpoint <- c(weightEndpoint, 1)
         }else{
-            weight <- c(weight, as.numeric(NA))
+            weightEndpoint <- c(weightEndpoint, as.numeric(NA))
         }
         if("censoring" %in% iName){
             censoring <- c(censoring, gsub("\"","",iArg[iName=="censoring"]))
@@ -766,10 +775,10 @@ initializeFormula <- function(x, hierarchical, envir){
     }
 
     ## ** export
-    if(all(is.na(weight))){
-        weight <- rep(1/length(weight), length(weight))
-    }else if(sum(weight, na.rm = TRUE)<1){
-        weight[!is.na(weight)] <- (1-sum(weight, na.rm = TRUE))/sum(is.na(weight))
+    if(all(is.na(weightEndpoint))){
+        weightEndpoint <- rep(1/length(weightEndpoint), length(weightEndpoint))
+    }else if(sum(weightEndpoint, na.rm = TRUE)<1){
+        weightEndpoint[!is.na(weightEndpoint)] <- (1-sum(weightEndpoint, na.rm = TRUE))/sum(is.na(weightEndpoint))
     }
 
     out <- list(treatment = treatment,
@@ -778,7 +787,7 @@ initializeFormula <- function(x, hierarchical, envir){
                 threshold = threshold,
                 status = status,
                 operator = operator,
-                weight = weight,
+                weightEndpoint = weightEndpoint,
                 censoring = censoring,
                 restriction = restriction,
                 strata = strata)

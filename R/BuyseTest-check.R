@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Nov  7 2022 (12:25) 
+## Last-Updated: Feb 14 2023 (11:13) 
 ##           By: Brice Ozenne
-##     Update #: 318
+##     Update #: 321
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -49,7 +49,7 @@ testArgs <- function(name.call,
                      trace,
                      treatment,
                      type,
-                     weight,
+                     weightEndpoint,
                      ...){
 
     ## ** data
@@ -205,7 +205,7 @@ testArgs <- function(name.call,
     ## ** pool.strata
     if(is.na(pool.strata)){
         stop("BuyseTest: wrong specification of \'pool.strata\'. \n",
-             "valid values: \"Buyse\" or \"MH\". \n")
+             "valid values: \"Buyse\", \"CMH\", \"equal\", \"var-favorable\", \"var-unfavorable\", \"var-netBenefit\", \"var-winRatio\". \n")
     }
 
     ## ** model.tte
@@ -507,14 +507,14 @@ testArgs <- function(name.call,
         stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
     }
 
-    ## ** weight
-    if(length(weight) != D){
-            stop("BuyseTest: argument \'weight\' must have length the number of endpoints \n")
+    ## ** weightEndpoint
+    if(length(weightEndpoint) != D){
+            stop("BuyseTest: argument \'weightEndpoint\' must have length the number of endpoints \n")
     }
     
     if(hierarchical){
-        if(any(weight!=1) || any(is.na(weight))){
-            stop("BuyseTest: all the weights must be 1 when using hierarchical GPC \n")
+        if(any(weightEndpoint!=1) || any(is.na(weightEndpoint))){
+            stop("BuyseTest: all the weights for the endpoints must be 1 when using hierarchical GPC \n")
         }
     }
     

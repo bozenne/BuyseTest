@@ -94,7 +94,7 @@ setMethod(f = "getIid",
               }
 
               n.strata <- length(object@level.strata)
-              weight <- object@weight
+              weightEndpoint <- object@weightEndpoint
               n.pairs <- object@n.pairs
               ntot.pair <- sum(n.pairs)
               indexC <- attr(object@level.treatment,"indexC")
@@ -206,9 +206,9 @@ setMethod(f = "getIid",
                   ## *** weight endpoints and cumulate them to obtain (cumulative) first order projection
                   keep.names <- list(favorable = colnames(object.iid$favorable),
                                      unfavorable = colnames(object.iid$unfavorable))
-                  object.iid$favorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$favorable, weight))
+                  object.iid$favorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$favorable, weightEndpoint))
                   colnames(object.iid$favorable) <- keep.names$favorable
-                  object.iid$unfavorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$unfavorable, weight))
+                  object.iid$unfavorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$unfavorable, weightEndpoint))
                   colnames(object.iid$unfavorable) <- keep.names$unfavorable
 
               }
