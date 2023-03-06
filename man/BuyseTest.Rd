@@ -8,13 +8,14 @@ BuyseTest(
   formula,
   data,
   scoring.rule = NULL,
+  pool.strata = NULL,
   correction.uninf = NULL,
   model.tte = NULL,
   method.inference = NULL,
   n.resampling = NULL,
   strata.resampling = NULL,
   hierarchical = NULL,
-  weight = NULL,
+  weightEndpoint = NULL,
   neutral.as.uninf = NULL,
   add.halfNeutral = NULL,
   keep.pairScore = NULL,
@@ -43,6 +44,12 @@ See Details, section "Specification of the GPC model".}
 Can be \code{"Gehan"} or \code{"Peron"}.
 See Details, section "Handling missing values".}
 
+\item{pool.strata}{[character] weights used to combine estimates across strata. Can be
+\code{"Buyse"} to weight proportionnally to the number of pairs in the strata,
+\code{"CMH"} to weight proportionnally to the ratio between the number of pairs in the strata and the number of observations in the strata.
+\code{"equal"} to weight equally each strata,
+or \code{"var-netBenefit"} to weight each strata proportionally to the precision of its estimated net benefit (similar syntax for the win ratio: \code{"var-winRatio"})}
+
 \item{correction.uninf}{[integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
 0 indicates no correction, 1 impute the average score of the informative pairs, and 2 performs IPCW.
 See Details, section "Handling missing values".}
@@ -63,7 +70,7 @@ See Details, section "Statistical inference".}
 \item{hierarchical}{[logical] should only the uninformative pairs be analyzed at the lower priority endpoints (hierarchical GPC)?
 Otherwise all pairs will be compaired for all endpoint (full GPC).}
 
-\item{weight}{[numeric vector] weights used to cumulating the pairwise scores over the endpoints.
+\item{weightEndpoint}{[numeric vector] weights used to cumulating the pairwise scores over the endpoints.
 Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.}
 
 \item{neutral.as.uninf}{[logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
@@ -173,6 +180,11 @@ A large number of permutations (e.g. \code{n.resampling=10000}) are needed to ob
 The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. \cr \cr
 }
 
+\bold{Pooling results across strata} the relative contribution of each strata to the global estimator is decided by \cr
+\itemize{
+\item \code{"CMH"} weights: Cochran-Mantel-Haenszel type weights which are optimal if the odds ratios are constant across strata.
+\item \code{"Buyse"} weights: optimal if the risk difference is constant across strata. \cr \cr
+}
 
 \bold{Default values} \cr
 The default of the arguments

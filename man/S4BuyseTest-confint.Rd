@@ -10,6 +10,7 @@
   object,
   endpoint = NULL,
   statistic = NULL,
+  stratified = FALSE,
   cumulative = TRUE,
   null = NULL,
   conf.level = NULL,
@@ -17,7 +18,8 @@
   method.ci.resampling = NULL,
   order.Hprojection = NULL,
   transformation = NULL,
-  cluster = NULL
+  cluster = NULL,
+  sep = "."
 )
 }
 \arguments{

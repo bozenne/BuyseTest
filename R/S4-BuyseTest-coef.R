@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Feb 21 2023 (12:18) 
+## Last-Updated: Mar  6 2023 (10:25) 
 ##           By: Brice Ozenne
-##     Update #: 231
+##     Update #: 236
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -263,9 +263,24 @@ setMethod(f = "coef",
                       }
                   }                      
               }else{
-                  M.fav <- coef(object, cumulative = cumulative, stratified = stratified, resampling = resampling, statistic = "favorable")
-                  M.unfav <- coef(object, cumulative = cumulative, stratified = stratified, resampling = resampling, statistic = "unfavorable")
-                  out <- M.fav/M.unfav
+
+                  if(attr(object@weightStrata,"type")=="var-winratio" && cumulative == FALSE && stratified == FALSE){
+                      A.fav <- coef(object, cumulative = cumulative, stratified = TRUE, resampling = resampling, statistic = "favorable")
+                      A.unfav <- coef(object, cumulative = cumulative, stratified = TRUE, resampling = resampling, statistic = "unfavorable")
+                      A.win <- A.fav/A.unfav
+                      if(resampling){
+                          out <- matrix(apply(A.win, MARGIN = 3, FUN = function(iM){rowSums(iM*weightStrataResampling)}),
+                                        nrow = dim(deltaResampling)[1], ncol = dim(deltaResampling)[3],
+                                        dimnames = dimnames(deltaResampling)[c(1,3)])                          
+                      }else{
+                          out <- stats::setNames(colSums(.colMultiply_cpp(A.win, object@weightStrata)),
+                                                 colnames(A.win))
+                      }
+                  }else{
+                      M.fav <- coef(object, cumulative = cumulative, stratified = stratified, resampling = resampling, statistic = "favorable")
+                      M.unfav <- coef(object, cumulative = cumulative, stratified = stratified, resampling = resampling, statistic = "unfavorable")
+                      out <- M.fav/M.unfav
+                  }
               }
           
               ## ** export

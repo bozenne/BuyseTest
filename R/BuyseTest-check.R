@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Feb 14 2023 (11:13) 
+## Last-Updated: Mar  6 2023 (09:40) 
 ##           By: Brice Ozenne
-##     Update #: 321
+##     Update #: 323
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -353,6 +353,9 @@ testArgs <- function(name.call,
                        valid.length = 1,
                        valid.values = c("none","u-statistic","permutation", "studentized permutation", "bootstrap", "studentized bootstrap"),
                        method = "BuyseTest")
+    }
+    if(pool.strata>3 && method.inference %in% c("u-statistic","studentized permutation","studentized bootstrap")){
+        stop("Only bootstrap and permutation can be used to quantify uncertainty when weighting strata-specific effects by the inverse of the variance. \n")
     }
     if(method.inference != "none" && any(table(data[[treatment]])<2) ){
         warning("P-value/confidence intervals will not be valid with only one observation. \n")

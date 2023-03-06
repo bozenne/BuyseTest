@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 867
+##     Update #: 895
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,6 +32,8 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param endpoint [character] for which endpoint(s) the confidence intervals should be output?
 #' If \code{NULL} returns the confidence intervals for all endpoints.
+#' @param stratified [logical] should strata-specific statistic be output?
+#' Otherwise output a global statistics obtained after pooling the strata-specific ones.
 #' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
 #' @param null [numeric] right hand side of the null hypothesis (used for the computation of the p-value).
@@ -46,6 +48,7 @@
 #' @param method.ci.resampling [character] the method used to compute the confidence intervals and p-values when using bootstrap or permutation (\code{"percentile"}, \code{"gaussian"}, \code{"student"}).
 #' See the details section.
 #' @param cluster [numeric vector] Group of observations for which the iid assumption holds .
+#' @param sep [character] character string used to separate the endpoint and the strata when naming the statistics.
 #'  
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -112,6 +115,7 @@ setMethod(f = "confint",
           definition = function(object,
                                 endpoint = NULL,
                                 statistic = NULL,
+                                stratified = FALSE,
                                 cumulative = TRUE,
                                 null = NULL,
                                 conf.level = NULL,
@@ -119,7 +123,8 @@ setMethod(f = "confint",
                                 method.ci.resampling = NULL,
                                 order.Hprojection = NULL,
                                 transformation = NULL,
-                                cluster = NULL){
+                                cluster = NULL,
+                                sep="."){
 
               option <- BuyseTest.options()
               D <- length(object@endpoint)
@@ -138,6 +143,7 @@ setMethod(f = "confint",
               }
               
               ## ** normalize and check arguments
+              ## statistic
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
@@ -151,6 +157,7 @@ setMethod(f = "confint",
                              valid.length = 1,
                              method = "confint[S4BuyseTest]")
 
+              ## method.ci
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
                   if(is.null(method.ci.resampling)){                  
                       if(attr(method.inference,"studentized")){
@@ -181,76 +188,67 @@ setMethod(f = "confint",
               }else if(!is.null(method.ci.resampling)){
                   warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")                  
               }
-
-              if(attr(method.inference,"ustatistic")){
-                  if(!is.null(order.Hprojection) && order.Hprojection != attr(method.inference,"hprojection") || !is.null(cluster)){
-
-                      if(!is.null(order.Hprojection)){
-                          validInteger(order.Hprojection,
-                                       name1 = "order.Hprojection",
-                                       min = 1, max = 2, valid.length = 1,
-                                       method = "confint[S4BuyseTest]")
-                  
-                          if(order.Hprojection > attr(method.inference,"hprojection")){
-                              stop("Cannot find the second order of the H-decomposition. \n",
-                                   "Consider setting order.Hprojection to 2 in BuyseTest.options before calling BuyseTest. \n")
-                          }
-                      }
-                      if(identical(order.Hprojection,2) && !is.null(cluster)){
-                          warning("Inference will be performed using a first order H projection. \n")
-                      }
-                      ls.iid <- getIid(object, endpoint = 1:D, cluster = cluster, statistic = c("favorable","unfavorable"), cumulative = cumulative)
-                      delta.favorable <- coef(object, statistic = "favorable", cumulative = cumulative)
-                      delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = cumulative)
-                      keep.names <- dimnames(object@covariance)
-
-                      ls.iid <- setNames(lapply(1:D, function(iD){
-                          cbind(ls.iid[[iD]],
-                                "covariance" = ls.iid[[iD]][,"favorable"] * ls.iid[[iD]][,"unfavorable"],
-                                "netBenefit" = ls.iid[[iD]][,"favorable"] - ls.iid[[iD]][,"unfavorable"],
-                                "winRatio" = ls.iid[[iD]][,"favorable"]/delta.unfavorable[iD] - ls.iid[[iD]][,"unfavorable"]*delta.favorable[iD]/delta.unfavorable[iD]^2 
-                                )
-                      }), names(ls.iid))
-                      object@covariance <- do.call(rbind,lapply(ls.iid,function(iIID){
-                          c(colSums(iIID[,c("favorable","unfavorable")]^2),covariance = sum(iIID[,c("covariance")]),colSums(iIID[,c("netBenefit","winRatio")]^2))
-                      }))
-                      dimnames(object@covariance) <- keep.names
-                      ## object@covariance <- do.call(rbind, lapply(1:D, function(iE){ ## iE <- 1
-                      ##     iVar <- crossprod(ls.iid[[iE]])[c(1,4,2)]
-                      ##     return( c(iVar,
-                      ##               iVar[1] + iVar[2] - 2*iVar[3],
-                      ##               iVar[1]/delta.unfavorable[iE]^2 + iVar[2] * delta.favorable[iE]^2/delta.unfavorable[iE]^4 - 2*iVar[3] * delta.favorable[iE]/delta.unfavorable[iE]^3)
-                      ##            )
-                      ## }))
-                      Delta.iid <- lapply(ls.iid, function(iIID){iIID[,statistic,drop=FALSE]})
-                  }else{
-                      Delta.iid <- getIid(object, endpoint = 1:D, cluster = cluster, statistic = statistic, cumulative = cumulative)
-                  }
-                  
+              if(attr(method.inference,"studentized") && ((stratified==FALSE) || (cumulative==FALSE)) ){
+                  stop("Can only perform statistical inference based on studentized resampling for global cumulative effects. \n",
+                       "Consider setting argument \'stratified\' to FALSE and argument \'cumulative\' to FALSE. \n")
               }
-                       
+
+              ## order.Hprojection
+              if(attr(method.inference,"ustatistic")){
+                  if(!is.null(order.Hprojection) && order.Hprojection != attr(method.inference,"hprojection")){
+
+                      validInteger(order.Hprojection,
+                                   name1 = "order.Hprojection",
+                                   min = 1, max = 2, valid.length = 1,
+                                   method = "confint[S4BuyseTest]")
+                  
+                      if(order.Hprojection > attr(method.inference,"hprojection")){
+                          stop("Cannot find the second order of the H-decomposition. \n",
+                               "Consider setting order.Hprojection to 2 in BuyseTest.options before calling BuyseTest. \n")
+                      }
+
+                      object.hprojection <- FALSE ## move from order H-decomposition of order 2 to H-decomposition of order 1
+
+                  }else{
+                      object.hprojection <- TRUE
+                  }                  
+              }else{
+                  object.hprojection <- TRUE
+              }
+
+
+              ## conf.level
               validNumeric(conf.level,
                            name1 = "conf.level",
                            min = 0, max = 1,
                            refuse.NA = FALSE,
                            valid.length = 1,
                            method = "confint[S4BuyseTest]")
+              if(is.na(conf.level)){
+                  method.inference[] <- "none" ## uses [] to not remove the attributs of method.inference
+                  attr(method.inference,"permutation") <- FALSE
+                  attr(method.inference,"bootstrap") <- FALSE
+                  attr(method.inference,"studentized") <- FALSE
+                  attr(method.inference,"ustatistic") <- FALSE
+              }
+              alpha <- 1-conf.level
 
+              ## alternative
               validCharacter(alternative,
                              name1 = "alternative",
                              valid.values = c("two.sided","less","greater"),
                              valid.length = 1,
                              method = "confint[S4BuyseTest]")
 
+              ## transformation
               validLogical(transformation,
                            name1 = "transformation",
                            valid.length = 1,
                            method = "confint[S4BuyseTest]")
 
               ## endpoint
+              valid.endpoint <- names(object@endpoint)
               if(!is.null(endpoint)){
-                  valid.endpoint <- names(object@endpoint)
-                  n.endpoint <- length(valid.endpoint)
                   if(is.numeric(endpoint)){
                       validInteger(endpoint,
                                    name1 = "endpoint",
@@ -264,53 +262,14 @@ setMethod(f = "confint",
                                      valid.values = valid.endpoint,
                                      refuse.NULL = FALSE)
                   }
-              }
-
-              ## ** extract information
-              if(is.na(conf.level)){
-                  method.inference[] <- "none" ## uses [] to not remove the attributees of method.inference
-              }
-
-              all.endpoint <- names(object@endpoint)
-              Delta <- coef(object, statistic = statistic, cumulative = cumulative, stratified = FALSE)
-
-              if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
-                  Delta.resampling <- slot(object, name = "DeltaResampling")[,,statistic]
-                  if(!is.matrix(Delta.resampling)){
-                      Delta.resampling <- matrix(Delta.resampling, ncol = length(all.endpoint),
-                                                 dimnames = list(NULL, all.endpoint))
-                  }
-                  if(attr(method.inference,"studentized")){
-                      Delta.se.resampling <- sqrt(object@covarianceResampling[,,statistic])
-                      if(!is.matrix(Delta.se.resampling)){
-                          Delta.se.resampling <- matrix(Delta.se.resampling, ncol = length(all.endpoint),
-                                                        dimnames = list(NULL, all.endpoint))
-                      }
-                  }else{
-                      Delta.se.resampling <- NULL
-                  }
-                  if(cumulative==FALSE &&  length(all.endpoint)>1){
-                      ## only for point estimate as studentized returns an error
-                      for(iE in 2:length(all.endpoint)){
-                          if(statistic %in% c("netbenefit","favorable","unfavorable")){
-                              Delta.resampling[,iE] <- Delta.resampling[,iE] - Delta.resampling[,iE-1]
-                          }else if(statistic == "winratio"){
-                              Delta.resampling[,iE] <- (slot(object, name = "DeltaResampling")[,iE,"favorable"]-slot(object, name = "DeltaResampling")[,iE-1,"favorable"])/(slot(object, name = "DeltaResampling")[,iE,"unfavorable"]-slot(object, name = "DeltaResampling")[,iE-1,"unfavorable"])
-                          }
-                      }
-                  }
               }else{
-                  Delta.resampling <- NULL
-                  Delta.se.resampling <- NULL
+                  endpoint <- valid.endpoint
               }
+              n.endpoint <- length(endpoint)
+
+              ## strata
+              level.strata <- object@level.strata
               
-              if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
-                  Delta.se <- sqrt(object@covariance[,statistic])
-              }else{
-                  Delta.se <- NULL
-              }              
-              alpha <- 1-conf.level
-
               ## safety
               test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
               if(method.inference %in% c("u-statistic","u-statistic-bebu") && object@correction.uninf > 0){
@@ -318,7 +277,57 @@ setMethod(f = "confint",
                           "Standard errors / confidence intervals / p-values may not be correct. \n",
                           "Consider using a resampling approach or checking the control of the type 1 error with powerBuyseTest. \n")
               }
+
+              ## ** extract estimate
+              all.endpoint <- names(object@endpoint)
+              Delta <- coef(object, statistic = statistic, cumulative = cumulative, stratified = stratified, endpoint = endpoint)
+              if(stratified){
+                  index <- which(is.na(Delta*NA), arr.ind = TRUE)
+                  Delta <- stats::setNames(as.double(Delta),
+                                           paste0(colnames(Delta)[index[,"col"]],sep,rownames(Delta)[index[,"row"]]))
+              }
               
+              if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
+                  Delta.resampling <- coef(object, statistic = statistic, cumulative = cumulative, stratified = stratified, endpoint = endpoint, resampling = TRUE)
+                  if(stratified){
+                      Delta.resampling_save <- Delta.resampling
+                      gridName <- expand.grid(endpoint, level.strata)                      
+                      Delta.resampling <- matrix(NA, nrow = dim(Delta.resampling_save)[1], ncol = prod(dim(Delta.resampling_save)[2:3]),
+                                                 dimnames = list(dimnames(Delta.resampling_save)[[1]],paste0(gridName[,1],sep,gridName[,2])))
+                      for(iEndpoint in 1:n.endpoint){ ## iEndpoint <- 1
+                          Delta.resampling[,paste0(endpoint[iEndpoint],sep,level.strata)] <- Delta.resampling_save[,,iEndpoint]
+                      }
+                  }
+              }else{
+                  Delta.resampling <- NULL
+              }
+
+              ## ** extract standard error
+              if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
+
+                  if(object.hprojection && is.null(cluster) && stratified==FALSE && cumulative == TRUE){
+                      Delta.se <- sqrt(object@covariance[endpoint,statistic])
+                      if(attr(method.inference,"studentized")){
+                          Delta.se.resampling <- matrix(sqrt(object@covarianceResampling[,endpoint,statistic]),
+                                                        ncol = n.endpoint,
+                                                        dimnames = list(NULL, endpoint))
+                      }else{
+                          Delta.se.resampling <- NULL
+                      }
+                  }else{    
+                      if(identical(order.Hprojection,2)){
+                          warning("Inference will be performed using a first order H projection. \n")
+                      }
+                      Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, stratified = stratified, cluster = cluster)
+                      M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(iIID^2))}))
+                      Delta.se <- stats::setNames(as.double(M.se), names(Delta))
+                      Delta.se.resampling <- NULL
+                  }
+              }else{
+                  Delta.se <- NULL
+                  Delta.se.resampling <- NULL
+              }
+
               ## ** null hypothesis
               if(is.null(null)){
                   null <- switch(statistic,
@@ -479,7 +488,7 @@ setMethod(f = "confint",
                                                 alternative = alternative,
                                                 null = trans.delta(null),
                                                 alpha = alpha,
-                                                endpoint = all.endpoint,
+                                                endpoint = names(Delta),
                                                 backtransform.delta = itrans.delta,
                                                 backtransform.se = itrans.se.delta))
 
@@ -488,11 +497,7 @@ setMethod(f = "confint",
               if(length(index.NA)>0){
                   outConfint[index.NA,c("se","lower.ci","upper.ci","p.value")] <- NA
               }
-              if(!is.null(endpoint)){
-                  outConfint <- as.data.frame(outConfint[all.endpoint %in% endpoint,,drop=FALSE])
-              }else{
-                  outConfint <- as.data.frame(outConfint)
-              }
+              outConfint <- as.data.frame(outConfint)
               
               ## ** number of permutations
               if(method.inference != "none" && (attr(method.inference,"permutation") || attr(method.inference,"bootstrap"))){
@@ -502,27 +507,8 @@ setMethod(f = "confint",
               }
               attr(outConfint,"method.ci.resampling") <- method.ci.resampling
 
-              ## ** iid
-              if(attr(method.inference,"ustatistic")){
-                  if(!is.null(endpoint)){
-                      attr(outConfint,"iid") <- do.call(cbind,lapply(which(all.endpoint %in% endpoint), function(iD){ ## iD <- 1
-                          if(transformation){
-                              return(trans.se.delta(Delta[iD], se = Delta.iid[[iD]]))
-                          }else{
-                              return(Delta.iid[[iD]])
-                          }
-                      }))
-                      colnames(attr(outConfint,"iid")) <- all.endpoint[all.endpoint %in% endpoint]
-                  }else{
-                      attr(outConfint,"iid") <- do.call(cbind,lapply(1:D, function(iD){ ## iD <- 1
-                          if(transformation){
-                              return(trans.se.delta(Delta[iD], se = Delta.iid[[iD]]))
-                          }else{
-                              return(Delta.iid[[iD]])
-                          }
-                      }))
-                      colnames(attr(outConfint,"iid")) <- all.endpoint
-                  }
+              ## ** transform
+              if(attr(method.inference,"ustatistic")){                 
                   attr(outConfint,"transform") <- trans.delta
                   attr(outConfint,"backtransform") <- itrans.delta
               }

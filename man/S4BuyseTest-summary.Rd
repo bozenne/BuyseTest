@@ -12,7 +12,11 @@
   percentage = TRUE,
   statistic = NULL,
   conf.level = NULL,
-  strata = if (length(object@level.strata) == 1) {     "global" } else {     NULL },
+  strata = if (length(object@level.strata) == 1) {
+     "global"
+ } else {
+     NULL
+ },
   type.display = 1,
   digit = c(2, 4, 5),
   ...

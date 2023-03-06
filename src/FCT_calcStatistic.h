@@ -14,7 +14,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
                    arma::mat Mcount_favorable, arma::mat Mcount_unfavorable, arma::mat Mcount_neutral, arma::mat Mcount_uninf, 
                    arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidAverage_neutral,
 		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
-		   arma::mat& Mvar, int returnIID,
+		   arma::mat& Mvar, std::vector< int > returnIID,
 		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
@@ -25,7 +25,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
                    arma::mat Mcount_favorable, arma::mat Mcount_unfavorable, arma::mat Mcount_neutral, arma::mat Mcount_uninf,
                    arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidAverage_neutral,
 		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
-		   arma::mat& Mvar, int returnIID,
+		   arma::mat& Mvar, std::vector< int > returnIID,
 		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
@@ -42,11 +42,11 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     Mcount_favorable += 0.5*Mcount_neutral;
     Mcount_unfavorable += 0.5*Mcount_neutral;
 
-    if(returnIID>0){
+    if(returnIID[0]>0 || pool>=3){
       iidAverage_favorable += 0.5*iidAverage_neutral;
       iidAverage_unfavorable += 0.5*iidAverage_neutral;
     }
-    if(returnIID>1){
+    if(returnIID[1]>0){
       iidNuisance_favorable += 0.5*iidNuisance_neutral;
       iidNuisance_unfavorable += 0.5*iidNuisance_neutral;
     }
@@ -88,7 +88,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   arma::mat h1_favorable; 
   arma::mat h1_unfavorable;
  
-  if(returnIID > 0){
+  if(returnIID[0]>0 || pool>=3){
 
     // **** compute expectation (E[s^{\gamma}_{l,j}|x_l]) from sum 
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
@@ -120,7 +120,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 
     arma::mat h1_favorable = iidAverage_favorable;
     arma::mat h1_unfavorable = iidAverage_unfavorable;
-    if(returnIID>1){ // used when computing the variance of H projection order 2 with keepScore
+    if(returnIID[1]>0){ // used when computing the variance of H projection order 2 with keepScore
       for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
 	h1_favorable.rows(posC[iter_strata]) += iidNuisance_favorable.rows(posC[iter_strata]) * n_control[iter_strata];
 	h1_unfavorable.rows(posT[iter_strata]) += iidNuisance_favorable.rows(posT[iter_strata]) * n_treatment[iter_strata];
@@ -142,7 +142,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     }
 
     // **** add the two source of uncertainty into a single iid
-    if(returnIID>1){
+    if(returnIID[1]>0){
       iidTotal_favorable = iidAverage_favorable + iidNuisance_favorable;
       iidTotal_unfavorable = iidAverage_unfavorable + iidNuisance_unfavorable;
     }else{
@@ -158,7 +158,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     iidTotal_unfavorable.each_row() %= rowweightEndpoint;
     iidTotal_unfavorable = arma::cumsum(iidTotal_unfavorable,1);
 
-    if(returnIID>1){ // used when computing the variance of H projection order 2 with keepScore
+    if(returnIID[1]>0){ // used when computing the variance of H projection order 2 with keepScore
       h1_favorable.each_row() %= rowweightEndpoint;
       h1_favorable = arma::cumsum(h1_favorable,1);
 
@@ -224,10 +224,15 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   Delta.col(4) = arma::trans(arma::sum(wcumdelta_favorable - wcumdelta_unfavorable,0));
 
   // win ratio equals number of favorable pairs divided by the number of favorable plus unfavorable pairs
-  Delta.col(5) = arma::trans(arma::sum(wcumdelta_favorable,0)/arma::sum(wcumdelta_unfavorable,0));
+  if(pool==3.4){
+    arma::mat winRatioStrata = cumdelta_favorable/cumdelta_unfavorable;
+    Delta.col(5) = arma::trans(arma::sum(winRatioStrata.each_col() % weightPool,0));
+  }else{
+    Delta.col(5) = arma::trans(arma::sum(wcumdelta_favorable,0)/arma::sum(wcumdelta_unfavorable,0));
+  }
 
   // *** iid and variance estimation
-  if(returnIID > 0){
+  if(returnIID[0] > 0){
 
     // **** rescale to account for the pooling across strata i.e. T = \sum_s n_pair(s) T(s) / n_tot
     if(n_strata>1){

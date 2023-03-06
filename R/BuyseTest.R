@@ -585,7 +585,7 @@ BuyseTest <- function(formula,
                                  addHalfNeutral = envir$outArgs$add.halfNeutral,
                                  keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                                  precompute = envir$outArgs$precompute,
-                                 returnIID = iid + iid*envir$outArgs$iidNuisance,
+                                 returnIID = c(iid,envir$outArgs$iidNuisance),
                                  debug = envir$outArgs$debug
                                  ))
 

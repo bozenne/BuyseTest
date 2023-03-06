@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: apr  6 2022 (18:18) 
+## Last-Updated: Mar  6 2023 (12:05) 
 ##           By: Brice Ozenne
-##     Update #: 455
+##     Update #: 457
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -210,7 +210,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable"))
         if(method.inference!="none"){
             out[out$fold=="global","se"] <- as.double(confint(e.BT, statistic = "favorable")[,"se"])  ## may differ from iid when second order H-decomposition
-            attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, normalize = TRUE, statistic = "favorable") ## no need for cluster argument when fold=NULL
+            attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, scale = TRUE, center = TRUE, statistic = "favorable") ## no need for cluster argument when fold=NULL
         }
     }else if(pooling == "mean"){ ## Here: strata have the same weigth
         ## WARNING: cannot use the "global" results as if there is not the same number of pairs in all strata
@@ -222,7 +222,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
         out[out$fold=="global","estimate"] <- as.double(coef(e.BT, statistic = "favorable"))
         if(method.inference!="none"){
             out[out$fold=="global","se"] <- as.double(confint(e.BT, cluster = observation, statistic = "favorable")[,"se"])
-            attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, cluster = observation, normalize = TRUE, statistic = "favorable") 
+            attr(out,"iid")[sort(unique(observation)),out$fold=="global"] <- getIid(e.BT, cluster = observation, scale = TRUE, center = TRUE, statistic = "favorable") 
             ## sqrt(as.double(crossprod(attr(out,"iid")[,out$fold=="global"])))
         }
     }
@@ -238,7 +238,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
             out[match(name.fold,out$fold),"estimate"] <- as.double(ePOINT.BT)
 
             if(method.inference!="none"){
-                iIID.BT <- getIid(e.BT, normalize = normWithinStrata, statistic = "favorable")[,1]
+                iIID.BT <- getIid(e.BT, scale = normWithinStrata, center = normWithinStrata, statistic = "favorable")[,1]
                 out[match(name.fold,out$fold),"se"] <- sqrt(as.double(tapply(iIID.BT, fold, crossprod)))
                 ## iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = df[df$fold==name.fold[2],,drop=FALSE], trace = 0, add.halfNeutral = add.halfNeutral)
                 ## confint(iE.BT, statistic = "favorable")
@@ -257,7 +257,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
                 out[match(name.fold[iFold],out$fold),"estimate"] <- as.double(iConfint$estimate)
                 if(method.inference!="none"){
                     out[match(name.fold[iFold],out$fold),"se"] <- as.double(iConfint$se)
-                    attr(out,"iid")[iData$observation,iFold] <- getIid(iE.BT, normalize = TRUE, statistic = "favorable")
+                    attr(out,"iid")[iData$observation,iFold] <- getIid(iE.BT, scale = TRUE, center = TRUE, statistic = "favorable")
                 }
             }
         }

@@ -47,6 +47,7 @@ initializeArgs(
   keep.pairScore = NULL,
   method.inference = NULL,
   scoring.rule = NULL,
+  pool.strata = NULL,
   model.tte,
   n.resampling = NULL,
   strata.resampling = NULL,
@@ -63,7 +64,7 @@ initializeArgs(
   trace = NULL,
   treatment,
   type,
-  weight,
+  weightEndpoint,
   envir
 )
 
@@ -98,7 +99,7 @@ Functions called by \code{\link{BuyseTest}} to initialize the arguments.
 \details{
 \code{initializeArgs}: Normalize the argument 
 \itemize{
-\item scoring.rule, neutral.as.uninf, add.halfNeutral, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
+\item scoring.rule, pool.strata, neutral.as.uninf, add.halfNeutral, keep.pairScore, n.resampling, seed, cpus, trace: set to default value when not specified.
 \item formula: call \code{initializeFormula} to extract arguments.
 \item type: convert to numeric.
 \item status: only keep status relative to TTE endpoint. Set to \code{NULL} if no TTE endpoint.

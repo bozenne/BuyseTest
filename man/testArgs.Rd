@@ -16,6 +16,7 @@ testArgs(
   iidNuisance,
   keep.pairScore,
   scoring.rule,
+  pool.strata,
   model.tte,
   method.inference,
   n.resampling,
@@ -32,7 +33,7 @@ testArgs(
   trace,
   treatment,
   type,
-  weight,
+  weightEndpoint,
   ...
 )
 }

@@ -10,8 +10,10 @@ getIid(
   object,
   endpoint = NULL,
   statistic = NULL,
+  stratified = FALSE,
   cumulative = TRUE,
-  normalize = TRUE,
+  center = TRUE,
+  scale = TRUE,
   type = "all",
   cluster = NULL
 )
@@ -20,8 +22,10 @@ getIid(
   object,
   endpoint = NULL,
   statistic = NULL,
+  stratified = FALSE,
   cumulative = TRUE,
-  normalize = TRUE,
+  center = TRUE,
+  scale = TRUE,
   type = "all",
   cluster = NULL
 )
@@ -37,15 +41,15 @@ If \code{NULL} returns the sum of the H-decomposition over all endpoints.}
 \item{cumulative}{[logical] should the influence function be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}
 
-\item{normalize}{[logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
-Otherwise not.}
-
 \item{type}{[character] type of iid to be output.
 Can be only for the nuisance parameters (\code{"nuisance"}),
 or for the u-statistic given the nuisance parameters (\code{"u-statistic"}),
 or both.}
 
 \item{cluster}{[numeric vector] return the H-decomposition aggregated by cluster.}
+
+\item{normalize}{[logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
+Otherwise not.}
 }
 \description{
 Extract the H-decomposition of the GPC estimator.

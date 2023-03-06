@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Feb 14 2023 (11:24) 
+## Last-Updated: Mar  6 2023 (12:22) 
 ##           By: Brice Ozenne
-##     Update #: 1001
+##     Update #: 1004
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -356,7 +356,7 @@ powerBuyseTest <- function(sim,
 
     ## when creating S4 object
     keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightEndpoint","n.resampling","call")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightEndpoint","pool.strata","n.resampling","call")
 
     ## when initializing data
     out.name <- c("data","M.endpoint","M.status",
@@ -405,7 +405,7 @@ powerBuyseTest <- function(sim,
         data[["..strata.."]]  <- NULL
         data[["..rowIndex.."]]  <- NULL
         data[["..NA.."]]  <- NULL
-        allBT[[envir$n.sample.size]] <- BuyseTest(data = data, scoring.rule = envir$outArgs$scoring.rule, correction.uninf = envir$outArgs$correction.uninf, 
+        allBT[[envir$n.sample.size]] <- BuyseTest(data = data, scoring.rule = envir$outArgs$scoring.rule, pool.strata = envir$outArgs$pool.strata, correction.uninf = envir$outArgs$correction.uninf, 
                                                   model.tte = envir$outArgs$model.tte, method.inference = envir$outArgs$method.inference, n.resampling = envir$outArgs$n.resampling, 
                                                   strata.resampling = envir$outArgs$strata.resampling, hierarchical = envir$outArgs$hierarchical, weightEndpoint = envir$outArgs$weightEndpoint, 
                                                   neutral.as.uninf = envir$outArgs$neutral.as.uninf, add.halfNeutral = envir$outArgs$add.halfNeutral, 
@@ -489,6 +489,7 @@ powerBuyseTest <- function(sim,
                     iData[["..NA.."]]  <- NULL
                     allBT[[iSize]] <- BuyseTest(data = iData,
                                                 scoring.rule = envir$outArgs$scoring.rule,
+                                                pool.strata = envir$outArgs$pool.strata,
                                                 correction.uninf = envir$outArgs$correction.uninf, 
                                                 model.tte = envir$outArgs$model.tte,
                                                 method.inference = envir$outArgs$method.inference,
