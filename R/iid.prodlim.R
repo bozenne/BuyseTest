@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: nov 18 2020 (16:41) 
+## Last-Updated: Mar 13 2023 (09:04) 
 ##           By: Brice Ozenne
-##     Update #: 124
+##     Update #: 125
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,8 +50,9 @@
 
 ## * iid.prodlim - code
 #' @export
-iid.prodlim <- function(object, add0 = FALSE, ...){
-
+iid.prodlim <- function(x, add0 = FALSE, ...){
+    object <- x
+    
     if(object$type!="surv"){
         stop("Influence function only available for survival models \n")
     }

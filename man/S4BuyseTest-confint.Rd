@@ -35,6 +35,9 @@ If \code{NULL} returns the confidence intervals for all endpoints.}
 \code{"unfavorable"} displays the proportion in favor of the control.
 Default value read from \code{BuyseTest.options()}.}
 
+\item{stratified}{[logical] should strata-specific statistic be output?
+Otherwise output a global statistics obtained after pooling the strata-specific ones.}
+
 \item{cumulative}{[logical] should the summary statistic be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}
 
@@ -56,6 +59,8 @@ Otherwise they are computed without any transformation.
 Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.}
 
 \item{cluster}{[numeric vector] Group of observations for which the iid assumption holds .}
+
+\item{sep}{[character] character string used to separate the endpoint and the strata when naming the statistics.}
 }
 \value{
 A matrix containing a column for the estimated statistic (over all strata),

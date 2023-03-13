@@ -65,6 +65,8 @@ setMethod(f = "getCount",
 #' @param stratified [logical] should the H-decomposition relative to the strata-specific statistics be output?
 #' Otherwise display the influence function of the global statistic (i.e. over all strata).
 #' 
+#' @details WARNING: argument \code{scale} and \code{center} should be used with care as when set to \code{FALSE} they may not lead to a meaningful decomposition.
+#'  
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #' \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
@@ -176,11 +178,6 @@ setMethod(f = "getIid",
                   stop("Argument \'statistic\' must be of length one when asking for strata-specific H-decomposition. \n")
               }
 
-              ## normalization
-              if((center==FALSE || scale==FALSE) && (!is.null(cluster) || cumulative || stratified==FALSE)){
-                  warning("The output may not be meaningful when normalization is disable and the H-decomposition is summed over stratas, endpoints, or cluster. \n")
-              }
-
               ## ** extract H-decomposition
               if(type %in% c("all","u-statistic")){
                   object.iid <- object@iidAverage[c("favorable","unfavorable")]
@@ -211,9 +208,8 @@ setMethod(f = "getIid",
                   for(iter_strata in 1:n.strata){  ## iter_strata <- 1
                       iStrataC <- intersect(indexC,indexStrata[[iter_strata]])
                       iStrataT <- intersect(indexT,indexStrata[[iter_strata]])
-                      
                       ## remove scaling (by the sample size: \sum_i IF_i^2 -> 1/n^2 \sum_i IF_i^2)
-                      if(scale==FALSE){
+                      if(scale==FALSE || center == FALSE){
                           object.iid$favorable[iStrataC,] <- length(iStrataC) * object.iid$favorable[iStrataC,,drop=FALSE]
                           object.iid$favorable[iStrataT,] <- length(iStrataT) * object.iid$favorable[iStrataT,,drop=FALSE]
 
@@ -225,7 +221,15 @@ setMethod(f = "getIid",
                       if(center==FALSE){
                           object.iid$favorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE], - delta.favorable[iter_strata,,drop=FALSE])
                           object.iid$unfavorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE], -delta.unfavorable[iter_strata,,drop=FALSE])
+                          if(scale){ ## restaure scaling
+                              object.iid$favorable[iStrataC,] <- object.iid$favorable[iStrataC,,drop=FALSE]/length(iStrataC)
+                              object.iid$favorable[iStrataT,] <- object.iid$favorable[iStrataT,,drop=FALSE]/length(iStrataT)
+
+                              object.iid$unfavorable[iStrataC,] <- object.iid$unfavorable[iStrataC,,drop=FALSE]/length(iStrataC)
+                              object.iid$unfavorable[iStrataT,] <- object.iid$unfavorable[iStrataT,,drop=FALSE]/length(iStrataT)
+                          }
                       }
+
                   }
 
               }

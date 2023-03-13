@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  9 2021 (10:04) 
 ## Version: 
-## Last-Updated: apr 21 2022 (10:34) 
+## Last-Updated: Mar 13 2023 (09:04) 
 ##           By: Brice Ozenne
-##     Update #: 93
+##     Update #: 94
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,7 +28,7 @@
 ##' @param ... Not used. For compatibility with the generic method.
 ##' 
 ##' @export
-as.data.table.performance <- function(x, type = "performance", format = NULL, keep.rownames = FALSE, ...){
+as.data.table.performance <- function(x, keep.rownames = FALSE, type = "performance", format = NULL, ...){
 
     ## ** normalize user input
     if(length(type)!=1){

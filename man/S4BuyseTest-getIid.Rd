@@ -38,18 +38,22 @@ If \code{NULL} returns the sum of the H-decomposition over all endpoints.}
 
 \item{statistic}{[character] statistic relative to which the H-decomposition should be output.}
 
-\item{cumulative}{[logical] should the influence function be cumulated over endpoints?
+\item{stratified}{[logical] should the H-decomposition relative to the strata-specific statistics be output?
+Otherwise display the influence function of the global statistic (i.e. over all strata).}
+
+\item{cumulative}{[logical] should the H-decomposition be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}
 
-\item{type}{[character] type of iid to be output.
+\item{center}{[logical] if \code{TRUE} the H-decomposition is centered around 0 (estimated statistic is substracted).}
+
+\item{scale}{[logical] if \code{TRUE} the H-decomposition is rescaled (by the sample size in the corresponding arm) such that its sums of squares approximate the variance of the estimator.}
+
+\item{type}{[character] type of H-decomposition to be output.
 Can be only for the nuisance parameters (\code{"nuisance"}),
 or for the u-statistic given the nuisance parameters (\code{"u-statistic"}),
 or both.}
 
 \item{cluster}{[numeric vector] return the H-decomposition aggregated by cluster.}
-
-\item{normalize}{[logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
-Otherwise not.}
 }
 \description{
 Extract the H-decomposition of the GPC estimator.

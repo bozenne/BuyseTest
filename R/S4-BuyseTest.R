@@ -106,7 +106,7 @@ methods::setMethod(
                                    args){
 
                  name.endpoint <- paste0(endpoint,ifelse(!is.na(restriction),paste0("_r",restriction),""),ifelse(threshold>1e-12,paste0("_t",threshold),""))
-                 
+
                  ## ** call
                  call <- call[-1]
 
@@ -220,6 +220,13 @@ methods::setMethod(
                  attr(weightStrata,"type") <- attr(pool.strata,"original")
 
                  ## ** n.resampling
+                 if(!is.null(deltaResampling)){                     
+                     dimnames(deltaResampling)[[3]] <- name.endpoint
+                     dimnames(DeltaResampling)[[2]] <- name.endpoint
+                     if(attr(method.inference,"studentized")){
+                         dimnames(covarianceResampling)[[2]] <- name.endpoint
+                     }
+                 }
 
                  ## ** resampling
 

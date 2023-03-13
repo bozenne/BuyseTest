@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Mar  6 2023 (10:25) 
+## Last-Updated: Mar 13 2023 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 236
+##     Update #: 245
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -282,15 +282,15 @@ setMethod(f = "coef",
                       out <- M.fav/M.unfav
                   }
               }
-          
+
               ## ** export
               if(!is.null(endpoint)){
                   if((!stratified || rm.strata) && !resampling){
                       out <- out[endpoint]
-                  }else if(stratified && resampling){
-                      out <- out[,,endpoint,drop=FALSE]
+                  }else if((stratified && !resampling) || (!stratified && resampling)){
+                      out <- out[,endpoint,drop=FALSE]                      
                   }else{
-                      out <- out[,endpoint,drop=FALSE]
+                      out <- out[,,endpoint,drop=FALSE]
                   }
               }
               return(out)

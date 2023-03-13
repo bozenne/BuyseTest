@@ -4,12 +4,12 @@
 \alias{iid.BuyseTestBrier}
 \title{Extract the idd Decomposition for the Brier Score}
 \usage{
-\method{iid}{BuyseTestBrier}(object, ...)
+\method{iid}{BuyseTestBrier}(x, ...)
 }
 \arguments{
-\item{object}{object of class \code{BuyseTestBrier} (output of the \code{brier} function).}
-
 \item{...}{not used. For compatibility with the generic function.}
+
+\item{object}{object of class \code{BuyseTestBrier} (output of the \code{brier} function).}
 }
 \value{
 A column vector.

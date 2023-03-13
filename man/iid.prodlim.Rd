@@ -4,14 +4,14 @@
 \alias{iid.prodlim}
 \title{Extract i.i.d. decomposition from a prodlim model}
 \usage{
-\method{iid}{prodlim}(object, add0 = FALSE, ...)
+\method{iid}{prodlim}(x, add0 = FALSE, ...)
 }
 \arguments{
-\item{object}{A prodlim object.}
-
 \item{add0}{[logical] add the 0 to vector of relevant times.}
 
 \item{...}{not used. For compatibility with the generic method.}
+
+\item{object}{A prodlim object.}
 }
 \description{
 Compute the influence function for each observation used to estimate the model

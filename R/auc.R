@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: Mar  6 2023 (12:05) 
+## Last-Updated: Mar 13 2023 (09:05) 
 ##           By: Brice Ozenne
-##     Update #: 457
+##     Update #: 458
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -383,7 +383,8 @@ confint.BuyseTestAuc <- function(object,...){
 #' 
 #' @method iid BuyseTestAuc
 #' @export
-iid.BuyseTestAuc <- function(object,...){
+iid.BuyseTestAuc <- function(x,...){
+    object <- x
     return(attr(object,"iid")[,"global",drop=FALSE])
 }
 

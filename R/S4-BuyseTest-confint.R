@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 895
+##     Update #: 900
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -188,9 +188,9 @@ setMethod(f = "confint",
               }else if(!is.null(method.ci.resampling)){
                   warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")                  
               }
-              if(attr(method.inference,"studentized") && ((stratified==FALSE) || (cumulative==FALSE)) ){
+              if(attr(method.inference,"studentized") && ((stratified!=FALSE) || (cumulative!=TRUE)) ){
                   stop("Can only perform statistical inference based on studentized resampling for global cumulative effects. \n",
-                       "Consider setting argument \'stratified\' to FALSE and argument \'cumulative\' to FALSE. \n")
+                       "Consider setting argument \'stratified\' to FALSE and argument \'cumulative\' to TRUE. \n")
               }
 
               ## order.Hprojection

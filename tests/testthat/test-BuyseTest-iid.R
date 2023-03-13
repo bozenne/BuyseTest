@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: maj  9 2022 (13:19) 
+## Last-Updated: Mar 13 2023 (12:34) 
 ##           By: Brice Ozenne
-##     Update #: 197
+##     Update #: 202
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -147,9 +147,12 @@ test_that("iid: binary with strata (balanced groups)", {
         expect_equal(colSums(riskRegression::colMultiply_cpp(M.estimate,weight)),as.double(coef2(e.BT)))
         expect_equal(colSums(riskRegression::colMultiply_cpp(M.covariance,weight^2)),as.double(e.BT@covariance[,c(1:2,4)]))
         expect_equal(
-            as.double(getIid(e.BT, statistic = "netBenefit", normalize = FALSE)),
-            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", normalize = FALSE)))
+            rowSums(getIid(e.BT, statistic = "netBenefit", scale = FALSE, center = FALSE, stratified = TRUE)),
+            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", scale = FALSE, center = FALSE)))
         )
+        ## getIid(e.BT, statistic = "netBenefit", scale = FALSE, center = FALSE, stratified = TRUE)
+        ## getIid(ls.BT[[1]], statistic = "netBenefit", scale = FALSE, center = FALSE)
+        ## getIid(ls.BT[[2]], statistic = "netBenefit", scale = FALSE, center = FALSE)
 
         if(iOrder==1){
             expect_equal(as.double(e.BT@covariance), c(1/16, 1/16, -1/16, 1/4, 4)/3 )
@@ -167,7 +170,7 @@ d2.bis <- rbind(cbind(d.bis, strata = 1),
                 cbind(d.bis, strata = 3))
 
 test_that("iid: binary and strata (unbalanced groups)", {
-    for(iOrder in 1:2){ ## iOrder <- 2
+    for(iOrder in 1:2){ ## iOrder <- 1
         BuyseTest.options(order.Hprojection = iOrder)
 
         e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
@@ -197,8 +200,8 @@ test_that("iid: binary and strata (unbalanced groups)", {
         expect_equal(colSums(riskRegression::colMultiply_cpp(M.estimate,weight)),as.double(coef2(e.BT)))
         expect_equal(colSums(riskRegression::colMultiply_cpp(M.covariance,weight^2)),as.double(e.BT@covariance[,c(1:2,4)]))
         expect_equal(
-            as.double(getIid(e.BT, statistic = "netBenefit", normalize = FALSE)),
-            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", normalize = FALSE)))
+            rowSums(getIid(e.BT, statistic = "netBenefit", scale = FALSE, center = FALSE, stratified = TRUE)),
+            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", scale = FALSE, center = FALSE)))
         )
 
         if(iOrder==1){
@@ -475,7 +478,7 @@ test_that("iid: two endpoints (no strata - second order)", {
 
 test_that("iid: two endpoints (strata)", {
 
-    for(iOrder in 1:2){ ## iOrder <- 2
+    for(iOrder in 1:2){ ## iOrder <- 1
         BuyseTest.options(order.Hprojection = iOrder)
 
         e.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
@@ -506,8 +509,8 @@ test_that("iid: two endpoints (strata)", {
         expect_equal(Reduce("+",lapply(1:length(weight), function(iS){ls.covariance[[iS]]*weight[iS]^2})),e.BT@covariance[,c(1:2,4)])
         
         expect_equal(
-            as.double(getIid(e.BT, statistic = "netBenefit", normalize = FALSE)),
-            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", normalize = FALSE)))
+            rowSums(getIid(e.BT, statistic = "netBenefit", scale = FALSE, center = FALSE, stratified = TRUE)),
+            as.double(unlist(lapply(ls.BT, getIid, statistic = "netBenefit", scale = FALSE, center = FALSE)))
         )
 
         if(iOrder==1){

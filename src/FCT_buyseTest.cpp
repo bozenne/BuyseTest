@@ -404,8 +404,8 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
   
   // ** proportion in favor of treatment
   // Rcpp::Rcout << std::endl << " compute statistics" << std::endl;
-  arma::cube delta(n_strata,D,4); // cube containing the endpoint and strata specific statistics: favorable; unfavorable; netBenefit; winRatio;
-  arma::mat Delta(D,4); // matrix containing for each endpoint the overall statistics: favorable; unfavorable; netBenefit; winRatio;
+  arma::cube delta(n_strata,D,6); // cube containing the endpoint and strata specific statistics: favorable; unfavorable; neutral; uninf; netBenefit; winRatio;
+  arma::mat Delta(D,6); // matrix containing for each endpoint the overall statistics: favorable; unfavorable; neutral; uninf; netBenefit; winRatio;
   arma::mat Mvar; // variance-covariance of the overall statistics for each endpoint
   arma::vec poolWeight(n_strata); // weights used to pool estimates across strata
   if(returnIID[0] > 0){
@@ -414,6 +414,34 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
   }
 
   if(debug>0){Rcpp::Rcout << "Compute summary statistics" << std::endl;}
+  // return(Rcpp::List::create(Rcpp::Named("delta") = delta,
+  // 			    Rcpp::Named("Delta") = Delta,
+  // 			    Rcpp::Named("Mcount_favorable") = Mcount_favorable,
+  // 			    Rcpp::Named("Mcount_unfavorable") = Mcount_unfavorable,
+  // 			    Rcpp::Named("Mcount_neutral") = Mcount_neutral,
+  // 			    Rcpp::Named("Mcount_uninf") = Mcount_uninf,
+  // 			    // Rcpp::Named("iidAverage_favorable") = iidAverage_favorable,
+  // 			    // Rcpp::Named("iidAverage_unfavorable") = iidAverage_unfavorable,
+  // 			    // Rcpp::Named("iidAverage_neutral") = iidAverage_neutral,
+  // 			    // Rcpp::Named("iidNuisance_favorable") = iidNuisance_favorable,
+  // 			    // Rcpp::Named("iidNuisance_unfavorable") = iidNuisance_unfavorable,
+  // 			    // Rcpp::Named("iidNuisance_neutral") = iidNuisance_neutral,
+  // 			    Rcpp::Named("Mvar") = Mvar,
+  // 			    Rcpp::Named("returnIID") = returnIID,
+  // 			    Rcpp::Named("posC") = posC,
+  // 			    Rcpp::Named("posT") = posT,
+  // 			    Rcpp::Named("D") = D,
+  // 			    Rcpp::Named("n_strata") = n_strata,
+  // 			    Rcpp::Named("vecn_pairs") = arma::conv_to< std::vector<double> >::from(vecn_pairs),
+  // 			    // Rcpp::Named("vecn_control") = arma::conv_to< std::vector<double> >::from(vecn_control),
+  // 			    // Rcpp::Named("vecn_treatment") = arma::conv_to< std::vector<double> >::from(vecn_treatment),
+  // 			    Rcpp::Named("weightEndpoint") = weightEndpoint,
+  // 			    Rcpp::Named("pool") = pool,
+  // 			    Rcpp::Named("poolWeight") = poolWeight,
+  // 			    Rcpp::Named("addHalfNeutral") = addHalfNeutral,
+  // 			    Rcpp::Named("hprojection") = hprojection,
+  // 			    Rcpp::Named("pairScore") = pairScore,
+  // 			    Rcpp::Named("keepScore") = keepScore));
   calcStatistic(delta, Delta, 
                 Mcount_favorable, Mcount_unfavorable, Mcount_neutral, Mcount_uninf,
 		iidAverage_favorable, iidAverage_unfavorable, iidAverage_neutral,

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Mar  6 2023 (12:22) 
+## Last-Updated: Mar 13 2023 (12:20) 
 ##           By: Brice Ozenne
-##     Update #: 1004
+##     Update #: 1062
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 #' @title Performing simulation studies with BuyseTest
 #' 
 #' @description Performs a simulation studies for several sample sizes.
-#' Returns estimates, standard errors, confidence intervals and p.values.
+#' Returns estimates, their standard deviation, the average estimated standard error, and the rejection rate.
 #'
 #' @param sim [function] take two arguments:
 #' the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
@@ -35,8 +35,11 @@
 #' @param seed [integer, >0] the seed to consider for the simulation study.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param conf.level [numeric] confidence level for the confidence intervals.
+#' @param conf.level [numeric, 0-1] type 1 error level.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param power [numeric, 0-1] type 2 error level used to determine the sample size. Only relevant when \code{sample.size}, \code{sample.sizeC}, and \code{sample.sizeT} are not given. See details.
+#' @param max.sample.size [interger, 0-1] sample size used to approximate the sample size achieving the requested type 1 and type 2 error (see details).
+#' Can have length 2 to indicate the sample in each group when the groups have unequal sample size.
 #' @param trace [integer] should the execution of the function be traced?
 #' @param transformation [logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.
 #' Otherwise they are computed without any transformation.
@@ -44,6 +47,13 @@
 #' @param order.Hprojection [integer 1,2] the order of the H-project to be used to compute the variance of the net benefit/win ratio.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param ... other arguments (e.g. \code{scoring.rule}, \code{method.inference}) to be passed to \code{initializeArgs}.
+#'
+#' @details \bold{Sample size calculation}: to approximate the sample size achieving the requested type 1 (\eqn{\alpha}) and type 2 error (\eqn{\beta}),
+#' GPC are applied on a large sample (as defined by the argument \code{max.sample.size}): \eqn{N^*=m^*+n^*} where \eqn{m^*} is the sample size in the control group and \eqn{n^*} is the sample size in the active group.
+#' Then the effect (\eqn{\delta}) and the asymptotic variance of the estimator (\eqn{\sigma^2}) are estimated. The total sample size is then deduced as (two-sided case):
+#' \deqn{\hat{N} = \hat{\sigma}^2\frac{(u_{1-\alpha/2}+u_{1-\beta})^2}{\hat{\delta}^2}} from which the group specific sample sizes are deduced: \eqn{\hat{m}=\hat{N}\frac{m^*}{N^*}} and \eqn{\hat{n}=\hat{N}\frac{n^*}{N^*}}. Here \(u_x\) denotes the x-quantile of the normal distribution.
+#' Since this is an approximation, a simulation study is performed with this sample size to provide the estimated power. It may not be exactly the requested power but should provide a reasonnable guess which can be refined with further simulation studies. Note that the maximumal sample size should be very high for the estimation to be accurate (ideally 10000 or more).
+#' 
 #' @author Brice Ozenne
 
 ## * powerBuyseTest (examples)
@@ -63,10 +73,15 @@
 ##'                method.inference = "u-statistic", trace = 4)
 ##'
 ##' #### Using user defined simulation function ####
-##' ## Example of power calculation for Wilcoxon test
+##' ## power calculation for Wilcoxon test
 ##' simFCT <- function(n.C, n.T){
 ##'     out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
 ##'                  cbind(Y=stats::rt(n.T, df = 5), group=1) + 1)
+##'     return(data.table::as.data.table(out))
+##' }
+##' simFCT2 <- function(n.C, n.T){
+##'     out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
+##'                  cbind(Y=stats::rt(n.T, df = 5), group=1) + 0.25)
 ##'     return(data.table::as.data.table(out))
 ##' }
 ##'
@@ -76,11 +91,24 @@
 ##' summary(powerW)
 ##' }
 ##' \dontrun{
-##' powerW <- powerBuyseTest(sim = simFCT, sample.size = c(5, 10,20,30,50,100),
+##' powerW <- powerBuyseTest(sim = simFCT, sample.size = c(5,10,20,30,50,100),
 ##'                          n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
 ##' summary(powerW)
 ##' } 
+##'
+##' ## sample size needed to reach (approximately) a power
+##' ## based on summary statistics obtained on a large sample 
+##' \dontrun{
+##' sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, max.sample.size = 10000,
+##'                          n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+##' summary(sampleW) ## not very accurate but gives an order of magnitude
 ##' 
+##' sampleW2 <- powerBuyseTest(sim = simFCT2,
+##'                            power = 0.8, max.sample.size = 10000,
+##'                            n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+##' summary(sampleW2) ## more accurate with larger samples
+##' }
+##'
 
 ## * powerBuyseTest (code)
 ##' @export
@@ -93,6 +121,8 @@ powerBuyseTest <- function(sim,
                            cpus = 1,                          
                            seed = NULL,
                            conf.level = NULL,
+                           power = NULL,
+                           max.sample.size = 5000,
                            alternative = NULL,
                            order.Hprojection = NULL,
                            transformation = NULL,
@@ -119,8 +149,50 @@ powerBuyseTest <- function(sim,
     alpha <- 1 - conf.level
     
     if(is.null(sample.sizeC) && is.null(sample.sizeT)){
-        sample.sizeC <- sample.size
-        sample.sizeT <- sample.size
+        if((missing(sample.size) || is.null(sample.size)) && !is.null(power)){
+            if(length(max.sample.size)==1){
+                max.sample.size <- c(max.sample.size,max.sample.size)
+            }
+            if (trace > 1) {
+                cat("         Determination of the sample using a large sample (m=",max.sample.size[1],", n=",max.sample.size[2],")  \n\n",sep="")
+            }
+            e.BTmax <- BuyseTest(..., data = sim(n.C = max.sample.size[1], n.T = max.sample.size[2]), trace = 0)
+            if(e.BTmax@method.inference == "u-statistic"){
+                DeltaMax <- coef(e.BTmax, statistic = names(null)) - null
+                IidMax <- getIid(e.BTmax, statistic = names(null), scale = FALSE)
+                ratio <- c(max.sample.size[1]/sum(max.sample.size),max.sample.size[2]/sum(max.sample.size))
+                sigma2Max <- mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2)/ratio[1] + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2)/ratio[2]
+                if(alternative=="two.sided"){
+                    n.approx <- sigma2Max*(qnorm(1-alpha/2)+qnorm(power))^2/DeltaMax^2
+                }else if(alternative=="less"){
+                    if(DeltaMax<0){
+                        n.approx <- sigma2Max*(qnorm(1-alpha)+qnorm(power))^2/DeltaMax^2
+                    }else{
+                        message("No power: positive effect detected. \n")
+                        return(invisible(DeltaMax))
+                    }
+                }else if(alternative=="greater"){
+                    if(DeltaMax>0){
+                        n.approx <- sigma2Max*(qnorm(1-alpha)+qnorm(power))^2/DeltaMax^2
+                    }else{
+                        message("No power: positive effect detected. \n")
+                        return(invisible(DeltaMax))
+                    }
+                }
+                sample.sizeC <- ceiling(n.approx*ratio[1])
+                sample.sizeT <- ceiling(n.approx*ratio[2])
+
+                ## (mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2) + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2))*(qnorm(1-alpha/2)+qnorm(power))^2/DeltaMax^2
+                if (trace > 1) {
+                    cat("   - estimated effect (variance): ",as.double(DeltaMax)," (",sigma2Max,")\n",sep="")
+                    cat("   - estimated sample size      : (m=",sample.sizeC,", n=",sample.sizeT,")\n\n",sep="")
+                }
+            
+            }
+        }else{
+            sample.sizeC <- sample.size
+            sample.sizeT <- sample.size
+        }
     }
 
     validInteger(sample.sizeC,
@@ -143,14 +215,10 @@ powerBuyseTest <- function(sim,
                    refuse.duplicates = TRUE,
                    method = "BuyseTest")
     
-    n.sample.size <- length(sample.sizeT)
-    sample.sizeCmax <- sample.sizeC[n.sample.size]
-    sample.sizeTmax <- sample.sizeT[n.sample.size]
-
     dt.tempo <- sim(n.C = sample.sizeC[1], n.T = sample.sizeT[1])
     if(!data.table::is.data.table(dt.tempo)){
         stop("The function defined by the argument \'sim\' must return a data.table object.\n")
-    }
+n    }
 
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs
@@ -158,7 +226,7 @@ powerBuyseTest <- function(sim,
                               data = NULL, model.tte = NULL, ...)
     outArgs$call <- setNames(as.list(call),names(call))
     ## if((outArgs$keep.pairScore == FALSE) && ("keep.pairScore" %in% names(call) == FALSE) && (outArgs$method.inference %in% c("none","u-statistic")) && (outArgs$correction.uninf==0) && all(outArgs$scoring.rule<=0) ){
-    ##     outArgs$keep.pairScore <- TRUE
+    ##     outArgps$keep.pairScore <- TRUE
     ## }
 
     ## ** test arguments
@@ -190,8 +258,12 @@ powerBuyseTest <- function(sim,
     cpus <- outArgs$cpus
     outArgs$cpus <- 1
     outArgs$trace <- 0
-    
-    ## ** initialization data
+
+    ## ** initialization sample size and data
+    n.sample.size <- length(sample.sizeT)
+    sample.sizeCmax <- sample.sizeC[n.sample.size]
+    sample.sizeTmax <- sample.sizeT[n.sample.size]
+
     outArgs$level.treatment <- levels(as.factor(dt.tempo[[outArgs$treatment]]))
     ## outArgs$n.strata <- 1
     ## outArgs$level.strata <- "1"

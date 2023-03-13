@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: Mar  6 2023 (12:01) 
+## Last-Updated: Mar 13 2023 (10:24) 
 ##           By: Brice Ozenne
-##     Update #: 39
+##     Update #: 43
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -173,7 +173,7 @@ test_that("strata (historical weight)",{
     e.BT <- BuyseTest(treatment ~ bin(Y_1) + stratum, data = dt.strata, trace = FALSE,
                       method.inference = "u-statistic")
     ls.eBT <- by(dt.strata, INDICES = dt.strata$stratum, FUN = function(iData){
-        BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE)
+        BuyseTest(treatment ~ bin(Y_1), data = iData, method.inference = "u-statistic", trace = FALSE)
     })
 
     ## *** point estimate
@@ -395,7 +395,7 @@ test_that("strata (variance weights)",{
                       WR = as.double(coef(e.BTopt4, statistic = "winRatio")))
   
     ls.eBT <- by(dt.strata, INDICES = dt.strata$stratum, FUN = function(iData){
-        BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE)
+        BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE, method.inference = "u-statistic")
     })
     ecount.favorable <- coef(e.BT, statistic = "count.favorable", stratified = TRUE)[,1]
     ecount.unfavorable <- coef(e.BT, statistic = "count.unfavorable", stratified = TRUE)[,1]
@@ -403,13 +403,13 @@ test_that("strata (variance weights)",{
     ecount.pairs <- e.BT@n.pairs
 
     GS.optimal <- c(FA = weighted.mean( ecount.favorable/ecount.pairs,
-                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "favorable"))[,"se"]^(-2)),
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "favorable", order.Hprojection = 1))[,"se"]^(-2)),
                     UN = weighted.mean( ecount.unfavorable/ecount.pairs,
-                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "unfavorable"))[,"se"]^(-2)),
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "unfavorable", order.Hprojection = 1))[,"se"]^(-2)),
                     NB = weighted.mean( (ecount.favorable-ecount.unfavorable)/ecount.pairs,
-                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "netBenefit"))[,"se"]^(-2)),
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "netBenefit", order.Hprojection = 1))[,"se"]^(-2)),
                     WR = weighted.mean( ecount.favorable/ecount.unfavorable,
-                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "winRatio"))[,"se"]^(-2))
+                                       w = do.call(rbind,lapply(ls.eBT, confint, statistic = "winRatio", order.Hprojection = 1))[,"se"]^(-2))
                     )
 
     expect_equal(test.optimal, GS.optimal, tol = 1e-5)
