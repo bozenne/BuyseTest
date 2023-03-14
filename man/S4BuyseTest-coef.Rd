@@ -11,7 +11,8 @@
   endpoint = NULL,
   statistic = NULL,
   stratified = FALSE,
-  cumulative = TRUE,
+  cumulative = NULL,
+  resampling = FALSE,
   ...
 )
 }
@@ -29,7 +30,15 @@ Otherwise a summary statistic over all strata is returned.}
 \item{cumulative}{[logical] should the summary statistic be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}
 
+\item{resampling}{[logical] should the summary statistic obtained by resampling be output?}
+
 \item{...}{ignored.}
+}
+\value{
+When \code{resampling=FALSE} and \code{stratified=FALSE}, return a numeric vector.
+When \code{resampling=FALSE} and \code{stratified=TRUE}, return a matrix.
+When \code{resampling=TRUE} and \code{stratified=FALSE}, return a matrix.
+When \code{resampling=TRUE} and \code{stratified=TRUE}, return an 3-dimensional array.
 }
 \description{
 Extract summary statistics from the result of a \code{\link{BuyseTest}} function.
@@ -41,14 +50,12 @@ One of the following statistic can be specified:
 \item \code{"winRatio"}: returns the win ratio.
 \item \code{"favorable"}: returns the proportion in favor of the treatment (also called Mann-Whitney parameter).
 \item \code{"unfavorable"}: returns the proportion in favor of the control.
+\item \code{"unfavorable"}: returns the proportion of neutral pairs.
+\item \code{"unfavorable"}: returns the proportion of uninformative pairs.
 \item \code{"count.favorable"}: returns the number of pairs in favor of the treatment.
 \item \code{"count.unfavorable"}: returns the number of pairs in favor of the control.
 \item \code{"count.neutral"}: returns the number of neutral pairs.
 \item \code{"count.uninf"}: returns the number of uninformative pairs.
-\item \code{"pc.favorable"}: returns the percentage of pairs in favor of the treatment, i.e. \eqn{P[X \geq Y + \tau]}.
-\item \code{"pc.unfavorable"}: returns the percentage of pairs in favor of the control, i.e. \eqn{P[Y \geq X + \tau]}.
-\item \code{"pc.neutral"}: returns the percentage of neutral pairs.
-\item \code{"pc.uninf"}: returns the percentage of uninformative pairs.
 }
 }
 \author{

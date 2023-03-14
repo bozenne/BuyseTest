@@ -37,6 +37,7 @@ setClass(
       add.halfNeutral = "logical",
       add.1.pperm = "logical",
       order.Hprojection = "numeric",
+      pool.strata = "character",
       precompute = "logical",
       print.display = "character",
       statistic = "character",
@@ -140,6 +141,11 @@ setClass(
                    max = 2,
                    valid.length = 1,
                    method = "Class BuyseTest.options")
+      validCharacter(object@pool.strata,
+                     name1 = "@pool.strata",
+                     valid.values = c("Buyse","CMH","equal","var-favorable","var-unfavorable","var-netBenefit","var-winRatio"),
+                     valid.length = 1,
+                     method = "Class BuyseTest.options")
       validLogical(object@precompute,
                    name1 = "@precompute",
                    valid.length = 1,

@@ -6,21 +6,21 @@
 \usage{
 \method{as.data.table}{performance}(
   x,
+  keep.rownames = FALSE,
   type = "performance",
   format = NULL,
-  keep.rownames = FALSE,
   ...
 )
 }
 \arguments{
 \item{x}{object of class \code{"performance"}.}
 
+\item{keep.rownames}{Not used. For compatibility with the generic method.}
+
 \item{type}{[character] either \code{"metric"} to extract AUC/brier score or \code{"prediction"} to extract predictions.}
 
 \item{format}{[character] should the result be outcome in the long format (\code{"long"}) or in the wide format (\code{"wide"}).
 Note relevant when using \code{type="metric"}.}
-
-\item{keep.rownames}{Not used. For compatibility with the generic method.}
 
 \item{...}{Not used. For compatibility with the generic method.}
 }

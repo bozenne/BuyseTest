@@ -52,17 +52,21 @@ setMethod(f = "getCount",
 #' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param endpoint [character] for which endpoint(s) the H-decomposition should be output?
 #' If \code{NULL} returns the sum of the H-decomposition over all endpoints.
-#' @param type [character] type of iid to be output.
+#' @param type [character] type of H-decomposition to be output.
 #' Can be only for the nuisance parameters (\code{"nuisance"}),
 #' or for the u-statistic given the nuisance parameters (\code{"u-statistic"}),
 #' or both.
-#' @param normalize [logical] if \code{TRUE} the iid is centered and multiplied by the sample size.
-#' Otherwise not.
+#' @param center [logical] if \code{TRUE} the H-decomposition is centered around 0 (estimated statistic is substracted).
+#' @param scale [logical] if \code{TRUE} the H-decomposition is rescaled (by the sample size in the corresponding arm) such that its sums of squares approximate the variance of the estimator.
 #' @param cluster [numeric vector] return the H-decomposition aggregated by cluster.
 #' @param statistic [character] statistic relative to which the H-decomposition should be output.
-#' @param cumulative [logical] should the influence function be cumulated over endpoints?
+#' @param cumulative [logical] should the H-decomposition be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
+#' @param stratified [logical] should the H-decomposition relative to the strata-specific statistics be output?
+#' Otherwise display the influence function of the global statistic (i.e. over all strata).
 #' 
+#' @details WARNING: argument \code{scale} and \code{center} should be used with care as when set to \code{FALSE} they may not lead to a meaningful decomposition.
+#'  
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #' \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
@@ -74,34 +78,45 @@ setMethod(f = "getCount",
 #' @rdname S4BuyseTest-getIid
 setMethod(f = "getIid",
           signature = "S4BuyseTest",
-          definition = function(object, endpoint = NULL, statistic = NULL, 
-                                cumulative = TRUE, normalize = TRUE, type = "all", cluster = NULL){
+          definition = function(object,
+                                endpoint = NULL,
+                                statistic = NULL,
+                                stratified = FALSE,
+                                cumulative = TRUE,
+                                center = TRUE,
+                                scale = TRUE,
+                                type = "all",
+                                cluster = NULL){
 
+              ## ** normalize user input
               option <- BuyseTest.options()
-              if(is.null(cluster)){
-                  n.obs <- NROW(object@iidAverage$favorable)
-              }else{
-                  if(length(cluster) != NROW(object@iidAverage$favorable)){
-                      stop("Incorrect length for argument \'cluster\'. Should be of length ",NROW(object@iidAverage$favorable),".\n")
-                  }
-                  Ucluster <- sort(unique(cluster))
-                  n.obs <- length(Ucluster)
+              n.obs <- NROW(object@iidAverage$favorable)
+
+              ## iid has been stored in object
+              if(object@method.inference != "u-statistic"){
+                  stop("No H-decomposition in the object \n",
+                       "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
               }
+
+              ## cluster
+              if(!is.null(cluster)){
+                  if(stratified==TRUE){
+                      stop("Argument \'stratified\' must be FALSE when asking for strata-specific H-decomposition. \n")
+                  }
+                  if(length(cluster) != n.obs){
+                      stop("Incorrect length for argument \'cluster\'. Should have length ",n.obs ,".\n")
+                  }
+                  if(!is.factor(cluster)){
+                      cluster <- as.factor(cluster)
+                  }
+                  Ucluster <- levels(cluster)
+                  cluster <- as.numeric(cluster)                  
+              }
+              
+              ## endpoint
               valid.endpoint <- names(object@endpoint)
               n.endpoint <- length(valid.endpoint)
-              if(!is.null(cluster) && !is.numeric(cluster)){
-                  cluster <- as.numeric(as.factor(cluster))
-              }
-
-              n.strata <- length(object@level.strata)
-              weight <- object@weight
-              n.pairs <- object@n.pairs
-              ntot.pair <- sum(n.pairs)
-              indexC <- attr(object@level.treatment,"indexC")
-              indexT <- attr(object@level.treatment,"indexT")
-              indexStrata <- attr(object@level.strata,"index")
-              
-              ## ** check arguments              
+              weightEndpoint <- object@weightEndpoint
               if(is.numeric(endpoint)){
                   validInteger(endpoint,
                                name1 = "endpoint",
@@ -109,20 +124,38 @@ setMethod(f = "getIid",
                                valid.length = NULL,
                                method = "iid[BuyseTest]")
                   endpoint <- valid.endpoint[endpoint]
-              }   
+                  simplify <- FALSE
+              }else if(is.null(endpoint)){
+                  endpoint <- utils::tail(valid.endpoint,1)
+                  simplify <- TRUE
+              }else{
+                  simplify <- FALSE
+              }
               validCharacter(endpoint,
                              valid.length = 1:length(valid.endpoint),
-                             valid.values = valid.endpoint,
-                             refuse.NULL = FALSE)
+                             valid.values = valid.endpoint)
+              
+              ## strata
+              name.strata <- object@level.strata
+              n.strata <- length(name.strata)
+              weightStrata <- object@weightStrata
+              indexStrata <- attr(name.strata,"index")
+              attr(name.strata,"index") <- NULL
+
+              n.pairs <- object@n.pairs
+              ntot.pair <- sum(n.pairs)
+
+              indexC <- attr(object@level.treatment,"indexC")
+              indexT <- attr(object@level.treatment,"indexT")
+              
+              ## type
               validCharacter(type,
                              valid.length = 1,
                              valid.values = c("all","nuisance","u-statistic"),
                              refuse.NULL = FALSE)
-              if(object@method.inference != "u-statistic"){
-                  stop("No H-decomposition in the object \n",
-                       "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
-              }
 
+
+              ##  statistic
               if(is.null(statistic)){
                   statistic <- option$statistic
               }else{
@@ -133,7 +166,7 @@ setMethod(f = "getIid",
                              "favorable" = "favorable",
                              "unfavorable" = "unfavorable",
                              statistic)})
-              
+                  
                   validCharacter(statistic,
                                  name1 = "statistic",
                                  valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
@@ -141,18 +174,10 @@ setMethod(f = "getIid",
                                  refuse.duplicates = TRUE,
                                  method = "getIid[S4BuyseTest]")
               }
-              
-              ## ** extract favorable/unfavorable
-              delta.favorable <- coef(object, statistic = "favorable", cumulative = FALSE, stratified = TRUE)
-              delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = FALSE, stratified = TRUE)
-              if(cumulative){
-                  Delta.favorable <- coef(object, statistic = "favorable", cumulative = TRUE, stratified = FALSE)
-                  Delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = TRUE, stratified = FALSE)
-              }else{
-                  Delta.favorable <- colSums(delta.favorable)
-                  Delta.unfavorable <- colSums(delta.unfavorable)
+              if(length(statistic)>1 && (stratified==TRUE)){
+                  stop("Argument \'statistic\' must be of length one when asking for strata-specific H-decomposition. \n")
               }
-              
+
               ## ** extract H-decomposition
               if(type %in% c("all","u-statistic")){
                   object.iid <- object@iidAverage[c("favorable","unfavorable")]
@@ -172,102 +197,140 @@ setMethod(f = "getIid",
                   } ## otherwise model.tte has been passed as argument and there is no uncertainty regarding nuisance
               }
 
-              if(normalize==FALSE){
-                  for(iter_strata in 1:n.strata){ 
+              ## ** remove normalization
+              if((center==FALSE) || (scale==FALSE)){
+
+                  if(center==FALSE){
+                      delta.favorable <- coef(object, statistic = "favorable", cumulative = FALSE, stratified = TRUE)
+                      delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = FALSE, stratified = TRUE)
+                  }
+                  
+                  for(iter_strata in 1:n.strata){  ## iter_strata <- 1
                       iStrataC <- intersect(indexC,indexStrata[[iter_strata]])
                       iStrataT <- intersect(indexT,indexStrata[[iter_strata]])
+                      ## remove scaling (by the sample size: \sum_i IF_i^2 -> 1/n^2 \sum_i IF_i^2)
+                      if(scale==FALSE || center == FALSE){
+                          object.iid$favorable[iStrataC,] <- length(iStrataC) * object.iid$favorable[iStrataC,,drop=FALSE]
+                          object.iid$favorable[iStrataT,] <- length(iStrataT) * object.iid$favorable[iStrataT,,drop=FALSE]
 
-                      ## remove scaling (pooling across strata)
-                      if(n.strata>1){
-                          object.iid$favorable[c(iStrataC,iStrataT),] <- object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE] / (n.pairs[iter_strata] / ntot.pair);
-                          object.iid$unfavorable[c(iStrataC,iStrataT),] <- object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE] / (n.pairs[iter_strata] / ntot.pair);
+                          object.iid$unfavorable[iStrataC,] <- length(iStrataC) * object.iid$unfavorable[iStrataC,,drop=FALSE]
+                          object.iid$unfavorable[iStrataT,] <- length(iStrataT) * object.iid$unfavorable[iStrataT,,drop=FALSE]
+                      }
+                      
+                      ## remove centering
+                      if(center==FALSE){
+                          object.iid$favorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE], - delta.favorable[iter_strata,,drop=FALSE])
+                          object.iid$unfavorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE], -delta.unfavorable[iter_strata,,drop=FALSE])
+                          if(scale){ ## restaure scaling
+                              object.iid$favorable[iStrataC,] <- object.iid$favorable[iStrataC,,drop=FALSE]/length(iStrataC)
+                              object.iid$favorable[iStrataT,] <- object.iid$favorable[iStrataT,,drop=FALSE]/length(iStrataT)
+
+                              object.iid$unfavorable[iStrataC,] <- object.iid$unfavorable[iStrataC,,drop=FALSE]/length(iStrataC)
+                              object.iid$unfavorable[iStrataT,] <- object.iid$unfavorable[iStrataT,,drop=FALSE]/length(iStrataT)
+                          }
                       }
 
-                      if(!is.null(attr(normalize,"skipScaleCenter")) && identical(attr(normalize,"skipScaleCenter"),TRUE)){next}
-                      
-                      ## remove scaling (by the sample size: \sum_i IF_i^2 -> 1/n^2 \sum_i IF_i^2)
-                      object.iid$favorable[iStrataC,] <- length(iStrataC) * object.iid$favorable[iStrataC,,drop=FALSE]
-                      object.iid$favorable[iStrataT,] <- length(iStrataT) * object.iid$favorable[iStrataT,,drop=FALSE]
-
-                      object.iid$unfavorable[iStrataC,] <- length(iStrataC) * object.iid$unfavorable[iStrataC,,drop=FALSE]
-                      object.iid$unfavorable[iStrataT,] <- length(iStrataT) * object.iid$unfavorable[iStrataT,,drop=FALSE]
-
-                      if(!is.null(attr(normalize,"skipCenter")) && identical(attr(normalize,"skipCenter"),TRUE)){next}
-
-                      ## remove centering
-                      object.iid$favorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE], - delta.favorable[iter_strata,,drop=FALSE])
-                      object.iid$unfavorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE], -delta.unfavorable[iter_strata,,drop=FALSE])
                   }
 
               }
 
+              ## ** cumulate over endpoints
               if(cumulative && n.endpoint > 1){
-              
-                  ## *** weight endpoints and cumulate them to obtain (cumulative) first order projection
+                  
                   keep.names <- list(favorable = colnames(object.iid$favorable),
                                      unfavorable = colnames(object.iid$unfavorable))
-                  object.iid$favorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$favorable, weight))
+
+                  object.iid$favorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$favorable, weightEndpoint))
                   colnames(object.iid$favorable) <- keep.names$favorable
-                  object.iid$unfavorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$unfavorable, weight))
+                  object.iid$unfavorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$unfavorable, weightEndpoint))
                   colnames(object.iid$unfavorable) <- keep.names$unfavorable
 
               }
 
-              ## ** accumulate H-decomposition over clusters
-              if(is.null(endpoint)){                  
-                  ## iid decomposition for the last endpoint
-                  object.iid <- do.call(cbind,lapply(object.iid, function(iI){
-                      iIID <- iI[,n.endpoint]
-                      if(!is.null(cluster)){
-                          iIID <- tapply(iIID,cluster,sum)
-                      }
-                      return(iIID)
-                  }))
-                  out <- matrix(NA, nrow = n.obs, ncol = length(statistic), dimnames = list(NULL, statistic))
-                  if("favorable" %in% statistic){
-                      out[,"favorable"] <- object.iid[,"favorable"]
+              ## ** pool across strata
+              if((stratified == FALSE) && n.strata>1){
+                  for(iter_strata in 1:n.strata){  ## iter_strata <- 1
+                      iStrataC <- intersect(indexC,indexStrata[[iter_strata]])
+                      iStrataT <- intersect(indexT,indexStrata[[iter_strata]])
+                  
+                      object.iid$favorable[c(iStrataC,iStrataT),] <- object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE] * weightStrata[iter_strata];
+                      object.iid$unfavorable[c(iStrataC,iStrataT),] <- object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE] * weightStrata[iter_strata];
                   }
-                  if("unfavorable" %in% statistic){
-                      out[,"unfavorable"] <- object.iid[,"unfavorable"]
-                  }
-                  if("netBenefit" %in% statistic){
-                      out[,"netBenefit"] <- object.iid[,"favorable"] - object.iid[,"unfavorable"]
-                  }
-                  if("winRatio" %in% statistic){
-                          out[,"winRatio"] <- object.iid[,"favorable"]/Delta.unfavorable[n.endpoint] - object.iid[,"unfavorable"]*Delta.favorable[n.endpoint]/Delta.unfavorable[n.endpoint]^2 + sum(object.iid[,"favorable"])/sum(object.iid[,"unfavorable"])
-                  }
+              }else if((stratified == TRUE) && (n.strata >1)){
+                  keep.iid.favorable <- object.iid$favorable
+                  object.iid$favorable <- stats::setNames(lapply(1:n.strata, function(iStrata){
+                      iM <- keep.iid.favorable
+                      iM[-indexStrata[[iStrata]]] <- 0
+                      return(iM)
+                  }), name.strata)
 
-              }else{
-                  ## iid decomposition for each endpoint
-                  out <- lapply(endpoint, function(iE){
-                      iIID <- cbind(favorable = object.iid$favorable[,iE],
-                                    unfavorable = object.iid$unfavorable[,iE])
+                  keep.iid.unfavorable <- object.iid$unfavorable
+                  object.iid$unfavorable <- stats::setNames(lapply(1:n.strata, function(iStrata){
+                      iM <- keep.iid.unfavorable
+                      iM[-indexStrata[[iStrata]]] <- 0
+                      return(iM)
+                  }), name.strata)
+              }                     
+
+              ## ** iid decomposition of the chosen statistic for each endpoint
+              if("winRatio" %in% statistic){
+                  Delta.favorable <- coef(object, statistic = "favorable", cumulative = cumulative, stratified = stratified, endpoint = endpoint)
+                  Delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = cumulative, stratified = stratified, endpoint = endpoint)
+              }
+              
+              out <- lapply(endpoint, function(iE){
+                  
                       if(!is.null(cluster)){
-                          iIID <- cbind(favorable = tapply(iIID[,"favorable"],cluster,sum),
-                                        unfavorable = tapply(iIID[,"unfavorable"],cluster,sum))
+                          iIID.favorable <- tapply(object.iid$favorable[,iE], cluster, sum)
+                          iIID.unfavorable <- tapply(object.iid$unfavorable[,iE], cluster, sum)
+                      }else{
+                          if(stratified){
+                              iIID.favorable <- do.call(cbind,lapply(object.iid$favorable, function(iM){iM[,iE]}))
+                              iIID.unfavorable <- do.call(cbind,lapply(object.iid$unfavorable, function(iM){iM[,iE]}))
+                          }else{
+                              iIID.favorable <- object.iid$favorable[,iE]
+                              iIID.unfavorable <- object.iid$unfavorable[,iE]
+                          }
                       }
+
+                  if(stratified){
+                      if(statistic == "favorable"){
+                          iOut <- iIID.favorable
+                      }else if(statistic == "unfavorable"){
+                          iOut <- iIID.unfavorable
+                      }else if(statistic == "netBenefit"){
+                          iOut <- iIID.favorable - iIID.unfavorable
+                      }else if(statistic == "winRatio"){
+                          iOut <- .rowScale_cpp(iIID.favorable,Delta.unfavorable[,iE]) - .rowMultiply_cpp(iIID.unfavorable, Delta.favorable[,iE]/Delta.unfavorable[,iE]^2)                      
+                      }                      
+                  }else{
                       iOut <- matrix(NA, nrow = n.obs, ncol = length(statistic), dimnames = list(NULL, statistic))
+                      
                       if("favorable" %in% statistic){
-                          iOut[,"favorable"] <- iIID[,"favorable"]
+                          iOut[,"favorable"] <- iIID.favorable
                       }
                       if("unfavorable" %in% statistic){
-                          iOut[,"unfavorable"] <- iIID[,"unfavorable"]
+                          iOut[,"unfavorable"] <- iIID.unfavorable
                       }
                       if("netBenefit" %in% statistic){
-                          iOut[,"netBenefit"] <- iIID[,"favorable"] - iIID[,"unfavorable"]
+                          iOut[,"netBenefit"] <- iIID.favorable - iIID.unfavorable
                       }
                       if("winRatio" %in% statistic){
-                          iOut[,"winRatio"] <- iIID[,"favorable"]/Delta.unfavorable[iE] - iIID[,"unfavorable"]*Delta.favorable[iE]/Delta.unfavorable[iE]^2 + sum(iIID[,"favorable"])/sum(iIID[,"unfavorable"])
+                          iOut[,"winRatio"] <- iIID.favorable/Delta.unfavorable[iE] - iIID.unfavorable*Delta.favorable[iE]/Delta.unfavorable[iE]^2                      
                       }
-                      return(iOut)
-                  })
-                  names(out) <- endpoint
-              }
+                  }
+                  return(iOut)
+              })
+              names(out) <- endpoint
 
               ## ** output H-decomposition
-              return(out)
-    
-})
+              if(simplify){
+                  return(out[[1]])
+              }else{
+                  return(out)
+              }
+              
+          })
 
 ## * getPairScore (documentation)
 #' @name S4BuyseTest-getPairScore

@@ -14,6 +14,8 @@ powerBuyseTest(
   cpus = 1,
   seed = NULL,
   conf.level = NULL,
+  power = NULL,
+  max.sample.size = 5000,
   alternative = NULL,
   order.Hprojection = NULL,
   transformation = NULL,
@@ -42,8 +44,13 @@ The vector should be named with the names of the statistics.}
 
 \item{seed}{[integer, >0] the seed to consider for the simulation study.}
 
-\item{conf.level}{[numeric] confidence level for the confidence intervals.
+\item{conf.level}{[numeric, 0-1] type 1 error level.
 Default value read from \code{BuyseTest.options()}.}
+
+\item{power}{[numeric, 0-1] type 2 error level used to determine the sample size. Only relevant when \code{sample.size}, \code{sample.sizeC}, and \code{sample.sizeT} are not given. See details.}
+
+\item{max.sample.size}{[interger, 0-1] sample size used to approximate the sample size achieving the requested type 1 and type 2 error (see details).
+Can have length 2 to indicate the sample in each group when the groups have unequal sample size.}
 
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 Default value read from \code{BuyseTest.options()}.}
@@ -61,7 +68,14 @@ Default value read from \code{BuyseTest.options()}.}
 }
 \description{
 Performs a simulation studies for several sample sizes.
-Returns estimates, standard errors, confidence intervals and p.values.
+Returns estimates, their standard deviation, the average estimated standard error, and the rejection rate.
+}
+\details{
+\bold{Sample size calculation}: to approximate the sample size achieving the requested type 1 (\eqn{\alpha}) and type 2 error (\eqn{\beta}),
+GPC are applied on a large sample (as defined by the argument \code{max.sample.size}): (\eqn{N^*=m^*+n^*}) where \eqn{m^*} is the sample size in the control group and \eqn{n^*} is the sample size in the active group.
+Then the effect (\eqn{\delta}) and the asymptotic variance of the estimator (\eqn{\sigma^2}) are estimated. The total sample size is then deduced as (two-sided case):
+\deqn{\hat{N} = \hat{\sigma}^2\frac{(u_{1-\alpha/2}+u_{1-\beta})^2}{\hat{\delta}^2}} from which the group specific sample sizes are deduced: \eqn{\hat{m}=\hat{N}\frac{m^*}{N^*}} and \eqn{\hat{n}=\hat{N}\frac{n^*}{N^*}}.
+Since this is an approximation, a simulation study is performed with this sample size to provide the estimated power. It may not be exactly the requested power but should provide a reasonnable guess which can be refined with further simulation studies. Note that the maximumal sample size should be very high for the estimation to be accurate (ideally 10000 or more).
 }
 \examples{
 library(data.table)
@@ -78,7 +92,7 @@ powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
                method.inference = "u-statistic", trace = 4)
 
 #### Using user defined simulation function ####
-## Example of power calculation for Wilcoxon test
+## power calculation for Wilcoxon test
 simFCT <- function(n.C, n.T){
     out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
                  cbind(Y=stats::rt(n.T, df = 5), group=1) + 1)
@@ -96,6 +110,13 @@ powerW <- powerBuyseTest(sim = simFCT, sample.size = c(5, 10,20,30,50,100),
 summary(powerW)
 } 
 
+## sample size needed to reach (approximately) a power
+## based on summary statistics obtained on a large sample 
+\dontrun{
+sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, max.sample.size = 10000,
+                         n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+summary(sampleW)
+} 
 }
 \author{
 Brice Ozenne

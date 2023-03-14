@@ -26,7 +26,7 @@ printGeneral(
   trace,
   treatment,
   type,
-  weight,
+  weightEndpoint,
   Wscheme,
   ...
 )

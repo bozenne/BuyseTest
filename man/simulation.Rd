@@ -59,7 +59,7 @@ Arguments in the list \code{argsBin}:
 }
 
 Arguments in the list \code{argsCont}:
-    \itemize{
+    \itemize{p
     \item\code{mu.T} expected value of each endpoint (continuous endpoint, treatment group). 
     \item\code{mu.C} same as \code{mu.C} but for the control group. 
     \item\code{sigma.T} standard deviation of the values of each endpoint (continuous endpoint, treatment group). 

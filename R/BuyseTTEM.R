@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: Apr 14 2021 (20:23) 
+## Last-Updated: Mar 13 2023 (09:06) 
 ##           By: Brice Ozenne
-##     Update #: 636
+##     Update #: 637
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -628,16 +628,18 @@ predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = 
 
 ## * iid.BuyseTTEM
 #' @export
-iid.BuyseTTEM <- function(x, treatment, strata, cause = 1){
-    if(is.null(x$peron$iid.cif[[strata]][[treatment]][[cause]])){
+iid.BuyseTTEM <- function(x, treatment, strata, cause = 1, ...){
+    object <- x
+    
+    if(is.null(object$peron$iid.cif[[strata]][[treatment]][[cause]])){
         stop("iid decomposition not available - consider setting the argument \'iid\' to TRUE when calling BuyseTTEM. \n")
     }
-    type <- ifelse(x$peron$n.CR==1,"survival","competing.risks")
+    type <- ifelse(object$peron$n.CR==1,"survival","competing.risks")
 
     if(type=="survival"){
-        return(-x$peron$iid.cif[[strata]][[treatment]][[cause]])
+        return(-object$peron$iid.cif[[strata]][[treatment]][[cause]])
     }else{
-        return(x$peron$iid.cif[[strata]][[treatment]][[cause]])
+        return(object$peron$iid.cif[[strata]][[treatment]][[cause]])
     }
 }
 

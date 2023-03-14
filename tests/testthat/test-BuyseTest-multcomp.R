@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 28 2021 (11:01) 
 ## Version: 
-## Last-Updated: okt 28 2021 (12:06) 
+## Last-Updated: Mar 13 2023 (10:25) 
 ##           By: Brice Ozenne
-##     Update #: 6
+##     Update #: 7
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,10 +37,10 @@ d <- simBuyseTest(n)
 test_that("univariate result - no strata",{
     ## check correctly extracted univariate from the multivariate analysis 
     eG.BT <- BuyseTest(treatment ~ bin(toxicity) + cont(score,1) + cont(eventtime), data = d,
-                       hierarchical = FALSE)
-    eG1.BT <- BuyseTest(treatment ~ bin(toxicity), data = d)
-    eG2.BT <- BuyseTest(treatment ~ cont(score,1), data = d)
-    eG3.BT <- BuyseTest(treatment ~ cont(eventtime), data = d)
+                       hierarchical = FALSE, method.inference = "u-statistic")
+    eG1.BT <- BuyseTest(treatment ~ bin(toxicity), data = d, method.inference = "u-statistic")
+    eG2.BT <- BuyseTest(treatment ~ cont(score,1), data = d, method.inference = "u-statistic")
+    eG3.BT <- BuyseTest(treatment ~ cont(eventtime), data = d, method.inference = "u-statistic")
 
     test <- confint(eG.BT, statistic =  "netBenefit", cumulative = FALSE)
     GS <- rbind(confint(eG1.BT, statistic =  "netBenefit", cumulative = FALSE),
@@ -64,10 +64,10 @@ dS <- simBuyseTest(n, n.strata = 3)
 
 test_that("Separate BuyseTest vs. single BuyseTest for obtaining univariate result",{
     eG.BT <- BuyseTest(treatment ~ bin(toxicity) + cont(score,1) + cont(eventtime) + strata, data = dS,
-                       hierarchical = FALSE)
-    eG1.BT <- BuyseTest(treatment ~ bin(toxicity) + strata, data = dS)
-    eG2.BT <- BuyseTest(treatment ~ cont(score,1) + strata, data = dS)
-    eG3.BT <- BuyseTest(treatment ~ cont(eventtime) + strata, data = dS)
+                       hierarchical = FALSE, method.inference = "u-statistic")
+    eG1.BT <- BuyseTest(treatment ~ bin(toxicity) + strata, data = dS, method.inference = "u-statistic")
+    eG2.BT <- BuyseTest(treatment ~ cont(score,1) + strata, data = dS, method.inference = "u-statistic")
+    eG3.BT <- BuyseTest(treatment ~ cont(eventtime) + strata, data = dS, method.inference = "u-statistic")
 
     test <- confint(eG.BT, statistic =  "netBenefit", cumulative = FALSE)
     GS <- rbind(confint(eG1.BT, statistic =  "netBenefit", cumulative = FALSE),

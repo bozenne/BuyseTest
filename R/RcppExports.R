@@ -13,8 +13,9 @@
 #' @param posT A list containing, for each strata, the unique identifier of each treatment observations.
 #' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
 #' @param restriction Store the restriction time associated to each endpoint. Must have length D. 
-#' @param weight Store the weight associated to each endpoint. Must have length D. 
+#' @param weightEndpoint Store the weight associated to each endpoint. Must have length D. 
 #' @param method The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).
+#' @param pool The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size), 1 (Mantel Haenszel weights), 2 (equal weights), 3 (precision weights)
 #' @param op The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.
 #' @param D The number of endpoints.
 #' @param D_UTTE The number of distinct time to event endpoints.
@@ -40,7 +41,7 @@
 #' @param addHalfNeutral Should half of the neutral score be added to the favorable and unfavorable scores?
 #' @param keepScore Should the result of each pairwise comparison be kept?
 #' @param precompute Have the integrals relative to the survival be already computed and stored in list_survTimeC/list_survTimeT and list_survJumpC/list_survJumpT (derivatives)
-#' @param returnIID Should the iid be computed?
+#' @param returnIID Should the iid be computed? Second element: is there any nuisance parameter?
 #' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 #'
 #' @details GPC_cpp implements GPC looping first over endpoints and then over pairs.
@@ -54,14 +55,14 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weight, method, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weight, method, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug)
+GPC_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weightEndpoint, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weightEndpoint, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug)
 }
 
 #' @name GPC_cpp
 #' @export
-GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weight, method, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug) {
-    .Call(`_BuyseTest_GPC2_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weight, method, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug)
+GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weightEndpoint, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug) {
+    .Call(`_BuyseTest_GPC2_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, restriction, weightEndpoint, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, returnIID, debug)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method in the survival case. 
@@ -129,13 +130,22 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
     .Call(`_BuyseTest_calcIntegralSurv2_cpp`, time, survival, dSurvival, index_survival, index_dSurvival1, index_dSurvival2, lastSurv, lastdSurv, iidNuisance, nJump)
 }
 
-#' Apply cumsum in each column 
+#' Row-wise cumulative sum 
 #'
-#' @description Fast computation of apply(x,2,cumsum)
+#' @description Fast computation of apply(x,1,cumsum)
 #' @param X A matrix.
 #' @return A matrix of same size as x.
 .rowCumSum_cpp <- function(X) {
     .Call(`_BuyseTest_rowCumSum_cpp`, X)
+}
+
+#' Column-wise cumulative sum 
+#'
+#' @description Fast computation of apply(x,2,cumsum)
+#' @param X A matrix.
+#' @return A matrix of same size as x.
+.colCumSum_cpp <- function(X) {
+    .Call(`_BuyseTest_colCumSum_cpp`, X)
 }
 
 #' Apply cumprod in each row 

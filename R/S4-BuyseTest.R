@@ -45,7 +45,9 @@ setClass(
       DeltaResampling = "array",
       covariance = "matrix",
       covarianceResampling = "array",
-      weight = "numeric",
+      weightEndpoint = "numeric",
+      weightStrata = "numeric",
+      weightStrataResampling = "array",
       iidAverage = "list",
       iidNuisance = "list",
       tablePairScore = "list",
@@ -93,15 +95,18 @@ methods::setMethod(
                                    strata,
                                    threshold,
                                    restriction,
-                                   weight,
+                                   weightEndpoint,
+                                   weightStrata,
+                                   pool.strata,
                                    n.resampling,
                                    deltaResampling = NULL, ## from inferenceResampling
                                    DeltaResampling = NULL, ## from inferenceResampling
+                                   weightStrataResampling = NULL, ## from inferenceResampling
                                    covarianceResampling = NULL, ## from inferenceResampling
                                    args){
 
                  name.endpoint <- paste0(endpoint,ifelse(!is.na(restriction),paste0("_r",restriction),""),ifelse(threshold>1e-12,paste0("_t",threshold),""))
-                 
+
                  ## ** call
                  call <- call[-1]
 
@@ -114,9 +119,9 @@ methods::setMethod(
                  ## ** delta/Delta
                  dimnames(delta) <- list(level.strata,
                                          name.endpoint,
-                                         c("favorable","unfavorable","netBenefit","winRatio"))
+                                         c("favorable","unfavorable","neutral","uninf","netBenefit","winRatio"))
                  dimnames(Delta) <- list(name.endpoint,
-                                         c("favorable","unfavorable","netBenefit","winRatio"))
+                                         c("favorable","unfavorable","neutral","uninf","netBenefit","winRatio"))
 
                  ## ** n_pairs
                  names(n_pairs) <- level.strata
@@ -207,31 +212,24 @@ methods::setMethod(
                  ## ** threshold
                  names(threshold) <- name.endpoint
                  
-                 ## ** weight
-                 names(weight) <- name.endpoint
+                 ## ** weightEndpoint
+                 names(weightEndpoint) <- name.endpoint
+
+                 ## ** weightStrata
+                 weightStrata <- as.double(weightStrata)
+                 attr(weightStrata,"type") <- attr(pool.strata,"original")
 
                  ## ** n.resampling
+                 if(!is.null(deltaResampling)){                     
+                     dimnames(deltaResampling)[[3]] <- name.endpoint
+                     dimnames(DeltaResampling)[[2]] <- name.endpoint
+                     if(attr(method.inference,"studentized")){
+                         dimnames(covarianceResampling)[[2]] <- name.endpoint
+                     }
+                 }
 
-                 ## ** Resampling
-                 if(!is.null(deltaResampling) && length(deltaResampling)>0){
-                     dimnames(deltaResampling) <- list(NULL,
-                                                       name.endpoint,
-                                                       c("favorable","unfavorable","netBenefit","winRatio"),
-                                                       level.strata)
-                 }
-                 
-                 if(!is.null(DeltaResampling) && length(DeltaResampling)>0){
-                     dimnames(DeltaResampling) <- list(NULL,
-                                                       name.endpoint,
-                                                       c("favorable","unfavorable","netBenefit","winRatio"))
-                 }
-                 
-                 if(!is.null(covarianceResampling) && length(covarianceResampling)>0){
-                     dimnames(covarianceResampling) <- list(NULL,
-                                                            name.endpoint,
-                                                            c("favorable","unfavorable","covariance","netBenefit","winRatio"))
-                 }
-                 
+                 ## ** resampling
+
                  ## ** store
                  ## *** from c++ object
                  .Object@count.favorable <- count_favorable      
@@ -268,18 +266,16 @@ methods::setMethod(
                  .Object@strata <- strata
                  .Object@threshold <- threshold
                  .Object@restriction <- restriction
-                 .Object@weight <- weight
+                 .Object@weightEndpoint <- weightEndpoint
+                 .Object@weightStrata <- weightStrata
                  .Object@n.resampling <- n.resampling
                  
                  ## *** optional information
                  ## resampling
                  if(!is.null(deltaResampling)){
                      .Object@deltaResampling <- deltaResampling
-                 }
-                 if(!is.null(DeltaResampling)){
                      .Object@DeltaResampling <- DeltaResampling
-                 }
-                 if(!is.null(DeltaResampling)){
+                     .Object@weightStrataResampling <- weightStrataResampling
                      .Object@covarianceResampling <- covarianceResampling
                  }
 

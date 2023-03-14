@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Dec 22 2021 (15:40) 
+## Last-Updated: Mar  6 2023 (09:40) 
 ##           By: Brice Ozenne
-##     Update #: 317
+##     Update #: 323
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,6 +32,7 @@ testArgs <- function(name.call,
                      iidNuisance,
                      keep.pairScore,
                      scoring.rule,
+                     pool.strata,
                      model.tte,
                      method.inference,
                      n.resampling,
@@ -48,7 +49,7 @@ testArgs <- function(name.call,
                      trace,
                      treatment,
                      type,
-                     weight,
+                     weightEndpoint,
                      ...){
 
     ## ** data
@@ -201,7 +202,13 @@ testArgs <- function(name.call,
                 "For those endpoints, the Gehan's scoring rule will be used instead.")
     }
 
-    ## ## ** model.tte
+    ## ** pool.strata
+    if(is.na(pool.strata)){
+        stop("BuyseTest: wrong specification of \'pool.strata\'. \n",
+             "valid values: \"Buyse\", \"CMH\", \"equal\", \"var-favorable\", \"var-unfavorable\", \"var-netBenefit\", \"var-winRatio\". \n")
+    }
+
+    ## ** model.tte
     if(!is.null(model.tte)){
         endpoint.UTTE <- unique(endpoint[type=="tte"])
         D.UTTE <- length(endpoint.UTTE)
@@ -346,6 +353,9 @@ testArgs <- function(name.call,
                        valid.length = 1,
                        valid.values = c("none","u-statistic","permutation", "studentized permutation", "bootstrap", "studentized bootstrap"),
                        method = "BuyseTest")
+    }
+    if(pool.strata>3 && method.inference %in% c("u-statistic","studentized permutation","studentized bootstrap")){
+        stop("Only bootstrap and permutation can be used to quantify uncertainty when weighting strata-specific effects by the inverse of the variance. \n")
     }
     if(method.inference != "none" && any(table(data[[treatment]])<2) ){
         warning("P-value/confidence intervals will not be valid with only one observation. \n")
@@ -500,14 +510,14 @@ testArgs <- function(name.call,
         stop("BuyseTest: wrong specification of \'endpoint\' or \'type\' \n",message)
     }
 
-    ## ** weight
-    if(length(weight) != D){
-            stop("BuyseTest: argument \'weight\' must have length the number of endpoints \n")
+    ## ** weightEndpoint
+    if(length(weightEndpoint) != D){
+            stop("BuyseTest: argument \'weightEndpoint\' must have length the number of endpoints \n")
     }
     
     if(hierarchical){
-        if(any(weight!=1) || any(is.na(weight))){
-            stop("BuyseTest: all the weights must be 1 when using hierarchical GPC \n")
+        if(any(weightEndpoint!=1) || any(is.na(weightEndpoint))){
+            stop("BuyseTest: all the weights for the endpoints must be 1 when using hierarchical GPC \n")
         }
     }
     

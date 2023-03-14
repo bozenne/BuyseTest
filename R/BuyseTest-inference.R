@@ -99,21 +99,24 @@ inferenceResampling <- function(envir){
         warning("The resampling procedure failed for ",n.failure," samples (",round(100*n.failure/n.resampling,2),"%)")
     }
     
-    dim.delta <- c(n.resampling, D, 4, n.strata)
-    dimnames.delta <- list(as.character(1:n.resampling), endpoint, c("favorable","unfavorable","netBenefit","winRatio"), level.strata)
-
+    dim.delta <- c(n.resampling, n.strata, D, 6)
+    dimnames.delta <- list(as.character(1:n.resampling), level.strata, endpoint, c("favorable","unfavorable","neutral","uninf","netBenefit","winRatio"))
     out <- list(deltaResampling = array(NA, dim = dim.delta, dimnames = dimnames.delta),
-                DeltaResampling = array(NA, dim = dim.delta[1:3], dimnames = dimnames.delta[1:3])
+                DeltaResampling = array(NA, dim = dim.delta[c(1,3,4)], dimnames = dimnames.delta[c(1,3,4)]),
+                weightStrataResampling = matrix(NA, nrow = n.resampling, ncol = n.strata,
+                                                dimnames = list(NULL, level.strata))
                 )
     if(iid){
-        out$covarianceResampling = array(NA, dim = c(n.resampling, D, 5))
+        out$covarianceResampling = array(NA, dim = c(n.resampling, D, 5),
+                                         dimnames = list(as.character(1:n.resampling), endpoint, c("favorable", "unfavorable", "covariance", "netBenefit", "winRatio")))
     }else{
         out$covarianceResampling <- array(NA, dim = c(0,0,0))
     }
     
-    for(iR in test.resampling){
+    for(iR in test.resampling){ ## iR <- 1
         out$deltaResampling[iR,,,] <- ls.resampling[[iR]]$delta
         out$DeltaResampling[iR,,] <- ls.resampling[[iR]]$Delta
+        out$weightStrataResampling[iR,] <- ls.resampling[[iR]]$weightStrata
         
         if(iid){
             out$covarianceResampling[iR,,] <- ls.resampling[[iR]]$covariance
@@ -134,7 +137,7 @@ inferenceResampling <- function(envir){
 ## NOTE: arguments subset.C and subset.T were used for BuysePower to re-compute statistics on a subset of the data
 ##       but this happens to be slower than just re-running the test so is not used
 inferenceUstatisticBebu <- function(tablePairScore, subset.C = NULL, subset.T = NULL,
-                                    order, weight, 
+                                    order, weightEndpoint, 
                                     n.pairs, n.C, n.T, level.strata, n.strata, n.endpoint, endpoint){
     . <- NULL ## for CRAN test
     out <- list()
@@ -144,7 +147,7 @@ inferenceUstatisticBebu <- function(tablePairScore, subset.C = NULL, subset.T = 
     ntot.pairs <- sum(n.pairs)
         
     ## ** merge tables
-    ls.table <- wsumPairScore(tablePairScore, weight = weight,
+    ls.table <- wsumPairScore(tablePairScore, weightEndpoint = weightEndpoint,
                               subset.C = subset.C, subset.T = subset.T)
 
     out$n.pairs <- NROW(ls.table[[1]])
@@ -293,7 +296,7 @@ inferenceUstatisticBebu <- function(tablePairScore, subset.C = NULL, subset.T = 
 
 ## * wsumPairScore
 ## cumulate over endpoint the scores
-wsumPairScore <- function(pairScore, weight, subset.C, subset.T){
+wsumPairScore <- function(pairScore, weightEndpoint, subset.C, subset.T){
 
     keep.col <- c("strata","index.C","index.T","index.pair","indexWithinStrata.C", "indexWithinStrata.T","favorableC","unfavorableC","neutralC","uninfC")
     old.col <- c("favorableC","unfavorableC","neutralC","uninfC")
@@ -317,10 +320,10 @@ wsumPairScore <- function(pairScore, weight, subset.C, subset.T){
             iTable <- iTable[iTable$index.T %in% subset.numT]
         }
         data.table::setnames(iTable, old = old.col, new = new.col)
-        iTable[,c("favorable") := .SD$favorable * weight[iE]]
-        iTable[,c("unfavorable") := .SD$unfavorable * weight[iE]]
-        iTable[,c("neutral") := .SD$neutral * weight[iE]]
-        iTable[,c("uninf") := .SD$uninf * weight[iE]]
+        iTable[,c("favorable") := .SD$favorable * weightEndpoint[iE]]
+        iTable[,c("unfavorable") := .SD$unfavorable * weightEndpoint[iE]]
+        iTable[,c("neutral") := .SD$neutral * weightEndpoint[iE]]
+        iTable[,c("uninf") := .SD$uninf * weightEndpoint[iE]]
         
         if(iE==1){
             out[[iE]] <- iTable

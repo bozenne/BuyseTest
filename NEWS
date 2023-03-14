@@ -1,5 +1,19 @@
 # -*- mode: org -*-
 
+* Version 2.4
+
+** User visible changes
+- NEW FEATURE: argument pool.strata in the BuyseTest function to
+  choose the weights used to combine estimates across strata
+- NEW FEATURE: estimates, confidence intervals, and H-decomposition
+  for the strata-specific effects
+- NEW FEATURE: powerBuyseTest can perform an approximate search of
+  the sample size leading to a specific type 1 and type 2 error
+  (argument power).
+
+** Internal change
+- modify post-processing of GPC results (FCT_calcStatistic.h)
+
 * Version 2.3
 
 ** User visible changes

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: maj  9 2022 (13:19) 
+## Last-Updated: Mar 13 2023 (10:20) 
 ##           By: Brice Ozenne
-##     Update #: 205
+##     Update #: 207
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -517,7 +517,7 @@ test_that("backtransformation after permutation",{
 })
 
 test_that("U-stat with stratification",{
-    for(iOrder in 1:2){
+    for(iOrder in 1:2){ ## iOrder <- 2
         BuyseTest.options(order.Hprojection = iOrder)
         GPC.stratified <- BuyseTest(trt~cont(time) + celltype,
                                     data=veteran,

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: apr  5 2022 (17:56) 
+## Last-Updated: Mar 13 2023 (09:05) 
 ##           By: Brice Ozenne
-##     Update #: 179
+##     Update #: 180
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -266,7 +266,8 @@ confint.BuyseTestBrier <- function(object,...){
 ##' 
 ##' @method iid BuyseTestBrier
 ##' @export
-iid.BuyseTestBrier <- function(object,...){
+iid.BuyseTestBrier <- function(x,...){
+    object <- x
     return(attr(object,"iid"))
 }
 

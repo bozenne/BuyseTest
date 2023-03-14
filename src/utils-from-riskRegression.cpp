@@ -2,14 +2,25 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-//' Apply cumsum in each column 
+//' Row-wise cumulative sum 
 //'
-//' @description Fast computation of apply(x,2,cumsum)
+//' @description Fast computation of apply(x,1,cumsum)
 //' @param X A matrix.
 //' @return A matrix of same size as x.
 // [[Rcpp::export(".rowCumSum_cpp")]]
 arma::mat rowCumSum_cpp(const arma::mat X){
   arma::mat result = cumsum(X,1);
+  return result;
+}
+
+//' Column-wise cumulative sum 
+//'
+//' @description Fast computation of apply(x,2,cumsum)
+//' @param X A matrix.
+//' @return A matrix of same size as x.
+// [[Rcpp::export(".colCumSum_cpp")]]
+arma::mat colCumSum_cpp(const arma::mat X){
+  arma::mat result = cumsum(X,2);
   return result;
 }
 

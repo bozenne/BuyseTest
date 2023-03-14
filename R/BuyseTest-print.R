@@ -27,7 +27,7 @@ printGeneral <- function(status,
                          trace,
                          treatment,
                          type,
-                         weight,
+                         weightEndpoint,
                          Wscheme,
                          ...){
 
@@ -47,7 +47,7 @@ printGeneral <- function(status,
         df.endpoint[,1] <- paste0("      ",1:D)
         names(df.endpoint)[1] <- "      priority"
     }else{
-        df.endpoint[,1] <- paste0("      ",weight)
+        df.endpoint[,1] <- paste0("      ",weightEndpoint)
         names(df.endpoint)[1] <- "      weight"
     }
     
