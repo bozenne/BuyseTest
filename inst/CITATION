@@ -8,23 +8,17 @@ citHeader(paste("To cite the 'BuyseTest' package in publications use the citatio
 
 
 
-citEntry(entry="Manual",
+bibentry(bibtype="Manual",
          title = "BuyseTest: Implementation of the Generalized Pairwise Comparisons",
-         author = personList(as.person("Brice Ozenne"),
-                             as.person("Julien Peron")),
+         author = c(person("Brice","Ozenne"),
+                    person("Julien","Peron")),
          year = year,
-         note = vers,
-
-         textVersion =
-         paste("Brice Ozenne and Julien Peron (",
-               year,
-               "). BuyseTest: Implementation of the Generalized Pairwise Comparisons. ",
-               vers, ".", sep=""))
+         note = vers)
 
 
-citEntry(entry="Article",
+bibentry(bibtype="Article",
          title = "Generalized pairwise comparisons of prioritized outcomes in the two-sample problem",
-         author = "Marc Buyse",
+         author = person("Marc","Buyse"),
          year = "2010",
          volume = "29",
          number = "30",
@@ -33,16 +27,25 @@ citEntry(entry="Article",
          doi = "10.1002/sim.3923",
          textVersion = "Buyse, M. (2010), Generalized pairwise comparisons of prioritized outcomes in the two-sample problem. Statistics in medicine, 29: 3245-3257. doi:10.1002/sim.3923")
 
-citEntry(entry="Article",
+bibentry(bibtype="Article",
          title = "An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring",
-         author = "P{\'e}ron, Julien and Buyse, Marc and Ozenne, Brice and Roche, Laurent and Roy, Pascal",
+         author = c(person("Julien","Peron"), person("Marc","Buyse"), person("Brice","Ozenne"), person("Laurent","Roche"), person("Pascal","Roy")),
          year = "2018",
          volume = "27",
          number = "4",
          pages = "1230--1239",
          journal = "Statistical methods in medical research",
-         doi = "10.1177/0962280216658320",
-         textVersion = "Peron, M. et al. (2018), An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring. Statistical methods in medical research, 27: 1230-1239. https://doi.org/10.1177/0962280216658320")
+         doi = "10.1177/0962280216658320")
+
+bibentry(bibtype="Article",
+         title = "The asymptotic distribution of the Net Benefit estimator in presence of right-censoring",
+         author = c(person("Brice","Ozenne"), person("Esben","Budtz-Jorgensen"), person("Julien","Peron")),
+         year = "2021",
+         volume = "30",
+         number = "11",
+         pages = "2399--2412",
+         journal = "Statistical methods in medical research",
+         doi = "10.1177/09622802211037067")
 
          
          
