@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 10 2021 (09:34) 
 ## Version: 
-## Last-Updated: dec 10 2021 (09:34) 
+## Last-Updated: mar 14 2023 (18:29) 
 ##           By: Brice Ozenne
-##     Update #: 1
+##     Update #: 7
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,25 +70,29 @@ autoplot.sensitivity <- function(object, plot = TRUE, col = NULL, ci = TRUE, ban
         .pt <- get(".pt", envir = as.environment("package:ggplot2"))
         data$linetype[is.na(data$linetype)] <- 0
         out <- grid::segmentsGrob(c(0.2, 0.2, 0.5), c(0.2, 0.8, 0.2), c(0.8, 0.8, 0.5), c(0.2, 0.8, 0.8),
-                                  gp = grid::gpar(col = alpha(data$colour, data$alpha), lwd = data$size * .pt, lty = data$linetype, lineend = "butt"), arrow = params$arrow)
+                                  gp = grid::gpar(col = alpha(data$colour, data$alpha), lwd = data$linewidth * .pt, lty = data$linetype, lineend = "butt"), arrow = params$arrow)
         return(out)
     }
     on.exit(GeomErrorbar$draw_key  <-   draw_key.save)
-    gg <- ggplot2::ggplot(data = object, mapping = ggplot2::aes_string(x = name.var[1], y = "estimate", group = name.var[2]))
+    if(length(name.var)==1){
+        gg <- ggplot2::ggplot(data = object, mapping = ggplot2::aes(x = .data[[name.var[1]]], y = .data$estimate))
+    }else{
+        gg <- ggplot2::ggplot(data = object, mapping = ggplot2::aes(x = .data[[name.var[1]]], y = .data$estimate, group = .data[[name.var[2]]]))
+    }
     if(band && "lower.band" %in% names(object) && "upper.band" %in% names(object)){
-        gg <- gg + ggplot2::geom_ribbon(ggplot2::aes_string(ymin="lower.band", ymax = "upper.band", fill = name.col[2]), alpha = alpha)
+        gg <- gg + ggplot2::geom_ribbon(ggplot2::aes(ymin=.data$lower.band, ymax = .data$upper.band, fill = .data[[name.col[2]]]), alpha = alpha)
     }else{
         band <- FALSE
     }
-    gg <- gg + ggplot2::geom_point(ggplot2::aes_string(color = name.col[2]), size = size.point) + ggplot2::geom_line(ggplot2::aes_string(color = name.col[2]), size = size.line)
+    gg <- gg + ggplot2::geom_point(ggplot2::aes(color = .data[[name.col[2]]]), size = size.point) + ggplot2::geom_line(ggplot2::aes(color = .data[[name.col[2]]]), linewidth = size.line)
     gg <- gg + ggplot2::xlab(paste(label,name.var[1],sep=" "))
     gg <- gg + ggplot2::ylab(statistic) + ggplot2::theme(legend.position = "bottom")
 
     if(ci && "lower.ci" %in% names(object) && "upper.ci" %in% names(object)){
         if(!is.null(position)){
-            gg <- gg + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="lower.ci", ymax = "upper.ci", color = name.col[2]), size = size.ci, position = position)
+            gg <- gg + ggplot2::geom_errorbar(ggplot2::aes(ymin=.data$lower.ci, ymax = .data$upper.ci, color = .data[[name.col[2]]]), size = size.ci, position = position)
         }else{
-            gg <- gg + ggplot2::geom_errorbar(ggplot2::aes_string(ymin="lower.ci", ymax = "upper.ci", color = name.col[2]), size = size.ci)
+            gg <- gg + ggplot2::geom_errorbar(ggplot2::aes(ymin=.data$lower.ci, ymax = .data$upper.ci, color = .data[[name.col[2]]]), size = size.ci)
         }
     }else{
         ci <- FALSE
