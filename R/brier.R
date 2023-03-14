@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (09:05) 
+## Last-Updated: mar 14 2023 (13:44) 
 ##           By: Brice Ozenne
-##     Update #: 180
+##     Update #: 181
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -259,7 +259,7 @@ confint.BuyseTestBrier <- function(object,...){
 ##'
 ##' @description Extract the iid decompotion relative to Brier score estimate.
 ##' 
-##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
+##' @param x object of class \code{BuyseTestBrier} (output of the \code{brier} function).
 ##' @param ... not used. For compatibility with the generic function.
 ##'
 ##' @return A column vector.

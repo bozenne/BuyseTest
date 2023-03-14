@@ -141,7 +141,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
       iidAverage_neutral.rows(posC[iter_strata]) /= n_control[iter_strata];
       iidAverage_neutral.rows(posT[iter_strata]) /= n_treatment[iter_strata];
     }
-
+      
     // **** add the two source of uncertainty into a single iid
     if(returnIID[1]>0){
       iidTotal_favorable = iidAverage_favorable + iidNuisance_favorable;
@@ -239,11 +239,11 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     if(n_strata>1){
       for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
 
-	iidTotal_favorable(posC[iter_strata]) *= weightPool[iter_strata];
-	iidTotal_favorable(posT[iter_strata]) *= weightPool[iter_strata];
+	iidTotal_favorable.rows(posC[iter_strata]) *= weightPool[iter_strata];
+	iidTotal_favorable.rows(posT[iter_strata]) *= weightPool[iter_strata];
 	
-	iidTotal_unfavorable(posC[iter_strata]) *= weightPool[iter_strata];
-	iidTotal_unfavorable(posT[iter_strata]) *= weightPool[iter_strata];
+	iidTotal_unfavorable.rows(posC[iter_strata]) *= weightPool[iter_strata];
+	iidTotal_unfavorable.rows(posT[iter_strata]) *= weightPool[iter_strata];
 	
       }
     }

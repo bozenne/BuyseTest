@@ -7,9 +7,9 @@
 \method{iid}{BuyseTestBrier}(x, ...)
 }
 \arguments{
-\item{...}{not used. For compatibility with the generic function.}
+\item{x}{object of class \code{BuyseTestBrier} (output of the \code{brier} function).}
 
-\item{object}{object of class \code{BuyseTestBrier} (output of the \code{brier} function).}
+\item{...}{not used. For compatibility with the generic function.}
 }
 \value{
 A column vector.

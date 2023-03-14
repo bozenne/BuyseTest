@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (09:05) 
+## Last-Updated: mar 14 2023 (13:43) 
 ##           By: Brice Ozenne
-##     Update #: 458
+##     Update #: 459
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -376,7 +376,7 @@ confint.BuyseTestAuc <- function(object,...){
 #'
 #' @description Extract the iid decompotion relative to AUC estimate.
 #' 
-#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
+#' @param x object of class \code{BuyseTestAUC} (output of the \code{auc} function).
 #' @param ... not used. For compatibility with the generic function.
 #'
 #' @return A column vector.

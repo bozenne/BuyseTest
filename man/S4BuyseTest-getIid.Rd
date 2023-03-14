@@ -58,6 +58,9 @@ or both.}
 \description{
 Extract the H-decomposition of the GPC estimator.
 }
+\details{
+WARNING: argument \code{scale} and \code{center} should be used with care as when set to \code{FALSE} they may not lead to a meaningful decomposition.
+}
 \seealso{
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.

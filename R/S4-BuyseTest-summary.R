@@ -313,7 +313,7 @@ setMethod(f = "summary",
                   table[index.strata,"neutral"] <- Mstrata.N[iStrata,]
                   table[index.strata,"uninf"] <- Mstrata.UI[iStrata,]
                   table[index.strata,"total"] <- rowSums(table[index.strata,c("favorable","unfavorable","neutral","uninf")])
-              
+
                   table[index.strata,"strata"] <- object@level.strata[iStrata]
                   table[index.strata,"endpoint"] <- object@endpoint
                   table[index.strata,"threshold"] <- object@threshold

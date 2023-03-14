@@ -258,16 +258,16 @@ setMethod(f = "getIid",
                   }
               }else if((stratified == TRUE) && (n.strata >1)){
                   keep.iid.favorable <- object.iid$favorable
-                  object.iid$favorable <- stats::setNames(lapply(1:n.strata, function(iStrata){
+                  object.iid$favorable <- stats::setNames(lapply(1:n.strata, function(iStrata){ ## iStrata <- 1
                       iM <- keep.iid.favorable
-                      iM[-indexStrata[[iStrata]]] <- 0
+                      iM[-indexStrata[[iStrata]],] <- 0
                       return(iM)
                   }), name.strata)
 
                   keep.iid.unfavorable <- object.iid$unfavorable
                   object.iid$unfavorable <- stats::setNames(lapply(1:n.strata, function(iStrata){
                       iM <- keep.iid.unfavorable
-                      iM[-indexStrata[[iStrata]]] <- 0
+                      iM[-indexStrata[[iStrata]],] <- 0
                       return(iM)
                   }), name.strata)
               }                     
@@ -278,8 +278,7 @@ setMethod(f = "getIid",
                   Delta.unfavorable <- coef(object, statistic = "unfavorable", cumulative = cumulative, stratified = stratified, endpoint = endpoint)
               }
               
-              out <- lapply(endpoint, function(iE){
-                  
+              out <- lapply(endpoint, function(iE){ ## iE <- endpoint[1]
                       if(!is.null(cluster)){
                           iIID.favorable <- tapply(object.iid$favorable[,iE], cluster, sum)
                           iIID.unfavorable <- tapply(object.iid$unfavorable[,iE], cluster, sum)
@@ -304,7 +303,7 @@ setMethod(f = "getIid",
                           iOut <- .rowScale_cpp(iIID.favorable,Delta.unfavorable[,iE]) - .rowMultiply_cpp(iIID.unfavorable, Delta.favorable[,iE]/Delta.unfavorable[,iE]^2)                      
                       }                      
                   }else{
-                      iOut <- matrix(NA, nrow = n.obs, ncol = length(statistic), dimnames = list(NULL, statistic))
+                      iOut <- matrix(NA, nrow = NROW(iIID.unfavorable), ncol = length(statistic), dimnames = list(NULL, statistic))
                       
                       if("favorable" %in% statistic){
                           iOut[,"favorable"] <- iIID.favorable

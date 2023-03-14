@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (12:20) 
+## Last-Updated: mar 14 2023 (13:55) 
 ##           By: Brice Ozenne
-##     Update #: 1062
+##     Update #: 1064
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -163,17 +163,17 @@ powerBuyseTest <- function(sim,
                 ratio <- c(max.sample.size[1]/sum(max.sample.size),max.sample.size[2]/sum(max.sample.size))
                 sigma2Max <- mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2)/ratio[1] + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2)/ratio[2]
                 if(alternative=="two.sided"){
-                    n.approx <- sigma2Max*(qnorm(1-alpha/2)+qnorm(power))^2/DeltaMax^2
+                    n.approx <- sigma2Max*(stats::qnorm(1-alpha/2) + stats::qnorm(power))^2/DeltaMax^2
                 }else if(alternative=="less"){
                     if(DeltaMax<0){
-                        n.approx <- sigma2Max*(qnorm(1-alpha)+qnorm(power))^2/DeltaMax^2
+                        n.approx <- sigma2Max*(stats::qnorm(1-alpha) + stats::qnorm(power))^2/DeltaMax^2
                     }else{
                         message("No power: positive effect detected. \n")
                         return(invisible(DeltaMax))
                     }
                 }else if(alternative=="greater"){
                     if(DeltaMax>0){
-                        n.approx <- sigma2Max*(qnorm(1-alpha)+qnorm(power))^2/DeltaMax^2
+                        n.approx <- sigma2Max*(stats::qnorm(1-alpha) + stats::qnorm(power))^2/DeltaMax^2
                     }else{
                         message("No power: positive effect detected. \n")
                         return(invisible(DeltaMax))
@@ -182,7 +182,7 @@ powerBuyseTest <- function(sim,
                 sample.sizeC <- ceiling(n.approx*ratio[1])
                 sample.sizeT <- ceiling(n.approx*ratio[2])
 
-                ## (mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2) + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2))*(qnorm(1-alpha/2)+qnorm(power))^2/DeltaMax^2
+                ## (mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2) + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2))*(stats::qnorm(1-alpha/2)+stats::qnorm(power))^2/DeltaMax^2
                 if (trace > 1) {
                     cat("   - estimated effect (variance): ",as.double(DeltaMax)," (",sigma2Max,")\n",sep="")
                     cat("   - estimated sample size      : (m=",sample.sizeC,", n=",sample.sizeT,")\n\n",sep="")
@@ -218,7 +218,7 @@ powerBuyseTest <- function(sim,
     dt.tempo <- sim(n.C = sample.sizeC[1], n.T = sample.sizeT[1])
     if(!data.table::is.data.table(dt.tempo)){
         stop("The function defined by the argument \'sim\' must return a data.table object.\n")
-n    }
+    }
 
     ## ** initialize arguments (all expect data that is just converted to data.table)
     ## initialized arguments are stored in outArgs

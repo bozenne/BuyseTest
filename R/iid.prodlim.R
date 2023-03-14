@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (09:04) 
+## Last-Updated: mar 14 2023 (13:44) 
 ##           By: Brice Ozenne
-##     Update #: 125
+##     Update #: 126
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,7 +20,7 @@
 #' @description Compute the influence function for each observation used to estimate the model
 #' @name iid.prodlim
 #' 
-#' @param object A prodlim object.
+#' @param x A prodlim object.
 #' @param add0 [logical] add the 0 to vector of relevant times.
 #' @param ... not used. For compatibility with the generic method.
 #' 

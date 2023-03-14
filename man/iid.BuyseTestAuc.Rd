@@ -7,9 +7,9 @@
 \method{iid}{BuyseTestAuc}(x, ...)
 }
 \arguments{
-\item{...}{not used. For compatibility with the generic function.}
+\item{x}{object of class \code{BuyseTestAUC} (output of the \code{auc} function).}
 
-\item{object}{object of class \code{BuyseTestAUC} (output of the \code{auc} function).}
+\item{...}{not used. For compatibility with the generic function.}
 }
 \value{
 A column vector.

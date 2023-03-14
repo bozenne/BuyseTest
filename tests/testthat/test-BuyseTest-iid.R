@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (12:34) 
+## Last-Updated: mar 14 2023 (10:51) 
 ##           By: Brice Ozenne
-##     Update #: 202
+##     Update #: 207
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -475,7 +475,6 @@ test_that("iid: two endpoints (no strata - second order)", {
 })
 
 ## *** strata
-
 test_that("iid: two endpoints (strata)", {
 
     for(iOrder in 1:2){ ## iOrder <- 1
@@ -751,13 +750,13 @@ test_that("iid with nuisance parameters: 2 TTE",{
 
 
 ## ** 1 TTE with strata
-test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
+test_that("iid with nuisance parameters: 1 TTE + strata",{
     BuyseTest.options(order.Hprojection = 1)
 
     e.BT_tteS <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + toxicity1,
                            data = dt.sim, 
                            method.inference = "u-statistic")
-    e.BT_tteS@covariance
+    ##  e.BT_tteS@covariance
 
     ls.BT_tteS <- lapply(split(dt.sim,dt.sim$toxicity1), function(iData){
         BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1), data = iData,
@@ -773,8 +772,8 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     expect_equal(colSums(riskRegression::colMultiply_cpp(M.estimate,weight)),as.double(coef2(e.BT_tteS)))
     expect_equal(colSums(riskRegression::colMultiply_cpp(M.covariance,weight^2)),as.double(e.BT_tteS@covariance[,c(1:2,4)]))
 
-    test <- as.double(getIid(e.BT_tteS, statistic = "netBenefit", normalize = FALSE))
-    GS <- unlist(lapply(ls.BT_tteS, getIid, statistic = "netBenefit", normalize = FALSE))
+    test <- rowSums(getIid(e.BT_tteS, statistic = "netBenefit", scale = FALSE, center = FALSE, stratified = TRUE))
+    GS <- unlist(lapply(ls.BT_tteS, getIid, statistic = "netBenefit", scale = FALSE, center = FALSE))
     expect_equal(test[unlist(split(1:NROW(dt.sim),dt.sim$toxicity1))], unname(GS), tol = 1e-7)
 })
 
@@ -788,13 +787,15 @@ test_that("iid - remove normalization", {
     e.all <- BuyseTest(treatment~bin(toxicity)+cont(score)+strata,
                        method.inference = "u-statistic",
                        data = dt, trace = 0)
-    
-    e.strata <- BuyseTest(treatment~bin(toxicity)+cont(score)+strata,
+    ## summary(e.all)
+
+    e.strata <- BuyseTest(treatment~bin(toxicity)+cont(score),
                           method.inference = "u-statistic",
                           data = dt[strata=="a"], trace = 0)
+    ## summary(e.strata)
 
-    iid.all <- getIid(e.all, normalize = FALSE)[which(dt$strata=="a"),]
-    iid.strata <- as.double(getIid(e.strata, normalize = FALSE))
+    iid.all <- getIid(e.all, scale = FALSE, center = FALSE, stratified = TRUE)[which(dt$strata=="a"),"a"]
+    iid.strata <- as.double(getIid(e.strata, scale = FALSE, center = FALSE))
     
     expect_equal(unname(iid.all),unname(iid.strata), tol = 1e-9)
     GS <- c(0.37313, -0.70149, 0.40299, -0.13433, -0.76119, 0.43284, 0.28358, -0.79104, -0.73134, 0.28358, -0.43284, -0.13433, -0.16418, -0.22388, -0.31343, -0.67164, -0.97015, 0.43284, 0.28358, -0.64179, -0.9403, 0.19403, 0.43284, 0.01493, -0.91045, -0.13433, 0.04478, 0.52239, 0.91045, 0.10448, 0.07463, 0.40299, 0.28358, -0.43284, 0.07463, -0.79104, -0.73134, 0.07463, -0.64179, -0.67164, 0.64179, -0.22388, -0.76119, 1, -0.34328, 0.70149, -0.31343, -0.58209, -0.49254, -0.58209, -0.31343, 0.49254, 0.43284, -0.73134, 0.22388, 0.91045, 0.73134, 0.28358, 0.49254, 0.70149, -0.07463, 0.43284, -0.61194, -0.8806, 0.91045, -0.2, -0.01538, 0.32308, -0.96923, -0.84615, -0.41538, -0.96923, 0.66154, -0.66154, 0.13846, 0.38462, -0.72308, -0.75385, 0.41538, -0.75385, 0.2, 0.81538, -0.87692, -0.26154, 0.38462, 0.32308, 1, -0.23077, -0.41538, -0.78462, -0.07692, 0.50769, 0.41538, -0.96923, -0.87692, 0.90769, 0.93846, -0.16923, -0.26154, 0.75385, 0.13846, -0.01538, 0.10769, -0.01538, -0.87692, 0.41538, -0.66154, -0.75385, 0.01538, 0.63077, 0.32308, 0.29231, 0.2, -0.78462, 0.87692, 0.87692, 0.47692, -0.41538, 0.56923, -0.2, 0.96923, 0.87692, -0.44615, 0.2, -0.2, -0.50769, -0.87692, 0.01538, -0.87692, -0.87692, -0.75385, -0.04615)

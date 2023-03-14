@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (10:24) 
+## Last-Updated: mar 14 2023 (13:46) 
 ##           By: Brice Ozenne
-##     Update #: 43
+##     Update #: 44
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -397,10 +397,10 @@ test_that("strata (variance weights)",{
     ls.eBT <- by(dt.strata, INDICES = dt.strata$stratum, FUN = function(iData){
         BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE, method.inference = "u-statistic")
     })
-    ecount.favorable <- coef(e.BT, statistic = "count.favorable", stratified = TRUE)[,1]
-    ecount.unfavorable <- coef(e.BT, statistic = "count.unfavorable", stratified = TRUE)[,1]
+    ecount.favorable <- sapply(ls.eBT, function(iBT){coef(iBT, statistic = "count.favorable", stratified = TRUE)[,1]})
+    ecount.unfavorable <- sapply(ls.eBT, function(iBT){coef(iBT, statistic = "count.unfavorable", stratified = TRUE)[,1]})
     ecount.strata <- table(dt.strata$stratum)
-    ecount.pairs <- e.BT@n.pairs
+    ecount.pairs <- sapply(ls.eBT, function(iBT){iBT@n.pairs})
 
     GS.optimal <- c(FA = weighted.mean( ecount.favorable/ecount.pairs,
                                        w = do.call(rbind,lapply(ls.eBT, confint, statistic = "favorable", order.Hprojection = 1))[,"se"]^(-2)),

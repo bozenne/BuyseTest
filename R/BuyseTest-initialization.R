@@ -375,13 +375,12 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         data.class <- sapply(data,class)
         test.num <- (data.class %in% c("numeric","integer"))
         if(any(test.num==FALSE)){
-            endpoint.char <- setdiff(names(data.class)[test.num==FALSE],treatment)
+            endpoint.char <- setdiff(names(data.class)[test.num==FALSE],c(treatment,strata))
             for(iE in endpoint.char){
                 data[, c(iE) := as.double(as.factor(.SD[[1]]))-1.0, .SDcols = iE]
             }
         }
     }
-
 
     ## ** n.obs
     n.obs <- data[,.N]
@@ -402,7 +401,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
 
     n.strata <- length(level.strata)
-
+   
     ## ** convert treatment to binary indicator
     level.treatment <- levels(as.factor(data[[treatment]]))
     trt2bin <- stats::setNames(0:1,level.treatment)

@@ -12,6 +12,7 @@ inst/doc-software
 inst/doc-theory
 inst/docToAdd
 inst/todo.org
+data/
 .github/
 LICENSE
 ^appveyor\.yml$

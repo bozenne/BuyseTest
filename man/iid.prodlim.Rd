@@ -7,11 +7,11 @@
 \method{iid}{prodlim}(x, add0 = FALSE, ...)
 }
 \arguments{
+\item{x}{A prodlim object.}
+
 \item{add0}{[logical] add the 0 to vector of relevant times.}
 
 \item{...}{not used. For compatibility with the generic method.}
-
-\item{object}{A prodlim object.}
 }
 \description{
 Compute the influence function for each observation used to estimate the model
