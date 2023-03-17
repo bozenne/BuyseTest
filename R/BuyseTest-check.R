@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Mar  6 2023 (09:40) 
+## Last-Updated: mar 15 2023 (19:05) 
 ##           By: Brice Ozenne
-##     Update #: 323
+##     Update #: 324
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,6 +50,7 @@ testArgs <- function(name.call,
                      treatment,
                      type,
                      weightEndpoint,
+                     weightObs,
                      ...){
 
     ## ** data
@@ -513,6 +514,20 @@ testArgs <- function(name.call,
     ## ** weightEndpoint
     if(length(weightEndpoint) != D){
             stop("BuyseTest: argument \'weightEndpoint\' must have length the number of endpoints \n")
+    }
+    
+    if(hierarchical){
+        if(any(weightEndpoint!=1) || any(is.na(weightEndpoint))){
+            stop("BuyseTest: all the weights for the endpoints must be 1 when using hierarchical GPC \n")
+        }
+    }
+
+    ## ** weightObs
+    test1 <- is.character(weightObs) && length(weightObs) == 1 && weightObs %in% names(data)
+    test2 <- is.numeric(weightObs) && length(weightObs) == NROW(data)
+    if((test1 == FALSE) && (test2 == FALSE)){
+        stop("BuyseTest: argument \'weightObs\' must correspond to a column in argument \'data\'",
+             "or must have as many element as rows in argument \'data\'. \n")
     }
     
     if(hierarchical){

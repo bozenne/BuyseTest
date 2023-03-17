@@ -59,6 +59,7 @@ initializeArgs <- function(status,
                            treatment,
                            type,
                            weightEndpoint,
+                           weightObs,
                            envir){
 
     ## ** apply default options
@@ -354,6 +355,7 @@ initializeArgs <- function(status,
         Uendpoint = Uendpoint,
         Ustatus = Ustatus,
         weightEndpoint = weightEndpoint,
+        weightObs = weightObs,
         debug = option$debug
     ))
 }
@@ -361,7 +363,7 @@ initializeArgs <- function(status,
 ## * initializeData
 #' @rdname internal-initialization
 initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, censoring, strata, treatment, hierarchical, copy,
-                           keep.pairScore, endpoint.TTE, status.TTE, iidNuisance){
+                           keep.pairScore, endpoint.TTE, status.TTE, iidNuisance, weightEndpoint){
 
     if (!data.table::is.data.table(data)) {
         data <- data.table::as.data.table(data)
@@ -514,6 +516,21 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         }
     }
 
+    ## ** weightEndpoint
+    if(missing(weightObs) || is.null(weightObs)){
+        weight.C <- rep(1,length(index.C))
+        weight.T <- rep(1,length(index.C))
+    }else if(weightObs %in% names(data)){
+        weight.C <- data[index.C,weightObs]
+        weight.T <- data[index.T,weightObs]
+    }else if(length(weightObs)==NROW(data)){
+        weight.C <- weightObs[index.C]
+        weight.T <- weightObs[index.T]
+    }else{
+        weight.C <- NULL
+        weight.T <- NULL
+    }
+    
     ## ** export
     keep.cols <- union(c(treatment, "..strata.."),
                        na.omit(attr(method.inference,"resampling-strata")))
@@ -523,6 +540,8 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 M.status = as.matrix(data[, .SD, .SDcols = Ustatus]),
                 index.C = index.C,
                 index.T = index.T,
+                weight.C = weight.C,
+                weight.T = weight.T,
                 index.strata = tapply(data[["..rowIndex.."]], data[["..strata.."]], list),
                 level.treatment = level.treatment,
                 level.strata = level.strata,

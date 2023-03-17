@@ -264,6 +264,7 @@ BuyseTest <- function(formula,
                       strata.resampling = NULL,
                       hierarchical = NULL,
                       weightEndpoint = NULL,
+                      weightObs = NULL,
                       neutral.as.uninf = NULL,
                       add.halfNeutral = NULL,
                       keep.pairScore = NULL,
@@ -320,6 +321,7 @@ BuyseTest <- function(formula,
                               treatment = treatment,
                               type = type,
                               weightEndpoint = weightEndpoint,
+                              weightObs = weightObs,
                               envir = parent.frame())
 
     ## ** test arguments
@@ -329,7 +331,7 @@ BuyseTest <- function(formula,
     ## ** initialization data
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("data","M.endpoint","M.status",
-                  "index.C","index.T","index.strata",
+                  "index.C","index.T","weight.C","weight.T","index.strata",
                   "level.treatment","level.strata", "method.score",
                   "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                   "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
@@ -350,7 +352,8 @@ BuyseTest <- function(formula,
                                         keep.pairScore = outArgs$keep.pairScore,
                                         endpoint.TTE = outArgs$endpoint.TTE,
                                         status.TTE = outArgs$status.TTE,
-                                        iidNuisance = outArgs$iidNuisance)
+                                        iidNuisance = outArgs$iidNuisance,
+                                        weightEndpoint = weightEndpoint)
 
     if(option$check){
         if(outArgs$iidNuisance && any(outArgs$method.score == "CRPeron")){
@@ -558,6 +561,8 @@ BuyseTest <- function(formula,
                                  threshold = envir$outArgs$threshold,
                                  restriction = envir$outArgs$restriction,
                                  weightEndpoint = envir$outArgs$weightEndpoint,
+                                 weightC = outSample$weight.C,
+                                 weightT = outSample$weight.T,
                                  method = sapply(envir$outArgs$method.score, switch, "continuous" = 1, "gaussian" = 2, "TTEgehan" = 3, "TTEgehan2" = 4, "SurvPeron" = 5, "CRPeron" = 6),
                                  pool = envir$outArgs$pool.strata,
                                  op = envir$outArgs$operator,
@@ -617,6 +622,9 @@ calcSample <- function(envir, method.inference){
         ## identifier for each observation from the control/treatment group (unique even when boostrap)
         ls.posC = vector(mode = "list", length = envir$outArgs$n.strata),
         ls.posT = vector(mode = "list", length = envir$outArgs$n.strata),
+        ## weight of each observation
+        weight.C = envir$outArgs$weight.C,
+        weight.T = envir$outArgs$weight.T,
         data = data.table::data.table()
     )
 
