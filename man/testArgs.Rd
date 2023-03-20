@@ -11,6 +11,7 @@ testArgs(
   cpus,
   data,
   endpoint,
+  engine,
   formula,
   iid,
   iidNuisance,
@@ -34,6 +35,7 @@ testArgs(
   treatment,
   type,
   weightEndpoint,
+  weightObs,
   ...
 )
 }

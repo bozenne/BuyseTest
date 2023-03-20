@@ -34,6 +34,8 @@
 #' Otherwise all pairs will be compaired for all endpoint (full GPC).
 #' @param weightEndpoint [numeric vector] weights used to cumulating the pairwise scores over the endpoints.
 #' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
+#' @param weightObs [character or numeric vector] weights or variable in the dataset containing the weight associated to each observation.
+#' These weights are only considered when performing GPC (but not when fitting surival models).
 #' @param neutral.as.uninf [logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 #' See Details, section "Handling missing values".
 #' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
@@ -331,10 +333,11 @@ BuyseTest <- function(formula,
     ## ** initialization data
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("data","M.endpoint","M.status",
-                  "index.C","index.T","weight.C","weight.T","index.strata",
+                  "index.C","index.T","weightObs","index.strata",
                   "level.treatment","level.strata", "method.score",
                   "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                   "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
+
     outArgs[out.name] <- initializeData(data = outArgs$data,
                                         type = outArgs$type,
                                         endpoint = outArgs$endpoint,
@@ -353,7 +356,8 @@ BuyseTest <- function(formula,
                                         endpoint.TTE = outArgs$endpoint.TTE,
                                         status.TTE = outArgs$status.TTE,
                                         iidNuisance = outArgs$iidNuisance,
-                                        weightEndpoint = weightEndpoint)
+                                        weightEndpoint = outArgs$weightEndpoint,
+                                        weightObs = outArgs$weightObs)
 
     if(option$check){
         if(outArgs$iidNuisance && any(outArgs$method.score == "CRPeron")){
@@ -461,7 +465,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightEndpoint","pool.strata","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -561,8 +565,7 @@ BuyseTest <- function(formula,
                                  threshold = envir$outArgs$threshold,
                                  restriction = envir$outArgs$restriction,
                                  weightEndpoint = envir$outArgs$weightEndpoint,
-                                 weightC = outSample$weight.C,
-                                 weightT = outSample$weight.T,
+                                 weightObs = envir$outArgs$weightObs,
                                  method = sapply(envir$outArgs$method.score, switch, "continuous" = 1, "gaussian" = 2, "TTEgehan" = 3, "TTEgehan2" = 4, "SurvPeron" = 5, "CRPeron" = 6),
                                  pool = envir$outArgs$pool.strata,
                                  op = envir$outArgs$operator,
@@ -622,9 +625,7 @@ calcSample <- function(envir, method.inference){
         ## identifier for each observation from the control/treatment group (unique even when boostrap)
         ls.posC = vector(mode = "list", length = envir$outArgs$n.strata),
         ls.posT = vector(mode = "list", length = envir$outArgs$n.strata),
-        ## weight of each observation
-        weight.C = envir$outArgs$weight.C,
-        weight.T = envir$outArgs$weight.T,
+        ## dataset
         data = data.table::data.table()
     )
 
@@ -644,7 +645,9 @@ calcSample <- function(envir, method.inference){
         out$ls.posT <- out$ls.indexT
 
         if(envir$outArgs$scoring.rule>0){
-            out$data <- data.table::data.table(envir$outArgs$data,envir$outArgs$M.endpoint,envir$outArgs$M.status)
+            out$data <- data.table::data.table(envir$outArgs$data,
+                                               envir$outArgs$M.endpoint,
+                                               envir$outArgs$M.status)
         }
     }else{
 

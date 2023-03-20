@@ -48,13 +48,17 @@ head(dt)
 BuyseTest.options(order.Hprojection=1);BuyseTest.options(trace=0)
 
 ls.BT <- list("b-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
-                                  data = dt[dt$strata %in% c("a","b"),]),
+                                  data = dt[dt$strata %in% c("a","b"),],
+                                  method.inference = "u-statistic"),
               "c-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
-                                  data = dt[dt$strata %in% c("a","c"),]),
+                                  data = dt[dt$strata %in% c("a","c"),],
+                                  method.inference = "u-statistic"),
               "d-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
-                                  data = dt[dt$strata %in% c("a","d"),]),
+                                  data = dt[dt$strata %in% c("a","d"),],
+                                  method.inference = "u-statistic"),
               "e-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
-                                  data = dt[dt$strata %in% c("a","e"),])
+                                  data = dt[dt$strata %in% c("a","e"),],
+                                  method.inference = "u-statistic")
               )
 
 M.confint <- do.call(rbind,lapply(ls.BT,confint, statistic = "favorable"))

@@ -15,7 +15,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
                    arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidAverage_neutral,
 		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
 		   arma::mat& Mvar, std::vector< int > returnIID,
-		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
+		   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT, const arma::vec& weightObs,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
 		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
@@ -26,7 +26,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
                    arma::mat& iidAverage_favorable, arma::mat& iidAverage_unfavorable, arma::mat& iidAverage_neutral,
 		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
 		   arma::mat& Mvar, std::vector< int > returnIID,
-		   std::vector< arma::uvec >& posC, std::vector< arma::uvec >& posT,
+		   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT, const arma::vec& weightObs,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
 		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
@@ -89,6 +89,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   arma::mat h1_unfavorable;
  
   if(returnIID[0]>0 || pool>=3){
+
     // **** compute expectation (E[s^{\gamma}_{l,j}|x_l]) from sum 
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
       iidAverage_favorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
@@ -250,10 +251,15 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   
     // **** estimate variance
     // first order
-    Mvar.col(0) = arma::trans(arma::sum(pow(iidTotal_favorable,2), 0));
-    Mvar.col(1) = arma::trans(arma::sum(pow(iidTotal_unfavorable,2), 0));
-    Mvar.col(2) = arma::trans(arma::sum(iidTotal_favorable % iidTotal_unfavorable, 0));
- 	
+    arma::mat iid2;
+
+    iid2 = pow(iidTotal_favorable,2);
+    Mvar.col(0) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
+    iid2 = pow(iidTotal_unfavorable,2);
+    Mvar.col(1) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
+    iid2 = iidTotal_favorable % iidTotal_unfavorable;
+    Mvar.col(2) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
+    	
     // second order
     if(hprojection==2){
       if(keepScore){
@@ -284,13 +290,15 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 	arma::rowvec H2_favorable, H2_unfavorable;
 	arma::mat H2_moments(5,D,arma::fill::zeros);
 	int iter_strata, iter_C, iter_T;
-
+	double iter_weight;
+	
 	// endpoint specific    
 	for(int iter_pair=0; iter_pair<ntot_pair ; iter_pair++){
 
 	  iter_strata = lsScore[0](iter_pair,0);
 	  iter_C = lsScore[0](iter_pair,4); // index within strata
 	  iter_T = lsScore[0](iter_pair,5); // index within strata
+	  iter_weight = weightObs(posC[iter_strata][iter_C])*weightObs(posT[iter_strata][iter_T]);
 
 	  H2_favorable = (pairScoreF.row(iter_pair) - h1_favorable.row(posC[iter_strata][iter_C]) - h1_favorable.row(posT[iter_strata][iter_T]) - cumdelta_favorable.row(iter_strata));
 	  H2_unfavorable = (pairScoreUF.row(iter_pair) - h1_unfavorable.row(posC[iter_strata][iter_C]) - h1_unfavorable.row(posT[iter_strata][iter_T]) - cumdelta_unfavorable.row(iter_strata));
@@ -300,33 +308,42 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 	  // var(H2) = \sum_ij H2 / n_pair[iter_strata]
 	  // var(1/nm \sum_ij H2) = \sum_ij H2 / n_pair[iter_strata]^2
 	  // w_{pooling}^2 var(1/nm \sum_ij H2) = (n_pairs[iter_strata]/ntot_pair)^2 \sum_ij H2 / n_pairs[iter_strata]^2 = \sum_ij H2/ntot_pair^2
-	  Mvar.col(0) += arma::trans(pow(H2_favorable,2)) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
-	  Mvar.col(1) += arma::trans(pow(H2_unfavorable,2)) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
-	  Mvar.col(2) += arma::trans(H2_favorable % H2_unfavorable) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
+	  Mvar.col(0) += iter_weight * arma::trans(pow(H2_favorable,2)) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
+	  Mvar.col(1) += iter_weight * arma::trans(pow(H2_unfavorable,2)) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
+	  Mvar.col(2) += iter_weight * arma::trans(H2_favorable % H2_unfavorable) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
 	}
 
 	
       }else{ // only ok for binary scores i.e. win neutral or loss
 	arma::colvec strataDelta_favorable(D);
 	arma::colvec strataDelta_unfavorable(D);
+	arma::vec strataWeightC, strataWeightT;
 
 	for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
 	  // strata specific cumulative endpoint
 	  strataDelta_favorable = arma::trans(cumdelta_favorable.row(iter_strata));
 	  strataDelta_unfavorable = arma::trans(cumdelta_unfavorable.row(iter_strata));
+	  strataWeightC = weightObs(posC[iter_strata]);
+	  strataWeightT = weightObs(posT[iter_strata]);
 	  
 	  // (n_pairs[iter_strata] / ntot_pair)^2 * (1/n_pairs[iter_strata]) = n_pairs[iter_strata]/ntot_pair^2
 	  Mvar.col(0) += strataDelta_favorable % (1-strataDelta_favorable) * pow(weightPool[iter_strata],2)/n_pairs[iter_strata];
-	  Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(pow(iidTotal_favorable.rows(posC[iter_strata]),2),0) / n_treatment[iter_strata] );
-	  Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(pow(iidTotal_favorable.rows(posT[iter_strata]),2),0) / n_control[iter_strata] );
+	  iid2 = pow(iidTotal_favorable.rows(posC[iter_strata]),2);
+	  Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / n_treatment[iter_strata] );
+	  iid2 = pow(iidTotal_favorable.rows(posT[iter_strata]),2);
+	  Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / n_control[iter_strata] );
 	  
 	  Mvar.col(1) += strataDelta_unfavorable % (1-strataDelta_unfavorable) * pow(weightPool[iter_strata],2)/n_pairs[iter_strata];
-	  Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(pow(iidTotal_unfavorable.rows(posC[iter_strata]),2),0) / n_treatment[iter_strata] );
-	  Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(pow(iidTotal_unfavorable.rows(posT[iter_strata]),2),0) / n_control[iter_strata] );
+	  iid2 = pow(iidTotal_unfavorable.rows(posC[iter_strata]),2);
+	  Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / n_treatment[iter_strata] );
+	  iid2 = pow(iidTotal_unfavorable.rows(posT[iter_strata]),2);
+	  Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / n_control[iter_strata] );
 	  
 	  Mvar.col(2) -= strataDelta_favorable % strataDelta_unfavorable * pow(weightPool[iter_strata],2)/n_pairs[iter_strata];
-	  Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iidTotal_favorable.rows(posC[iter_strata]) % iidTotal_unfavorable.rows(posC[iter_strata]),0) / n_treatment[iter_strata]);
-	  Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iidTotal_favorable.rows(posT[iter_strata]) % iidTotal_unfavorable.rows(posT[iter_strata]),0) / n_control[iter_strata]);
+	  iid2 = iidTotal_favorable.rows(posC[iter_strata]) % iidTotal_unfavorable.rows(posC[iter_strata]);
+	  Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / n_treatment[iter_strata]);
+	  iid2 = iidTotal_favorable.rows(posT[iter_strata]) % iidTotal_unfavorable.rows(posT[iter_strata]);
+	  Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / n_control[iter_strata]);
 	  }
       }
 

@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 900
+##     Update #: 903
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -319,7 +319,8 @@ setMethod(f = "confint",
                           warning("Inference will be performed using a first order H projection. \n")
                       }
                       Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, stratified = stratified, cluster = cluster)
-                      M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(iIID^2))}))
+                      weightObs <- matrix(object@weightObs, nrow = NROW(Delta.iid[[1]]), ncol = NCOL(Delta.iid[[1]]), byrow = FALSE)
+                      M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(weightObs * iIID^2))}))
                       Delta.se <- stats::setNames(as.double(M.se), names(Delta))
                       Delta.se.resampling <- NULL
                   }

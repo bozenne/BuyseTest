@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: Dec 21 2021 (10:31) 
+## Last-Updated: Mar 20 2023 (12:08) 
 ##           By: Brice Ozenne
-##     Update #: 314
+##     Update #: 316
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -191,6 +191,10 @@ setMethod(f = "sensitivity",
 
               if (cpus == "all") { 
                   cpus <- parallel::detectCores() # this function detect the number of CPU cores 
+              }
+
+              if(band && any(object@weightObs!=1)){
+                  stop("Confidence bands cannot not currently be derived with weighted observations. \n") 
               }
 
               ## ** run BuyseTest

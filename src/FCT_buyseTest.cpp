@@ -53,8 +53,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
 //' @param restriction Store the restriction time associated to each endpoint. Must have length D. 
 //' @param weightEndpoint Store the weight associated to each endpoint. Must have length D. 
-//' @param weightC A vector containing the weight associated to each observation from the control group.
-//' @param weightT A vector containing the weight associated to each observation from the treatment group.
+//' @param weightObs A vector containing the weight associated to each observation.
 //' @param method The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).
 //' @param pool The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size), 1 (Mantel Haenszel weights), 2 (equal weights), 3 (precision weights)
 //' @param op The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.
@@ -106,6 +105,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   std::vector< double > threshold,
 		   std::vector< double > restriction,
 		   arma::vec weightEndpoint,
+		   arma::vec weightObs, // not used just for compatibility
 		   arma::vec method,
 		   double pool,
 		   std::vector< int > op,
@@ -449,7 +449,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		iidAverage_favorable, iidAverage_unfavorable, iidAverage_neutral,
 		iidNuisance_favorable, iidNuisance_unfavorable, iidNuisance_neutral,
 		Mvar, returnIID,
-		posC, posT, 
+		posC, posT, weightObs, // note: no need to re-order weightObs as it should only contains 1
                 D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
 		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore);
 
@@ -486,8 +486,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    std::vector< double > threshold,
 		    std::vector< double > restriction,
 		    arma::vec weightEndpoint,
-		    arma::vec weightC,
-		    arma::vec weightT,
+		    arma::vec weightObs,
 		    arma::vec method,
 		    double pool,
 		    std::vector< int > op,
@@ -529,8 +528,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   arma::vec vecn_control(n_strata); // number of patients in the control group over the strats
   arma::vec vecn_cumpairsM1(n_strata); // number of pairs in the previous strata (used when storing all the pairs in pairScore)
   for(unsigned int iter_strata=0 ; iter_strata < n_strata ; iter_strata++){
-    vecn_control[iter_strata] = posC[iter_strata].size();
-    vecn_treatment[iter_strata] = posT[iter_strata].size();		  
+    vecn_control[iter_strata] = sum(weightObs(indexC[iter_strata]));
+    vecn_treatment[iter_strata] = sum(weightObs(indexT[iter_strata]));		  
     vecn_pairs[iter_strata] = vecn_control[iter_strata] * vecn_treatment[iter_strata];
     if(iter_strata == 0){
       vecn_cumpairsM1[0] = 0;
@@ -657,6 +656,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   double iTempoOperatorDouble; // for switching favorable to unfavorable when op is <0
   arma::colvec iTempoOperatorCol; // for switching favorable to unfavorable when op is <0
 
+  double iWeightObsC,iWeightObsT,iWeightObs; // initial weight of the pair
   double iCumWeight; // current weight of the pair
   double iNewWeight; // remaining weight to analyze after the current endpoint
   double iRho; arma::mat iMatRho;
@@ -709,7 +709,10 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     for(unsigned int iter_C=0 ; iter_C < nStrata_Control; iter_C++){
       for(unsigned int iter_T=0 ; iter_T < nStrata_Treatment; iter_T++){
 	if(debug>1){Rcpp::Rcout << " pair " << iPair << " (" << iter_C << ";" << iter_T << ") ";}
-
+	iWeightObsC = weightObs[indexStrataC[iter_C]];
+	iWeightObsT = weightObs[indexStrataT[iter_T]];
+	iWeightObs = iWeightObsC * iWeightObsT;
+	  
 	// **** loop over endpoints
 	for(unsigned int iter_d=0 ; iter_d < D; iter_d++){
 	  if(debug==3){Rcpp::Rcout << "*" << std::endl;}
@@ -718,7 +721,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   
 	  // **** compute weight
 	  if(debug>3){Rcpp::Rcout << "w";}
-	  iCumWeight = weightC[indexStrataC[iter_C]]*weightT[indexStrataT[iter_T]];
+	  iCumWeight = 1;
 	  iNewWeight = 0;
 	  if(hierarchical && methodPeron){
 	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
@@ -822,24 +825,24 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
 	  // score
 	  iPairScoreW[0] = iPairScore[0] * iCumWeight;
-	  Mcount_favorable(iter_strata,iter_d) += iPairScoreW[0];
+	  Mcount_favorable(iter_strata,iter_d) += iPairScoreW[0] * iWeightObs;
 	  
 	  if(returnIID[0] > 0 || pool >=3){
 	    // iid (average)
-	    iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScoreW[0];
-	    iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScoreW[0];
+	    iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScoreW[0] * iWeightObsT;
+	    iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScoreW[0] * iWeightObsC;
 	  }
 	  // iid (nuisance) for the score
 	  if( (returnIID[1] > 0) && (iMethod >= 5) ){
-	    Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(0) * iCumWeight;
-	    Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(0) * iCumWeight;
+	    Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(0) * iCumWeight * iWeightObsT;
+	    Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(0) * iCumWeight * iWeightObsC;
 	  }
 	  // iid (nuisance) for the weight of the pair
 	  if( (returnIID[1] > 0) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
 	      if(iter_UTTE != iIndex_UTTE_d){
-		Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[0] / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[0] / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[0] * iWeightObsT / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[0] * iWeightObsC / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 	      }
 	    }
 	  }
@@ -851,26 +854,26 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
 	  // score
 	  iPairScoreW[1] = iPairScore[1] * iCumWeight;
-	  Mcount_unfavorable(iter_strata,iter_d) += iPairScoreW[1];
+	  Mcount_unfavorable(iter_strata,iter_d) += iPairScoreW[1] * iWeightObs;
       
 	  if(returnIID[0] > 0 || pool >= 3){
 	    // iid (average)
-	    iidAverage_unfavorable(posStrataC[iter_C],iter_d) += iPairScoreW[1];
-	    iidAverage_unfavorable(posStrataT[iter_T],iter_d) += iPairScoreW[1];
+	    iidAverage_unfavorable(posStrataC[iter_C],iter_d) += iPairScoreW[1] * iWeightObsT;
+	    iidAverage_unfavorable(posStrataT[iter_T],iter_d) += iPairScoreW[1] * iWeightObsC;
 	  }
       
 	  // iid (nuisance) for the score
 	  if( (returnIID[1] > 0) && (iMethod >= 5) ){
-	    Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(1) * iCumWeight;
-	    Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(1) * iCumWeight;
+	    Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(1) * iCumWeight * iWeightObsT;
+	    Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(1) * iCumWeight * iWeightObsC;
 	  }
 
 	  // iid (nuisance) for the weight of the pair
 	  if( (returnIID[1] > 0) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
 	      if(iter_UTTE != iIndex_UTTE_d){	      
-		Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[1] / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[1] / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[1] * iWeightObsT / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[1] * iWeightObsC / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 	      }
 	    }
 	  }
@@ -882,25 +885,25 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		  
 	    // score
    	    iPairScoreW[2] = iPairScore[2] * iCumWeight;
-	    Mcount_neutral(iter_strata,iter_d) += iPairScoreW[2];
+	    Mcount_neutral(iter_strata,iter_d) += iPairScoreW[2] * iWeightObs;
 			
 	    if(returnIID[0] > 0 || pool>=3){
 	      // iid (average)
-	      iidAverage_neutral(posStrataC[iter_C],iter_d) += iPairScoreW[2];
-	      iidAverage_neutral(posStrataT[iter_T],iter_d) += iPairScoreW[2];
+	      iidAverage_neutral(posStrataC[iter_C],iter_d) += iPairScoreW[2] * iWeightObsT;
+	      iidAverage_neutral(posStrataT[iter_T],iter_d) += iPairScoreW[2] * iWeightObsC;
 	    }
 
 	    // iid (nuisance) for the score
 	    if( (returnIID[1] > 0) && (iMethod >= 5) ){
-	      Dneutral_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(2) * iCumWeight;
-	      Dneutral_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(2) * iCumWeight;
+	      Dneutral_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(2) * iCumWeight * iWeightObsT;
+	      Dneutral_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(2) * iCumWeight * iWeightObsC;
 	    }
 	    // iid (nuisance) for the weight of the pair
 	    if( (returnIID[1] > 0) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	      for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
 		if(iter_UTTE != iIndex_UTTE_d){
-		  Dneutral_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[2] / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		  Dneutral_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[2] / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		  Dneutral_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[2] * iWeightObsT / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		  Dneutral_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[2] * iWeightObsC / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 		}
 	      }
 	    }
@@ -917,7 +920,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
 	    // score
 	    iPairScoreW[3] = iPairScore[3] * iCumWeight;
-	    Mcount_uninf(iter_strata,iter_d) += iPairScoreW[3];
+	    Mcount_uninf(iter_strata,iter_d) += iPairScoreW[3] * iWeightObs;
 
 	    // update weight
 	    iNewWeight += iPairScore[3];
@@ -938,10 +941,10 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	    vecPairScore[iter_d][8].push_back(iPairScore[2]);
 	    vecPairScore[iter_d][9].push_back(iPairScore[3]);
 	    vecPairScore[iter_d][10].push_back(iCumWeight);
-	    vecPairScore[iter_d][11].push_back(iPairScoreW[0]);
-	    vecPairScore[iter_d][12].push_back(iPairScoreW[1]);
-	    vecPairScore[iter_d][13].push_back(iPairScoreW[2]);
-	    vecPairScore[iter_d][14].push_back(iPairScoreW[3]);
+	    vecPairScore[iter_d][11].push_back(iPairScoreW[0] * iWeightObs);
+	    vecPairScore[iter_d][12].push_back(iPairScoreW[1] * iWeightObs);
+	    vecPairScore[iter_d][13].push_back(iPairScoreW[2] * iWeightObs);
+	    vecPairScore[iter_d][14].push_back(iPairScoreW[3] * iWeightObs);
 	  } 
 
 	  // **** early stop if nothing left or store weight when TTE endpoint with Peron's scoring rule
@@ -995,7 +998,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
     // ** compute iid nuisance    
     if(returnIID[1]>0){
-      if(debug>0){Rcpp::Rcout << "compute iid nuisance" << std::endl;}
+      if(debug>0){Rcpp::Rcout << " - compute iid nuisance" << std::endl;}
 
       for(unsigned int iter_d=0; iter_d < D; iter_d++){
 	for(unsigned int iter_UTTE=0 ; iter_UTTE<D_UTTE; iter_UTTE++){	  
@@ -1014,7 +1017,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   // ** combine pairwise scores into a list of matrices 
   std::vector< arma::mat> pairScore;
   if(keepScore){
-    if(debug>0){Rcpp::Rcout << "generate pairScore" << std::endl;}
+    if(debug>0){Rcpp::Rcout << "Generate pairScore" << std::endl;}
     int iNpairs;
     pairScore.resize(D);
     for(unsigned int iter_d=0; iter_d<D; iter_d++){
@@ -1029,7 +1032,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     }
   }
   
-  // ** proportion in favor of treatment
+  // ** compute statistics and iid
   // Rcpp::Rcout << std::endl << " compute statistics" << std::endl;
   arma::cube delta(n_strata,D,6); // cube containing the endpoint and strata specific statistics: favorable; unfavorable; neutral; uninf; netBenefit; winRatio;
   arma::mat Delta(D,6); // matrix containing for each endpoint the overall statistics: favorable; unfavorable; neutral; uninf; netBenefit; winRatio;
@@ -1039,14 +1042,19 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     Mvar.resize(D,5); // variance(favorable); variance(unfavorable); covariance(favorable,unfavorable); variance(netBenefit); variance(winRatio);
     Mvar.fill(0.0);
   }
-    
+  arma::vec weightObs_sort(n_obs);
+  for(unsigned int iter_strata = 0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
+    weightObs_sort(posC[iter_strata]) = weightObs(indexC[iter_strata]);
+    weightObs_sort(posT[iter_strata]) = weightObs(indexT[iter_strata]);
+  }
+
   if(debug>0){Rcpp::Rcout << "Compute summary statistics" << std::endl;}
   calcStatistic(delta, Delta, 
 		Mcount_favorable, Mcount_unfavorable, Mcount_neutral, Mcount_uninf,
 		iidAverage_favorable, iidAverage_unfavorable, iidAverage_neutral,
 		iidNuisance_favorable, iidNuisance_unfavorable, iidNuisance_neutral,
 		Mvar, returnIID,
-		posC, posT, 
+		posC, posT, weightObs_sort,
 		D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
 		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore);
 

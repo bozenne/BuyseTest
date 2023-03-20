@@ -16,6 +16,7 @@ BuyseTest(
   strata.resampling = NULL,
   hierarchical = NULL,
   weightEndpoint = NULL,
+  weightObs = NULL,
   neutral.as.uninf = NULL,
   add.halfNeutral = NULL,
   keep.pairScore = NULL,
@@ -72,6 +73,9 @@ Otherwise all pairs will be compaired for all endpoint (full GPC).}
 
 \item{weightEndpoint}{[numeric vector] weights used to cumulating the pairwise scores over the endpoints.
 Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.}
+
+\item{weightObs}{[character or numeric vector] weights or variable in the dataset containing the weight associated to each observation.
+These weights are only considered when performing GPC (but not when fitting surival models).}
 
 \item{neutral.as.uninf}{[logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 See Details, section "Handling missing values".}

@@ -45,6 +45,7 @@ setClass(
       DeltaResampling = "array",
       covariance = "matrix",
       covarianceResampling = "array",
+      weightObs = "numeric",
       weightEndpoint = "numeric",
       weightStrata = "numeric",
       weightStrataResampling = "array",
@@ -95,6 +96,7 @@ methods::setMethod(
                                    strata,
                                    threshold,
                                    restriction,
+                                   weightObs,
                                    weightEndpoint,
                                    weightStrata,
                                    pool.strata,
@@ -266,6 +268,7 @@ methods::setMethod(
                  .Object@strata <- strata
                  .Object@threshold <- threshold
                  .Object@restriction <- restriction
+                 .Object@weightObs <- weightObs
                  .Object@weightEndpoint <- weightEndpoint
                  .Object@weightStrata <- weightStrata
                  .Object@n.resampling <- n.resampling

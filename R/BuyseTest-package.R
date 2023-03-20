@@ -42,6 +42,7 @@
 #' @useDynLib BuyseTest, .registration=TRUE
 #' @import data.table
 #' @importFrom ggplot2 autoplot
+#' @importFrom rlang .data
 #' @importFrom lava categorical coxExponential.lvm distribution eventTime iid lvm sim vars latent<-
 #' @import methods
 #' @importFrom parallel detectCores

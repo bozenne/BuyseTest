@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: mar 15 2023 (19:05) 
+## Last-Updated: Mar 19 2023 (16:53) 
 ##           By: Brice Ozenne
-##     Update #: 324
+##     Update #: 330
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,6 +27,7 @@ testArgs <- function(name.call,
                      cpus,
                      data,
                      endpoint,
+                     engine,
                      formula,
                      iid,
                      iidNuisance,
@@ -71,6 +72,9 @@ testArgs <- function(name.call,
     }
     if("..strata.." %in% names(data)){
         stop("BuyseTest: Argument \'data\' must not contain a column \"..strata..\". \n")
+    }
+    if("..weight.." %in% names(data)){
+        stop("BuyseTest: Argument \'data\' must not contain a column \"..weight..\". \n")
     }
     
     ## ** extract usefull quantities
@@ -523,12 +527,19 @@ testArgs <- function(name.call,
     }
 
     ## ** weightObs
-    test1 <- is.character(weightObs) && length(weightObs) == 1 && weightObs %in% names(data)
-    test2 <- is.numeric(weightObs) && length(weightObs) == NROW(data)
-    if((test1 == FALSE) && (test2 == FALSE)){
-        stop("BuyseTest: argument \'weightObs\' must correspond to a column in argument \'data\'",
-             "or must have as many element as rows in argument \'data\'. \n")
+    if(!is.null(weightObs)){
+        test1 <- is.character(weightObs) && length(weightObs) == 1 && weightObs %in% names(data)
+        test2 <- is.numeric(weightObs) && length(weightObs) == NROW(data)
+        if((test1 == FALSE) && (test2 == FALSE)){
+            stop("BuyseTest: argument \'weightObs\' must correspond to a column in argument \'data\'",
+                 "or must have as many element as rows in argument \'data\'. \n")
+        }
+
+        if(engine == "GPC_cpp"){
+            stop("Cannot weigth observations with engine GPC_cpp. \n")
+        }
     }
+
     
     if(hierarchical){
         if(any(weightEndpoint!=1) || any(is.na(weightEndpoint))){

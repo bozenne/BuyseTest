@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 14 2023 (13:55) 
+## Last-Updated: Mar 20 2023 (12:00) 
 ##           By: Brice Ozenne
-##     Update #: 1064
+##     Update #: 1075
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -428,36 +428,31 @@ powerBuyseTest <- function(sim,
 
     ## when creating S4 object
     keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightEndpoint","pool.strata","n.resampling","call")
-
-    ## when initializing data
-    out.name <- c("data","M.endpoint","M.status",
-                  "index.C","index.T","index.strata",
-                  "level.treatment","level.strata", "method.score",
-                  "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
-                  "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
 
     ## ** Simulate data
     data <- envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax)
 
-    envir$outArgs[out.name] <- initializeData(data = data,
-                                              type = envir$outArgs$type,
-                                              endpoint = envir$outArgs$endpoint,
-                                              Uendpoint = envir$outArgs$Uendpoint,
-                                              D = envir$outArgs$D,
-                                              scoring.rule = envir$outArgs$scoring.rule,
-                                              status = envir$outArgs$status,
-                                              Ustatus = envir$outArgs$Ustatus,
-                                              method.inference = envir$outArgs$method.inference,
-                                              censoring = envir$outArgs$censoring,
-                                              strata = envir$outArgs$strata,
-                                              treatment = envir$outArgs$treatment,
-                                              hierarchical = envir$outArgs$hierarchical,
-                                              copy = FALSE,
-                                              keep.pairScore = envir$outArgs$keep.pairScore,
-                                              endpoint.TTE = envir$outArgs$endpoint.TTE,
-                                              status.TTE = envir$outArgs$status.TTE,
-                                              iidNuisance = envir$outArgs$iidNuisance)
+    iInit <- initializeData(data = data,
+                            type = envir$outArgs$type,
+                            endpoint = envir$outArgs$endpoint,
+                            Uendpoint = envir$outArgs$Uendpoint,
+                            D = envir$outArgs$D,
+                            scoring.rule = envir$outArgs$scoring.rule,
+                            status = envir$outArgs$status,
+                            Ustatus = envir$outArgs$Ustatus,
+                            method.inference = envir$outArgs$method.inference,
+                            censoring = envir$outArgs$censoring,
+                            strata = envir$outArgs$strata,
+                            treatment = envir$outArgs$treatment,
+                            hierarchical = envir$outArgs$hierarchical,
+                            copy = FALSE,
+                            keep.pairScore = envir$outArgs$keep.pairScore,
+                            endpoint.TTE = envir$outArgs$endpoint.TTE,
+                            status.TTE = envir$outArgs$status.TTE,
+                            iidNuisance = envir$outArgs$iidNuisance)
+    out.name <- names(iInit)
+    envir$outArgs[out.name] <- iInit
 
     ## save for subsetting the data set with other sample sizes
     index.C <- envir$outArgs$index.C

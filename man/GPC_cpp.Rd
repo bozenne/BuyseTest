@@ -15,6 +15,7 @@ GPC_cpp(
   threshold,
   restriction,
   weightEndpoint,
+  weightObs,
   method,
   pool,
   op,
@@ -56,6 +57,7 @@ GPC2_cpp(
   threshold,
   restriction,
   weightEndpoint,
+  weightObs,
   method,
   pool,
   op,
@@ -105,6 +107,8 @@ GPC2_cpp(
 \item{restriction}{Store the restriction time associated to each endpoint. Must have length D.}
 
 \item{weightEndpoint}{Store the weight associated to each endpoint. Must have length D.}
+
+\item{weightObs}{A vector containing the weight associated to each observation.}
 
 \item{method}{The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).}
 

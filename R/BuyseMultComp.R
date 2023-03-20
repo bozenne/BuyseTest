@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: Dec 20 2021 (21:13) 
+## Last-Updated: Mar 20 2023 (12:35) 
 ##           By: Brice Ozenne
-##     Update #: 234
+##     Update #: 239
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,7 +17,7 @@
 
 ## * BuyseMultComp (documentation)
 ##' @title Adjustment for Multiple Comparisons
-##' @description Adjustment p-values and confidence estimated via GPC for multiple comparisons.
+##' @description Adjust p-values and confidence intervals estimated via GPC for multiple comparisons.
 ##' @name BuyseMultComp
 ##'
 ##' @param object A BuyseTest object or a list of BuyseTest objects. All objects should contain the same endpoints.
@@ -100,11 +100,17 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     ## object
     if(inherits(object,"S4BuyseTest")){
         test.list <- FALSE
+        if(any(object@weightObs!=1)){
+            stop("Cannot not currently handle weighted observations. \n") 
+        }
     }else if(all(sapply(object,inherits,"S4BuyseTest"))){
         n.object <- length(object)
         test.list <- TRUE
         if(is.null(object)){
             names(object) <- paste0("test",1:n.object)
+        }
+        if(any(sapply(object, function(iO){any(iO@weightObs!=1)}))){
+            stop("Cannot not currently handle weighted observations. \n") 
         }
         name.object <- names(object)
     }else{
@@ -196,7 +202,8 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     }else{
         type <- "none"
     }
-    
+
+    ## weights
 
     ## ** extract iid and coefficients
     if(test.list){

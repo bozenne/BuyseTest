@@ -64,7 +64,8 @@ initializeArgs(
   trace = NULL,
   treatment,
   type,
-  weightEndpoint,
+  weightEndpoint = NULL,
+  weightObs = NULL,
   envir
 )
 
@@ -86,7 +87,9 @@ initializeData(
   keep.pairScore,
   endpoint.TTE,
   status.TTE,
-  iidNuisance
+  iidNuisance,
+  weightEndpoint,
+  weightObs
 )
 
 initializeFormula(x, hierarchical, envir)
