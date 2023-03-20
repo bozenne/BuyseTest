@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Mar 20 2023 (12:00) 
+## Last-Updated: mar 20 2023 (14:08) 
 ##           By: Brice Ozenne
-##     Update #: 1075
+##     Update #: 1076
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -63,14 +63,23 @@
 ##' 
 ##' #### Using simBuyseTest ####
 ##' ## only point estimate
-##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), n.rep = 10,
-##'                formula = treatment ~ bin(toxicity), seed = 10,
+##' \dontrun{
+##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
+##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
 ##'                method.inference = "none", trace = 2, keep.pairScore = FALSE)
-##'
+##' }
+##' 
 ##' ## point estimate with rejection rate
-##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
-##'                formula = treatment ~ bin(toxicity), seed = 10,
+##' \dontshow{
+##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 10,
 ##'                method.inference = "u-statistic", trace = 4)
+##' }
+##' \dontrun{
+##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
+##'                method.inference = "u-statistic", trace = 4)
+##' }
 ##'
 ##' #### Using user defined simulation function ####
 ##' ## power calculation for Wilcoxon test

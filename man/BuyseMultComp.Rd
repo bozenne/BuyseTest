@@ -60,7 +60,7 @@ Default value read from \code{BuyseTest.options()}. Not relevant when using perm
 \item{...}{argument passsed to the function \code{transformCIBP} of the riskRegression package.}
 }
 \description{
-Adjustment p-values and confidence estimated via GPC for multiple comparisons.
+Adjust p-values and confidence intervals estimated via GPC for multiple comparisons.
 }
 \details{
 Simulateneous confidence intervals and adjusted p-values are computed using a single-step max-test approach via the function \code{transformCIBP} of the riskRegression package.

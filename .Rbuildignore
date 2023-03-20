@@ -13,6 +13,8 @@ inst/doc-theory
 inst/docToAdd
 inst/todo.org
 data/
+data/pa3_OS_TOXshort.csv
+data/PRODIGE.csv
 .github/
 LICENSE
 ^appveyor\.yml$

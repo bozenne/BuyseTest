@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: mar 14 2023 (10:51) 
+## Last-Updated: mar 20 2023 (13:52) 
 ##           By: Brice Ozenne
-##     Update #: 207
+##     Update #: 208
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -533,7 +533,8 @@ test_that("cluster option", {
                        method.inference = "u-statistic")
 
     expect_equal(getIid(e.BT),getIid(e3.BT, cluster = dtS$id), tol = 1e-6)
-    expect_equivalent(as.data.frame(confint(e.BT)),as.data.frame(confint(e3.BT, cluster = dtS$id)), tol = 1e-6)
+    expect_equivalent(as.data.frame(confint(e.BT)),
+                      as.data.frame(confint(e3.BT, cluster = dtS$id)), tol = 1e-6)
 })
 
 ## * iid Peron

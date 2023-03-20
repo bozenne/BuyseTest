@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 903
+##     Update #: 905
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -278,6 +278,11 @@ setMethod(f = "confint",
                           "Consider using a resampling approach or checking the control of the type 1 error with powerBuyseTest. \n")
               }
 
+              ## weight
+              if(!is.null(cluster) && any(object@weightObs!=1)){
+                  stop("Cannot handle clustered observations when observations are weighted. \n")
+              }
+
               ## ** extract estimate
               all.endpoint <- names(object@endpoint)
               Delta <- coef(object, statistic = statistic, cumulative = cumulative, stratified = stratified, endpoint = endpoint)
@@ -319,8 +324,12 @@ setMethod(f = "confint",
                           warning("Inference will be performed using a first order H projection. \n")
                       }
                       Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, stratified = stratified, cluster = cluster)
-                      weightObs <- matrix(object@weightObs, nrow = NROW(Delta.iid[[1]]), ncol = NCOL(Delta.iid[[1]]), byrow = FALSE)
-                      M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(weightObs * iIID^2))}))
+                      if(is.null(cluster)){
+                          weightObs <- matrix(object@weightObs, nrow = NROW(Delta.iid[[1]]), ncol = NCOL(Delta.iid[[1]]), byrow = FALSE)
+                          M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(weightObs * iIID^2))}))
+                      }else{
+                          M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(iIID^2))}))
+                      }
                       Delta.se <- stats::setNames(as.double(M.se), names(Delta))
                       Delta.se.resampling <- NULL
                   }
