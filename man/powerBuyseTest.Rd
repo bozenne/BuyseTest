@@ -82,14 +82,23 @@ library(data.table)
 
 #### Using simBuyseTest ####
 ## only point estimate
-powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), n.rep = 10,
-               formula = treatment ~ bin(toxicity), seed = 10,
+\dontrun{
+powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
+               formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
                method.inference = "none", trace = 2, keep.pairScore = FALSE)
+}
 
 ## point estimate with rejection rate
-powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), n.rep = 10,
-               formula = treatment ~ bin(toxicity), seed = 10,
+\dontshow{
+powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+               formula = treatment ~ bin(toxicity), seed = 10, n.rep = 10,
                method.inference = "u-statistic", trace = 4)
+}
+\dontrun{
+powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+               formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
+               method.inference = "u-statistic", trace = 4)
+}
 
 #### Using user defined simulation function ####
 ## power calculation for Wilcoxon test
