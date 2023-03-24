@@ -12,23 +12,24 @@ jobs:
   R-CMD-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2    
+      - uses: actions/checkout@v3    
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev
-      - uses: r-lib/actions/setup-r@v1
+      - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
  
+      - uses: r-lib/actions/setup-tinytex@v2
+      - run: tlmgr --version
+      
       - name: Install R dependencies
         run: |
           install.packages("remotes", repos="https://cloud.r-project.org")
-          install.packages("rcmdcheck", repos="https://cloud.r-project.org")
           remotes::install_deps(".", dep=T, upgrade=T) 
+          remotes::install_cran(c("rcmdcheck"))
         shell: Rscript {0}
-
-      - uses: r-lib/actions/setup-tinytex@master   
       
       - name: Check
         env:
@@ -37,3 +38,4 @@ jobs:
           options(crayon.enabled = TRUE)
           rcmdcheck::rcmdcheck(args = c("--as-cran"), error_on = "error", check_dir = "check")
         shell: Rscript {0}
+
