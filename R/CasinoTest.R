@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: mar 24 2023 (11:46) 
+## Last-Updated: mar 24 2023 (16:01) 
 ##           By: Brice Ozenne
-##     Update #: 73
+##     Update #: 93
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,6 +16,11 @@
 ### Code:
 
 ## * CasinoTest (documentation)
+
+##' @title Multi-group GPC
+##' @description Perform Generalized Pairwise Comparisons (GPC) for two or more groups.
+##' Can handle one or several binary, continuous and time-to-event endpoints.
+##' 
 ##' @param formula [formula] a symbolic description of the GPC model, see the \code{BuyseTest} function
 ##' @param data [data.frame] dataset.
 ##' @param type [character] Type of estimator: can be \code{"unweighted"} or \code{"weighted"}.
@@ -32,6 +37,8 @@
 ##' @param seed [integer, >0] seed number set before performing simulations for the confidence bands.
 ##' 
 ##' @details Require to have installed the package riskRegression and BuyseTest
+##'
+##' @references Edgar Brunner, Arne C Bathke, and Frank Konietschke (2018). \bold{Rank and pseudo-rank procedures for independent observations in factorial designs}. Springer.
 ##' 
 ##' @examples
 ##' library(data.table)
@@ -64,25 +71,26 @@
 ##' CasinoTest(group ~ cont(score), data = dt, type = "unweighted")
 ##'
 ##' #### Relative liver weights data (Brunner 2018, table 4.1, page 183) ####
-##' liverW <- rbind(data.frame(value = c(3.78, 3.40, 3.29, 3.14, 3.55, 3.76, 3.23, 3.31),
-##'            group = "Placebo"),
-##'       data.frame(value = c(3.46,3.98,3.09,3.49,3.31,3.73,3.23),
-##'            group = "Dose 1"),
-##'       data.frame(value = c(3.71, 3.36, 3.38, 3.64, 3.41, 3.29, 3.61, 3.87),
-##'            group = "Dose 2"),
-##'       data.frame(value = c(3.86,3.80,4.14,3.62,3.95,4.12,4.54),
-##'            group = "Dose 3"),
-##'       data.frame(value = c(4.14,4.11,3.89,4.21,4.81,3.91,4.19),
-##'            group = "Dose 4"))
+##' liverW <- rbind(
+##'   data.frame(value = c(3.78, 3.40, 3.29, 3.14, 3.55, 3.76, 3.23, 3.31),
+##'              group = "Placebo"),
+##'   data.frame(value = c(3.46,3.98,3.09,3.49,3.31,3.73,3.23),
+##'              group = "Dose 1"),
+##'   data.frame(value = c(3.71, 3.36, 3.38, 3.64, 3.41, 3.29, 3.61, 3.87),
+##'              group = "Dose 2"),
+##'   data.frame(value = c(3.86,3.80,4.14,3.62,3.95,4.12,4.54),
+##'              group = "Dose 3"),
+##'   data.frame(value = c(4.14,4.11,3.89,4.21,4.81,3.91,4.19, 5.05),
+##'              group = "Dose 4")
+##' )
 ##' liverW$valueU <- liverW$value + (1:NROW(liverW))/1e6
 ##'
-##' ## rankFD::rankFD(value ~ group, data = liverW, effect = "weighted", hypothesis = "H0p")
+##' ## same as table 4.1, page 183 in Brunner et al (2018)
 ##' CasinoTest(group ~ cont(value), data = liverW, type = "weighted", add.halfNeutral = TRUE)
-##' 
-##' ## rankFD::rankFD(valueU ~ group, data = liverW, effect = "unweighted", hypothesis = "H0p")
 ##' CasinoTest(group ~ cont(valueU), data = liverW, type = "unweighted", add.halfNeutral = TRUE)
 
 ## * CasinoTest (code)
+##' @export
 CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NULL,
                        method.inference = "u-statistic",
                        conf.level = NULL, transformation = NULL, alternative = NULL, method.multcomp = "none",
@@ -200,13 +208,13 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     }else if(type=="unweighted"){
         weight.GPC <- rep(1/n.treatment, n.treatment)
     }
-    
     out.estimate$estimate <- colSums(.colMultiply_cpp(M.estimate, weight.GPC))
     out.estimate$null <- colSums(.colMultiply_cpp(M.null, weight.GPC))
 
     for(iT in 1:n.treatment){ ## iT <- 1
         out.iid[,iT] <- rowSums(.rowMultiply_cpp(M.iid[,,iT], weight.GPC))
     }
+    ## print(tapply(out.iid[,1]^2,data[[name.treatment]],sum))
 
     ## ** statistical inference
     if(transformation){
