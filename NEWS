@@ -1,5 +1,9 @@
 # -*- mode: org -*-
 
+* Version 2.4.1
+** User visible changes
+- NEW FEATURE: add function CasinoTest to perform GPC on multiple groups.
+
 * Version 2.4
 
 ** User visible changes
