@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: mar 24 2023 (16:01) 
+## Last-Updated: mar 24 2023 (16:32) 
 ##           By: Brice Ozenne
-##     Update #: 93
+##     Update #: 95
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -129,6 +129,8 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     name.endpoint <- details.formula$endpoint
     if(!is.factor(data[[name.treatment]])){
         data[[name.treatment]] <- as.factor(data[[name.treatment]])
+    }else{
+        data[[name.treatment]] <- droplevels(data[[name.treatment]])
     }
     level.treatment <- levels(data[[name.treatment]])
     elevel.treatement <- paste(level.treatment,collapse=".")
