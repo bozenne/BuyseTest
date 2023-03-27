@@ -50,7 +50,6 @@ Suggests:
     survival,
     testthat
 LinkingTo: Rcpp, RcppArmadillo
-SystemRequirements: C++11
 VignetteBuilder: R.rsp
 NeedsCompilation: yes
 RoxygenNote: 7.2.1
