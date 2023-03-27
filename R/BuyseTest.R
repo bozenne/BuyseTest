@@ -1,8 +1,9 @@
 ## * Documentation - BuyseTest
 #' @name BuyseTest
-#' @title Generalized Pairwise Comparisons (GPC)
+#' @title Two-group GPC
 #' 
-#' @description Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event endpoints.
+#' @description Performs Generalized Pairwise Comparisons (GPC) between two groups.
+#' Can handle one or several binary, continuous and time-to-event endpoints.
 #' 
 #' @param formula [formula] a symbolic description of the GPC model,
 #' typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
