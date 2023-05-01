@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: Mar 13 2023 (09:32) 
+## last-updated: apr 25 2023 (10:44) 
 ##           By: Brice Ozenne
-##     Update #: 190
+##     Update #: 192
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -27,7 +27,7 @@ BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   keep.survival = FALSE,
                   order.Hprojection = 1,
-                  add.1.pperm = FALSE,
+                  add.1.presample = FALSE,
                   trace = 0)
 n.patients <- 100
 method <- "Peron"
@@ -50,7 +50,7 @@ test_that("permutation", {
     ## ** summary (two.sided)
     outSummaryPerc <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "percentile", transform = FALSE))
     outSummaryStud <- suppressWarnings(summary(BT.perm, print = FALSE, alternative = "two.sided", method.ci.resampling = "studentized", transform = FALSE))
-    ## summary(BT.perm)
+    ## outSummaryPerc
     ##       Generalized pairwise comparisons with 2 prioritized endpoints
 
     ## > statistic       : net benefit (delta: endpoint specific, Delta: global) 

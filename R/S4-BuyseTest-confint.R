@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 905
+##     Update #: 928
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -350,6 +350,7 @@ setMethod(f = "confint",
                                min = if("statistic"=="netBenefit"){-1}else{0},
                                max = if("statistic"=="winRatio"){Inf}else{1})
               }
+              null <- rep(null, D)
 
               ## ** method
               if(method.inference == "none"){
@@ -566,24 +567,18 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
 
     ## ** p-value
     outTable[,"null"] <- backtransform.delta(null)
-    if(BuyseTest.options()$add.1.pperm){
-        outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-            switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-                   "two.sided" = (1+sum(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE))/(1+sum(!is.na(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null)))),
-                   "less" = (1+sum(Delta[iE] >= Delta.resampling[,iE], na.rm = TRUE))/(1+sum(!is.na(Delta[iE] >= Delta.resampling[,iE]))),
-                   "greater" = (1+sum(Delta[iE] <= Delta.resampling[,iE], na.rm = TRUE))/(1+sum(!is.na(Delta[iE] <= Delta.resampling[,iE])))
-                   )
-        })
-    }else{
-        outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-            switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-                   "two.sided" = mean(abs(Delta[iE] - null) <= abs(Delta.resampling[,iE] - null), na.rm = TRUE),
-                   "less" = mean(Delta[iE] >= Delta.resampling[,iE], na.rm = TRUE),
-                   "greater" = mean(Delta[iE] <= Delta.resampling[,iE], na.rm = TRUE)
-                   )
-        })
-    }
-
+    
+    add.1 <- BuyseTest.options()$add.1.presample
+    outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
+        test.alternative <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
+                                   "two.sided" = abs(Delta[iE] - null[iE]) <= abs(Delta.resampling[,iE] - null[iE]),
+                                   "less" = Delta[iE] >= Delta.resampling[,iE],
+                                   "greater" = Delta[iE] <= Delta.resampling[,iE]
+                                   )
+        p.alternative <- (add.1 + sum(test.alternative, na.rm = TRUE)) / (add.1 + sum(!is.na(test.alternative), na.rm = TRUE))
+        return(p.alternative)        
+    })
+    
     ## ** export
     return(outTable)
 }
@@ -617,13 +612,15 @@ confint_percentileBootstrap <- function(Delta, Delta.resampling,
                                     )
 
     ## ** p.values
-    if(length(null)==1 && n.endpoint>1){
-        null <- rep(null, n.endpoint)
-    }
+    outTable[,"null"] <- backtransform.delta(null)
+
+    add.1 <- BuyseTest.options()$add.1.presample
     for(iE in which(!is.na(null))){
-        outTable[iE, "null"] <- backtransform.delta(null[iE])
-        outTable[iE, "p.value"] <- boot2pvalue(na.omit(Delta.resampling[,iE]), null = null[iE], estimate = Delta[iE],
-                                               alternative = alternative, FUN.ci = quantileCI)
+        outTable[iE, "p.value"] <- boot2pvalue(stats::na.omit(Delta.resampling[,iE]),
+                                               null = null[iE],
+                                               estimate = Delta[iE],
+                                               alternative = alternative,
+                                               add.1 = add.1)
     }
     ## quantileCI(Delta.resampling[,iE], alternative = "two.sided", p.value = 0.64, sign.estimate = 1)
     ## quantileCI(Delta.resampling[,iE], alternative = "two.sided", p.value = 0.66, sign.estimate = 1)
@@ -710,17 +707,20 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
 
     ## ** p.value
     outTable[,"null"] <- backtransform.delta(null)
+    
+    add.1 <- BuyseTest.options()$add.1.presample
     Delta.stat <- (Delta-null)/Delta.se
     Delta.stat.resampling <- (Delta.resampling-null)/Delta.se.resampling
-
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-        switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-               "two.sided" = mean(abs(Delta.stat[iE]) <= abs(Delta.stat.resampling[,iE]), na.rm = TRUE),
-               "less" = mean(Delta.stat[iE] >= Delta.stat.resampling[,iE], na.rm = TRUE),
-               "greater" = mean(Delta.stat[iE] <= Delta.stat.resampling[,iE], na.rm = TRUE)
-               )
-    })    
-
+        test.alternative <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
+                                   "two.sided" = abs(Delta.stat[iE]) <= abs(Delta.stat.resampling[,iE] - null[iE]),
+                                   "less" = Delta.stat[iE] >= Delta.stat.resampling[,iE],
+                                   "greater" = Delta.stat[iE] <= Delta.stat.resampling[,iE]
+                                   )
+        p.alternative <- (add.1 + sum(test.alternative, na.rm = TRUE)) / (add.1 + sum(!is.na(test.alternative), na.rm = TRUE))
+        return(p.alternative)        
+    })
+   
     ## special case
     if(any(Delta.se==0)){
         index0 <- which(Delta.se==0)
@@ -770,22 +770,15 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
     outTable[,"upper.ci"] <- backtransform.delta(Delta + Delta.qSup * Delta.se)
 
     ## ** p.value
-    quantileCI2 <- function(x, alternative, p.value, sign.estimate, ...){
-        probs <- switch(alternative,
-                        "two.sided" = c(p.value/2,1-p.value/2)[2-sign.estimate], ## if positive p.value/2 otherwise 1-p.value/2
-                        "less" = 1-p.value,
-                        "greater" = p.value)
-        iQ <- stats::quantile(x, probs = probs, na.rm = TRUE)
-        return(Delta[iE] + iQ * Delta.se[iE])
-    }
-
     outTable[, "null"] <- backtransform.delta(null)
-    for(iE in 1:n.endpoint){ ## iE <- 1
-        ## if(sign(mean(Delta.resampling[,iE]))!=sign(Delta[iE])){
-        ## warning("the estimate and the average bootstrap estimate do not have same sign \n")
-        ## }
-        outTable[iE, "p.value"] <- boot2pvalue(Delta.statH0.resampling[,iE], null = null, estimate = Delta[iE], ## note: estimate is not used to produce the ci, just for knowing the sign
-                                               alternative = alternative, FUN.ci = quantileCI2, checkSign = FALSE)
+
+    add.1 <- BuyseTest.options()$add.1.presample
+    for(iE in 1:n.endpoint){ ## iE <- 2
+        outTable[iE, "p.value"] <- boot2pvalue(stats::na.omit(Delta[iE] + Delta.se[iE] * Delta.statH0.resampling[,iE]),
+                                               null = null[iE],
+                                               estimate = Delta[iE], ## note: estimate is not used to produce the ci, just for knowing the sign
+                                               alternative = alternative,
+                                               add.1 = add.1)
     }
 
     ## special case
