@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 30 2018 (23:45) 
 ## Version: 
-## Last-Updated: apr  6 2020 (11:45) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 129
+##     Update #: 130
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,9 @@ context("Check that scoring.rule = corrected  in BuyseTest is working correctly 
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
+
 ## * 1 endpoint
 df <- data.frame("survie" = c(2.1, 4.1, 6.1, 8.1, 4, 6, 8, 10),
                  "event" = c(1, 1, 1, 0, 1, 0, 0, 1),

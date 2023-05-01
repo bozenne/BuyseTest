@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 28 2021 (11:01) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (10:25) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 7
+##     Update #: 8
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,6 +25,7 @@ context("Check BuyseTest when performing multiple comparisons")
 
 ## * Settings
 BuyseTest.options(check = TRUE,
+                  pool.strata = "Buyse",
                   trace = 0)
 
 ## * Case 1: multiple univariate analyses

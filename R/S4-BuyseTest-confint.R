@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 928
+##     Update #: 955
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -681,6 +681,11 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
                        dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
+    ## identify special case (no variability in the estimate)
+    test.variability <- colSums(Delta.se.resampling!=0)+(apply(Delta.resampling,2,function(iDelta){length(unique(iDelta))})>1)+(Delta.se!=0)
+    index.novar <- which(test.variability==0)
+    index.var <- which(test.variability!=0)
+
     ## ** point estimate
     outTable[,"estimate"] <- backtransform.delta(Delta)
 
@@ -688,47 +693,53 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
     ## ** critical quantile
-    Delta.statH0.resampling <- apply(Delta.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling
+    if(length(index.var)>0){
+        Delta.statH0.resampling <- apply(Delta.resampling[,index.var,drop=FALSE], MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling[,index.var,drop=FALSE]
 
-    Delta.qInf <- switch(alternative,
-                         "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
-                         "less" = -Inf,
-                         "greater" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha)
-                         )
-    Delta.qSup <- switch(alternative,
-                         "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha/2),
-                         "less" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha),
-                         "greater" = Inf
-                         )
+        Delta.qInf <- switch(alternative,
+                             "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
+                             "less" = -Inf,
+                             "greater" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha)
+                             )
+        Delta.qSup <- switch(alternative,
+                             "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha/2),
+                             "less" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha),
+                             "greater" = Inf
+                             )
+    }
 
     ## ** confidence interval
-    outTable[,"lower.ci"] <- backtransform.delta(Delta + Delta.qInf * Delta.se)
-    outTable[,"upper.ci"] <- backtransform.delta(Delta + Delta.qSup * Delta.se)
+    if(length(index.var)>0){
+        outTable[index.var,"lower.ci"] <- backtransform.delta(Delta[index.var] + Delta.qInf * Delta.se[index.var])
+        outTable[index.var,"upper.ci"] <- backtransform.delta(Delta[index.var] + Delta.qSup * Delta.se[index.var])
+    }
+
+    if(length(index.novar)>0){
+        outTable[index.novar,"lower.ci"] <- backtransform.delta(Delta[index.novar])
+        outTable[index.novar,"upper.ci"] <- backtransform.delta(Delta[index.novar])
+    }
 
     ## ** p.value
     outTable[,"null"] <- backtransform.delta(null)
     
     add.1 <- BuyseTest.options()$add.1.presample
-    Delta.stat <- (Delta-null)/Delta.se
-    Delta.stat.resampling <- (Delta.resampling-null)/Delta.se.resampling
-    outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-        test.alternative <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-                                   "two.sided" = abs(Delta.stat[iE]) <= abs(Delta.stat.resampling[,iE] - null[iE]),
-                                   "less" = Delta.stat[iE] >= Delta.stat.resampling[,iE],
-                                   "greater" = Delta.stat[iE] <= Delta.stat.resampling[,iE]
-                                   )
-        p.alternative <- (add.1 + sum(test.alternative, na.rm = TRUE)) / (add.1 + sum(!is.na(test.alternative), na.rm = TRUE))
-        return(p.alternative)        
-    })
-   
-    ## special case
-    if(any(Delta.se==0)){
-        index0 <- which(Delta.se==0)
-        outTable[index0,"lower.ci"] <- outTable[index0,"estimate"]
-        outTable[index0,"upper.ci"] <- outTable[index0,"estimate"]
-        outTable[index0,"p.value"] <- as.numeric(NA)
+    if(length(index.var)>0){
+        Delta.stat <- (Delta-null)/Delta.se
+        Delta.stat.resampling <- (Delta.resampling-null)/Delta.se.resampling
+        outTable[index.var,"p.value"] <- sapply(index.var, FUN = function(iE){ ## iE <- 1
+            test.alternative <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
+                                       "two.sided" = abs(Delta.stat[iE]) <= abs(Delta.stat.resampling[,iE] - null[iE]),
+                                       "less" = Delta.stat[iE] >= Delta.stat.resampling[,iE],
+                                       "greater" = Delta.stat[iE] <= Delta.stat.resampling[,iE]
+                                       )
+            p.alternative <- (add.1 + sum(test.alternative, na.rm = TRUE)) / (add.1 + sum(!is.na(test.alternative), na.rm = TRUE))
+            return(p.alternative)        
+        })
     }
 
+    if(length(index.novar)>0){
+        outTable[index.novar,c("p.value")] <- 1
+    }
     
     ## ** export
     return(outTable)
@@ -745,6 +756,11 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
     outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
                        dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
 
+    ## identify special case (no variability in the estimate)
+    test.variability <- colSums(Delta.se.resampling!=0)+(apply(Delta.resampling,2,function(iDelta){length(unique(iDelta))})>1)+(Delta.se!=0)
+    index.novar <- which(test.variability==0)
+    index.var <- which(test.variability!=0)
+
     ## ** point estimate
     outTable[,"estimate"] <- backtransform.delta(Delta)
 
@@ -752,43 +768,53 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
     ## ** critical quantile
-    Delta.statH0.resampling <- apply(Delta.resampling, MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling  ## center around the null
+    ## z-transformation: center around 0 and divide by estimated se
+    if(length(index.var)>0){
+        Delta.statH0.resampling <- apply(Delta.resampling[,index.var,drop=FALSE], MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling[,index.var,drop=FALSE]  
 
-    Delta.qInf <- switch(alternative,
-                         "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
-                         "less" = -Inf,
-                         "greater" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha)
-                         )
-    Delta.qSup <- switch(alternative,
-                         "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha/2),
-                         "less" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha),
-                         "greater" = Inf
-                         )
+        Delta.qInf <- switch(alternative,
+                             "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
+                             "less" = -Inf,
+                             "greater" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha)
+                             )
+        Delta.qSup <- switch(alternative,
+                             "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha/2),
+                             "less" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = 1-alpha),
+                             "greater" = Inf
+                             )
+    }
 
     ## ** confidence interval
-    outTable[,"lower.ci"] <- backtransform.delta(Delta + Delta.qInf * Delta.se)
-    outTable[,"upper.ci"] <- backtransform.delta(Delta + Delta.qSup * Delta.se)
+    ## normal case
+    if(length(index.var)>0){
+        outTable[index.var,"lower.ci"] <- backtransform.delta(Delta[index.var] + Delta.qInf * Delta.se[index.var])
+        outTable[index.var,"upper.ci"] <- backtransform.delta(Delta[index.var] + Delta.qSup * Delta.se[index.var])
+    }
+
+    ## special case
+    if(length(index.novar)>0){
+        test.diff <- colSums(Delta.resampling[,index.novar,drop=FALSE] != matrix(Delta, nrow = NROW(Delta.resampling), ncol = length(Delta), byrow = TRUE))
+        outTable[index.novar[test.diff],c("lower.ci","upper.ci")] <- NA
+        outTable[index.novar[test.diff==0],c("lower.ci","upper.ci")] <- backtransform.delta(Delta[index.novar[test.diff==0]])
+    }
+
 
     ## ** p.value
     outTable[, "null"] <- backtransform.delta(null)
 
     add.1 <- BuyseTest.options()$add.1.presample
-    for(iE in 1:n.endpoint){ ## iE <- 2
+    for(iE in index.var){ ## iE <- 2
         outTable[iE, "p.value"] <- boot2pvalue(stats::na.omit(Delta[iE] + Delta.se[iE] * Delta.statH0.resampling[,iE]),
                                                null = null[iE],
                                                estimate = Delta[iE], ## note: estimate is not used to produce the ci, just for knowing the sign
                                                alternative = alternative,
                                                add.1 = add.1)
     }
-
     ## special case
-    if(any(Delta.se==0)){
-        index0 <- which(Delta.se==0)
-        outTable[index0,"lower.ci"] <- outTable[index0,"estimate"]
-        outTable[index0,"upper.ci"] <- outTable[index0,"estimate"]
-        outTable[index0,"p.value"] <- as.numeric(outTable[index0,"estimate"]==null)
+    if(length(index.novar)>0){
+        outTable[index.novar[test.diff],c("p.value")] <- NA
+        outTable[index.novar[test.diff==0],c("p.value")] <- (null==Delta) + add.1*(null!=Delta)/NROW(Delta.resampling)
     }
-
     
     ## ** export
     return(outTable)

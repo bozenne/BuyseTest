@@ -4,6 +4,9 @@
 ** User visible changes
 - NEW FEATURE: add function CasinoTest to perform GPC on multiple groups.
 
+** Internal change
+- automatically run test file test-BuyseTTEM.R on CRAN
+
 * Version 2.4
 
 ** User visible changes

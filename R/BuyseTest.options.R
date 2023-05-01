@@ -33,7 +33,8 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
         assign(".BuyseTest-options", 
                new("BuyseTest.options",
                    add.halfNeutral = FALSE, ## default value of argument add.halfNeutral in BuyseTest()
-                   add.1.presample = TRUE, ## if TRUE p-value when using permutation or bootstrap are computed as (#more extreme+1)/(#sample+1) otherwise #more exterme/#sample
+                   add.1.presample = TRUE, ## if TRUE p-value when using permutation is computed as (#more extreme+1)/(#sample+1) otherwise #more exterme/#sample.
+                                           ## Another correction is used for the bootstrap to ensure strictly positive p-values
                    alternative = "two.sided", ## type of alternative hypothesis when doing hypothesis testing: less, greater, two.sided
                    args.model.tte = list(), ## additional argument passed to prodlim when fitting the survival model in BuyseTest() --> calcPeron
                    check = TRUE, ## should arguments be checked when running BuyseTest()

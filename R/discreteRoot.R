@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: apr 25 2023 (10:47) 
+## Last-Updated: May  1 2023 (09:30) 
 ##           By: Brice Ozenne
-##     Update #: 276
+##     Update #: 281
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -132,7 +132,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' It only returns the relevant limit (either upper or lower) of the confidence interval.
 #' @param checkSign [logical] should a warning be output if the sign of the estimate differs from the sign of the mean bootstrap value?
 #' @param tol [numeric] the absolute convergence tolerance.
-#' @param type.quantile [interger, 1-9] quantile algorithm to be used to evaluate quantiles. Passed to the \code{\link{stats::quantile}}.
+#' @param type.quantile [interger, 1-9] quantile algorithm to be used to evaluate quantiles. Passed to the \code{stats::quantile}.
 #' @param add.1 [logical] conservative correction ensuring that the p-value is strictly positive. 
 #' 
 #' @details
@@ -188,10 +188,14 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
                         FUN.ci = .quantileCI, checkSign = TRUE,
                         tol = .Machine$double.eps ^ 0.5, type.quantile = NULL, add.1 = FALSE){ 
-  
+
+    if(all(is.na(x))){
+        stop("Incorrect argument \'x\': only contain NA values. \n")
+    }
     x.boot <- na.omit(x)
     n.boot <- length(x.boot)
     statistic.boot <- mean(x.boot) - null
+
     if(is.null(estimate)){
         statistic <- statistic.boot
     }else{
@@ -249,6 +253,7 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
                     "p-value may not be reliable \n")
 
         }else if(add.1){
+            ## ensure that the p-value is strictly positive
             resSearch$par <- seq(0,by=1/(n.boot+1),length.out=n.boot+2)[resSearch$index+1]
         }
 

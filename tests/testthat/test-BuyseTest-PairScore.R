@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj 26 2018 (14:33) 
 ## Version: 
-## Last-Updated: maj  9 2022 (13:18) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 70
+##     Update #: 71
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,6 +29,7 @@ BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   keep.survival = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 

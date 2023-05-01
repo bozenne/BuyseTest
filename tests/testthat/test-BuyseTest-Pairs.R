@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: Apr  9 2021 (12:45) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 192
+##     Update #: 193
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,6 +27,7 @@ context("Check BuyseTest on simple examples")
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 ## * one binary endpoint

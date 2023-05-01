@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Dec 21 2021 (17:50) 
 ## Version: 
-## Last-Updated: Dec 22 2021 (16:03) 
+## Last-Updated: May  1 2023 (10:08) 
 ##           By: Brice Ozenne
-##     Update #: 16
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,6 +24,8 @@ if(FALSE){
 
 context("Check restricted net benefit \n")
 
+## * Setting
+BuyseTest.options(pool.strata = "Buyse")
 
 ## * survival case (Peron)
 n.obs <- 100

@@ -33,7 +33,7 @@ It only returns the relevant limit (either upper or lower) of the confidence int
 
 \item{tol}{[numeric] the absolute convergence tolerance.}
 
-\item{type.quantile}{[interger, 1-9] quantile algorithm to be used to evaluate quantiles. Passed to the \code{\link{stats::quantile}}.}
+\item{type.quantile}{[interger, 1-9] quantile algorithm to be used to evaluate quantiles. Passed to the \code{stats::quantile}.}
 
 \item{add.1}{[logical] conservative correction ensuring that the p-value is strictly positive.}
 }

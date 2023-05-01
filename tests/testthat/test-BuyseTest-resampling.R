@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: apr 25 2023 (10:44) 
+## last-updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 192
+##     Update #: 193
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -28,6 +28,7 @@ BuyseTest.options(check = TRUE,
                   keep.survival = FALSE,
                   order.Hprojection = 1,
                   add.1.presample = FALSE,
+                  pool.strata = "Buyse",
                   trace = 0)
 n.patients <- 100
 method <- "Peron"

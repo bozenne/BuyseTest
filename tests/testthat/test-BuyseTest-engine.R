@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 23 2020 (09:46) 
 ## Version: 
-## Last-Updated: maj  9 2022 (13:19) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,6 +28,7 @@ n.patients <- c(60,65)
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 ## * Simulated data

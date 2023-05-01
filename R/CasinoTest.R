@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: mar 24 2023 (16:32) 
+## Last-Updated: May  1 2023 (09:12) 
 ##           By: Brice Ozenne
-##     Update #: 95
+##     Update #: 97
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,6 +27,8 @@
 ##' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 ##' @param method.inference [character] method used to compute confidence intervals and p-values.
 ##' Can be \code{"none"} or \code{"u-statistic"}.
+##' @param method.multcomp [character] method used to adjust for multiple comparisons.
+##' Can be any element of ‘p.adjust.methods’ (e.g. "holm"), "maxT-integration", or "maxT-simulation".
 ##' @param conf.level [numeric] confidence level for the confidence intervals.
 ##' Default value read from \code{BuyseTest.options()}.
 ##' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
@@ -172,7 +174,7 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
         iTreat1 <- grid[1,iGrid]
         iTreat2 <- grid[2,iGrid]
         iData <- rbind(ls.data[[iTreat1]],ls.data2[[iTreat2]])
-        iData[[name.treatment]] <- droplevels(relevel(iData[[name.treatment]], iTreat1))
+        iData[[name.treatment]] <- droplevels(stats::relevel(iData[[name.treatment]], iTreat1))
 
         ## GPC
         grid.BT[[iGrid]] <- BuyseTest(formula, data = iData, method.inference = method.inference, add.halfNeutral = add.halfNeutral, trace = FALSE)

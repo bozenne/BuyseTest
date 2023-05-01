@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: Dec 21 2021 (17:43) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 43
+##     Update #: 44
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,8 @@ if(FALSE){
 
 context("Check BuysePower \n")
 
-BuyseTest.options(order.Hprojection = 1)
+BuyseTest.options(order.Hprojection = 1,
+                  pool.strata = "Buyse")
 
 ## * 1 binary endpoint
 if(FALSE){ ## to save computation time for CRAN check

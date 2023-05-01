@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: mar 20 2023 (13:52) 
+## Last-Updated: May  1 2023 (10:06) 
 ##           By: Brice Ozenne
-##     Update #: 208
+##     Update #: 209
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,7 @@ coef2 <- function(x){
 BuyseTest.options(check = TRUE,
                   keep.pairScore = FALSE,
                   method.inference = "u-statistic",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 ## * iid average

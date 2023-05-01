@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: mar 14 2023 (13:46) 
+## Last-Updated: May  1 2023 (09:14) 
 ##           By: Brice Ozenne
-##     Update #: 44
+##     Update #: 45
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,6 +23,9 @@ if(FALSE){
 }
 
 context("Check stratification in BuyseTest")
+
+## * setting
+BuyseTest.options(pool.strata = "Buyse")
 
 
 ## * simulate data

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne, Eva Cantagallo
 ## Created: jul 12 2018 (16:58) 
 ## Version: 
-## Last-Updated: dec  3 2020 (13:41) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 53
+##     Update #: 54
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,6 +29,7 @@ context("Check that BuyseTest with competing risks \n")
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 

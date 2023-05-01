@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2018 (15:21) 
 ## Version: 
-## Last-Updated: Dec 21 2021 (17:06) 
+## Last-Updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 39
+##     Update #: 41
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,6 +29,7 @@ context("Check that the option operator in BuyseTest is working correctly \n")
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 ## * one pair

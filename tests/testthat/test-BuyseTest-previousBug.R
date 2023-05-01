@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: apr 25 2023 (10:33) 
+## Last-Updated: May  1 2023 (10:03) 
 ##           By: Brice Ozenne
-##     Update #: 208
+##     Update #: 211
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,6 +29,8 @@ context("Check that bugs that have been reported are fixed \n")
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
+                  add.1.presample = FALSE,
                   trace = 0)
 
 ## * Joris: jeudi 5 avril 2018 à 14:57

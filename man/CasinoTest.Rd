@@ -39,6 +39,9 @@ Default value read from \code{BuyseTest.options()}. Not relevant when using perm
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 Default value read from \code{BuyseTest.options()}.}
 
+\item{method.multcomp}{[character] method used to adjust for multiple comparisons.
+Can be any element of ‘p.adjust.methods’ (e.g. "holm"), "maxT-integration", or "maxT-simulation".}
+
 \item{seed}{[integer, >0] seed number set before performing simulations for the confidence bands.}
 }
 \description{

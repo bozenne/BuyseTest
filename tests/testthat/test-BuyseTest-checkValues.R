@@ -12,6 +12,7 @@ n.patients <- c(90,100)
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 ## * Simulated data

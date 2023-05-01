@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:50) 
 ## Version: 
-## last-updated: apr  2 2020 (16:57) 
+## last-updated: May  1 2023 (10:07) 
 ##           By: Brice Ozenne
-##     Update #: 58
+##     Update #: 59
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check whether the option neutral.as.uninf is working
@@ -29,6 +29,7 @@ context("Check that the option neutral.as.uninf in BuyseTest is working correctl
 BuyseTest.options(check = TRUE,
                   keep.pairScore = TRUE,
                   method.inference = "none",
+                  pool.strata = "Buyse",
                   trace = 0)
 
 ## * generate data
