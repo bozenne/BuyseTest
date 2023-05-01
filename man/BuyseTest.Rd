@@ -2,7 +2,7 @@
 % Please edit documentation in R/BuyseTest.R
 \name{BuyseTest}
 \alias{BuyseTest}
-\title{Generalized Pairwise Comparisons (GPC)}
+\title{Two-group GPC}
 \usage{
 BuyseTest(
   formula,
@@ -101,7 +101,8 @@ See Details, section "Specification of the GPC model".}
 An \R object of class \code{\linkS4class{S4BuyseTest}}.
 }
 \description{
-Performs Generalized Pairwise Comparisons for binary, continuous and time-to-event endpoints.
+Performs Generalized Pairwise Comparisons (GPC) between two groups.
+Can handle one or several binary, continuous and time-to-event endpoints.
 }
 \details{
 \bold{Specification of the GPC model}: \cr

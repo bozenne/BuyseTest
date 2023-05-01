@@ -9,9 +9,11 @@ boot2pvalue(
   null,
   estimate = NULL,
   alternative = "two.sided",
-  FUN.ci = quantileCI,
+  FUN.ci = .quantileCI,
   checkSign = TRUE,
-  tol = .Machine$double.eps^0.5
+  tol = .Machine$double.eps^0.5,
+  type.quantile = NULL,
+  add.1 = FALSE
 )
 }
 \arguments{
@@ -24,13 +26,16 @@ boot2pvalue(
 \item{alternative}{[character] a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less".}
 
 \item{FUN.ci}{[function] the function used to compute the confidence interval.
-Must take \code{x}, \code{alternative}, \code{conf.level} and \code{sign.estimate} as arguments
-and only return the relevant limit (either upper or lower) of the confidence interval.}
+Must take \code{x}, \code{alternative}, \code{level}, \code{sign.estimate}, and \code{type.quantile} as arguments.
+It only returns the relevant limit (either upper or lower) of the confidence interval.}
 
-\item{checkSign}{[logical] should a warning be output if the sign of the estimate differs
-from the sign of the mean bootstrap value?}
+\item{checkSign}{[logical] should a warning be output if the sign of the estimate differs from the sign of the mean bootstrap value?}
 
 \item{tol}{[numeric] the absolute convergence tolerance.}
+
+\item{type.quantile}{[interger, 1-9] quantile algorithm to be used to evaluate quantiles. Passed to the \code{\link{stats::quantile}}.}
+
+\item{add.1}{[logical] conservative correction ensuring that the p-value is strictly positive.}
 }
 \description{
 Compute the p.value associated with the estimated statistic

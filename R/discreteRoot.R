@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: mar 14 2022 (11:59) 
+## Last-Updated: apr 25 2023 (10:47) 
 ##           By: Brice Ozenne
-##     Update #: 261
+##     Update #: 276
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -111,13 +111,14 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 
     return(list(par = solution,
                 value = value,
+                index = iIndexInSet,
                 ## grid = stats::setNames(value.grid,grid),
                 counts = iter,
                 cv = (ncv==FALSE),
                 message = NULL))
 }
 
-## * boot2pvalue - Documentation
+## * boot2pvalue (documentation)
 #' @title Compute the p.value from the distribution under H1
 #' @description Compute the p.value associated with the estimated statistic
 #' using a bootstrap sample of its distribution under H1.
@@ -125,13 +126,15 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' @param x [numeric vector] a vector of bootstrap estimates of the statistic.
 #' @param null [numeric] value of the statistic under the null hypothesis.
 #' @param estimate [numeric] the estimated statistic.
-#' @param FUN.ci [function] the function used to compute the confidence interval.
-#' Must take \code{x}, \code{alternative}, \code{conf.level} and \code{sign.estimate} as arguments
-#' and only return the relevant limit (either upper or lower) of the confidence interval.
 #' @param alternative [character] a character string specifying the alternative hypothesis, must be one of "two.sided" (default), "greater" or "less".
+#' @param FUN.ci [function] the function used to compute the confidence interval.
+#' Must take \code{x}, \code{alternative}, \code{level}, \code{sign.estimate}, and \code{type.quantile} as arguments.
+#' It only returns the relevant limit (either upper or lower) of the confidence interval.
+#' @param checkSign [logical] should a warning be output if the sign of the estimate differs from the sign of the mean bootstrap value?
 #' @param tol [numeric] the absolute convergence tolerance.
-#' @param checkSign [logical] should a warning be output if the sign of the estimate differs
-#' from the sign of the mean bootstrap value?
+#' @param type.quantile [interger, 1-9] quantile algorithm to be used to evaluate quantiles. Passed to the \code{\link{stats::quantile}}.
+#' @param add.1 [logical] conservative correction ensuring that the p-value is strictly positive. 
+#' 
 #' @details
 #' For test statistic close to 0, this function returns 1. \cr \cr
 #' 
@@ -179,12 +182,12 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' boot2pvalue(x, null = 0, estimate = -1, alternative = "less") # pnorm(q = 0, mean = -1)
 #' ## expected value of 0.16 = 1-pnorm(q = 0, mean = -1) = mean(x>=0)
 
-## * boot2pvalue
+## * boot2pvalue (code)
 #' @rdname boot2pvalue
 #' @export
 boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
-                        FUN.ci = quantileCI, checkSign = TRUE,
-                        tol = .Machine$double.eps ^ 0.5){ 
+                        FUN.ci = .quantileCI, checkSign = TRUE,
+                        tol = .Machine$double.eps ^ 0.5, type.quantile = NULL, add.1 = FALSE){ 
   
     x.boot <- na.omit(x)
     n.boot <- length(x.boot)
@@ -198,6 +201,11 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
         }
     }
     sign.statistic <- statistic>=0
+    if(add.1){
+        zero <- 1/n.boot
+    }else{
+        zero <- 0
+    }
 
     if(abs(statistic) < tol){ ## too small test statistic
         p.value <- 1
@@ -207,11 +215,11 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
         p.value <- switch(alternative,
                           "two.sided" = 0,
                           "less" = 1,
-                          "greater" = 0)
+                          "greater" = zero)
     } else if(all(x.boot<null)){ ## clear p.value 
         p.value <- switch(alternative,
-                          "two.sided" = 0,
-                          "less" = 0,
+                          "two.sided" = zero,
+                          "less" = zero,
                           "greater" = 1)
     }else{ ## need search to obtain p.value
         ## when the p.value=1-coverage increases, does the quantile increases?
@@ -220,14 +228,15 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
                              "less" = FALSE,
                              "greater" = TRUE)
         ## grid of confidence level
-        grid <- seq(0,by=1/n.boot,length.out=n.boot)
+        grid <- seq(0,by=1/n.boot,length.out=n.boot+1)
         
         ## search for critical confidence level
         resSearch <- discreteRoot(fn = function(p.value){
             CI <- FUN.ci(x = x.boot,
-                         p.value = p.value,
+                         level = p.value,
                          alternative = alternative,
-                         sign.estimate = sign.statistic)
+                         sign.estimate = sign.statistic,
+                         type.quantile = type.quantile)
             return(CI[1]-null)
         },
         grid = grid,
@@ -239,6 +248,8 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
             warning("incorrect convergence of the algorithm finding the critical quantile \n",
                     "p-value may not be reliable \n")
 
+        }else if(add.1){
+            resSearch$par <- seq(0,by=1/(n.boot+1),length.out=n.boot+2)[resSearch$index+1]
         }
 
         ## do not check unique maximum
@@ -252,13 +263,18 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
 }
 
 ## * quantileCI
-quantileCI <- function(x, alternative, p.value, sign.estimate, ...){
+.quantileCI <- function(x, alternative, level, sign.estimate, type.quantile){
     probs <- switch(alternative,
-                    "two.sided" = c(p.value/2,1-p.value/2)[2-sign.estimate], ## if positive p.value/2 otherwise 1-p.value/2
-                    "less" = 1-p.value,
-                    "greater" = p.value)
+                    "two.sided" = c(level/2,1-level/2)[2-sign.estimate], ## if positive p.value/2 otherwise 1-p.value/2
+                    "less" = 1-level,
+                    "greater" = level)
 
-    return(stats::quantile(x, probs = probs)[1])
+    if(!is.null(type.quantile)){
+        bound <- stats::quantile(x, probs = probs, type = type.quantile)[1]        
+    }else{
+        bound <- stats::quantile(x, probs = probs)[1]
+    }
+    return(bound)
 }
 
 
