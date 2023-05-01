@@ -1909,7 +1909,6 @@ BuyseTest.options(reinitialise = TRUE)
 
 \clearpage
 
-
 * References
 :PROPERTIES:
 :UNNUMBERED: t
@@ -1927,8 +1926,7 @@ bibliographystyle:apalike
 \endgroup
 #+END_EXPORT
 
-
-* CONFIG :noexport:
+* CONFIG                                                           :noexport:
 #+LANGUAGE:  en
 #+LaTeX_CLASS: org-article
 #+LaTeX_CLASS_OPTIONS: [12pt]
