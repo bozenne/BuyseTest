@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: May  1 2023 (09:12) 
+## Last-Updated: maj  2 2023 (18:47) 
 ##           By: Brice Ozenne
-##     Update #: 97
+##     Update #: 103
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,7 +26,7 @@
 ##' @param type [character] Type of estimator: can be \code{"unweighted"} or \code{"weighted"}.
 ##' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 ##' @param method.inference [character] method used to compute confidence intervals and p-values.
-##' Can be \code{"none"} or \code{"u-statistic"}.
+##' Can be \code{"none"}, \code{"u-statistic"}, or \code{"rank"}.
 ##' @param method.multcomp [character] method used to adjust for multiple comparisons.
 ##' Can be any element of ‘p.adjust.methods’ (e.g. "holm"), "maxT-integration", or "maxT-simulation".
 ##' @param conf.level [numeric] confidence level for the confidence intervals.
@@ -40,6 +40,8 @@
 ##' 
 ##' @details Require to have installed the package riskRegression and BuyseTest
 ##'
+##' Setting argument \code{method.inference} to \code{"rank"} uses a U-statistic approach with a small sample correction to match the variance estimator derived in Result 4.16 page 228 of Brunner (2018).
+##' 
 ##' @references Edgar Brunner, Arne C Bathke, and Frank Konietschke (2018). \bold{Rank and pseudo-rank procedures for independent observations in factorial designs}. Springer.
 ##' 
 ##' @examples
@@ -123,7 +125,13 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     }
     data <- as.data.frame(data)
     data$XXindexXX <- 1:NROW(data)
-    method.inference <- match.arg(method.inference, c("none","u-statistic"))
+    method.inference <- match.arg(method.inference, c("none","u-statistic","rank"))
+    if(method.inference=="rank"){
+        method.inference <- "u-statistic"
+        ssc <- TRUE
+    }else{
+        ssc <- FALSE
+    }
 
     ## ** read formula
     details.formula <- initializeFormula(formula, hierarchical = TRUE, envir = environment())
@@ -204,9 +212,6 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     ## ** collect results averaged over all treatments
     out.estimate <- as.data.frame(matrix(NA, nrow = n.treatment, ncol = 6,
                                          dimnames = list(level.treatment, c("estimate","se","lower.ci","upper.ci","null","p.value"))))
-    out.iid <- matrix(NA, nrow = n.obs, ncol = n.treatment,
-                      dimnames = list(NULL, level.treatment))
-
     if(type=="weighted"){
         weight.GPC <- n.group/n.obs
     }else if(type=="unweighted"){
@@ -215,44 +220,52 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     out.estimate$estimate <- colSums(.colMultiply_cpp(M.estimate, weight.GPC))
     out.estimate$null <- colSums(.colMultiply_cpp(M.null, weight.GPC))
 
-    for(iT in 1:n.treatment){ ## iT <- 1
-        out.iid[,iT] <- rowSums(.rowMultiply_cpp(M.iid[,,iT], weight.GPC))
-    }
-    ## print(tapply(out.iid[,1]^2,data[[name.treatment]],sum))
+    if(method.inference!="none"){
+        out.iid <- matrix(NA, nrow = n.obs, ncol = n.treatment,
+                          dimnames = list(NULL, level.treatment))
 
-    ## ** statistical inference
-    if(transformation){
-        type.trans <- "atanh2"
-    }else{
-        type.trans <- "none"
-    }
-    out.estimate$se <- sqrt(colSums(out.iid^2))
-    out.estimate$lower.ci <- NA
-    out.estimate$upper.ci <- NA
-    out.estimate$p.value <- NA
+        for(iT in 1:n.treatment){ ## iT <- 1
+            out.iid[,iT] <- rowSums(.rowMultiply_cpp(M.iid[,,iT], weight.GPC))
+            if(ssc){
+                out.iid[,iT] <- out.iid[,iT]*sqrt(n.group/(n.group-1))[data[[name.treatment]]]
+            }
+        }
+        ## print(tapply(out.iid[,1]^2,data[[name.treatment]],sum))
 
-    e.Band <- riskRegression::transformCIBP(estimate = rbind(out.estimate$estimate),
-                                            se = rbind(out.estimate$se),
-                                            iid = array(out.iid, dim = c(n.obs,n.treatment,1)),
-                                            null = out.estimate$null,
-                                            conf.level = conf.level,
-                                            alternative = alternative,
-                                            ci = TRUE, type = type.trans, min.value = 0, max.value = 1,
-                                            p.value = TRUE, band = method.multcomp!="none", 
-                                            method.band = method.multcomp,
-                                            seed = seed)
+        ## ** statistical inference
+        if(transformation){
+            type.trans <- "atanh2"
+        }else{
+            type.trans <- "none"
+        }
+        out.estimate$se <- sqrt(colSums(out.iid^2))
+        out.estimate$lower.ci <- NA
+        out.estimate$upper.ci <- NA
+        out.estimate$p.value <- NA
 
-    out.estimate$lower.ci <- e.Band$lower[1,]
-    out.estimate$upper.ci <- e.Band$upper[1,]
-    out.estimate$p.value <- e.Band$p.value[1,]
-    if(method.multcomp!="none"){
-        out.estimate$lower.band <- e.Band$lowerBand[1,]
-        out.estimate$upper.band <- e.Band$upperBand[1,]
-        out.estimate$adj.p.value <- e.Band$adj.p.value[1,]
+        e.Band <- riskRegression::transformCIBP(estimate = rbind(out.estimate$estimate),
+                                                se = rbind(out.estimate$se),
+                                                iid = array(out.iid, dim = c(n.obs,n.treatment,1)),
+                                                null = out.estimate$null,
+                                                conf.level = conf.level,
+                                                alternative = alternative,
+                                                ci = TRUE, type = type.trans, min.value = 0, max.value = 1,
+                                                p.value = TRUE, band = method.multcomp!="none", 
+                                                method.band = method.multcomp,
+                                                seed = seed)
+
+        out.estimate$lower.ci <- e.Band$lower[1,]
+        out.estimate$upper.ci <- e.Band$upper[1,]
+        out.estimate$p.value <- e.Band$p.value[1,]
+        if(method.multcomp!="none"){
+            out.estimate$lower.band <- e.Band$lowerBand[1,]
+            out.estimate$upper.band <- e.Band$upperBand[1,]
+            out.estimate$adj.p.value <- e.Band$adj.p.value[1,]
+        }
+        attr(out.estimate,"iid") <- out.iid
     }
 
     ## ** export
-    attr(out.estimate,"iid") <- out.iid
     return(out.estimate)
 }
 
@@ -270,6 +283,47 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     }
 }
 
+
+## alternative implementation 
+##     if(method.inference == "u-statistic"){
+##         if(iTreat1==iTreat2){
+##             iIndex <- unique(sort(iData$XXindexXX))
+##             M.iid[iIndex,iTreat1,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = "favorable", scale = FALSE, center = FALSE, cluster = iData$XXindexXX)
+##         }else{
+##             iIndex <- iData$XXindexXX
+##             M.iid[iIndex,iTreat1,iTreat2] <- getIid(grid.BT[[iGrid]], statistic = "favorable", scale = FALSE, center = FALSE)
+##             M.iid[iIndex,iTreat2,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = "unfavorable", scale = FALSE, center = FALSE)
+##         }
+##     }
+## }
+
+## ## ** collect results averaged over all treatments
+## out.estimate <- as.data.frame(matrix(NA, nrow = n.treatment, ncol = 6,
+##                                      dimnames = list(level.treatment, c("estimate","se","lower.ci","upper.ci","null","p.value"))))
+## out.iid <- matrix(NA, nrow = n.obs, ncol = n.treatment,
+##                   dimnames = list(NULL, level.treatment))
+
+## if(type=="weighted"){
+##     weight.GPC <- n.group/n.obs
+## }else if(type=="unweighted"){
+##     weight.GPC <- rep(1/n.treatment, n.treatment)
+## }
+## out.estimate$estimate <- colSums(.colMultiply_cpp(M.estimate, weight.GPC))
+## out.estimate$null <- colSums(.colMultiply_cpp(M.null, weight.GPC))
+
+## for(iT in 1:n.treatment){ ## iT <- 1
+
+##     iExpectation <- rowSums(.rowMultiply_cpp(M.iid[,,iT], weight.GPC))
+##     iCenter <- tapply(iExpectation, data[[name.treatment]], mean)
+##     if(ssc){
+##         ## one n.group is used to evaluate the variance of the H-decomposition, i.e. becomes n.group-1
+##         ## one n.group is from the H-decomposition (1/n \sum H)
+##         out.iid[,iT] <- (iExpectation-iCenter[data[[name.treatment]]])/sqrt(n.group[data[[name.treatment]]]*(n.group[data[[name.treatment]]]-1))
+##     }else{
+##         out.iid[,iT] <- (iExpectation-iCenter[data[[name.treatment]]])/n.group[data[[name.treatment]]]
+##     }
+
+## }
 
 ##----------------------------------------------------------------------
 ### CasinoTest.R ends here
