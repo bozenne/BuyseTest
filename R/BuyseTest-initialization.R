@@ -579,7 +579,7 @@ initializeFormula <- function(x, hierarchical, envir){
     x.rhs <- as.character(x)[3]
   
     ## remove all blanks
-    x.rhs <- gsub("[[:blank:]]", "", x.rhs)
+    x.rhs <- gsub("[[:blank:]]|\n", "", x.rhs)
 
     ## find endpoints
     ## https://stackoverflow.com/questions/35347537/using-strsplit-in-r-ignoring-anything-in-parentheses/35347645

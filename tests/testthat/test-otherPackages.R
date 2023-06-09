@@ -1,11 +1,11 @@
 ### test-otherPackages.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
-n## Created: maj 27 2018 (17:10) 
+## Created: maj 27 2018 (17:10) 
 ## Version: 
-## Last-Updated: May  5 2023 (14:55) 
+## Last-Updated: Jun  9 2023 (17:35) 
 ##           By: Brice Ozenne
-##     Update #: 25
+##     Update #: 27
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -146,53 +146,52 @@ context("Comparison with other softwares")
 ## aa
 
 ## ** rankFD
-library(rankFD)
-calcSE <- function(x, y){
-    nx <- length(x)
-    ny <- length(y)
-    Nxy <- nx + ny ## total sample size
-    xy <- c(x, y) ## full sample
-    rxy <- rank(xy) ## rank in the full sample
-    rx <- rank(x) ## rank in the first sample
-    ry <- rank(y) ## rank in the second sample
-    browser()
-    plx <- 1/ny * (rxy[1:nx] - rx) ## difference rank sample 1 and rank whole sample
-    ply <- 1/nx * (rxy[(nx + 1):(Nxy)] - ry) ## difference rank sample 2 and rank whole sample
-    vx <- var(plx)
-    vy <- var(ply)
-    vxy <- Nxy * (vx/nx + vy/ny) ## variance
-    return(c(estimate = mean(plx), se = sqrt(vxy/Nxy), var = vxy/Nxy, vx = vx, vy = vy))
-}
+## library(rankFD)
+## calcSE <- function(x, y){
+##     nx <- length(x)
+##     ny <- length(y)
+##     Nxy <- nx + ny ## total sample size
+##     xy <- c(x, y) ## full sample
+##     rxy <- rank(xy) ## rank in the full sample
+##     rx <- rank(x) ## rank in the first sample
+##     ry <- rank(y) ## rank in the second sample
+##     plx <- 1/ny * (rxy[1:nx] - rx) ## difference rank sample 1 and rank whole sample
+##     ply <- 1/nx * (rxy[(nx + 1):(Nxy)] - ry) ## difference rank sample 2 and rank whole sample
+##     vx <- var(plx)
+##     vy <- var(ply)
+##     vxy <- Nxy * (vx/nx + vy/ny) ## variance
+##     return(c(estimate = mean(plx), se = sqrt(vxy/Nxy), var = vxy/Nxy, vx = vx, vy = vy))
+## }
 
 
-data(Muco)  
-Muco2 <- subset(Muco, Disease != "OAD")
-Muco2$Disease <- droplevels(Muco2$Disease)
-any(duplicated(Muco2$HalfTime))
+## data(Muco)  
+## Muco2 <- subset(Muco, Disease != "OAD")
+## Muco2$Disease <- droplevels(Muco2$Disease)
+## any(duplicated(Muco2$HalfTime))
 
-rank.two.samples(HalfTime ~ Disease, data = Muco2, wilcoxon = "asymptotic", permu = FALSE)$Analysis
+## rank.two.samples(HalfTime ~ Disease, data = Muco2, wilcoxon = "asymptotic", permu = FALSE)$Analysis
 
-GS <- calcSE(x = Muco2[Muco2$Disease=="Normal","HalfTime"],
-             y = Muco2[Muco2$Disease=="Asbestosis","HalfTime"])
-GS
-sum(c(0.0120000 ,0.2520000))/5 
+## GS <- calcSE(x = Muco2[Muco2$Disease=="Normal","HalfTime"],
+##              y = Muco2[Muco2$Disease=="Asbestosis","HalfTime"])
+## GS
+## sum(c(0.0120000 ,0.2520000))/5 
 
-GS <- BMstat2(x = Muco2[Muco2$Disease=="Normal","HalfTime"],
-              y = Muco2[Muco2$Disease=="Asbestosis","HalfTime"],
-              nx = 1,
-              ny = 1,
-              method = "t.app")
+## GS <- BMstat2(x = Muco2[Muco2$Disease=="Normal","HalfTime"],
+##               y = Muco2[Muco2$Disease=="Asbestosis","HalfTime"],
+##               nx = 1,
+##               ny = 1,
+##               method = "t.app")
 
-sum(h1plus.trt^2)/(nt-1)
+## sum(h1plus.trt^2)/(nt-1)
 
-test <- BuyseTest(Disease ~ cont(HalfTime), data = Muco2, trace = FALSE)
-confint(test, statistic = "favorable")
+## test <- BuyseTest(Disease ~ cont(HalfTime), data = Muco2, trace = FALSE)
+## confint(test, statistic = "favorable")
 
-resM <- NTB.Ustat.fun(Yt = Muco2[Muco2$Disease=="Normal","HalfTime"],
-                      Yc = Muco2[Muco2$Disease=="Asbestosis","HalfTime"],
-                      tau = 0.0000000000000001)
+## resM <- NTB.Ustat.fun(Yt = Muco2[Muco2$Disease=="Normal","HalfTime"],
+##                       Yc = Muco2[Muco2$Disease=="Asbestosis","HalfTime"],
+##                       tau = 0.0000000000000001)
 
-sqrt(resM$Var.fav.order1.rank)
+## sqrt(resM$Var.fav.order1.rank)
 
 ##----------------------------------------------------------------------
 ### test-otherPackages.R ends here
