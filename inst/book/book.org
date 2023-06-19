@@ -8,6 +8,8 @@ setwd("~/Documents/GitHub/BuyseTest/inst/book/")
 #+END_SRC
 
 #+RESULTS:
+: Loading required package: Rcpp
+: BuyseTest version 2.4.3
 
 * section 2.1.2 Generating in-silico data
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -337,6 +339,26 @@ confint(eTox.BThalf, statistic = "favorable")
 :              estimate        se  lower.ci  upper.ci null   p.value
 : toxicity.num   0.5368 0.0280893 0.4815212 0.5911888  0.5 0.1917665
 
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(pim)
+e.pim <- pim(toxicity.num ~ treatment, data = dt.data)
+summary(e.pim)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+pim.summary of following model : 
+ toxicity.num ~ treatment
+Type:  difference 
+Link:  logit 
+
+
+           Estimate Std. Error z value Pr(>|z|)
+treatmentT   0.1475     0.1126   1.309     0.19
+
+Null hypothesis: b = 0
+#+end_example
+
 ** section 2.2.2 Threshold of clinical relevance
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -351,6 +373,14 @@ print(eTox.BT2)
 :   Delta CI [2.5% ; 97.5%] p.value
 :  -0.027  [-0.1077;0.0542] 0.51506
 
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eTox.BT@threshold
+#+END_SRC
+
+#+RESULTS:
+: toxicity.num 
+:        1e-12
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 getPairScore(eTox.BT2)
@@ -382,7 +412,7 @@ dt.data[c(3:4,201),]
 : 2:         C  0.2864467        1  5.8723232         1        1      M            1
 : 3:         T 13.8301382        1 19.4802921         1        4      F            4
 
-* section 2.2.3 Accounting for baseline covariates
+** section 2.2.3 Accounting for baseline covariates
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
@@ -413,7 +443,7 @@ summary(eTox.BTG)
 #+end_example
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-getPairScore(eTox.BTG )
+getPairScore(eTox.BTG)
 #+END_SRC
 
 #+RESULTS:
@@ -432,13 +462,97 @@ getPairScore(eTox.BTG )
 19904:      M     199     400         1           0       0     0      1
 #+end_example
 
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(pim)
+confint(eTox.BTG, stratified = TRUE)
 #+END_SRC
 
 #+RESULTS:
-: Error in library(pim) : there is no package called ‘pim’
-: No traceback available
+:                   estimate         se   lower.ci   upper.ci null   p.value
+: toxicity.num.M -0.08973601 0.07926141 -0.2417093 0.06653413    0 0.2601380
+: toxicity.num.F -0.05609106 0.08030000 -0.2108224 0.10138233    0 0.4857698
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.pimS <- pim(toxicity.num ~ treatment + gender, data = dt.data,
+              link = "identity")
+coef(e.pimS)
+#+END_SRC
+
+#+RESULTS:
+:  treatmentT     genderF 
+: 0.536970673 0.002438191
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+eTox.BTG2 <- BuyseTest(ffG, data=dt.data, add.halfNeutral = TRUE, trace = FALSE)
+coef(eTox.BTG2, statistic = "unfavorable", stratified = TRUE)
+#+END_SRC
+
+#+RESULTS:
+:   toxicity.num
+: M    0.5448680
+: F    0.5280455
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+coef(pim(toxicity.num ~ 1+gender, data = dt.data,
+         compare = expand.grid(which(dt.data$treatment == "C"),
+                               which(dt.data$treatment == "T")),
+         link = "identity"))
+
+#+END_SRC
+
+#+RESULTS:
+:   (Intercept)       genderF 
+:  0.5367438593 -0.0008020101
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+coef(pim(toxicity.num ~ treatment, data = dt.data[dt.data$gender == "M",],
+              link = "identity"))
+#+END_SRC
+
+#+RESULTS:
+: treatmentT 
+:   0.544868
+
+** section 2.2.4 Handling right-censoring when assessing efficacy
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt.data[,.(censoring=mean(statusOS==0)),by = "treatment"]
+#+END_SRC
+
+#+RESULTS:
+:    treatment censoring
+: 1:         C     0.320
+: 2:         T     0.445
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eEff.BT <- BuyseTest(treatment ~ tte(OS, statusOS), data=dt.data,
+                     keep.pairScore = TRUE, trace = FALSE)
+print(eEff.BT)
+#+END_SRC
+
+#+RESULTS:
+:  endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+:        OS      100        58.67          41.12          0      0.2 0.1755
+:  CI [2.5% ; 97.5%]   p.value
+:    [0.0472;0.2981] 0.0075342
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dtC.data <- dt.data[treatment == "C"]
+setkeyv(dtC.data, "OS")
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt.data[getPairScore(eEff.BT)[uninf>0.3,index.T],quantile(OS)]
+#+END_SRC
+
+#+RESULTS:
+:        0%       25%       50%       75%      100% 
+:  25.81760  43.56738  54.52740 104.29138 147.19602
+
+** section 2.2.5 
 
 * CONFIG :noexport:
 # #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}
