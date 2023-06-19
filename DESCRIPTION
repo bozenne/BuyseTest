@@ -1,25 +1,14 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 2.4.2
-Date: 2023-05-01
+Version: 2.4.3
+Date: 2023-06-19
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
     person("Eva", "Cantagallo", role = "aut")
 	)
-Description: Implementation of the Generalized Pairwise Comparisons (GPC)
-             as defined in Buyse (2010) <doi:10.1002/sim.3923> for complete observations,
-             and extended in Peron (2018) <doi:10.1177/0962280216658320> to deal with right-censoring.        
-             GPC compare two groups of observations (intervention vs. control group)
-			 regarding several prioritized endpoints to estimate the probability that a random observation drawn from
-			 one group performs better than a random observation drawn from the other group (Mann-Whitney parameter).
-			 The net benefit and win ratio statistics,
-			 i.e. the difference and ratio between the probabilities relative to the intervention and control groups,
-			 can then also be estimated. Confidence intervals and p-values are obtained based on asymptotic results (Ozenne 2021 <doi:10.1177/09622802211037067>),
-			 non-parametric bootstrap, or permutations.
-			 The software enables the use of thresholds of minimal importance difference,
-			 stratification, non-prioritized endpoints (O Brien test), and can handle right-censoring and competing-risks.
+Description: Implementation of the Generalized Pairwise Comparisons (GPC) as defined in Buyse (2010) <doi:10.1002/sim.3923> for complete observations, and extended in Peron (2018) <doi:10.1177/0962280216658320> to deal with right-censoring. GPC compare two groups of observations (intervention vs. control group) regarding several prioritized endpoints to estimate the probability that a random observation drawn from one group performs better than a random observation drawn from the other group (Mann-Whitney parameter). The net benefit and win ratio statistics, i.e. the difference and ratio between the probabilities relative to the intervention and control groups, can then also be estimated. Confidence intervals and p-values are obtained based on asymptotic results (Ozenne 2021 <doi:10.1177/09622802211037067>), non-parametric bootstrap, or permutations. The software enables the use of thresholds of minimal importance difference, stratification, non-prioritized endpoints (O Brien test), and can handle right-censoring and competing-risks.
 License: GPL-3
 Encoding: UTF-8
 URL: https://github.com/bozenne/BuyseTest
@@ -52,7 +41,7 @@ Suggests:
 LinkingTo: Rcpp, RcppArmadillo
 VignetteBuilder: R.rsp
 NeedsCompilation: yes
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
@@ -76,8 +65,9 @@ Collate:
     'S4-BuyseTest-coef.R'
     'S4-BuyseTest-confint.R'
     'S4-BuyseTest-get.R'
-    'S4-BuyseTest-sensitivity.R'
     'S4-BuyseTest-summary.R'
+    'S4-BuyseTest-print.R'
+    'S4-BuyseTest-sensitivity.R'
     'S4-BuyseTest-show.R'
     'S4-BuyseTest.options.R'
     'as.data.table.performance.R'

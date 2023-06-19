@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: Mar 20 2023 (12:35) 
+## Last-Updated: Jun 19 2023 (09:06) 
 ##           By: Brice Ozenne
-##     Update #: 239
+##     Update #: 241
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -385,7 +385,7 @@ as.data.table.BuyseMultComp <- function(x, keep.rownames = NULL, ...){
 }
 
 ## * print.BuyseMultComp
-##' @export
+##' @exportMethod print
 print.BuyseMultComp <- function(x, ...){
     dots <- list(...)
     

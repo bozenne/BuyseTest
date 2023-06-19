@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 955
+##     Update #: 957
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -269,6 +269,9 @@ setMethod(f = "confint",
 
               ## strata
               level.strata <- object@level.strata
+              if(stratified && length(level.strata)==1){
+                  stratified <- FALSE
+              }
               
               ## safety
               test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)

@@ -27,7 +27,7 @@ CasinoTest(
 \item{add.halfNeutral}{[logical] should half of the neutral score be added to the favorable and unfavorable scores?}
 
 \item{method.inference}{[character] method used to compute confidence intervals and p-values.
-Can be \code{"none"} or \code{"u-statistic"}.}
+Can be \code{"none"}, \code{"u-statistic"}, or \code{"rank"}.}
 
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
@@ -50,6 +50,8 @@ Can handle one or several binary, continuous and time-to-event endpoints.
 }
 \details{
 Require to have installed the package riskRegression and BuyseTest
+
+Setting argument \code{method.inference} to \code{"rank"} uses a U-statistic approach with a small sample correction to match the variance estimator derived in Result 4.16 page 228 of Brunner (2018).
 }
 \examples{
 library(data.table)

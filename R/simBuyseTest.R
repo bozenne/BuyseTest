@@ -13,7 +13,10 @@
 #' @param argsCont [list] arguments to be passed to \code{simBuyseTest_continuous}. They specify the distribution parameters of the continuous endpoints.
 #' @param argsTTE [list]  arguments to be passed to \code{simBuyseTest_TTE}. They specify the distribution parameters of the time to event endpoints.
 #' @param n.strata [integer, >0] number of strata. \code{NULL} indicates no strata.
+#' @param level.strata [list of character vector] value associated to each strata. Must have same length as \code{n.strata}.
 #' @param names.strata [character vector] name of the strata variables. Must have same length as \code{n.strata}.
+#' @param name.treatment [character] name of the treatment variable. 
+#' @param level.treatment [character vector of length 2] levels of the treatment variable. 
 #' @param latent [logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).
 #' 
 #' @details 
@@ -158,17 +161,42 @@
 #' @export
 simBuyseTest <- function(n.T, n.C = NULL, 
                          argsBin = list(), argsCont = list(), argsTTE = list(),
-                         n.strata = NULL, names.strata = NULL, format = "data.table",
-                         latent = FALSE){
+                         names.strata = NULL, level.strata = NULL, n.strata = NULL, 
+                         name.treatment = "treatment", level.treatment = c("C","T"),
+                         format = "data.table", latent = FALSE){
 
     option <- BuyseTest.options()
-    if(is.null(names.strata) && !is.null(n.strata)){
+
+    ## ** normalize arguments
+    if(!is.null(level.strata)){
+        if(!is.null(n.strata)){
+            message("Argument \'n.strata\' ignored when argument \'level.strata\' is specified. \n")
+        }
+        if(!is.list(level.strata) && length(names.strata)==1){
+            level.strata <- list(level.strata)
+        }
+        n.strata <- sapply(level.strata,length)
+    }else if(is.null(level.strata) && !is.null(n.strata)){
+        level.strata <- lapply(n.strata, function(iN){letters[1:iN]})
+    }else if(!is.null(names.strata)){
+        stop("Argument \'n.strata\' or \'names.strata\' must be specified to indicate the number of possible values per strata variable. \n")
+    }
+
+    if(is.null(names.strata) && !is.null(level.strata)){
+        if(!is.null(names(level.strata))){
+            names.strata <- names(level.strata)
+        }else  if(length(level.strata)==1){
+            names.strata <- "strata"
+        }else{
+            names.strata <- paste0("strataVar",1:n.strata)
+        }
+    }else if(is.null(names.strata) && !is.null(n.strata)){
         if(length(n.strata)==1){
             names.strata <- "strata"
         }else{
             names.strata <- paste0("strataVar",1:n.strata)
         }
-    }
+    } 
   
     ## ** check arguments
     if(is.null(n.C)){n.C <- n.T}
@@ -183,10 +211,25 @@ simBuyseTest <- function(n.T, n.C = NULL,
                      valid.length = 1,
                      method = "simBuyseTest")
         validInteger(n.strata,
-                     valid.length = NULL,
+                     valid.length = length(names.strata),
                      refuse.NULL = FALSE,
                      min = 1,
                      method = "simBuyseTest")
+        if(!is.null(names.strata) && !is.list(level.strata)){
+            stop("Argument \'level.strata \' must be a list. \n")
+        }
+        if(!is.null(names.strata) && length(level.strata)!=length(names.strata)){
+            stop("Argument \'level.strata \' must be a list of ",length(names.strata)," elements. \n",
+                 "Each element indicate the possible values for each strata variable. \n")
+        }
+        validCharacter(level.treatment,
+                       valid.length = 2,
+                       refuse.NULL = TRUE,
+                       method = "simBuyseTest")
+        validCharacter(name.treatment,
+                       valid.length = 1,
+                       refuse.NULL = TRUE,
+                       method = "simBuyseTest")
         validCharacter(format,
                        valid.length = 1,
                        valid.values = c("data.table","data.frame","matrix"),
@@ -196,8 +239,8 @@ simBuyseTest <- function(n.T, n.C = NULL,
     ## ** build the generative model
     mT.lvm <- lvm()
     mC.lvm <- lvm()
-    lava::categorical(mT.lvm,labels=c("T")) <- "treatment"
-    lava::categorical(mC.lvm,labels=c("C")) <- "treatment"
+    lava::categorical(mC.lvm,labels=level.treatment[1]) <- name.treatment
+    lava::categorical(mT.lvm,labels=level.treatment[2]) <- name.treatment
     if(!is.null(argsTTE)){
         newLVM <- do.call("simBuyseTest_TTE", args = c(list(modelT = mT.lvm, modelC = mC.lvm, check = option$check), argsTTE))
         mT.lvm <- newLVM$modelT
@@ -235,22 +278,15 @@ simBuyseTest <- function(n.T, n.C = NULL,
     }
   
     ## ** add strata variable to the generative model
-    if(!is.null(n.strata)){
-        if(option$check){
-            validCharacter(names.strata,
-                           valid.length = length(n.strata),
-                           refuse.NULL = TRUE,
-                           method = "simBuyseTest")
-        }
+    if(!is.null(names.strata)){
         
         for(iterS in 1:length(n.strata)){
             if(any(names.strata[iterS] %in% lava::vars(mT.lvm))){
                 stop("simBuyseTest: variable already in the LVM \n",
                      "variable: ",paste(names.strata[iterS][names.strata[iterS] %in% lava::vars(mT.lvm)], collapse = " "),"\n")
             }
-      
-            lava::categorical(mT.lvm, labels = letters[1:n.strata[iterS]]) <- names.strata[iterS]
-            lava::categorical(mC.lvm, labels = letters[1:n.strata[iterS]]) <- names.strata[iterS]   
+            lava::categorical(mT.lvm, labels = level.strata[[iterS]]) <- names.strata[iterS]
+            lava::categorical(mC.lvm, labels = level.strata[[iterS]]) <- names.strata[iterS]
         }
     }
 
@@ -297,6 +333,7 @@ simBuyseTest_bin <- function(modelT,
     if(is.null(rho.C)){
         rho.C <- rho.T
     }
+    index.rho <- union(which(rho.T!=0), which(rho.C!=0))
     names.values <- vector(mode = "list", length = n.endpoints)
     for(iterE in 1:n.endpoints){
         if(is.null(names(p.T[[iterE]]))){
@@ -321,24 +358,27 @@ simBuyseTest_bin <- function(modelT,
         validNumeric(rho.C,
                      valid.length = n.endpoints,
                      method = "simBuyseTest")
-        if((any(rho.T!=0) || any(rho.C!=0)) && (n.endpoints != length(latentTTE))){
-            stop("The number of time to event endpoints must match the number of categorical endpoints. \n")
+
+        if(any(index.rho %in% 1:n.endpoints == FALSE)){
+            stop("There should be a toxicity endpoint relative to each time to event endpoint when specifying a correlation parameter \n")
         }
         for(iterE in 1:n.endpoints){
             validNumeric(p.T[[iterE]],
                          min = 0,
                          max = 1,
                          valid.length = NULL,
+                         name1 = "p.T",
                          method = "simBuyseTest")
-            if(sum(p.T[[iterE]])!=1){
+            if(abs(sum(p.T[[iterE]])-1)>1e-6){
                 stop("For each endpoint, the sum of the probabilities in argument \'p.T\' must be 1. \n")
             }
             validNumeric(p.C[[iterE]],
                          min = 0,
                          max = 1,
                          valid.length = length(p.T[[iterE]]),
+                         name1 = "p.C",
                          method = "simBuyseTest")
-            if(sum(p.C[[iterE]])!=1){
+            if(abs(sum(p.C[[iterE]])-1)>1e-6){
                 stop("For each endpoint, the sum of the probabilities in argument \'p.C\' must be 1. \n")
             }
 
@@ -365,7 +405,6 @@ simBuyseTest_bin <- function(modelT,
         }
         modelT <- lava::`transform<-`(modelT, as.formula(paste0(name[iterE],"~",iLatent.T)), value = eval(parse(text = iFct.T)))
         lava::latent(modelT) <- as.formula(paste0("~",iLatent.T))
-
         iCut.C <- qnormweibull(cumsum(p.C[[iterE]])[-length(p.C[[iterE]])], scale = scale.C[iterE], shape = shape.C[iterE], rho = rho.C[iterE])
         iFct.C <- paste0("function(x, xcut = c(",paste0(iCut.C,collapse=","),"), xname = c(\"",paste0(names.values[[iterE]],collapse="\",\""),"\")){\n",
                        "    return(factor(findInterval(x[,1], vec = xcut), levels = 0:length(xcut), labels = xname))\n",
@@ -500,7 +539,7 @@ simBuyseTest_TTE <- function(modelT,
                      valid.length = n.endpoints, unlist = is.list(shape.T),
                      method = "simBuyseTest")
         validCharacter(dist.T,
-                       valid.values = c("weibull","uniform","piecewiseExp"),
+                       valid.values = c("weibull", "uniform","piecewiseExp"),
                        valid.length = n.endpoints,
                        method = "simBuyseTest")  
 

@@ -3,7 +3,7 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jun  7 2023 (19:29) 
+## Last-Updated: jun 19 2023 (14:03) 
 ##           By: Brice Ozenne
 ##     Update #: 215
 ##----------------------------------------------------------------------
@@ -550,18 +550,29 @@ test_that("p-value with permutation",{
     expect_equal(suppressWarnings(confint(GPC.perm)$p.value), 1/1001)
 })
 
-## * SamSalvaggio (issue #10 on Github): 6 june 2023 restriction
-test_that("restriction time",{
+## * SamSalvaggio (issue #10 on Github): 6 june 2023 restricted
+test_that("restriction via formula interface",{
 
     set.seed(1)
     dt <- simBuyseTest(n.T = 50, n.C = 50,
-                       names.strata = "strat_column", n.strata = 3,
-                       argsTTE = list(name = c("tte1","tte2","tte3"), name.censoring = c("cnsr1","cnsr2","cnsr3"),
-                                      scale.T = c(200,100,250), scale.censoring.T = c(10^5,10^5,10^5),
-                                      scale.C = c(200,100,250), scale.censoring.C = c(10^5,10^5,10^5)),
+                       names.strata = "strat_column", n.strata = 6,
+                       argsTTE = list(name = c("tte1","tte2","tte3", "tte4", "tte5", "tte6", "tte7", "tte8", "tte9"), 
+                                      name.censoring = c("cnsr1","cnsr2","cnsr3", "cnsr4", "cnsr5", "cnsr6", "cnsr7", "cnsr8", "cnsr9"),
+                                      scale.T = c(200,100,250,300,150,200,350,400,450), scale.censoring.T = c(10^5,10^5,10^5,10^5,10^5,10^5,10^5,10^5,10^5),
+                                      scale.C = c(200,100,250,300,150,200,350,400,450), scale.censoring.C = c(10^5,10^5,10^5,10^5,10^5,10^5,10^5,10^5,10^5)),
                        argsBin = list(name = "bin_var"))
 
-    formula1 <- treatment ~ strat_column + tte(tte1, status = cnsr1, threshold = 10, restriction = 365) + tte(tte2, status = cnsr2, threshold = 10, restriction = 365) + bin(bin_var, operator = "<0") + tte(tte3, status = cnsr3, threshold = 10, restriction = 365)
+    formula1 <- treatment ~ strata(strat_column) + 
+        tte(tte1, status = cnsr1, threshold = 10, restriction = 365) + 
+        tte(tte2, status = cnsr2, threshold = 10, restriction = 365) + 
+        tte(tte3, status = cnsr3, threshold = 10, restriction = 365) +
+        tte(tte4, status = cnsr4, threshold = 10, restriction = 365) +
+        bin(bin_var, operator = "<0") + 
+        tte(tte5, status = cnsr5, threshold = 10, restriction = 365) + 
+        tte(tte6, status = cnsr6, threshold = 10, restriction = 365) + 
+        tte(tte7, status = cnsr7, threshold = 10, restriction = 365) +
+        tte(tte8, status = cnsr8, threshold = 10, restriction = 365) +
+        tte(tte9, status = cnsr9, threshold = 10, restriction = 365)
 
     GPC.v1 <- BuyseTest(formula1,
                         data = dt,
@@ -569,19 +580,15 @@ test_that("restriction time",{
 
     GPC.v2 <- BuyseTest(treatment = "treatment",
                         strata = "strat_column",
-                        endpoint = c("tte1","tte2","bin_var","tte3"),
-                        status = c("cnsr1","cnsr2","cnsr3"),
-                        type = c("tte","tte","bin","tte"),
-                        operator = c(">0",">0","<0",">0"),
-                        threshold = c(10,10,NA,10),
-                        restriction = c(365,365,NA,365),
+                        endpoint = c("tte1","tte2","tte3","tte4","bin_var","tte5","tte6","tte7","tte8","tte9"),
+                        status = c("cnsr1","cnsr2","cnsr3","cnsr4","cnsr5","cnsr6","cnsr7","cnsr8","cnsr9"),
+                        type = c("tte","tte","tte","tte","bin","tte","tte","tte","tte","tte"),
+                        operator = c(">0",">0",">0",">0","<0",">0",">0",">0",">0",">0"),
+                        threshold = c(10,10,10,10,NA,10,10,10,10,10),
+                        restriction = c(365,365,365,365,NA,365,365,365,365,365),
                         data = dt,
                         trace = FALSE)
-   
 })
-
-
-
 
 
 

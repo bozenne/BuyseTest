@@ -11,8 +11,11 @@ simBuyseTest(
   argsBin = list(),
   argsCont = list(),
   argsTTE = list(),
-  n.strata = NULL,
   names.strata = NULL,
+  level.strata = NULL,
+  n.strata = NULL,
+  name.treatment = "treatment",
+  level.treatment = c("C", "T"),
   format = "data.table",
   latent = FALSE
 )
@@ -28,9 +31,15 @@ simBuyseTest(
 
 \item{argsTTE}{[list]  arguments to be passed to \code{simBuyseTest_TTE}. They specify the distribution parameters of the time to event endpoints.}
 
+\item{names.strata}{[character vector] name of the strata variables. Must have same length as \code{n.strata}.}
+
+\item{level.strata}{[list of character vector] value associated to each strata. Must have same length as \code{n.strata}.}
+
 \item{n.strata}{[integer, >0] number of strata. \code{NULL} indicates no strata.}
 
-\item{names.strata}{[character vector] name of the strata variables. Must have same length as \code{n.strata}.}
+\item{name.treatment}{[character] name of the treatment variable.}
+
+\item{level.treatment}{[character vector of length 2] levels of the treatment variable.}
 
 \item{format}{[character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.}
 

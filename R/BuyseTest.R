@@ -15,8 +15,8 @@
 #' Can be \code{"Gehan"} or \code{"Peron"}.
 #' See Details, section "Handling missing values".
 #' @param pool.strata [character] weights used to combine estimates across strata. Can be
-#' \code{"Buyse"} to weight proportionnally to the number of pairs in the strata,
-#' \code{"CMH"} to weight proportionnally to the ratio between the number of pairs in the strata and the number of observations in the strata.
+#' \code{"Buyse"} to weight proportionally to the number of pairs in the strata,
+#' \code{"CMH"} to weight proportionally to the ratio between the number of pairs in the strata and the number of observations in the strata.
 #' \code{"equal"} to weight equally each strata,
 #' or \code{"var-netBenefit"} to weight each strata proportionally to the precision of its estimated net benefit (similar syntax for the win ratio: \code{"var-winRatio"})
 #' @param correction.uninf [integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
@@ -51,7 +51,7 @@
 #' 
 #' @details
 #'
-#' \bold{Specification of the GPC model}: \cr
+#' \bold{Specification of the GPC model} \cr
 #' There are two way to specify the GPC model in \code{BuyseTest}.
 #' A \emph{Formula interface} via the argument \code{formula} where the response variable should be a binary variable defining the treatment arms. 
 #' The rest of the formula should indicate the endpoints by order of priority and the strata variables (if any).
@@ -131,10 +131,12 @@
 #' The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. \cr \cr
 #' }
 #'
-#' \bold{Pooling results across strata} the relative contribution of each strata to the global estimator is decided by \cr
+#' \bold{Pooling results across strata} \cr Consider \eqn{K} strata and denote by \eqn{m_k} and \eqn{n_k} the sample size in the control and active arm (respectively) for strata \eqn{k}. Let \eqn{\sigma_k} be the standard error of the strata-specific summary statistic (e.g. net benefit). The strata specific weights, \eqn{w_k}, are given by:
 #' \itemize{
-#' \item \code{"CMH"} weights: Cochran-Mantel-Haenszel type weights which are optimal if the odds ratios are constant across strata.
-#' \item \code{"Buyse"} weights: optimal if the risk difference is constant across strata. \cr \cr
+#' \item \code{"CMH"}: \eqn{w_k=\frac{\frac{m_k \times n_k}{m_k + n_k}}{\sum_{l=1}^K \frac{m_l \times n_l}{m_l + n_l}}}. Optimal if the if the odds ratios are constant across strata.
+#' \item \code{"equal"}:  \eqn{w_k=\frac{1}{K}}
+#' \item \code{"Buyse"}:  \eqn{w_k=\frac{m_k \times n_k}{\sum_{l=1}^K m_l \times n_l}}. Optimal if the risk difference is constant across strata
+#' \item \code{"var-*"} (e.g. \code{"var-netBenefit"}): . \eqn{w_k=\frac{1/\sigma^2_k}{\sum_{l=1}^K 1/\sigma^2_k}}\cr \cr
 #' }
 #' 
 #' \bold{Default values} \cr

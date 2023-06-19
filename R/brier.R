@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: mar 14 2023 (13:44) 
+## Last-Updated: Jun 19 2023 (09:06) 
 ##           By: Brice Ozenne
-##     Update #: 181
+##     Update #: 184
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -217,7 +217,7 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
 
 ## * Utilitites
 ## ** print.BuyseTestBrier
-##' @export
+##' @exportMethod print
 print.BuyseTestBrier <- function(x, ...){
     print.data.frame(x)
 }
