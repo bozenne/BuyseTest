@@ -1,8 +1,5 @@
 ## * Documentation - simBuyseTest
-#' @name Simulate endpoints for GPC
-#' @rdname simulation
 #' @title Simulation of data for the BuyseTest
-#' 
 #' @description Simulate categorical, continuous or time to event endpoints, possibly along with a strata variable.
 #' Categorical endpoints are simulated by thresholding a latent Gaussian variable (tobit model),
 #' continuous endpoints are simulated using a Gaussian distribution,
