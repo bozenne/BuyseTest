@@ -1,0 +1,523 @@
+#+TITLE: 
+#+Author: 
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+options(width=85)
+library(BuyseTest)
+setwd("~/Documents/GitHub/BuyseTest/inst/book/")
+#+END_SRC
+
+#+RESULTS:
+
+* section 2.1.2 Generating in-silico data
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+dt.data <- simBuyseTest(100)
+dt.data
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+     treatment   eventtime status toxicity       score
+  1:         C 0.445451079      1       no -0.90197026
+  2:         C 0.183056094      0      yes -0.05474996
+  3:         C 0.410940283      0       no -1.35675471
+  4:         C 0.185677294      1      yes  0.31723058
+  5:         C 0.128177108      0       no  1.39571912
+ ---                                                  
+196:         T 0.137252959      1      yes  1.05104467
+197:         T 0.008692819      1      yes  1.15579748
+198:         T 1.668044329      0      yes -1.03443796
+199:         T 0.112796594      0      yes -0.25446807
+200:         T 0.196786863      0      yes  1.27368427
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+argsSurv <- list(name = c("OS","PFS"),
+                 name.censoring = c("statusOS","statusPFS"),
+                 scale.C = c(8.995655, 4.265128),
+                 scale.T = c(13.76543, 7.884477),
+                 shape.C = c(1.28993, 1.391015),
+                 shape.T = c(1.275269, 1.327461),
+                 scale.censoring.C = c(34.30562, 20.748712),
+                 scale.censoring.T = c(27.88519, 17.484281),
+                 shape.censoring.C = c(1.369449, 1.463876),
+                 shape.censoring.T = c(1.490881, 1.835526))
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+argsTox <- list(name = "toxicity",
+                p.C =  c(1.17, 2.92, 36.26, 39.18, 19.88, 0.59)/100,
+                p.T = c(3.51, 4.09, 23.39, 47.37, 21.05, 0.59)/100,
+                rho.T = 1, rho.C = 1)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(1)
+dt.data <- simBuyseTest(n.T = 200, n.C = 200,
+                        argsBin = argsTox,
+                        argsCont = NULL,
+                        argsTTE = argsSurv,
+                        level.strata = c("M","F"), names.strata = "gender")
+dt.data
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+     treatment           OS statusOS        PFS statusPFS toxicity gender
+  1:         C  0.628786006        0  0.6946706         1        3      F
+  2:         C  0.003647332        1  1.7228221         1        3      F
+  3:         C  5.501584752        1  0.9092541         1        3      M
+  4:         C  0.286446665        1  5.8723232         1        1      M
+  5:         C 17.221063409        1  1.0965019         0        5      M
+ ---                                                                     
+396:         T 18.771937367        1  1.4219555         0        4      F
+397:         T  2.914445864        1 49.5964070         1        3      M
+398:         T  1.105391425        1 16.1741055         1        2      M
+399:         T  1.318957979        0 10.1102146         1        4      F
+400:         T  3.338426913        1 10.9857381         1        3      M
+#+end_example
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(10)
+rbind(simBuyseTest(n.T = 100, n.C = 100,
+                   argsBin = NULL,
+                   argsCont = list(mu.C = 1, mu.T = 2),
+                   argsTTE = NULL,
+                   level.strata = "M", names.strata = "gender"),
+      simBuyseTest(n.T = 100, n.C = 100,
+                   argsBin = NULL,
+                   argsCont = list(mu.C = 10, mu.T = 20),
+                   argsTTE = NULL,
+                   level.strata = "F", names.strata = "gender")
+      )
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+     treatment      score gender
+  1:         C  1.8694750      M
+  2:         C  0.3199904      M
+  3:         C  1.1732145      M
+  4:         C  0.8405620      M
+  5:         C  1.7934994      M
+ ---                            
+396:         T 21.6977207      F
+397:         T 19.9273100      F
+398:         T 19.2823911      F
+399:         T 19.5834856      F
+400:         T 22.1935868      F
+#+end_example
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dtPC.toxW <- prop.table(table(dt.data$treatment,
+                              dt.data$toxicity))
+dtPC.toxW * 100
+#+END_SRC
+
+#+RESULTS:
+:    
+:         1     2     3     4     5     6
+:   C  2.75  3.25 19.00 12.75  6.75  5.50
+:   T  3.75  3.50 12.00 15.75 11.00  4.00
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(ggplot2)
+ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
+ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
+
+library(ggpubr)
+ggOS <- ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
+ggOS <- ggOS + theme(text = element_text(size=15), 
+                     axis.line = element_line(linewidth = 1.25),
+                     axis.ticks = element_line(linewidth = 1.25),
+                     axis.ticks.length=unit(.25, "cm"),
+                     legend.key.size = unit(3,"line"))
+ggPFS <- ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
+ggPFS <- ggPFS + theme(text = element_text(size=15), 
+                       axis.line = element_line(linewidth = 1.25),
+                       axis.ticks = element_line(linewidth = 1.25),
+                       axis.ticks.length=unit(.25, "cm"),
+                       legend.key.size = unit(3,"line"))
+ggOSPFS <- ggarrange(ggOS, ggPFS, nrow = 1, ncol = 2, common.legend = TRUE, legend = "bottom")
+graphics.off()
+pdf("figures/gg-OS-PFS-tox.pdf", width = 12, height = 8)
+ggOSPFS
+dev.off()
+#+END_SRC
+
+#+RESULTS:
+: null device 
+:           1
+
+*** Extra :noexport:
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+dt.prodige[, d_dn2 := as.Date(d_dn, "%d/%m/%Y")]
+dt.prodige[, randodt2 := as.Date(randodt, "%d/%m/%Y")]
+dt.prodige[, d_progdt2 := as.Date(d_progdt, "%d/%m/%Y")]
+dt.prodige[, OS := as.numeric(difftime(d_dn2,randodt2,units="days")/30.44)]
+dt.prodige[, PFS := as.numeric(difftime(d_progdt2,randodt2,units="days")/30.44)]
+
+AFT0 <- flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Gemcitabine",], dist = "Weibull")
+AFT1 <- flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Folfirinox",], dist = "Weibull")
+exp(coef(AFT0))
+exp(coef(AFT1))
+
+AFT2 <- flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Gemcitabine",], dist = "Weibull")
+AFT3 <- flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Folfirinox",], dist = "Weibull")
+exp(coef(AFT2))
+exp(coef(AFT3))
+
+AFT2.cens <- flexsurvreg(Surv(PFS, etat==0) ~ 1, data = dt.prodige[dt.prodige$bras == "Gemcitabine",], dist = "Weibull")
+AFT3.cens <- flexsurvreg(Surv(PFS, etat==0) ~ 1, data = dt.prodige[dt.prodige$bras == "Folfirinox",], dist = "Weibull")
+exp(coef(AFT2.cens))
+exp(coef(AFT3.cens))
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+   shape    scale 
+1.289930 8.995655
+    shape     scale 
+ 1.275269 13.765431
+   shape    scale 
+1.391015 4.265128
+   shape    scale 
+1.327461 7.884477
+    shape     scale 
+ 1.463876 20.748712
+    shape     scale 
+ 1.835526 17.484281
+#+end_example
+
+* section 2.2 Safety or efficacy assessment with GPC
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dtPC.toxL <- as.data.frame(dtPC.toxW, responseName = "Probability")
+names(dtPC.toxL)[1:2] <- c("treatment","grade")
+#+END_SRC
+
+#+RESULTS:
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+colorG2R <- scales::seq_gradient_pal(low = rgb(green=0.9,0,0),
+                                     high = rgb(red=0.9,0,0))
+
+gg.tox <- ggplot(dtPC.toxL, aes(x = treatment, fill = grade, y = Probability))
+gg.tox <- gg.tox + geom_bar(position = position_fill(reverse = TRUE),
+                            stat = "identity")
+gg.tox <- gg.tox + scale_y_continuous(labels = scales::percent)
+gg.tox <- gg.tox + scale_fill_manual("Worse\nadverse event",
+                                     values = colorG2R(seq(0,1,length.out=6)))
+gg.tox 
+#+END_SRC
+
+#+RESULTS:
+
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(prodlim)
+plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+pdf("figures/ggHist-tox.pdf", width = 5, height = 5)
+gg.tox + theme(text = element_text(size=15), 
+                       axis.line = element_line(linewidth = 1.25),
+                       axis.ticks = element_line(linewidth = 1.25),
+                       axis.ticks.length=unit(.25, "cm"),
+                       legend.key.size = unit(2,"line"))
+dev.off()
+pdf("figures/ggKM-OS.pdf", width = 5, height = 5)
+plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
+dev.off()
+
+#+END_SRC
+
+#+RESULTS:
+: X11cairo 
+:        2
+: X11cairo 
+:        2
+
+** section 2.2.1 Binary or continous endpoint
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt.data$toxicity.num <- as.numeric(dt.data$toxicity)
+eTox.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
+                     data=dt.data, trace = FALSE)
+confint(eTox.BT, statistic = "favorable")
+confint(eTox.BT)
+#+END_SRC
+
+#+RESULTS:
+:              estimate         se lower.ci  upper.ci null      p.value
+: toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
+:              estimate         se   lower.ci   upper.ci null   p.value
+: toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(eTox.BT)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1
+ - treatment groups: T (treatment) vs. C (control) 
+ - results
+     endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
+ toxicity.num      100        35.38          42.74      21.87        0 -0.0736
+ CI [2.5% ; 97.5%] p.value 
+   [-0.1824;0.037] 0.19177
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(eTox.BT, percentage = FALSE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1
+ - treatment groups: T (treatment) vs. C (control) 
+ - results
+     endpoint total favorable unfavorable neutral uninf   Delta CI [2.5% ; 97.5%] p.value
+ toxicity.num 40000     14154       17098    8748     0 -0.0736   [-0.1824;0.037] 0.19177
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(asht)
+wmwTest(toxicity.num ~ treatment, data = dt.data)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+
+	Wilcoxon-Mann-Whitney test with continuity correction (confidence interval
+	requires proportional odds assumption, but test does not)
+
+data:  toxicity.num by treatment
+Mann-Whitney estimate = 0.5368, tie factor = 0.94003, p-value = 0.1893
+alternative hypothesis: two distributions are not equal
+95 percent confidence interval:
+ 0.4819062 0.5906310
+sample estimates:
+Mann-Whitney estimate 
+               0.5368
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eTox.BThalf <- BuyseTest(treatment ~ cont(toxicity.num),
+                      add.halfNeutral = TRUE,
+                      data=dt.data, trace = FALSE)
+confint(eTox.BThalf, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:              estimate        se  lower.ci  upper.ci null   p.value
+: toxicity.num   0.5368 0.0280893 0.4815212 0.5911888  0.5 0.1917665
+
+** section 2.2.2 Threshold of clinical relevance
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eTox.BT2 <- BuyseTest(treatment ~ cont(toxicity.num, threshold = 2, operator = "<0"),
+                     data=dt.data, keep.pairScore = TRUE, trace = FALSE)
+print(eTox.BT2)
+#+END_SRC
+
+#+RESULTS:
+:      endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+:  toxicity.num         2      100        19.44          22.14      58.41        0
+:   Delta CI [2.5% ; 97.5%] p.value
+:  -0.027  [-0.1077;0.0542] 0.51506
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+getPairScore(eTox.BT2)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       index.C index.T favorable unfavorable neutral uninf weight
+    1:       1     201         0           0       1     0      1
+    2:       2     201         0           0       1     0      1
+    3:       3     201         0           0       1     0      1
+    4:       4     201         0           1       0     0      1
+    5:       5     201         0           0       1     0      1
+   ---                                                           
+39996:     196     400         0           0       1     0      1
+39997:     197     400         0           1       0     0      1
+39998:     198     400         0           0       1     0      1
+39999:     199     400         1           0       0     0      1
+40000:     200     400         0           0       1     0      1
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt.data[c(3:4,201),]
+#+END_SRC
+
+#+RESULTS:
+:    treatment         OS statusOS        PFS statusPFS toxicity gender toxicity.num
+: 1:         C  5.5015848        1  0.9092541         1        3      M            3
+: 2:         C  0.2864467        1  5.8723232         1        1      M            1
+: 3:         T 13.8301382        1 19.4802921         1        4      F            4
+
+* section 2.2.3 Accounting for baseline covariates
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
+eTox.BTG <- BuyseTest(ffG,
+                      data=dt.data, keep.pairScore = TRUE, trace = FALSE)
+summary(eTox.BTG)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint and 2 strata
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1
+ - treatment groups: T (treatment) vs. C (control) 
+ - strata weights  : 50.5%, 49.5% 
+ - results
+     endpoint strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+ toxicity.num global      100        35.43          42.74      21.83        0
+                   M       51        17.79          22.37      10.85        0
+                   F       49        17.63          20.38      10.98        0
+   delta   Delta CI [2.5% ; 97.5%] p.value 
+ -0.0731 -0.0731  [-0.1823;0.0379] 0.19672 
+ -0.0897                                   
+ -0.0561
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+getPairScore(eTox.BTG )
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       strata index.C index.T favorable unfavorable neutral uninf weight
+    1:      F       1     201         0           1       0     0      1
+    2:      F       2     201         0           1       0     0      1
+    3:      F       7     201         0           1       0     0      1
+    4:      F      11     201         0           1       0     0      1
+    5:      F      12     201         0           0       1     0      1
+   ---                                                                  
+19900:      M     192     400         0           0       1     0      1
+19901:      M     195     400         1           0       0     0      1
+19902:      M     196     400         0           0       1     0      1
+19903:      M     198     400         0           0       1     0      1
+19904:      M     199     400         1           0       0     0      1
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(pim)
+#+END_SRC
+
+#+RESULTS:
+: Error in library(pim) : there is no package called ‘pim’
+: No traceback available
+
+* CONFIG :noexport:
+# #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}
+#+LANGUAGE:  en
+#+LaTeX_CLASS: org-article
+#+LaTeX_CLASS_OPTIONS: [12pt]
+#+OPTIONS:   title:t author:t toc:nil todo:nil
+#+OPTIONS:   H:3 num:t 
+#+OPTIONS:   TeX:t LaTeX:t
+#+LATEX_HEADER: %
+#+LATEX_HEADER: %%%% specifications %%%%
+#+LATEX_HEADER: %
+** Latex command
+#+LATEX_HEADER: \usepackage{ifthen}
+#+LATEX_HEADER: \usepackage{xifthen}
+#+LATEX_HEADER: \usepackage{xargs}
+#+LATEX_HEADER: \usepackage{xspace}
+#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
+** Notations
+** Code
+# Documentation at https://org-babel.readthedocs.io/en/latest/header-args/#results
+# :tangle (yes/no/filename) extract source code with org-babel-tangle-file, see http://orgmode.org/manual/Extracting-source-code.html 
+# :cache (yes/no)
+# :eval (yes/no/never)
+# :results (value/output/silent/graphics/raw/latex)
+# :export (code/results/none/both)
+#+PROPERTY: header-args :session *R* :tangle yes :cache no ## extra argument need to be on the same line as :session *R*
+# Code display:
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+# ## change font size input
+# ## #+ATTR_LATEX: :options basicstyle=\ttfamily\scriptsize
+# ## change font size output
+# ## \RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\tiny,formatcom = {\color[rgb]{0.5,0,0}}}
+** Display 
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+#+LaTeX_HEADER:\renewcommand{\baselinestretch}{1.1}
+#+LATEX_HEADER:\geometry{top=1cm}
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+# ## valid and cross symbols
+#+LaTeX_HEADER: \RequirePackage{pifont}
+#+LaTeX_HEADER: \RequirePackage{relsize}
+#+LaTeX_HEADER: \newcommand{\Cross}{{\raisebox{-0.5ex}%
+#+LaTeX_HEADER:		{\relsize{1.5}\ding{56}}}\hspace{1pt} }
+#+LaTeX_HEADER: \newcommand{\Valid}{{\raisebox{-0.5ex}%
+#+LaTeX_HEADER:		{\relsize{1.5}\ding{52}}}\hspace{1pt} }
+#+LaTeX_HEADER: \newcommand{\CrossR}{ \textcolor{red}{\Cross} }
+#+LaTeX_HEADER: \newcommand{\ValidV}{ \textcolor{green}{\Valid} }
+# ## warning symbol
+#+LaTeX_HEADER: \usepackage{stackengine}
+#+LaTeX_HEADER: \usepackage{scalerel}
+#+LaTeX_HEADER: \newcommand\Warning[1][3ex]{%
+#+LaTeX_HEADER:   \renewcommand\stacktype{L}%
+#+LaTeX_HEADER:   \scaleto{\stackon[1.3pt]{\color{red}$\triangle$}{\tiny\bfseries !}}{#1}%
+#+LaTeX_HEADER:   \xspace
+#+LaTeX_HEADER: }
+# # change the color of the links
+#+LaTeX_HEADER: \hypersetup{
+#+LaTeX_HEADER:  citecolor=[rgb]{0,0.5,0},
+#+LaTeX_HEADER:  urlcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER:  linkcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER: }
+** Image
+#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+#+LATEX_HEADER: \RequirePackage{capt-of} % 
+#+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
+** List
+#+LATEX_HEADER: \RequirePackage{enumitem} % to be able to convert .eps to .pdf image files
+** Color
+#+LaTeX_HEADER: \definecolor{light}{rgb}{1, 1, 0.9}
+#+LaTeX_HEADER: \definecolor{lightred}{rgb}{1.0, 0.7, 0.7}
+#+LaTeX_HEADER: \definecolor{lightblue}{rgb}{0.0, 0.8, 0.8}
+#+LaTeX_HEADER: \newcommand{\darkblue}{blue!80!black}
+#+LaTeX_HEADER: \newcommand{\darkgreen}{green!50!black}
+#+LaTeX_HEADER: \newcommand{\darkred}{red!50!black}
+** Box
+#+LATEX_HEADER: \usepackage{mdframed}
+** Shortcut
+#+LATEX_HEADER: \newcommand{\first}{1\textsuperscript{st} }
+#+LATEX_HEADER: \newcommand{\second}{2\textsuperscript{nd} }
+#+LATEX_HEADER: \newcommand{\third}{3\textsuperscript{rd} }

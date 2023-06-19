@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: mar 14 2023 (13:43) 
+## Last-Updated: Jun 19 2023 (09:09) 
 ##           By: Brice Ozenne
-##     Update #: 459
+##     Update #: 462
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -324,7 +324,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
 
 ## * Utilitites
 ## ** print.auc
-#' @export
+#' @exportMethod print
 print.BuyseTestAuc <- function(x, ...){
     ##    if(attr(x,"n.fold")==0){
         print.data.frame(x, ...)

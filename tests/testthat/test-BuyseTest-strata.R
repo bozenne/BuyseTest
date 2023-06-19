@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: May  1 2023 (09:14) 
+## Last-Updated: Jun 12 2023 (09:40) 
 ##           By: Brice Ozenne
-##     Update #: 45
+##     Update #: 48
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,7 +26,6 @@ context("Check stratification in BuyseTest")
 
 ## * setting
 BuyseTest.options(pool.strata = "Buyse")
-
 
 ## * simulate data
 n <- 100
@@ -82,7 +81,7 @@ test_that("no strata (check coef)",{
     GS.coef <- c("count.favorable" = 2448, "count.unfavorable" = 2548, "count.neutral" = 5004, "count.uninf" = 0,
                  "netBenefit" = -0.01, "winRatio" = 0.96075353, "favorable" = 0.2448, "unfavorable" = 0.2548, "neutral" = 0.5004, "uninf" = 0)
 
-    for(iStat in all.stat){
+    for(iStat in all.stat){ ## iStat <- all.stat[1]
         expect_equal(as.double(coef(e.BT, statistic = iStat)),
                      as.double(GS.coef[iStat]), tol = 1e-5)        
         if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
