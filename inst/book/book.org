@@ -762,7 +762,7 @@ dev.off()
 :       2
 
 *** section 2.3.3 Encoding of the outcome
-
+# https://stackoverflow.com/questions/7356120/how-to-properly-document-s4-methods-using-roxygen2
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.data$OS2 <- dt.data$OS
 dt.data$OS2[dt.data$statusOS==0] <- 150

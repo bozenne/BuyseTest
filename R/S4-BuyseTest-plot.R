@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 23 2023 (10:44) 
 ## Version: 
-## Last-Updated: jun 23 2023 (16:34) 
+## Last-Updated: jun 23 2023 (18:29) 
 ##           By: Brice Ozenne
-##     Update #: 97
+##     Update #: 100
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,13 +17,13 @@
 
 ## * Documentation - plot
 #' @docType methods
-#' @name S4BuyseTest-plot
+#' @rdname plot-methods
 #' @title Graphical Display for GPC
-#' @aliases plot,S4BuyseTest-method
+#' @aliases plot,S4BuyseTest,ANY-method
 #' @include S4-BuyseTest.R
 #' 
 #' @description Graphical display of the percentage of favorable, unfavorable, neutral, and uninformative pairs.
-#' @param object,x an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
+#' @param x an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param type [character] type of plot: histogram (\code{"hist"}), pie chart (\code{"pie"}), or nested pie charts (\code{"racetrack"}).
 #' @param strata [character vector] strata(s) relative to which the percentage should be displayed.
 #' @param endpoint [character vector] endpoint(s) relative to which the percentage should be displayed.
@@ -57,7 +57,7 @@
 #' }
 
 ## * Method - plot
-#' @rdname S4BuyseTest-plot
+#' @rdname plot-methods
 #' @export
 setMethod(f = "plot",
           signature = "S4BuyseTest",
