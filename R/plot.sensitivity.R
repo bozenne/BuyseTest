@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 10 2021 (09:34) 
 ## Version: 
-## Last-Updated: mar 14 2023 (19:11) 
+## Last-Updated: jun 23 2023 (16:32) 
 ##           By: Brice Ozenne
-##     Update #: 8
+##     Update #: 17
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,8 +19,9 @@
 ##' @title Graphical Display for Sensitivity Analysis 
 ##' @description Display the statistic of interest across various threshold values, possibly with confidence intervals.
 ##' Currently only works when varying thresholds relative to one or two variables.
+##' @rdname plot-sensitivity
 ##' 
-##' @param object output of the sensitivity method
+##' @param object,x output of the sensitivity method
 ##' @param plot [logical] should the graph be displayed in a graphical window
 ##' @param col [character vector] color used to identify the thresholds relative to a second variable.
 ##' @param ci [logical] should the confidence intervals be displayed?
@@ -33,10 +34,12 @@
 ##' @param position relative position of the error bars for a given x value. Can for instance be \code{position_dodge(width = 5)}.
 ##' @param ... not used. For compatibility with the generic method.
 ##' 
-##' @method autoplot sensitivity
+#' @details The \code{autoplot} and \code{plot} methods are very similar. The main difference is that the former returns a ggplot2 object whereas the later automatically display the figure in a graphical window and returns an (invible) list with the plot and the data.
+#' 
+##' @method autoplot S3sensitivity
 ##' @export
-autoplot.sensitivity <- function(object, plot = TRUE, col = NULL, ci = TRUE, band = TRUE, label = "Threshold for", 
-                                 position = NULL, size.line = 1, size.point = 1.75, size.ci = 0.5, alpha = 0.1, ...){
+autoplot.S3sensitivity <- function(object, col = NULL, ci = TRUE, band = TRUE, label = "Threshold for", 
+                                   position = NULL, size.line = 1, size.point = 1.75, size.ci = 0.5, alpha = 0.1, ...){
     grid <- attr(object,"gridRed")
     statistic <- switch(attr(object,"statistic"),
                         "netBenefit" = "Net benefit",
@@ -151,13 +154,22 @@ autoplot.sensitivity <- function(object, plot = TRUE, col = NULL, ci = TRUE, ban
         }
     }
 
-    if(plot){
-        print(gg)
-    }
-    
-    return(invisible(gg))
+    return(gg)
 }
 
+## * plot - sensitivity
+#' @rdname plot-sensitivity
+#' @method plot S3sensitivity
+#' @export
+plot.S3sensitivity <- function(x, plot = TRUE, ...){
+
+    out <- autoplot(x, ...)
+    if(plot){
+        print(out)
+    }
+    return(invisible(list(plot = out,
+                          data = out$data)))
+}
 
 ##----------------------------------------------------------------------
 ### autoplot.sensitivity.R ends here

@@ -74,7 +74,7 @@ Returns estimates, their standard deviation, the average estimated standard erro
 \bold{Sample size calculation}: to approximate the sample size achieving the requested type 1 (\eqn{\alpha}) and type 2 error (\eqn{\beta}),
 GPC are applied on a large sample (as defined by the argument \code{max.sample.size}): \eqn{N^*=m^*+n^*} where \eqn{m^*} is the sample size in the control group and \eqn{n^*} is the sample size in the active group.
 Then the effect (\eqn{\delta}) and the asymptotic variance of the estimator (\eqn{\sigma^2}) are estimated. The total sample size is then deduced as (two-sided case):
-\deqn{\hat{N} = \hat{\sigma}^2\frac{(u_{1-\alpha/2}+u_{1-\beta})^2}{\hat{\delta}^2}} from which the group specific sample sizes are deduced: \eqn{\hat{m}=\hat{N}\frac{m^*}{N^*}} and \eqn{\hat{n}=\hat{N}\frac{n^*}{N^*}}. Here \(u_x\) denotes the x-quantile of the normal distribution.
+\deqn{\hat{N} = \hat{\sigma}^2\frac{(u_{1-\alpha/2}+u_{1-\beta})^2}{\hat{\delta}^2}} from which the group specific sample sizes are deduced: \eqn{\hat{m}=\hat{N}\frac{m^*}{N^*}} and \eqn{\hat{n}=\hat{N}\frac{n^*}{N^*}}. Here \eqn{u_x} denotes the x-quantile of the normal distribution.
 Since this is an approximation, a simulation study is performed with this sample size to provide the estimated power. It may not be exactly the requested power but should provide a reasonnable guess which can be refined with further simulation studies. Note that the maximumal sample size should be very high for the estimation to be accurate (ideally 10000 or more).
 }
 \examples{

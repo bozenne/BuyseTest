@@ -8,6 +8,7 @@
 #' @description Display the main results stored in a \code{S4BuyseTest} object.
 #' 
 #' @param x an \R object of class \code{S4BuyseTest}, i.e., output of \code{\link{BuyseTest}}
+#' @param ... additional arguments passed to the summary method.
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -21,10 +22,10 @@
 #' @exportMethod print
 setMethod(f = "print",
           signature = "S4BuyseTest",
-          definition = function(x){
+          definition = function(x, ...){
 
               ## compute summary statistics
-              outSummary <- summary(x, print = FALSE, strata = "global")$table.print
+              outSummary <- summary(x, print = FALSE, ...)$table.print
               ## remove significance column
               table.print <- outSummary[,setdiff(names(outSummary), "significance"),drop=FALSE]
               print(table.print, row.names = FALSE)

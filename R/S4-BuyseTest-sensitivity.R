@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: Mar 20 2023 (12:08) 
+## Last-Updated: jun 23 2023 (15:53) 
 ##           By: Brice Ozenne
-##     Update #: 316
+##     Update #: 317
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -358,7 +358,7 @@ setMethod(f = "sensitivity",
               attr(df.confint,"statistic") <- statistic
               attr(df.confint,"grid") <- grid.threshold
               attr(df.confint,"gridRed") <- gridRed.threshold
-              class(df.confint) <- append("sensitivity",class(df.confint))
+              class(df.confint) <- append("S3sensitivity",class(df.confint))
               return(df.confint)
 
           })

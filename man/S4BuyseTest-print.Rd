@@ -6,10 +6,12 @@
 \alias{print,S4BuyseTest-method}
 \title{Print Method for Class "S4BuyseTest"}
 \usage{
-\S4method{print}{S4BuyseTest}(x)
+\S4method{print}{S4BuyseTest}(x, ...)
 }
 \arguments{
 \item{x}{an \R object of class \code{S4BuyseTest}, i.e., output of \code{\link{BuyseTest}}}
+
+\item{...}{additional arguments passed to the summary method.}
 }
 \description{
 Display the main results stored in a \code{S4BuyseTest} object.

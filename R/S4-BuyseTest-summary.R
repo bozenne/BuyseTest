@@ -284,7 +284,6 @@ setMethod(f = "summary",
                   table[index.global,"uninf"] <- coef(object, statistic = "count.uninf", stratified = FALSE, cumulative = FALSE)
               }
               table[index.global,"total"] <- rowSums(table[index.global,c("favorable","unfavorable","neutral","uninf")])
-
               table[index.global,"restriction"] <- object@restriction
               table[index.global,"endpoint"] <- object@endpoint
               table[index.global,"threshold"] <- object@threshold
@@ -317,6 +316,7 @@ setMethod(f = "summary",
                   table[index.strata,"strata"] <- object@level.strata[iStrata]
                   table[index.strata,"endpoint"] <- object@endpoint
                   table[index.strata,"threshold"] <- object@threshold
+                  table[index.strata,"restriction"] <- object@restriction
                   table[index.strata,"weight"] <- object@weightEndpoint
                   table[index.strata,"delta"] <- delta[iStrata,]
               }

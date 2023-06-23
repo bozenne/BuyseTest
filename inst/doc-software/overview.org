@@ -469,7 +469,6 @@ confint(BTstrata, stratified = TRUE)
 \clearpage
 
 
-
 ** Using multiple endpoints
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
