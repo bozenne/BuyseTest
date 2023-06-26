@@ -162,6 +162,7 @@
 simBuyseTest <- function(n.T, n.C = NULL, 
                          argsBin = list(), argsCont = list(), argsTTE = list(),
                          names.strata = NULL, level.strata = NULL, n.strata = NULL, 
+                         name.cluster = "id", prefix.cluster = NULL,
                          name.treatment = "treatment", level.treatment = c("C","T"),
                          format = "data.table", latent = FALSE){
 
@@ -295,7 +296,14 @@ simBuyseTest <- function(n.T, n.C = NULL,
     df.C <- lava::sim(mC.lvm, n.C, latent = latent)
   
     ## ** export
-    res <- do.call(format, args =  rbind(df.C, df.T))
+    if(!is.null(name.cluster)){
+        if(is.null(prefix.cluster)){
+            res <- cbind(1:(n.T+n.C), do.call(format, args =  rbind(df.C, df.T)))
+        }else{
+            res <- cbind(paste0(prefix.cluster,1:(n.T+n.C)), do.call(format, args =  rbind(df.C, df.T)))
+        }
+        names(res)[1] <- name.cluster
+    }
     return(res)
 }
 

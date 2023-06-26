@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: Jun 19 2023 (09:06) 
+## Last-Updated: Jun 26 2023 (11:21) 
 ##           By: Brice Ozenne
-##     Update #: 241
+##     Update #: 249
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -103,6 +103,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
         if(any(object@weightObs!=1)){
             stop("Cannot not currently handle weighted observations. \n") 
         }
+        name.object <- NULL
     }else if(all(sapply(object,inherits,"S4BuyseTest"))){
         n.object <- length(object)
         test.list <- TRUE
@@ -207,10 +208,17 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
 
     ## ** extract iid and coefficients
     if(test.list){
-        if(all(duplicated(endpoint)[-1])){
-            iName <- name.object
+        if(is.null(name.object)){
+            iName <- endpoint
         }else{
-            iName <- paste0(name.object,": ",endpoint)
+            if(any(duplicated(name.object))){
+                iName <- paste0(name.object,": ",endpoint)
+            }else{
+                iName <- name.object
+            }
+        }
+        if(any(duplicated(iName))){
+            stop("Duplicated names for the estimates: provide unique name to each element of the list containing the S4BuyseTest objects. \n")
         }
         vec.beta <- stats::setNames(unlist(lapply(1:n.object, function(iO){coef(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative)})), iName)
         ls.iid <- lapply(1:n.object, function(iO){ ## iO <- 1

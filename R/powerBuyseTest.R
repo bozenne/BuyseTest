@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: maj 19 2023 (09:47) 
+## Last-Updated: Jun 26 2023 (12:12) 
 ##           By: Brice Ozenne
-##     Update #: 1077
+##     Update #: 1080
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@
 #'
 #' @param sim [function] take two arguments:
 #' the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
-#' and generate datasets. The datasets must be data.table objects.
+#' and generate datasets. The datasets must be data.frame objects or inherits from data.frame.
 #' @param sample.size [integer vector, >0] the various sample sizes at which the simulation should be perform.
 #' Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} are specified.
 #' @param sample.sizeC [integer vector, >0] the various sample sizes in the control group.
@@ -225,8 +225,8 @@ powerBuyseTest <- function(sim,
                    method = "BuyseTest")
     
     dt.tempo <- sim(n.C = sample.sizeC[1], n.T = sample.sizeT[1])
-    if(!data.table::is.data.table(dt.tempo)){
-        stop("The function defined by the argument \'sim\' must return a data.table object.\n")
+    if(!inherits(dt.tempo, "data.frame")){
+        stop("The function defined by the argument \'sim\' must return a data.frame or an object that inherits from data.frame.\n")
     }
 
     ## ** initialize arguments (all expect data that is just converted to data.table)
@@ -440,7 +440,7 @@ powerBuyseTest <- function(sim,
                    "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
 
     ## ** Simulate data
-    data <- envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax)
+    data <- data.table::as.data.table(envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax))
 
     iInit <- initializeData(data = data,
                             type = envir$outArgs$type,

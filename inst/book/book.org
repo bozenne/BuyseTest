@@ -4,7 +4,7 @@
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 options(width=75)
 library(BuyseTest)
-if(system("whoami",intern=TRUE)=="brice"){
+if(system("whoami",intern=TRUE)=="bozenne"){
   setwd("~/Documents/GitHub/BuyseTest/inst/book/")
 }else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
   setwd("c:/Users/hpl802/Documents/Github/BuyseTest/inst/book/")
@@ -13,7 +13,8 @@ if(system("whoami",intern=TRUE)=="brice"){
 
 #+RESULTS:
 
-* section 2.1.2 Generating in-silico data
+** Section 2.1 Introduction
+*** subsection 2.1.2 Generating in-silico data
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
 dt.data <- simBuyseTest(100)
@@ -22,18 +23,18 @@ dt.data
 
 #+RESULTS:
 #+begin_example
-     treatment   eventtime status toxicity       score
-  1:         C 0.445451079      1       no -0.90197026
-  2:         C 0.183056094      0      yes -0.05474996
-  3:         C 0.410940283      0       no -1.35675471
-  4:         C 0.185677294      1      yes  0.31723058
-  5:         C 0.128177108      0       no  1.39571912
- ---                                                  
-196:         T 0.137252959      1      yes  1.05104467
-197:         T 0.008692819      1      yes  1.15579748
-198:         T 1.668044329      0      yes -1.03443796
-199:         T 0.112796594      0      yes -0.25446807
-200:         T 0.196786863      0      yes  1.27368427
+      id treatment   eventtime status toxicity       score
+  1:   1         C 0.445451079      1       no -0.90197026
+  2:   2         C 0.183056094      0      yes -0.05474996
+  3:   3         C 0.410940283      0       no -1.35675471
+  4:   4         C 0.185677294      1      yes  0.31723058
+  5:   5         C 0.128177108      0       no  1.39571912
+ ---                                                      
+196: 196         T 0.137252959      1      yes  1.05104467
+197: 197         T 0.008692819      1      yes  1.15579748
+198: 198         T 1.668044329      0      yes -1.03443796
+199: 199         T 0.112796594      0      yes -0.25446807
+200: 200         T 0.196786863      0      yes  1.27368427
 #+end_example
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -50,7 +51,6 @@ argsSurv <- list(name = c("OS","PFS"),
 #+END_SRC
 
 #+RESULTS:
-: [1] "org_babel_R_eoe"
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 argsTox <- list(name = "toxicity",
@@ -73,18 +73,18 @@ dt.data
 
 #+RESULTS:
 #+begin_example
-     treatment           OS statusOS        PFS statusPFS toxicity gender
-  1:         C  0.628786006        0  0.6946706         1        3      F
-  2:         C  0.003647332        1  1.7228221         1        3      F
-  3:         C  5.501584752        1  0.9092541         1        3      M
-  4:         C  0.286446665        1  5.8723232         1        1      M
-  5:         C 17.221063409        1  1.0965019         0        5      M
- ---                                                                     
-396:         T 18.771937367        1  1.4219555         0        4      F
-397:         T  2.914445864        1 49.5964070         1        3      M
-398:         T  1.105391425        1 16.1741055         1        2      M
-399:         T  1.318957979        0 10.1102146         1        4      F
-400:         T  3.338426913        1 10.9857381         1        3      M
+      id treatment           OS statusOS        PFS statusPFS toxicity gender
+  1:   1         C  0.628786006        0  0.6946706         1        3      F
+  2:   2         C  0.003647332        1  1.7228221         1        3      F
+  3:   3         C  5.501584752        1  0.9092541         1        3      M
+  4:   4         C  0.286446665        1  5.8723232         1        1      M
+  5:   5         C 17.221063409        1  1.0965019         0        5      M
+ ---                                                                         
+396: 396         T 18.771937367        1  1.4219555         0        4      F
+397: 397         T  2.914445864        1 49.5964070         1        3      M
+398: 398         T  1.105391425        1 16.1741055         1        2      M
+399: 399         T  1.318957979        0 10.1102146         1        4      F
+400: 400         T  3.338426913        1 10.9857381         1        3      M
 #+end_example
 
 
@@ -94,29 +94,29 @@ rbind(simBuyseTest(n.T = 100, n.C = 100,
                    argsBin = NULL,
                    argsCont = list(mu.C = 1, mu.T = 2),
                    argsTTE = NULL,
-                   level.strata = "M", names.strata = "gender"),
+                   prefix.cluster = "M", level.strata = "M", names.strata = "gender"),
       simBuyseTest(n.T = 100, n.C = 100,
                    argsBin = NULL,
                    argsCont = list(mu.C = 10, mu.T = 20),
                    argsTTE = NULL,
-                   level.strata = "F", names.strata = "gender")
+                   prefix.cluster = "F", level.strata = "F", names.strata = "gender")
       )
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
-     treatment      score gender
-  1:         C  1.8694750      M
-  2:         C  0.3199904      M
-  3:         C  1.1732145      M
-  4:         C  0.8405620      M
-  5:         C  1.7934994      M
- ---                            
-396:         T 21.6977207      F
-397:         T 19.9273100      F
-398:         T 19.2823911      F
-399:         T 19.5834856      F
-400:         T 22.1935868      F
+       id treatment      score gender
+  1:   M1         C  1.8694750      M
+  2:   M2         C  0.3199904      M
+  3:   M3         C  1.1732145      M
+  4:   M4         C  0.8405620      M
+  5:   M5         C  1.7934994      M
+ ---                                 
+396: F196         T 21.6977207      F
+397: F197         T 19.9273100      F
+398: F198         T 19.2823911      F
+399: F199         T 19.5834856      F
+400: F200         T 22.1935868      F
 #+end_example
 
 
@@ -152,7 +152,7 @@ ggPFS <- ggPFS + theme(text = element_text(size=15),
                        legend.key.size = unit(3,"line"))
 ggOSPFS <- ggarrange(ggOS, ggPFS, nrow = 1, ncol = 2, common.legend = TRUE, legend = "bottom")
 graphics.off()
-pdf("figures/gg-OS-PFS-tox.pdf", width = 12, height = 8)
+pdf("figures/fig_software_OS-PFS-tox.pdf", width = 12, height = 8)
 ggOSPFS
 dev.off()
 #+END_SRC
@@ -187,21 +187,38 @@ exp(coef(AFT3.cens))
 
 #+RESULTS:
 #+begin_example
-   shape    scale 
-1.289930 8.995655
-    shape     scale 
- 1.275269 13.765431
-   shape    scale 
-1.391015 4.265128
-   shape    scale 
-1.327461 7.884477
-    shape     scale 
- 1.463876 20.748712
-    shape     scale 
- 1.835526 17.484281
+Error: object 'dt.prodige' not found
+Error: object 'dt.prodige' not found
+Error: object 'dt.prodige' not found
+Error: object 'dt.prodige' not found
+Error: object 'dt.prodige' not found
+Error in flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
+  could not find function "flexsurvreg"
+Error in flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
+  could not find function "flexsurvreg"
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT0' not found
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT1' not found
+Error in flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
+  could not find function "flexsurvreg"
+Error in flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
+  could not find function "flexsurvreg"
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT2' not found
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT3' not found
+Error in flexsurvreg(Surv(PFS, etat == 0) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
+  could not find function "flexsurvreg"
+Error in flexsurvreg(Surv(PFS, etat == 0) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
+  could not find function "flexsurvreg"
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT2.cens' not found
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT3.cens' not found
 #+end_example
 
-* section 2.2 Safety or efficacy assessment with GPC
+** section 2.2 Safety or efficacy assessment with GPC
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dtPC.toxL <- as.data.frame(dtPC.toxW, responseName = "Probability")
@@ -236,14 +253,14 @@ plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
 #+RESULTS:
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
-pdf("figures/ggHist-tox.pdf", width = 5, height = 5)
+pdf("figures/fig_software_hist-tox.pdf", width = 5, height = 5)
 gg.tox + theme(text = element_text(size=15), 
                        axis.line = element_line(linewidth = 1.25),
                        axis.ticks = element_line(linewidth = 1.25),
                        axis.ticks.length=unit(.25, "cm"),
                        legend.key.size = unit(2,"line"))
 dev.off()
-pdf("figures/ggKM-OS.pdf", width = 5, height = 5)
+pdf("figures/fig_software_KM-OS.pdf", width = 5, height = 5)
 plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
 dev.off()
 
@@ -255,22 +272,44 @@ dev.off()
 : X11cairo 
 :        2
 
-** section 2.2.1 Binary or continous endpoint
+*** subsection 2.2.1 Binary or continous endpoint
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.data$toxicity.num <- as.numeric(dt.data$toxicity)
 eTox.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
-                     data=dt.data, trace = FALSE)
+                     data=dt.data)
 confint(eTox.BT, statistic = "favorable")
 confint(eTox.BT)
 #+END_SRC
 
 #+RESULTS:
-:              estimate         se lower.ci  upper.ci null      p.value
-: toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
-:              estimate         se   lower.ci   upper.ci null   p.value
-: toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
+#+begin_example
 
+         Generalized Pairwise Comparisons
+
+Settings 
+   - 2 groups  : Control = C and Treatment = T
+   - 1 endpoint: 
+       priority endpoint      type        operator           
+       1        toxicity.num  continuous  lower is favorable 
+
+Point estimation and calculation of the iid decomposition
+
+Estimation of the estimator's distribution 
+   - method: moments of the U-statistic
+
+Gather the results in a S4BuyseTest object
+             estimate         se lower.ci  upper.ci null      p.value
+toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
+             estimate         se   lower.ci   upper.ci null   p.value
+toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(trace = 0)
+#+END_SRC
+
+#+RESULTS:
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eTox.BT)
@@ -362,7 +401,7 @@ treatmentT   0.1475     0.1126   1.309     0.19
 Null hypothesis: b = 0
 #+end_example
 
-** section 2.2.2 Threshold of clinical relevance
+*** subsection 2.2.2 Threshold of clinical relevance
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eTox.BT2 <- BuyseTest(treatment ~ cont(toxicity.num, threshold = 2, operator = "<0"),
@@ -415,7 +454,7 @@ dt.data[c(3:4,201),]
 : 2:         C  0.2864467        1  5.8723232         1        1      M            1
 : 3:         T 13.8301382        1 19.4802921         1        4      F            4
 
-** section 2.2.3 Accounting for baseline covariates
+*** subsection 2.2.3 Accounting for baseline covariates
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
@@ -517,7 +556,7 @@ coef(pim(toxicity.num ~ treatment, data = dt.data[dt.data$gender == "M",],
 : treatmentT 
 :   0.544868
 
-** section 2.2.4 Handling right-censoring when assessing efficacy
+*** subsection 2.2.4 Handling right-censoring when assessing efficacy
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.data[,.(censoring=mean(statusOS==0)),by = "treatment"]
@@ -634,12 +673,9 @@ getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
 : 1:         C 33.86813        1 5.935977         1        6      F
 : 2:         T 34.53610        1 6.308944         1        5      M
 
-
 ** section 2.3 Benefit risk analysis using GPC
 
-#+RESULTS:
-
-*** section 2.3.1 Hierarchical & non-hierarchical analyses
+*** subsection 2.3.1 Hierarchical & non-hierarchical analyses
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eBRB.BT <-BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num),
                     data=dt.data, trace = FALSE)
@@ -685,8 +721,6 @@ ggpubr::ggarrange(eRBB.plot$plot + ggtitle("Hierarchical"),
 #+END_SRC
 
 #+RESULTS:
-: Fejl i ggarrange(eRBB.plot$plot + ggtitle("Hierarchical"), eNH.plot$plot +  : 
-:   could not find function "ggarrange"
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eRBBNH.plot <- ggpubr::ggarrange(eRBB.plot$plot + ggtitle("Hierarchical") + theme(text = element_text(size=20), 
@@ -701,7 +735,7 @@ eRBBNH.plot <- ggpubr::ggarrange(eRBB.plot$plot + ggtitle("Hierarchical") + them
                                                                                      legend.key.size = unit(2,"line")),
                                  common.legend = TRUE, legend = "bottom")
 
-pdf("figures/gg-Hierarchical.pdf", width = 12, height = 8)
+pdf("figures/fig_software_hierarchical.pdf", width = 12, height = 8)
 eRBBNH.plot
 dev.off()
 #+END_SRC
@@ -710,8 +744,7 @@ dev.off()
 : windows 
 :       2
 
-
-*** section 2.3.2 Threshold of clinical relevance
+*** subsection 2.3.2 Threshold of clinical relevance
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eSH.BT <- BuyseTest(treatment ~ tte(OS, statusOS, threshold = 28)
                               + cont(toxicity.num, threshold = 2)
@@ -752,7 +785,7 @@ eSHBRB.plot <- ggpubr::ggarrange(eBRB.plot$plot + ggtitle("No threshold") + them
                                                                                     axis.ticks.length=unit(.25, "cm"),
                                                                                     legend.key.size = unit(2,"line")),
                                  common.legend = TRUE, legend = "bottom", widths = c(1,1.5))
-pdf("figures/gg-HierarchicalThreshold.pdf", width = 12, height = 8)
+pdf("figures/fig_software_hierarchical-threshold.pdf", width = 12, height = 8)
 eSHBRB.plot
 dev.off()
 #+END_SRC
@@ -761,7 +794,7 @@ dev.off()
 : windows 
 :       2
 
-*** section 2.3.3 Encoding of the outcome
+*** subsection 2.3.3 Encoding of the outcome
 # https://stackoverflow.com/questions/7356120/how-to-properly-document-s4-methods-using-roxygen2
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.data$OS2 <- dt.data$OS
@@ -769,6 +802,18 @@ dt.data$OS2[dt.data$statusOS==0] <- 150
 #+END_SRC
 
 #+RESULTS:
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+print(BuyseTest(treatment ~ tte(OS2, statusOS), data=dt.data, trace = FALSE))
+#+END_SRC
+
+#+RESULTS:
+:  endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+:       OS2      100        50.92          34.84          0    14.24 0.1608
+:  CI [2.5% ; 97.5%]   p.value
+:    [0.0508;0.2669] 0.0042969
+
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eD2.BT <- BuyseTest(treatment ~ bin(statusOS, operator = "<0") + tte(OS2, statusOS), data=dt.data, trace = FALSE)
@@ -783,18 +828,168 @@ print(eD2.BT)
 :  0.1250   [0.0297;0.2181] 0.0102741
 :  0.1608   [0.0508;0.2669] 0.0042969
 
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-print(BuyseTest(treatment ~ tte(OS2, statusOS), data=dt.data, trace = FALSE))
+dt.data$toxicity2 <- dt.data$toxicity.num
+dt.data$toxicity2[dt.data$statusOS==1] <- -1
 #+END_SRC
 
 #+RESULTS:
-:  endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-:       OS2      100        50.92          34.84          0    14.24 0.1608
-:  CI [2.5% ; 97.5%]   p.value
-:    [0.0508;0.2669] 0.0042969
 
-- threshold
-- choices
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eBRB2.BT <- BuyseTest(treatment ~ bin(statusOS, operator = "<0") + cont(toxicity2, operator = "<0"), data=dt.data, trace = FALSE)
+print(eBRB2.BT)
+#+END_SRC
+
+#+RESULTS:
+:   endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+:   statusOS   100.00        30.26          17.76      51.98        0
+:  toxicity2    51.98         4.87           5.70      41.42        0
+:    delta  Delta CI [2.5% ; 97.5%]  p.value
+:   0.1250 0.1250   [0.0297;0.2181] 0.010274
+:  -0.0083 0.1167   [0.0176;0.2135] 0.021043
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt.data2 <- rbind(cbind(dt.data[treatment == "C" & statusOS==0,], strata = 1),
+                  cbind(dt.data[treatment == "T" & statusOS==0,], strata = 1),
+                  cbind(dt.data[treatment == "C" & statusOS==0,], strata = 2),
+                  cbind(dt.data[treatment == "T" & statusOS==1,], strata = 2),
+                  cbind(dt.data[treatment == "C" & statusOS==1,], strata = 3),
+                  cbind(dt.data[treatment == "T" & statusOS==0,], strata = 3)
+                  )
+eR2.BT <- BuyseTest(treatment ~ cont(toxicity2, operator = "<0"),
+                    data=dt.data[statusOS==0], trace = FALSE)
+print(eR2.BT, percentage = FALSE)
+(1947 - 2279)/40000
+#+END_SRC
+
+#+RESULTS:
+:   endpoint total favorable unfavorable neutral uninf   Delta
+:  toxicity2  5696      1947        2279    1470     0 -0.0583
+:  CI [2.5% ; 97.5%] p.value
+:    [-0.2378;0.125] 0.53435
+: [1] -0.0083
+
+*** subsection 2.3.4 Sensitivity analysis
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eRBB.Se <- sensitivity(eRBB.BT, threshold = list(1:5,c(0,5,10)),
+                       band = TRUE, adj.p.value = TRUE, seed = 10, trace = FALSE)
+eRBB.Se[c(1,2,6),]
+#+END_SRC
+
+#+RESULTS:
+:   toxicity.num OS  estimate         se     lower.ci  upper.ci null
+: 1            1  0 0.1274785 0.06066316  0.007314031 0.2440137    0
+: 2            2  0 0.1628627 0.06304537  0.037375134 0.2832937    0
+: 6            1  5 0.1137239 0.05999122 -0.004903169 0.2291946    0
+:      p.value  lower.band upper.band adj.p.value
+: 1 0.03765646 -0.01009852  0.2603190  0.07354353
+: 2 0.01116991  0.01910242  0.3000252  0.02380337
+: 6 0.06020505 -0.02206190  0.2453901  0.11223981
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eRBB.Hdecomp <- attr(eRBB.Se,"iid")
+dim(eRBB.Hdecomp)
+eRBB.cor <- cor(eRBB.Hdecomp)
+range(eRBB.cor[lower.tri(eRBB.cor)])
+rownames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
+colnames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
+pdf("figures/fig_software_corIID.pdf", width = 8, height = 8)
+par(mar  = c(6,6,2,2))
+fields::image.plot(eRBB.cor, axes = FALSE)
+axis(1, at=(1:15)/15, labels=rownames(eRBB.cor), las = 2)
+axis(2, at=(1:15)/15, labels=colnames(eRBB.cor), las = 2)
+dev.off()
+#+END_SRC
+
+#+RESULTS:
+: [1] 400  15
+: [1] 0.8247216 0.9999499
+: null device 
+:           1
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+range(eRBB.Se$adj.p.value/eRBB.Se$p.value)
+#+END_SRC
+
+#+RESULTS:
+: [1] 1.805953 2.322942
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+sensitivity(eRBB.BT, threshold = expand.grid(toxicity.num = 1:5, OS = c(0,5,10)), trace = FALSE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+   toxicity.num OS  estimate         se     lower.ci  upper.ci null
+1             1  0 0.1274785 0.06066316  0.007314031 0.2440137    0
+2             2  0 0.1628627 0.06304537  0.037375134 0.2832937    0
+3             3  0 0.1734929 0.06404784  0.045806479 0.2956014    0
+4             4  0 0.1755467 0.06427418  0.047367941 0.2980378    0
+5             5  0 0.1755158 0.06431048  0.047264292 0.2980742    0
+6             1  5 0.1137239 0.05999122 -0.004903169 0.2291946    0
+7             2  5 0.1490123 0.06054040  0.028770586 0.2650030    0
+8             3  5 0.1697035 0.06047587  0.049276124 0.2852674    0
+9             4  5 0.1725320 0.06060297  0.051804912 0.2882889    0
+10            5  5 0.1726279 0.06063635  0.051832100 0.2884452    0
+11            1 10 0.1039310 0.05943866 -0.013461260 0.2184972    0
+12            2 10 0.1319955 0.05792578  0.017222911 0.2433348    0
+13            3 10 0.1520819 0.05695755  0.038973300 0.2613425    0
+14            4 10 0.1580804 0.05691317  0.044980148 0.2671794    0
+15            5 10 0.1581505 0.05695809  0.044959183 0.2673325    0
+       p.value    lower.band upper.band
+1  0.037656458 -0.0101467672  0.2603640
+2  0.011169915  0.0190517593  0.3000713
+3  0.007951690  0.0271331334  0.3125705
+4  0.007478388  0.0286168809  0.3150512
+5  0.007522244  0.0285026967  0.3150966
+6  0.060205051 -0.0221094323  0.2454348
+7  0.015318111  0.0112460019  0.2812268
+8  0.005924229  0.0316731865  0.3013820
+9  0.005269406  0.0341510747  0.3044220
+10 0.005270204  0.0341679720  0.3045860
+11 0.082577344 -0.0304672134  0.2346379
+12 0.024313439  0.0005313738  0.2589746
+13 0.008570478  0.0224791729  0.2766575
+14 0.006313026  0.0284741147  0.2824594
+15 0.006331924  0.0284397128  0.2826234
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+pdf("figures/fig_software_sensitivity.pdf", width = 12, height = 8)
+autoplot(eRBB.Se) + facet_wrap(~OS, labeller = label_both) + theme(text = element_text(size=20), 
+                                                                   axis.line = element_line(linewidth = 1.25),
+                                                                   axis.ticks = element_line(linewidth = 1.25),
+                                                                   axis.ticks.length=unit(.25, "cm"),
+                                                                   legend.key.size = unit(2,"line"))
+dev.off()
+#+END_SRC
+
+#+RESULTS:
+: null device 
+:           1
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.MBT <- BuyseMultComp(list("OS-tox" = eBRB.BT, "tox-OS" = eRBB.BT, "threshold" = eSH.BT), cluster = "id", seed = 10)
+e.MBT
+#+END_SRC
+
+#+RESULTS:
+:   - Univariate tests:
+:            estimate         se     lower.ci  upper.ci null     p.value
+: OS-tox    0.1751986 0.06432289 0.0469276309 0.2977853    0 0.007638296
+: tox-OS    0.1274785 0.06066316 0.0073140314 0.2440137    0 0.037656458
+: threshold 0.1229079 0.06195027 0.0002498525 0.2419225    0 0.049537494
+:             lower.band upper.band adj.p.value
+: OS-tox     0.035735620  0.3079680  0.01162931
+: tox-OS    -0.003103986  0.2537864  0.05609444
+: threshold -0.010376616  0.2519014  0.07304297
+
+** section 2.4 Power calculation for GPC analyses
+*** subsection 2.4.1 Data generating mechanism
+
 
 * CONFIG :noexport:
 # #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}

@@ -13,6 +13,8 @@ simBuyseTest(
   names.strata = NULL,
   level.strata = NULL,
   n.strata = NULL,
+  name.cluster = "id",
+  prefix.cluster = NULL,
   name.treatment = "treatment",
   level.treatment = c("C", "T"),
   format = "data.table",

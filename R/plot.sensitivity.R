@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 10 2021 (09:34) 
 ## Version: 
-## Last-Updated: jun 23 2023 (16:32) 
+## Last-Updated: Jun 25 2023 (23:25) 
 ##           By: Brice Ozenne
-##     Update #: 17
+##     Update #: 18
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -68,7 +68,7 @@ autoplot.S3sensitivity <- function(object, col = NULL, ci = TRUE, band = TRUE, l
 
     ## ** display
     ## error bar in the legend
-    draw_key.save <- GeomErrorbar$draw_key
+    draw_key.save <- ggplot2::GeomErrorbar$draw_key
     GeomErrorbar$draw_key  <-   function (data, params, size) { ## https://stackoverflow.com/questions/53490654/adding-the-errorbar-icon-in-legend-in-ggplot
         .pt <- get(".pt", envir = as.environment("package:ggplot2"))
         data$linetype[is.na(data$linetype)] <- 0

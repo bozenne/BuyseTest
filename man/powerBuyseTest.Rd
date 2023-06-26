@@ -26,7 +26,7 @@ powerBuyseTest(
 \arguments{
 \item{sim}{[function] take two arguments:
 the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
-and generate datasets. The datasets must be data.table objects.}
+and generate datasets. The datasets must be data.frame objects or inherits from data.frame.}
 
 \item{sample.size}{[integer vector, >0] the various sample sizes at which the simulation should be perform.
 Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} are specified.}

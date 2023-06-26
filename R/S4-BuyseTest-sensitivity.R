@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: jun 23 2023 (15:53) 
+## Last-Updated: Jun 26 2023 (09:37) 
 ##           By: Brice Ozenne
-##     Update #: 317
+##     Update #: 319
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -313,6 +313,9 @@ setMethod(f = "sensitivity",
                   }
                   if("method.band" %in% names(dots) == FALSE){
                       dots$method.band <- "maxT-integration"
+                  }
+                  if("n.sim" %in% names(dots) == FALSE){
+                      dots$n.sim <- 10^4
                   }
 
                   iBand <- do.call(riskRegression::transformCIBP,
