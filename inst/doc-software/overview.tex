@@ -1,4 +1,4 @@
-% Created 2023-03-20 Mon 12:41
+% Created 2023-06-28 on 18:50
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -200,7 +200,7 @@ linkcolor=[rgb]{0,0,0.5},
  pdftitle={Overview of the package BuyseTest},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 26.3 (Org mode 9.4.6)},
+ pdfcreator={Emacs 27.2 (Org mode 9.5.2)},
  pdflang={English}
  }
 \begin{document}
@@ -229,26 +229,29 @@ of the \textbf{BuyseTest} package (not on the underlying statistical model).
 
 The \textbf{BuyseTest} package contains three main functions:
 \begin{itemize}
-\item the function \texttt{BuyseTest} is the main function of the package. It
-performs the GPC, estimates the net benefit/win ratio, and output a
-\emph{BuyseRes} object. The user can interact with \emph{BuyseRes} objects using:
+\item the function \texttt{BuyseTest} performs the GPC procedure and is the main
+function of the package. The user can interact with its output via
+various methods:
 \begin{itemize}
-\item \texttt{summary} to obtain a nice display of the results
+\item \texttt{summary} to obtain an overview of the results, including the
+estimated net benefit. The result table at the end of the output
+can be directly access using \texttt{model.tables}.
 \item \texttt{coef} to extract the estimates.
 \item \texttt{confint} to extract estimates, confidence intervals, and p.values.
-\item \texttt{sensitivity} to perform a sensitivity analysis on the choice of the threshold(s) of clinical relevance.
+\item \texttt{plot} for a graphical display of the scoring of the pair per endpoint.
+\item \texttt{sensitivity} to perform a sensitivity analysis on the choice of the threshold(s).
 \item \texttt{getIid} to extract the iid decomposition of the estimator.
 \item \texttt{getPairScore} to extract the contribution of each pair to the net benefit/win ratio.
-\item \texttt{getSurvival} to extract the estimates of the survival (only relevant for right-censored endpoints).
+\item \texttt{getSurvival} to extract the estimates of the survival used for right-censored endpoints.
 \item \texttt{BuyseMultComp} to adjust p-values and confidence intervals for multiple comparisons.
 \end{itemize}
-\item the \texttt{powerBuyseTest} function performs simulation studies,
-e.g. to estimate the statistical power or assess the bias / type 1
-error rate of a test for a specific design.
-\item the \texttt{BuyseTest.options} function enables the user to display the
-default values used in the \textbf{BuyseTest} package (essentially used by
-the \texttt{BuyseTest} function). function. The function can also change
-the default values to better match the user needs.
+\item the \texttt{powerBuyseTest} function performs simulation studies, e.g. to
+estimate the statistical power or assess the bias / type 1 error
+rate of a test for a specific design. The \texttt{simBuyseTest} function
+can facilitate the definition of the data generating mechanism.
+\item the \texttt{BuyseTest.options} function enables the user to access the
+default values used in the \textbf{BuyseTest} package. The function can
+also change the default values to better match the user needs.
 \end{itemize}
 
 \clearpage
@@ -293,7 +296,7 @@ utils::packageVersion("BuyseTest")
 \end{lstlisting}
 
 \begin{verbatim}
-[1] ‘2.4.0’
+[1] '3.0.0'
 \end{verbatim}
 
 
@@ -305,70 +308,44 @@ sessionInfo()
 \end{lstlisting}
 
 \begin{verbatim}
-R version 4.2.0 (2022-04-22)
-Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 20.04.4 LTS
+R version 4.2.0 (2022-04-22 ucrt)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 19045)
 
 Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
-LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
- [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
-[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+[1] LC_COLLATE=Danish_Denmark.utf8  LC_CTYPE=Danish_Denmark.utf8   
+[3] LC_MONETARY=Danish_Denmark.utf8 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.utf8    
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] prodlim_2019.11.13 ggplot2_3.4.0      survival_3.5-0     BuyseTest_2.4.0   
-[5] butils.base_1.2    Rcpp_1.0.9         devtools_2.4.3     usethis_2.1.5     
-[9] data.table_1.14.2 
+[1] data.table_1.14.2  BuyseTest_3.0.0    Rcpp_1.0.8.3       prodlim_2019.11.13
+[5] ggplot2_3.4.2      survival_3.3-1     LMMstar_0.9.0      nlme_3.1-158      
 
 loaded via a namespace (and not attached):
-  [1] TH.data_1.1-1             colorspace_2.0-3          deldir_1.0-6             
-  [4] ellipsis_0.3.2            rprojroot_2.0.3           htmlTable_2.4.1          
-  [7] RcppArmadillo_0.11.2.0.0  base64enc_0.1-3           fs_1.5.2                 
- [10] rstudioapi_0.13           roxygen2_7.2.1            listenv_0.8.0            
- [13] MatrixModels_0.5-0        remotes_2.4.2             fansi_1.0.3              
- [16] mvtnorm_1.1-3             xml2_1.3.3                codetools_0.2-18         
- [19] splines_4.2.0             doParallel_1.0.17         cachem_1.0.6             
- [22] knitr_1.39                pkgload_1.2.4             Formula_1.2-4            
- [25] cluster_2.1.3             png_0.1-7                 riskRegression_2022.11.28
- [28] compiler_4.2.0            backports_1.4.1           assertthat_0.2.1         
- [31] Matrix_1.4-1              fastmap_1.1.0             cli_3.5.0                
- [34] htmltools_0.5.4           quantreg_5.94             prettyunits_1.1.1        
- [37] tools_4.2.0               gtable_0.3.1              glue_1.6.2               
- [40] dplyr_1.0.10              vctrs_0.5.1               nlme_3.1-157             
- [43] iterators_1.0.14          xfun_0.31                 stringr_1.5.0            
- [46] globals_0.16.1            ps_1.7.0                  brio_1.1.3               
- [49] testthat_3.1.4            lifecycle_1.0.3           future_1.28.0            
- [52] polspline_1.1.20          MASS_7.3-57               zoo_1.8-11               
- [55] scales_1.2.1              parallel_4.2.0            sandwich_3.0-2           
- [58] SparseM_1.81              RColorBrewer_1.1-3        memoise_2.0.1            
- [61] gridExtra_2.3             rms_6.3-0                 rpart_4.1.16             
- [64] latticeExtra_0.6-30       stringi_1.7.8             desc_1.4.1               
- [67] foreach_1.5.2             checkmate_2.1.0           pkgbuild_1.3.1           
- [70] lava_1.7.2                mets_1.3.2                rlang_1.0.6              
- [73] pkgconfig_2.0.3           lattice_0.20-45           purrr_1.0.0              
- [76] htmlwidgets_1.6.1         cmprsk_2.2-11             processx_3.5.3           
- [79] tidyselect_1.2.0          parallelly_1.32.1         magrittr_2.0.3           
- [82] R6_2.5.1                  generics_0.1.3            Hmisc_4.7-0              
- [85] multcomp_1.4-20           DBI_1.1.3                 pillar_1.8.1             
- [88] foreign_0.8-82            withr_2.5.0               nnet_7.3-17              
- [91] tibble_3.1.8              future.apply_1.9.1        crayon_1.5.2             
- [94] interp_1.1-3              utf8_1.2.2                timereg_2.0.4            
- [97] jpeg_0.1-9                grid_4.2.0                callr_3.7.0              
-[100] digest_0.6.31             numDeriv_2016.8-1.1       stats4_4.2.0             
-[103] munsell_0.5.0             sessioninfo_1.2.2
+ [1] compiler_4.2.0        pillar_1.9.0          tools_4.2.0           digest_0.6.31        
+ [5] lifecycle_1.0.3       tibble_3.2.1          gtable_0.3.1          lattice_0.20-45      
+ [9] pkgconfig_2.0.3       rlang_1.1.0           Matrix_1.5-1          cli_3.6.0            
+[13] parallel_4.2.0        SparseM_1.81          mvtnorm_1.1-3         coda_0.19-4          
+[17] withr_2.5.0           dplyr_1.1.0           MatrixModels_0.5-0    globals_0.16.2       
+[21] generics_0.1.3        vctrs_0.5.2           stats4_4.2.0          grid_4.2.0           
+[25] tidyselect_1.2.0      glue_1.6.2            listenv_0.9.0         R6_2.5.1             
+[29] parallelly_1.34.0     future.apply_1.10.0   fansi_1.0.4           multcomp_1.4-22      
+[33] lava_1.7.2.1          TH.data_1.1-1         magrittr_2.0.3        scales_1.2.1         
+[37] codetools_0.2-18      emmeans_1.8.5-9000001 MASS_7.3-57           splines_4.2.0        
+[41] future_1.31.0         xtable_1.8-4          colorspace_2.1-0      numDeriv_2016.8-1.1  
+[45] sandwich_3.0-2        utf8_1.2.3            estimability_1.4.1    munsell_0.5.0        
+[49] zoo_1.8-11
 \end{verbatim}
 
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org89b58b8}
+\label{sec:org2e3f7ab}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -466,7 +443,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org3e995ea}
+\label{sec:orgafa820f}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -480,7 +457,7 @@ summary(BT)
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
- - inference       : H-projection of order 1
+ - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
@@ -492,29 +469,46 @@ summary(BT)
 
  To display the number of pairs instead of the percentage of pairs
 that are favorable/unfavorable/neutral/uniformative, set the argument
-\texttt{percentage} to \texttt{FALSE}:
+\texttt{percentage} to \texttt{FALSE}. The \texttt{model.tables} method returns the table
+displayed at the end of the \texttt{summary} in a \texttt{data.frame} format:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-summary(BT, percentage = FALSE)
+model.tables(BT, percentage = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : H-projection of order 1
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - censored pairs  : probabilistic score based on the survival curves
- - results
- endpoint threshold total favorable unfavorable neutral uninf   Delta CI [2.5% ; 97.5%]
-     time        20  4692   1772.59     2183.89  735.52     0 -0.0877  [-0.2735;0.1045]
- p.value 
- 0.37162
+  endpoint threshold total favorable unfavorable  neutral uninf       Delta   lower.ci
+1     time        20  4692  1772.593    2183.886 735.5205     0 -0.08765836 -0.2735301
+   upper.ci  p.value
+1 0.1045245 0.371617
 \end{verbatim}
 
+
 \bigskip
+
+An even more concise output can be obtained via the \texttt{confint} method:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(BT)
+\end{lstlisting}
+
+\begin{verbatim}
+            estimate         se   lower.ci  upper.ci null  p.value
+time_t20 -0.08765836 0.09760901 -0.2735301 0.1045245    0 0.371617
+\end{verbatim}
+
+
+or \texttt{coef} method:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+coef(BT)
+\end{lstlisting}
+
+\begin{verbatim}
+   time_t20 
+-0.08765836
+\end{verbatim}
+
 
 By default \texttt{summary} displays results relative to the net benefit. To
 get results for the win ratio set the argument \texttt{statistic} to
@@ -530,7 +524,7 @@ summary(BT, statistic = "winRatio")
  - statistic       : win ratio (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 1 
  - confidence level: 0.95 
- - inference       : H-projection of order 1
+ - inference       : H-projection of order 1 after log transformation 
  - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
@@ -541,20 +535,11 @@ summary(BT, statistic = "winRatio")
 \end{verbatim}
 
 See \texttt{help(BuyseRes-summary)} for more detailed explanations about the
-\texttt{summary} method and its output. Note that a more concise output, in a
-data.frame format, can be obtained via the \texttt{confint} method:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-confint(BT, statistic = "winRatio")
-\end{lstlisting}
+\texttt{summary} method and its output. 
 
-\begin{verbatim}
-          estimate        se  lower.ci upper.ci null   p.value
-time_t20 0.8116692 0.1896937 0.5133887 1.283252    1 0.3719466
-\end{verbatim}
 
 \subsection{Stratified GPC}
-\label{sec:org09ad34b}
+\label{sec:orgf6ce6e4}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata}
@@ -693,9 +678,8 @@ time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 \clearpage
 
 
-
 \subsection{Using multiple endpoints}
-\label{sec:org2b70fbd}
+\label{sec:org0e12525}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -836,7 +820,7 @@ BuyseMultComp(BT.nHw, cumulative = FALSE, endpoint = 1:2)
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:org5870abf}
+\label{sec:orgd5dd9b4}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -870,7 +854,7 @@ score as usual and then switch them around if the operator equals
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:orgfaa2d42}
+\label{sec:org42742bb}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -942,7 +926,7 @@ So in this case no pair is analyzed at second priority.
 \clearpage
 
 \subsection{What about p-value and confidence intervals?}
-\label{sec:org6723757}
+\label{sec:orga9f3e6d}
 
 Several methods are available in \texttt{BuyseTest} to perform statistical inference:
 \begin{itemize}
@@ -1072,7 +1056,7 @@ intensive.
 \clearpage
 
 \subsection{Sensitivity analysis}
-\label{sec:org00048c7}
+\label{sec:orgc286fc9}
 
 The choice of the threshold of clinical relevance if somehow
 subjective and it is recommended to see how the results vary as a
@@ -1178,7 +1162,7 @@ Note that the autoplot function cannot be used when more than 2
 thresholds are varied at the same time.
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org23c5e2f}
+\label{sec:orga688bd0}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -1187,7 +1171,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orgc880f0c}
+\label{sec:org45ed440}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -1276,7 +1260,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org23efc54}
+\label{sec:org66146b5}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} and
@@ -1321,7 +1305,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org7653da0}
+\label{sec:orgc49aafd}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1436,7 +1420,7 @@ survivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org68e979d}
+\label{sec:org673cb33}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1540,7 +1524,7 @@ outSurv$lastSurv
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org5e59b58}
+\label{sec:org2e55876}
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
@@ -1637,7 +1621,7 @@ estimator.
 \end{itemize}
 
 \subsection{Gehan's scoring rule}
-\label{sec:org329f1dd}
+\label{sec:orgb8c50c8}
 In the example, Gehan's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1658,7 +1642,7 @@ leads to many uninformative pairs (about 60\%) and an estimate much
 closer to 0 than the truth.
 
 \subsection{Peron's scoring rule}
-\label{sec:orgef12a5d}
+\label{sec:orgcbbe255}
 In the example, Peron's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1805,7 +1789,7 @@ defining an appropriate \texttt{BuyseTTEM} method. Looking at the code use
 for defining \texttt{BuyseTTEM.survreg} can be helpful.
 
 \subsection{Correction via inverse probability-of-censoring weights (IPCW)}
-\label{sec:org569a333}
+\label{sec:org9ea393b}
 
 With IPCW, the weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
@@ -1874,7 +1858,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsection{Correction at the pair level}
-\label{sec:org1f87927}
+\label{sec:org92563f3}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -1934,7 +1918,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \end{verbatim}
 
 \subsection{Note on the use of the corrections}
-\label{sec:orgd373281}
+\label{sec:orge4ab5f3}
 
 As mentioned in \cite{peron2021correcting}, the corrections (at the pair
 level or IPCW) are assumes that uninformative pairs would on average
@@ -2009,7 +1993,7 @@ correction     55.25931    44.74069       0  0.00000 0.10518628
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orgc41def5}
+\label{sec:org4e9acc4}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -2069,7 +2053,7 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:org72cf15f}
+\label{sec:orgaf96076}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
@@ -2194,7 +2178,7 @@ This procedure is inspired from the procedure presented by
 \clearpage
 
 \section{Modifying default options}
-\label{sec:orgce41e13}
+\label{sec:orga4626f1}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -2244,9 +2228,8 @@ BuyseTest.options(reinitialise = TRUE)
 
 \clearpage
 
-
 \section*{References}
-\label{sec:org1b1f6e5}
+\label{sec:orge1b1865}
 \begingroup
 \renewcommand{\section}[2]{}
 

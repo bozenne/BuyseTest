@@ -34,29 +34,24 @@
 #'   \item \code{threshold} lists the threshold associated to each endpoint.
 #'   \item \bold{weight:} lists the weight of each priority.
 #'   \item \bold{strata:} list the strata relative to which the results of the priority are displayed. If \code{"global"}, then the results are over all strata at a given priority.
-#'   \item \code{total} lists the number of pairs to be analyzed at the current priority (or strata).
-#'   \item \code{total(\%)} lists the percentage of pairs to be analyzed at the current priority (or strata).
-#'   \item \code{favorable} lists the number of pairs classified in favor of the treatment group at the current priority (or strata).
-#'   \item \code{favorable(\%)} lists the number of pairs classified in favor of the treatment group at the current priority (or strata).
-#'   \item \code{unfavorable} lists the number of pairs classified in favor of the control group at the current priority (or strata).
-#'   \item \code{unfavorable(\%)} lists the percentage of pairs classified in favor of the control group at the current priority (or strata).
-#'   \item \code{neutral} lists the number of pairs classified as neither in favor of the treatment group nor in favor of the control group at the current priority (or strata).
-#'   \item \code{neutral(\%)} lists the percentage of pairs classified as neither in favor of the treatment group nor in favor of the control group at the current priority (or strata).
-#'   \item \code{uninf} lists the number of pairs that could not be classified at the current priority (or strata) due to missing values/censoring.
-#'   \item \code{uninf(\%)} lists the percentage of pairs that could not be classified at the current priority (or strata) due to missing values/censoring.
+#'   \item \code{total} (or \code{total(\%)}) lists the number (or percentage) of pairs to be analyzed at the current priority (or strata).
+#'   \item \code{favorable} (or \code{favorable(\%)}) lists the number (or percentage) of pairs classified in favor of the treatment group at the current priority (or strata).
+#'   \item \code{unfavorable} (or \code{unfavorable(\%)}) lists the number (or percentage) of pairs classified in favor of the control group at the current priority (or strata).
+#'   \item \code{neutral} (or \code{neutral(\%)}) lists the number (or percentage) of pairs classified as neither in favor of the treatment group nor in favor of the control group at the current priority (or strata).
+#'   \item \code{uninf} (or \code{uninf(\%)}) lists the number (or percentage) of pairs that could not be classified at the current priority (or strata) due to missing values/censoring.
 #'   \item \code{delta} lists the value of the priority-specific statistic (e.g. net benefit or win ratio), i.e. computed on the pairs analyzed at the current priority only.
 #'   \item \code{Delta} lists the value of the cumulative statistic (e.g. net benefit or win ratio), i.e. computed on all the pairs analyzed up to the current priority.
 #'   \item \code{Delta(\%)} lists the relative statistic (i.e. statistic up to the current priority divided by the final statistic).
 #'   \item \code{information(\%)} lists the information fraction (i.e. number of favorable and unfavorable pairs up to the current priority divided by the final number of favorable and unfavorable pairs).
 #'   \item \code{CI} lists the confidence intervals for \code{Delta} (not adjusted for multiple comparison).
 #'   \item \code{null} lists the null hypothesis (\code{Delta=null}).
-#'   \item \code{p.value} p-value relative to the null hypothesis (no adjustment for multiple comparison).
+#'   \item \code{p.value} p-value relative to the null hypothesis (not adjusted for multiple comparison).
 #'   \item \code{resampling} number of samples used to compute the confidence intervals or p-values from permutations or bootstrap samples.
 #' Only displayed if some bootstrap samples have been discarded, for example, they did not lead to sample any case or control.
 #' }
 #' Note: when using the Peron scoring rule or a correction for uninformative pairs, the columns \code{total}, \code{favorable}, \code{unfavorable}, \code{neutral}, and \code{uninf} are computing by summing the contribution of the pairs. This may lead to a decimal value.
 #' 
-#' \bold{statistic}: when considering a single endpoint and denoting
+#' \bold{Statistic}: when considering a single endpoint and denoting
 #' \eqn{Y} the endpoint in the treatment group,
 #' \eqn{X} the endpoint in the control group,
 #' and \eqn{\tau} the threshold of clinical relevance,
@@ -91,8 +86,10 @@
 #' 
 #' @seealso 
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
-#'   \code{\link{S4BuyseTest-class}} for a presentation of the \code{S4BuyseTest} object. \cr
-#'   \code{\link{S4BuyseTest-confint}} to output confidence interval and p-values in a matrix format.
+#'   \code{\link{S4BuyseTest-model.tables}} to obtain the table displayed at the end of the summary method in a \code{data.frame} format.
+#'   \code{\link{S4BuyseTest-confint}} to output estimate, standard errors, confidence interval and p-values.
+#'   \code{\link{S4BuyseTest-plot}} for a graphical display of the scoring of the pairs.
+#'   \code{\link{BuyseMultComp}} for efficient adjustment for multiple comparisons.
 #' 
 #' @examples
 #' library(data.table)
@@ -171,7 +168,7 @@ setMethod(f = "summary",
               }
               endpoint <- slot(object,"endpoint")
               n.endpoint <- length(endpoint)
-              n.strata <- length(slot(object,"strata"))
+              n.strata <- length(slot(object,"level.strata"))
               
               ## ** build table
               if(attr(method.inference,"permutation")){
@@ -243,7 +240,7 @@ setMethod(f = "summary",
                   table.print[is.na(table.print$restriction), "restriction"] <- ""
               }
               if("Delta" %in% name.print){
-                  table.print[is.na(table.print$lower), "Delta"] <- ""
+                  table.print[is.na(table.print$Delta), "Delta"] <- ""
               }
               if("lower.ci" %in% name.print){
                   table.print[is.na(table.print$lower), "lower.ci"] <- ""

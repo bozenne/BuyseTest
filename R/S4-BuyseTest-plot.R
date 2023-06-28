@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 23 2023 (10:44) 
 ## Version: 
-## Last-Updated: jun 28 2023 (14:04) 
+## Last-Updated: jun 28 2023 (19:21) 
 ##           By: Brice Ozenne
-##     Update #: 117
+##     Update #: 121
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -69,13 +69,11 @@ setMethod(f = "plot",
                                 label.strata = NULL, label.endpoint = NULL,
                                 plot = TRUE, color = c("#7CAE00", "#F8766D", "#C77CFF", "#00BFC4"), ...){
 
-              objectS <- model.tables(x, percentage = TRUE)
-              Ustrata <- setdiff(unique(objectS$strata),"global")
-              Uendpoint <- x@endpoint
-              objectS$endpoint2 <- paste0(objectS$endpoint,
-                                          ifelse(!is.na(objectS$restriction),paste0("_r",objectS$restriction),""),
-                                          ifelse(objectS$threshold>1e-12,paste0("_t",objectS$threshold),""))
-
+              objectS <- model.tables(x, percentage = TRUE,
+                                      columns = c("endpoint","threshold","restriction","strata","total","favorable","unfavorable","neutral","uninf"))
+              Ustrata <- slot(x,"level.strata")
+              Uendpoint <- slot(x,"endpoint")
+              objectS$endpoint2 <- attr(objectS,"endpoint")
               
               ## ** normalize arguments
               ## type
