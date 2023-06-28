@@ -15,3 +15,4 @@ A matrix of same size as x.
 \description{
 Fast computation of t(apply(x,1,cumprod))
 }
+\keyword{utilities}

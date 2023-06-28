@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:55) 
 ## Version: 
-## Last-Updated: dec  1 2021 (18:28) 
+## Last-Updated: jun 28 2023 (14:15) 
 ##           By: Brice Ozenne
-##     Update #: 91
+##     Update #: 95
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,14 +20,13 @@
 ##' @description Compute the predicted probabilities from a logistic regression,
 ##' with their (robust) standard error,
 ##' and the corresponding influence function.
-##' @name predict.logit
+##' @noRd
 ##' 
 ##' @param object a logistic model.
 ##' @param newdata [data.frame] dataset containing
 ##' @param level [character] level of the outcome for which the probability should be computed.
 ##' @param robust [logit] when FALSE uses the individual contribution to the modeled variance-covariance matrix as iid decomposition.
 ##' 
-##' @keywords internal
 
 ## * .predict.logit (examples)
 ##' @examples
@@ -187,11 +186,11 @@
 ## * .score.logit
 #' @title Score for Logistic Regressions
 #' @description Compute the first derivative of the log-likelihood IPCW logistic regressions.
+#' @noRd
 #'
 #' @param object a glm object corresponding to a logistic regression.
 #' @param indiv [logical] should the individual contribution be output instead of the total score?
 #' 
-#' @keywords internal
 .score.logit <- function(object, indiv){
     X <- stats::model.matrix(object)
     pi <- stats::predict(object, type = "response")
@@ -209,12 +208,12 @@
 ## * .information.wglm
 #' @title Information for Logistic Regressions
 #' @description Compute the information (i.e. opposit of the expectation of the second derivative of the log-likelihood) for logistic regressions.
+#' @noRd
 #'
 #' @param object a glm object corresponding to a logistic regression.
 #' @param indiv [logical] should the individual contribution be output instead of the total information?
 #' @param center [logical] should the individual contribution be centered around the average?
 #' 
-#' @keywords internal
 .information.logit <- function(object, indiv, center){
     X <- stats::model.matrix(object)
     n.obs <- NROW(X)
@@ -245,12 +244,12 @@
 ## * .vcov.wglm
 #' @title Variance-covariance matrix for Logistic Regressions
 #' @description Compute the variance covariance matrix (i.e. inverse of the information) for logistic regressions.
+#' @noRd
 #'
 #' @param object a glm object corresponding to a logistic regression.
 #' @param indiv [logical] should the individual contribution be output instead of the total variance-covariance?
 #' @param center [logical] should the individual contribution be centered around the average?
 #' 
-#' @keywords internal
 .vcov.logit <- function(object, indiv, center){
     X <- stats::model.matrix(object)
     n.obs <- NROW(X)

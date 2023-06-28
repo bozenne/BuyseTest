@@ -12,11 +12,7 @@
   percentage = TRUE,
   statistic = NULL,
   conf.level = NULL,
-  strata = if (length(object@level.strata) == 1) {
-     "global"
- } else {
-     NULL
- },
+  strata = NULL,
   type.display = 1,
   digit = c(2, 4, 5),
   ...
@@ -25,7 +21,7 @@
 \arguments{
 \item{object}{output of \code{\link{BuyseTest}}}
 
-\item{print}{[logical] Should the table be displayed?.}
+\item{print}{[logical] Should the results be displayed in the console?}
 
 \item{percentage}{[logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.}
 
@@ -135,7 +131,7 @@ dt <- simBuyseTest(1e2, n.strata = 3)
 \references{
 On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
 On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \
+On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937.
 }
 \seealso{
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
@@ -145,5 +141,4 @@ On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estima
 \author{
 Brice Ozenne
 }
-\keyword{S4BuyseTest-method}
-\keyword{summary}
+\keyword{print}

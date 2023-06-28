@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: maj  2 2023 (18:47) 
+## Last-Updated: jun 28 2023 (14:06) 
 ##           By: Brice Ozenne
-##     Update #: 103
+##     Update #: 108
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,8 +16,7 @@
 ### Code:
 
 ## * CasinoTest (documentation)
-
-##' @title Multi-group GPC
+##' @title Multi-group GPC (EXPERIMENTAL)
 ##' @description Perform Generalized Pairwise Comparisons (GPC) for two or more groups.
 ##' Can handle one or several binary, continuous and time-to-event endpoints.
 ##' 
@@ -42,8 +41,12 @@
 ##'
 ##' Setting argument \code{method.inference} to \code{"rank"} uses a U-statistic approach with a small sample correction to match the variance estimator derived in Result 4.16 page 228 of Brunner (2018).
 ##' 
+##' @return An S3 object of class \code{CasinoTest} that inherits from data.frame.
 ##' @references Edgar Brunner, Arne C Bathke, and Frank Konietschke (2018). \bold{Rank and pseudo-rank procedures for independent observations in factorial designs}. Springer.
+##' @keywords models
 ##' 
+
+## * CasinoTest (example)
 ##' @examples
 ##' library(data.table)
 ##' library(BuyseTest)
@@ -264,8 +267,8 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
         }
         attr(out.estimate,"iid") <- out.iid
     }
-
     ## ** export
+    class(out.estimate) <- append("CasinoTest",class(out.estimate))
     return(out.estimate)
 }
 

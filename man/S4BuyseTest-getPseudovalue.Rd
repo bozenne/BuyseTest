@@ -66,4 +66,5 @@ confint(e.BT, statistic = "unfavorable", transformation = TRUE)
 \author{
 Brice Ozenne
 }
-\keyword{S4BuyseTest-method}
+\keyword{method}
+\keyword{methods}

@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 957
+##     Update #: 965
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,11 +17,11 @@
 ## * Documentation - confint
 #' @docType methods
 #' @name S4BuyseTest-confint
-#' @title  Confidence Intervals for Model Parameters
+#' @title Extract Confidence Interval from GPC
 #' @aliases confint,S4BuyseTest-method
 #' @include S4-BuyseTest.R
 #' 
-#' @description Computes confidence intervals for net benefit statistic or the win ratio statistic.
+#' @description Extract confidence intervals for summary statistics (net benefit, win ratio, ...) estimated by GPC.
 #' 
 #' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
@@ -104,7 +104,7 @@
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 #' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \cr
 #'
-#' @keywords confint S4BuyseTest-method
+#' @keywords method
 #' @author Brice Ozenne
 
 ## * Method - confint
@@ -383,7 +383,12 @@ setMethod(f = "confint",
                   }else{
                       trans.weight <- sum(object@weightEndpoint)
                   }
-
+                  trans.name <- switch(statistic,
+                                       "netBenefit" = "atanh",
+                                       "winRatio" = "log",
+                                       "favorable" = "atanh",
+                                       "unfavorable" = "atanh"
+                                       )
                   trans.delta <- switch(statistic,
                                         "netBenefit" = function(x){if(is.null(x)){x}else{atanh(x/trans.weight)}},
                                         "winRatio" = function(x){if(is.null(x)){x}else{log(x)}},
@@ -487,10 +492,11 @@ setMethod(f = "confint",
                                                 return(out)
                                             })
               }else{
+                  trans.name <- "id"
                   trans.delta <- function(x){x}
                   itrans.delta <- function(x){x}
                   trans.se.delta <- function(x,se){se}
-                  itrans.se.delta <- function(x,se){se}
+                  itrans.se.delta <- function(x,se){se}                  
               }
 
               ## ** compute the confidence intervals
@@ -512,7 +518,7 @@ setMethod(f = "confint",
                   outConfint[index.NA,c("se","lower.ci","upper.ci","p.value")] <- NA
               }
               outConfint <- as.data.frame(outConfint)
-              
+
               ## ** number of permutations
               if(method.inference != "none" && (attr(method.inference,"permutation") || attr(method.inference,"bootstrap"))){
                   attr(outConfint, "n.resampling")  <- colSums(!is.na(Delta.resampling))
@@ -523,6 +529,7 @@ setMethod(f = "confint",
 
               ## ** transform
               if(attr(method.inference,"ustatistic")){                 
+                  attr(outConfint,"nametransform") <- trans.name
                   attr(outConfint,"transform") <- trans.delta
                   attr(outConfint,"backtransform") <- itrans.delta
               }

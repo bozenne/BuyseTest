@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: May  1 2023 (10:06) 
+## Last-Updated: jun 28 2023 (14:08) 
 ##           By: Brice Ozenne
-##     Update #: 209
+##     Update #: 212
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -219,7 +219,7 @@ test_that("iid: binary and strata (unbalanced groups)", {
 ## ** 1 continuous variable
 n <- 5
 set.seed(10)
-dt <- simBuyseTest(n)
+dt <- simBuyseTest(n, name.cluster = NULL)
 
 dtS <- rbind(cbind(S = 1, dt), cbind(S = 2, dt), cbind(S = 3, dt))
 dtS$score1 <- dtS$score
@@ -638,16 +638,12 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
                              method.inference = "u-statistic")
 
     test <- confint(e.BT_ttebin)
-    attr(test,"n.resampling") <- NULL
-    attr(test,"iid") <- NULL
-    attr(test,"transform") <- NULL
-    attr(test,"backtransform") <- NULL
     GS <- matrix(c(-0.33333333, -0.13333333, 0.24130536, 0.36004622, -0.70573842, -0.69241599, 0.18339631, 0.52579681, 0, 0, 0.20172157, 0.7144262), 
                  nrow = 2, 
                  ncol = 6, 
                  dimnames = list(c("eventtime_t1", "toxicity"),c("estimate", "se", "lower.ci", "upper.ci","null", "p.value")) 
                  ) 
-    expect_equal(test, as.data.frame(GS), tol = 1e-6)
+    expect_equivalent(test, as.data.frame(GS), tol = 1e-6)
 
     ## exponential approximation of the survival when computing the influence function
     e.TTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid=TRUE, iid.surv="prodlim")
@@ -660,16 +656,12 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
                              method.inference = "u-statistic")
 
     test <- confint(e.BT_ttebin)
-    attr(test,"n.resampling") <- NULL
-    attr(test,"iid") <- NULL
-    attr(test,"transform") <- NULL
-    attr(test,"backtransform") <- NULL
     GS <- matrix(c(-0.33333333, -0.13333333, 0.23587679, 0.35518499, -0.69967949, -0.68733243, 0.17180423, 0.51874253, 0, 0, 0.19153767, 0.71069249), 
                  nrow = 2, 
                  ncol = 6, 
                  dimnames = list(c("eventtime_t1", "toxicity"),c("estimate", "se", "lower.ci", "upper.ci", "null","p.value")) 
                  ) 
-    expect_equal(test, as.data.frame(GS), tol = 1e-6)
+    expect_equivalent(test, as.data.frame(GS), tol = 1e-6)
 
     ## GS <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
                     ## data = dt, 
@@ -714,17 +706,13 @@ test_that("iid with nuisance parameters: 2 TTE",{
                           data = dt.sim,
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
-    attr(test,"n.resampling") <- NULL
-    attr(test,"iid") <- NULL
-    attr(test,"transform") <- NULL
-    attr(test,"backtransform") <- NULL
     GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.19937703, 0.2148585, 0.2408939, -0.14852611, -0.24811831, -0.43304747, 0.59828277, 0.54900838, 0.4468153, 0, 0, 0, 0.20703017, 0.41296871, 0.97173422), 
                  nrow = 3, 
                  ncol = 6, 
                  dimnames = list(c("eventtime1_t1", "eventtime2_t1", "toxicity1"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
 
-    expect_equal(test, as.data.frame(GS), tol = 1e-3)
+    expect_equivalent(test, as.data.frame(GS), tol = 1e-3)
 
     ## exponential approximation of the survival when computing the influence function
     e.TTEM <- list(BuyseTTEM(Hist(eventtime1,status1)~treatment, data = dt.sim, iid=TRUE, iid.surv="prodlim"),
@@ -736,17 +724,13 @@ test_that("iid with nuisance parameters: 2 TTE",{
                           model.tte = e.TTEM,
                           method.inference = "u-statistic")
     test <- confint(e.BT_tte)
-    attr(test,"n.resampling") <- NULL
-    attr(test,"iid") <- NULL
-    attr(test,"transform") <- NULL
-    attr(test,"backtransform") <- NULL
     GS <- matrix(c(0.26401345, 0.179801, 0.00853608, 0.17433724, 0.19140473, 0.21888023, -0.09657678, -0.20304112, -0.39734512, 0.5633411, 0.51495999, 0.41162398, 0, 0, 0, 0.14902033, 0.35809689, 0.96889279), 
                  nrow = 3, 
                  ncol = 6, 
                  dimnames = list(c("eventtime1_t1", "eventtime2_t1", "toxicity1"),c("estimate", "se", "lower.ci", "upper.ci", "null", "p.value")) 
                  ) 
 
-    expect_equal(test, as.data.frame(GS), tol = 1e-3)
+    expect_equivalent(test, as.data.frame(GS), tol = 1e-3)
 })
 
 

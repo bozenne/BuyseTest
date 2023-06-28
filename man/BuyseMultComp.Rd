@@ -59,6 +59,9 @@ Default value read from \code{BuyseTest.options()}. Not relevant when using perm
 
 \item{...}{argument passsed to the function \code{transformCIBP} of the riskRegression package.}
 }
+\value{
+An S3 object of class \code{BuyseMultComp}.
+}
 \description{
 Adjust p-values and confidence intervals estimated via GPC for multiple comparisons.
 }
@@ -80,7 +83,9 @@ BT2 <- BuyseTest(ff2, data= df.data, trace = FALSE)
 confint(BT2, cumulative = FALSE) ## not adjusted
 confintAdj <- BuyseMultComp(BT2, cumulative = FALSE, endpoint = 1:2) ## adjusted
 confintAdj
-cor(confintAdj$iid) ## correlation between test-statistic
+if(require(lava)){
+cor(lava::iid(confintAdj)) ## correlation between test-statistic
+}
 
 #### 2- adjustment for multi-arm trial ####
 ## case where we have more than two treatment groups
@@ -100,9 +105,11 @@ rbind("b-a" = confint(BT1ba),
 confintAdj <- BuyseMultComp(list("b-a" = BT1ba, "c-a" = BT1ca, "c-b" = BT1cb),
                             cluster = "id", global = TRUE)
 confintAdj
-dim(confintAdj$iid) ## number of subjects x number of analyses
-cor(confintAdj$iid)
+if(require(lava)){
+cor(lava::iid(confintAdj))
+}
 }
 \references{
 Dmitrienko, A. and D'Agostino, R., Sr (2013), Traditional multiplicity adjustment methods in clinical trials. Statist. Med., 32: 5172-5218. https://doi.org/10.1002/sim.5990
 }
+\keyword{htest}

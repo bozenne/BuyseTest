@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: Jun 26 2023 (09:37) 
+## Last-Updated: jun 27 2023 (14:37) 
 ##           By: Brice Ozenne
-##     Update #: 319
+##     Update #: 327
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,14 +15,15 @@
 ## 
 ### Code:
 
-## * Documentation - sensitivity
+## * sensitivity (documentation)
 #' @docType methods
 #' @name S4BuyseTest-sensitivity
 #' @title  Sensitivity Analysis for the Choice of the Thresholds
 #' @aliases sensitivity,S4BuyseTest-method
 #' @include S4-BuyseTest.R
 #' 
-#' @description Evaluate the statistic of interest along various thresholds of clinical relevance.
+#' @description Evaluate a summary statistic (net benefit, win ratio, ...) using GPC along various thresholds of clinical relevance.
+#' 
 #' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param threshold [list] a list containing for each endpoint the thresholds to be considered.
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
@@ -46,7 +47,12 @@
 #' @param ... argument passsed to the function \code{transformCIBP} of the riskRegression package.
 #'
 #' @details Simulateneous confidence intervals and adjusted p-values are computed using a single-step max-test approach via the function \code{transformCIBP} of the riskRegression package.
+#'
+#' @return An S3 object of class \code{S3sensitivity}.
+#' @keywords htest
+#' 
 
+## * sensitivity (example)
 #' @examples
 #' 
 #' \dontrun{
@@ -60,19 +66,19 @@
 #' ff1 <- treatment ~ TTE(eventtime, status = status, threshold = 0.1)
 #' BT1 <- BuyseTest(ff1, data= df.data)
 #' se.BT1 <- sensitivity(BT1, threshold = seq(0,2,0.25), band = TRUE)
-#' autoplot(se.BT1)
+#' plot(se.BT1)
 #'
 #' ## with two endpoints
 #' ff2 <- update(ff1, .~. + cont(score, threshold = 1))
 #' BT2 <- BuyseTest(ff2, data= df.data)
 #' se.BT2 <- sensitivity(BT2, threshold = list(eventtime = seq(0,2,0.25), score = 0:2),
 #'                       band = TRUE)
-#' autoplot(se.BT2)
-#' autoplot(se.BT2, col = NA)
+#' plot(se.BT2)
+#' plot(se.BT2, col = NA)
 #' }
 
 
-## * Method - sensitivity
+## * sensitivity (method)
 #' @rdname S4BuyseTest-sensitivity
 setMethod(f = "sensitivity",
           signature = "S4BuyseTest",

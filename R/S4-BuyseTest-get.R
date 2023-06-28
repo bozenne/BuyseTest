@@ -554,7 +554,7 @@ setMethod(f = "getPairScore",
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #' \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
 #' 
-#' @keywords S4BuyseTest-method
+#' @keywords method
 #' @author Brice Ozenne
 
 ## * getPseudovalue (examples)

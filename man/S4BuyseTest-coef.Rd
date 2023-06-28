@@ -4,7 +4,7 @@
 \name{S4BuyseTest-coef}
 \alias{S4BuyseTest-coef}
 \alias{coef,S4BuyseTest-method}
-\title{Coef Method for Class "S4BuyseTest"}
+\title{Extract Summary Statistics from GPC}
 \usage{
 \S4method{coef}{S4BuyseTest}(
   object,
@@ -17,7 +17,7 @@
 )
 }
 \arguments{
-\item{object}{output of \code{\link{BuyseTest}}}
+\item{object}{a \code{S4BuyseTest} object, output of \code{\link{BuyseTest}}.}
 
 \item{endpoint}{[character] for which endpoint(s) the summary statistic should be output?
 If \code{NULL} returns the summary statistic for all endpoints.}
@@ -41,7 +41,7 @@ When \code{resampling=TRUE} and \code{stratified=FALSE}, return a matrix.
 When \code{resampling=TRUE} and \code{stratified=TRUE}, return an 3-dimensional array.
 }
 \description{
-Extract summary statistics from the result of a \code{\link{BuyseTest}} function.
+Extract summary statistics (net benefit, win ratio, ...) from GPC.
 }
 \details{
 One of the following statistic can be specified:
@@ -61,5 +61,4 @@ One of the following statistic can be specified:
 \author{
 Brice Ozenne
 }
-\keyword{S4BuyseTest-method}
-\keyword{coef}
+\keyword{method}

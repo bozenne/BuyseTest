@@ -23,5 +23,4 @@ Display the main results stored in a \code{S4BuyseTest} object.
 \author{
 Brice Ozenne
 }
-\keyword{S4BuyseTest-method}
-\keyword{summary}
+\keyword{print}

@@ -15,6 +15,7 @@
 #' This function uses the \code{interaction} function from the \emph{base} package to form the strata.
 #' 
 #' @return A \emph{factor vector} or a \emph{numeric vector}.
+#' @keywords utilities
 #' 
 #' @examples
 #' library(data.table)

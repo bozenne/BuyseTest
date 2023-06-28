@@ -49,8 +49,8 @@ Useful to match the usual definition of the AUC in presence of ties.}
 or a weighted average with weights proportional to the number of pairs of observations in each fold \code{"pairs"}.}
 }
 \value{
-A \emph{data.frame} containing for each fold the AUC value with its standard error (when computed).
-The last line of the data.frame contains the global AUC value with its standard error.
+An S3 object of class \code{BuyseTestAUC} that inherits from data.frame.
+The last line of the object contains the global AUC value with its standard error.
 }
 \description{
 Estimation of the Area Under the ROC curve, possibly after cross validation,
@@ -80,3 +80,4 @@ auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
 \references{
 Erin LeDell, Maya Petersen, and Mark van der Laan (2015). \bold{Computationally efficient confidence intervals for cross-validated area under the ROC curve estimates}. \emph{Electron J Stat.} 9(1):1583–1607. \cr
 }
+\keyword{models}

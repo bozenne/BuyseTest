@@ -2,7 +2,7 @@
 % Please edit documentation in R/CasinoTest.R
 \name{CasinoTest}
 \alias{CasinoTest}
-\title{Multi-group GPC}
+\title{Multi-group GPC (EXPERIMENTAL)}
 \usage{
 CasinoTest(
   formula,
@@ -43,6 +43,9 @@ Default value read from \code{BuyseTest.options()}.}
 Can be any element of ‘p.adjust.methods’ (e.g. "holm"), "maxT-integration", or "maxT-simulation".}
 
 \item{seed}{[integer, >0] seed number set before performing simulations for the confidence bands.}
+}
+\value{
+An S3 object of class \code{CasinoTest} that inherits from data.frame.
 }
 \description{
 Perform Generalized Pairwise Comparisons (GPC) for two or more groups.
@@ -105,3 +108,4 @@ CasinoTest(group ~ cont(valueU), data = liverW, type = "unweighted", add.halfNeu
 \references{
 Edgar Brunner, Arne C Bathke, and Frank Konietschke (2018). \bold{Rank and pseudo-rank procedures for independent observations in factorial designs}. Springer.
 }
+\keyword{models}

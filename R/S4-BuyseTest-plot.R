@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 23 2023 (10:44) 
 ## Version: 
-## Last-Updated: jun 23 2023 (18:29) 
+## Last-Updated: jun 28 2023 (14:04) 
 ##           By: Brice Ozenne
-##     Update #: 100
+##     Update #: 117
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,25 +15,30 @@
 ## 
 ### Code:
 
+## 
+
 ## * Documentation - plot
 #' @docType methods
-#' @rdname plot-methods
+#' @name S4BuyseTest-plot 
 #' @title Graphical Display for GPC
 #' @aliases plot,S4BuyseTest,ANY-method
 #' @include S4-BuyseTest.R
 #' 
-#' @description Graphical display of the percentage of favorable, unfavorable, neutral, and uninformative pairs.
+#' @description Graphical display of the percentage of favorable, unfavorable, neutral, and uninformative pairs per endpoint.
+#' 
 #' @param x an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param type [character] type of plot: histogram (\code{"hist"}), pie chart (\code{"pie"}), or nested pie charts (\code{"racetrack"}).
 #' @param strata [character vector] strata(s) relative to which the percentage should be displayed.
 #' @param endpoint [character vector] endpoint(s) relative to which the percentage should be displayed.
 #' @param label.strata [character vector] new labels for the strata levels. Should match the length of argument \code{strata}.
 #' @param label.endpoint [character vector] new labels for the endpoints. Should match the length of argument \code{endpoint}.
-#' @param size.text [numeric, >0] size of the text indicating the endpoints in the nested pie charts.
 #' @param color [character vector] colors used to display the percentages for each type of pair.
 #' @param plot [logical] should the graphic be displayed in a graphical window.
 #' @param ... not used, for compatibility with the generic function.
 #'
+#' @return an invisible list containing the data and the ggplot object used for graphical display.
+#' @keywords hplot
+#' 
 #' @examples 
 #' \dontrun{
 #' require(ggplot2)
@@ -57,16 +62,15 @@
 #' }
 
 ## * Method - plot
-#' @rdname plot-methods
 #' @export
 setMethod(f = "plot",
           signature = "S4BuyseTest",
           definition = function(x, type = "hist", strata = "global", endpoint = NULL, 
                                 label.strata = NULL, label.endpoint = NULL,
-                                plot = TRUE, size.text = 5, color = c("#7CAE00", "#F8766D", "#C77CFF", "#00BFC4"), ...){
+                                plot = TRUE, color = c("#7CAE00", "#F8766D", "#C77CFF", "#00BFC4"), ...){
 
-              objectS <- summary(x, print = FALSE, percentage = TRUE)$table
-              Ustrata <- unique(objectS$strata)
+              objectS <- model.tables(x, percentage = TRUE)
+              Ustrata <- setdiff(unique(objectS$strata),"global")
               Uendpoint <- x@endpoint
               objectS$endpoint2 <- paste0(objectS$endpoint,
                                           ifelse(!is.na(objectS$restriction),paste0("_r",objectS$restriction),""),
@@ -85,7 +89,7 @@ setMethod(f = "plot",
                       }
                       strata <- Ustrata[strata]
                   }else{
-                      strata <- match.arg(strata, Ustrata, several.ok = TRUE)
+                      strata <- match.arg(strata, c("global",Ustrata), several.ok = TRUE)
                   }                  
               }else{
                   strata <- unique(objectS$strata)
@@ -156,8 +160,8 @@ setMethod(f = "plot",
                   gg <- ggplot2::ggplot(objectSSL, ggplot2::aes(x=rev(.data$endpoint), y=.data$percentage))
                   gg <- gg + ggplot2::geom_bar(stat="identity", width = 1, ggplot2::aes(fill=.data$type))
                   gg <- gg + ggplot2::coord_polar("y", start=0) + ggplot2::labs(x = "", y = "", fill = "Pair (%)")
-                  gg <- gg + ggplot2::theme(axis.text.y=ggplot2::element_blank())
-                  gg <- gg + ggplot2::geom_text(data = data.frame(endpoint=levels(objectSSL$endpoint),percentage=0), mapping = ggplot2::aes(label = .data$endpoint), size = size.text)
+                  ## gg <- gg + ggplot2::theme(axis.text.y=ggplot2::element_blank())
+                  ## gg <- gg + ggplot2::geom_text(data = data.frame(endpoint=levels(objectSSL$endpoint),percentage=0), mapping = ggplot2::aes(label = .data$endpoint), size = size.text)
                   ## gg <- gg + scale_x_discrete(expand = expand_scale(add = c(1,1)))
                   if(length(strata)>1){
                       gg <- gg + ggplot2::facet_wrap(~strata)

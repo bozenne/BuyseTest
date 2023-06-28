@@ -7,7 +7,9 @@
 #'
 #' @param ... options to be selected or updated
 #' @param reinitialise should all the global parameters be set to their default value
-#'         
+#'
+#' @keywords utilities
+#' 
 #' @examples
 #' library(data.table)
 #' 

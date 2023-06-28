@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Mar 19 2023 (16:53) 
+## Last-Updated: jun 28 2023 (14:13) 
 ##           By: Brice Ozenne
-##     Update #: 330
+##     Update #: 332
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,8 +18,8 @@
 ## * testArgs
 ##' @title Check Arguments Passed to BuyseTest
 ##' @description Check the validity of the argument passed the BuyseTest function by the user.
-##'
-##' @keywords internal
+##' @noRd
+##' 
 ##' @author Brice Ozenne
 testArgs <- function(name.call,
                      status,

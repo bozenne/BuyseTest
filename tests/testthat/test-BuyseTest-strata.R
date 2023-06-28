@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: Jun 12 2023 (09:40) 
+## Last-Updated: jun 26 2023 (14:21) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 49
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -31,13 +31,12 @@ BuyseTest.options(pool.strata = "Buyse")
 n <- 100
 
 set.seed(10)
-dt.strata <- cbind(id = 1:n,
-                   simBuyseTest(n,
-                                n.strata = 3,
-                                argsBin = list(name = "Y_1"),
-                                argsCont = list(name = "Y_2"),
-                                argsTTE = NULL,
-                                names.strata = "stratum"))
+dt.strata <- simBuyseTest(n,
+                          n.strata = 3,
+                          argsBin = list(name = "Y_1"),
+                          argsCont = list(name = "Y_2"),
+                          argsTTE = NULL,
+                          names.strata = "stratum")
 dt.strata$Y_1 <- as.numeric(dt.strata$Y_1)-1
 dt.strata$stratum <- as.numeric(dt.strata$stratum)
 dt.strata <- dt.strata[order(dt.strata$stratum),]

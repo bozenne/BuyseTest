@@ -49,7 +49,7 @@
 #' To handle multiple endpoints, it stores some of the results which can be memory demanding when considering large sample - especially when computing the iid decomposition.
 #' GPC2_cpp implements GPC looping first over pairs and then over endpoints. It has rather minimal memory requirement but does not handle correction for uninformative pairs. 
 #'
-#' @keywords function Cpp BuyseTest
+#' @keywords internal
 #'
 #' @author Brice Ozenne
 NULL
@@ -136,6 +136,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @description Fast computation of apply(x,1,cumsum)
 #' @param X A matrix.
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .rowCumSum_cpp <- function(X) {
     .Call(`_BuyseTest_rowCumSum_cpp`, X)
 }
@@ -145,6 +146,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @description Fast computation of apply(x,2,cumsum)
 #' @param X A matrix.
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .colCumSum_cpp <- function(X) {
     .Call(`_BuyseTest_colCumSum_cpp`, X)
 }
@@ -154,6 +156,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @description Fast computation of t(apply(x,1,cumprod))
 #' @param X A matrix.
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .rowCumProd_cpp <- function(X) {
     .Call(`_BuyseTest_rowCumProd_cpp`, X)
 }
@@ -164,6 +167,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @param X A matrix.
 #' @param center A vector with length the number of rows of X .
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .colCenter_cpp <- function(X, center) {
     .Call(`_BuyseTest_colCenter_cpp`, X, center)
 }
@@ -174,6 +178,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @param X A matrix.
 #' @param center A vector with length the number of columns of X.
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .rowCenter_cpp <- function(X, center) {
     .Call(`_BuyseTest_rowCenter_cpp`, X, center)
 }
@@ -184,6 +189,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @param X A matrix.
 #' @param scale A vector with length the number of rows of X .
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .colScale_cpp <- function(X, scale) {
     .Call(`_BuyseTest_colScale_cpp`, X, scale)
 }
@@ -194,6 +200,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @param X A matrix.
 #' @param scale A vector with length the number of columns of X.
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .rowScale_cpp <- function(X, scale) {
     .Call(`_BuyseTest_rowScale_cpp`, X, scale)
 }
@@ -204,6 +211,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @param X A matrix.
 #' @param scale A vector with length the number of rows of X .
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .colMultiply_cpp <- function(X, scale) {
     .Call(`_BuyseTest_colMultiply_cpp`, X, scale)
 }
@@ -214,6 +222,7 @@ calcIntegralSurv2_cpp <- function(time, survival, dSurvival, index_survival, ind
 #' @param X A matrix.
 #' @param scale A vector with length the number of columns of X.
 #' @return A matrix of same size as x.
+#' @keywords utilities
 .rowMultiply_cpp <- function(X, scale) {
     .Call(`_BuyseTest_rowMultiply_cpp`, X, scale)
 }

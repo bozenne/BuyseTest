@@ -8,7 +8,7 @@
 #' @seealso 
 #' \code{\link{BuyseTest.options}} to select or update global settings.
 #' 
-#' @keywords classes options BuyseTest.options-class
+#' @keywords classes
 #' @author Brice Ozenne
 
 ## * Class BuyseTest.options

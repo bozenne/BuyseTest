@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: maj  6 2020 (14:06) 
 ## Version: 
-## Last-Updated: feb 19 2021 (09:28) 
+## Last-Updated: jun 28 2023 (14:14) 
 ##           By: Brice Ozenne
-##     Update #: 70
+##     Update #: 75
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,7 +30,8 @@
 ##        = \Phi(z) - \exp(-z\lambda/rho+\lambda^2/(2\rho^2)) \Phi(z-\lambda/\rho)
 
 ##' @title Cumulative Distribution Function of a Gaussian Variable Plus an Exponential Variable
-##' @keywords internal
+##' @noRd
+##' 
 ##' @examples
 ##' \dontrun{
 ##' n <- 1e6
@@ -66,7 +67,8 @@ pnormexp <- function(q, rate, rho){
     return(out)
 }
 ##' @title Density of a Gaussian Variable Plus an Exponential Variable
-##' @keywords internal
+##' @noRd
+##' 
 ##' @examples
 ##' \dontrun{
 ##' n <- 1e6
@@ -114,7 +116,8 @@ qnormexp <- function(p, rate, rho){
 
 
 ##' @title Cumulative Distribution Function of a Gaussian Variable Plus an Weibull Variable
-##' @keywords internal
+##' @noRd
+##' 
 ##' @examples
 ##' \dontrun{
 ##' n <- 1e6
@@ -159,7 +162,8 @@ pnormweibull <- function(q, scale, shape, rho){
     return(out)
 }
 ##' @title Density of a Gaussian Variable Plus an Weibull Variable
-##' @keywords internal
+##' @noRd
+##' 
 ##' @examples
 ##' \dontrun{
 ##' n <- 5e6

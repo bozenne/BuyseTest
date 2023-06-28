@@ -17,3 +17,4 @@ A matrix of same size as x.
 \description{
 Fast computation of sweep(X, FUN = "*", STATS = scale, MARGIN = 1)
 }
+\keyword{utilities}

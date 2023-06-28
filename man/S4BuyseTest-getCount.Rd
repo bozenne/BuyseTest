@@ -26,3 +26,4 @@ Brice Ozenne
 }
 \keyword{S4BuyseTest-method}
 \keyword{get}
+\keyword{methods}

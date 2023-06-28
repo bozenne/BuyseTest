@@ -9,8 +9,7 @@ Implementation of the Generalized Pairwise Comparisons.
 \code{\link{BuyseTest}} is the main function of the package. See the vignette of an overview of the functionalities of the package.
 Run \code{citation("BuyseTest")} in R for how to cite this package in scientific publications.
 See the section reference below for examples of application in clinical studies.
-}
-\details{
+
 The Generalized Pairwise Comparisons form all possible pairs of observations,
 one observation being taken from the intervention group and the other is taken from the control group,
 and compare the difference in endpoints (\eqn{Y-X}) to the threshold of clinical relevance (\eqn{\tau}).
@@ -25,6 +24,18 @@ is classified as uninformative.
 
 Simultaneously analysis of several endpoints is performed by prioritizing the endpoints, assigning the highest priority to the endpoint considered the most clinically relevant.
 The endpoint with highest priority is analyzed first, and neutral and uninformative pair are analyzed regarding endpoint of lower priority.
+
+\strong{Keywords}: documented methods/functions are classified according to the following keywords \itemize{
+\item models: function fitting a statistical model/method based on a dataset (e.g. \code{\link{auc}}, \code{\link{brier}}, \code{\link{BuyseTest}}, \code{\link{BuyseTTEM}}, \code{\link{CasinoTest}}, \code{\link{performance}})
+\item htest: methods performing statistical inference based on an existing model (e.g. \code{\link{BuyseMultComp}}, \code{\link{performanceResample}}, \code{\link{powerBuyseTest}}, \code{\link{sensitivity}})
+\item methods: extractors (e.g. \code{\link{getCount}}, \code{\link{getPairScore}}, \code{\link{getPseudovalue}}, \code{\link{getSurvival}}, \code{\link{getIid}})
+\item print: concise display of an object in the console (e.g. \code{print}, \code{summary})
+\item utilities: function used to facilitate user interactions (e.g. \code{\link{BuyseTest.options}}, \code{\link{constStrata}})
+\item hplot: graphical display (e.g. \code{\link{autoplot.S3sensitivity}})
+\item internal: function used internally but that need to be exported for parallel calculations (e.g. \code{\link{GPC_cpp}})
+\item datagen: function for generating data sets (e.g. \code{\link{simBuyseTest}}, \code{\link{simCompetingRisks}})
+\item classes: definition of S4 classes
+}
 }
 \references{
 Method papers on the GPC procedure and its extensions:

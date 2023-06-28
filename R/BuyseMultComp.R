@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: Jun 26 2023 (11:21) 
+## Last-Updated: jun 28 2023 (13:19) 
 ##           By: Brice Ozenne
-##     Update #: 249
+##     Update #: 259
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -48,7 +48,11 @@
 #'
 #' @details Simulateneous confidence intervals and adjusted p-values are computed using a single-step max-test approach via the function \code{transformCIBP} of the riskRegression package.
 #' This corresponds to the single-step Dunnett described in Dmitrienko et al (2013) in table 2 and section 7.
-#'  
+#'
+#' @return An S3 object of class \code{BuyseMultComp}.
+#' 
+#' @keywords htest
+#' 
 #' @references Dmitrienko, A. and D'Agostino, R., Sr (2013), Traditional multiplicity adjustment methods in clinical trials. Statist. Med., 32: 5172-5218. https://doi.org/10.1002/sim.5990
 #' 
 #' @examples
@@ -65,7 +69,9 @@
 #' confint(BT2, cumulative = FALSE) ## not adjusted
 #' confintAdj <- BuyseMultComp(BT2, cumulative = FALSE, endpoint = 1:2) ## adjusted
 #' confintAdj
-#' cor(confintAdj$iid) ## correlation between test-statistic
+#' if(require(lava)){
+#' cor(lava::iid(confintAdj)) ## correlation between test-statistic
+#' }
 #' 
 #' #### 2- adjustment for multi-arm trial ####
 #' ## case where we have more than two treatment groups
@@ -85,8 +91,9 @@
 #' confintAdj <- BuyseMultComp(list("b-a" = BT1ba, "c-a" = BT1ca, "c-b" = BT1cb),
 #'                             cluster = "id", global = TRUE)
 #' confintAdj
-#' dim(confintAdj$iid) ## number of subjects x number of analyses
-#' cor(confintAdj$iid)
+#' if(require(lava)){
+#' cor(lava::iid(confintAdj))
+#' }
 
 ## * BuyseMultComp (code)
 ##' @rdname BuyseMultComp
@@ -392,6 +399,12 @@ as.data.table.BuyseMultComp <- function(x, keep.rownames = NULL, ...){
     return(as.data.table(x$table.uni, keep.rownames = keep.rownames, ...))
 }
 
+## * iid.BuyseMultComp
+##' @export
+iid.BuyseMultComp <- function(x, keep.rownames = NULL, ...){
+    return(x$iid)
+}
+
 ## * print.BuyseMultComp
 ##' @exportMethod print
 print.BuyseMultComp <- function(x, ...){
@@ -413,5 +426,8 @@ print.BuyseMultComp <- function(x, ...){
     
     return(invisible(NULL))
 }
+
+
+
 ##----------------------------------------------------------------------
 ### multcomp.R ends here

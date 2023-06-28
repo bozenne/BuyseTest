@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  9 2021 (10:04) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (09:04) 
+## Last-Updated: jun 27 2023 (09:55) 
 ##           By: Brice Ozenne
-##     Update #: 94
+##     Update #: 95
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,6 +26,9 @@
 ##' Note relevant when using \code{type="metric"}.
 ##' @param keep.rownames Not used. For compatibility with the generic method.
 ##' @param ... Not used. For compatibility with the generic method.
+##'
+##' @return A data.table object
+##' @keywords methods
 ##' 
 ##' @export
 as.data.table.performance <- function(x, keep.rownames = FALSE, type = "performance", format = NULL, ...){

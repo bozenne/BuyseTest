@@ -13,6 +13,4 @@ Class defining the global settings for the BuyseTest package.
 \author{
 Brice Ozenne
 }
-\keyword{BuyseTest.options-class}
 \keyword{classes}
-\keyword{options}

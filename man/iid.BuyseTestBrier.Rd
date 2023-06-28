@@ -17,3 +17,4 @@ A column vector.
 \description{
 Extract the iid decompotion relative to Brier score estimate.
 }
+\keyword{methods}

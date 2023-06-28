@@ -13,7 +13,7 @@
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #'   \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
 #'  
-#' @keywords summary S4BuyseTest-method
+#' @keywords print
 #' @author Brice Ozenne
 
 ## * Method - show

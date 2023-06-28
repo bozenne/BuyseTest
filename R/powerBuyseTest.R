@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Jun 26 2023 (12:12) 
+## Last-Updated: jun 28 2023 (14:25) 
 ##           By: Brice Ozenne
-##     Update #: 1080
+##     Update #: 1136
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -14,6 +14,7 @@
 ##----------------------------------------------------------------------
 ## 
 ### Code:
+
 ## * Documentation - powerBuyseTest
 #' @name powerBuyseTest
 #' @title Performing simulation studies with BuyseTest
@@ -32,6 +33,7 @@
 #' @param null [numeric vector] For each statistic of interest, the null hypothesis to be tested.
 #' The vector should be named with the names of the statistics.
 #' @param cpus [integer, >0] the number of CPU to use. Default value is 1.
+#' @param export.cpus [character vector] name of the variables to export to each cluster.
 #' @param seed [integer, >0] the seed to consider for the simulation study.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
@@ -54,6 +56,9 @@
 #' \deqn{\hat{N} = \hat{\sigma}^2\frac{(u_{1-\alpha/2}+u_{1-\beta})^2}{\hat{\delta}^2}} from which the group specific sample sizes are deduced: \eqn{\hat{m}=\hat{N}\frac{m^*}{N^*}} and \eqn{\hat{n}=\hat{N}\frac{n^*}{N^*}}. Here \eqn{u_x} denotes the x-quantile of the normal distribution.
 #' Since this is an approximation, a simulation study is performed with this sample size to provide the estimated power. It may not be exactly the requested power but should provide a reasonnable guess which can be refined with further simulation studies. Note that the maximumal sample size should be very high for the estimation to be accurate (ideally 10000 or more).
 #' 
+#' @return An S4 object of class  \code{\linkS4class{S4BuysePower}}.
+#' @keywords htest
+#' 
 #' @author Brice Ozenne
 
 ## * powerBuyseTest (examples)
@@ -64,9 +69,11 @@
 ##' #### Using simBuyseTest ####
 ##' ## only point estimate
 ##' \dontrun{
-##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
-##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
-##'                method.inference = "none", trace = 2, keep.pairScore = FALSE)
+##' pBT <- powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
+##'                   formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
+##'                   method.inference = "none", trace = 2, keep.pairScore = FALSE)
+##' summary(pBT)
+##' model.tables(pBT)
 ##' }
 ##' 
 ##' ## point estimate with rejection rate
@@ -108,13 +115,13 @@
 ##' ## sample size needed to reach (approximately) a power
 ##' ## based on summary statistics obtained on a large sample 
 ##' \dontrun{
-##' sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, max.sample.size = 10000,
-##'                          n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+##' sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, max.sample.size = 1000,
+##'                          n.rep = 1000, formula = group ~ cont(Y), cpus = 3)
 ##' summary(sampleW) ## not very accurate but gives an order of magnitude
 ##' 
 ##' sampleW2 <- powerBuyseTest(sim = simFCT2,
-##'                            power = 0.8, max.sample.size = 10000,
-##'                            n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+##'                            power = 0.8, max.sample.size = 1000,
+##'                            n.rep = 1000, formula = group ~ cont(Y), cpus = 1)
 ##' summary(sampleW2) ## more accurate with larger samples
 ##' }
 ##'
@@ -127,11 +134,12 @@ powerBuyseTest <- function(sim,
                            sample.sizeT = NULL,
                            n.rep,
                            null = c("netBenefit" = 0),
-                           cpus = 1,                          
+                           cpus = 1,
+                           export.cpus = NULL,
                            seed = NULL,
                            conf.level = NULL,
                            power = NULL,
-                           max.sample.size = 5000,
+                           max.sample.size = 2000,
                            alternative = NULL,
                            order.Hprojection = NULL,
                            transformation = NULL,
@@ -139,7 +147,7 @@ powerBuyseTest <- function(sim,
                            ...){
 
     call <- match.call()
-    
+
     ## ** normalize and check arguments
     name.call <- names(call)
     option <- BuyseTest.options()
@@ -155,22 +163,84 @@ powerBuyseTest <- function(sim,
     if(is.null(transformation)){
         transformation <- option$transformation
     }
-    alpha <- 1 - conf.level
-    
+    alpha <- 1 - conf.level    
+    outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
+                              data = NULL, model.tte = NULL, ...)
+    outArgs$call <- setNames(as.list(call),names(call))
+
+    statistic <- names(null)
+    validCharacter(statistic,
+                   name1 = "names(null)",
+                   valid.length = 1:4,
+                   valid.values = c("favorable","unfavorable","netBenefit","winRatio"),
+                   refuse.NULL = TRUE,
+                   refuse.duplicates = TRUE,
+                   method = "BuyseTest")
+
+    dt.tempo <- sim(n.C = 10, n.T = 10)
+    if(!inherits(dt.tempo, "data.frame")){
+        stop("The function defined by the argument \'sim\' must return a data.frame or an object that inherits from data.frame.\n")
+    }
+
+    validCharacter(export.cpus,
+                   valid.length = NULL,
+                   name1 = "export.cpus",
+                   refuse.NULL = FALSE,
+                   method = "BuyseTest")
+
+    ## ** initialize cluster
+    if(cpus>1){
+        cl <- parallel::makeCluster(cpus)
+        ## link to foreach
+        doSNOW::registerDoSNOW(cl)
+        ## export
+        if(!is.null(export.cpus)){
+            parallel::clusterExport(cl, export.cpus)
+        }
+        ## seed
+        if (!is.null(seed)) {
+            set.seed(seed)
+            seqSeed <- sample.int(1e3, size = cpus)
+            parallel::clusterApply(cl, seqSeed, function(x){
+                set.seed(x)
+            })
+        }         
+        ## export package
+        parallel::clusterCall(cl, fun = function(x){
+            suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
+        })
+    }else if (!is.null(seed)){
+        set.seed(seed)
+    }
+
+    ## ** initialize sample size
     if(is.null(sample.sizeC) && is.null(sample.sizeT)){
         if((missing(sample.size) || is.null(sample.size)) && !is.null(power)){
+            
             if(length(max.sample.size)==1){
                 max.sample.size <- c(max.sample.size,max.sample.size)
             }
+            
             if (trace > 1) {
                 cat("         Determination of the sample using a large sample (m=",max.sample.size[1],", n=",max.sample.size[2],")  \n\n",sep="")
             }
-            e.BTmax <- BuyseTest(..., data = sim(n.C = max.sample.size[1], n.T = max.sample.size[2]), trace = 0)
-            if(e.BTmax@method.inference == "u-statistic"){
-                DeltaMax <- coef(e.BTmax, statistic = names(null)) - null
-                IidMax <- getIid(e.BTmax, statistic = names(null), scale = FALSE)
+            if (cpus == 1) {
+                ls.BTmax <- list(BuyseTest(..., data = sim(n.C = max.sample.size[1], n.T = max.sample.size[2]), trace = 0))
+            }else{
+                ls.BTmax <- foreach::`%dopar%`( foreach::foreach(i=1:cpus), {                                           
+                    BuyseTest(..., data = sim(n.C = max.sample.size[1], n.T = max.sample.size[2]), trace = 0)
+                })
+            }
+
+            if(ls.BTmax[[1]]@method.inference == "u-statistic"){
+                DeltaMax <- sapply(ls.BTmax, function(iBT){utils::tail(coef(iBT, statistic = names(null)),1) - null})
+                IidMax <- do.call(cbind,lapply(ls.BTmax, FUN = getIid, statistic = names(null), scale = FALSE))
+                
                 ratio <- c(max.sample.size[1]/sum(max.sample.size),max.sample.size[2]/sum(max.sample.size))
-                sigma2Max <- mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2)/ratio[1] + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2)/ratio[2]
+                indexC <- attr(ls.BTmax[[1]]@level.treatment,"indexC")
+                indexT <- attr(ls.BTmax[[1]]@level.treatment,"indexT")
+                
+                sigma2Max <- colMeans(IidMax[indexC,,drop=FALSE]^2)/ratio[1] + colMeans(IidMax[indexT,,drop=FALSE]^2)/ratio[2]
                 if(alternative=="two.sided"){
                     n.approx <- sigma2Max*(stats::qnorm(1-alpha/2) + stats::qnorm(power))^2/DeltaMax^2
                 }else if(alternative=="less"){
@@ -188,15 +258,24 @@ powerBuyseTest <- function(sim,
                         return(invisible(DeltaMax))
                     }
                 }
-                sample.sizeC <- ceiling(n.approx*ratio[1])
-                sample.sizeT <- ceiling(n.approx*ratio[2])
+                sample.sizeC <- ceiling(mean(n.approx*ratio[1]))
+                sample.sizeT <- ceiling(mean(n.approx*ratio[2]))
 
                 ## (mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2) + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2))*(stats::qnorm(1-alpha/2)+stats::qnorm(power))^2/DeltaMax^2
                 if (trace > 1) {
-                    cat("   - estimated effect (variance): ",as.double(DeltaMax)," (",sigma2Max,")\n",sep="")
-                    cat("   - estimated sample size      : (m=",sample.sizeC,", n=",sample.sizeT,")\n\n",sep="")
+                    if(cpus==1){
+                        cat("   - estimated effect (variance): ",unname(DeltaMax)," (",sigma2Max,")\n",sep="")
+                        cat("   - estimated sample size      : (m=",sample.sizeC,", n=",sample.sizeT,")\n\n",sep="")
+                    }else{
+                        cat("   - average estimated effect (variance): ",unname(mean(DeltaMax))," (",mean(sigma2Max),")\n",sep="")
+                        cat("   - average estimated sample size [min;max]      : (m=",
+                            sample.sizeC," [",ceiling(min(n.approx*ratio[1])),";",ceiling(max(n.approx*ratio[1])),"], n=",
+                            sample.sizeT," [",ceiling(min(n.approx*ratio[2])),";",ceiling(max(n.approx*ratio[2])),"]\n\n",sep="")
+                    }
                 }
             
+            }else{
+                stop("Can only determine the sample size when argument \'method.inference\' equals \"u-statistic\". \n")
             }
         }else{
             sample.sizeC <- sample.size
@@ -215,29 +294,7 @@ powerBuyseTest <- function(sim,
     if(length(sample.sizeT)!=length(sample.sizeC)){
         stop("Arguments \'sample.sizeT\ and \'sample.sizeC\' must have the same length \n")
     }
-    statistic <- names(null)
-    validCharacter(statistic,
-                   name1 = "names(null)",
-                   valid.length = 1:4,
-                   valid.values = c("favorable","unfavorable","netBenefit","winRatio"),
-                   refuse.NULL = TRUE,
-                   refuse.duplicates = TRUE,
-                   method = "BuyseTest")
     
-    dt.tempo <- sim(n.C = sample.sizeC[1], n.T = sample.sizeT[1])
-    if(!inherits(dt.tempo, "data.frame")){
-        stop("The function defined by the argument \'sim\' must return a data.frame or an object that inherits from data.frame.\n")
-    }
-
-    ## ** initialize arguments (all expect data that is just converted to data.table)
-    ## initialized arguments are stored in outArgs
-    outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
-                              data = NULL, model.tte = NULL, ...)
-    outArgs$call <- setNames(as.list(call),names(call))
-    ## if((outArgs$keep.pairScore == FALSE) && ("keep.pairScore" %in% names(call) == FALSE) && (outArgs$method.inference %in% c("none","u-statistic")) && (outArgs$correction.uninf==0) && all(outArgs$scoring.rule<=0) ){
-    ##     outArgps$keep.pairScore <- TRUE
-    ## }
-
     ## ** test arguments
     if(option$check){
         index.pb <- which(outArgs$status[outArgs$type=="tte"] == "..NA..")
@@ -316,7 +373,7 @@ powerBuyseTest <- function(sim,
     }
 
     ## ** simulation study
-    if (cpus == 1) { ## *** sequential permutation test
+    if (cpus == 1) { ## *** sequential simulation
         
         if (!is.null(seed)) {set.seed(seed)} # set the seed
 
@@ -341,42 +398,27 @@ powerBuyseTest <- function(sim,
                                              })
                                  )
         if(!is.null(seed)){rm(.Random.seed, envir=.GlobalEnv)} # restaure original seed
-    }else { ## *** parallel permutation test
+    }else { ## *** parallel simulation
         ## define cluster
         if(trace>0){
-            cl <- suppressMessages(parallel::makeCluster(cpus, outfile = ""))
             pb <- utils::txtProgressBar(max = n.rep, style = 3)          
+            progress <- function(n){utils::setTxtProgressBar(pb, n)}
+            opts <- list(progress = progress)
         }else{
-            cl <- parallel::makeCluster(cpus)
+            opts <- list()
         }
-        ## link to foreach
-        doParallel::registerDoParallel(cl)
-
-        ## seed
-        if (!is.null(seed)) {
-            set.seed(seed)
-            seqSeed <- sample.int(1e3, size = cpus)
-            parallel::clusterApply(cl, seqSeed, function(x){
-                set.seed(x)
-            })
-        }         
-
-        ## export package
-        parallel::clusterCall(cl, fun = function(x){
-            suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
-        })
-
         ## export functions
-        toExport <- c(".BuyseTest",
-                      ".powerBuyseTest",
-                      "wsumPairScore",
-                      "S4BuyseTest",
-                      "initializeData",
-                      "calcSample",
-                      "calcPeron",
-                      "pairScore2dt",
-                      "confint_Ustatistic",
-                      "validNumeric")
+        parallel::clusterExport(cl, varlist = c(".BuyseTest",
+                                                ".powerBuyseTest",
+                                                "wsumPairScore",
+                                                "S4BuyseTest",
+                                                "initializeData",
+                                                "calcSample",
+                                                "calcPeron",
+                                                "pairScore2dt",
+                                                "confint_Ustatistic",
+                                                "validNumeric")
+                                )
 
         ## try sim
         test <- try(parallel::clusterCall(cl, fun = function(x){
@@ -389,8 +431,7 @@ powerBuyseTest <- function(sim,
         ## run simul
         i <- NULL ## [:forCRANcheck:] foreach
         ls.simulation <- foreach::`%dopar%`(
-                                      foreach::foreach(i=1:n.rep, .export = toExport), {                                           
-                                          if(trace>0){utils::setTxtProgressBar(pb, i)}
+                                      foreach::foreach(i=1:n.rep, .options.snow = opts), {                                           
                                           .powerBuyseTest(i = i,
                                                           envir = envirBT,
                                                           statistic = statistic,
@@ -489,7 +530,7 @@ powerBuyseTest <- function(sim,
                                                   type = envir$outArgs$type, threshold = envir$outArgs$threshold, restriction = envir$outArgs$restriction, status = envir$outArgs$status, operator = envir$outArgs$operator, 
                                                   censoring = envir$outArgs$censoring, strata = envir$outArgs$strata)
     }
-    
+
     ## ** Loop over other sample sizes
     if(rerun>0){
         ## test.bebu <- envir$outArgs$keep.pairScore && (envir$outArgs$method.inference %in% c("none","u-statistic")) && all(scoring.rule <= 4) && (envir$outArgs$correction.uninf == 0)
@@ -608,7 +649,7 @@ powerBuyseTest <- function(sim,
                                                         n.C = envir$sample.sizeT[[iSize]],
                                                         endpoint = rownames(iCI),
                                                         statistic = iStatistic,
-                                                        transformation = iTransformation,
+                                                        transformation = ifelse(iTransformation,attr(iCI,"nametransform"),"none"),
                                                         order.Hprojection = iOrder.Hprojection,
                                                         iCI,
                                                         stringsAsFactors = FALSE)

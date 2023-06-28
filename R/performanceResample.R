@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: apr 22 2022 (10:10) 
+## Last-Updated: jun 27 2023 (14:05) 
 ##           By: Brice Ozenne
-##     Update #: 172
+##     Update #: 176
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,6 +33,9 @@
 ##' @param ... arguments passed to \code{\link{performance}}.
 ##'
 ##' @details WARNING: using bootstrap after cross-validation may not provide valid variance/CI/p-value estimates.
+##' 
+##' @return An S3 object of class \code{performance}.
+##' @keywords htest
 
 ## * performanceResample (code)
 ##' @export
@@ -141,14 +144,16 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
 
     }else{ ## parallel calculations
         ## define cluster
+        cl <- parallel::makeCluster(cpus)
         if(trace>0){
-            cl <- suppressMessages(parallel::makeCluster(cpus, outfile = ""))
             pb <- utils::txtProgressBar(max = max(vec.resampling), style = 3)          
+            progress <- function(n){utils::setTxtProgressBar(pb, n)}
+            opts <- list(progress = progress)
         }else{
-            cl <- parallel::makeCluster(cpus)
+            opts <- list()
         }
         ## link to foreach
-        doParallel::registerDoParallel(cl)
+        doSNOW::registerDoSNOW(cl)
 
         ## export package
         parallel::clusterCall(cl, fun = function(x){
@@ -159,13 +164,11 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         ls.resampling <- foreach::`%dopar%`(
                                       foreach::foreach(iB=1:max(vec.resampling),
                                                        .export = toExport,
-                                                       .packages = "data.table"),                                            
+                                                       .packages = "data.table",
+                                                       .options.snow = opts),                                            
                                       {                                           
-                                          if(trace>0){utils::setTxtProgressBar(pb, iB)}
-
-                                           return(warperResampling(iB))
-                      
-                                       })
+                                          return(warperResampling(iB))
+                                      })
 
         parallel::stopCluster(cl)
         if(trace>0){close(pb)}

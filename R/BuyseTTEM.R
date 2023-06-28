@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (09:06) 
+## Last-Updated: jun 27 2023 (13:54) 
 ##           By: Brice Ozenne
-##     Update #: 637
+##     Update #: 639
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,6 +30,9 @@
 #' @param n.grid [integer, >0] Number of timepoints used to discretize the time scale. Not relevant for prodlim objects.
 #' @param ... additional arguments passed to lower lever methods.
 #'
+#' @return An S3 object of class \code{BuyseTTEM}.
+#' @keywords models
+#' 
 #' @examples
 #' library(prodlim)
 #' library(data.table)
@@ -576,6 +579,12 @@ BuyseTTEM.BuyseTTEM <- function(object, ...){
 #' @param cause [integer] The cause relative to which the cif will be evaluated.
 #' @param iid [logical] Should the influence function associated with the cif/survival be output? 
 #' @param ... not used, for compatibility with the generic method.
+#'
+#' @return a list containing the survival (element \code{survival}) or the cumulative incidence function (element \code{cif}),
+#' and possible standard errors (element \code{.se}) and influence function (element \code{.iid}).
+#' 
+#' @keywords methods
+#' 
 #' @export
 predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = FALSE, ...){
 

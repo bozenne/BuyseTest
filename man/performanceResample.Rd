@@ -44,9 +44,13 @@ performanceResample(
 
 \item{...}{arguments passed to \code{\link{performance}}.}
 }
+\value{
+An S3 object of class \code{performance}.
+}
 \description{
 Use resampling to quantify uncertainties about the performance of one or several binary classifiers evaluated via cross-validation.
 }
 \details{
 WARNING: using bootstrap after cross-validation may not provide valid variance/CI/p-value estimates.
 }
+\keyword{htest}

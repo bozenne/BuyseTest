@@ -14,5 +14,4 @@ A \code{\link{BuyseTest}} output is reported in a \code{S4BuyseTest} object.
 \author{
 Brice Ozenne
 }
-\keyword{S4BuyseTest-class}
 \keyword{classes}

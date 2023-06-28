@@ -4,7 +4,7 @@
 \name{S4BuyseTest-confint}
 \alias{S4BuyseTest-confint}
 \alias{confint,S4BuyseTest-method}
-\title{Confidence Intervals for Model Parameters}
+\title{Extract Confidence Interval from GPC}
 \usage{
 \S4method{confint}{S4BuyseTest}(
   object,
@@ -72,7 +72,7 @@ When using resampling methods:
 }
 }
 \description{
-Computes confidence intervals for net benefit statistic or the win ratio statistic.
+Extract confidence intervals for summary statistics (net benefit, win ratio, ...) estimated by GPC.
 }
 \details{
 \bold{statistic}: when considering a single endpoint and denoting
@@ -123,5 +123,4 @@ On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estima
 \author{
 Brice Ozenne
 }
-\keyword{S4BuyseTest-method}
-\keyword{confint}
+\keyword{method}

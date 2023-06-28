@@ -14,5 +14,4 @@ A \code{\link{powerBuyseTest}} output is reported in a \code{S4BuysePower} objec
 \author{
 Brice Ozenne
 }
-\keyword{S4BuysePower-class}
 \keyword{classes}

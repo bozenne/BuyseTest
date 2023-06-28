@@ -1,8 +1,9 @@
 ## * Documentation initialization functions called by BuyseTest
 
 #' @title internal functions for BuyseTest - initialization
+#' @name BuyseTest-initialization
 #' @description Functions called by \code{\link{BuyseTest}} to initialize the arguments.
-#' @name internal-initialization
+#' @noRd
 #' 
 #' @details
 #' 
@@ -26,11 +27,9 @@
 #' Merge the strata into one with the interaction variable.
 #' Extract for each strata the index of the observations within each group.
 #'
-#' @keywords function internal BuyseTest
 #' @author Brice Ozenne
 
 ## * initializeArgs
-#' @rdname internal-initialization
 initializeArgs <- function(status,
                            correction.uninf = NULL,
                            cpus = NULL,
@@ -361,7 +360,6 @@ initializeArgs <- function(status,
 }
 
 ## * initializeData
-#' @rdname internal-initialization
 initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, censoring, strata, treatment, hierarchical, copy,
                            keep.pairScore, endpoint.TTE, status.TTE, iidNuisance, weightEndpoint, weightObs){
 
@@ -558,7 +556,6 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 
 
 ## * initializeFormula
-#' @rdname internal-initialization
 initializeFormula <- function(x, hierarchical, envir){
 
     validClass(x, valid.class = "formula")

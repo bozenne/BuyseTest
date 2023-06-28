@@ -24,6 +24,10 @@ Note relevant when using \code{type="metric"}.}
 
 \item{...}{Not used. For compatibility with the generic method.}
 }
+\value{
+A data.table object
+}
 \description{
 Extract the AUC/brier score values or the prediction into a data.table format.
 }
+\keyword{methods}

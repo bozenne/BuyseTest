@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: May  1 2023 (09:30) 
+## Last-Updated: jun 27 2023 (13:58) 
 ##           By: Brice Ozenne
-##     Update #: 281
+##     Update #: 283
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,7 +18,7 @@
 ## * discreteRoot - Documentation
 #' @title Dichotomic search for monotone function
 #' @description Find the root of a monotone function on a discrete grid of value using dichotomic search
-#' @name discreteRoot
+#' @noRd
 #'
 #' @param fn [function] objective function to minimize in absolute value.
 #' @param grid [vector] possible minimizers.
@@ -28,8 +28,6 @@
 #' @author Brice Ozenne
 
 ## * discreteRoot
-#' @rdname discreteRoot
-#' @export
 discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
                          tol = .Machine$double.eps ^ 0.5) {
 
@@ -122,6 +120,7 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' @title Compute the p.value from the distribution under H1
 #' @description Compute the p.value associated with the estimated statistic
 #' using a bootstrap sample of its distribution under H1.
+#' @noRd
 #' 
 #' @param x [numeric vector] a vector of bootstrap estimates of the statistic.
 #' @param null [numeric] value of the statistic under the null hypothesis.
@@ -183,8 +182,6 @@ discreteRoot <- function(fn, grid, increasing = TRUE, check = TRUE,
 #' ## expected value of 0.16 = 1-pnorm(q = 0, mean = -1) = mean(x>=0)
 
 ## * boot2pvalue (code)
-#' @rdname boot2pvalue
-#' @export
 boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
                         FUN.ci = .quantileCI, checkSign = TRUE,
                         tol = .Machine$double.eps ^ 0.5, type.quantile = NULL, add.1 = FALSE){ 

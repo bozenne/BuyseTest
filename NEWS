@@ -1,5 +1,11 @@
 # -*- mode: org -*-
 
+* Version 3.0.0
+** User visible changes
+- NEW FEATURE: method model.tables providing the table favorable/unfavorable/neutral/uninformative in the summary
+- NEW FEATURE: plot method for S4BuyseTest object
+- bounds for the confidence intervals have been renamed: CIinf.Delta -> lower.ci and CIsup.Delta -> upper.ci
+
 * Version 2.4.1
 ** User visible changes
 - NEW FEATURE: add function CasinoTest to perform GPC on multiple groups.

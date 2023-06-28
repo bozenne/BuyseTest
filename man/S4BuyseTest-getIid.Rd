@@ -69,3 +69,4 @@ WARNING: argument \code{scale} and \code{center} should be used with care as whe
 Brice Ozenne
 }
 \keyword{S4BuyseTest-method}
+\keyword{methods}

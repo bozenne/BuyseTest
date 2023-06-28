@@ -32,6 +32,9 @@ Can be the product limit estimator (\code{"prodlim"}) or an exponential approxim
 
 \item{n.grid}{[integer, >0] Number of timepoints used to discretize the time scale. Not relevant for prodlim objects.}
 }
+\value{
+An S3 object of class \code{BuyseTTEM}.
+}
 \description{
 Pre-compute quantities of a time to event model useful for predictions.
 Only does something for prodlim objects.
@@ -72,3 +75,4 @@ predict(e.prodlimCR, times = tau, newdata = data.frame(treatment = "T", strata =
 predict(e.prodlimCR2, time = tau, treatment = "C", strata = "a")
 predict(e.prodlimCR, times = tau, newdata = data.frame(treatment = "C", strata = "a"), cause = 1)
 }
+\keyword{models}

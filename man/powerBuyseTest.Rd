@@ -12,10 +12,11 @@ powerBuyseTest(
   n.rep,
   null = c(netBenefit = 0),
   cpus = 1,
+  export.cpus = NULL,
   seed = NULL,
   conf.level = NULL,
   power = NULL,
-  max.sample.size = 5000,
+  max.sample.size = 2000,
   alternative = NULL,
   order.Hprojection = NULL,
   transformation = NULL,
@@ -42,6 +43,8 @@ The vector should be named with the names of the statistics.}
 
 \item{cpus}{[integer, >0] the number of CPU to use. Default value is 1.}
 
+\item{export.cpus}{[character vector] name of the variables to export to each cluster.}
+
 \item{seed}{[integer, >0] the seed to consider for the simulation study.}
 
 \item{conf.level}{[numeric, 0-1] type 1 error level.
@@ -66,6 +69,9 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{...}{other arguments (e.g. \code{scoring.rule}, \code{method.inference}) to be passed to \code{initializeArgs}.}
 }
+\value{
+An S4 object of class  \code{\linkS4class{S4BuysePower}}.
+}
 \description{
 Performs a simulation studies for several sample sizes.
 Returns estimates, their standard deviation, the average estimated standard error, and the rejection rate.
@@ -83,9 +89,11 @@ library(data.table)
 #### Using simBuyseTest ####
 ## only point estimate
 \dontrun{
-powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
-               formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
-               method.inference = "none", trace = 2, keep.pairScore = FALSE)
+pBT <- powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
+                  formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
+                  method.inference = "none", trace = 2, keep.pairScore = FALSE)
+summary(pBT)
+model.tables(pBT)
 }
 
 ## point estimate with rejection rate
@@ -127,13 +135,13 @@ summary(powerW)
 ## sample size needed to reach (approximately) a power
 ## based on summary statistics obtained on a large sample 
 \dontrun{
-sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, max.sample.size = 10000,
-                         n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, max.sample.size = 1000,
+                         n.rep = 1000, formula = group ~ cont(Y), cpus = 3)
 summary(sampleW) ## not very accurate but gives an order of magnitude
 
 sampleW2 <- powerBuyseTest(sim = simFCT2,
-                           power = 0.8, max.sample.size = 10000,
-                           n.rep = 1000, formula = group ~ cont(Y), cpus = "all")
+                           power = 0.8, max.sample.size = 1000,
+                           n.rep = 1000, formula = group ~ cont(Y), cpus = 1)
 summary(sampleW2) ## more accurate with larger samples
 }
 
@@ -141,3 +149,4 @@ summary(sampleW2) ## more accurate with larger samples
 \author{
 Brice Ozenne
 }
+\keyword{htest}

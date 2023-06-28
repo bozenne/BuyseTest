@@ -1,5 +1,4 @@
 ## * inferenceResampling
-## author Brice Ozenne
 inferenceResampling <- function(envir){
 
     cpus <- envir$outArgs$cpus
@@ -58,14 +57,16 @@ inferenceResampling <- function(envir){
     }else { ## *** parallel resampling test
 
         ## define cluster
+        cl <- parallel::makeCluster(cpus)
         if(trace>0){
-            cl <- suppressMessages(parallel::makeCluster(cpus, outfile = ""))
             pb <- utils::txtProgressBar(max = n.resampling, style = 3)          
+            progress <- function(n){utils::setTxtProgressBar(pb, n)}
+            opts <- list(progress = progress)
         }else{
-            cl <- parallel::makeCluster(cpus)
+            opts <- list()
         }
         ## link to foreach
-        doParallel::registerDoParallel(cl)
+        doSNOW::registerDoSNOW(cl)
 
         ## export package
         parallel::clusterCall(cl, fun = function(x){
@@ -77,14 +78,13 @@ inferenceResampling <- function(envir){
         ls.resampling <- foreach::`%dopar%`(
                                       foreach::foreach(iB=1:n.resampling,
                                                        .export = toExport,
-                                                       .packages = "data.table"),                                            
-                                      {                                           
-                                          if(trace>0){utils::setTxtProgressBar(pb, iB)}
-
-                                           return(.BuyseTest(envir = envir,
-                                                             iid = iid,
-                                                             method.inference = method.inference,
-                                                             pointEstimation = FALSE))
+                                                       .packages = "data.table",
+                                                       .options.snow = opts),                                            
+                                      {
+                                          return(.BuyseTest(envir = envir,
+                                                            iid = iid,
+                                                            method.inference = method.inference,
+                                                            pointEstimation = FALSE))
                       
                                        })
 
@@ -130,12 +130,12 @@ inferenceResampling <- function(envir){
 
 
 ## * inference U-statistic (Bebu et al 2015)
-## Implement the computation of the asymptotic variance as described in
-## Large sample inference for a win ratio analysis of a composite outcome based on prioritized components
-## Biostatistics (2015), pp. 1–10 doi:10.1093/biostatistics/kxv032
-## Give results equivalent to inferenceUstatistic
-## NOTE: arguments subset.C and subset.T were used for BuysePower to re-compute statistics on a subset of the data
-##       but this happens to be slower than just re-running the test so is not used
+##' @description Implement the computation of the asymptotic variance as described in Bebu et al (2015)
+##' Should give results equivalent to inferenceUstatistic
+##' NOTE: arguments subset.C and subset.T were used for BuysePower to re-compute statistics on a subset of the data
+##'       but this happens to be slower than just re-running the test so is not used
+##' @noRd
+##' @references Large sample inference for a win ratio analysis of a composite outcome based on prioritized components Biostatistics (2015), pp. 1–10 doi:10.1093/biostatistics/kxv032
 inferenceUstatisticBebu <- function(tablePairScore, subset.C = NULL, subset.T = NULL,
                                     order, weightEndpoint, 
                                     n.pairs, n.C, n.T, level.strata, n.strata, n.endpoint, endpoint){
@@ -295,7 +295,8 @@ inferenceUstatisticBebu <- function(tablePairScore, subset.C = NULL, subset.T = 
 }
 
 ## * wsumPairScore
-## cumulate over endpoint the scores
+##' @description cumulate over endpoint the scores
+##' @noRd
 wsumPairScore <- function(pairScore, weightEndpoint, subset.C, subset.T){
 
     keep.col <- c("strata","index.C","index.T","index.pair","indexWithinStrata.C", "indexWithinStrata.T","favorableC","unfavorableC","neutralC","uninfC")

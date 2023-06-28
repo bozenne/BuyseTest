@@ -15,9 +15,13 @@
 #' @param n.strata [integer, >0] number of strata. \code{NULL} indicates no strata.
 #' @param level.strata [list of character vector] value associated to each strata. Must have same length as \code{n.strata}.
 #' @param names.strata [character vector] name of the strata variables. Must have same length as \code{n.strata}.
+#' @param name.cluster [character] name of the cluster variable. If \code{NULL} no cluster variable is created.
+#' @param prefix.cluster [character] character string to be added to the cluster index.
 #' @param name.treatment [character] name of the treatment variable. 
 #' @param level.treatment [character vector of length 2] levels of the treatment variable. 
 #' @param latent [logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).
+#' 
+#' @return A data.frame, data.table, or matrix depending of the argument \code{format}.
 #' 
 #' @details 
 #' Endpoints are simulated independently of the strata variable and independently of each other,
@@ -154,7 +158,7 @@
 #' 
 #' boxplot(eventtime ~ toxicity, data = dt.corr)
 #' 
-#' @keywords function simulations
+#' @keywords datagen
 #' @author Brice Ozenne
 
 ## * Function simBuyseTest
@@ -303,6 +307,8 @@ simBuyseTest <- function(n.T, n.C = NULL,
             res <- cbind(paste0(prefix.cluster,1:(n.T+n.C)), do.call(format, args =  rbind(df.C, df.T)))
         }
         names(res)[1] <- name.cluster
+    }else{
+            res <- do.call(format, args =  rbind(df.C, df.T))
     }
     return(res)
 }

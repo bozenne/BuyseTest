@@ -17,3 +17,4 @@ Estimated value for Brier score (numeric).
 \description{
 Extract the Brier score.
 }
+\keyword{methods}

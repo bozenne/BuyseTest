@@ -58,3 +58,4 @@ table(veteran$strata2) # numeric strata variable
 Brice Ozenne
 }
 \keyword{function}
+\keyword{utilities}

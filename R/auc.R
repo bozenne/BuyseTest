@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: Jun 19 2023 (09:09) 
+## Last-Updated: jun 27 2023 (10:04) 
 ##           By: Brice Ozenne
-##     Update #: 462
+##     Update #: 467
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,7 @@
 ## 
 ### Code:
 
-## * Documentation - auc
+## * auc (documentation)
 #' @title Estimation of the Area Under the ROC Curve (EXPERIMENTAL)
 #' @name auc
 #' 
@@ -44,12 +44,14 @@
 #' @details The iid decomposition of the AUC is based on a first order decomposition.
 #' So its squared value will not exactly match the square of the standard error estimated with a second order H-projection.
 #'
-#' @return A \emph{data.frame} containing for each fold the AUC value with its standard error (when computed).
-#' The last line of the data.frame contains the global AUC value with its standard error.
+#' @return An S3 object of class \code{BuyseTestAUC} that inherits from data.frame.
+#' The last line of the object contains the global AUC value with its standard error.
 #'
 #' @references Erin LeDell, Maya Petersen, and Mark van der Laan (2015). \bold{Computationally efficient confidence intervals for cross-validated area under the ROC curve estimates}. \emph{Electron J Stat.} 9(1):1583–1607. \cr
+#'
+#' @keywords models
 
-## * Example - auc
+## * auc (example)
 #' @rdname auc
 #' @examples
 #' library(data.table)
@@ -68,7 +70,7 @@
 #' auc(labels = dt$Y, prediction = dt$X, fold = dt$fold, observation = 1:NROW(dt))
 #'
 
-## * Code - auc
+## * auc (code)
 #' @export
 auc <- function(labels, predictions, fold = NULL, observation = NULL,
                 direction = ">", add.halfNeutral = TRUE,

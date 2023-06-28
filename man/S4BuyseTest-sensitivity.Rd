@@ -58,8 +58,11 @@ Default value read from \code{BuyseTest.options()}.}
 
 \item{cpus}{[integer, >0] the number of CPU to use. Default value is 1.}
 }
+\value{
+An S3 object of class \code{S3sensitivity}.
+}
 \description{
-Evaluate the statistic of interest along various thresholds of clinical relevance.
+Evaluate a summary statistic (net benefit, win ratio, ...) using GPC along various thresholds of clinical relevance.
 }
 \details{
 Simulateneous confidence intervals and adjusted p-values are computed using a single-step max-test approach via the function \code{transformCIBP} of the riskRegression package.
@@ -77,14 +80,15 @@ df.data <- simBuyseTest(1e2, n.strata = 2)
 ff1 <- treatment ~ TTE(eventtime, status = status, threshold = 0.1)
 BT1 <- BuyseTest(ff1, data= df.data)
 se.BT1 <- sensitivity(BT1, threshold = seq(0,2,0.25), band = TRUE)
-autoplot(se.BT1)
+plot(se.BT1)
 
 ## with two endpoints
 ff2 <- update(ff1, .~. + cont(score, threshold = 1))
 BT2 <- BuyseTest(ff2, data= df.data)
 se.BT2 <- sensitivity(BT2, threshold = list(eventtime = seq(0,2,0.25), score = 0:2),
                       band = TRUE)
-autoplot(se.BT2)
-autoplot(se.BT2, col = NA)
+plot(se.BT2)
+plot(se.BT2, col = NA)
 }
 }
+\keyword{htest}

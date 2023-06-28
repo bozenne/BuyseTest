@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: mar 16 2022 (18:58) 
+## Last-Updated: jun 27 2023 (12:58) 
 ##           By: Brice Ozenne
-##     Update #: 526
+##     Update #: 527
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 ## * calcPeron
-#' @rdname internal-initialization
+#' @noRd
 calcPeron <- function(data,
                       model.tte, fitter, args,
                       method.score,

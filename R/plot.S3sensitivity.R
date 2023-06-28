@@ -1,11 +1,11 @@
-### autoplot.sensitivity.R --- 
+### plot.S3sensitivity.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: dec 10 2021 (09:34) 
 ## Version: 
-## Last-Updated: Jun 25 2023 (23:25) 
+## Last-Updated: jun 27 2023 (14:24) 
 ##           By: Brice Ozenne
-##     Update #: 18
+##     Update #: 26
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -14,6 +14,20 @@
 ##----------------------------------------------------------------------
 ## 
 ### Code:
+
+## * plot - sensitivity
+#' @rdname plot-sensitivity
+#' @method plot S3sensitivity
+#' @export
+plot.S3sensitivity <- function(x, plot = TRUE, ...){
+
+    out <- autoplot(x, ...)
+    if(plot){
+        print(out)
+    }
+    return(invisible(list(plot = out,
+                          data = out$data)))
+}
 
 ## * autoplot - sensitivity
 ##' @title Graphical Display for Sensitivity Analysis 
@@ -34,9 +48,12 @@
 ##' @param position relative position of the error bars for a given x value. Can for instance be \code{position_dodge(width = 5)}.
 ##' @param ... not used. For compatibility with the generic method.
 ##' 
-#' @details The \code{autoplot} and \code{plot} methods are very similar. The main difference is that the former returns a ggplot2 object whereas the later automatically display the figure in a graphical window and returns an (invible) list with the plot and the data.
-#' 
+##' @details The \code{autoplot} and \code{plot} methods are very similar. The main difference is that the former returns a ggplot2 object whereas the later automatically display the figure in a graphical window and returns an (invible) list with the plot and the data.
+##'
+##' @return a ggplot2 object
 ##' @method autoplot S3sensitivity
+##' @keywords hplot
+##' 
 ##' @export
 autoplot.S3sensitivity <- function(object, col = NULL, ci = TRUE, band = TRUE, label = "Threshold for", 
                                    position = NULL, size.line = 1, size.point = 1.75, size.ci = 0.5, alpha = 0.1, ...){
@@ -157,19 +174,6 @@ autoplot.S3sensitivity <- function(object, col = NULL, ci = TRUE, band = TRUE, l
     return(gg)
 }
 
-## * plot - sensitivity
-#' @rdname plot-sensitivity
-#' @method plot S3sensitivity
-#' @export
-plot.S3sensitivity <- function(x, plot = TRUE, ...){
-
-    out <- autoplot(x, ...)
-    if(plot){
-        print(out)
-    }
-    return(invisible(list(plot = out,
-                          data = out$data)))
-}
 
 ##----------------------------------------------------------------------
-### autoplot.sensitivity.R ends here
+### plot.S3sensitivity.R ends here

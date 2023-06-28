@@ -8,7 +8,7 @@
 #' \code{\link{powerBuyseTest}} for the function computing generalized pairwise comparisons. \cr
 #' \code{\link{S4BuysePower-summary}} for the summary of the BuyseTest function results
 #' 
-#' @keywords classes S4BuysePower-class
+#' @keywords classes
 #' @author Brice Ozenne 
 
 ## * Class S4BuysePower

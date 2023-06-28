@@ -66,7 +66,8 @@
 #'
 #' @author Eva Cantagallo
 #' 
-#' @keywords function simulations
+#' @keywords datagen
+#' @return A data.frame 
 #'
 
 ## * Function simCompetingRisks

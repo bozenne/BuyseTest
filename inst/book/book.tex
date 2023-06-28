@@ -1,4 +1,4 @@
-% Created 2023-06-10 Sat 12:43
+% Created 2023-06-26 ma 15:14
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -114,34 +114,244 @@ linkcolor=[rgb]{0,0,0.5},
  pdftitle={},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 26.3 (Org mode 9.4.6)},
+ pdfcreator={Emacs 27.2 (Org mode 9.5.2)},
  pdflang={English}
  }
 \begin{document}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
+options(width=75)
 library(BuyseTest)
-data(cancer, package = "survival")
-head(veteran)
+if(system("whoami",intern=TRUE)=="bozenne"){
+  setwd("~/Documents/GitHub/BuyseTest/inst/book/")
+}else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
+  setwd("c:/Users/hpl802/Documents/Github/BuyseTest/inst/book/")
+}
 \end{lstlisting}
 
 \begin{verbatim}
-  trt celltype time status karno diagtime age prior
-1   1 squamous   72      1    60        7  69     0
-2   1 squamous  411      1    70        5  64    10
-3   1 squamous  228      1    60        3  38     0
-4   1 squamous  126      1    60        9  63    10
-5   1 squamous  118      1    70       11  65    10
-6   1 squamous   10      1    20        5  49     0
+BuyseTest version 2.4.4
+
+Vedhæfter pakke: 'BuyseTest'
+
+De følgende objekter er maskerede _af_ '.GlobalEnv':
+
+    .calcIntegralCif_cpp, .calcIntegralSurv_cpp, auc, boot2pvalue,
+    BuyseMultComp, BuyseTest, BuyseTest.options, BuyseTTEM,
+    calcIntegralSurv2_cpp, CasinoTest, constStrata, discreteRoot,
+    getCount, getIid, getPairScore, getPseudovalue, getSurvival,
+    GPC_cpp, GPC2_cpp, performance, performanceResample,
+    powerBuyseTest, sensitivity, simBuyseTest, simCompetingRisks
+
+De følgende objekter er maskerede fra 'package:riskRegression':
+
+    boot2pvalue, discreteRoot
+\end{verbatim}
+
+\section{Section 2.1 Introduction}
+\label{sec:org5c906f5}
+\subsection{subsection 2.1.2 Generating in-silico data}
+\label{sec:org003c0da}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10)
+dt.data <- simBuyseTest(100)
+dt.data
+\end{lstlisting}
+
+\begin{verbatim}
+      id treatment   eventtime status toxicity       score
+  1:   1         C 0.445451079      1       no -0.90197026
+  2:   2         C 0.183056094      0      yes -0.05474996
+  3:   3         C 0.410940283      0       no -1.35675471
+  4:   4         C 0.185677294      1      yes  0.31723058
+  5:   5         C 0.128177108      0       no  1.39571912
+ ---                                                      
+196: 196         T 0.137252959      1      yes  1.05104467
+197: 197         T 0.008692819      1      yes  1.15579748
+198: 198         T 1.668044329      0      yes -1.03443796
+199: 199         T 0.112796594      0      yes -0.25446807
+200: 200         T 0.196786863      0      yes  1.27368427
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+argsSurv <- list(name = c("OS","PFS"),
+                 name.censoring = c("statusOS","statusPFS"),
+                 scale.C = c(8.995655, 4.265128),
+                 scale.T = c(13.76543, 7.884477),
+                 shape.C = c(1.28993, 1.391015),
+                 shape.T = c(1.275269, 1.327461),
+                 scale.censoring.C = c(34.30562, 20.748712),
+                 scale.censoring.T = c(27.88519, 17.484281),
+                 shape.censoring.C = c(1.369449, 1.463876),
+                 shape.censoring.T = c(1.490881, 1.835526))
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+argsTox <- list(name = "toxicity",
+                p.C =  c(1.17, 2.92, 36.26, 39.18, 19.88, 0.59)/100,
+                p.T = c(3.51, 4.09, 23.39, 47.37, 21.05, 0.59)/100,
+                rho.T = 1, rho.C = 1)
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(1)
+dt.data <- simBuyseTest(n.T = 200, n.C = 200,
+                        argsBin = argsTox,
+                        argsCont = NULL,
+                        argsTTE = argsSurv,
+                        level.strata = c("M","F"), names.strata = "gender")
+dt.data
+\end{lstlisting}
+
+\begin{verbatim}
+      id treatment           OS statusOS        PFS statusPFS toxicity
+  1:   1         C  0.628786006        0  0.6946706         1        3
+  2:   2         C  0.003647332        1  1.7228221         1        3
+  3:   3         C  5.501584752        1  0.9092541         1        3
+  4:   4         C  0.286446665        1  5.8723232         1        1
+  5:   5         C 17.221063409        1  1.0965019         0        5
+ ---                                                                  
+396: 396         T 18.771937367        1  1.4219555         0        4
+397: 397         T  2.914445864        1 49.5964070         1        3
+398: 398         T  1.105391425        1 16.1741055         1        2
+399: 399         T  1.318957979        0 10.1102146         1        4
+400: 400         T  3.338426913        1 10.9857381         1        3
+     gender
+  1:      F
+  2:      F
+  3:      M
+  4:      M
+  5:      M
+ ---       
+396:      F
+397:      M
+398:      M
+399:      F
+400:      M
 \end{verbatim}
 
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-e.BT <- BuyseTest(trt ~ TTE(time,threshold=0,status=status) + celltype,
-                  data=veteran)
-summary(e.BT)
+set.seed(10)
+rbind(simBuyseTest(n.T = 100, n.C = 100,
+                   argsBin = NULL,
+                   argsCont = list(mu.C = 1, mu.T = 2),
+                   argsTTE = NULL,
+                   prefix.cluster = "M", level.strata = "M", names.strata = "gender"),
+      simBuyseTest(n.T = 100, n.C = 100,
+                   argsBin = NULL,
+                   argsCont = list(mu.C = 10, mu.T = 20),
+                   argsTTE = NULL,
+                   prefix.cluster = "F", level.strata = "F", names.strata = "gender")
+      )
+\end{lstlisting}
+
+\begin{verbatim}
+       id treatment      score gender
+  1:   M1         C  1.8694750      M
+  2:   M2         C  0.3199904      M
+  3:   M3         C  1.1732145      M
+  4:   M4         C  0.8405620      M
+  5:   M5         C  1.7934994      M
+ ---                                 
+396: F196         T 21.6977207      F
+397: F197         T 19.9273100      F
+398: F198         T 19.2823911      F
+399: F199         T 19.5834856      F
+400: F200         T 22.1935868      F
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dtPC.toxW <- prop.table(table(dt.data$treatment,
+                              dt.data$toxicity))
+dtPC.toxW * 100
+\end{lstlisting}
+
+\begin{verbatim}
+
+      1     2     3     4     5     6
+C  2.75  3.25 19.00 12.75  6.75  5.50
+T  3.75  3.50 12.00 15.75 11.00  4.00
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(ggplot2)
+ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
+ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
+
+library(ggpubr)
+ggOS <- ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
+ggOS <- ggOS + theme(text = element_text(size=15), 
+                     axis.line = element_line(linewidth = 1.25),
+                     axis.ticks = element_line(linewidth = 1.25),
+                     axis.ticks.length=unit(.25, "cm"),
+                     legend.key.size = unit(3,"line"))
+ggPFS <- ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
+ggPFS <- ggPFS + theme(text = element_text(size=15), 
+                       axis.line = element_line(linewidth = 1.25),
+                       axis.ticks = element_line(linewidth = 1.25),
+                       axis.ticks.length=unit(.25, "cm"),
+                       legend.key.size = unit(3,"line"))
+ggOSPFS <- ggarrange(ggOS, ggPFS, nrow = 1, ncol = 2, common.legend = TRUE, legend = "bottom")
+graphics.off()
+pdf("figures/fig_software_OS-PFS-tox.pdf", width = 12, height = 8)
+ggOSPFS
+dev.off()
+\end{lstlisting}
+
+\begin{verbatim}
+null device 
+          1
+\end{verbatim}
+\section{section 2.2 Safety or efficacy assessment with GPC}
+\label{sec:org7e2d6e6}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dtPC.toxL <- as.data.frame(dtPC.toxW, responseName = "Probability")
+names(dtPC.toxL)[1:2] <- c("treatment","grade")
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+colorG2R <- scales::seq_gradient_pal(low = rgb(green=0.9,0,0),
+                                     high = rgb(red=0.9,0,0))
+
+gg.tox <- ggplot(dtPC.toxL, aes(x = treatment, fill = grade, y = Probability))
+gg.tox <- gg.tox + geom_bar(position = position_fill(reverse = TRUE),
+                            stat = "identity")
+gg.tox <- gg.tox + scale_y_continuous(labels = scales::percent)
+gg.tox <- gg.tox + scale_fill_manual("Worse\nadverse event",
+                                     values = colorG2R(seq(0,1,length.out=6)))
+gg.tox 
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(prodlim)
+plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
+\end{lstlisting}
+
+\subsection{subsection 2.2.1 Binary or continous endpoint}
+\label{sec:orga3bc661}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data$toxicity.num <- as.numeric(dt.data$toxicity)
+eTox.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
+                     data=dt.data)
+confint(eTox.BT, statistic = "favorable")
+confint(eTox.BT)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -149,12 +359,10 @@ summary(e.BT)
          Generalized Pairwise Comparisons
 
 Settings 
-   - 2 groups  : Control = 1 and Treatment = 2
+   - 2 groups  : Control = C and Treatment = T
    - 1 endpoint: 
-       priority endpoint type           operator             event       
-       1        time     time to event  higher is favorable  status (0 1)
-   - 4 strata   : levels squamous smallcell adeno large (variable: celltype) 
-   - right-censored pairs: probabilistic score based on the survival curves 
+       priority endpoint      type        operator           
+       1        toxicity.num  continuous  lower is favorable 
 
 Point estimation and calculation of the iid decomposition
 
@@ -162,28 +370,823 @@ Estimation of the estimator's distribution
    - method: moments of the U-statistic
 
 Gather the results in a S4BuyseTest object
-       Generalized pairwise comparisons with 1 endpoint and 4 strata
+             estimate         se lower.ci  upper.ci null      p.value
+toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
+             estimate         se   lower.ci   upper.ci null   p.value
+toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest.options(trace = 0)
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(eTox.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparisons with 1 endpoint
 
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - strata weights  : 26.38%, 34.63%, 18.47%, 20.52% 
- - censored pairs  : probabilistic score based on the survival curves
- - uninformative pairs: no contribution
+ - treatment groups: T (treatment) vs. C (control) 
  - results
- endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
-     time    global   100.00        44.78          54.14       0.43     0.64
-           squamous    25.38        15.37          10.01       0.00     0.00
-          smallcell    45.69        18.10          26.31       0.42     0.85
-              adeno    13.71         6.20           7.42       0.08     0.00
-              large    15.23         4.99          10.24       0.00     0.00
+     endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
+ toxicity.num      100        35.38          42.74      21.87        0 -0.0736
+ CI [2.5% ; 97.5%] p.value 
+   [-0.1824;0.037] 0.19177
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(eTox.BT, percentage = FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1
+ - treatment groups: T (treatment) vs. C (control) 
+ - results
+     endpoint total favorable unfavorable neutral uninf   Delta CI [2.5% ; 97.5%] p.value
+ toxicity.num 40000     14154       17098    8748     0 -0.0736   [-0.1824;0.037] 0.19177
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(asht)
+wmwTest(toxicity.num ~ treatment, data = dt.data)
+\end{lstlisting}
+
+\begin{verbatim}
+
+	Wilcoxon-Mann-Whitney test with continuity correction (confidence interval
+	requires proportional odds assumption, but test does not)
+
+data:  toxicity.num by treatment
+Mann-Whitney estimate = 0.5368, tie factor = 0.94003, p-value = 0.1893
+alternative hypothesis: two distributions are not equal
+95 percent confidence interval:
+ 0.4819062 0.5906310
+sample estimates:
+Mann-Whitney estimate 
+               0.5368
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eTox.BThalf <- BuyseTest(treatment ~ cont(toxicity.num),
+                      add.halfNeutral = TRUE,
+                      data=dt.data, trace = FALSE)
+confint(eTox.BThalf, statistic = "favorable")
+\end{lstlisting}
+
+\begin{verbatim}
+             estimate        se  lower.ci  upper.ci null   p.value
+toxicity.num   0.5368 0.0280893 0.4815212 0.5911888  0.5 0.1917665
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(pim)
+e.pim <- pim(toxicity.num ~ treatment, data = dt.data)
+summary(e.pim)
+\end{lstlisting}
+
+\begin{verbatim}
+pim.summary of following model : 
+ toxicity.num ~ treatment
+Type:  difference 
+Link:  logit 
+
+
+           Estimate Std. Error z value Pr(>|z|)
+treatmentT   0.1475     0.1126   1.309     0.19
+
+Null hypothesis: b = 0
+\end{verbatim}
+
+\subsection{subsection 2.2.2 Threshold of clinical relevance}
+\label{sec:org319d7c7}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eTox.BT2 <- BuyseTest(treatment ~ cont(toxicity.num, threshold = 2, operator = "<0"),
+                     data=dt.data, keep.pairScore = TRUE, trace = FALSE)
+print(eTox.BT2)
+\end{lstlisting}
+
+\begin{verbatim}
+    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+toxicity.num         2      100        19.44          22.14      58.41        0
+ Delta CI [2.5% ; 97.5%] p.value
+-0.027  [-0.1077;0.0542] 0.51506
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eTox.BT@threshold
+\end{lstlisting}
+
+\begin{verbatim}
+toxicity.num 
+       1e-12
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+getPairScore(eTox.BT2)
+\end{lstlisting}
+
+\begin{verbatim}
+       index.C index.T favorable unfavorable neutral uninf weight
+    1:       1     201         0           0       1     0      1
+    2:       2     201         0           0       1     0      1
+    3:       3     201         0           0       1     0      1
+    4:       4     201         0           1       0     0      1
+    5:       5     201         0           0       1     0      1
+   ---                                                           
+39996:     196     400         0           0       1     0      1
+39997:     197     400         0           1       0     0      1
+39998:     198     400         0           0       1     0      1
+39999:     199     400         1           0       0     0      1
+40000:     200     400         0           0       1     0      1
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data[c(3:4,201),]
+\end{lstlisting}
+
+\begin{verbatim}
+   treatment         OS statusOS        PFS statusPFS toxicity gender toxicity.num
+1:         C  5.5015848        1  0.9092541         1        3      M            3
+2:         C  0.2864467        1  5.8723232         1        1      M            1
+3:         T 13.8301382        1 19.4802921         1        4      F            4
+\end{verbatim}
+
+\subsection{subsection 2.2.3 Accounting for baseline covariates}
+\label{sec:org4cd7ef7}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
+eTox.BTG <- BuyseTest(ffG,
+                      data=dt.data, keep.pairScore = TRUE, trace = FALSE)
+summary(eTox.BTG)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparisons with 1 endpoint and 2 strata
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1
+ - treatment groups: T (treatment) vs. C (control) 
+ - strata weights  : 50.5%, 49.5% 
+ - results
+     endpoint strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+ toxicity.num global      100        35.43          42.74      21.83        0
+                   M       51        17.79          22.37      10.85        0
+                   F       49        17.63          20.38      10.98        0
    delta   Delta CI [2.5% ; 97.5%] p.value 
- -0.0936 -0.0936  [-0.2886;0.1088] 0.36486 
-  0.2114                                   
- -0.1796                                   
- -0.0895                                   
- -0.3444
+ -0.0731 -0.0731  [-0.1823;0.0379] 0.19672 
+ -0.0897                                   
+ -0.0561
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+getPairScore(eTox.BTG)
+\end{lstlisting}
+
+\begin{verbatim}
+       strata index.C index.T favorable unfavorable neutral uninf weight
+    1:      F       1     201         0           1       0     0      1
+    2:      F       2     201         0           1       0     0      1
+    3:      F       7     201         0           1       0     0      1
+    4:      F      11     201         0           1       0     0      1
+    5:      F      12     201         0           0       1     0      1
+   ---                                                                  
+19900:      M     192     400         0           0       1     0      1
+19901:      M     195     400         1           0       0     0      1
+19902:      M     196     400         0           0       1     0      1
+19903:      M     198     400         0           0       1     0      1
+19904:      M     199     400         1           0       0     0      1
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(eTox.BTG, stratified = TRUE)
+\end{lstlisting}
+
+\begin{verbatim}
+                  estimate         se   lower.ci   upper.ci null   p.value
+toxicity.num.M -0.08973601 0.07926141 -0.2417093 0.06653413    0 0.2601380
+toxicity.num.F -0.05609106 0.08030000 -0.2108224 0.10138233    0 0.4857698
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.pimS <- pim(toxicity.num ~ treatment + gender, data = dt.data,
+              link = "identity")
+coef(e.pimS)
+\end{lstlisting}
+
+\begin{verbatim}
+ treatmentT     genderF 
+0.536970673 0.002438191
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+coef(pim(toxicity.num ~ 1+gender, data = dt.data,
+         compare = expand.grid(which(dt.data$treatment == "C"),
+                               which(dt.data$treatment == "T")),
+         link = "identity"))
+
+\end{lstlisting}
+
+\begin{verbatim}
+ (Intercept)       genderF 
+0.5367438593 -0.0008020101
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+coef(pim(toxicity.num ~ treatment, data = dt.data[dt.data$gender == "M",],
+              link = "identity"))
+\end{lstlisting}
+
+\begin{verbatim}
+treatmentT 
+  0.544868
+\end{verbatim}
+
+\subsection{subsection 2.2.4 Handling right-censoring when assessing efficacy}
+\label{sec:org2a907b1}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data[,.(censoring=mean(statusOS==0)),by = "treatment"]
+\end{lstlisting}
+
+\begin{verbatim}
+   treatment censoring
+1:         C     0.320
+2:         T     0.445
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eEff.BT <- BuyseTest(treatment ~ tte(OS, statusOS), data=dt.data,
+                     keep.pairScore = TRUE, trace = FALSE)
+print(eEff.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+      OS      100        58.67          41.12          0      0.2 0.1755
+CI [2.5% ; 97.5%]   p.value
+  [0.0472;0.2981] 0.0075342
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+getPairScore(eEff.BT)[c(1,2,2623,8553),]
+\end{lstlisting}
+
+\begin{verbatim}
+   index.C index.T favorable unfavorable neutral     uninf weight
+1:       1     201 0.6888801   0.3111199       0 0.0000000      1
+2:       2     201 1.0000000   0.0000000       0 0.0000000      1
+3:      23     214 0.0000000   0.8099176       0 0.1900824      1
+4:     153     243 0.8200000   0.0600000       0 0.1200000      1
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data[c(1,2,201,23,214,153,243)]
+\end{lstlisting}
+
+\begin{verbatim}
+   treatment           OS statusOS          PFS statusPFS toxicity gender
+1:         C  0.628786006        0  0.694670560         1        3      F
+2:         C  0.003647332        1  1.722822144         1        3      F
+3:         T 13.830138195        1 19.480292066         1        4      F
+4:         C 55.980040009        0  3.154814245         1        6      F
+5:         T 12.259281475        0  1.993193690         1        4      M
+6:         C 26.429727212        0  0.017697976         0        6      F
+7:         T 52.219932416        0  0.003857412         0        6      M
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+print(eEff.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+      OS      100        58.67          41.12          0      0.2 0.1755
+CI [2.5% ; 97.5%]   p.value
+  [0.0472;0.2981] 0.0075342
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eEff.BT2 <- BuyseTest(treatment ~ tte(OS, statusOS), data=dt.data,
+                      scoring.rule = "Gehan", keep.pairScore = TRUE, trace = FALSE)
+print(eEff.BT2)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+      OS      100        35.22          24.33          0    40.45 0.1089
+CI [2.5% ; 97.5%]  p.value
+  [0.0229;0.1934] 0.013205
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt30.data <- copy(dt.data)
+dt30.data[OS>30, c("OS", "statusOS") := .(30,0)]
+
+## plot(prodlim(Hist(OS,statusOS)~treatment, data = dt30.data))
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eEff.BT30 <- BuyseTest(treatment ~ tte(OS, statusOS, restriction = 25), data=dt30.data,
+                       keep.pairScore = TRUE, trace = FALSE)
+print(eEff.BT30)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint restriction total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+      OS          25      100        56.22          38.91       4.87        0
+ Delta CI [2.5% ; 97.5%]   p.value
+0.1731   [0.0468;0.2941] 0.0074591
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data[c(44,211)]
+getPairScore(eEff.BT30)[index.C==44 & index.T == 211,]
+getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
+\end{lstlisting}
+
+\begin{verbatim}
+   index.C index.T favorable unfavorable neutral uninf weight
+1:      44     211         0           0       1     0      1
+   index.C index.T favorable unfavorable neutral uninf weight
+1:      44     211         1           0       0     0      1
+   treatment       OS statusOS      PFS statusPFS toxicity gender
+1:         C 33.86813        1 5.935977         1        6      F
+2:         T 34.53610        1 6.308944         1        5      M
+\end{verbatim}
+
+\section{section 2.3 Benefit risk analysis using GPC}
+\label{sec:org9e97155}
+
+\subsection{subsection 2.3.1 Hierarchical \& non-hierarchical analyses}
+\label{sec:org68cca4d}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eBRB.BT <-BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num),
+                    data=dt.data, trace = FALSE)
+print(eBRB.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+    endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+          OS    100.0        58.67          41.12       0.00      0.2
+toxicity.num      0.2         0.05           0.08       0.07      0.0
+  delta  Delta CI [2.5% ; 97.5%]   p.value
+ 0.1755 0.1755   [0.0472;0.2981] 0.0075342
+-0.0003 0.1752   [0.0469;0.2978] 0.0076383
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eRBB.BT <- BuyseTest(treatment ~ cont(toxicity.num) + tte(OS, statusOS),
+                     data=dt.data, trace = FALSE)
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eNH.BT <- BuyseTest(treatment ~ cont(toxicity.num) + tte(OS, statusOS),
+                    data=dt.data, hierarchical = FALSE, trace = FALSE)
+print(eNH.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+    endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+toxicity.num      100        42.74          35.38      21.87      0.0
+          OS      100        58.67          41.12       0.00      0.2
+ delta  Delta CI [2.5% ; 97.5%]  p.value
+0.0736 0.0368  [-0.0183;0.0917] 0.190560
+0.1755 0.1245   [0.0094;0.2365] 0.034154
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(ggplot2)
+eRBB.plot <- plot(eRBB.BT)
+eNH.plot <- plot(eNH.BT)
+ggpubr::ggarrange(eRBB.plot$plot + ggtitle("Hierarchical"),
+                  eNH.plot$plot + ggtitle("Non-hierarchical"),
+                  common.legend = TRUE, legend = "bottom")
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eRBBNH.plot <- ggpubr::ggarrange(eRBB.plot$plot + ggtitle("Hierarchical") + theme(text = element_text(size=20), 
+                                                                                  axis.line = element_line(linewidth = 1.25),
+                                                                                  axis.ticks = element_line(linewidth = 1.25),
+                                                                                  axis.ticks.length=unit(.25, "cm"),
+                                                                                  legend.key.size = unit(2,"line")),
+                                 eNH.plot$plot + ggtitle("Non-hierarchical") + theme(text = element_text(size=20), 
+                                                                                     axis.line = element_line(linewidth = 1.25),
+                                                                                     axis.ticks = element_line(linewidth = 1.25),
+                                                                                     axis.ticks.length=unit(.25, "cm"),
+                                                                                     legend.key.size = unit(2,"line")),
+                                 common.legend = TRUE, legend = "bottom")
+
+pdf("figures/fig_software_hierarchical.pdf", width = 12, height = 8)
+eRBBNH.plot
+dev.off()
+\end{lstlisting}
+
+\begin{verbatim}
+windows 
+      2
+\end{verbatim}
+
+\subsection{subsection 2.3.2 Threshold of clinical relevance}
+\label{sec:org8fd7a69}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eSH.BT <- BuyseTest(treatment ~ tte(OS, statusOS, threshold = 28)
+                              + cont(toxicity.num, threshold = 2)
+                              + tte(OS, statusOS, threshold = 14)
+                              + cont(toxicity.num),
+                    data=dt.data, trace = FALSE)
+print(eSH.BT)
+12.59+13.20+11.85+11.23
+\end{lstlisting}
+
+\begin{verbatim}
+     endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%)
+           OS        28   100.00        17.62           8.66      73.02
+ toxicity.num         2    73.72        12.59          13.20      47.93
+           OS        14    47.93         6.20           2.88      38.53
+ toxicity.num              38.85        11.85          11.23      15.77
+ uninf(%)   delta  Delta CI [2.5% ; 97.5%]  p.value
+     0.71  0.0897 0.0897  [-0.0014;0.1792] 0.053522
+     0.00 -0.0061 0.0835  [-0.0203;0.1855] 0.114665
+     0.32  0.0332 0.1168   [0.0033;0.2273] 0.043808
+     0.00  0.0062 0.1229    [2e-04;0.2419] 0.049537
+[1] 48.87
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eSH.plot <- plot(eSH.BT, label.endpoint = c("OS\n(\U2265 28 days)","Toxicity\n(\U2265 2 grade)","OS\n(\U2265 14 days)","Toxicity\n(any difference)"))
+eBRB.plot <- plot(eBRB.BT, label.endpoint = c("OS\n(any difference)","Toxicity\n(any difference)")) 
+eSHBRB.plot <- ggpubr::ggarrange(eBRB.plot$plot + ggtitle("No threshold") + theme(text = element_text(size=20), 
+                                                                                  axis.line = element_line(linewidth = 1.25),
+                                                                                  axis.ticks = element_line(linewidth = 1.25),
+                                                                                  axis.ticks.length=unit(.25, "cm"),
+                                                                                  legend.key.size = unit(2,"line")),
+                                 eSH.plot$plot + ggtitle("With thresholds") + theme(text = element_text(size=20), 
+                                                                                    axis.line = element_line(linewidth = 1.25),
+                                                                                    axis.ticks = element_line(linewidth = 1.25),
+                                                                                    axis.ticks.length=unit(.25, "cm"),
+                                                                                    legend.key.size = unit(2,"line")),
+                                 common.legend = TRUE, legend = "bottom", widths = c(1,1.5))
+pdf("figures/fig_software_hierarchical-threshold.pdf", width = 12, height = 8)
+eSHBRB.plot
+dev.off()
+\end{lstlisting}
+
+\begin{verbatim}
+windows 
+      2
+\end{verbatim}
+
+\subsection{subsection 2.3.3 Encoding of the outcome}
+\label{sec:org54c6530}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data$OS2 <- dt.data$OS
+dt.data$OS2[dt.data$statusOS==0] <- 150
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+print(BuyseTest(treatment ~ tte(OS2, statusOS), data=dt.data, trace = FALSE))
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+     OS2      100        50.92          34.84          0    14.24 0.1608
+CI [2.5% ; 97.5%]   p.value
+  [0.0508;0.2669] 0.0042969
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eD2.BT <- BuyseTest(treatment ~ bin(statusOS, operator = "<0") + tte(OS2, statusOS), data=dt.data, trace = FALSE)
+print(eD2.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta
+statusOS   100.00        30.26          17.76      51.98     0.00 0.1250
+     OS2    51.98        20.66          17.08       0.00    14.24 0.0358
+ Delta CI [2.5% ; 97.5%]   p.value
+0.1250   [0.0297;0.2181] 0.0102741
+0.1608   [0.0508;0.2669] 0.0042969
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data$toxicity2 <- dt.data$toxicity.num
+dt.data$toxicity2[dt.data$statusOS==1] <- -1
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eBRB2.BT <- BuyseTest(treatment ~ bin(statusOS, operator = "<0") + cont(toxicity2, operator = "<0"), data=dt.data, trace = FALSE)
+print(eBRB2.BT)
+\end{lstlisting}
+
+\begin{verbatim}
+ endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+ statusOS   100.00        30.26          17.76      51.98        0
+toxicity2    51.98         4.87           5.70      41.42        0
+  delta  Delta CI [2.5% ; 97.5%]  p.value
+ 0.1250 0.1250   [0.0297;0.2181] 0.010274
+-0.0083 0.1167   [0.0176;0.2135] 0.021043
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dt.data2 <- rbind(cbind(dt.data[treatment == "C" & statusOS==0,], strata = 1),
+                  cbind(dt.data[treatment == "T" & statusOS==0,], strata = 1),
+                  cbind(dt.data[treatment == "C" & statusOS==0,], strata = 2),
+                  cbind(dt.data[treatment == "T" & statusOS==1,], strata = 2),
+                  cbind(dt.data[treatment == "C" & statusOS==1,], strata = 3),
+                  cbind(dt.data[treatment == "T" & statusOS==0,], strata = 3)
+                  )
+eR2.BT <- BuyseTest(treatment ~ cont(toxicity2, operator = "<0"),
+                    data=dt.data[statusOS==0], trace = FALSE)
+print(eR2.BT, percentage = FALSE)
+(1947 - 2279)/40000
+\end{lstlisting}
+
+\begin{verbatim}
+  endpoint total favorable unfavorable neutral uninf   Delta
+ toxicity2  5696      1947        2279    1470     0 -0.0583
+ CI [2.5% ; 97.5%] p.value
+   [-0.2378;0.125] 0.53435
+[1] -0.0083
+\end{verbatim}
+
+\subsection{subsection 2.3.4 Sensitivity analysis}
+\label{sec:orgbb59c2a}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eRBB.Se <- sensitivity(eRBB.BT, threshold = list(1:5,c(0,5,10)),
+                       band = TRUE, adj.p.value = TRUE, seed = 10, trace = FALSE)
+eRBB.Se[c(1,2,6),]
+\end{lstlisting}
+
+\begin{verbatim}
+  toxicity.num OS  estimate         se     lower.ci  upper.ci null
+1            1  0 0.1274785 0.06066316  0.007314031 0.2440137    0
+2            2  0 0.1628627 0.06304537  0.037375134 0.2832937    0
+6            1  5 0.1137239 0.05999122 -0.004903169 0.2291946    0
+     p.value  lower.band upper.band adj.p.value
+1 0.03765646 -0.01009852  0.2603190  0.07354353
+2 0.01116991  0.01910242  0.3000252  0.02380337
+6 0.06020505 -0.02206190  0.2453901  0.11223981
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eRBB.Hdecomp <- attr(eRBB.Se,"iid")
+dim(eRBB.Hdecomp)
+eRBB.cor <- cor(eRBB.Hdecomp)
+range(eRBB.cor[lower.tri(eRBB.cor)])
+rownames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
+colnames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
+pdf("figures/fig_software_corIID.pdf", width = 8, height = 8)
+par(mar  = c(6,6,2,2))
+fields::image.plot(eRBB.cor, axes = FALSE)
+axis(1, at=(1:15)/15, labels=rownames(eRBB.cor), las = 2)
+axis(2, at=(1:15)/15, labels=colnames(eRBB.cor), las = 2)
+dev.off()
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 400  15
+[1] 0.8247216 0.9999499
+null device 
+          1
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+pdf("figures/fig_software_sensitivity.pdf", width = 12, height = 8)
+autoplot(eRBB.Se) + facet_wrap(~OS, labeller = label_both) + theme(text = element_text(size=20), 
+                                                                   axis.line = element_line(linewidth = 1.25),
+                                                                   axis.ticks = element_line(linewidth = 1.25),
+                                                                   axis.ticks.length=unit(.25, "cm"),
+                                                                   legend.key.size = unit(2,"line"))
+dev.off()
+\end{lstlisting}
+
+\begin{verbatim}
+null device 
+          1
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.MBT <- BuyseMultComp(list("OS-tox" = eBRB.BT, "tox-OS" = eRBB.BT, "threshold" = eSH.BT), cluster = "id", seed = 10)
+e.MBT
+\end{lstlisting}
+
+\begin{verbatim}
+  - Univariate tests:
+           estimate         se     lower.ci  upper.ci null     p.value
+OS-tox    0.1751986 0.06432289 0.0469276309 0.2977853    0 0.007638296
+tox-OS    0.1274785 0.06066316 0.0073140314 0.2440137    0 0.037656458
+threshold 0.1229079 0.06195027 0.0002498525 0.2419225    0 0.049537494
+            lower.band upper.band adj.p.value
+OS-tox     0.035735620  0.3079680  0.01162931
+tox-OS    -0.003103986  0.2537864  0.05609444
+threshold -0.010376616  0.2519014  0.07304297
+\end{verbatim}
+
+\section{section 2.4 Power calculation for GPC analyses}
+\label{sec:orgb488ac1}
+\subsection{subsection 2.4.1 Data generating mechanism}
+\label{sec:org79273b0}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+simFCT <- function(n.C, n.T){
+     out <- rbind(data.frame(Y=stats::rt(n.C, df = 5), group=0),
+                  data.frame(Y=stats::rt(n.T, df = 5) + 1, group=1))
+     return(out)
+}
+set.seed(10)
+simFCT(2,2)
+\end{lstlisting}
+
+\begin{verbatim}
+            Y group
+1  0.02241932     0
+2 -1.07273566     0
+3  1.76072274     1
+4  0.74187644     1
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+simFCT2 <- function(n.T, n.C){
+  out <- simBuyseTest(n.T, n.C,
+                      argsBin = argsTox,
+                      argsCont = NULL,
+                      argsTTE = argsSurv,
+                      level.strata = c("M","F"), names.strata = "gender")
+  out$toxicity <- as.numeric(out$toxicity)
+  return(out)
+}
+set.seed(10)
+simFCT2(2,2)
+\end{lstlisting}
+
+\begin{verbatim}
+   id treatment         OS statusOS         PFS statusPFS toxicity gender
+1:  1         C 18.8315614        1  0.43958694         1        5      F
+2:  2         C  0.4947032        1  0.05958343         1        3      F
+3:  3         T 29.0185631        0 14.98265076         0        5      F
+4:  4         T  5.9442666        1  0.74317252         0        3      F
+\end{verbatim}
+\subsection{subsection 2.4.2 Simulation-based power and sample size estimation}
+\label{sec:org4f632b5}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.power <- powerBuyseTest(formula = treatment ~ tte(OS, statusOS, threshold = 5) + cont(toxicity, operator = "<0"),
+                          sim = simFCT2, sample.size = c(10,50,100),
+                          n.rep = 1000, seed = 10)
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(e.power)
+\end{lstlisting}
+
+\begin{verbatim}
+        Simulation study with Generalized pairwise comparison
+        with 1000 samples
+
+ - statistic   : net benefit (null hypothesis Delta=0)
+ endpoint threshold n.T n.C mean.estimate sd.estimate mean.se
+ toxicity     1e-12  10  10        0.2251       0.286  0.2441
+                     50  50         0.222      0.1206  0.1163
+                    100 100        0.2187       0.086  0.0823
+ rejection.rate
+          0.152
+          0.464
+           0.75
+
+ n.T          : number of observations in the treatment group
+ n.C          : number of observations in the control group
+ mean.estimate: average estimate over simulations
+ sd.estimate  : standard deviation of the estimate over simulations
+ mean.se      : average estimated standard error of the estimate over simulations
+ rejection    : frequency of the rejection of the null hypothesis over simulations
+(standard error: H-projection of order 1| p-value: after transformation)
+\end{verbatim}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e.power
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint threshold n.T n.C mean.estimate sd.estimate mean.se
+toxicity     1e-12  10  10         0.225       0.286   0.244
+                    50  50         0.222       0.121   0.116
+                   100 100         0.219       0.086   0.082
+rejection.rate
+         0.152
+         0.464
+          0.75
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+print(e.power, endpoint = c("OS_t5","toxicity"))
+\end{lstlisting}
+
+\begin{verbatim}
+ endpoint threshold n.T n.C mean.estimate sd.estimate    mean.se
+       OS         5  10  10     0.1586380  0.27565488 0.23862190
+                     50  50     0.1608379  0.11854069 0.11558718
+                    100 100     0.1581603  0.08406150 0.08194723
+ toxicity     1e-12  10  10     0.2250974  0.28602662 0.24405687
+                     50  50     0.2219896  0.12055283 0.11633601
+                    100 100     0.2187024  0.08598022 0.08226672
+ rejection.rate
+          0.104
+          0.267
+          0.468
+          0.152
+          0.464
+          0.750
 \end{verbatim}
 \end{document}

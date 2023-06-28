@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 2.4.4
-Date: 2023-06-26
+Version: 3.0.0
+Date: 2023-06-28
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
@@ -18,7 +18,7 @@ Depends:
     Rcpp
 Imports:
     data.table,
-    doParallel,
+    doSNOW,
     foreach,
     ggplot2,
     methods,
@@ -59,12 +59,15 @@ Collate:
     'PairScore.R'
     'RcppExports.R'
     'S4-BuysePower.R'
+    'S4-BuysePower-model.tables.R'
     'S4-BuysePower-summary.R'
+    'S4-BuysePower-print.R'
     'S4-BuysePower-show.R'
     'S4-BuyseTest.R'
     'S4-BuyseTest-coef.R'
     'S4-BuyseTest-confint.R'
     'S4-BuyseTest-get.R'
+    'S4-BuyseTest-model.tables.R'
     'S4-BuyseTest-plot.R'
     'S4-BuyseTest-summary.R'
     'S4-BuyseTest-print.R'
@@ -76,11 +79,12 @@ Collate:
     'brier.R'
     'constStrata.R'
     'discreteRoot.R'
+    'iid.S3sensitivity.R'
     'iid.prodlim.R'
     'normexp.R'
     'performance.R'
     'performanceResample.R'
-    'plot.sensitivity.R'
+    'plot.S3sensitivity.R'
     'powerBuyseTest.R'
     'predict.logit.R'
     'rbind.performanceResample.R'

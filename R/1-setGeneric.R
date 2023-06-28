@@ -11,6 +11,7 @@ setGeneric(name = "select",
 ## * Selector getCount (for S4BuyseTest)
 #' @rdname S4BuyseTest-getCount
 #' @exportMethod getCount
+#' @keywords methods
 setGeneric(name = "getCount",
            def = function(object, type){standardGeneric("getCount")}
 )
@@ -18,6 +19,7 @@ setGeneric(name = "getCount",
 ## * Selector getPairScore (for S4BuyseTest)
 #' @rdname S4BuyseTest-getPairScore
 #' @exportMethod getPairScore
+#' @keywords methods
 setGeneric(name = "getPairScore",
            def = function(object, endpoint = NULL, strata = NULL, sum = FALSE,
                           rm.withinStrata = TRUE, rm.strata = is.na(object@strata),
@@ -30,6 +32,7 @@ setGeneric(name = "getPairScore",
 ## * Selector getPseudovalue (for S4BuyseTest)
 #' @rdname S4BuyseTest-getPseudovalue
 #' @exportMethod getPseudovalue
+#' @keywords methods
 setGeneric(name = "getPseudovalue",
            def = function(object, statistic = NULL, endpoint = NULL){
                standardGeneric("getPseudovalue")
@@ -39,6 +42,7 @@ setGeneric(name = "getPseudovalue",
 ## * Selector getSurvival (for S4BuyseTest)
 #' @rdname S4BuyseTest-getSurvival
 #' @exportMethod getSurvival
+#' @keywords methods 
 setGeneric(name = "getSurvival",
            def = function(object, type = NULL, endpoint = NULL, strata = NULL, unlist = TRUE, trace = TRUE){
                standardGeneric("getSurvival")
@@ -48,6 +52,7 @@ setGeneric(name = "getSurvival",
 ## * Selector getIid (for S4BuyseTest)
 #' @rdname S4BuyseTest-getIid
 #' @exportMethod getIid
+#' @keywords methods
 setGeneric(name = "getIid",
            def = function(object, endpoint = NULL, statistic = NULL, stratified = FALSE, cumulative = TRUE, center = TRUE, scale = TRUE, type = "all", cluster = NULL){
                standardGeneric("getIid")
@@ -57,6 +62,7 @@ setGeneric(name = "getIid",
 ## * method sensitivity (for BuyseTest)
 #' @rdname S4BuyseTest-sensitivity
 #' @exportMethod sensitivity
+#' @keywords htest
 setGeneric(name = "sensitivity", 
            def = function(object, ...){standardGeneric("sensitivity")}
 )

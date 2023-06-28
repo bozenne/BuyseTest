@@ -8,7 +8,7 @@
 #' @description Summarize the results from the \code{\link{BuyseTest}} function.
 #' 
 #' @param object output of \code{\link{BuyseTest}}
-#' @param print [logical] Should the table be displayed?.
+#' @param print [logical] Should the results be displayed in the console?
 #' @param percentage [logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.
 #' @param statistic [character] the statistic summarizing the pairwise comparison:
 #' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
@@ -18,10 +18,10 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
+#' @param strata [character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.
 #' @param type.display [numeric or character] the results/summary statistics to be displayed.
 #' Either an integer indicating refering to a type of display in \code{BuyseTest.options()}
 #' or the name of the column to be output (e.g. \code{c("strata","Delta","p.value")}).
-#' @param strata [character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.
 #' @param digit [integer vector] the number of digit to use for printing the counts and the delta.  
 #' @param ... arguments to be passed to \code{\link{S4BuyseTest-confint}}
 #'
@@ -112,9 +112,9 @@
 #' @references 
 #' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-#' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \
+#' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937.
 #' 
-#' @keywords summary S4BuyseTest-method
+#' @keywords print
 #' @author Brice Ozenne
 
 ## * method - summary
@@ -122,52 +122,12 @@
 #' @exportMethod summary
 setMethod(f = "summary",
           signature = "S4BuyseTest",
-          definition = function(object, print = TRUE, percentage = TRUE, statistic = NULL,
-                                conf.level = NULL,
-                                strata = if(length(object@level.strata)==1){"global"}else{NULL},
-                                type.display = 1,
-                                digit = c(2,4,5), ...){
+          definition = function(object, print = TRUE, percentage = TRUE, statistic = NULL, conf.level = NULL, strata = NULL,
+                                type.display = 1, digit = c(2,4,5), ...){
 
               ## ** normalize and check arguments
               option <- BuyseTest.options()
-              if(is.null(statistic)){
-                  statistic <- option$statistic
-              }
-              if(is.null(conf.level)){
-                  conf.level <- option$conf.level
-              }
               
-              validLogical(print,
-                           name1 = "print",
-                           valid.length = 1,
-                           method = "summary[S4BuyseTest]")
-              
-              validLogical(percentage,
-                           name1 = "percentage",
-                           valid.length = 1,
-                           refuse.NA = FALSE, 
-                           method = "summary[S4BuyseTest]")
-
-              statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
-                                  "netbenefit" = "netBenefit",
-                                  "winratio" = "winRatio",
-                                  "favorable" = "favorable",
-                                  "unfavorable" = "unfavorable",
-                                  statistic)
-
-              validCharacter(statistic,
-                             name1 = "statistic",
-                             valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
-                             valid.length = 1,
-                             method = "summary[S4BuyseTest]")
-
-              validCharacter(strata,
-                             name1 = "strata",
-                             valid.length = NULL,
-                             valid.values = c("global",object@level.strata),
-                             refuse.NULL = FALSE,
-                             method = "summary[S4BuyseTest]")
-
               if(length(digit) == 1){digit <- rep(digit,3)}
               validInteger(digit,
                            name1 = "digit",
@@ -179,19 +139,10 @@ setMethod(f = "summary",
                   validInteger(type.display,
                                name1 = "type.display",
                                min = 1,
-                               max = length(option$summary.display),
+                               max = 9, ## limitation in model.tables
                                valid.length = 1)
-
-                  type.display <- option$summary.display[[type.display]]
-                  if(all(is.na(object@restriction))){
-                      type.display <- setdiff(type.display, "restriction")
-                  }
-                  if(all(abs(object@threshold)<=1e-12)){
-                      type.display <- setdiff(type.display, "threshold")
-                  }
-                  if(length(unique(object@weightEndpoint))==1){
-                      type.display <- setdiff(type.display, "weight")
-                  }
+                  type.display.original <- option$summary.display[[type.display]]
+                  type.display <- paste0("summary",type.display)
               }else{
                   validCharacter(type.display,
                                  name1 = "type.display",
@@ -199,362 +150,269 @@ setMethod(f = "summary",
                                                   "delta","Delta","Delta(%)",
                                                   "p.value","CI","significance"),
                                  valid.length = NULL)
+                  type.display.original <- type.display
               }
-              
-              ## ** load info from object
-              hierarchical <- object@hierarchical
-              endpoint <- object@endpoint
+              if(is.null(conf.level)){
+                  conf.level <- option$conf.level
+              }
+              alpha <- 1-conf.level              
+              method.inference <- slot(object,"method.inference")
+              hierarchical <- slot(object,"hierarchical")
+
+              if(is.null(statistic)){
+                  statistic <- option$statistic
+              }else{
+                  statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
+                                      "netbenefit" = "netBenefit",
+                                      "winratio" = "winRatio",
+                                      "favorable" = "favorable",
+                                      "unfavorable" = "unfavorable",
+                                      statistic)
+              }
+              endpoint <- slot(object,"endpoint")
               n.endpoint <- length(endpoint)
-              n.strata <- length(object@level.strata)
-
-              delta <- coef(object, statistic = statistic, cumulative = FALSE, stratified = TRUE)
-              Delta <- coef(object, statistic = statistic, cumulative = TRUE)
-              n.resampling <- object@n.resampling
-
-              method.inference <- object@method.inference
-              if(is.na(conf.level)){
-                  method.inference[] <- "none" ## uses [] to not remove the attributees of method.inference
-              }
-
-              alpha <- 1-conf.level
-              qInf <- round(100*alpha/2, digits = digit[2])
-              qSup <- round(100*(1-alpha/2), digits = digit[2])
-              name.ci <- paste0("CI [",qInf,"% ; ",qSup,"%]")
-
-              ## ** update type.display
-              ## update the name of the columns according to the request
-              if("CI" %in% type.display){
-                  type.display[type.display=="CI"] <- name.ci
-              }
-              vec.tfunu <- c("total","favorable","unfavorable","neutral","uninf")
-              if(is.na(percentage)){
-                  type.display <- setdiff(type.display,vec.tfunu)
-              }
-
-              ## remove columns not requested by the user
-              rm.display <- NULL
-              if(hierarchical){
-                  rm.display <- c(rm.display,"weight")
-              }
-              if(is.na(percentage)){
-                  rm.display <- c(rm.display,"total","favorable","unfavorable","neutral","uninf")
-              }
-
-              if(method.inference == "none"){
-                  rm.display <- c(rm.display,name.ci,"p.value","significance","n.resampling")
-              }else if(attr(method.inference,"ustatistic")){
-                  rm.display <- c(rm.display,"n.resampling")
-              }else if(attr(method.inference,"permutation")){
-                  rm.display <- c(rm.display,name.ci)
-              }
-              if(identical(strata, "global")){
-                  rm.display <- c(rm.display,"strata")
-              }
-              if("delta" %in% type.display && "Delta" %in% type.display && n.endpoint == 1 && (n.strata==1 || identical(strata, "global"))){
-                  rm.display <- union("delta", rm.display)
-              }
-              type.display <- setdiff(type.display,rm.display)
-
-              ## ** compute confidence intervals and p-values
+              n.strata <- length(slot(object,"strata"))
+              
+              ## ** build table
               if(attr(method.inference,"permutation")){
                   attr(conf.level,"warning.permutation") <- FALSE
               }
-              outConfint  <- confint(object, conf.level = conf.level, statistic = statistic, ...)
+              table.print <- model.tables(object, percentage = percentage, statistic = statistic, conf.level = conf.level, strata = strata,
+                                          columns = type.display, ...)
 
-              ## ** generate summary table
-              ## *** prepare
-              table <- data.frame(matrix(NA,nrow=(n.strata+1)*n.endpoint,ncol=20),
-                                  stringsAsFactors = FALSE)
-              names(table) <- c("endpoint","restriction","threshold","weight","strata",
-                                "total","favorable","unfavorable","neutral","uninf",
-                                "delta","Delta","Delta(%)","information(%)",
-                                "CIinf.Delta","CIsup.Delta","null","p.value","significance","n.resampling")
-            
-              index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
+              name.print <- names(table.print)
+              endpoint.restriction.threshold <- attr(table.print,"endpoint")
+              transform <- attr(table.print,"transform")
+              n.resampling <- attr(table.print,"n.resampling")
+              method.ci.resampling <- attr(table.print,"method.ci.resampling")
 
-              if(identical(percentage, TRUE)){
-                  table[index.global,"favorable"] <- 100*coef(object, statistic = "favorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"unfavorable"] <- 100*coef(object, statistic = "unfavorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"neutral"] <- 100*coef(object, statistic = "neutral", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"uninf"] <- 100*coef(object, statistic = "uninf", stratified = FALSE, cumulative = FALSE)
+              ## CI when the estimate is not defined
+              if("lower.ci" %in% name.print && "upper.ci" %in% name.print){
+                  index.ci <- intersect(which(!is.na(table.print$lower.ci)),
+                                        which(!is.na(table.print$upper.ci)))
+                  if("Delta" %in% name.print){
+                      index.ci <- intersect(index.ci,
+                                            intersect(which(!is.infinite(table.print$Delta)),
+                                                      which(!is.na(table.print$Delta))))                      
+                  }
+                  
               }else{
-                  table[index.global,"favorable"] <- coef(object, statistic = "count.favorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"unfavorable"] <- coef(object, statistic = "count.unfavorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"neutral"] <- coef(object, statistic = "count.neutral", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"uninf"] <- coef(object, statistic = "count.uninf", stratified = FALSE, cumulative = FALSE)
-              }
-              table[index.global,"total"] <- rowSums(table[index.global,c("favorable","unfavorable","neutral","uninf")])
-              table[index.global,"restriction"] <- object@restriction
-              table[index.global,"endpoint"] <- object@endpoint
-              table[index.global,"threshold"] <- object@threshold
-              table[index.global,"weight"] <- object@weightEndpoint
-              table[index.global,"strata"] <- "global"
-
-              table[index.global,"delta"] <- coef(object, statistic = statistic, stratified = FALSE, cumulative = FALSE)
-              table[index.global,"Delta"] <- Delta
-              table[index.global,"Delta(%)"] <- 100*Delta/Delta[n.endpoint]
-
-              Mstrata.F <- coef(object, statistic = "count.favorable", stratified = TRUE, cumulative = FALSE)
-              Mstrata.UF <- coef(object, statistic = "count.unfavorable", stratified = TRUE, cumulative = FALSE)
-              Mstrata.N <- coef(object, statistic = "count.neutral", stratified = TRUE, cumulative = FALSE)
-              Mstrata.UI <- coef(object, statistic = "count.uninf", stratified = TRUE, cumulative = FALSE)
-              if(identical(percentage, TRUE)){
-                  Mstrata.F <- 100*Mstrata.F/sum(object@n.pairs)
-                  Mstrata.UF <- 100*Mstrata.UF/sum(object@n.pairs)
-                  Mstrata.N <- 100*Mstrata.N/sum(object@n.pairs)
-                  Mstrata.UI <- 100*Mstrata.UI/sum(object@n.pairs)
+                  index.ci <- NULL
               }
 
-              for(iStrata in 1:n.strata){
-                  index.strata <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1+iStrata
-                  table[index.strata,"favorable"] <- Mstrata.F[iStrata,]
-                  table[index.strata,"unfavorable"] <- Mstrata.UF[iStrata,]
-                  table[index.strata,"neutral"] <- Mstrata.N[iStrata,]
-                  table[index.strata,"uninf"] <- Mstrata.UI[iStrata,]
-                  table[index.strata,"total"] <- rowSums(table[index.strata,c("favorable","unfavorable","neutral","uninf")])
-
-                  table[index.strata,"strata"] <- object@level.strata[iStrata]
-                  table[index.strata,"endpoint"] <- object@endpoint
-                  table[index.strata,"threshold"] <- object@threshold
-                  table[index.strata,"restriction"] <- object@restriction
-                  table[index.strata,"weight"] <- object@weightEndpoint
-                  table[index.strata,"delta"] <- delta[iStrata,]
-              }
-
-              ## *** information fraction and co
-              table[index.global,"information(%)"] <- 100*cumsum(colSums(object@count.favorable+object@count.unfavorable)/sum(object@count.favorable+object@count.unfavorable))
-             
-              ## *** compute CI and p-value
-              if(!attr(method.inference,"permutation")){
-                  table[index.global,"CIinf.Delta"] <- outConfint[,"lower.ci"]
-                  table[index.global,"CIsup.Delta"] <- outConfint[,"upper.ci"]
-              }
-
-              table[index.global,"null"] <- outConfint[,"null"]
-              table[index.global,"p.value"] <- outConfint[,"p.value"]
-              table[index.global,"n.resampling"] <- attr(outConfint,"n.resampling")
-
-              ## ** generate print table
-              table.print <- table
-
+              ## ** reformat table
               ## *** add column with stars
-              if(method.inference != "none"){
-                  colStars <- rep("",NROW(table.print))
-                  colStars[index.global] <- sapply(table.print[index.global,"p.value"],function(x){
+              if(("p.value" %in% name.print) && ("significance" %in% type.display.original)){
+                  colStars <- sapply(table.print[,"p.value"],function(x){
                       if(is.na(x)){""}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
                   })
                   table.print[,"significance"] <- colStars
               }
 
-              ## *** restrict to strata
-              if(!is.null(strata)){
-                  table.print <- table.print[table.print$strata %in% strata,,drop = FALSE]                      
-              }
-
               ## *** rounding
               ## counts
-              if(!is.na(digit[1])){
-                  param.signif <- c("total","favorable","unfavorable","neutral","uninf")
-                  table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[1])
+              col.pairs <- intersect(name.print, c("total","favorable","unfavorable","neutral","uninf"))
+              if(!is.na(digit[1]) && length(col.pairs)>0){
+                  table.print[,col.pairs] <- sapply(table.print[,col.pairs,drop=FALSE], round, digits = digit[1])
               }
-              if(!is.na(digit[2])){
-                  param.signif <- c("delta","Delta","CIinf.Delta","CIsup.Delta","Delta(%)","information(%)")
-                  table.print[,param.signif] <- sapply(table.print[,param.signif], round, digits = digit[2])
+              col.inference <- intersect(name.print, c("delta","Delta","lower.ci","upper.ci","Delta(%)","information(%)"))
+              if(!is.na(digit[2]) && length(col.inference)>0){
+                      table.print[,col.inference] <- sapply(table.print[,col.inference,drop=FALSE], round, digits = digit[2])
               }
-              if(!is.na(digit[3])){
+              if(!is.na(digit[3]) && ("p.value" %in% name.print)){
                   table.print[!is.na(table.print$p.value),"p.value"] <- format.pval(table.print[!is.na(table.print$p.value),"p.value"], digits = digit[3])                      
               }
 
               ## *** set Inf to NA in summary
               ## e.g. in the case of no unfavorable pairs the win ratio is Inf
               ##      this is not a valid estimate and it is set to NA
-              if(any(is.infinite(table.print$delta))){
+              if("delta" %in% name.print){
                   table.print[is.infinite(table.print$delta), "delta"] <- NA
-              }
-              if(any(is.nan(table.print$delta))){
                   table.print[is.nan(table.print$delta), "delta"] <- NA
               }
-              if(any(is.infinite(table.print$Delta))){
+              if("Delta" %in% name.print){
                   table.print[is.infinite(table.print$Delta), "Delta"] <- NA
-              }
-              if(any(is.nan(table.print$Delta))){
                   table.print[is.nan(table.print$Delta), "Delta"] <- NA
               }
               
               ## *** convert NA to ""
-              table.print$threshold[table.print$threshold<=1e-12] <- ""
-              if(any(is.na(table.print$restriction))){
+              if("threshold" %in% name.print){
+                  table.print$threshold[table.print$threshold<=1e-12] <- ""
+              }
+              if("restriction" %in% name.print){
                   table.print[is.na(table.print$restriction), "restriction"] <- ""
               }
-              if(any(is.na(table.print$Delta))){
-                  table.print[is.na(table.print$Delta), "Delta"] <- ""
+              if("Delta" %in% name.print){
+                  table.print[is.na(table.print$lower), "Delta"] <- ""
               }
-              if(any(is.na(table.print$CIinf.Delta))){
-                  table.print[is.na(table.print$CIinf.Delta), "CIinf.Delta"] <- ""
+              if("lower.ci" %in% name.print){
+                  table.print[is.na(table.print$lower), "lower.ci"] <- ""
               }
-              if(any(is.na(table.print$CIsup.Delta))){
-                  table.print[is.na(table.print$CIsup.Delta), "CIsup.Delta"] <- ""
+              if("upper.ci" %in% name.print){
+                  table.print[is.na(table.print$upper), "upper.ci"] <- ""
               }
-              if(any(is.na(table.print$p.value))){
+              if("p.value" %in% name.print){
                   table.print[is.na(table.print$p.value), "p.value"] <- ""
               }
 
               ## *** remove duplicated values in endpoint/threshold
-              test.duplicated <- duplicated(interaction(table.print$endpoint,table.print$threshold,table.print$weight))
-              table.print[which(test.duplicated),c("endpoint","threshold","weight")] <- ""
-
-              ## *** merge CI inf and CI sup column
-              if(method.inference != "none" && !attr(method.inference,"permutation")){
-                  if("strata" %in% names(table.print)){
-                      index.tempo <- which(table.print$strata == "global")                                       
-                  }else{
-                      index.tempo <- 1:NROW(table.print)
-                  }
-                  ## remove CI when the estimate is not defined
-                  index.tempo <- intersect(index.tempo,
-                                           intersect(which(!is.infinite(table.print$Delta)),
-                                                     which(!is.na(table.print$Delta)))
-                                           )
-
-                  table.print$CIinf.Delta[index.tempo] <- paste0("[",table.print[index.tempo,"CIinf.Delta"],
-                                                                 ";",table.print[index.tempo,"CIsup.Delta"],"]")
-
-                  names(table.print)[names(table.print) == "CIinf.Delta"] <- name.ci
-                  table.print$CIsup.Delta <- NULL
+              if("endpoint" %in% name.print){                  
+                  table.print$endpoint[duplicated(endpoint.restriction.threshold)] <- ""
+              }
+              if("threshold" %in% name.print){                  
+                  table.print$threshold[duplicated(endpoint.restriction.threshold)] <- ""
+              }
+              if("restriction" %in% name.print){                  
+                  table.print$restriction[duplicated(endpoint.restriction.threshold)] <- ""
+              }
+              if("weight" %in% name.print){                  
+                  table.print$weight[duplicated(endpoint.restriction.threshold)] <- ""
               }
 
-              ## *** select relevant columns
-              table.print <- table.print[,type.display,drop=FALSE]
-              ##              type.display[type.display %in% names(table.print) == FALSE]
-              if(identical(percentage,TRUE) & any(vec.tfunu %in% type.display)){
-                  names(table.print)[names(table.print) %in% vec.tfunu] <- paste0(names(table.print)[names(table.print) %in% vec.tfunu],"(%)")
+              ## *** merge CI inf and CI sup column
+              if("CI" %in% type.display.original && "lower.ci" %in% name.print && "upper.ci" %in% name.print){
+                  qInf <- round(100*alpha/2, digits = digit[2])
+                  qSup <- round(100*(1-alpha/2), digits = digit[2])
+                  name.ci <- paste0("CI [",qInf,"% ; ",qSup,"%]")
+                  table.print$upper.ci[index.ci] <- paste0("[",table.print[index.ci,"lower.ci"],
+                                                              ";",table.print[index.ci,"upper.ci"],"]")
+
+                  names(table.print)[names(table.print) == "upper.ci"] <- name.ci
+                  table.print$lower.ci <- NULL
+              }
+
+              ## *** rename percentage columns
+              vec.tfunu <- intersect(c("total","favorable","unfavorable","neutral","uninf"), name.print)
+              if(identical(percentage,TRUE) & length(vec.tfunu)>0){
+                  names(table.print)[match(vec.tfunu, names(table.print))] <- paste0(names(table.print)[names(table.print) %in% vec.tfunu],"(%)")
               }
 
               ## ** display
-              if(print){
-                  ## *** additional text
-                  if(n.endpoint>1){
-                      txt.endpoint <- paste0("with ",n.endpoint," ",ifelse(hierarchical, "prioritized ", ""),"endpoints", sep = "")
-                  }else{
-                      txt.endpoint <- paste0("with 1 endpoint")
-                  }
-                  txt.strata <- if(n.strata>1){paste0(" and ",n.strata," strata")}else{""}
+              ## *** additional text
+              if(n.endpoint>1){
+                  txt.endpoint <- paste0("with ",n.endpoint," ",ifelse(hierarchical, "prioritized ", ""),"endpoints", sep = "")
+              }else{
+                  txt.endpoint <- paste0("with 1 endpoint")
+              }
+              txt.strata <- if(n.strata>1){paste0(" and ",n.strata," strata")}else{""}
                   
-                  ## *** display
-                  cat("       Generalized pairwise comparisons ",txt.endpoint,txt.strata,"\n\n", sep = "")
-                  if(statistic == "winRatio"){
-                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"win ratio (delta: endpoint specific, Delta: global) \n",
-                          " - null hypothesis : Delta == 1 \n", sep = "")
-                  }else if(statistic == "netBenefit"){
-                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"net benefit (delta: endpoint specific, Delta: global) \n",
-                          " - null hypothesis : Delta == 0 \n", sep = "")
-                  }else if(statistic == "favorable"){
-                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of treatment (delta: endpoint specific, Delta: global) \n",
-                          " - null hypothesis : Delta == 1/2 \n", sep = "")
-                  }else if(statistic == "favorable"){
-                      cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of control (delta: endpoint specific, Delta: global) \n",
-                          " - null hypothesis : Delta == 1/2 \n", sep = "")
+              ## *** display
+              if(print){
+              cat("       Generalized pairwise comparisons ",txt.endpoint,txt.strata,"\n\n", sep = "")
+              if(statistic == "winRatio"){
+                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"win ratio (delta: endpoint specific, Delta: global) \n",
+                      " - null hypothesis : Delta == 1 \n", sep = "")
+              }else if(statistic == "netBenefit"){
+                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"net benefit (delta: endpoint specific, Delta: global) \n",
+                      " - null hypothesis : Delta == 0 \n", sep = "")
+              }else if(statistic == "favorable"){
+                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of treatment (delta: endpoint specific, Delta: global) \n",
+                      " - null hypothesis : Delta == 1/2 \n", sep = "")
+              }else if(statistic == "favorable"){
+                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of control (delta: endpoint specific, Delta: global) \n",
+                      " - null hypothesis : Delta == 1/2 \n", sep = "")
+              }
+              if(method.inference != "none"){
+                  cat(" - confidence level: ",1-alpha," \n", sep = "")
+
+                  if(attr(method.inference,"permutation")){
+                      txt.method <- "permutation test"
+                  }else if(attr(method.inference,"bootstrap")){
+                      txt.method <- "bootstrap resampling"
+                  }else if(attr(method.inference,"ustatistic")){
+                      test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
+                      txt.method <- paste0("H-projection of order ",attr(method.inference,"hprojection"))
+                      if(transform != "id"){
+                          txt.method <- paste0(txt.method," after ",transform," transformation \n")
+                      }else{
+                          txt.method <- paste0(txt.method," \n")
+                      }
+                      if(test.model.tte && (object@scoring.rule == "Peron" || object@correction.uninf > 0)){
+                          txt.method <- paste0(txt.method,"                     (ignoring the uncertainty of the nuisance parameters)")
+                      }
                   }
-                  if(method.inference != "none"){
-                      cat(" - confidence level: ",1-alpha," \n", sep = "")
+
+                  if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap") ){
+                      ok.resampling <- all(n.resampling[1]==n.resampling)
+                      if(ok.resampling){
+                          txt.method <- paste0(txt.method, " with ",n.resampling[1]," samples \n")
+                          table.print$n.resampling <- NULL
+                      }else{
+                          txt.method <- paste0(txt.method, " with [",min(n.resampling)," ; ",max(n.resampling),"] samples \n")
+                      }
 
                       if(attr(method.inference,"permutation")){
-                          txt.method <- "permutation test"
+                          txt.method.ci <- switch(method.ci.resampling,
+                                                  "percentile" = "p-value computed using the permutation distribution",
+                                                  "studentized" = "p-value computed using the studentized permutation distribution",
+                                                  )
                       }else if(attr(method.inference,"bootstrap")){
-                          txt.method <- "bootstrap resampling"
-                      }else if(attr(method.inference,"ustatistic")){
-                          test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
-                          txt.method <- paste0("H-projection of order ",attr(method.inference,"hprojection"),"\n")
-                          if(test.model.tte && (object@scoring.rule == "Peron" || object@correction.uninf > 0)){
-                              txt.method <- paste0(txt.method,"                     (ignoring the uncertainty of the nuisance parameters) \n")
-                          }
-                      
+                          txt.method.ci <- switch(method.ci.resampling,
+                                                  "percentile" = "CI computed using the percentile method; p-value by test inversion",
+                                                  "gaussian" = "CI/p-value computed assuming normality",
+                                                  "studentized" = "CI computed using the studentized method; p-value by test inversion",
+                                                  )
                       }
-
-                      if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap") ){
-                          ok.resampling <- all(n.resampling[1]==n.resampling)
-                          if(ok.resampling){
-                              txt.method <- paste0(txt.method, " with ",n.resampling[1]," samples \n")
-                              table.print$n.resampling <- NULL
-                          }else{
-                              txt.method <- paste0(txt.method, " with [",min(n.resampling)," ; ",max(n.resampling),"] samples \n")
-                          }
-
-                          if(attr(method.inference,"permutation")){
-                              txt.method.ci <- switch(attr(outConfint,"method.ci.resampling"),
-                                                      "percentile" = "p-value computed using the permutation distribution",
-                                                      "studentized" = "p-value computed using the studentized permutation distribution",
-                                                      )
-                          }else if(attr(method.inference,"bootstrap")){
-                              txt.method.ci <- switch(attr(outConfint,"method.ci.resampling"),
-                                                      "percentile" = "CI computed using the percentile method; p-value by test inversion",
-                                                      "gaussian" = "CI/p-value computed assuming normality",
-                                                      "studentized" = "CI computed using the studentized method; p-value by test inversion",
-                                                      )
-                          }
                           
-                          txt.method <- paste0(txt.method,"                     ",txt.method.ci," \n")
-                      }
-                      cat(" - inference       : ",txt.method, sep = "")
+                      txt.method <- paste0(txt.method,"                     ",txt.method.ci," \n")
                   }
-                  
-                  cat(" - treatment groups: ",object@level.treatment[2]," (treatment) vs. ",object@level.treatment[1]," (control) \n", sep = "")
-                  if(n.strata>1){
-                      cat(" - strata weights  : ",paste(paste0(round(100*object@weightStrata, digit[1]),"%"), collapse = ", ")," \n", sep = "")
-                  }
-                  if(any(object@type == "tte") && any(attr(object@scoring.rule,"test.censoring"))){
-                      
-                      if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){
-                          txt.Peron <- "cif"
-                      }else if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="SurvPeron")){
-                          txt.Peron <- "survival"
-                      }else{
-                          txt.Peron <- "survival/cif"
-                      }
-
-                      txt.scoring.rule <- switch(object@scoring.rule,
-                                                 "Gehan" = "deterministic score or uninformative",
-                                                 "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
-                                                 )
-                      cat(" - censored pairs  : ",txt.scoring.rule,"\n", sep = "")
-                  }
-                  if(n.endpoint>1 && any(object@count.neutral>0)){
-                      Uneutral.as.uninf <- unique(object@neutral.as.uninf)
-                      if(identical(Uneutral.as.uninf,TRUE)){
-                          txt.neutral <- "re-analyzed using lower priority endpoints"
-                      }else if(identical(Uneutral.as.uninf,FALSE)){
-                          txt.neutral <- "ignored at lower priority endpoints"
-                      }else{
-                          txt.neutral <- paste0("re-analyzed using lower priority endpoints for endpoint ",
-                                                paste(which(object@neutral.as.uninf), collapse = ", "),
-                                                " \n                     otherwise ignored at lower priority endpoints")
-                      }
-                      cat(" - neutral pairs   : ",txt.neutral,"\n", sep = "")
-                  }
-                  if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){
-                      txt.uninf <- switch(as.character(object@correction.uninf),
-                                          "0" = if(n.endpoint==1){"no contribution"}else{"no contribution at the current endpoint, analyzed at later endpoints"},
-                                          "1" = "score equals the averaged score of all informative pairs",
-                                          "2" = "no contribution, their weight is passed to the informative pairs using IPCW"
-                                          )
-                      cat(" - uninformative pairs: ",txt.uninf,"\n", sep = "")
-                  }
-                  
-                  cat(" - results\n")
-                  table.print2 <- table.print
-                  if("significance" %in% names(table.print)){
-                      names(table.print2)[names(table.print2) == "significance"] <- ""
-                  }
-                  print(table.print2, row.names = FALSE)
-                  
+                  cat(" - inference       : ",txt.method, sep = "")
               }
+                  
+              cat(" - treatment groups: ",object@level.treatment[2]," (treatment) vs. ",object@level.treatment[1]," (control) \n", sep = "")
+              if(n.strata>1){
+                  cat(" - strata weights  : ",paste(paste0(round(100*object@weightStrata, digit[1]),"%"), collapse = ", ")," \n", sep = "")
+              }
+              if(any(object@type == "tte") && any(attr(object@scoring.rule,"test.censoring"))){
+                      
+                  if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){
+                      txt.Peron <- "cif"
+                  }else if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="SurvPeron")){
+                      txt.Peron <- "survival"
+                  }else{
+                      txt.Peron <- "survival/cif"
+                  }
+
+                  txt.scoring.rule <- switch(object@scoring.rule,
+                                             "Gehan" = "deterministic score or uninformative",
+                                             "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
+                                             )
+                  cat(" - censored pairs  : ",txt.scoring.rule,"\n", sep = "")
+              }
+              if(n.endpoint>1 && any(object@count.neutral>0)){
+                  Uneutral.as.uninf <- unique(object@neutral.as.uninf)
+                  if(identical(Uneutral.as.uninf,TRUE)){
+                      txt.neutral <- "re-analyzed using lower priority endpoints"
+                  }else if(identical(Uneutral.as.uninf,FALSE)){
+                      txt.neutral <- "ignored at lower priority endpoints"
+                  }else{
+                      txt.neutral <- paste0("re-analyzed using lower priority endpoints for endpoint ",
+                                            paste(which(object@neutral.as.uninf), collapse = ", "),
+                                            " \n                     otherwise ignored at lower priority endpoints")
+                  }
+                  cat(" - neutral pairs   : ",txt.neutral,"\n", sep = "")
+              }
+              if(!( (object@correction.uninf == 0) && (all(object@count.uninf==0)) )){
+                  txt.uninf <- switch(as.character(object@correction.uninf),
+                                      "0" = if(n.endpoint==1){"no contribution"}else{"no contribution at the current endpoint, analyzed at later endpoints"},
+                                      "1" = "score equals the averaged score of all informative pairs",
+                                      "2" = "no contribution, their weight is passed to the informative pairs using IPCW"
+                                      )
+                  cat(" - uninformative pairs: ",txt.uninf,"\n", sep = "")
+              }
+                  
+              cat(" - results\n")
+              table.print2 <- table.print
+              if("significance" %in% names(table.print)){
+                  names(table.print2)[names(table.print2) == "significance"] <- ""
+              }
+              print(table.print2, row.names = FALSE)
+              }
+                  
               ## ** export
-              return(invisible(list(table = table,
-                                    table.print = table.print))
-                     )
-            
+              return(invisible(table.print))
           }
-)
+          )
 
 
 

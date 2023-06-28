@@ -88,7 +88,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' To handle multiple endpoints, it stores some of the results which can be memory demanding when considering large sample - especially when computing the iid decomposition.
 //' GPC2_cpp implements GPC looping first over pairs and then over endpoints. It has rather minimal memory requirement but does not handle correction for uninformative pairs. 
 //'
-//' @keywords function Cpp BuyseTest
+//' @keywords internal
 //'
 //' @author Brice Ozenne
 

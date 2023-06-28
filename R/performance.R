@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: apr 21 2022 (12:18) 
+## Last-Updated: jun 27 2023 (14:04) 
 ##           By: Brice Ozenne
-##     Update #: 1188
+##     Update #: 1190
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -42,6 +42,9 @@
 ##' @param seed [integer, >0] seed used to ensure reproducibility.
 ##'
 ##' @references LeDell E, Petersen M, van der Laan M. Computationally efficient confidence intervals for cross-validated area under the ROC curve estimates. Electron J Stat. 2015;9(1):1583-1607. doi:10.1214/15-EJS1035 
+##' 
+##' @return An S3 object of class \code{performance}.
+##' @keywords model
 ##' 
 ##' @examples
 ##' ## Simulate data

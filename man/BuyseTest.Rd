@@ -221,27 +221,28 @@ if(require(prodlim)){
 #### one time to event endpoint ####
 BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data= df.data)
 
-summary(BT) # net benefit
+summary(BT) ## net benefit
+model.tables(BT) ## export the table at the end of summary
 summary(BT, percentage = FALSE)  
-summary(BT, statistic = "winRatio") # win Ratio
+summary(BT, statistic = "winRatio") ## win Ratio
 
 ## permutation instead of asymptotics to compute the p-value
 \dontrun{
-    BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
+    BTperm <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e3)
 }
 \dontshow{
-    BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
+    BTperm <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
                     method.inference = "permutation", n.resampling = 1e1, trace = 0)
 }
-summary(BT, statistic = "netBenefit") ## default
-summary(BT, statistic = "winRatio") 
+summary(BTperm)
+summary(BTperm, statistic = "winRatio") 
 
-## parallel permutation
+## same with parallel calculations
 \dontrun{
-    BT <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
-                    method.inference = "permutation", n.resampling = 1e3, cpus = 2)
-    summary(BT)
+    BTperm <- BuyseTest(treatment ~ TTE(eventtime, status = status), data=df.data,
+                    method.inference = "permutation", n.resampling = 1e3, cpus = 8)
+    summary(BTperm)
 }
 
 ## method Gehan is much faster but does not optimally handle censored observations
@@ -254,16 +255,17 @@ BT <- BuyseTest(treatment ~ TTE(eventtime, threshold = 1, status = status), data
 summary(BT)
 
 #### one time to event endpoint with a strata variable
-BT <- BuyseTest(treatment ~ strata + TTE(eventtime, status = status), data=df.data)
-summary(BT)
+BTS <- BuyseTest(treatment ~ strata + TTE(eventtime, status = status), data=df.data)
+summary(BTS)
 
 #### several endpoints with a strata variable
-f <- treatment ~ strata + T(eventtime, status, 1) + B(toxicity) 
-f <- update(f, 
+ff <- treatment ~ strata + T(eventtime, status, 1) + B(toxicity) 
+ff <- update(ff, 
             ~. + T(eventtime, status, 0.5) + C(score, 1) + T(eventtime, status, 0.25))
 
-BT <- BuyseTest(f, data=df.data)
-summary(BT)
+BTM <- BuyseTest(ff, data=df.data)
+summary(BTM)
+plot(BTM)
 
 #### real example : veteran dataset of the survival package ####
 ## Only one endpoint. Type = Time-to-event. Thresold = 0. Stratfication by histological subtype
@@ -271,7 +273,7 @@ summary(BT)
 
 if(require(survival)){
 \dontrun{
-  library(survival) ## import veteran
+  data(cancer, package = "survival") ## import veteran
  
   ## scoring.rule = "Gehan"
   BT_Gehan <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
@@ -284,7 +286,6 @@ if(require(survival)){
   BT_Peron <- BuyseTest(trt ~ celltype + TTE(time,threshold=0,status=status), 
                         data=veteran, scoring.rule="Peron")
 
-  class(BT_Peron)
   summary(BT_Peron)
 }
 }
@@ -300,12 +301,13 @@ On how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al.
 \seealso{
 \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
 \code{\link{S4BuyseTest-confint}} for exporting estimates with confidence intervals and p-values. \cr
-\code{\link{S4BuyseTest-class}} for a presentation of the \code{S4BuyseTest} object. \cr
+\code{\link{S4BuyseTest-model.tables}} for exporting the number or percentage of favorable/unfavorable/neutral/uninformative pairs. \cr
 \code{\link{S4BuyseTest-sensitivity}} for performing a sensitivity analysis on the choice of the threshold(s). \cr
-\code{\link{constStrata}} to create a strata variable from several clinical variables. \cr
+\code{\link{S4BuyseTest-plot}} for graphical display of the pairs across endpoints. \cr
+\code{\link{S4BuyseTest-getIid}} for exporting the first order H-decomposition. \cr
+\code{\link{S4BuyseTest-getPairScore}} for exporting the scoring of each pair.
 }
 \author{
 Brice Ozenne
 }
-\keyword{BuyseTest}
-\keyword{function}
+\keyword{models}

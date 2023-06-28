@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: Jun 19 2023 (09:06) 
+## Last-Updated: jun 27 2023 (10:04) 
 ##           By: Brice Ozenne
-##     Update #: 184
+##     Update #: 192
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,9 +15,31 @@
 ## 
 ### Code:
 
-
+## * brier (documentation)
+#' @title Estimation of the Brier Score (EXPERIMENTAL)
+#' @name brier
+#' 
+#' @description Estimation of the brier score, possibly after cross validation,
+#' to assess the discriminant ability and calibration of a biomarker regarding a disease status.
+#' 
+#' @param labels [integer/character vector] the disease status (should only take two different values).
+#' @param predictions [numeric vector] A vector with the same length as \code{labels} containing the biomarker values.
+#' @param iid [array, optional] influence function of the prediction. For cross validation (CV) should be a 3 dimensional array (one slice per CV fold).
+#' Otherwise a matrix with as many column as observations and rows as predictions.
+#' @param fold [character/integer vector] If using cross validation, the index of the fold. 
+#' Should have the same length as \code{labels}.
+#' @param observation [integer vector] If using cross validation, the index of the corresponding observation in the original dataset.
+#' Necessary to compute the standard error when using cross validation.
+#' @param null [numeric, 0-1] the value against which the AUC should be compared when computing the p-value.
+#' @param conf.level [numeric, 0-1] the confidence level of the confidence intervals.
+#' @param transformation [logical] should a log-log transformation be used when computing the confidence intervals and the p-value.
+#' 
+#' @keywords models
+#' 
+#' @return An S3 object of class \code{BuyseTestBrier} that inherits from data.frame.
 
 ## * brier (code)
+#' @export
 brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NULL,
                   null = NA, conf.level = 0.95, transformation = TRUE){
 
@@ -232,6 +254,7 @@ print.BuyseTestBrier <- function(x, ...){
 ##' @return Estimated value for Brier score (numeric).  
 ##' 
 ##' @method coef BuyseTestBrier
+##' @keywords methods
 ##' 
 ##' @export
 coef.BuyseTestBrier <- function(object,...){
@@ -248,6 +271,8 @@ coef.BuyseTestBrier <- function(object,...){
 ##' @return Estimated value for the brier score, its standard error, the lower and upper bound of the confidence interval and the p-value.
 ##' 
 ##' @method confint BuyseTestBrier
+##' @keywords methods
+##' 
 ##' @export
 confint.BuyseTestBrier <- function(object,...){
     out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
@@ -265,6 +290,8 @@ confint.BuyseTestBrier <- function(object,...){
 ##' @return A column vector.
 ##' 
 ##' @method iid BuyseTestBrier
+##' @keywords methods
+##' 
 ##' @export
 iid.BuyseTestBrier <- function(x,...){
     object <- x

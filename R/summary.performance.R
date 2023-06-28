@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  6 2022 (14:56) 
 ## Version: 
-## Last-Updated: apr 21 2022 (11:41) 
+## Last-Updated: jun 27 2023 (14:19) 
 ##           By: Brice Ozenne
-##     Update #: 53
+##     Update #: 54
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,6 +25,7 @@
 ##' @param order.model [character vector] ordering of the models.
 ##' @param ... not used.
 ##'
+##' @keywords print
 ##' @method summary performance
 ##' @export
 summary.performance <- function(object, order.model = NULL, digits = c(3,3), print = TRUE, ...){

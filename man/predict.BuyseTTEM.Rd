@@ -21,6 +21,11 @@
 
 \item{...}{not used, for compatibility with the generic method.}
 }
+\value{
+a list containing the survival (element \code{survival}) or the cumulative incidence function (element \code{cif}),
+and possible standard errors (element \code{.se}) and influence function (element \code{.iid}).
+}
 \description{
 Evaluate the cumulative incidence function (cif) / survival in one of the treatment groups.
 }
+\keyword{methods}

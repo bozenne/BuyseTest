@@ -49,6 +49,9 @@ or a vector of doubles for lower and upper bounds of uniform censoring distribut
 \item{latent}{[logical] If \code{TRUE}, also export the latent variables (e.g. true event times, true event types and censoring times). 
 NULL sets this parameter to \code{FALSE}.}
 }
+\value{
+A data.frame
+}
 \description{
 Simulate Gompertz competing risks data with proportional (via prespecified sub-distribution hazard ratio) or
 non-proportional sub-distribution hazards. A treatment variable with two groups (treatment and control) is created.
@@ -100,5 +103,4 @@ Society} 55: 187-200 \cr
 \author{
 Eva Cantagallo
 }
-\keyword{function}
-\keyword{simulations}
+\keyword{datagen}

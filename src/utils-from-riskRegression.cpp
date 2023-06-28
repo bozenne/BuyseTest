@@ -7,6 +7,7 @@ using namespace Rcpp;
 //' @description Fast computation of apply(x,1,cumsum)
 //' @param X A matrix.
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".rowCumSum_cpp")]]
 arma::mat rowCumSum_cpp(const arma::mat X){
   arma::mat result = cumsum(X,1);
@@ -18,6 +19,7 @@ arma::mat rowCumSum_cpp(const arma::mat X){
 //' @description Fast computation of apply(x,2,cumsum)
 //' @param X A matrix.
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".colCumSum_cpp")]]
 arma::mat colCumSum_cpp(const arma::mat X){
   arma::mat result = cumsum(X,2);
@@ -29,6 +31,7 @@ arma::mat colCumSum_cpp(const arma::mat X){
 //' @description Fast computation of t(apply(x,1,cumprod))
 //' @param X A matrix.
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".rowCumProd_cpp")]]
 arma::mat rowCumProd_cpp(const arma::mat X){
   arma::mat result = cumprod(X,1);
@@ -41,6 +44,7 @@ arma::mat rowCumProd_cpp(const arma::mat X){
 //' @param X A matrix.
 //' @param center A vector with length the number of rows of X .
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".colCenter_cpp")]]
 arma::mat colCenter_cpp(const arma::mat X, const arma::colvec& center){
   arma::mat result = X;
@@ -54,6 +58,7 @@ arma::mat colCenter_cpp(const arma::mat X, const arma::colvec& center){
 //' @param X A matrix.
 //' @param center A vector with length the number of columns of X.
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".rowCenter_cpp")]]
 arma::mat rowCenter_cpp(const arma::mat X, const arma::rowvec& center){
   arma::mat result = X;
@@ -67,6 +72,7 @@ arma::mat rowCenter_cpp(const arma::mat X, const arma::rowvec& center){
 //' @param X A matrix.
 //' @param scale A vector with length the number of rows of X .
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".colScale_cpp")]]
 arma::mat colScale_cpp(const arma::mat X, const arma::colvec& scale){
   arma::mat result = X;
@@ -80,6 +86,7 @@ arma::mat colScale_cpp(const arma::mat X, const arma::colvec& scale){
 //' @param X A matrix.
 //' @param scale A vector with length the number of columns of X.
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".rowScale_cpp")]]
 arma::mat rowScale_cpp(const arma::mat X, const arma::rowvec& scale){
   arma::mat result = X;
@@ -93,6 +100,7 @@ arma::mat rowScale_cpp(const arma::mat X, const arma::rowvec& scale){
 //' @param X A matrix.
 //' @param scale A vector with length the number of rows of X .
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".colMultiply_cpp")]]
 arma::mat colMultiply_cpp(const arma::mat X, const arma::colvec& scale){
   arma::mat result = X;
@@ -106,6 +114,7 @@ arma::mat colMultiply_cpp(const arma::mat X, const arma::colvec& scale){
 //' @param X A matrix.
 //' @param scale A vector with length the number of columns of X.
 //' @return A matrix of same size as x.
+//' @keywords utilities
 // [[Rcpp::export(".rowMultiply_cpp")]]
 arma::mat rowMultiply_cpp(const arma::mat X, const arma::rowvec& scale){
   arma::mat result = X;

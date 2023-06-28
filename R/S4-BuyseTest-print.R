@@ -14,7 +14,7 @@
 #'   \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #'   \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.
 #'  
-#' @keywords summary S4BuyseTest-method
+#' @keywords print
 #' @author Brice Ozenne
 
 ## * Method - print
@@ -25,7 +25,7 @@ setMethod(f = "print",
           definition = function(x, ...){
 
               ## compute summary statistics
-              outSummary <- summary(x, print = FALSE, ...)$table.print
+              outSummary <- summary(x, print = FALSE, ...)
               ## remove significance column
               table.print <- outSummary[,setdiff(names(outSummary), "significance"),drop=FALSE]
               print(table.print, row.names = FALSE)

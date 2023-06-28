@@ -2,12 +2,11 @@
 #' @name internal-print
 #' @title internal functions for BuyseTest - display
 #' @description Functions called by \code{\link{BuyseTest}} to display the settings.
+#' @noRd
 #' 
-#' @keywords internal
 #' @author Brice Ozenne
 
 ## * Function printGeneral
-#' @rdname internal-print
 printGeneral <- function(status,
                          D,
                          D.TTE,
@@ -141,7 +140,6 @@ printGeneral <- function(status,
 }
 
 ## * Function printInference
-#' @rdname internal-print
 printInference <- function(method.inference, n.resampling, cpus, seed, ...){
 
     if(method.inference != "none"){

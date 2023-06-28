@@ -38,6 +38,10 @@ simBuyseTest(
 
 \item{n.strata}{[integer, >0] number of strata. \code{NULL} indicates no strata.}
 
+\item{name.cluster}{[character] name of the cluster variable. If \code{NULL} no cluster variable is created.}
+
+\item{prefix.cluster}{[character] character string to be added to the cluster index.}
+
 \item{name.treatment}{[character] name of the treatment variable.}
 
 \item{level.treatment}{[character vector of length 2] levels of the treatment variable.}
@@ -45,6 +49,9 @@ simBuyseTest(
 \item{format}{[character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.}
 
 \item{latent}{[logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).}
+}
+\value{
+A data.frame, data.table, or matrix depending of the argument \code{format}.
 }
 \description{
 Simulate categorical, continuous or time to event endpoints, possibly along with a strata variable.
@@ -192,5 +199,4 @@ boxplot(eventtime ~ toxicity, data = dt.corr)
 \author{
 Brice Ozenne
 }
-\keyword{function}
-\keyword{simulations}
+\keyword{datagen}

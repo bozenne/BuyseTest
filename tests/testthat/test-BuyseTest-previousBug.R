@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jun 19 2023 (14:03) 
+## Last-Updated: jun 28 2023 (13:37) 
 ##           By: Brice Ozenne
-##     Update #: 215
+##     Update #: 216
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,11 +47,11 @@ test_that("number of pairs - argument neutral.as.uninf", {
         BT.T <- BuyseTest(ttt~TTE(timeOS,threshold=0,status=eventOS) + cont(Mgrade.tox,threshold=0),
                           data = dt.sim,
                           neutral.as.uninf = TRUE, scoring.rule = "Gehan", correction.uninf = iCorrection)
-        BTS.T <- as.data.table(summary(BT.T, print = FALSE, percentage = FALSE)$table)
+        BTS.T <- as.data.table(model.tables(BT.T, percentage = FALSE))
         BT.F <- BuyseTest(ttt~TTE(timeOS,threshold=0,status=eventOS) + cont(Mgrade.tox,threshold=0),
                           data = dt.sim,
                           neutral.as.uninf = FALSE, scoring.rule = "Gehan", correction.uninf = iCorrection)
-        BTS.F <- as.data.table(summary(BT.F, print = FALSE, percentage = FALSE)$table)
+        BTS.F <- as.data.table(model.tables(BT.F, percentage = FALSE))
 
         ## neutral.as.uninf does not impact the results for first endpoint
         expect_equal(BTS.T[1,c("favorable","unfavorable","neutral","uninf","delta","Delta")],
@@ -60,36 +60,33 @@ test_that("number of pairs - argument neutral.as.uninf", {
         ## check consistency of the number of pairs
         ## neutral.as.uninf = TRUE
         ## summary(BT.T)
-        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf],
-                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", total])
-        expect_equal(BTS.T[endpoint == "timeOS" & strata == "global", neutral+uninf],
-                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", total])
-        expect_equal(BTS.T[endpoint == "Mgrade.tox" & strata == "global", total],
-                     BTS.T[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf])
+        expect_equal(BTS.T[endpoint == "Mgrade.tox", favorable+unfavorable+neutral+uninf],
+                     BTS.T[endpoint == "Mgrade.tox", total])
+        expect_equal(BTS.T[endpoint == "timeOS", neutral+uninf],
+                     BTS.T[endpoint == "Mgrade.tox", total])
+        expect_equal(BTS.T[endpoint == "Mgrade.tox", total],
+                     BTS.T[endpoint == "Mgrade.tox", favorable+unfavorable+neutral+uninf])
 
         ## neutral.as.uninf = FALSE
-        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf],
-                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", total])
-        expect_equal(BTS.F[endpoint == "timeOS" & strata == "global", uninf],
-                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", total])
-        expect_equal(BTS.F[endpoint == "Mgrade.tox" & strata == "global", total],
-                     BTS.F[endpoint == "Mgrade.tox" & strata == "global", favorable+unfavorable+neutral+uninf])
+        expect_equal(BTS.F[endpoint == "Mgrade.tox", favorable+unfavorable+neutral+uninf],
+                     BTS.F[endpoint == "Mgrade.tox", total])
+        expect_equal(BTS.F[endpoint == "timeOS", uninf],
+                     BTS.F[endpoint == "Mgrade.tox", total])
+        expect_equal(BTS.F[endpoint == "Mgrade.tox", total],
+                     BTS.F[endpoint == "Mgrade.tox", favorable+unfavorable+neutral+uninf])
 
         ## compared to known value
         if(iCorrection == FALSE){
-            keep.col <- c("endpoint","threshold","strata","weight","total","favorable","unfavorable","neutral","uninf","delta","Delta")
-            test <- as.data.table(summary(BT.T, print = FALSE)$table[,keep.col])
-            GS <- data.table("endpoint" = c("timeOS", "timeOS", "Mgrade.tox", "Mgrade.tox"), 
-                             "threshold" = c(1e-12, 1e-12, 1e-12, 1e-12), 
-                             "strata" = c("global", "1", "global", "1"),
-                             "weight" = c(1, 1, 1, 1), 
-                             "total" = c(100.00000, 100.00000,  44.44444,  44.44444), 
-                             "favorable" = c(44.44444, 44.44444, 22.22222, 22.22222), 
-                             "unfavorable" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                             "neutral" = c(11.11111, 11.11111, 11.11111, 11.11111), 
-                             "uninf" = c(33.33333, 33.33333,  0.00000,  0.00000), 
-                             "delta" = c(0.3333333, 0.3333333, 0.1111111, 0.1111111), 
-                             "Delta" = c(0.3333333, NA, 0.4444444, NA))
+            keep.col <- c("endpoint","total","favorable","unfavorable","neutral","uninf","delta","Delta")
+            test <- as.data.table(model.tables(BT.T, percentage = TRUE)[,keep.col])
+            GS <- data.table("endpoint" = c("timeOS", "Mgrade.tox"), 
+                             "total" = c(100.00000,  44.44444), 
+                             "favorable" = c(44.44444, 22.22222), 
+                             "unfavorable" = c(11.11111, 11.11111), 
+                             "neutral" = c(11.11111, 11.11111), 
+                             "uninf" = c(33.33333,  0.00000), 
+                             "delta" = c(0.3333333, 0.1111111), 
+                             "Delta" = c(0.3333333, 0.4444444))
             ##    butils::object2script(test)
 
             attr(test,"index") <- NULL
@@ -124,6 +121,7 @@ BT_tau0 <- BuyseTest(data=data,
 ## when computing the integral for peron with double censoring
 ## the ordering of the data modified the ouput
 ## this has been correct with version 1.4
+data(cancer, package = "survival")
 
 test_that("ordering of tied event does not affect BuyseTest", {
     ## veteran2[veteran2$time==100,]
@@ -208,11 +206,11 @@ test_that("Multiple thresholds",{
                              correction.uninf=F,
                              method.inference="none")
 
-    resS <- as.data.table(summary(BuyseresPer, print = FALSE)$table)
+    resS <- as.data.table(model.tables(BuyseresPer))
 
     ## pairs are correctly transfered from one endpoint to another
-    expect_equal(resS[strata == "global" & threshold > tail(threshold,1), neutral + uninf],
-                 resS[strata == "global" & threshold < threshold[1], total], tol = 1e-2)
+    expect_equal(resS[threshold > tail(threshold,1), neutral + uninf],
+                 resS[threshold < threshold[1], total], tol = 1e-2)
 
     ## butils::object2script(as.double(BuyseresPer@count.favorable), digit = 2)
     GS <- c(260.64, 35.93, 37.33, 147.32, 272.14, 263.6, 235.7, 213.21, 390.29, 408.73, 514.7, 514.34, 744.78, 865.21, 1095.26)

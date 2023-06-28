@@ -179,6 +179,4 @@ GPC2_cpp implements GPC looping first over pairs and then over endpoints. It has
 \author{
 Brice Ozenne
 }
-\keyword{BuyseTest}
-\keyword{Cpp}
-\keyword{function}
+\keyword{internal}

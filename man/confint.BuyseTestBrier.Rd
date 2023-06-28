@@ -17,3 +17,4 @@ Estimated value for the brier score, its standard error, the lower and upper bou
 \description{
 Extract the Brier score with its Confidence Interval and possibly a p-value.
 }
+\keyword{methods}

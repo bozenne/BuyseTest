@@ -30,3 +30,4 @@ BuyseTest.options("n.resampling", "trace")
 ## reinitialise all global parameters
 BuyseTest.options(reinitialise = TRUE)
 }
+\keyword{utilities}

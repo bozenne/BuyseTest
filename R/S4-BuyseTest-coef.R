@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Mar 13 2023 (09:32) 
+## Last-Updated: jun 27 2023 (14:12) 
 ##           By: Brice Ozenne
-##     Update #: 245
+##     Update #: 251
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -18,13 +18,13 @@
 ## * Documentation - coef
 #' @docType methods
 #' @name S4BuyseTest-coef
-#' @title Coef Method for Class "S4BuyseTest"
+#' @title Extract Summary Statistics from GPC
 #' @aliases coef,S4BuyseTest-method
 #' @include S4-BuyseTest.R
 #'  
-#' @description Extract summary statistics from the result of a \code{\link{BuyseTest}} function.
+#' @description Extract summary statistics (net benefit, win ratio, ...) from GPC.
 #' 
-#' @param object output of \code{\link{BuyseTest}}
+#' @param object a \code{S4BuyseTest} object, output of \code{\link{BuyseTest}}.
 #' @param statistic [character] the type of summary statistic. See the detail section.
 #' @param endpoint [character] for which endpoint(s) the summary statistic should be output?
 #' If \code{NULL} returns the summary statistic for all endpoints.
@@ -56,7 +56,7 @@
 #' When \code{resampling=TRUE} and \code{stratified=FALSE}, return a matrix.
 #' When \code{resampling=TRUE} and \code{stratified=TRUE}, return an 3-dimensional array.
 #' 
-#' @keywords coef S4BuyseTest-method
+#' @keywords method
 #' @author Brice Ozenne
 
 ## * method - coef
