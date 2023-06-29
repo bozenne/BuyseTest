@@ -6,10 +6,33 @@
 \alias{summary,S4BuysePower-method}
 \title{Summary Method for Class "S4BuysePower"}
 \usage{
-\S4method{summary}{S4BuysePower}(object, print = TRUE, legend = TRUE, col.rep = FALSE, digit = 4, ...)
+\S4method{summary}{S4BuysePower}(
+  object,
+  statistic = NULL,
+  endpoint = NULL,
+  order.Hprojection = NULL,
+  transformation = NULL,
+  print = TRUE,
+  legend = TRUE,
+  col.rep = FALSE,
+  digit = 4,
+  ...
+)
 }
 \arguments{
 \item{object}{output of \code{\link{powerBuyseTest}}}
+
+\item{statistic}{[character] statistic relative to which the power should be computed:
+\code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
+\code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
+\code{"mannWhitney"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+Default value read from \code{BuyseTest.options()}.}
+
+\item{endpoint}{[character vector] the endpoints to be displayed: must be the name of the endpoint followed by an underscore and then by the threshold.}
+
+\item{order.Hprojection}{[integer 1,2] the order of the H-project to be used to compute the variance of the net benefit/win ratio.}
+
+\item{transformation}{[logical] should the CI be computed on the logit scale / log scale for the net benefit / win ratio and backtransformed.}
 
 \item{print}{[logical] Should the table be displayed?.}
 
@@ -19,7 +42,7 @@
 
 \item{digit}{[integer vector] the number of digit to use for printing the counts and the delta.}
 
-\item{...}{arguments passed to the method \code{model.tables} (\code{statistic}, \code{endpoint}, \code{order.Hprojection}, \code{transformation})}
+\item{...}{Not used. For compatibility with the generic method.}
 }
 \value{
 data.frame

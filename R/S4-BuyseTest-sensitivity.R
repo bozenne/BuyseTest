@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: jun 27 2023 (14:37) 
+## Last-Updated: Jun 29 2023 (09:37) 
 ##           By: Brice Ozenne
-##     Update #: 327
+##     Update #: 328
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -80,6 +80,7 @@
 
 ## * sensitivity (method)
 #' @rdname S4BuyseTest-sensitivity
+#' @exportMethod sensitivity
 setMethod(f = "sensitivity",
           signature = "S4BuyseTest",
           definition = function(object, threshold,

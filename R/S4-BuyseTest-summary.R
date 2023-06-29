@@ -376,7 +376,7 @@ setMethod(f = "summary",
                                              )
                   cat(" - censored pairs  : ",txt.scoring.rule,"\n", sep = "")
               }
-              if(n.endpoint>1 && any(object@count.neutral>0)){
+              if(hierarchical && n.endpoint>1 && any(object@count.neutral>0)){
                   Uneutral.as.uninf <- unique(object@neutral.as.uninf)
                   if(identical(Uneutral.as.uninf,TRUE)){
                       txt.neutral <- "re-analyzed using lower priority endpoints"

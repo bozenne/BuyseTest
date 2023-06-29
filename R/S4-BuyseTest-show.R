@@ -24,7 +24,7 @@ setMethod(f = "show",
           definition = function(object){
 
               ## compute summary statistics
-              outSummary <- summary(object, print = FALSE, strata = "global")$table.print
+              outSummary <- summary(object, print = FALSE, strata = "global")
 
               ## only keep certain columns
               type.display <- BuyseTest.options()$print.display

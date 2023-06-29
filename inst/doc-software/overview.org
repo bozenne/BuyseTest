@@ -1,6 +1,6 @@
 #+TITLE: Overview of the package BuyseTest
 #+Author: Brice Ozenne
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+#+BEGIN_SRC R :exports none :results quiet :session *R* :cache no
 options(width = 94)
 if(system("whoami",intern=TRUE)=="bozenne"){  
   setwd("~/Documents/GitHub/BuyseTest/inst/doc-software/")
@@ -70,7 +70,7 @@ library(data.table)
 To illustrate the functionalities of the package, we will used the
 =veteran= dataset from the *survival* package:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(survival)
+data(cancer, package = "survival")
 head(veteran)
 #+END_SRC
 
@@ -95,7 +95,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '3.0.0'
+: [1] ‘3.0.0’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -105,38 +105,38 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 4.2.0 (2022-04-22 ucrt)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 19045)
+R version 4.2.0 (2022-04-22)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.4 LTS
 
 Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.utf8  LC_CTYPE=Danish_Denmark.utf8   
-[3] LC_MONETARY=Danish_Denmark.utf8 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.utf8    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
+ [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.14.2  BuyseTest_3.0.0    Rcpp_1.0.8.3       prodlim_2019.11.13
-[5] ggplot2_3.4.2      survival_3.3-1     LMMstar_0.9.0      nlme_3.1-158      
+[1] data.table_1.14.2  BuyseTest_3.0.0    Rcpp_1.0.9         prodlim_2019.11.13
+[5] ggplot2_3.4.0      survival_3.5-0    
 
 loaded via a namespace (and not attached):
- [1] compiler_4.2.0        pillar_1.9.0          tools_4.2.0           digest_0.6.31        
- [5] lifecycle_1.0.3       tibble_3.2.1          gtable_0.3.1          lattice_0.20-45      
- [9] pkgconfig_2.0.3       rlang_1.1.0           Matrix_1.5-1          cli_3.6.0            
-[13] parallel_4.2.0        SparseM_1.81          mvtnorm_1.1-3         coda_0.19-4          
-[17] withr_2.5.0           dplyr_1.1.0           MatrixModels_0.5-0    globals_0.16.2       
-[21] generics_0.1.3        vctrs_0.5.2           stats4_4.2.0          grid_4.2.0           
-[25] tidyselect_1.2.0      glue_1.6.2            listenv_0.9.0         R6_2.5.1             
-[29] parallelly_1.34.0     future.apply_1.10.0   fansi_1.0.4           multcomp_1.4-22      
-[33] lava_1.7.2.1          TH.data_1.1-1         magrittr_2.0.3        scales_1.2.1         
-[37] codetools_0.2-18      emmeans_1.8.5-9000001 MASS_7.3-57           splines_4.2.0        
-[41] future_1.31.0         xtable_1.8-4          colorspace_2.1-0      numDeriv_2016.8-1.1  
-[45] sandwich_3.0-2        utf8_1.2.3            estimability_1.4.1    munsell_0.5.0        
-[49] zoo_1.8-11
+ [1] pillar_1.8.1       compiler_4.2.0     tools_4.2.0        digest_0.6.31     
+ [5] lifecycle_1.0.3    tibble_3.1.8       gtable_0.3.1       lattice_0.20-45   
+ [9] pkgconfig_2.0.3    rlang_1.0.6        Matrix_1.4-1       DBI_1.1.3         
+[13] cli_3.5.0          parallel_4.2.0     SparseM_1.81       withr_2.5.0       
+[17] dplyr_1.0.10       MatrixModels_0.5-0 generics_0.1.3     vctrs_0.5.1       
+[21] globals_0.16.1     stats4_4.2.0       grid_4.2.0         tidyselect_1.2.0  
+[25] glue_1.6.2         listenv_0.8.0      R6_2.5.1           future.apply_1.9.1
+[29] fansi_1.0.3        parallelly_1.32.1  lava_1.7.2         magrittr_2.0.3    
+[33] scales_1.2.1       codetools_0.2-18   splines_4.2.0      assertthat_0.2.1  
+[37] future_1.28.0      colorspace_2.0-3   utf8_1.2.2         munsell_0.5.0
 #+end_example
 
 \clearpage
@@ -196,31 +196,14 @@ Gather the results in a S4BuyseTest object
     + binary (=b=, =bin=, or =binary=)
     + continuous (=c=, =cont=, or  =continuous=)
     + time to event (=t=, =tte=, or =timetoevent=)
-
+Here we also set the argument =trace= to =FALSE= to execute silently
+the function:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                  data = veteran)
+                  data = veteran, trace = FALSE)
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-
-         Generalized Pairwise Comparisons
-
-Settings 
-   - 2 groups  : Control = 1 and Treatment = 2
-   - 1 endpoint: 
-       priority endpoint type           operator             threshold event       
-       1        time     time to event  higher is favorable  20        status (0 1)
-   - right-censored pairs: probabilistic score based on the survival curves 
-
-Point estimation and calculation of the iid decomposition
-
-Estimation of the estimator's distribution 
-   - method: moments of the U-statistic
-
-Gather the results in a S4BuyseTest object
-#+end_example
 
 We can check that the two approaches are equivalent:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -312,21 +295,19 @@ summary(BT, statistic = "winRatio")
    [0.5134;1.2833] 0.37195
 #+end_example
 
-See =help(S4BuyseTest-summary)= for more detailed explanations about the
-=summary= method and its output. 
+See =help(S4BuyseTest-summary)= for more details about the =summary=
+method and its output.
 
+\clearpage
 
 ** Stratified GPC
 
 GPC can be performed for subgroups of a categorical variable \hfill -
-argument =strata=
-
-\bigskip
-
- For instance, the celltype may have huge influence on the survival
-time and the investigator would like to only compare patients that
-have the same celltype. In the formula interface this is achieved by
-adding a single variable in the right hand side of the formula:
+argument =strata= \newline For instance, the celltype may have huge
+influence on the survival time and the investigator would like to only
+compare patients that have the same celltype. In the formula interface
+this is achieved by adding a single variable in the right hand side of
+the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
 BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
@@ -335,17 +316,13 @@ BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
 #+RESULTS:
 
 Not being wrapped by =bin=, =cont= or =tte= differentiates it from
-endpoint variables.
-
-\bigskip
-
-When doing a stratified analysis, the summary method displays the
-global results as well as the results within each strata[fn::the
+endpoint variables. When doing a stratified analysis, the summary
+method displays strata-specific and global results[fn::the
 strata-specific results can be removed by setting the argument
 =strata= to ="global"= when calling =summary=.]:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(BTstrata, type.display = c("endpoint","threshold","strata",
-                              "total","favorable","unfavorable","delta","Delta"))
+                                   "total","favorable","unfavorable","delta","Delta"))
 #+END_SRC
 
 #+RESULTS:
@@ -374,7 +351,7 @@ are relative to the overall sample while the delta is only relative to
 the strata. The global delta is a sum of the strata specific delta
 weighted by the empirical proportion of pairs for each strata. The
 weight of each strata is by default proportional to the number of
-pairs but this behavior can be changed with the argument =pool.strata=:
+pairs. This behavior can be changed with the argument =pool.strata=:
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BTstrataCMH <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "CMH")
@@ -481,11 +458,19 @@ summary(BT.H)
 The hierarchy of the endpoint is defined from left (most important
 endpoint, here =time=) to right (least important endpoint, here
 =karno=). In the =summary= output, the confidence intervals and
-p.values are computed for the column =Delta=, i.e. here the net
-benefit for the first endpoint (line 1) and the the first and second
-endpoint (line 2). In other words, the last confidence interval and
-p-value is the one for the analysis over all endpoints (generally the
-one to report).
+p.values are computed for the column =Delta=, i.e. here -8.77% is the
+net benefit for the first endpoint (line 1) and -10.09% is the net
+benefit for the first and second endpoint (line 2). In other words,
+the last confidence interval and p-value is the one for the analysis
+over all endpoints (generally the one to report).
+
+\bigskip
+
+A graphical representation of the GPC procedure can be obtained by the
+=plot= method. It will display the percentage of favorable,
+unfavorable, neutral, and uninformative pairs per endpoint. Three
+(equivalent) graphical display are possible, the first one (="hist"=)
+being the recommanded one:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 plot(BT.H, type = "hist")
 plot(BT.H, type = "pie")
@@ -495,13 +480,24 @@ plot(BT.H, type = "racetrack")
 #+RESULTS:
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
-ggpubr::ggarrange(plot(BT.H, type = "hist", plot=FALSE)$plot + labs(fill = "Pair (%)"),
-                  plot(BT.H, type = "pie", plot=FALSE)$plot + labs(fill = "Pair (%)"),
-                  plot(BT.H, type = "racetrack", plot=FALSE)$plot + labs(fill = "Pair (%)"),
-                  legend.common = TRUE, legend = "bottom")
+BT.3plot <- ggpubr::ggarrange(ggpubr::ggarrange(autoplot(BT.H, type = "hist", plot=FALSE) + ggtitle("\"hist\"") + guides(fill = FALSE),
+                                                autoplot(BT.H, type = "racetrack", plot=FALSE) + ggtitle("\"racetrack\"") + guides(fill = FALSE),
+                                                ncol = 2, nrow = 1),
+                              autoplot(BT.H, type = "pie", plot=FALSE) + ggtitle("\"pie\""),
+                              common.legend = TRUE, legend = "bottom", nrow = 2, ncol = 1)
+
+pdf("figures/plot-BuyseTest.pdf", width = 6, height = 6)
+BT.3plot
+dev.off()
 #+END_SRC
 
 #+RESULTS:
+: X11cairo 
+:        2
+
+#+ATTR_LaTeX: :width 0.7\textwidth :options trim={0 0 0 0} :placement [!h]
+[[./figures/plot-BuyseTest.pdf]]
+
 
 \bigskip
 
@@ -519,17 +515,16 @@ summary(BT.nH)
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
- - inference       : H-projection of order 1
+ - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
- - neutral pairs   : re-analyzed using lower priority endpoints
  - results
- endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
-     time        20      100        37.78          46.54      15.68        0 -0.0877 -0.0438
-    karno                100        41.82          44.95      13.24        0 -0.0313 -0.0595
- CI [2.5% ; 97.5%] p.value 
-  [-0.1388;0.0519] 0.36977 
-  [-0.2267;0.1111] 0.49514
+ endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
+     time        20    0.5      100        37.78          46.54      15.68        0 -0.0877
+    karno              0.5      100        41.82          44.95      13.24        0 -0.0313
+   Delta CI [2.5% ; 97.5%] p.value 
+ -0.0438  [-0.1388;0.0519] 0.36977 
+ -0.0595  [-0.2267;0.1111] 0.49514
 #+end_example
 
 In that case the score of a pair is the weighted sum of the score
@@ -540,16 +535,16 @@ same value but this behavior can be changed by setting the argument
 ff2w <- trt ~ tte(time, threshold = 20, status = "status", weight = 0.8)
 ff2w <- update.formula(ff2w, . ~ . + cont(karno, threshold = 0, weight = 0.2))
 BT.nHw <- BuyseTest(ff2w, hierarchical = FALSE, data = veteran, trace = 0)
-summary(BT.nHw, print = FALSE)$table.print[,-13]
+model.tables(BT.nHw)
 #+END_SRC
 
 #+RESULTS:
-:   endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
-: 1     time        20    0.8      100        37.78          46.54      15.68        0 -0.0877
-: 3    karno              0.2      100        41.82          44.95      13.24        0 -0.0313
-:     Delta CI [2.5% ; 97.5%] p.value
-: 1 -0.0701  [-0.2204;0.0834] 0.37073
-: 3 -0.0764  [-0.2504;0.1024] 0.40269
+:   endpoint threshold weight total favorable unfavorable  neutral uninf       delta
+: 1     time     2e+01    0.8   100  37.77905    46.54489 15.67606     0 -0.08765836
+: 3    karno     1e-12    0.2   100  41.81586    44.94885 13.23529     0 -0.03132992
+:         Delta   lower.ci   upper.ci   p.value
+: 1 -0.07012668 -0.2203714 0.08336855 0.3707289
+: 3 -0.07639267 -0.2503756 0.10237001 0.4026905
 
 This has been refered as the O’Brien test in the litterature
 (cite:verbeeck2019generalized, section 3.2). Alternatively, one may be
@@ -574,21 +569,6 @@ confint(BT.nHw, cumulative = FALSE)
 : time_t20 -0.08765836 0.09760901 -0.2735301 0.1045245    0 0.3716170
 : karno    -0.03132992 0.09787113 -0.2197111 0.1593037    0 0.7490407
 
-Adjustment for multiple comparison can be performed via the =BuyseMultComp= function:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseMultComp(BT.nHw, cumulative = FALSE, endpoint = 1:2)
-#+END_SRC
-
-#+RESULTS:
-:   - Univariate tests:
-:      estimate         se   lower.ci  upper.ci null   p.value lower.band upper.band
-: 1 -0.08765836 0.09760901 -0.2735301 0.1045245    0 0.3716170 -0.2953329  0.1279261
-: 2 -0.03132992 0.09787113 -0.2197111 0.1593037    0 0.7490407 -0.2420777  0.1822409
-:   adj.p.value
-: 1   0.5597555
-: 2   0.9236602
-
-
 \clearpage
 
 ** What if smaller is better?
@@ -608,7 +588,7 @@ summary(BTinv)
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
- - inference       : H-projection of order 1
+ - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
@@ -748,7 +728,7 @@ summary(BT.boot)
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
      time        20      100        37.78          46.54      15.68        0 -0.0877
  CI [2.5% ; 97.5%] p.value 
-  [-0.2797;0.1108]   0.363
+  [-0.2797;0.1108] 0.36364
 #+end_example
 
 - *asymptotic distribution* setting the argument =method.inference= to
@@ -768,7 +748,7 @@ summary(BT.ustat)
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
- - inference       : H-projection of order 1
+ - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: 2 (treatment) vs. 1 (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
@@ -812,12 +792,101 @@ intensive.
 
 \clearpage
 
-** Sensitivity analysis
+** Is multiple testing a concern with GPC?
 
-The choice of the threshold of clinical relevance if somehow
-subjective and it is recommended to see how the results vary as a
-function of the threshold. This can be easily performed using the
-=sensitivity= method:
+Yes, as with any other statistical method. Having a pre-defined
+statistical plan (i.e. written before looking at the data) specifying
+the hierarchy of endpoints, their threshold of clinical relevance is
+recommanded. 
+
+\bigskip
+
+This being said, there are mainly two way to conclude about results
+from running multiple GPC:
+- *intersection union principle*: one rejects the (global) null
+  hypothesis if there is evidence for an effect in all the GPC
+  analyses. This is typically a sensitivity analysis: checking that
+  the results are not too sensitive to the choice of an
+  hyperparameter. No multiplicity adjustment is needed other than
+  considering the largest p-value among all tests. For instance, when
+  checking whether the estimated net benefit is similar across a range
+  of threshold of clincial relevance, we would obtain a p-value of
+  0.76
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BTse <- sensitivity(BT.ustat, threshold = seq(0,500, length.out=10),
+                          trace = FALSE)
+BTse
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+        time    estimate         se    lower.ci   upper.ci null   p.value
+1    0.00000 -0.08752774 0.10041203 -0.27851884 0.11012263    0 0.3858177
+2   55.55556 -0.08095829 0.08957699 -0.25229456 0.09530004    0 0.3682107
+3  111.11111 -0.03170177 0.07463991 -0.17629003 0.11422560    0 0.6712414
+4  166.66667  0.01896964 0.06452954 -0.10713643 0.14447503    0 0.7688360
+5  222.22222  0.03315614 0.05523512 -0.07506821 0.14060850    0 0.5486177
+6  277.77778  0.04217485 0.04654025 -0.04914025 0.13279075    0 0.3653982
+7  333.33333  0.04112991 0.03946828 -0.03631838 0.11808708    0 0.2979105
+8  388.88889  0.04075638 0.03300933 -0.02402114 0.10519310    0 0.2174545
+9  444.44444  0.04097871 0.03027888 -0.01844156 0.10011054    0 0.1764199
+10 500.00000  0.03517173 0.02769280 -0.01915553 0.08929191    0 0.2044340
+#+end_example
+- *union intersection principle*: one rejects the (global) null
+  hypothesis if there is evidence for an effect for at least on of the
+  GPC analyses. This is a typical exploratory analysis where one look
+  for the most promising outcome. Adjustment for multiplicity is
+  needed.  Since estimates from GPC procedure are typically highly
+  correlated, one can improve on bonferroni adjustment using a
+  max-test adjustment. This is what is performed via the
+  =BuyseMultComp= function:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseMultComp(BT.H, endpoint = 1:2)
+#+END_SRC
+
+#+RESULTS:
+:   - Univariate tests:
+:             estimate         se   lower.ci   upper.ci null  p.value lower.band upper.band
+: time_t20 -0.08765836 0.09760901 -0.2735301 0.10452446    0 0.371617 -0.2798817  0.1113226
+: karno    -0.10092285 0.09971277 -0.2901336 0.09588144    0 0.314777 -0.2965716  0.1028561
+:          adj.p.value
+: time_t20   0.4117239
+: karno      0.3508339
+
+Here we look at whether there is a benefit in survival alone (first
+priority =time_t20=) or a benefit over both endpoint (second priority
+=karno=). Setting the argument =cumulative= to =FALSE= when
+considering non-hierarchical GPC analyses enables to efficiently
+adjust endpoint specific GPC for multiple comparisons:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseMultComp(BT.nH, cumulative = FALSE, endpoint = 1:2)
+#+END_SRC
+
+#+RESULTS:
+:   - Univariate tests:
+:             estimate         se   lower.ci  upper.ci null   p.value lower.band upper.band
+: time_t20 -0.08765836 0.09760901 -0.2735301 0.1045245    0 0.3716170 -0.2953329  0.1279261
+: karno    -0.03132992 0.09787113 -0.2197111 0.1593037    0 0.7490407 -0.2420777  0.1822409
+:          adj.p.value
+: time_t20   0.5597555
+: karno      0.9236602
+
+One can also consider the global endpoint of two different GPC analyses:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseMultComp(list(hierchical = BT.H, Obrien = BT.nH), cluster = "id")
+
+#+END_SRC
+
+#+RESULTS:
+:   - Univariate tests:
+:               estimate se    lower.ci    upper.ci null p.value  lower.band  upper.band
+: hierchical -0.10092285  0 -0.10092285 -0.10092285    0       0 -0.10092285 -0.10092285
+: Obrien     -0.05949414  0 -0.05949414 -0.05949414    0       0 -0.05949414 -0.05949414
+:            adj.p.value
+: hierchical           0
+: Obrien               0
+
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BTse.ustat <- sensitivity(BT.ustat, threshold = seq(0,500, length.out=10),
                           band = TRUE, trace = FALSE)

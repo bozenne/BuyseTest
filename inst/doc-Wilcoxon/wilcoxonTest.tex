@@ -1,4 +1,4 @@
-% Created 2023-03-20 Mon 12:45
+% Created 2023-06-29 Thu 11:06
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -208,7 +208,7 @@ linkcolor=[rgb]{0,0,0.5},
 \maketitle
 
 \section{Single Wilcoxon test}
-\label{sec:org00cb9cb}
+\label{sec:org2a3f525}
 
 Generalized Pairwise comparisons include the Wilcoxon rank sum test as
 a specific case. \newline Consider the following dataset (from the example
@@ -251,8 +251,8 @@ wmwTest(value ~ group, data = df, method = "asymptotic")
 
 \begin{verbatim}
 
-	Wilcoxon-Mann-Whitney test with continuity correction (confidence interval
-	requires proportional odds assumption, but test does not)
+	Wilcoxon-Mann-Whitney test with continuity correction (confidence
+	interval requires proportional odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, tie factor = 0.99794, p-value = 0.1329
@@ -278,8 +278,8 @@ wmwTest(value ~ group, data = df, method = "exact.ce")
 
 \begin{verbatim}
 
-	exact Wilcoxon-Man-Whitney test (confidence interval requires proportional odds
-	assumption, but test does not)
+	exact Wilcoxon-Man-Whitney test (confidence interval requires
+	proportional odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, p-value = 0.1299
@@ -345,15 +345,15 @@ confint(etperm.BT, statistic = "favorable")
 \end{lstlisting}
 
 \begin{verbatim}
-       estimate        se  lower.ci  upper.ci null p.value
-value 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
+       estimate        se  lower.ci  upper.ci null   p.value
+value 0.2839506 0.1401461 0.1006681 0.5809142  0.5 0.1630837
 Warning message:
 In .local(object, ...) :
   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
 \end{verbatim}
 
 \section{Multiple Wilcoxon tests}
-\label{sec:org3d82d86}
+\label{sec:org30be7b3}
 
 Consider now the case where we would like to compare one reference
 group (here strata \texttt{a}) to multiple treatment groups (here strata
@@ -368,13 +368,13 @@ head(dt)
 \end{lstlisting}
 
 \begin{verbatim}
-   treatment  eventtime status toxicity      score strata  id
-1:         C 0.03384999      1      yes  0.4777913      b id1
-2:         C 0.65039474      0       no -1.1048190      d id2
-3:         C 1.00647502      1       no -0.1407630      b id3
-4:         C 0.01129603      1      yes -0.5512507      a id4
-5:         C 0.22249748      1       no  1.0465250      d id5
-6:         C 0.07400412      0       no -2.0053855      d id6
+    id treatment  eventtime status toxicity      score strata
+1: id1         C 0.03384999      1      yes  0.4777913      b
+2: id2         C 0.65039474      0       no -1.1048190      d
+3: id3         C 1.00647502      1       no -0.1407630      b
+4: id4         C 0.01129603      1      yes -0.5512507      a
+5: id5         C 0.22249748      1       no  1.0465250      d
+6: id6         C 0.07400412      0       no -2.0053855      d
 \end{verbatim}
 
 
@@ -440,7 +440,7 @@ of 4. This is thanks to the rather strong correlation between the test
 statistics:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-M.cor <- cov2cor(crossprod(e.mc$iid))
+M.cor <- cor(lava::iid(e.mc))
 dimnames(M.cor) <- list(names(ls.BT),names(ls.BT))
 M.cor
 \end{lstlisting}

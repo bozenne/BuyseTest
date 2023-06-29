@@ -7,10 +7,10 @@ vignettes/*.tex
 vignettes/change.sty
 ^.*\.Rproj$
 ^\.Rproj\.user$
-inst/article
+inst/book
 inst/doc-software
 inst/doc-theory
-inst/docToAdd
+inst/doc-Wilcoxon
 inst/todo.org
 data/
 data/pa3_OS_TOXshort.csv

@@ -2,7 +2,7 @@ Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
 Version: 3.0.0
-Date: 2023-06-28
+Date: 2023-06-29
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
@@ -27,6 +27,7 @@ Imports:
     prodlim,
     riskRegression,
     rlang,
+    scales,
     stats,
     stats4,
     utils
@@ -76,6 +77,7 @@ Collate:
     'S4-BuyseTest.options.R'
     'as.data.table.performance.R'
     'auc.R'
+    'autoplot.S4BuyseTest.R'
     'brier.R'
     'constStrata.R'
     'discreteRoot.R'

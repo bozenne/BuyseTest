@@ -1,16 +1,14 @@
 #+TITLE: Wilcoxon test via GPC
 #+Author: Brice Ozenne
 
-#+BEGIN_SRC R :exports none :results output raw drawer :session *R* :cache no
+#+BEGIN_SRC R :exports none :results quiet :session *R* :cache no
 library(BuyseTest)
-library(asht, quiet = TRUE)
+library(asht)
 library(pbapply)
 library(riskRegression)
 #+END_SRC
 
 #+RESULTS:
-:results:
-:end:
 
 * Single Wilcoxon test
 
@@ -56,8 +54,8 @@ wmwTest(value ~ group, data = df, method = "asymptotic")
 #+RESULTS:
 #+begin_example
 
-	Wilcoxon-Mann-Whitney test with continuity correction (confidence interval
-	requires proportional odds assumption, but test does not)
+	Wilcoxon-Mann-Whitney test with continuity correction (confidence
+	interval requires proportional odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, tie factor = 0.99794, p-value = 0.1329
@@ -83,8 +81,8 @@ wmwTest(value ~ group, data = df, method = "exact.ce")
 #+RESULTS:
 #+begin_example
 
-	exact Wilcoxon-Man-Whitney test (confidence interval requires proportional odds
-	assumption, but test does not)
+	exact Wilcoxon-Man-Whitney test (confidence interval requires
+	proportional odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.28395, p-value = 0.1299
@@ -143,8 +141,8 @@ confint(etperm.BT, statistic = "favorable")
 #+END_SRC
 
 #+RESULTS:
-:        estimate        se  lower.ci  upper.ci null p.value
-: value 0.2839506 0.1401461 0.1006681 0.5809142  0.5   0.163
+:        estimate        se  lower.ci  upper.ci null   p.value
+: value 0.2839506 0.1401461 0.1006681 0.5809142  0.5 0.1630837
 : Warning message:
 : In .local(object, ...) :
 :   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
@@ -163,13 +161,13 @@ head(dt)
 #+END_SRC
 
 #+RESULTS:
-:    treatment  eventtime status toxicity      score strata  id
-: 1:         C 0.03384999      1      yes  0.4777913      b id1
-: 2:         C 0.65039474      0       no -1.1048190      d id2
-: 3:         C 1.00647502      1       no -0.1407630      b id3
-: 4:         C 0.01129603      1      yes -0.5512507      a id4
-: 5:         C 0.22249748      1       no  1.0465250      d id5
-: 6:         C 0.07400412      0       no -2.0053855      d id6
+:     id treatment  eventtime status toxicity      score strata
+: 1: id1         C 0.03384999      1      yes  0.4777913      b
+: 2: id2         C 0.65039474      0       no -1.1048190      d
+: 3: id3         C 1.00647502      1       no -0.1407630      b
+: 4: id4         C 0.01129603      1      yes -0.5512507      a
+: 5: id5         C 0.22249748      1       no  1.0465250      d
+: 6: id6         C 0.07400412      0       no -2.0053855      d
 
 \clearpage
 
@@ -226,7 +224,7 @@ Here the smallest p-value has been multiplied by a factor 2.64 instead
 of 4. This is thanks to the rather strong correlation between the test
 statistics:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-M.cor <- cov2cor(crossprod(e.mc$iid))
+M.cor <- cor(lava::iid(e.mc))
 dimnames(M.cor) <- list(names(ls.BT),names(ls.BT))
 M.cor
 #+END_SRC

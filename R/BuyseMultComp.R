@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: jun 28 2023 (13:19) 
+## Last-Updated: Jun 29 2023 (12:10) 
 ##           By: Brice Ozenne
-##     Update #: 259
+##     Update #: 276
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -372,41 +372,70 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
                 )
     if(band){
         out$table.uni <- data.frame(estimate = as.double(vec.Cbeta), se = as.double(vec.Cse),
-                          lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
-                          lower.band = as.double(iBand$lowerBand), upper.band = as.double(iBand$upperBand), adj.p.value = as.double(iBand$adj.p.value))
+                                    lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
+                                    lower.band = as.double(iBand$lowerBand), upper.band = as.double(iBand$upperBand), adj.p.value = as.double(iBand$adj.p.value))
     }else{
         out$table.uni <- data.frame(estimate = as.double(vec.Cbeta), se = as.double(vec.Cse),
                                     lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
                                     lower.band = NA, upper.band = NA, adj.p.value = NA)
     }
-    
-    if(test.list){
-        rownames(out$table.uni) <- iName
-    }
+    rownames(out$table.uni) <- iName
     class(out) <- append("BuyseMultComp",class(out))
     return(out)
 }
         
 ## * as.data.frame.BuyseMultComp
+##' @method as.data.frame BuyseMultComp
 ##' @export
 as.data.frame.BuyseMultComp <- function(x, row.names = NULL, optional = FALSE, ...){
     return(as.data.frame(x$table.uni, row.names = row.names, optional = optional, ...))
 }
 
 ## * as.data.table.BuyseMultComp
+##' @method as.data.table BuyseMultComp
 ##' @export
 as.data.table.BuyseMultComp <- function(x, keep.rownames = NULL, ...){
     return(as.data.table(x$table.uni, keep.rownames = keep.rownames, ...))
 }
 
+## * coef.BuyseMultComp
+##' @method coef BuyseMultComp
+##' @export
+coef.BuyseMultComp <- function(object, ...){
+    out <- stats::setNames(object$table.uni$estimate,rownames(object$table.uni))
+    return(out) 
+}
+
+## * confint.BuyseMultComp
+##' @method confint BuyseMultComp
+##' @export
+confint.BuyseMultComp <- function(object, parm, level = 0.95, ...){
+    out <- object$table.uni[,c("estimate","lower.band","upper.band","adj.p.value")]
+    return(out) 
+}
+
 ## * iid.BuyseMultComp
+##' @method iid BuyseMultComp
 ##' @export
 iid.BuyseMultComp <- function(x, keep.rownames = NULL, ...){
     return(x$iid)
 }
 
+## * model.tables.BuyseMultComp
+##' @method model.tables BuyseMultComp
+##' @export
+model.tables.BuyseMultComp <- function(x, type = "univariate", ...){
+    type <- match.arg(type, c("univariate","multivariate"))
+    if(type == "univariate"){
+        return(x$table.uni)
+    }else if(type == "multivariate"){
+        return(x$table.multi)
+    }
+}
+
 ## * print.BuyseMultComp
-##' @exportMethod print
+##' @method print BuyseMultComp
+##' @export
 print.BuyseMultComp <- function(x, ...){
     dots <- list(...)
     

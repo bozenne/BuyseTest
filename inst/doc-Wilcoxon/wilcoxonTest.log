@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.11.14)  20 MAR 2023 12:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2023.5.31)  29 JUN 2023 11:06
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -1309,10 +1309,10 @@ Package rerunfilecheck Info: File `wilcoxonTest.out' has not changed.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 455.
  ) 
 Here is how much of TeX's memory you used:
- 26996 strings out of 483081
- 481788 string characters out of 5963440
- 1169682 words of memory out of 5000000
- 41323 multiletter control sequences out of 15000+600000
+ 26995 strings out of 483081
+ 481768 string characters out of 5963441
+ 1169681 words of memory out of 5000000
+ 41322 multiletter control sequences out of 15000+600000
  606929 words of font info for 100 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
  76i,8n,96p,893b,1874s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1334,7 +1334,7 @@ fb></usr/share/texmf/fonts/type1/public/lm/lmr8.pfb></usr/share/texmf/fonts/typ
 e1/public/lm/lmri12.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></us
 r/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/share/texmf/fonts/type1/pu
 blic/lm/lmtt12.pfb>
-Output written on wilcoxonTest.pdf (5 pages, 242803 bytes).
+Output written on wilcoxonTest.pdf (5 pages, 242949 bytes).
 PDF statistics:
  192 PDF objects out of 1000 (max. 8388607)
  156 compressed objects within 2 object streams
