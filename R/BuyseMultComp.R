@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: Jun 29 2023 (12:10) 
+## Last-Updated: Jun 29 2023 (12:54) 
 ##           By: Brice Ozenne
-##     Update #: 276
+##     Update #: 287
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -103,7 +103,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
 
     ## ** normalize arguments
     option <- BuyseTest.options()
-
+    call <- match.call()
     ## object
     if(inherits(object,"S4BuyseTest")){
         test.list <- FALSE
@@ -246,17 +246,52 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             stop("The argument \'cluster\' must be specified to identify the common individuals across the BuyseTest object. \n")
         }else{
             ## retrieve data
-            cluster.var <- cluster
-            cluster <- try(lapply(object, function(iO){as.character(iO@call$data[[cluster.var]]) }), silent = TRUE)
-            if(inherits(cluster, "try-error")){
-                stop("Could not retrieve the column \"cluster\" from the evaluation of the call of the BuyseTest objects. \n")
+            browser()
+            if(is.numeric(cluster)){
+                if(length(unique(sapply(ls.iid,length)))>1){
+                    stop("Argument \'cluster\' cannot be numeric when the BuyseTest are performed on different number of observations. \n",
+                         "Number of observations per BuyseTest: ",paste(sapply(ls.iid,length), collapse = ", "),".\n")
+                }
+                if(any(length(cluster) != length(ls.iid)[[1]])){
+                    stop("Incorrect length for argument \'cluster\': when numeric it should have length the number of observations ",length(ls.iid[[1]]),".\n",
+                         "Current length: ",length(cluster),".\n")
+                }
+                if(any(cluster %in% 1:length(ls.iid[[1]]) == FALSE)){
+                    stop("Incorrect values for argument \'cluster\': when numeric it should takes integer values between 1 and ",length(ls.iid[[1]]),".\n",
+                         "Example of incorrect value: ",cluster[cluster %in% 1:length(ls.iid[[1]]) == FALSE][1],".\n")
+                }
+                cluster <- lapply(1:n.object, function(iO){cluster})
+            }else if(is.list(cluster)){
+                if(any(sapply(cluster,is.numeric) == FALSE)){
+                    stop("When a list, argument \'cluster\' should contain integers indexing the clusters")
+                }
+                if(any(sapply(cluster,length) != sapply(ls.iid,length))){
+                    stop("Incorrect argument \'cluster\': when a list, the length of each element should match the number of observations the BuyseTest.\n",
+                         "Length argument vs. BuyseTest: ",paste(paste(sapply(cluster,length), sapply(ls.iid,length), sep = " vs. "), collapse = ", "),".\n")
+                }
+                if(any(sapply(cluster,max) < 1) || any(unlist(lapply(cluster, `%%`, 1))!=0)){
+                    stop("Incorrect argument \'cluster\': when a list, element should contain integers indexing the clusters.\n")
+                }
+            }else{
+                cluster.var <- cluster
+                cluster <- lapply(object, function(iO){try(as.character(iO@call$data[[cluster.var]]), silent = TRUE) })
+                if(any(sapply(cluster, inherits, "try-error"))){
+                    indexPb <- which(sapply(cluster, inherits, "try-error"))
+                    stop("Could not retrieve the cluster column \"",cluster.var,"\" from the evaluation of the call of the BuyseTest objects. \n",
+                         "Problematic object(s): ",paste(iName[indexPb], collapse = ","),"\n")
+                }
+                if(any(sapply(cluster, length)==0)){
+                    indexPb <- which(sapply(cluster, length)==0)
+                    stop("Could not retrieve the cluster column \"",cluster.var,"\" from the evaluation of the call of the BuyseTest objects. \n",
+                         "Problematic object(s): ",paste(iName[indexPb], collapse = ","),"\n")
+                }
             }
             ## find unique clusters
             Ucluster <- unique(unlist(cluster))
             n.id <- length(Ucluster)
             ## store iid according to the clusters
             M.iid <- matrix(0, nrow = n.id, ncol = n.object, dimnames = list(NULL, iName))
-            for(iObject in 1:n.object){
+            for(iObject in 1:n.object){ ## iObject <- 1
                 M.iid[match(cluster[[iObject]],Ucluster),iName[iObject]] <- ls.iid[[iObject]]
             }
         }
@@ -291,7 +326,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     vec.Cbeta <- t(linfct %*% vec.beta)
     M.Ciid <- M.iid  %*% t(linfct)
     n.C <- NROW(linfct)
-
+browser()
     vec.Cse <- rbind(sqrt(diag(crossprod(M.Ciid))))
     A.Ciid <- array(NA, dim = c(NROW(M.Ciid), NCOL(M.Ciid),1))
     A.Ciid[,,1] <- M.Ciid
