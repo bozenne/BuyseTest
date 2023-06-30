@@ -28,7 +28,8 @@ setClass(
       results = "data.table",
       threshold = "numeric",
       restriction = "numeric",
-      type = "character"
+      type = "character",
+      seed = "numeric"
   )
 
 )
@@ -47,7 +48,8 @@ methods::setMethod(
                                    results,
                                    threshold,
                                    restriction,
-                                   type){
+                                   type,
+                                   seed){
 
                  .Object@alternative <- alternative
                  .Object@method.inference <- method.inference
@@ -59,6 +61,9 @@ methods::setMethod(
                  .Object@threshold <- threshold
                  .Object@restriction <- restriction
                  .Object@type <- type
+                 if(!is.null(seed)){
+                     .Object@seed <- seed
+                 }
                  
                  ## validObject(.Object)
                  return(.Object)

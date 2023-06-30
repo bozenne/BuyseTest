@@ -306,6 +306,11 @@ initializeArgs <- function(status,
         trace <- as.numeric(trace)
     }
 
+    ## ** seed
+    if(!is.null(seed)){
+        attr(seed,"max") <- 10^(floor(log10(.Machine$integer.max))-1)        
+    }
+
     ## ** operator
     if(!is.numeric(operator)){
         operator <- sapply(operator, switch, ">0"=1, "<0"=-1, NA)

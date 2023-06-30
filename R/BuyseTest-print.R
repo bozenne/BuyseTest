@@ -162,7 +162,7 @@ printInference <- function(method.inference, n.resampling, cpus, seed, ...){
         if(!attr(method.inference,"ustatistic")){
             cat("   - cpus  : ",cpus,"\n", sep = "")
             if (!is.null(seed)) {
-                cat("   - seeds : ",paste(seq(seed,seed + cpus - 1), collapse = " "),"\n", sep = "")       
+                cat("   - seeds : ",seed, sep = "")       
             }
         }
     }

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar  3 2022 (12:01) 
 ## Version: 
-## Last-Updated: jun 27 2023 (14:05) 
+## Last-Updated: jun 30 2023 (10:27) 
 ##           By: Brice Ozenne
-##     Update #: 176
+##     Update #: 187
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,7 +23,7 @@
 ##' @param data [data.frame] the training data.
 ##' @param name.response [character] The name of the response variable (i.e. the one containing the categories).
 ##' @param type.resampling [character] Should non-parametric bootstrap (\code{"bootstrap"}) or permutation of the outcome (\code{"permutation"}) be used.
-##' @param n.resampling [integer,>0] Nnumber of bootstrap samples or permutations.
+##' @param n.resampling [integer,>0] Number of bootstrap samples or permutations.
 ##' @param fold.repetition [integer,>0] Nnumber of folds used in the cross-validation. Should be strictly positive.
 ##' @param conf.level [numeric, 0-1] confidence level for the confidence intervals.
 ##' @param cpus [integer, >0] the number of CPU to use. If strictly greater than 1, resampling is perform in parallel. 
@@ -43,17 +43,6 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
                                 type.resampling = "permutation", n.resampling = 1000, fold.repetition = 0, conf.level = 0.95,
                                 cpus = 1, seed = NULL, trace = TRUE, filename = NULL, ...){
 
-    ## ** fix randomness
-    if(!is.null(seed)){
-        if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
-            old <- .Random.seed # to save the current seed
-            on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
-        }else{
-            on.exit(rm(.Random.seed, envir=.GlobalEnv))
-        }
-        set.seed(seed)
-    }
-
     ## ** Normalize arguments
     type.resampling <- match.arg(type.resampling, c("permutation", "bootstrap"))
     if(length(n.resampling)==1){
@@ -63,12 +52,30 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         n.resampling <- length(vec.resampling)
     }
 
+    ## ** fix randomness
+    if(!is.null(seed)){
+        tol.seed <- 10^(floor(log10(.Machine$integer.max))-1)
+        if(n.resampling>tol.seed){
+            stop("Cannot set a seed per sample when considering more than ",tol.seed," samples. \n")
+        }
+        if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
+            old <- .Random.seed # to save the current seed
+            on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
+        }else{
+            on.exit(rm(.Random.seed, envir=.GlobalEnv))
+        }
+        set.seed(seed)
+        seqSeed <- sample.int(tol.seed, max(vec.resampling),  replace = FALSE) 
+    }else{
+        seqSeed <- NULL
+    }
+
     ## ** Point estimate
     initPerf <- performance(object, data = data, name.response = name.response,
-                            fold.repetition = fold.repetition, se = FALSE, trace = FALSE, seed = NULL, ...)
+                            fold.repetition = fold.repetition, se = FALSE, trace = FALSE, seed = seqSeed[1], ...)
     if(!is.null(filename)){
         if(!is.null(seed)){
-            filename <- paste0(filename,"-seed",seed)
+            filename <- paste0(filename,"-seed",seqSeed[1])
         }
         saveRDS(initPerf, file = paste0(filename,".rds"))
     }
@@ -91,7 +98,7 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
             test.factice <- i %in% vec.resampling == FALSE
             dataResample[[name.response]] <- sample(data[[name.response]])
             iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.repetition = fold.repetition,
-                                                      trace = trace-1, se = FALSE, seed = if(test.factice){"only"}else{NULL}, ...)),
+                                                      trace = trace-1, se = FALSE, seed = seqSeed[iB], ...)),
                          silent = FALSE)
             if(inherits(iPerf, "try-error") || test.factice){
                 return(NULL)
@@ -109,7 +116,7 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
             dataResample <- data[sample(NROW(data), size = NROW(data), replace = TRUE),,drop=FALSE]
             attr(dataResample,"internal") <- attr(data,"internal") ## only do CV
             iPerf <- try(suppressWarnings(performance(object, data = dataResample, name.response = name.response, fold.repetition = fold.repetition,
-                                                      trace = trace-1, se = FALSE, seed = if(test.factice){"only"}else{NULL}, ...)),
+                                                      trace = trace-1, se = FALSE, seed = seqSeed[iB], ...)),
                          silent = FALSE)
             if(inherits(iPerf, "try-error") || test.factice){
                 return(NULL)
@@ -140,8 +147,6 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
                                              FUN = warperResampling)
                                  )
 
-        if(!is.null(seed)){rm(.Random.seed, envir=.GlobalEnv)} # restaure original seed
-
     }else{ ## parallel calculations
         ## define cluster
         cl <- parallel::makeCluster(cpus)
@@ -154,7 +159,10 @@ performanceResample <- function(object, data = NULL, name.response = NULL,
         }
         ## link to foreach
         doSNOW::registerDoSNOW(cl)
-
+        ## seed
+        if (!is.null(seed)) {
+            parallel::clusterExport(cl, varlist = "seqSeed", envir = environment())
+        }         
         ## export package
         parallel::clusterCall(cl, fun = function(x){
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))

@@ -181,6 +181,7 @@ Additional arguments for permutation and bootstrap resampling:
 Otherwise, the permutation/non-parametric boostrap will be performed separately for each level that the variable defined in \code{strata.resampling} take.
    \item \code{n.resampling} set the number of permutations/samples used.
 A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details.
+   \item \code{seed}: the seed is used to generate one seed per sample. These seeds are the same whether one or several CPUs are used.
    \item \code{cpus} indicates whether the resampling procedure can be splitted on several cpus to save time. Can be set to \code{"all"} to use all available cpus.
 The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. \cr \cr
 }

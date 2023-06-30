@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jun 28 2023 (14:13) 
+## Last-Updated: jun 30 2023 (10:17) 
 ##           By: Brice Ozenne
-##     Update #: 332
+##     Update #: 341
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -383,6 +383,12 @@ testArgs <- function(name.call,
                      valid.length = 1,
                      min = 1,
                      method = "BuyseTest")
+        if(!is.null(seed)){
+            tol.seed <- attr(seed,"max")
+            if(n.resampling>tol.seed){
+                stop("Cannot set a seed per sample when considering more than ",tol.seed," samples. \n")
+            }
+        }                     
     }
     
    ## ** hierarchical

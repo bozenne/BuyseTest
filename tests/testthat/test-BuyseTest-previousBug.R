@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jun 28 2023 (13:37) 
+## Last-Updated: jun 30 2023 (13:07) 
 ##           By: Brice Ozenne
-##     Update #: 216
+##     Update #: 217
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -328,7 +328,7 @@ test_that("BuysePower - error in print", {
 
     ## the error was when setting trace to 4
     tempo <- capture.output({
-        xx <- powerBuyseTest(sim = simFCT, sample.sizeC = c(100), sample.sizeT = c(100), n.rep = 2,
+        xx <- powerBuyseTest(sim = simFCT, sample.size = 100, n.rep = 2,
                              formula = T ~ cont(Y), method.inference = "u-statistic", trace = 4,
                              seed = 10)
     })
@@ -338,7 +338,7 @@ test_that("BuysePower - error in print", {
                           T=c(rep(1,n.C),rep(0,n.T))
                           )
         return(out)
-    }, sample.sizeC = c(100), sample.sizeT = c(100), n.rep = 2,
+    }, sample.size = 100, n.rep = 2,
     formula = T ~ cont(Y), method.inference = "u-statistic", trace = 0,
     seed = 10)
 
@@ -406,17 +406,17 @@ simFCT <- function(n.C, n.T) {
 }
 
 test_that("powerBuyseTest - status vs. censoring", {
-    valid <- powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
+    valid <- powerBuyseTest(sim = simFCT, sample.size = 100, n.rep = 2,
                             formula = treatment ~ tte(eventtime1, status = status1),
                             method.inference = "u-statistic",
                             scoring.rule = "Gehan", trace = 0)
 
-    expect_error(powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
+    expect_error(powerBuyseTest(sim = simFCT, sample.size = 100, n.rep = 2,
                                 formula = treatment ~ tte(eventtime1, censoring = status1),
                                 method.inference = "u-statistic",
                                 scoring.rule = "Gehan"))
 
-    valid <- capture.output(powerBuyseTest(sim = simFCT, sample.size = c(100), n.rep = 2,
+    valid <- capture.output(powerBuyseTest(sim = simFCT, sample.size = 100, n.rep = 2,
                                            formula = treatment ~ tte(eventtime1, status = status1),
                                            method.inference = "u-statistic",
                                            scoring.rule = "Gehan", trace = 4))

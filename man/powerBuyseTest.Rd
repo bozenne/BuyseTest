@@ -7,9 +7,7 @@
 powerBuyseTest(
   sim,
   sample.size,
-  sample.sizeC = NULL,
-  sample.sizeT = NULL,
-  n.rep,
+  n.rep = c(1000, 10),
   null = c(netBenefit = 0),
   cpus = 1,
   export.cpus = NULL,
@@ -29,14 +27,11 @@ powerBuyseTest(
 the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
 and generate datasets. The datasets must be data.frame objects or inherits from data.frame.}
 
-\item{sample.size}{[integer vector, >0] the various sample sizes at which the simulation should be perform.
-Disregarded if any of the arguments \code{sample.sizeC} or \code{sample.sizeT} are specified.}
+\item{sample.size}{[integer vector or matrix, >0] the group specific sample sizes relative to which the simulations should be perform.
+When a vector, the same sample size is used for each group. Alternatively can be a matrix with two columns, one for each group (respectively T and C).}
 
-\item{sample.sizeC}{[integer vector, >0] the various sample sizes in the control group.}
-
-\item{sample.sizeT}{[integer vector, >0] the various sample sizes in the treatment group.}
-
-\item{n.rep}{[integer, >0] the number of simulations.}
+\item{n.rep}{[integer, >0] the number of simulations.
+When specifying the power instead of the sample size, should be a vector of length 2 where the second element indicates the number of simulations used to identify the sample size.}
 
 \item{null}{[numeric vector] For each statistic of interest, the null hypothesis to be tested.
 The vector should be named with the names of the statistics.}
@@ -45,15 +40,15 @@ The vector should be named with the names of the statistics.}
 
 \item{export.cpus}{[character vector] name of the variables to export to each cluster.}
 
-\item{seed}{[integer, >0] the seed to consider for the simulation study.}
+\item{seed}{[integer, >0] the seed to consider for the simulation study. If \code{NULL} no seed is set.}
 
 \item{conf.level}{[numeric, 0-1] type 1 error level.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{power}{[numeric, 0-1] type 2 error level used to determine the sample size. Only relevant when \code{sample.size}, \code{sample.sizeC}, and \code{sample.sizeT} are not given. See details.}
+\item{power}{[numeric, 0-1] type 2 error level used to determine the sample size. Only relevant when \code{sample.size} is not given. See details.}
 
 \item{max.sample.size}{[interger, 0-1] sample size used to approximate the sample size achieving the requested type 1 and type 2 error (see details).
-Can have length 2 to indicate the sample in each group when the groups have unequal sample size.}
+Can have length 2 to indicate the sample in each group (respectively T and C) when the groups have unequal sample size.}
 
 \item{alternative}{[character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 Default value read from \code{BuyseTest.options()}.}
@@ -75,13 +70,17 @@ An S4 object of class  \code{\linkS4class{S4BuysePower}}.
 \description{
 Performs a simulation studies for several sample sizes.
 Returns estimates, their standard deviation, the average estimated standard error, and the rejection rate.
+Can also be use for power calculation or to approximate the sample size needed to reach a specific power.
 }
 \details{
 \bold{Sample size calculation}: to approximate the sample size achieving the requested type 1 (\eqn{\alpha}) and type 2 error (\eqn{\beta}),
 GPC are applied on a large sample (as defined by the argument \code{max.sample.size}): \eqn{N^*=m^*+n^*} where \eqn{m^*} is the sample size in the control group and \eqn{n^*} is the sample size in the active group.
 Then the effect (\eqn{\delta}) and the asymptotic variance of the estimator (\eqn{\sigma^2}) are estimated. The total sample size is then deduced as (two-sided case):
-\deqn{\hat{N} = \hat{\sigma}^2\frac{(u_{1-\alpha/2}+u_{1-\beta})^2}{\hat{\delta}^2}} from which the group specific sample sizes are deduced: \eqn{\hat{m}=\hat{N}\frac{m^*}{N^*}} and \eqn{\hat{n}=\hat{N}\frac{n^*}{N^*}}. Here \eqn{u_x} denotes the x-quantile of the normal distribution.
-Since this is an approximation, a simulation study is performed with this sample size to provide the estimated power. It may not be exactly the requested power but should provide a reasonnable guess which can be refined with further simulation studies. Note that the maximumal sample size should be very high for the estimation to be accurate (ideally 10000 or more).
+\deqn{\hat{N} = \hat{\sigma}^2\frac{(u_{1-\alpha/2}+u_{1-\beta})^2}{\hat{\delta}^2}} from which the group specific sample sizes are deduced: \eqn{\hat{m}=\hat{N}\frac{m^*}{N^*}} and \eqn{\hat{n}=\hat{N}\frac{n^*}{N^*}}. Here \eqn{u_x} denotes the x-quantile of the normal distribution. \cr
+This approximation can be improved by increasing the sample size (argument \code{max.sample.size}) and/or by performing it multiple times based on a different dataset and average estimated sample size per group (second element of argument \code{n.rep}). \cr
+To evaluate the approximation, a simulation study is then performed with the estimated sample size. It will not exactly match the requested power but should provide a reasonnable guess which can be refined with further simulation studies. The larger the sample size (and/or number of CPUs) the more accurate the approximation.
+
+\bold{seed}: the seed is used to generate one seed per simulation. These simulation seeds are the same whether one or several CPUs are used.
 }
 \examples{
 library(data.table)
@@ -91,7 +90,7 @@ library(data.table)
 \dontrun{
 pBT <- powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
                   formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
-                  method.inference = "none", trace = 2, keep.pairScore = FALSE)
+                  method.inference = "none", keep.pairScore = FALSE, cpus = 5)
 summary(pBT)
 model.tables(pBT)
 }
@@ -135,14 +134,15 @@ summary(powerW)
 ## sample size needed to reach (approximately) a power
 ## based on summary statistics obtained on a large sample 
 \dontrun{
-sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, max.sample.size = 1000,
-                         n.rep = 1000, formula = group ~ cont(Y), cpus = 3)
+sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, formula = group ~ cont(Y), 
+                         n.rep = c(1000,10), max.sample.size = 2000, cpus = 5,
+                         seed = 10)
 summary(sampleW) ## not very accurate but gives an order of magnitude
 
-sampleW2 <- powerBuyseTest(sim = simFCT2,
-                           power = 0.8, max.sample.size = 1000,
-                           n.rep = 1000, formula = group ~ cont(Y), cpus = 1)
-summary(sampleW2) ## more accurate with larger samples
+sampleW2 <- powerBuyseTest(sim = simFCT2, power = 0.8, formula = group ~ cont(Y), 
+                         n.rep = c(1000,10), max.sample.size = 2000, cpus = 5,
+                         seed = 10)
+summary(sampleW2) ## more accurate when the sample size needed is not too small
 }
 
 }

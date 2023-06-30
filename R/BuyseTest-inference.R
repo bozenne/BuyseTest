@@ -11,6 +11,19 @@ inferenceResampling <- function(envir){
     n.resampling <- envir$outArgs$n.resampling
     n.strata <- envir$outArgs$n.strata
     seed <- envir$outArgs$seed
+
+    if (!is.null(seed)) {
+        if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
+            old <- .Random.seed # to save the current seed
+            on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
+        }else{
+            on.exit(rm(.Random.seed, envir=.GlobalEnv))
+        }
+        tol.seed <- attr(seed,"max")
+        set.seed(seed)
+        seqSeed <- sample.int(tol.seed, n.resampling,  replace = FALSE)        
+    }
+
     trace <- envir$outArgs$trace
 
     ## re-order dataset according to the strata used when resampling
@@ -28,15 +41,6 @@ inferenceResampling <- function(envir){
     
     ## ** computation
     if (cpus == 1) { ## *** sequential resampling test
-        if(!is.null(seed)){
-            if(!is.null(get0(".Random.seed"))){ ## avoid error when .Random.seed do not exists, e.g. fresh R session with no call to RNG
-                old <- .Random.seed # to save the current seed
-                on.exit(.Random.seed <<- old) # restore the current seed (before the call to the function)
-            }else{
-                on.exit(rm(.Random.seed, envir=.GlobalEnv))
-            }
-            set.seed(seed)
-        }
 
         if (trace > 0) {
             requireNamespace("pbapply")
@@ -45,14 +49,20 @@ inferenceResampling <- function(envir){
             method.loop <- lapply
         }
         ls.resampling <- do.call(method.loop,
-                                  args = list(X = 1:n.resampling,
-                                              FUN = function(iB){
-                                                  .BuyseTest(envir = envir,
-                                                             iid = iid,
-                                                             method.inference = method.inference,
-                                                             pointEstimation = FALSE
-                                                             )
-                                              })
+                                 args = list(X = 1:n.resampling,
+                                             FUN = function(iB){
+                                                 if(!is.null(seed)){set.seed(seqSeed[iB])}
+                                                 iOut <- .BuyseTest(envir = envir,
+                                                                    iid = iid,
+                                                                    method.inference = method.inference,
+                                                                    pointEstimation = FALSE
+                                                                    )
+                                                 if(!is.null(seed)){
+                                                     return(c(iOut,list(seed = seqSeed[iB])))
+                                                 }else{
+                                                     return(iOut)
+                                                 }
+                                             })
                                  )
     }else { ## *** parallel resampling test
 
@@ -68,6 +78,11 @@ inferenceResampling <- function(envir){
         ## link to foreach
         doSNOW::registerDoSNOW(cl)
 
+        ## seed
+        if (!is.null(seed)) {
+            parallel::clusterExport(cl, varlist = "seqSeed", envir = environment())
+        }         
+
         ## export package
         parallel::clusterCall(cl, fun = function(x){
             suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
@@ -81,11 +96,16 @@ inferenceResampling <- function(envir){
                                                        .packages = "data.table",
                                                        .options.snow = opts),                                            
                                       {
-                                          return(.BuyseTest(envir = envir,
-                                                            iid = iid,
-                                                            method.inference = method.inference,
-                                                            pointEstimation = FALSE))
-                      
+                                          if(!is.null(seed)){set.seed(seqSeed[iB])}
+                                          iOut <- .BuyseTest(envir = envir,
+                                                             iid = iid,
+                                                             method.inference = method.inference,
+                                                             pointEstimation = FALSE)
+                                          if(!is.null(seed)){
+                                              return(c(iOut,list(seed = seqSeed[iB])))
+                                          }else{
+                                              return(iOut)
+                                          }                      
                                        })
 
         parallel::stopCluster(cl)
@@ -106,6 +126,9 @@ inferenceResampling <- function(envir){
                 weightStrataResampling = matrix(NA, nrow = n.resampling, ncol = n.strata,
                                                 dimnames = list(NULL, level.strata))
                 )
+    if(!is.null(seed)){
+        out$seed <- rep(NA, n.resampling)
+    }
     if(iid){
         out$covarianceResampling = array(NA, dim = c(n.resampling, D, 5),
                                          dimnames = list(as.character(1:n.resampling), endpoint, c("favorable", "unfavorable", "covariance", "netBenefit", "winRatio")))
@@ -117,7 +140,9 @@ inferenceResampling <- function(envir){
         out$deltaResampling[iR,,,] <- ls.resampling[[iR]]$delta
         out$DeltaResampling[iR,,] <- ls.resampling[[iR]]$Delta
         out$weightStrataResampling[iR,] <- ls.resampling[[iR]]$weightStrata
-        
+        if(!is.null(seed)){
+            out$seed[iR] <- seqSeed[iR]
+        }
         if(iid){
             out$covarianceResampling[iR,,] <- ls.resampling[[iR]]$covariance
         }

@@ -51,6 +51,7 @@ setClass(
       weightStrataResampling = "array",
       iidAverage = "list",
       iidNuisance = "list",
+      seed = "numeric",
       tablePairScore = "list",
       tableSurvival = "list"
       )
@@ -93,6 +94,7 @@ methods::setMethod(
                                    correction.uninf,
                                    method.inference,
                                    method.score,
+                                   seed,
                                    strata,
                                    threshold,
                                    restriction,
@@ -272,7 +274,10 @@ methods::setMethod(
                  .Object@weightEndpoint <- weightEndpoint
                  .Object@weightStrata <- weightStrata
                  .Object@n.resampling <- n.resampling
-                 
+                 if(!missing(seed)){
+                     .Object@seed <- seed
+                 }
+
                  ## *** optional information
                  ## resampling
                  if(!is.null(deltaResampling)){

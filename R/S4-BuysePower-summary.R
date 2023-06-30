@@ -83,7 +83,7 @@ setMethod(f = "summary",
 
               if(print){
                   cat("        Simulation study with Generalized pairwise comparison\n", sep = "")
-                  cat("        with ",object@n.rep," samples\n\n", sep = "")
+                  cat("        with ",object@n.rep[1]," samples\n\n", sep = "")
                   rm.duplicate <- c("n.T", "n.C", "rep.estimate", "rep.se", "mean.estimate", "sd.estimate")
 
                   

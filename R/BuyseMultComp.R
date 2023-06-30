@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: Jun 29 2023 (12:54) 
+## Last-Updated: jun 29 2023 (13:54) 
 ##           By: Brice Ozenne
-##     Update #: 287
+##     Update #: 289
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -246,7 +246,6 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             stop("The argument \'cluster\' must be specified to identify the common individuals across the BuyseTest object. \n")
         }else{
             ## retrieve data
-            browser()
             if(is.numeric(cluster)){
                 if(length(unique(sapply(ls.iid,length)))>1){
                     stop("Argument \'cluster\' cannot be numeric when the BuyseTest are performed on different number of observations. \n",
@@ -288,11 +287,12 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
             }
             ## find unique clusters
             Ucluster <- unique(unlist(cluster))
+            cluster.factor <- lapply(cluster, factor, level = Ucluster)
             n.id <- length(Ucluster)
             ## store iid according to the clusters
-            M.iid <- matrix(0, nrow = n.id, ncol = n.object, dimnames = list(NULL, iName))
+            M.iid <- matrix(0, nrow = n.id, ncol = n.object, dimnames = list(Ucluster, iName))
             for(iObject in 1:n.object){ ## iObject <- 1
-                M.iid[match(cluster[[iObject]],Ucluster),iName[iObject]] <- ls.iid[[iObject]]
+                M.iid[,iName[iObject]] <- tapply(ls.iid[[iObject]],cluster.factor[[iObject]],sum, default = 0)
             }
         }
     }else{
@@ -326,7 +326,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
     vec.Cbeta <- t(linfct %*% vec.beta)
     M.Ciid <- M.iid  %*% t(linfct)
     n.C <- NROW(linfct)
-browser()
+
     vec.Cse <- rbind(sqrt(diag(crossprod(M.Ciid))))
     A.Ciid <- array(NA, dim = c(NROW(M.Ciid), NCOL(M.Ciid),1))
     A.Ciid[,,1] <- M.Ciid

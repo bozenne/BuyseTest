@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 27 2023 (14:29) 
 ## Version: 
-## Last-Updated: jun 28 2023 (13:59) 
+## Last-Updated: jun 30 2023 (10:30) 
 ##           By: Brice Ozenne
-##     Update #: 28
+##     Update #: 40
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,6 +25,7 @@
 #' @description Extract a summary of the results from the \code{\link{powerBuyseTest}} function.
 #' 
 #' @param x output of \code{\link{powerBuyseTest}}
+#' @param type [character] should a summary of the results (\code{"summary"}) or the raw results (\code{"raw"}) be output?
 #' @param statistic [character] statistic relative to which the power should be computed:
 #' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
 #' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
@@ -45,7 +46,8 @@
 #' @exportMethod model.tables
 setMethod(f = "model.tables",
           signature = "S4BuysePower",
-          definition = function(x, statistic = NULL, endpoint = NULL, order.Hprojection = NULL, transformation = NULL){
+          definition = function(x, type = "summary",
+                                statistic = NULL, endpoint = NULL, order.Hprojection = NULL, transformation = NULL){
 
               dt.res <- slot(x, name = "results")
               alpha <- 1-slot(x, name = "conf.level")
@@ -55,8 +57,10 @@ setMethod(f = "model.tables",
               object.restriction <- slot(x, name = "restriction")
               object.threshold <- slot(x, name = "threshold")
               object.type <- slot(x, name = "type")
+              object.seed <- slot(x, name = "seed")
 
               ## ** normalize and check arguments
+              type <- match.arg(type, c("raw","summary"))
               valid.endpoint <- names(object.endpoint)
               valid.statistic <- unique(dt.res$statistic)
               valid.order <- unique(dt.res$order)
@@ -119,31 +123,35 @@ setMethod(f = "model.tables",
               }else{
                   index.subset <- which((dt.res$endpoint %in% endpoint) * (dt.res$order == order.Hprojection) * (dt.res$transformation == "none") == 1)
               }
-              if(method.inference == "none"){                          
-                  dtS.res <- dt.res[index.subset,list(rep.estimate = sum(!is.na(.SD$estimate)),
-                                                      mean.estimate = mean(.SD$estimate, na.rm = TRUE)),
-                                    by = c("n.T","n.C","endpoint","statistic"),]
-                  col.value <- c("mean.estimate","rep.estimate")
-              }else{
-                  dtS.res <- dt.res[index.subset,list(rep.estimate = sum(!is.na(.SD$estimate)),
-                                                      rep.se = sum(!is.na(.SD$se)),
-                                                      mean.estimate = mean(.SD$estimate, na.rm = TRUE),
-                                                      sd.estimate = stats::sd(.SD$estimate, na.rm = TRUE),
-                                                      mean.se = mean(.SD$se, na.rm = TRUE),
-                                                      rejection.rate = mean(.SD$p.value<=alpha, na.rm = TRUE)),
-                                    by = c("n.T","n.C","endpoint","statistic"),]
-                  col.value <- c("mean.estimate","sd.estimate","mean.se","rejection.rate","rep.estimate","rep.se")
+              if(type == "summary"){
+                  if(method.inference == "none"){                          
+                      dtS.res <- dt.res[index.subset,list(rep.estimate = sum(!is.na(.SD$estimate)),
+                                                          mean.estimate = mean(.SD$estimate, na.rm = TRUE)),
+                                        by = c("n.T","n.C","endpoint","statistic"),]
+                      col.value <- c("mean.estimate","rep.estimate")
+                  }else{
+                      dtS.res <- dt.res[index.subset,list(rep.estimate = sum(!is.na(.SD$estimate)),
+                                                          rep.se = sum(!is.na(.SD$se)),
+                                                          mean.estimate = mean(.SD$estimate, na.rm = TRUE),
+                                                          sd.estimate = stats::sd(.SD$estimate, na.rm = TRUE),
+                                                          mean.se = mean(.SD$se, na.rm = TRUE),
+                                                          rejection.rate = mean(.SD$p.value<=alpha, na.rm = TRUE)),
+                                        by = c("n.T","n.C","endpoint","statistic"),]
+                      col.value <- c("mean.estimate","sd.estimate","mean.se","rejection.rate","rep.estimate","rep.se")
+                  }
+                  index.endpoint <- match(dtS.res$endpoint, valid.endpoint)
+                  dtS.res$endpoint <- object.endpoint[index.endpoint]
+                  dtS.res$threshold <- object.threshold[index.endpoint]
+                  dtS.res$restriction <- object.restriction[index.endpoint]
+                  if(any(object.type[index.endpoint]=="bin")){
+                      dtS.res$threshold[object.type[index.endpoint]=="bin"] <- NA
+                  }
+                  data.table::setkeyv(dtS.res, c("endpoint","n.T"))
+                  data.table::setcolorder(dtS.res, neworder = c("statistic","endpoint","restriction","threshold","n.T","n.C",col.value))
+              }else if(type == "raw"){
+                  dtS.res <- dt.res[index.subset]
               }
-              index.endpoint <- match(dtS.res$endpoint, valid.endpoint)
-              dtS.res$endpoint <- object.endpoint[index.endpoint]
-              dtS.res$threshold <- object.threshold[index.endpoint]
-              dtS.res$restriction <- object.restriction[index.endpoint]
-              if(any(object.type[index.endpoint]=="bin")){
-                  dtS.res$threshold[object.type[index.endpoint]=="bin"] <- NA
-              }
-              data.table::setkeyv(dtS.res, c("endpoint","n.T"))
-              data.table::setcolorder(dtS.res, neworder = c("statistic","endpoint","restriction","threshold","n.T","n.C",col.value))
-
+              
               ## ** export
               if(method.inference == "u-statistic"){                          
                   if(transformation){

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 26 2019 (18:24) 
 ## Version: 
-## Last-Updated: jun 28 2023 (13:22) 
+## Last-Updated: jun 30 2023 (13:06) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 51
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,17 +35,17 @@ if(FALSE){ ## to save computation time for CRAN check
 
         ## automatic
         e.bin <- powerBuyseTest(sim = simBuyseTest,
-                                sample.sizeT = seqN,
-                                sample.sizeC = seqN,
+                                sample.size = seqN,
                                 n.rep = nrep,
                                 formula = formula,
                                 method.inference = "u-statistic", trace = 0,
-                                seed = 10)
+                                seed = 5)
+        vec.seed <- e.bin@seed
 
         ## manual
-        set.seed(10)
         GS <- NULL
         for(iRep in 1:nrep){
+            set.seed(vec.seed[iRep])
             d <- simBuyseTest(max(seqN), name.cluster = NULL)
             d[, id := 1:.N, by = "treatment"]
             iLs <-  lapply(1:length(seqN), function(iN){ ## iN <- 2
@@ -59,10 +59,10 @@ if(FALSE){ ## to save computation time for CRAN check
         expect_equivalent(unlist(GS.S),unlist(test), tol = 1e-6)
 
         GS.bis <- data.frame("n.T" = c(10, 20, 30, 40, 50), 
-                             "mean.estimate" = c(0.1, 0.05, 0.02666667, 0.045, 0.024), 
-                             "sd.estimate" = c(0.31622777, 0.24748737, 0.22656861, 0.20186629, 0.16816658), 
-                             "mean.se" = c(0.2077989, 0.15264937, 0.12585806, 0.10933957, 0.09831528), 
-                             "rejection.rate" = c(0.2, 0.2, 0.4, 0.4, 0.4))
+                             "mean.estimate" = c(0.06, 0.04, 0.06666667, 0.06, 0.016), 
+                             "sd.estimate" = c(0.23021729, 0.19811613, 0.0781736, 0.10547512, 0.11081516), 
+                             "mean.se" = c(0.21583773, 0.1537722, 0.12812014, 0.11087229, 0.09903152), 
+                             "rejection.rate" = c(0, 0, 0, 0.2, 0.2))
         expect_equivalent(GS.bis, as.data.frame(test), tol = 1e-6)
     })
 }
@@ -76,18 +76,18 @@ test_that("1 tte endpoint - Gehan", {
 
     ## automatic
     e.tte <- powerBuyseTest(sim = simBuyseTest,
-                            sample.sizeT = seqN,
-                            sample.sizeC = seqN,
+                            sample.size = seqN,
                             n.rep = nrep,
                             formula = formula,
                             method.inference = "u-statistic", trace = 0,
                             scoring.rule = "Gehan",
-                            seed = 10)
+                            seed = 5)
+    vec.seed <- e.tte@seed
 
     ## manual
-    set.seed(10)
     GS <- NULL
     for(iRep in 1:nrep){
+        set.seed(vec.seed[iRep])
         d <- simBuyseTest(max(seqN), name.cluster = NULL)
         d[, id := 1:.N, by = "treatment"]
         iLs <-  lapply(1:length(seqN), function(iN){ ## iN <- 2
@@ -101,10 +101,10 @@ test_that("1 tte endpoint - Gehan", {
     expect_equivalent(unlist(GS.S),unlist(test), tol = 1e-6)
 
     GS.bis <- data.frame("n.T" = c(10, 30, 50), 
-                         "mean.estimate" = c(0.016, 0.03066667, -0.01008), 
-                         "sd.estimate" = c(0.22266567, 0.0879134, 0.1003021), 
-                         "mean.se" = c(0.20307347, 0.12681144, 0.09572955), 
-                         "rejection.rate" = c(0, 0, 0))
+                         "mean.estimate" = c(-0.05, -0.00822222, -0.01248), 
+                         "sd.estimate" = c(0.20639767, 0.18556986, 0.16888822), 
+                         "mean.se" = c(0.21809705, 0.12183075, 0.0950564), 
+                         "rejection.rate" = c(0, 0.2, 0.2))
     expect_equivalent(GS.bis, as.data.frame(test), tol = 1e-6)
 })
 
@@ -116,18 +116,18 @@ test_that("1 tte endpoint - Peron", {
 
     ## automatic
     e.tte <- powerBuyseTest(sim = simBuyseTest,
-                            sample.sizeT = seqN,
-                            sample.sizeC = seqN,
+                            sample.size = seqN,
                             n.rep = nrep,
                             formula = formula,
                             method.inference = "u-statistic", trace = 0,
                             scoring.rule = "Peron",
-                            seed = 10)
+                            seed = 5)
+    vec.seed <- e.tte@seed
 
     ## manual
-    set.seed(10)
     GS <- NULL
     for(iRep in 1:nrep){
+        set.seed(vec.seed[iRep])
         d <- simBuyseTest(max(seqN), name.cluster = NULL)
         d[, id := 1:.N, by = "treatment"]
         iLs <-  lapply(1:length(seqN), function(iN){ ## iN <- 2
@@ -141,10 +141,10 @@ test_that("1 tte endpoint - Peron", {
     expect_equivalent(unlist(GS.S),unlist(test), tol = 1e-6)
 
     GS.bis <- data.frame("n.T" = c(50), 
-                         "mean.estimate" = c(-0.02685844), 
-                         "sd.estimate" = c(0.12158465), 
-                         "mean.se" = c(0.12782063), 
-                         "rejection.rate" = c(0))
+                         "mean.estimate" = c(-0.02962616), 
+                         "sd.estimate" = c(0.20130054), 
+                         "mean.se" = c(0.12733956), 
+                         "rejection.rate" = c(0.2))
     expect_equivalent(GS.bis, as.data.frame(test), tol = 1e-6)
 })
 
@@ -158,18 +158,18 @@ test_that("Multiple endpoints", {
 
     ## automatic
     e.tte <- powerBuyseTest(sim = simBuyseTest,
-                            sample.sizeT = seqN,
-                            sample.sizeC = seqN,
+                            sample.size = seqN,
                             n.rep = nrep,
                             formula = formula,
                             method.inference = "u-statistic", trace = 0,
                             scoring.rule = "Peron",
-                            seed = 10)
+                            seed = 5)
+    vec.seed <- e.tte@seed
 
     ## manual
-    set.seed(10)
     GS <- NULL
     for(iRep in 1:nrep){
+        set.seed(vec.seed[iRep])
         d <- simBuyseTest(max(seqN), name.cluster = NULL)
         d[, id := 1:.N, by = "treatment"]
         iLs <-  lapply(1:length(seqN), function(iN){ ## iN <- 1
@@ -186,10 +186,10 @@ test_that("Multiple endpoints", {
     expect_equivalent(unlist(GS.S),unlist(test), tol = 1e-6)
 
     GS.bis <- data.frame("n.T" = c(10, 50), 
-                         "mean.estimate" = c(0.00469841, -0.01343508), 
-                         "sd.estimate" = c(0.1225553, 0.10901633), 
-                         "mean.se" = c(0.3019124, 0.12739454), 
-                         "rejection.rate" = c(0, 0))
+                         "mean.estimate" = c(-0.01050476, -0.04230385), 
+                         "sd.estimate" = c(0.18982451, 0.19697267), 
+                         "mean.se" = c(0.28263784, 0.12597809), 
+                         "rejection.rate" = c(0, 0.2))
     expect_equivalent(GS.bis, as.data.frame(test), tol = 1e-3)
 })
 

@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 965
+##     Update #: 970
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -284,6 +284,14 @@ setMethod(f = "confint",
               ## weight
               if(!is.null(cluster) && any(object@weightObs!=1)){
                   stop("Cannot handle clustered observations when observations are weighted. \n")
+              }
+              perm.null <- switch(statistic,
+                                  "netBenefit" = 0,
+                                  "winRatio" = 1,
+                                  "favorable" = 0.5,
+                                  "unfavorable" = 0.5)
+              if(attr(method.inference,"permutation") && !is.null(null) && null!=perm.null){
+                  stop("Cannot specify the null hypothesis when using permutation tests. \n")
               }
 
               ## ** extract estimate

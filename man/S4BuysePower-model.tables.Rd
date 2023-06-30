@@ -8,6 +8,7 @@
 \usage{
 \S4method{model.tables}{S4BuysePower}(
   x,
+  type = "summary",
   statistic = NULL,
   endpoint = NULL,
   order.Hprojection = NULL,
@@ -16,6 +17,8 @@
 }
 \arguments{
 \item{x}{output of \code{\link{powerBuyseTest}}}
+
+\item{type}{[character] should a summary of the results (\code{"summary"}) or the raw results (\code{"raw"}) be output?}
 
 \item{statistic}{[character] statistic relative to which the power should be computed:
 \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),

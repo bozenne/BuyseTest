@@ -28,7 +28,7 @@ performanceResample(
 
 \item{type.resampling}{[character] Should non-parametric bootstrap (\code{"bootstrap"}) or permutation of the outcome (\code{"permutation"}) be used.}
 
-\item{n.resampling}{[integer,>0] Nnumber of bootstrap samples or permutations.}
+\item{n.resampling}{[integer,>0] Number of bootstrap samples or permutations.}
 
 \item{fold.repetition}{[integer,>0] Nnumber of folds used in the cross-validation. Should be strictly positive.}
 
