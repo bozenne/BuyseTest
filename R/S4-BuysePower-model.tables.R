@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 27 2023 (14:29) 
 ## Version: 
-## Last-Updated: jun 30 2023 (10:30) 
+## Last-Updated: Jul  3 2023 (10:53) 
 ##           By: Brice Ozenne
-##     Update #: 40
+##     Update #: 46
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -50,14 +50,16 @@ setMethod(f = "model.tables",
                                 statistic = NULL, endpoint = NULL, order.Hprojection = NULL, transformation = NULL){
 
               dt.res <- slot(x, name = "results")
-              alpha <- 1-slot(x, name = "conf.level")
-              null <- slot(x, name = "null")
-              method.inference <- slot(x, name = "method.inference")
               object.endpoint <- slot(x, name = "endpoint")
-              object.restriction <- slot(x, name = "restriction")
-              object.threshold <- slot(x, name = "threshold")
-              object.type <- slot(x, name = "type")
               object.seed <- slot(x, name = "seed")
+
+              args <- slot(x, name = "args")
+              alpha <- 1-args$conf.level
+              null <- args$null
+              method.inference <- args$method.inference
+              object.restriction <- args$restriction
+              object.threshold <- args$threshold
+              object.type <- args$type
 
               ## ** normalize and check arguments
               type <- match.arg(type, c("raw","summary"))

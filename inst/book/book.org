@@ -73,18 +73,30 @@ dt.data
 
 #+RESULTS:
 #+begin_example
-      id treatment           OS statusOS        PFS statusPFS toxicity gender
-  1:   1         C  0.628786006        0  0.6946706         1        3      F
-  2:   2         C  0.003647332        1  1.7228221         1        3      F
-  3:   3         C  5.501584752        1  0.9092541         1        3      M
-  4:   4         C  0.286446665        1  5.8723232         1        1      M
-  5:   5         C 17.221063409        1  1.0965019         0        5      M
- ---                                                                         
-396: 396         T 18.771937367        1  1.4219555         0        4      F
-397: 397         T  2.914445864        1 49.5964070         1        3      M
-398: 398         T  1.105391425        1 16.1741055         1        2      M
-399: 399         T  1.318957979        0 10.1102146         1        4      F
-400: 400         T  3.338426913        1 10.9857381         1        3      M
+      id treatment           OS statusOS        PFS statusPFS toxicity
+  1:   1         C  0.628786006        0  0.6946706         1        3
+  2:   2         C  0.003647332        1  1.7228221         1        3
+  3:   3         C  5.501584752        1  0.9092541         1        3
+  4:   4         C  0.286446665        1  5.8723232         1        1
+  5:   5         C 17.221063409        1  1.0965019         0        5
+ ---                                                                  
+396: 396         T 18.771937367        1  1.4219555         0        4
+397: 397         T  2.914445864        1 49.5964070         1        3
+398: 398         T  1.105391425        1 16.1741055         1        2
+399: 399         T  1.318957979        0 10.1102146         1        4
+400: 400         T  3.338426913        1 10.9857381         1        3
+     gender
+  1:      F
+  2:      F
+  3:      M
+  4:      M
+  5:      M
+ ---       
+396:      F
+397:      M
+398:      M
+399:      F
+400:      M
 #+end_example
 
 
@@ -282,6 +294,18 @@ dev.off()
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.data$toxicity.num <- as.numeric(dt.data$toxicity)
+wilcox.test(toxicity.num ~ treatment, data = dt.data)
+#+END_SRC
+
+#+RESULTS:
+: 
+: 	Wilcoxon rank sum test with continuity correction
+: 
+: data:  toxicity.num by treatment
+: W = 18528, p-value = 0.1893
+: alternative hypothesis: true location shift is not equal to 0
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eTox.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
                      data=dt.data)
 #+END_SRC
@@ -306,22 +330,36 @@ Gather the results in a S4BuyseTest object
 #+end_example
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(eTox.BT, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:              estimate         se lower.ci  upper.ci null      p.value
-: toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
-:              estimate         se   lower.ci   upper.ci null   p.value
-: toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
 confint(eTox.BT)
 #+END_SRC
 
 #+RESULTS:
 :              estimate         se   lower.ci   upper.ci null   p.value
 : toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(eTox.BT, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:              estimate        se  lower.ci  upper.ci null   p.value
+: toxicity.num   0.4632 0.0280893 0.4088112 0.5184788  0.5 0.1917665
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eToxPerm.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
+                         data=dt.data, method.inference = "studentized permutation",
+                         cpus = 5, seed = 10, n.resampling = 10000, trace = FALSE)
+confint(eToxPerm.BT, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:              estimate         se  lower.ci  upper.ci null   p.value
+: toxicity.num  0.35385 0.02808395 0.3020599 0.4094743  0.5 0.1242876
+: Warning message:
+: In .local(object, ...) :
+:   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
+
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(trace = 0)

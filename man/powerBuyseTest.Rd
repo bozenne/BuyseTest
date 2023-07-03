@@ -137,6 +137,7 @@ summary(powerW)
 sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, formula = group ~ cont(Y), 
                          n.rep = c(1000,10), max.sample.size = 2000, cpus = 5,
                          seed = 10)
+nobs(sampleW)
 summary(sampleW) ## not very accurate but gives an order of magnitude
 
 sampleW2 <- powerBuyseTest(sim = simFCT2, power = 0.8, formula = group ~ cont(Y), 

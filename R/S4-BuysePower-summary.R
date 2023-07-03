@@ -49,6 +49,15 @@ setMethod(f = "summary",
                            valid.length = 1,
                            method = "summary[S4BuysePower]")
 
+              args <- slot(object, name = "args")
+              null <- args$null
+              power <- args$power
+              alpha <- 1-args$conf.level
+              n.rep <- args$n.rep
+              restriction <- args$restriction
+              method.inference <- args$method.inference
+              max.sample.size <- args$max.sample.size
+
               dtS.res <- model.tables(object,
                                       statistic = statistic,
                                       endpoint = endpoint,
@@ -56,9 +65,10 @@ setMethod(f = "summary",
                                       transformation = transformation)
               col.value <- intersect(names(dtS.res),c("mean.estimate","sd.estimate","mean.se","rejection.rate","rep.estimate","rep.se"))
               statistic <- unique(dtS.res$statistic)
-              null <- slot(object, name = "null")
               order.Hprojection <- attr(dtS.res,"order.Hprojection")
               transformation <- attr(dtS.res,"transformation")
+
+              nobs <- nobs(object)
 
               ## ** print
               ls.df.print <- stats::setNames(lapply(statistic, function(iStat){ ## iStat <- dtS.res$statistic[1]
@@ -82,13 +92,27 @@ setMethod(f = "summary",
               }), statistic)
 
               if(print){
-                  cat("        Simulation study with Generalized pairwise comparison\n", sep = "")
-                  cat("        with ",object@n.rep[1]," samples\n\n", sep = "")
-                  rm.duplicate <- c("n.T", "n.C", "rep.estimate", "rep.se", "mean.estimate", "sd.estimate")
 
+                  if(!is.null(power)){
+                      range.sampleC <- c(ceiling(min(attr(nobs,"sample")[,"C"])),
+                                         ceiling(max(attr(nobs,"sample")[,"C"])))
+                      range.sampleT <- c(ceiling(min(attr(nobs,"sample")[,"T"])),
+                                         ceiling(max(attr(nobs,"sample")[,"T"])))
+
+                      cat("        Sample size calculation with Generalized pairwise comparison\n", sep = "")
+                      cat("        for a power of ",power," and type 1 error rate of ",alpha," \n\n", sep = "")
+                      
+                      cat(" - estimated sample size (mean [min;max]): ",nobs[,"C"]," [",range.sampleC[1],";",range.sampleC[2],"] controls\n",
+                          "                                           ",nobs[,"T"]," [",range.sampleT[1],";",range.sampleT[2],"] treated\n\n",sep="")
+                          
+                  }else{
+                      cat("        Simulation study with Generalized pairwise comparison\n", sep = "")
+                      cat("        with ",n.rep[1]," samples\n\n", sep = "")
+                  }
+                  rm.duplicate <- c("n.T", "n.C", "rep.estimate", "rep.se", "mean.estimate", "sd.estimate")
                   
                   for(iStatistic in statistic){
-                      if(all(is.na(object@restriction))){
+                      if(all(is.na(restriction))){
                           name.statistic <- switch(iStatistic,
                                                    "netBenefit" = "net benefit",
                                                    "winRatio" = "win ratio",
@@ -103,7 +127,7 @@ setMethod(f = "summary",
                                                    "unfavorable" = "restricted proportion in favor of control"
                                                    )
                       }
-                      cat(" - statistic   : ",name.statistic," (null hypothesis Delta=",null[statistic],")\n", sep = "")
+                      cat(" - ",name.statistic," statistic (null hypothesis Delta=",null[statistic],")\n", sep = "")
 
                       print(ls.df.print[[iStatistic]], row.names = FALSE, quote = FALSE)
                       cat("\n")
@@ -114,7 +138,7 @@ setMethod(f = "summary",
                                  c(" n.C",":","number of observations in the control group"),
                                  c(" mean.estimate",":","average estimate over simulations"),
                                  c(" sd.estimate",":","standard deviation of the estimate over simulations"))
-                      if(object@method.inference != "none"){                          
+                      if(method.inference != "none"){                          
                           M <- rbind(M,
                                      c(" mean.se",":","average estimated standard error of the estimate over simulations"),
                                      c(" rejection",":","frequency of the rejection of the null hypothesis over simulations")

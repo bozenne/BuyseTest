@@ -2,7 +2,7 @@ Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
 Version: 3.0.0
-Date: 2023-06-30
+Date: 2023-07-03
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Julien", "Peron", role = "ctb"),
@@ -61,6 +61,7 @@ Collate:
     'RcppExports.R'
     'S4-BuysePower.R'
     'S4-BuysePower-model.tables.R'
+    'S4-BuysePower-nobs.R'
     'S4-BuysePower-summary.R'
     'S4-BuysePower-print.R'
     'S4-BuysePower-show.R'
@@ -69,6 +70,7 @@ Collate:
     'S4-BuyseTest-confint.R'
     'S4-BuyseTest-get.R'
     'S4-BuyseTest-model.tables.R'
+    'S4-BuyseTest-nobs.R'
     'S4-BuyseTest-plot.R'
     'S4-BuyseTest-summary.R'
     'S4-BuyseTest-print.R'

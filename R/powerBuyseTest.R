@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jun 30 2023 (13:11) 
+## Last-Updated: Jul  3 2023 (12:05) 
 ##           By: Brice Ozenne
-##     Update #: 1246
+##     Update #: 1254
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -121,6 +121,7 @@
 ##' sampleW <- powerBuyseTest(sim = simFCT, power = 0.8, formula = group ~ cont(Y), 
 ##'                          n.rep = c(1000,10), max.sample.size = 2000, cpus = 5,
 ##'                          seed = 10)
+##' nobs(sampleW)
 ##' summary(sampleW) ## not very accurate but gives an order of magnitude
 ##' 
 ##' sampleW2 <- powerBuyseTest(sim = simFCT2, power = 0.8, formula = group ~ cont(Y), 
@@ -370,7 +371,9 @@ powerBuyseTest <- function(sim,
                 }
             }
             sample.sizeC <- ceiling(mean(n.approx*ratio["C"]))
+            attr(sample.sizeC,"sample") <- unname(n.approx*ratio["C"])
             sample.sizeT <- ceiling(mean(n.approx*ratio["T"]))
+            attr(sample.sizeT,"sample") <- unname(n.approx*ratio["C"])
 
             ## (mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2) + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2))*(stats::qnorm(1-alpha/2)+stats::qnorm(power))^2/DeltaMax^2
             if (trace > 1) {
@@ -550,8 +553,12 @@ powerBuyseTest <- function(sim,
         restriction =  outArgs$restriction,
         type =  outArgs$type,
         null = null,
+        max.sample.size = max.sample.size,
+        power = power,
         n.rep = n.rep,      
         results = dt.out,
+        sample.sizeT =  sample.sizeT,
+        sample.sizeC =  sample.sizeC,
         seed = seqSeed
     )
 
