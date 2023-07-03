@@ -95,10 +95,16 @@ setMethod(f = "model.tables",
               }
 
               ## ** load info from object
-              hierarchical <- x@hierarchical
-              endpoint <- x@endpoint
+              hierarchical <- slot(x,"hierarchical")
+              endpoint <- slot(x,"endpoint")
               n.endpoint <- length(endpoint)
-              n.strata <- length(x@level.strata)
+              level.strata <- slot(x,"level.strata")
+              n.strata <- length(level.strata)
+              n.pairs <- slot(x,"n.pairs")
+              count.favorable <- slot(x,"count.favorable")
+              count.unfavorable <- slot(x,"count.unfavorable")
+              count.neutral <- slot(x,"count.neutral")
+              count.uninf <- slot(x,"count.uninf")
 
               delta <- coef(x, statistic = statistic, cumulative = FALSE, stratified = TRUE)
               Delta <- coef(x, statistic = statistic, cumulative = TRUE)
@@ -120,53 +126,37 @@ setMethod(f = "model.tables",
                                 "total","favorable","unfavorable","neutral","uninf",
                                 "delta","Delta","Delta(%)","information(%)",
                                 "lower.ci","upper.ci","null","p.value","significance","n.resampling")
-            
-              index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
               endpoint.restriction.threshold <- rep(NA, (n.strata+1)*n.endpoint)
+
+              ## *** global statistic
+              index.global <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1
               
-              if(identical(percentage, TRUE)){
-                  table[index.global,"favorable"] <- 100*coef(x, statistic = "favorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"unfavorable"] <- 100*coef(x, statistic = "unfavorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"neutral"] <- 100*coef(x, statistic = "neutral", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"uninf"] <- 100*coef(x, statistic = "uninf", stratified = FALSE, cumulative = FALSE)
-              }else{
-                  table[index.global,"favorable"] <- coef(x, statistic = "count.favorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"unfavorable"] <- coef(x, statistic = "count.unfavorable", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"neutral"] <- coef(x, statistic = "count.neutral", stratified = FALSE, cumulative = FALSE)
-                  table[index.global,"uninf"] <- coef(x, statistic = "count.uninf", stratified = FALSE, cumulative = FALSE)
-              }
+              table[index.global,"favorable"] <- as.double(colSums(count.favorable))
+              table[index.global,"unfavorable"] <- as.double(colSums(count.unfavorable))
+              table[index.global,"neutral"] <- as.double(colSums(count.neutral))
+              table[index.global,"uninf"] <- as.double(colSums(count.uninf))
               table[index.global,"total"] <- rowSums(table[index.global,c("favorable","unfavorable","neutral","uninf")])
+
               table[index.global,"restriction"] <- x@restriction
               table[index.global,"endpoint"] <- x@endpoint
               endpoint.restriction.threshold[index.global] <- names(x@endpoint)
               table[index.global,"threshold"] <- x@threshold
               table[index.global,"weight"] <- x@weightEndpoint
               table[index.global,"strata"] <- "global"
-
+              
               table[index.global,"delta"] <- coef(x, statistic = statistic, stratified = FALSE, cumulative = FALSE)
               table[index.global,"Delta"] <- Delta
               table[index.global,"Delta(%)"] <- 100*Delta/Delta[n.endpoint]
 
-              Mstrata.F <- coef(x, statistic = "count.favorable", stratified = TRUE, cumulative = FALSE)
-              Mstrata.UF <- coef(x, statistic = "count.unfavorable", stratified = TRUE, cumulative = FALSE)
-              Mstrata.N <- coef(x, statistic = "count.neutral", stratified = TRUE, cumulative = FALSE)
-              Mstrata.UI <- coef(x, statistic = "count.uninf", stratified = TRUE, cumulative = FALSE)
-              if(identical(percentage, TRUE)){
-                  Mstrata.F <- 100*Mstrata.F/sum(x@n.pairs)
-                  Mstrata.UF <- 100*Mstrata.UF/sum(x@n.pairs)
-                  Mstrata.N <- 100*Mstrata.N/sum(x@n.pairs)
-                  Mstrata.UI <- 100*Mstrata.UI/sum(x@n.pairs)
-              }
-
+              ## *** strata-sepcific statistic
               for(iStrata in 1:n.strata){
                   index.strata <- seq(0,n.endpoint-1,by=1)*(n.strata+1)+1+iStrata
-                  table[index.strata,"favorable"] <- Mstrata.F[iStrata,]
-                  table[index.strata,"unfavorable"] <- Mstrata.UF[iStrata,]
-                  table[index.strata,"neutral"] <- Mstrata.N[iStrata,]
-                  table[index.strata,"uninf"] <- Mstrata.UI[iStrata,]
-                  table[index.strata,"total"] <- rowSums(table[index.strata,c("favorable","unfavorable","neutral","uninf")])
-
-                  table[index.strata,"strata"] <- x@level.strata[iStrata]
+                  table[index.strata,"favorable"] <- count.favorable[iStrata,]
+                  table[index.strata,"unfavorable"] <- count.unfavorable[iStrata,]
+                  table[index.strata,"neutral"] <- count.neutral[iStrata,]
+                  table[index.strata,"uninf"] <- count.uninf[iStrata,]
+                  
+                  table[index.strata,"strata"] <- level.strata[iStrata]
                   table[index.strata,"endpoint"] <- x@endpoint
                   endpoint.restriction.threshold[index.strata] <- names(x@endpoint)
                   table[index.strata,"threshold"] <- x@threshold
@@ -175,8 +165,22 @@ setMethod(f = "model.tables",
                   table[index.strata,"delta"] <- delta[iStrata,]
               }
 
+              ## *** total 
+              table[,"total"] <- rowSums(table[,c("favorable","unfavorable","neutral","uninf")])
+
+              ## *** percentage
+              if(identical(percentage, TRUE)){
+                  nTot.pairs <- sum(n.pairs)
+              
+                  table$total <- 100*table$total/nTot.pairs
+                  table$favorable <- 100*table$favorable/nTot.pairs
+                  table$unfavorable <- 100*table$unfavorable/nTot.pairs
+                  table$neutral <- 100*table$neutral/nTot.pairs
+                  table$uninf <- 100*table$uninf/nTot.pairs
+              }
+
               ## *** information fraction and co
-              table[index.global,"information(%)"] <- 100*cumsum(colSums(x@count.favorable+x@count.unfavorable)/sum(x@count.favorable+x@count.unfavorable))
+              table[index.global,"information(%)"] <- 100*cumsum(colSums(count.favorable+count.unfavorable)/sum(count.favorable+count.unfavorable))
              
               ## *** compute CI and p-value
               if("lower.ci" %in% names(outConfint)){

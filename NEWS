@@ -4,7 +4,13 @@
 ** User visible changes
 - NEW FEATURE: method model.tables providing the table favorable/unfavorable/neutral/uninformative in the summary
 - NEW FEATURE: plot method for S4BuyseTest object
-- bounds for the confidence intervals have been renamed: CIinf.Delta -> lower.ci and CIsup.Delta -> upper.ci
+- bounds for the confidence intervals have been renamed: CIinf.Delta
+  -> lower.ci and CIsup.Delta -> upper.ci
+- the effect of the seed argument in BuyseTest and powerBuyseTest has
+  been changed. Instead of setting the seed at the start of the
+  function, now the seed is used to generate sample or simulation
+  specific seeds. Results are now identical whether one or more CPUs
+  are used, and reproducible when multiple CPUs are used.
 
 * Version 2.4.1
 ** User visible changes

@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 970
+##     Update #: 978
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -291,8 +291,7 @@ setMethod(f = "confint",
                                   "favorable" = 0.5,
                                   "unfavorable" = 0.5)
               if(attr(method.inference,"permutation") && !is.null(null) && null!=perm.null){
-                  stop("Cannot specify the null hypothesis when using permutation tests. \n")
-              }
+                      stop("Cannot specify the null hypothesis when using permutation tests. \n")              }
 
               ## ** extract estimate
               all.endpoint <- names(object@endpoint)
@@ -350,18 +349,20 @@ setMethod(f = "confint",
               }
 
               ## ** null hypothesis
-              if(is.null(null)){
+              if(attr(method.inference,"permutation")){
+                  null <- NA
+              }else if(is.null(null)){
                   null <- switch(statistic,
                                  "netBenefit" = 0,
                                  "winRatio" = 1,
                                  "favorable" = 1/2,
                                  "unfavorable" = 1/2)
-              }else{
+              }else {
                   validNumeric(null, valid.length = 1,
                                min = if("statistic"=="netBenefit"){-1}else{0},
                                max = if("statistic"=="winRatio"){Inf}else{1})
               }
-              null <- rep(null, D)
+              null <- rep(null, n.endpoint)
 
               ## ** method
               if(method.inference == "none"){

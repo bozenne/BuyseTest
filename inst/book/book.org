@@ -330,44 +330,6 @@ Gather the results in a S4BuyseTest object
 #+end_example
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(eTox.BT)
-#+END_SRC
-
-#+RESULTS:
-:              estimate         se   lower.ci   upper.ci null   p.value
-: toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(eTox.BT, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:              estimate        se  lower.ci  upper.ci null   p.value
-: toxicity.num   0.4632 0.0280893 0.4088112 0.5184788  0.5 0.1917665
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eToxPerm.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
-                         data=dt.data, method.inference = "studentized permutation",
-                         cpus = 5, seed = 10, n.resampling = 10000, trace = FALSE)
-confint(eToxPerm.BT, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:              estimate         se  lower.ci  upper.ci null   p.value
-: toxicity.num  0.35385 0.02808395 0.3020599 0.4094743  0.5 0.1242876
-: Warning message:
-: In .local(object, ...) :
-:   Confidence intervals are computed under the null hypothesis and therefore may not be valid.
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest.options(trace = 0)
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
 summary(eTox.BT)
 #+END_SRC
 
@@ -388,18 +350,71 @@ summary(eTox.BT)
 #+end_example
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-print(eTox.BT, percentage = FALSE)
+summary(eTox.BT, percentage = FALSE)
 #+END_SRC
 
 #+RESULTS:
-:      endpoint total favorable unfavorable neutral uninf   Delta
-:  toxicity.num 40000     14154       17098    8748     0 -0.0736
-:  CI [2.5% ; 97.5%] p.value
-:    [-0.1824;0.037] 0.19177
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1 after atanh transformation 
+ - treatment groups: T (treatment) vs. C (control) 
+ - results
+     endpoint total favorable unfavorable neutral uninf   Delta
+ toxicity.num 40000     14154       17098    8748     0 -0.0736
+ CI [2.5% ; 97.5%] p.value 
+   [-0.1824;0.037] 0.19177
+#+end_example
+
+
+*** subsection 2.2.2 Adjustment for ties
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(eTox.BT, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:              estimate         se lower.ci  upper.ci null      p.value
+: toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+eTox.BThalf <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
+                         add.halfNeutral = TRUE,
+                         data=dt.data, trace = FALSE)
+print(eTox.BThalf, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:      endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+:  toxicity.num      100        35.38          42.74      21.87        0
+:   Delta CI [2.5% ; 97.5%] p.value
+:  0.4632   [0.4088;0.5185] 0.19177
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(eTox.BThalf)
+#+END_SRC
+
+#+RESULTS:
+:              estimate         se   lower.ci   upper.ci null   p.value
+: toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(trace = 0)
+#+END_SRC
+
+#+RESULTS:
+
+
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(asht)
-wmwTest(toxicity.num ~ treatment, data = dt.data)
+dt.data$treatment2 <- relevel(dt.data$treatment,"T")
+wmwTest(toxicity.num ~ treatment2, data = dt.data)
 #+END_SRC
 
 #+RESULTS:
@@ -408,49 +423,49 @@ wmwTest(toxicity.num ~ treatment, data = dt.data)
 	Wilcoxon-Mann-Whitney test with continuity correction (confidence
 	interval requires proportional odds assumption, but test does not)
 
-data:  toxicity.num by treatment
-Mann-Whitney estimate = 0.5368, tie factor = 0.94003, p-value =
+data:  toxicity.num by treatment2
+Mann-Whitney estimate = 0.4632, tie factor = 0.94003, p-value =
 0.1893
 alternative hypothesis: two distributions are not equal
 95 percent confidence interval:
- 0.4819062 0.5906310
+ 0.4093690 0.5180938
 sample estimates:
 Mann-Whitney estimate 
-               0.5368
+               0.4632
 #+end_example
 
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eTox.BThalf <- BuyseTest(treatment ~ cont(toxicity.num),
-                      add.halfNeutral = TRUE,
-                      data=dt.data, trace = FALSE)
-confint(eTox.BThalf, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:              estimate        se  lower.ci  upper.ci null   p.value
-: toxicity.num   0.5368 0.0280893 0.4815212 0.5911888  0.5 0.1917665
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(pim)
-e.pim <- pim(toxicity.num ~ treatment, data = dt.data)
+e.pim <- pim(toxicity.num ~ treatment2, data = dt.data)
 summary(e.pim)
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
 pim.summary of following model : 
- toxicity.num ~ treatment
+ toxicity.num ~ treatment2
 Type:  difference 
 Link:  logit 
 
 
-           Estimate Std. Error z value Pr(>|z|)
-treatmentT   0.1475     0.1126   1.309     0.19
+            Estimate Std. Error z value Pr(>|z|)
+treatment2C  -0.1475     0.1126  -1.309     0.19
 
 Null hypothesis: b = 0
 #+end_example
 
-*** subsection 2.2.2 Threshold of clinical relevance
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+print(BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
+                add.halfNeutral = TRUE, method.inference = "permutation",
+                data=dt.data, cpus = 5, n.resampling = 1e4, seed = 10))
+#+END_SRC
+
+#+RESULTS:
+:      endpoint   Delta
+:  toxicity.num -0.0736
+
+*** subsection 2.2.3 Threshold of clinical relevance
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eTox.BT2 <- BuyseTest(treatment ~ cont(toxicity.num, threshold = 2, operator = "<0"),
@@ -460,18 +475,10 @@ print(eTox.BT2)
 
 #+RESULTS:
 :      endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%)
-:  toxicity.num         2      100        19.44          22.14      58.41
+:  toxicity.num         2      100        19.44          22.14      58.42
 :  uninf(%)  Delta CI [2.5% ; 97.5%] p.value
 :         0 -0.027  [-0.1077;0.0542] 0.51506
 
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eTox.BT@threshold
-#+END_SRC
-
-#+RESULTS:
-: toxicity.num 
-:        1e-12
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 getPairScore(eTox.BT2)
@@ -511,7 +518,7 @@ model.tables(eTox.BT, columns = "threshold")
 :   threshold
 : 1     1e-12
 
-*** subsection 2.2.3 Accounting for baseline covariates
+*** subsection 2.2.4 Accounting for baseline covariates
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
@@ -532,7 +539,7 @@ summary(eTox.BTG)
  - strata weights  : 50.5%, 49.5% 
  - results
      endpoint strata total(%) favorable(%) unfavorable(%) neutral(%)
- toxicity.num global      100        35.43          42.74      21.83
+ toxicity.num global      100        35.43          42.75      21.82
                    M       51        17.79          22.37      10.85
                    F       49        17.63          20.38      10.98
  uninf(%)   delta   Delta CI [2.5% ; 97.5%] p.value 
@@ -626,7 +633,7 @@ coef(pim(toxicity.num ~ treatment, data = dt.data[dt.data$gender == "M",],
 : treatmentT 
 :   0.544868
 
-*** subsection 2.2.4 Handling right-censoring when assessing efficacy
+*** subsection 2.2.5 Handling right-censoring when assessing efficacy
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.data[,.(censoring=mean(statusOS==0)),by = "treatment"]
@@ -814,6 +821,17 @@ dev.off()
 : windows 
 :       2
 
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+rbind("prioritized" = confint(eH.BT, transform = FALSE, endpoint = 1),
+      "non-prioritized" = confint(eNH.BT, transform = FALSE, endpoint = 1))
+
+#+END_SRC
+
+#+RESULTS:
+:                 estimate         se    lower.ci   upper.ci null   p.value
+: prioritized       0.0736 0.05617859 -0.03650802 0.18370802    0 0.1901594
+: non-prioritized   0.0368 0.02808930 -0.01825401 0.09185401    0 0.1901594
+
 *** subsection 2.3.2 Threshold of clinical relevance
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eSH.BT <- BuyseTest(treatment ~ tte(OS, statusOS, threshold = 28)
@@ -949,7 +967,6 @@ eRBB.Se[c(1,2,6),]
 #+END_SRC
 
 #+RESULTS:
-: Indlæser krævet navnerum: riskRegression
 :   toxicity.num OS  estimate         se     lower.ci  upper.ci null
 : 1            1  0 0.1274785 0.06066316  0.007314031 0.2440137    0
 : 2            2  0 0.1628627 0.06304537  0.037375134 0.2832937    0
@@ -981,7 +998,7 @@ dev.off()
 
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eRBB.Hdecomp <- attr(eRBB.Se,"iid")
+eRBB.Hdecomp <- iid(eRBB.Se)
 dim(eRBB.Hdecomp)
 #+END_SRC
 
@@ -1163,6 +1180,47 @@ print(e.nSearch)
 :  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
 :  toxicity     1e-12 131 131        0.2188        0.07  0.0719          0.845
 
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+nobs(e.nSearch)
+summary(e.nSearch)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       C   T
+[1,] 131 131
+attr(,"sample")
+              C         T
+ [1,] 161.00816 161.00816
+ [2,] 147.89495 147.89495
+ [3,] 164.90320 164.90320
+ [4,] 205.56769 205.56769
+ [5,]  76.17603  76.17603
+ [6,] 112.05892 112.05892
+ [7,]  92.22803  92.22803
+ [8,] 103.02269 103.02269
+ [9,] 124.81196 124.81196
+[10,] 112.33469 112.33469
+        Sample size calculation with Generalized pairwise comparison
+        for a power of 0.8 and type 1 error rate of 0.05 
+
+ - estimated sample size (mean [min;max]): 131 [77;206] controls
+                                           131 [77;206] treated
+
+ - net benefit statistic (null hypothesis Delta=0)
+ endpoint threshold n.T n.C mean.estimate sd.estimate mean.se
+ toxicity     1e-12 131 131        0.2188        0.07  0.0719
+ rejection.rate
+          0.845
+
+ n.T          : number of observations in the treatment group
+ n.C          : number of observations in the control group
+ mean.estimate: average estimate over simulations
+ sd.estimate  : standard deviation of the estimate over simulations
+ mean.se      : average estimated standard error of the estimate over simulations
+ rejection    : frequency of the rejection of the null hypothesis over simulations
+(standard error: H-projection of order 1| p-value: after transformation)
+#+end_example
 
 * CONFIG :noexport:
 # #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}

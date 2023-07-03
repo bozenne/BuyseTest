@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jun 30 2023 (13:07) 
+## Last-Updated: jul  3 2023 (15:56) 
 ##           By: Brice Ozenne
-##     Update #: 217
+##     Update #: 218
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -589,6 +589,16 @@ test_that("restriction via formula interface",{
 })
 
 
+
+## * Brice: mandag 23-07-03 at 15:54 add.halfNeutral in summary
+test_that("number of pairs with add.halfNeutral",{
+
+    set.seed(1)
+    dt <- simBuyseTest(n.T = 50, n.C = 50)
+    BT <- BuyseTest(treatment ~ bin(toxicity), add.halfNeutral = TRUE, data = dt,
+                    trace = FALSE)
+    expect_equal(100,model.tables(BT)$total, tol = 0.0001)
+})
 
 
 
