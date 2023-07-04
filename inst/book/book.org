@@ -12,11 +12,13 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 #+END_SRC
 
 #+RESULTS:
+: Loading required package: Rcpp
+: BuyseTest version 3.0.0
 
 ** Section 2.1 Introduction
 *** subsection 2.1.2 Generating in-silico data
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-set.seed(10)
+set.seed(10) ## initialize the pseudo-random number generator 
 dt.data <- simBuyseTest(100)
 dt.data
 #+END_SRC
@@ -151,19 +153,17 @@ ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
 #+END_SRC
 
 #+RESULTS:
-: Advarselsbesked:
-: pakke 'ggplot2' blev bygget under R version 4.2.3
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(ggpubr)
 ggOS <- ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
-ggOS <- ggOS + theme(text = element_text(size=15), 
+ggOS <- ggOS + theme(text = element_text(size=20), 
                      axis.line = element_line(linewidth = 1.25),
                      axis.ticks = element_line(linewidth = 1.25),
                      axis.ticks.length=unit(.25, "cm"),
                      legend.key.size = unit(3,"line"))
 ggPFS <- ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
-ggPFS <- ggPFS + theme(text = element_text(size=15), 
+ggPFS <- ggPFS + theme(text = element_text(size=20), 
                        axis.line = element_line(linewidth = 1.25),
                        axis.ticks = element_line(linewidth = 1.25),
                        axis.ticks.length=unit(.25, "cm"),
@@ -290,7 +290,7 @@ dev.off()
 : X11cairo 
 :        2
 
-*** subsection 2.2.1 Binary or continous endpoint
+*** subsection 2.2.1 Relation to the Wilcoxon-Mann-Whitney test
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt.data$toxicity.num <- as.numeric(dt.data$toxicity)
@@ -350,24 +350,14 @@ summary(eTox.BT)
 #+end_example
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(eTox.BT, percentage = FALSE)
+print(eTox.BT, percentage = FALSE)
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: T (treatment) vs. C (control) 
- - results
-     endpoint total favorable unfavorable neutral uninf   Delta
- toxicity.num 40000     14154       17098    8748     0 -0.0736
- CI [2.5% ; 97.5%] p.value 
-   [-0.1824;0.037] 0.19177
-#+end_example
+:      endpoint total favorable unfavorable neutral uninf   Delta
+:  toxicity.num 40000     14154       17098    8748     0 -0.0736
+:  CI [2.5% ; 97.5%] p.value
+:    [-0.1824;0.037] 0.19177
 
 
 *** subsection 2.2.2 Adjustment for ties
@@ -456,9 +446,9 @@ Null hypothesis: b = 0
 #+end_example
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
-print(BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
-                add.halfNeutral = TRUE, method.inference = "permutation",
-                data=dt.data, cpus = 5, n.resampling = 1e4, seed = 10))
+BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
+          add.halfNeutral = TRUE, method.inference = "permutation",
+          data=dt.data, cpus = 5, n.resampling = 1e4, seed = 10)
 #+END_SRC
 
 #+RESULTS:
