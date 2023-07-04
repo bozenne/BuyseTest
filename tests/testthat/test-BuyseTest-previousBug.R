@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jul  3 2023 (15:56) 
+## Last-Updated: Jul  4 2023 (09:32) 
 ##           By: Brice Ozenne
-##     Update #: 218
+##     Update #: 221
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -511,7 +511,7 @@ test_that("backtransformation after permutation",{
     gpc_ex1 <- BuyseTest(trt~cont(time),
                          data=veteran, seed = 10, n.resampling = 100,
                          method.inference = "permutation") 
-    test <- suppressWarnings(confint(gpc_ex1, statistic='winratio') )
+    test <- suppressWarnings(confint(gpc_ex1, statistic='winratio', conf.level = 0.95) )
     expect_true(test$estimate < test$upper.ci)
     expect_true(test$estimate > test$lower.ci)
 })

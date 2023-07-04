@@ -1,4 +1,4 @@
-% Created 2023-06-30 fr 12:22
+% Created 2023-07-04 Tue 11:57
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -200,7 +200,7 @@ linkcolor=[rgb]{0,0,0.5},
  pdftitle={Overview of the package BuyseTest},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.2 (Org mode 9.5.2)},
+ pdfcreator={Emacs 26.3 (Org mode 9.4.6)},
  pdflang={English}
  }
 \begin{document}
@@ -214,16 +214,18 @@ right-censoring. When considering a single endpoint, the GPC procedure
 can be summarized as follow. Denote the endpoint by \(Y\) in the
 treatment group and by \(X\) in the control group. Given a threshold
 of clinical relevance \(\tau\), the aim of GPC is to estimate the
-proportion in favor of treatment \(\Prob[Y \geq X + \tau]\) and the
-proportion in favor of control \(\Prob[X \geq Y + \tau]\). Other
-statistics such as the net benefit \(\Prob[Y \geq X + \tau]-\Prob[X
-\geq Y + \tau]\) or the win ratio \(\frac{\Prob[Y \geq X +
-\tau]}{\Prob[X \geq Y + \tau]}\) can then be deduced. The vignette is
-written for readers familar with the GPC framework \footnote{if not,
-\cite{buyse2010generalized} is a good place to start.}, e.g. prioritized
-endpoints, pair, net benefit, win ratio, threshold of clinical
-relevance, \ldots, since it focuses on the software aspect
-of the \textbf{BuyseTest} package (not on the underlying statistical model).
+proportion in favor of treatment\footnote{in absence of ties this equals
+the Wilcoxon-Mann-Whitney parameter} \(\Prob[Y \geq X + \tau]\) and
+the proportion in favor of control \(\Prob[X \geq Y + \tau]\). Their
+difference \(\Prob[Y \geq X + \tau]-\Prob[X \geq Y + \tau]\) leads to
+the net benefit and their ratio \(\frac{\Prob[Y \geq X +
+\tau]}{\Prob[X \geq Y + \tau]}\) to the win ratio (in absence of
+ties). The vignette is written for readers familar with the GPC
+framework \footnote{if not, \cite{buyse2010generalized} is a good place to
+start.}, e.g. prioritized endpoints, pair, net benefit, win ratio,
+threshold of clinical relevance, \ldots, since it focuses on the
+software aspect of the \textbf{BuyseTest} package (not on the underlying
+statistical model).
 
 \bigskip
 
@@ -240,6 +242,7 @@ can be directly access using \texttt{model.tables}.
 \item \texttt{confint} to extract estimates, confidence intervals, and p.values.
 \item \texttt{plot} for a graphical display of the scoring of the pair per endpoint.
 \item \texttt{sensitivity} to perform a sensitivity analysis on the choice of the threshold(s).
+\item \texttt{nobs} to extract the number of observations and pairs.
 \item \texttt{getIid} to extract the iid decomposition of the estimator.
 \item \texttt{getPairScore} to extract the contribution of each pair to the net benefit/win ratio.
 \item \texttt{getSurvival} to extract the estimates of the survival used for right-censored endpoints.
@@ -270,17 +273,18 @@ To illustrate the functionalities of the package, we will used the
 \begin{lstlisting}
 data(cancer, package = "survival")
 veteran <- cbind(id = 1:NROW(veteran), veteran)
+veteran$trt <- factor(veteran$trt,1:2,c("Pl","Exp"))
 head(veteran)
 \end{lstlisting}
 
 \begin{verbatim}
   id trt celltype time status karno diagtime age prior
-1  1   1 squamous   72      1    60        7  69     0
-2  2   1 squamous  411      1    70        5  64    10
-3  3   1 squamous  228      1    60        3  38     0
-4  4   1 squamous  126      1    60        9  63    10
-5  5   1 squamous  118      1    70       11  65    10
-6  6   1 squamous   10      1    20        5  49     0
+1  1  Pl squamous   72      1    60        7  69     0
+2  2  Pl squamous  411      1    70        5  64    10
+3  3  Pl squamous  228      1    60        3  38     0
+4  4  Pl squamous  126      1    60        9  63    10
+5  5  Pl squamous  118      1    70       11  65    10
+6  6  Pl squamous   10      1    20        5  49     0
 \end{verbatim}
 
 
@@ -297,7 +301,7 @@ utils::packageVersion("BuyseTest")
 \end{lstlisting}
 
 \begin{verbatim}
-[1] '3.0.0'
+[1] ‘3.0.0’
 \end{verbatim}
 
 
@@ -309,41 +313,44 @@ sessionInfo()
 \end{lstlisting}
 
 \begin{verbatim}
-R version 4.2.0 (2022-04-22 ucrt)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 19045)
+R version 4.2.0 (2022-04-22)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.4 LTS
 
 Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.utf8  LC_CTYPE=Danish_Denmark.utf8   
-[3] LC_MONETARY=Danish_Denmark.utf8 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.utf8    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
+ [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.14.2  BuyseTest_3.0.0    Rcpp_1.0.8.3       prodlim_2019.11.13
-[5] ggplot2_3.4.2      survival_3.3-1    
+[1] data.table_1.14.2  BuyseTest_3.0.0    Rcpp_1.0.9         prodlim_2019.11.13
+[5] ggplot2_3.4.0      survival_3.5-0    
 
 loaded via a namespace (and not attached):
- [1] pillar_1.9.0        compiler_4.2.0      tools_4.2.0         digest_0.6.31      
- [5] lifecycle_1.0.3     tibble_3.2.1        gtable_0.3.1        lattice_0.20-45    
- [9] pkgconfig_2.0.3     rlang_1.1.0         Matrix_1.5-1        cli_3.6.0          
-[13] parallel_4.2.0      SparseM_1.81        withr_2.5.0         dplyr_1.1.0        
-[17] MatrixModels_0.5-0  generics_0.1.3      vctrs_0.5.2         globals_0.16.2     
-[21] stats4_4.2.0        grid_4.2.0          tidyselect_1.2.0    glue_1.6.2         
-[25] listenv_0.9.0       R6_2.5.1            future.apply_1.10.0 fansi_1.0.4        
-[29] parallelly_1.34.0   lava_1.7.2.1        magrittr_2.0.3      scales_1.2.1       
-[33] codetools_0.2-18    splines_4.2.0       future_1.31.0       colorspace_2.1-0   
-[37] utf8_1.2.3          munsell_0.5.0
+ [1] pillar_1.8.1       compiler_4.2.0     tools_4.2.0        digest_0.6.31     
+ [5] lifecycle_1.0.3    tibble_3.1.8       gtable_0.3.1       lattice_0.20-45   
+ [9] pkgconfig_2.0.3    rlang_1.0.6        Matrix_1.4-1       DBI_1.1.3         
+[13] cli_3.5.0          parallel_4.2.0     SparseM_1.81       withr_2.5.0       
+[17] dplyr_1.0.10       MatrixModels_0.5-0 generics_0.1.3     vctrs_0.5.1       
+[21] globals_0.16.1     stats4_4.2.0       grid_4.2.0         tidyselect_1.2.0  
+[25] glue_1.6.2         listenv_0.8.0      R6_2.5.1           future.apply_1.9.1
+[29] fansi_1.0.3        parallelly_1.32.1  lava_1.7.2         magrittr_2.0.3    
+[33] scales_1.2.1       codetools_0.2-18   splines_4.2.0      assertthat_0.2.1  
+[37] future_1.28.0      colorspace_2.0-3   utf8_1.2.2         munsell_0.5.0
 \end{verbatim}
 
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org6608846}
+\label{sec:orgfecca0d}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -353,7 +360,7 @@ To perform generalized pairwise comparisons, the \texttt{BuyseTest} function nee
 \item the variable defining the two treatment groups \hfill - argument
 \texttt{treatment}
 \end{itemize}
-The \texttt{BuyseTest} function has many optional arguments to specify for example:
+The \texttt{BuyseTest} function has many optional arguments. For example:
 \begin{itemize}
 \item the threshold of clinical relevance associated to each endpoint \hfill - argument \texttt{threshold}
 \item the censoring associated to each endpoint (for time to event endpoints) \hfill - argument \texttt{status}
@@ -381,7 +388,7 @@ BT <- BuyseTest(data = veteran,
          Generalized Pairwise Comparisons
 
 Settings 
-   - 2 groups  : Control = 1 and Treatment = 2
+   - 2 groups  : Control = Pl and Treatment = Exp
    - 1 endpoint: 
        priority endpoint type           operator             threshold event       
        1        time     time to event  higher is favorable  20        status (0 1)
@@ -423,7 +430,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:orgad6051f}
+\label{sec:org15a4b64}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -438,7 +445,7 @@ summary(BT)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
@@ -447,10 +454,36 @@ summary(BT)
   [-0.2735;0.1045] 0.37162
 \end{verbatim}
 
- To display the number of pairs instead of the percentage of pairs
-that are favorable/unfavorable/neutral/uniformative, set the argument
-\texttt{percentage} to \texttt{FALSE}. The \texttt{model.tables} method returns the table
-displayed at the end of the \texttt{summary} in a \texttt{data.frame} format:
+
+It displays information about each endpoint, percentage of pairs
+classified as favorable, unfavorable, neutral, and uninformative, as
+well as the estimated net benefit (column \texttt{Delta}), its confidence
+interval, and the corresponding p-value testing the absence of a group
+difference. Other To display the number of pairs instead of the
+percentage of pairs that are
+favorable/unfavorable/neutral/uniformative, set the argument
+\texttt{percentage} to \texttt{FALSE}. See \texttt{help(S4BuyseTest-summary)} for more
+details about the \texttt{summary} method, its input and output. For a more
+concise display of the results, consider using the \texttt{print} method:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+print(BT, percentage = FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint threshold total favorable unfavorable neutral uninf   Delta CI [2.5% ; 97.5%]
+    time        20  4692   1772.59     2183.89  735.52     0 -0.0877  [-0.2735;0.1045]
+p.value
+0.37162
+\end{verbatim}
+
+
+\bigskip
+
+To access these values, we recommand using the \texttt{model.tables} method
+that outputs the information from the previous table in a \texttt{data.frame}
+format:
+
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 model.tables(BT, percentage = FALSE)
@@ -490,37 +523,11 @@ coef(BT)
 \end{verbatim}
 
 
-By default \texttt{summary} displays results relative to the net benefit. To
-get results for the win ratio set the argument \texttt{statistic} to
-"winRatio":
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-summary(BT, statistic = "winRatio")
-\end{lstlisting}
-
-\begin{verbatim}
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : win ratio (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 1 
- - confidence level: 0.95 
- - inference       : H-projection of order 1 after log transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - censored pairs  : probabilistic score based on the survival curves
- - results
- endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-     time        20      100        37.78          46.54      15.68        0 0.8117
- CI [2.5% ; 97.5%] p.value 
-   [0.5134;1.2833] 0.37195
-\end{verbatim}
-
-See \texttt{help(S4BuyseTest-summary)} for more details about the \texttt{summary}
-method and its output.
 
 \clearpage
 
 \subsection{Stratified GPC}
-\label{sec:org7ce1c98}
+\label{sec:orgf07e3aa}
 
 GPC can be performed for subgroups of a categorical variable \hfill -
 argument \texttt{strata} \newline For instance, the celltype may have huge
@@ -535,14 +542,15 @@ BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
 \end{lstlisting}
 
 Not being wrapped by \texttt{bin}, \texttt{cont} or \texttt{tte} differentiates it from
-endpoint variables. When doing a stratified analysis, the summary
-method displays strata-specific and global results\footnote{the
-strata-specific results can be removed by setting the argument
-\texttt{strata} to \texttt{"global"} when calling \texttt{summary}.}:
+endpoint variables. When doing a stratified analysis, the summary method
+displays strata-specific and global results\footnote{the strata-specific
+results can be removed by setting the argument \texttt{strata} to \texttt{"global"}
+when calling \texttt{summary}.}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-summary(BTstrata, type.display = c("endpoint","threshold","strata",
-                                   "total","favorable","unfavorable","delta","Delta"))
+keep.colStrata <- c("endpoint","strata", "total",
+                    "favorable","unfavorable","neutral","uninf","delta","Delta")
+summary(BTstrata, type.display = keep.colStrata)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -552,31 +560,119 @@ summary(BTstrata, type.display = c("endpoint","threshold","strata",
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
  - strata weights  : 26.38%, 34.63%, 18.47%, 20.52% 
  - censored pairs  : probabilistic score based on the survival curves
  - uninformative pairs: no contribution
  - results
- endpoint threshold    strata total(%) favorable(%) unfavorable(%)   delta   Delta
-     time        20    global   100.00        36.70          46.66 -0.0997 -0.0997
-                     squamous    25.38        14.33           8.77  0.2193        
-                    smallcell    45.69        12.69          20.88 -0.1792        
-                        adeno    13.71         4.74           6.15 -0.1034        
-                        large    15.23         4.30           9.97 -0.3722
+ endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time    global   100.00        36.06          45.77      17.33     0.85 -0.0997 -0.0997
+           squamous    25.38        14.33           8.77       2.28     0.00  0.2193        
+          smallcell    45.69        12.69          20.88      11.27     0.85 -0.1792        
+              adeno    13.71         4.74           6.15       2.81     0.00 -0.1034        
+              large    15.23         4.30           9.97       0.96     0.00 -0.3722
 \end{verbatim}
 
-Note that here the numbers in the total/favorable/unfavorable/ columns
-are relative to the overall sample while the delta is only relative to
-the strata. The global delta is a sum of the strata specific delta
-weighted by the empirical proportion of pairs for each strata. The
-weight of each strata is by default proportional to the number of
-pairs. This behavior can be changed with the argument \texttt{pool.strata}:
+
+The percentage of pairs in the
+total/favorable/unfavorable/neutral/uninf columns are relative to the
+overall number of pairs whereas the column \texttt{delta} presents the
+strata-specific net benefits (in the last 4 lines). The last column
+(\texttt{Delta}) displays the overall net benefit.
+
+\bigskip
+
+\Warning With this weighting scheme the proportion of favorable pairs
+minus the proportion of unfavorable pairs does not equal the
+stata-specific nor the global net benefit. To retrieve the net
+benefits, we first extract the number of pairs per strata using the
+method \texttt{nobs}:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+strata.obs <- nobs(BTstrata, stratified = TRUE)
+strata.obs
+\end{lstlisting}
+
+\begin{verbatim}
+          Pl Exp pairs
+squamous  15  20   300
+smallcell 30  18   540
+adeno      9  18   162
+large     15  12   180
+\end{verbatim}
+
+
+and use the method \texttt{model.tables} to extract the number of favorable and unfavorable
+pairs per strata:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+dfStrata <- model.tables(BTstrata, percentage = FALSE,
+                         strata = c("squamous","smallcell","adeno","large"),
+                         columns = c("strata","total","favorable","unfavorable"))
+dfStrata
+\end{lstlisting}
+
+\begin{verbatim}
+     strata total favorable unfavorable
+2  squamous   300 169.40260    103.6104
+3 smallcell   540 150.00000    246.7778
+4     adeno   162  56.00000     72.7500
+5     large   180  50.83333    117.8333
+\end{verbatim}
+
+
+We retrieve the strata-specific net benefits by comparing, in each
+strata, the number of favorable and unfavorable pairs relative to the
+number of pairs\footnote{Alernatively one could compute, from the \texttt{summary}, the difference
+between the percentage of favorable and unfavorable pairs relative to
+the percentage of pairs in the strata, e.g. \((14.33\%-8.77\%)/25.38\%
+\approx 21.93\%\)}:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+delta <- (dfStrata$favorable - dfStrata$unfavorable)/strata.obs$pairs
+delta
+\end{lstlisting}
+
+\begin{verbatim}
+[1]  0.2193074 -0.1792181 -0.1033951 -0.3722222
+\end{verbatim}
+
+
+
+
+The global net benefit is then the sum of the strata-specific net
+benefits weighted by the strata weights:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+weightCMH <- strata.obs$pairs/(strata.obs$Pl + strata.obs$Exp)
+
+list(estimate = sum(delta * weightCMH/sum(weightCMH)),
+     weight = 100*weightCMH/sum(weightCMH))
+\end{lstlisting}
+
+\begin{verbatim}
+$estimate
+[1] -0.09967584
+
+$weight
+[1] 26.38329 34.62807 18.46830 20.52034
+\end{verbatim}
+
+
+
+
+The default weighting scheme is \texttt{CMH}, standing for
+Cochran-Mantel-Haenszel, which has been recommaned in the litterature
+\citep{dong2018stratified}. It is efficient under the assumption of a
+common multiplicative effect (across strata) on the odds ratio
+scale. If the effect is thought additive, one should instead weight
+proportionnaly to the number of pairs. This can be
+achieved by specifying the argument \texttt{pool.strata}:
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-BTstrataCMH <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "CMH")
-summary(BTstrataCMH, type.display = c("endpoint","threshold","strata",
-                                      "total","favorable","unfavorable","delta","Delta"))
+BTstrata2 <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "buyse")
+summary(BTstrata2, type.display = keep.colStrata)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -586,55 +682,38 @@ summary(BTstrataCMH, type.display = c("endpoint","threshold","strata",
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - strata weights  : 26.38%, 34.63%, 18.47%, 20.52% 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
+ - strata weights  : 25.38%, 45.69%, 13.71%, 15.23% 
  - censored pairs  : probabilistic score based on the survival curves
  - uninformative pairs: no contribution
  - results
- endpoint threshold    strata total(%) favorable(%) unfavorable(%)   delta   Delta
-     time        20    global   100.00        36.70          46.66 -0.0997 -0.0997
-                     squamous    25.38        14.33           8.77  0.2193        
-                    smallcell    45.69        12.69          20.88 -0.1792        
-                        adeno    13.71         4.74           6.15 -0.1034        
-                        large    15.23         4.30           9.97 -0.3722
+ endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
+     time    global   100.00        36.06          45.77      17.33     0.85 -0.0971 -0.0971
+           squamous    25.38        14.33           8.77       2.28     0.00  0.2193        
+          smallcell    45.69        12.69          20.88      11.27     0.85 -0.1792        
+              adeno    13.71         4.74           6.15       2.81     0.00 -0.1034        
+              large    15.23         4.30           9.97       0.96     0.00 -0.3722
 \end{verbatim}
 
-\texttt{CMH} stands for Cochran-Mantel-Haenszel whose weighted scheme has
-been advocated in the litterature \citep{dong2018stratified}. We can
-retrieve the weights by evalating the number of individual per strata
-and treatment group:
+The weighting scheme only affect the evaluation of the overall net
+benefit, which now equals the difference between the overall
+proportion of favorable vs. unfavorable pairs. As before the
+strata-specific net benefits are still not equal to the difference
+between the proportion of favorable and unfavorable pairs. While
+extractors will by default output global estimates (i.e. after pooling
+the results over strata)
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-nStrata <- table(veteran$celltype, veteran$trt)
-nStrata
+confint(BTstrata2)
 \end{lstlisting}
 
 \begin{verbatim}
-
-           1  2
-squamous  15 20
-smallcell 30 18
-adeno      9 18
-large     15 12
+            estimate        se   lower.ci   upper.ci null  p.value
+time_t20 -0.09706901 0.0977929 -0.2829348 0.09582321    0 0.323961
 \end{verbatim}
 
 
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-nPairStrata <- nStrata[,1]*nStrata[,2]
-wStrata <- rbind(default = nPairStrata,
-                 CMH = nPairStrata/rowSums(nStrata)) 
-round(100*wStrata/rowSums(wStrata),2)
-\end{lstlisting}
-
-\begin{verbatim}
-        squamous smallcell adeno large
-default    25.38     45.69 13.71 15.23
-CMH        26.38     34.63 18.47 20.52
-\end{verbatim}
-
-
-It is also possible to output strata specific results:
+one can specify the argument \texttt{stratified} to extract strata-specific estimates:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 confint(BTstrata, stratified = TRUE)
@@ -651,9 +730,8 @@ time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 
 \clearpage
 
-
 \subsection{Using multiple endpoints}
-\label{sec:org3ef3f1c}
+\label{sec:org64aceea}
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -672,7 +750,7 @@ summary(BT.H)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - neutral pairs   : re-analyzed using lower priority endpoints
  - results
@@ -729,7 +807,7 @@ summary(BT.nH)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
@@ -793,8 +871,140 @@ karno    -0.03132992 0.09787113 -0.2197111 0.1593037    0 0.7490407
 
 \clearpage
 
+\subsection{Statistical inference}
+\label{sec:org928b7f7}
+
+Several methods are available in \texttt{BuyseTest} to quantify uncertainty
+about the estimates:
+\begin{itemize}
+\item \textbf{permutation test} setting the argument \texttt{method.inference} to
+\texttt{"permutation"}. Assuming exchangeability under the null hypothesis,
+this approach gives valid p-values (regardless to the sample size)
+for testing the absence of a difference between the groups.
+\end{itemize}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                     data = veteran, trace = 0, method.inference = "permutation",
+                     seed = 10) 
+summary(BT.perm)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : permutation test with 1000 samples 
+                     p-value computed using the permutation distribution 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
+ - censored pairs  : probabilistic score based on the survival curves
+ - results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta p.value 
+     time        20      100        37.78          46.54      15.68        0 -0.0877 0.35265
+\end{verbatim}
+
+\begin{itemize}
+\item \textbf{bootstrap resampling} setting the argument \texttt{method.inference} to
+\texttt{"bootstrap"}. In large enough samples, this approach gives valid
+p-values and confidence intervals.
+\end{itemize}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                     data = veteran, trace = 0, method.inference = "bootstrap",
+                     seed = 10) 
+summary(BT.boot)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : bootstrap resampling with 1000 samples 
+                     CI computed using the percentile method; p-value by test inversion 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
+ - censored pairs  : probabilistic score based on the survival curves
+ - results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
+     time        20      100        37.78          46.54      15.68        0 -0.0877
+ CI [2.5% ; 97.5%] p.value 
+  [-0.2721;0.1034] 0.38362
+\end{verbatim}
+
+\begin{itemize}
+\item \textbf{asymptotic distribution} setting the argument \texttt{method.inference} to
+\texttt{"u-statistic"}. In large enough samples, this approach gives valid
+p-values and confidence intervals \citep{ozenne2021asymptotic}.
+\end{itemize}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BT.ustat <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                      data = veteran, trace = 0, method.inference = "u-statistic") 
+summary(BT.ustat)
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : net benefit (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 0 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1 after atanh transformation 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
+ - censored pairs  : probabilistic score based on the survival curves
+ - results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
+     time        20      100        37.78          46.54      15.68        0 -0.0877
+ CI [2.5% ; 97.5%] p.value 
+  [-0.2735;0.1045] 0.37162
+\end{verbatim}
+
+The first two approaches require simulating a large number of samples
+and applying the GPC to each of these samples. The \texttt{seed} argument is
+used to generate a seed for each sample. The number of samples is set
+using the arugment \texttt{n.resampling} and it should large enough to limit
+the Monte Carlo error when estimating the p-value. Typically should be
+at least 10000 to get, roughtly, 2-digit precision, as examplified
+below:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(10)
+sapply(1:10, function(i){mean(rbinom(1e4, size = 1, prob = 0.05))})
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 0.0511 0.0491 0.0489 0.0454 0.0516 0.0522 0.0468 0.0483 0.0491 0.0508
+\end{verbatim}
+
+Indeed, here we get a reasonnable approximation of \texttt{0.05} (if we round
+and only keep 2 digits). Note that to get 3 digits precision we would
+need more samples. The last method does not rely on resampling but on
+the computation of the influence function of the
+estimator. Fortunately, when using the Gehan's scoring rule, this does
+not really involve any extra-calculations and this is therefore very
+fast to perform. When using the Peron's scoring rule, more serious
+extra-calculations are involved so the computation time is expected to
+increase by a factor 5 to 10 compared to the point estimate alone
+(i.e. \texttt{method.inference} equal to \texttt{"none"}).
+
+\bigskip
+
+Note: it is possible to relax the exchangeability assumption using a
+studentized permutation. A studentized bootstrap is also possible to
+improve on the better small samples properties of the bootstrap
+confidence intervals. Both rely on the asymptotic approach to estimate
+standard errors and are more numerically intensive.
+
+\clearpage
+
 \subsection{What if smaller is better?}
-\label{sec:org6e41682}
+\label{sec:org2f4818a}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -812,7 +1022,7 @@ summary(BTinv)
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
@@ -828,7 +1038,7 @@ score as usual and then switch them around if the operator equals
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org4b1a2e3}
+\label{sec:org303c889}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -899,149 +1109,142 @@ So in this case no pair is analyzed at second priority.
 
 \clearpage
 
-\subsection{What about p-value and confidence intervals?}
-\label{sec:org4598fce}
+\subsection{What about other summary statistics than the net benefit?}
+\label{sec:org8094779}
 
-Several methods are available in \texttt{BuyseTest} to perform statistical inference:
-\begin{itemize}
-\item \textbf{permutation test} setting the argument \texttt{method.inference} to
-\texttt{"permutation"}. Assuming exchangeability under the null hypothesis,
-this approach gives valid p-values (regardless to the sample size)
-for testing the absence of a difference between the groups.
-\end{itemize}
+By default methods such as \texttt{summary} display results relative to the
+net benefit. Three other summary statistics are accessible: proportion
+in favor of treatment \(\Prob[Y\geq X + \tau]\), proportion in favor
+of control \(\Prob[X\geq Y + \tau]\), and their ratio \(\Prob[X\geq
+Y + \tau]\). They can be access via the argument
+\texttt{statistic}, e.g.:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+summary(BT, statistic = "winRatio")
+\end{lstlisting}
+
+\begin{verbatim}
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : win ratio (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 1 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1 after log transformation 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
+ - censored pairs  : probabilistic score based on the survival curves
+ - results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+     time        20      100        37.78          46.54      15.68        0 0.8117
+ CI [2.5% ; 97.5%] p.value 
+   [0.5134;1.2833] 0.37195
+\end{verbatim}
+
+\Warning In presence of ties, it is recommanded to use another
+definition for the proportion in favorable of treatment/control as
+their null distribution depends on the data generative mechanism and
+the threshold of clinical relevance. The \texttt{confint} method will use a
+value of 0.5 for the null hypothesis:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(BT, statistic = "favorable")
+\end{lstlisting}
+
+\begin{verbatim}
+          estimate         se  lower.ci upper.ci null    p.value
+time_t20 0.3777905 0.04902199 0.2874747 0.477467  0.5 0.01673643
+\end{verbatim}
+
+
+But this value does not correspond to the location of the null
+distribution:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                     data = veteran, trace = 0, method.inference = "permutation",
-                     seed = 10) 
-summary(BT.perm)
+                     data = veteran, trace = FALSE,
+                     method.inference = "permutation", seed = 10)
+confint(BT.perm, statistic = "favorable")
 \end{lstlisting}
 
 \begin{verbatim}
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : permutation test with 1000 samples 
-                     p-value computed using the permutation distribution 
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - censored pairs  : probabilistic score based on the survival curves
- - results
- endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta p.value 
-     time        20      100        37.78          46.54      15.68        0 -0.0877 0.35265
+          estimate         se lower.ci upper.ci      null   p.value
+time_t20 0.3777905 0.04770182       NA       NA 0.4205855 0.3556444
 \end{verbatim}
 
-\begin{itemize}
-\item \textbf{bootstrap resampling} setting the argument \texttt{method.inference} to
-\texttt{"bootstrap"}. In large enough samples, this approach gives valid
-p-values and confidence intervals.
-\end{itemize}
 
+which, in this example, is around 0.42. Therefore the null hypotheses
+tested by \texttt{confint} is generally not meaningful and the p-value should
+generally be disregarded. For statistical testing we therefore
+recommand defining the proportion in favor of treatment as
+\(\Prob[Y\geq X + \tau] + 0.5\Prob[|Y- X| < \tau]\) which matches the
+definition of the Wilcoxon-Mann-Whitney parameter. To do so, one
+should set the argument \texttt{add.halfNeutral} to \texttt{TRUE} when calling
+\texttt{BuyseTest}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-BT.boot <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                     data = veteran, trace = 0, method.inference = "bootstrap",
-                     seed = 10) 
-summary(BT.boot)
+BT.half <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                     data = veteran, trace = FALSE, add.halfNeutral = TRUE)
+confint(BT.half, statistic = "favorable")
 \end{lstlisting}
 
 \begin{verbatim}
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : bootstrap resampling with 1000 samples 
-                     CI computed using the percentile method; p-value by test inversion 
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - censored pairs  : probabilistic score based on the survival curves
- - results
- endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-     time        20      100        37.78          46.54      15.68        0 -0.0877
- CI [2.5% ; 97.5%] p.value 
-  [-0.2721;0.1034] 0.38362
+          estimate         se  lower.ci  upper.ci null   p.value
+time_t20 0.4561708 0.04880921 0.3632263 0.5522714  0.5 0.3716632
 \end{verbatim}
 
-\begin{itemize}
-\item \textbf{asymptotic distribution} setting the argument \texttt{method.inference} to
-\texttt{"u-statistic"}. In large enough samples, this approach gives valid
-p-values and confidence intervals \citep{ozenne2021asymptotic}.
-\end{itemize}
 
+Note that the win ratio is also often defined that way, i.e. as
+\(\frac{\Prob[Y\geq X + \tau] + 0.5\Prob[|Y- X| < \tau]}{\Prob[X\geq Y +
+\tau] + 0.5\Prob[|Y- X| < \tau]}\), leading to:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-BT.ustat <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                      data = veteran, trace = 0, method.inference = "u-statistic") 
-summary(BT.ustat)
+confint(BT.half, statistic = "winRatio")
 \end{lstlisting}
 
 \begin{verbatim}
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: 2 (treatment) vs. 1 (control) 
- - censored pairs  : probabilistic score based on the survival curves
- - results
- endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-     time        20      100        37.78          46.54      15.68        0 -0.0877
- CI [2.5% ; 97.5%] p.value 
-  [-0.2735;0.1045] 0.37162
+          estimate        se  lower.ci upper.ci null   p.value
+time_t20 0.8388127 0.1650208 0.5704361 1.233454    1 0.3716211
 \end{verbatim}
 
-The first two approaches require simulating a large number of samples
-and applying the GPC to each of these samples. The \texttt{seed} argument is
-used to generate a seed for each sample. The number of samples is set
-using the arugment \texttt{n.resampling} and it should large enough to limit
-the Monte Carlo error when estimating the p-value. Typically should be
-at least 10000 to get, roughtly, 2-digit precision, as examplified
-below:
+
+Testing a Net Benefit of 0, a Win Ratio of 1, and a
+Wilcoxon-Mann-Whitney parameter of 0.5 corresponds to the same
+hypothesis and therefore the same p-value should be obtained. The
+(small) discrepancy in p-values observed in this example (0.371617
+vs. 0.3716211 vs. 0.3716632) are due to large sample
+approximation. Such discrepancies will not arise when using
+permutation tests, e.g.:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-set.seed(10)
-sapply(1:10, function(i){mean(rbinom(1e4, size = 1, prob = 0.05))})
+BT.halfperm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                         data = veteran, trace = FALSE, add.halfNeutral = TRUE,
+                         method.inference = "permutation", seed = 10)
+Mstat <- rbind(netBenefit = confint(BT.halfperm, statistic = "netBenefit"),
+               winRatio = confint(BT.halfperm, statistic = "winRatio"),
+               favorable = confint(BT.halfperm, statistic = "favorable"))
+Mstat
 \end{lstlisting}
 
 \begin{verbatim}
-[1] 0.0511 0.0491 0.0489 0.0454 0.0516 0.0522 0.0468 0.0483 0.0491 0.0508
+              estimate         se lower.ci upper.ci null   p.value
+netBenefit -0.08765836 0.09535235       NA       NA  0.0 0.3526474
+winRatio    0.83881270 0.19924455       NA       NA  1.0 0.3526474
+favorable   0.45617082 0.04767618       NA       NA  0.5 0.3526474
 \end{verbatim}
 
-Indeed, here we get a reasonnable approximation of \texttt{0.05} (if we round
-and only keep 2 digits). Note that to get 3 digits precision we would
-need more samples. The last method does not rely on resampling but on
-the computation of the influence function of the
-estimator. Fortunately, when using the Gehan's scoring rule, this does
-not really involve any extra-calculations and this is therefore very
-fast to perform. When using the Peron's scoring rule, more serious
-extra-calculations are involved so the computation time is expected to
-increase by a factor 5 to 10 compared to the point estimate alone
-(i.e. \texttt{method.inference} equal to \texttt{"none"}).
 
-\bigskip
-
-Note: it is possible to relax the exchangeability assumption using a
-studentized permutation. A studentized bootstrap is also possible to
-improve on the better small samples properties of the bootstrap
-confidence intervals. Both rely on the asymptotic approach to estimate
-standard errors and are more numerically intensive.
+This approach has two drawbacks though: no (reliable) confidence
+intervals and greater computation time.
 
 \clearpage
 
 \subsection{Is multiple testing a concern with GPC?}
-\label{sec:org127d9b8}
+\label{sec:orgec880ac}
 
 Yes, as with any other statistical method. Having a pre-defined
 statistical plan (i.e. written before looking at the data) specifying
 the hierarchy of endpoints, their threshold of clinical relevance is
-recommanded. 
-
-\bigskip
-
-This being said, there are mainly two way to conclude about results
-from running multiple GPC:
+recommanded. When planning multiple GPC, summarize the results can be
+done via one of two principles:
 \begin{itemize}
 \item \textbf{intersection union principle}: one rejects the (global) null
 hypothesis if there is evidence for an effect in all the GPC
@@ -1103,7 +1306,7 @@ Here we look at whether there is a benefit in survival alone (first
 priority \texttt{time\_t20}) or a benefit over both endpoint (second priority
 \texttt{karno}). Setting the argument \texttt{cumulative} to \texttt{FALSE} when
 considering non-hierarchical GPC analyses enables to efficiently
-adjust endpoint specific GPC for multiple comparisons:
+adjust endpoint-specific GPC for multiple comparisons:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BuyseMultComp(BT.nH, cumulative = FALSE, endpoint = 1:2)
@@ -1123,17 +1326,17 @@ karno      0.9236602
 One can also consider the global endpoint of two different GPC analyses:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-BuyseMultComp(list(hierchical = BT.H, Obrien = BT.nH), cluster = "id")
+BuyseMultComp(list(hierarchical = BT.H, Obrien = BT.nH), cluster = "id")
 \end{lstlisting}
 
 \begin{verbatim}
   - Univariate tests:
-              estimate         se   lower.ci   upper.ci null   p.value lower.band upper.band
-hierchical -0.10092285 0.09971277 -0.2901336 0.09588144    0 0.3147770 -0.3014645  0.1081696
-Obrien     -0.05949414 0.08700807 -0.2266953 0.11111326    0 0.4951361 -0.2368800  0.1217304
-           adj.p.value
-hierchical   0.3831444
-Obrien       0.5851872
+                estimate         se   lower.ci   upper.ci null   p.value lower.band
+hierarchical -0.10092285 0.09971277 -0.2901336 0.09588144    0 0.3147770 -0.3014645
+Obrien       -0.05949414 0.08700807 -0.2266953 0.11111326    0 0.4951361 -0.2368800
+             upper.band adj.p.value
+hierarchical  0.1081696   0.3831444
+Obrien        0.1217304   0.5851872
 \end{verbatim}
 
 
@@ -1150,16 +1353,16 @@ BTse.ustat[,c("time","estimate",
 
 \begin{verbatim}
         time    estimate    lower.ci   upper.ci   p.value  lower.band upper.band adj.p.value
-1    0.00000 -0.08752774 -0.27851884 0.11012263 0.3858177 -0.32450860  0.1597923   0.7746620
-2   55.55556 -0.08095829 -0.25229456 0.09530004 0.3682107 -0.29401340  0.1397613   0.7528122
-3  111.11111 -0.03170177 -0.17629003 0.11422560 0.6712414 -0.21223939  0.1509285   0.9810295
-4  166.66667  0.01896964 -0.10713643 0.14447503 0.7688360 -0.13892698  0.1759257   0.9969925
-5  222.22222  0.03315614 -0.07506821 0.14060850 0.5486177 -0.10250127  0.1676028   0.9257172
-6  277.77778  0.04217485 -0.04914025 0.13279075 0.3653982 -0.07236883  0.1556205   0.7492675
-7  333.33333  0.04112991 -0.03631838 0.11808708 0.2979105 -0.05604663  0.1375345   0.6544816
-8  388.88889  0.04075638 -0.02402114 0.10519310 0.2174545 -0.04053858  0.1215153   0.5206881
-9  444.44444  0.04097871 -0.01844156 0.10011054 0.1764199 -0.03359858  0.1151022   0.4429140
-10 500.00000  0.03517173 -0.01915553 0.08929191 0.2044340 -0.03301187  0.1030295   0.4967546
+1    0.00000 -0.08752774 -0.27851884 0.11012263 0.3858177 -0.32448885  0.1597708   0.7745625
+2   55.55556 -0.08095829 -0.25229456 0.09530004 0.3682107 -0.29399544  0.1397420   0.7528122
+3  111.11111 -0.03170177 -0.17629003 0.11422560 0.6712414 -0.21222383  0.1509125   0.9810274
+4  166.66667  0.01896964 -0.10713643 0.14447503 0.7688360 -0.13891317  0.1759120   0.9969926
+5  222.22222  0.03315614 -0.07506821 0.14060850 0.5486177 -0.10248934  0.1675911   0.9257172
+6  277.77778  0.04217485 -0.04914025 0.13279075 0.3653982 -0.07235871  0.1556106   0.7492675
+7  333.33333  0.04112991 -0.03631838 0.11808708 0.2979105 -0.05603803  0.1375260   0.6545176
+8  388.88889  0.04075638 -0.02402114 0.10519310 0.2174545 -0.04053138  0.1215082   0.5203739
+9  444.44444  0.04097871 -0.01844156 0.10011054 0.1764199 -0.03359197  0.1150957   0.4429140
+10 500.00000  0.03517173 -0.01915553 0.08929191 0.2044340 -0.03300583  0.1030235   0.4967546
 \end{verbatim}
 
 Here by setting the argument \texttt{band} to \texttt{TRUE} (and \texttt{adj.p.value} to
@@ -1250,12 +1453,12 @@ autoplot(BTse.H, col = NA)
 \includegraphics[width=\textwidth]{./figures/gg-sensitivity2.pdf}
 \end{center}
 
-Note that the autoplot function cannot be used when more than 2
-thresholds are varied at the same time.
+The autoplot function can only be used when 1 or 2 thresholds are
+varied at the same time.
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org1471139}
+\label{sec:orgb9971db}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -1264,7 +1467,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:org28a33a5}
+\label{sec:org46249c8}
 The net benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -1286,18 +1489,18 @@ getPairScore(BT.keep, endpoint = 1)
 \end{lstlisting}
 
 \begin{verbatim}
-      index.1 index.2 favorable unfavorable neutral uninf weight
-   1:       1      70         1           0       0     0      1
-   2:       2      70         1           0       0     0      1
-   3:       3      70         1           0       0     0      1
-   4:       4      70         1           0       0     0      1
-   5:       5      70         1           0       0     0      1
-  ---                                                           
-4688:      65     137         0           1       0     0      1
-4689:      66     137         0           1       0     0      1
-4690:      67     137         0           1       0     0      1
-4691:      68     137         0           1       0     0      1
-4692:      69     137         0           1       0     0      1
+      index.Pl index.Exp favorable unfavorable neutral uninf weight
+   1:        1        70         1           0       0     0      1
+   2:        2        70         1           0       0     0      1
+   3:        3        70         1           0       0     0      1
+   4:        4        70         1           0       0     0      1
+   5:        5        70         1           0       0     0      1
+  ---                                                              
+4688:       65       137         0           1       0     0      1
+4689:       66       137         0           1       0     0      1
+4690:       67       137         0           1       0     0      1
+4691:       68       137         0           1       0     0      1
+4692:       69       137         0           1       0     0      1
 \end{verbatim}
 
 Each line corresponds to different comparison between a pair from the
@@ -1315,8 +1518,8 @@ veteran[c(70,1),]
 
 \begin{verbatim}
    id trt celltype time status karno diagtime age prior
-70 70   2 squamous  999      1    90       12  54    10
-1   1   1 squamous   72      1    60        7  69     0
+70 70 Exp squamous  999      1    90       12  54    10
+1   1  Pl squamous   72      1    60        7  69     0
 \end{verbatim}
 
 
@@ -1353,7 +1556,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org77f2bdc}
+\label{sec:orgbdc7b57}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} and
@@ -1398,7 +1601,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org9d8c009}
+\label{sec:orgdfdde36}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1407,10 +1610,10 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[91]
 \end{lstlisting}
 
 \begin{verbatim}
-   index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable   neutral
-1:      22      71                  22                   2         0   0.6950827 0.3049173
-   uninf weight
-1:     0      1
+   index.Pl index.Exp indexWithinStrata.Pl indexWithinStrata.Exp favorable unfavorable
+1:       22        71                   22                     2         0   0.6950827
+     neutral uninf weight
+1: 0.3049173     0      1
 \end{verbatim}
 
 
@@ -1422,8 +1625,8 @@ veteran[c(22,71),]
 
 \begin{verbatim}
    id trt  celltype time status karno diagtime age prior
-22 22   1 smallcell   97      0    60        5  67     0
-71 71   2  squamous  112      1    80        6  60     0
+22 22  Pl smallcell   97      0    60        5  67     0
+71 71 Exp  squamous  112      1    80        6  60     0
 \end{verbatim}
 
 
@@ -1513,7 +1716,7 @@ survivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org0f9d698}
+\label{sec:org46cdc2c}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1544,10 +1747,10 @@ getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[148]
 \end{lstlisting}
 
 \begin{verbatim}
-   index.1 index.2 indexWithinStrata.1 indexWithinStrata.2 favorable unfavorable   neutral
-1:      10      72                  10                   3 0.5058685   0.3770426 0.1170889
-   uninf weight
-1:     0      1
+   index.Pl index.Exp indexWithinStrata.Pl indexWithinStrata.Exp favorable unfavorable
+1:       10        72                   10                     3 0.5058685   0.3770426
+     neutral uninf weight
+1: 0.1170889     0      1
 \end{verbatim}
 
 
@@ -1559,8 +1762,8 @@ veteran[c(10,72),]
 
 \begin{verbatim}
    id trt celltype time status karno diagtime age prior
-10 10   1 squamous  100      0    70        6  70     0
-72 72   2 squamous   87      0    80        3  48     0
+10 10  Pl squamous  100      0    70        6  70     0
+72 72 Exp squamous   87      0    80        3  48     0
 \end{verbatim}
 
 
@@ -1617,7 +1820,7 @@ outSurv$lastSurv
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:orgdced178}
+\label{sec:orgea37c7b}
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
@@ -1714,7 +1917,7 @@ estimator.
 \end{itemize}
 
 \subsection{Gehan's scoring rule}
-\label{sec:org37ce495}
+\label{sec:orgab3430b}
 In the example, Gehan's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1735,7 +1938,7 @@ leads to many uninformative pairs (about 60\%) and an estimate much
 closer to 0 than the truth.
 
 \subsection{Peron's scoring rule}
-\label{sec:org5b6cec2}
+\label{sec:org65ef454}
 In the example, Peron's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1882,7 +2085,7 @@ defining an appropriate \texttt{BuyseTTEM} method. Looking at the code use
 for defining \texttt{BuyseTTEM.survreg} can be helpful.
 
 \subsection{Correction via inverse probability-of-censoring weights (IPCW)}
-\label{sec:org10f15f7}
+\label{sec:org59f1c28}
 
 With IPCW, the weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
@@ -1951,7 +2154,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsection{Correction at the pair level}
-\label{sec:orgbb3782f}
+\label{sec:orgc44affe}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -2011,7 +2214,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \end{verbatim}
 
 \subsection{Note on the use of the corrections}
-\label{sec:org55404f5}
+\label{sec:org0df886b}
 
 As mentioned in \cite{peron2021correcting}, the corrections (at the pair
 level or IPCW) are assumes that uninformative pairs would on average
@@ -2058,8 +2261,8 @@ s.correction <- model.tables(e.correction, column = c("favorable","unfavorable",
 \end{lstlisting}
 
 \begin{verbatim}
-Advarselsbesked:
-I .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
+Warning message:
+In .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
   Some of the survival curves for endpoint(s) "timeC" are unknown beyond a survival of 0.25.
 The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. 
 This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown.
@@ -2086,7 +2289,7 @@ correction     55.25931    44.74069       0  0.00000 0.10518628
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orgee99471}
+\label{sec:org2d21f06}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -2146,7 +2349,7 @@ package (\url{https://github.com/kkholst/lava})
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:org4265aae}
+\label{sec:org9ee7f63}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
@@ -2219,7 +2422,7 @@ summary(powerW)
         Simulation study with Generalized pairwise comparison
         with 1000 samples
 
- - statistic   : net benefit (null hypothesis Delta=0)
+ - net benefit statistic (null hypothesis Delta=0)
  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
         Y     1e-12   5   5        0.2484       0.359  0.3395          0.069
                      10  10        0.2471      0.2551  0.2464          0.137
@@ -2265,11 +2468,11 @@ Simulation
 This procedure is inspired from the procedure presented by
 \cite{brunner2018rank} in section 3.8.2.2. In short, several 'large'
 datasets are generated and analyzed using GPC to approximate the
-statistic of interest (\(\delta\)) and its asymptotic variance
+statistic of interest (\(\Delta\)) and its asymptotic variance
 (\(\sigma^2\)). The sample size needed to achieve the requested power
 (\(1-\beta\)) and the requested type 1 error (\(\alpha\)) is then
 deduce, give a dataset, according to the equation \(N = \sigma^2
-\frac{\left(u_{1-\alpha/2}+u_{1-\beta}\right)^2}{\delta^2}\) where
+\frac{\left(u_{1-\alpha/2}+u_{1-\beta}\right)^2}{\Delta^2}\) where
 \(u_x\) denotes the x-quantile of the normal distribution. The
 estimated sample size is then the average calculated sample size
 across dataset. The argument \texttt{max.sample.size} specifies the number of
@@ -2285,10 +2488,13 @@ summary(nW)
 \end{lstlisting}
 
 \begin{verbatim}
-        Simulation study with Generalized pairwise comparison
-        with 1000 samples
+        Sample size calculation with Generalized pairwise comparison
+        for a power of 0.8 and type 1 error rate of 0.05 
 
- - statistic   : net benefit (null hypothesis Delta=0)
+ - estimated sample size (mean [min;max]): 89 [60;145] controls
+                                           89 [60;145] treated
+
+ - net benefit statistic (null hypothesis Delta=0)
  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
         Y     1e-12  89  89        0.2452      0.0854  0.0834          0.806
 
@@ -2304,7 +2510,7 @@ summary(nW)
 \clearpage
 
 \section{Modifying default options}
-\label{sec:org94fef85}
+\label{sec:orgdc6f3fa}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -2355,7 +2561,7 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 \section*{References}
-\label{sec:orgf87f212}
+\label{sec:orgbe6c6b4}
 \begingroup
 \renewcommand{\section}[2]{}
 

@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: jun 30 2023 (10:01) 
+## last-updated: Jul  4 2023 (09:31) 
 ##           By: Brice Ozenne
-##     Update #: 199
+##     Update #: 202
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -501,13 +501,14 @@ test_that("compare with t-test (two.sided)", {
     ## same variance for studentized bootstrap and asymptotic 
     expect_true(all(abs(diff(M.res[c("studboot","studboot.trans","ustat","ustat.trans"),"se"])<1e-6)))
     ## lower.ci smaller than upper ci
-    expect_true(all(M.res[,"lower.ci"]<M.res[,"upper.ci"]))
+    expect_true(all(is.na(M.res[1,c("lower.ci","upper.ci")])))
+    expect_true(all(M.res[-1,"lower.ci"]<M.res[-1,"upper.ci"]))
     ## check values
     ## butils::object2script(M.res, digits = 6)
     GS <- data.frame("estimate" = c(-0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112), 
                      "se" = c(0.14543358, 0.15109607, 0.15109607, 0.15109607, 0.14543358, 0.14543358, 0.14543358, 0.14543358), 
-                     "lower.ci" = c(-0.62242707, -0.65632966, -0.70734285, -0.6657388, -0.71254615, -0.61868508, -0.69624457, -0.65276625), 
-                     "upper.ci" = c(-0.13950303, -0.02091063, -0.11505715, -0.07093912, -0.07533105, 0.00760101, -0.12615543, -0.09372943), 
+                     "lower.ci" = c(NA, -0.65632966, -0.70734285, -0.6657388, -0.71254615, -0.61868508, -0.69624457, -0.65276625), 
+                     "upper.ci" = c(NA, -0.02091063, -0.11505715, -0.07093912, -0.07533105, 0.00760101, -0.12615543, -0.09372943), 
                      "null" = c(0, 0, 0, 0, 0, 0, 0, 0), 
                      "p.value" = c(0.01, 0.03, 0.00649967, 0.01925831, 0, 0.055, 0.00469266, 0.01252311))
     expect_equivalent(GS, M.res, tol = 1e-4)
@@ -538,7 +539,8 @@ test_that("compare with t-test (greater)", {
     ## same variance for studentized bootstrap and asymptotic 
     expect_true(all(abs(diff(M.res[c("studboot","studboot.trans","ustat","ustat.trans"),"se"])<1e-6)))
     ## lower.ci smaller than upper ci
-    expect_true(all(M.res[,"lower.ci"]<M.res[,"upper.ci"]))
+    expect_true(all(is.na(M.res[1,c("lower.ci","upper.ci")])))
+    expect_true(all(M.res[-1,"lower.ci"]<M.res[-1,"upper.ci"]))
     ## upper ci
     expect_true(all(M.res[grep("trans",rownames(M.res)),"upper.ci"]==1))
     expect_true(all(is.infinite(M.res[-grep("trans|perm",rownames(M.res)),"upper.ci"])))
@@ -546,8 +548,8 @@ test_that("compare with t-test (greater)", {
     ## butils::object2script(M.res, digits = 6)
     GS <- data.frame("estimate" = c(-0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112), 
            "se" = c(0.145434, 0.151096, 0.151096, 0.151096, 0.145434, 0.145434, 0.145434, 0.145434), 
-           "lower.ci" = c(-0.604612, -0.622115, -0.659731, -0.631681, -0.66886, -0.596779, -0.650417, -0.619966), 
-           "upper.ci" = c(1, Inf, Inf, 1, Inf, 1, Inf, 1), 
+           "lower.ci" = c(NA, -0.622115, -0.659731, -0.631681, -0.66886, -0.596779, -0.650417, -0.619966), 
+           "upper.ci" = c(NA, Inf, Inf, 1, Inf, 1, Inf, 1), 
            "null" = c(0, 0, 0, 0, 0, 0, 0, 0), 
            "p.value" = c(0.995, 0.985, 0.99675, 0.990371, 1, 0.975, 0.997654, 0.993738))
     expect_equivalent(GS, M.res, tol = 1e-4)
@@ -578,7 +580,8 @@ test_that("compare with t-test (less)", {
     ## same variance for studentized bootstrap and asymptotic 
     expect_true(all(abs(diff(M.res[c("studboot","studboot.trans","ustat","ustat.trans"),"se"])<1e-6)))
     ## lower.ci smaller than upper ci
-    expect_true(all(M.res[,"lower.ci"]<M.res[,"upper.ci"]))
+    expect_true(all(is.na(M.res[1,c("lower.ci","upper.ci")])))
+    expect_true(all(M.res[-1,"lower.ci"]<M.res[-1,"upper.ci"]))
     ## lower ci
     expect_true(all(M.res[grep("trans",rownames(M.res)),"lower.ci"]==-1))
     expect_true(all(is.infinite(M.res[-grep("trans|perm",rownames(M.res)),"lower.ci"])))
@@ -586,8 +589,8 @@ test_that("compare with t-test (less)", {
     ## butils::object2script(M.res, digits = 6)
     GS <- data.frame("estimate" = c(-0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112), 
            "se" = c(0.145434, 0.151096, 0.151096, 0.151096, 0.145434, 0.145434, 0.145434, 0.145434), 
-           "lower.ci" = c(-1, -Inf, -Inf, -1, -Inf, -1, -Inf, -1), 
-           "upper.ci" = c(-0.190101, -0.150252, -0.162669, -0.129175, -0.183773, -0.129614, -0.171983, -0.148062), 
+           "lower.ci" = c(NA, -Inf, -Inf, -1, -Inf, -1, -Inf, -1), 
+           "upper.ci" = c(NA, -0.150252, -0.162669, -0.129175, -0.183773, -0.129614, -0.171983, -0.148062), 
            "null" = c(0, 0, 0, 0, 0, 0, 0, 0), 
            "p.value" = c(0.005, 0.015, 0.00325, 0.009629, 0, 0.025, 0.002346, 0.006262))
     expect_equivalent(GS, M.res, tol = 1e-4)
