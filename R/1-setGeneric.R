@@ -54,7 +54,7 @@ setGeneric(name = "getSurvival",
 #' @exportMethod getIid
 #' @keywords methods
 setGeneric(name = "getIid",
-           def = function(object, endpoint = NULL, statistic = NULL, stratified = FALSE, cumulative = TRUE, center = TRUE, scale = TRUE, type = "all", cluster = NULL){
+           def = function(object, endpoint = NULL, statistic = NULL, strata = FALSE, cumulative = TRUE, center = TRUE, scale = TRUE, type = "all", cluster = NULL, simplify = FALSE){
                standardGeneric("getIid")
            }
 )

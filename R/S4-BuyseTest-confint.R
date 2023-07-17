@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1027
+##     Update #: 1051
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -32,8 +32,8 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param endpoint [character] for which endpoint(s) the confidence intervals should be output?
 #' If \code{NULL} returns the confidence intervals for all endpoints.
-#' @param stratified [logical] should strata-specific statistic be output?
-#' Otherwise output a global statistics obtained after pooling the strata-specific ones.
+#' @param strata [character] the strata relative to which the statistic should be output.
+#' Can also be \code{"global"} or \code{FALSE} to ouput the statistic pooled over all strata.
 #' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
 #' @param null [numeric] right hand side of the null hypothesis (used for the computation of the p-value).
@@ -115,7 +115,7 @@ setMethod(f = "confint",
           definition = function(object,
                                 endpoint = NULL,
                                 statistic = NULL,
-                                stratified = FALSE,
+                                strata = FALSE,
                                 cumulative = TRUE,
                                 null = NULL,
                                 conf.level = NULL,
@@ -267,8 +267,15 @@ setMethod(f = "confint",
 
               ## strata
               level.strata <- object@level.strata
-              if(stratified && length(level.strata)==1){
-                  stratified <- FALSE
+              if(identical(strata,FALSE)){
+                  strata <- "global"
+              }else{
+                  validCharacter(strata,
+                                 name1 = "strata",
+                                 valid.length = 1,
+                                 valid.values = c("global",object@level.strata),
+                                 refuse.NULL = FALSE,
+                                 method = "confint[S4BuyseTest]")
               }
               
               ## safety
@@ -286,24 +293,10 @@ setMethod(f = "confint",
               
               ## ** extract estimate
               all.endpoint <- names(object@endpoint)
-              Delta <- coef(object, statistic = statistic, cumulative = cumulative, stratified = stratified, endpoint = endpoint)
-              if(stratified){
-                  index <- which(is.na(Delta*NA), arr.ind = TRUE)
-                  Delta <- stats::setNames(as.double(Delta),
-                                           paste0(colnames(Delta)[index[,"col"]],sep,rownames(Delta)[index[,"row"]]))
-              }
+              Delta <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = FALSE, simplify = TRUE)
               
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
-                  Delta.resampling <- coef(object, statistic = statistic, cumulative = cumulative, stratified = stratified, endpoint = endpoint, resampling = TRUE)
-                  if(stratified){
-                      Delta.resampling_save <- Delta.resampling
-                      gridName <- expand.grid(endpoint, level.strata)                      
-                      Delta.resampling <- matrix(NA, nrow = dim(Delta.resampling_save)[1], ncol = prod(dim(Delta.resampling_save)[2:3]),
-                                                 dimnames = list(dimnames(Delta.resampling_save)[[1]],paste0(gridName[,1],sep,gridName[,2])))
-                      for(iEndpoint in 1:n.endpoint){ ## iEndpoint <- 1
-                          Delta.resampling[,paste0(endpoint[iEndpoint],sep,level.strata)] <- Delta.resampling_save[,,iEndpoint]
-                      }
-                  }
+                  Delta.resampling <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = TRUE, simplify = TRUE)                  
               }else{
                   Delta.resampling <- NULL
               }
@@ -311,7 +304,7 @@ setMethod(f = "confint",
               ## ** extract standard error
               if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
 
-                  if(object.hprojection && is.null(cluster) && stratified==FALSE && cumulative == TRUE){
+                  if(object.hprojection && is.null(cluster) && strata=="global" && cumulative == TRUE){
                       Delta.se <- sqrt(object@covariance[endpoint,statistic])
                       if(attr(method.inference,"studentized")){
                           Delta.se.resampling <- matrix(sqrt(object@covarianceResampling[,endpoint,statistic]),
@@ -324,13 +317,11 @@ setMethod(f = "confint",
                       if(identical(order.Hprojection,2)){
                           warning("Inference will be performed using a first order H projection. \n")
                       }
-                      Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, stratified = stratified, cluster = cluster)
-                      if(is.null(cluster)){
-                          weightObs <- matrix(object@weightObs, nrow = NROW(Delta.iid[[1]]), ncol = NCOL(Delta.iid[[1]]), byrow = FALSE)
-                          M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(weightObs * iIID^2))}))
-                      }else{
-                          M.se <- do.call(cbind,lapply(Delta.iid, function(iIID){sqrt(colSums(iIID^2))}))
+                      Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, strata = strata, cluster = cluster, simplify = FALSE)[[strata]]
+                      if(is.null(cluster) && any(object@weightObs!=1)){
+                          Delta.iid <- .colMultiply_cpp(Delta.iid, sqrt(object@weightObs))
                       }
+                      M.se <- sqrt(colSums(Delta.iid^2))
                       Delta.se <- stats::setNames(as.double(M.se), names(Delta))
                       Delta.se.resampling <- NULL
                   }

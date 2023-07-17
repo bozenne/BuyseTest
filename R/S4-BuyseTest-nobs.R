@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jul  3 2023 (10:00) 
 ## Version: 
-## Last-Updated: Jul  3 2023 (10:17) 
+## Last-Updated: Jul 17 2023 (10:50) 
 ##           By: Brice Ozenne
-##     Update #: 22
+##     Update #: 35
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,11 +25,13 @@
 #' @description Display the sample size in each treatmnet arm as well as the number of pairs.
 #' 
 #' @param object an \R object of class \code{S4BuyseTest}, i.e., output of \code{\link{BuyseTest}}
-#' @param stratified [logical] should strata-specific sample size be output?
-#' Otherwise output the sample size and number of pairs over all strata.
+#' @param strata [character vector] the strata relative to which the number of pairs should be output.
+#' Can also be \code{"global"} or \code{FALSE} to ouput the total number of pairs (i.e. across all strata),
+#' or \code{TRUE} to output each strata-specific number of pairs.
+#' @param simplify [logical] should the result be coerced to the lowest possible dimension?
 #' @param ... no used, for compatibility with the generic method.
 #' 
-#' @return A vector (when argument \code{stratified} is \code{FALSE}) or a data.frame (when argument \code{stratified} is \code{TRUE}). In the latter case each line correspond to a strata.
+#' @return A vector (when argument \code{strata} is \code{FALSE}) or a matrix (when argument \code{strata} is \code{TRUE}). In the latter case each line correspond to a strata.
 #' 
 #' @keywords methods
 #' @author Brice Ozenne
@@ -39,39 +41,47 @@
 #' @exportMethod nobs
 setMethod(f = "nobs",
           signature = "S4BuyseTest",
-          definition = function(object, stratified = NULL, ...){
+          definition = function(object, strata = FALSE, simplify = TRUE, ...){
 
               ## ** normalize arguments
               indexC <- attr(object@level.treatment,"indexC")
               indexT <- attr(object@level.treatment,"indexT")
 
-              if(!is.null(stratified)){
-                  level.strata <- object@level.strata
-                  if(identical(stratified,TRUE)){
-                      strata <- level.strata
+              level.strata <- object@level.strata
+              index.strata <- attr(level.strata,"index")
+              if(is.null(strata)){
+                  if(length(level.strata)==1){
+                      strata <- "global"                      
                   }else{
-                      strata <- match.arg(stratified, level.strata, several.ok = TRUE)
+                      strata <- c("global", level.strata)
                   }
-                  index.strata <- attr(level.strata,"index")
+              }else if(identical(strata,FALSE)){
+                  strata <- "global"
+              }else if(identical(strata,TRUE)){
+                  strata <- level.strata
+              }else{
+                  validCharacter(strata,
+                                 name1 = "strata",
+                                 valid.length = NULL,
+                                 valid.values = c("global",level.strata),
+                                 refuse.NULL = FALSE,
+                                 method = "coef[S4BuyseTest]")
               }
 
               ## ** extract
-              if(is.null(stratified)){
-                  out <- c(length(indexC),
-                           length(indexT),
-                           sum(object@n.pairs))
-                  names(out) <- c(object@level.treatment, "pairs")
-              }else{
-                  out <- data.frame(sapply(lapply(index.strata[match(strata, level.strata)], intersect, indexC), length),
-                                    sapply(lapply(index.strata[match(strata, level.strata)], intersect, indexT), length),
-                                    object@n.pairs[strata])
-                  
-                  names(out) <- c(object@level.treatment, "pairs")
-                  rownames(out) <- strata
-              }
+              Mout <- rbind(c(length(indexC), length(indexT), sum(object@n.pairs)),
+                            cbind(sapply(lapply(index.strata, intersect, indexC), length),
+                                  sapply(lapply(index.strata, intersect, indexT), length),
+                                  object@n.pairs))
+              rownames(Mout) <- c("global", level.strata)
+              colnames(Mout) <- c(object@level.treatment, "pairs")
+              
+              
+              ## ** export
+              out <- Mout[strata,,drop=simplify]
               return(out)
           }
-)
+          )
 
 
 ##----------------------------------------------------------------------

@@ -17,9 +17,9 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param strata [character vector] the name of the strata to be displayed.
-#' Can also be \code{"global"} or \code{FALSE} to display the statistic pooled over all strata,
-#' or \code{TRUE} to display each strata-specific statistic.
+#' @param strata [character vector] the strata relative to which the statistic should be output.
+#' Can also be \code{"global"} or \code{FALSE} to ouput the statistic pooled over all strata,
+#' or \code{TRUE} to output each strata-specific statistic.
 #' @param columns [character vector] subset of columns to be output (e.g. \code{"endpoint"}, \code{"favorable"}, ...).
 #' Can also be \code{"summary"} or \code{"print"} to only select columns displayed in the summary or print. \code{NULL} will select all columns.
 #' @param ... arguments to be passed to \code{\link{S4BuyseTest-confint}}
