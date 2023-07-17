@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: jun 27 2023 (14:12) 
+## Last-Updated: jul 14 2023 (23:58) 
 ##           By: Brice Ozenne
-##     Update #: 251
+##     Update #: 299
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -28,12 +28,13 @@
 #' @param statistic [character] the type of summary statistic. See the detail section.
 #' @param endpoint [character] for which endpoint(s) the summary statistic should be output?
 #' If \code{NULL} returns the summary statistic for all endpoints.
-#' @param stratified [logical] should the summary statistic be strata-specific?
-#' Otherwise a summary statistic over all strata is returned.
+#' @param strata [character vector] the name of the strata to be displayed.
+#' Can also be \code{"global"} or \code{FALSE} to display the statistic pooled over all strata,
+#' or \code{TRUE} to display each strata-specific statistic.
 #' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
 #' @param resampling [logical] should the summary statistic obtained by resampling be output?
-#' 
+#' @param simplify [logical] should the result be coerced to the lowest possible dimension?
 #' @param ... ignored.
 #'
 #' @details
@@ -51,10 +52,10 @@
 #' \item \code{"count.uninf"}: returns the number of uninformative pairs.
 #' }
 #' 
-#' @return When \code{resampling=FALSE} and \code{stratified=FALSE}, return a numeric vector.
-#' When \code{resampling=FALSE} and \code{stratified=TRUE}, return a matrix.
-#' When \code{resampling=TRUE} and \code{stratified=FALSE}, return a matrix.
-#' When \code{resampling=TRUE} and \code{stratified=TRUE}, return an 3-dimensional array.
+#' @return When \code{resampling=FALSE} and \code{strata=FALSE}, return a numeric vector.
+#' When \code{resampling=FALSE} and \code{strata=TRUE}, return a matrix.
+#' When \code{resampling=TRUE} and \code{strata=FALSE}, return a matrix.
+#' When \code{resampling=TRUE} and \code{strata=TRUE}, return an 3-dimensional array.
 #' 
 #' @keywords method
 #' @author Brice Ozenne
@@ -67,11 +68,12 @@ setMethod(f = "coef",
           definition = function(object,
                                 endpoint = NULL,
                                 statistic = NULL,
-                                stratified = FALSE,
+                                strata = NULL,
                                 cumulative = NULL,
                                 resampling = FALSE,
+                                simplify = TRUE,
                                 ...){
-
+              
               ## ** normalize arguments
               option <- BuyseTest.options()
               mycall <- match.call()
@@ -114,7 +116,9 @@ setMethod(f = "coef",
               ## endpoint
               valid.endpoint <- names(object@endpoint)
               n.endpoint <- length(valid.endpoint)
-              if(!is.null(endpoint)){
+              if(is.null(endpoint)){
+                  endpoint <- valid.endpoint
+              }else if(!is.null(endpoint)){
                   if(is.numeric(endpoint)){
                       validInteger(endpoint,
                                    name1 = "endpoint",
@@ -134,165 +138,190 @@ setMethod(f = "coef",
               ## strata
               level.strata <- object@level.strata
               n.strata <- length(level.strata)
-
+              weightStrata <- object@weightStrata
+              if(is.null(strata)){
+                  if(length(object@level.strata)==1){
+                      strata <- "global"                      
+                  }else{
+                      strata <- c("global", object@level.strata)
+                  }
+              }else if(identical(strata,FALSE)){
+                  strata <- "global"
+              }else if(identical(strata,TRUE)){
+                  strata <- object@level.strata
+              }else{
+                  validCharacter(strata,
+                                 name1 = "strata",
+                                 valid.length = NULL,
+                                 valid.values = c("global",object@level.strata),
+                                 refuse.NULL = FALSE,
+                                 method = "coef[S4BuyseTest]")
+              }
+              
               ## resampling
               if(resampling){
+
                   if(!attr(slot(object, "method.inference"),"permutation") && !attr(slot(object, "method.inference"),"bootstrap")){
-                      stop("Not resampling procedure was performed so cannot output the corresponding coefficients. \n")
+                      stop("No resampling procedure was performed so cannot output the corresponding coefficients. \n")
                   }
+
+                  if(statistic %in% type.count){
+                      stop("The number of ",gsub("count.","",statistic)," pairs when performing resampling is not saved. \n")
+                  }
+
                   n.resampling <- slot(object, "n.resampling")
-                  DeltaResampling <- slot(object, "DeltaResampling")
-                  deltaResampling <- slot(object, "deltaResampling")
                   weightStrataResampling <- slot(object, "weightStrataResampling")
-              }else if(statistic %in% type.count){
-                  Acount <- array(c(slot(object, "count.favorable"),
-                                    slot(object, "count.unfavorable"),
-                                    slot(object, "count.neutral"),
-                                    slot(object, "count.uninf")),
-                                  dim = c(n.strata,n.endpoint,4),
-                                  dimnames = list(level.strata, valid.endpoint, c("count.favorable","count.unfavorable","count.neutral","count.uninf"))
-                                  )
-                  Mcount <- matrix(Acount[,,statistic],
-                                   nrow = n.strata, ncol = n.endpoint,
-                                   dimnames = list(level.strata, valid.endpoint))
-              }else{
-                  Delta <- slot(object, "Delta")
-                  delta <- slot(object, "delta")
-              }
-              if(statistic %in% type.count && resampling){
-                  stop("The number of ",statistic," pairs when performing resampling is not saved. \n")
-              }
-              
-              
 
-              ## ** specific cases: redirect to the least calculation when having to choose between two equivalent possibilities
-              if(n.strata == 1 && (statistic %in% type.count == FALSE) && ("stratified" %in% names(mycall) == FALSE)){
-                  rm.strata <- TRUE
-                  if(cumulative){stratified <- FALSE}else{stratified <- TRUE}
-              }else if(n.endpoint == 1 && ("cumulative" %in% names(mycall) == FALSE)){
-                  if(stratified){cumulative <- FALSE}else{cumulative <- TRUE}
-                  rm.strata <- FALSE
-              }else{
-                  rm.strata <- FALSE
               }
+              
+                            
+              ## ** win ratio as a special case
+              if(statistic == "winRatio"){
+                  type.weightStrata <- attr(weightStrata,"type")
+
+                  if(identical(strata,"global") && cumulative){
+                      ## avoid any operation, rely on C++ code
+                      if(resampling){
+                          if(simplify){
+                              out <- slot(object, "DeltaResampling")[,endpoint,statistic]
+                          }else{
+                              out <- matrix(slot(object, "DeltaResampling")[,endpoint,statistic],
+                                            ncol = length(endpoint), dimnames = list(NULL, endpoint))
+                          }                      
+                      }else{
+                          if(simplify){
+                              out <- slot(object, "Delta")[endpoint,statistic]
+                          }else{
+                              out <- matrix(slot(object, "Delta")[endpoint,statistic],
+                                            nrow = 1, ncol = length(endpoint), dimnames = list("global", endpoint))
+                          }
+                      }
+                      
+                  }else if(type.weightStrata != "var-winratio" || all(strata %in% level.strata)){
+                      ## from C++ code
+                      ## Delta.col(5) = arma::trans(arma::sum(wcumdelta_favorable,0)/arma::sum(wcumdelta_unfavorable,0));
+
+                      out.fav <- coef(object, statistic = "favorable",
+                                      endpoint = endpoint, strata = strata, cumulative = cumulative,
+                                      resampling = resampling, simplify = simplify)
+                      out.unfav <- coef(object, statistic = "unfavorable",
+                                        endpoint = endpoint, strata = strata, cumulative = cumulative,
+                                        resampling = resampling, simplify = simplify)
+
+                      out <- out.fav/out.unfav
+
+                  }else if(type.weightStrata == "var-winratio" && "global" %in% strata){
+                      ## from C++ code
+                      ## arma::mat winRatioStrata = cumdelta_favorable/cumdelta_unfavorable;
+                      ## Delta.col(5) = arma::trans(arma::sum(winRatioStrata.each_col() % weightPool,0));
+                      
+                      out.fav <- coef(object, statistic = "favorable",
+                                      endpoint = valid.endpoint, strata = level.strata, cumulative = cumulative,
+                                      resampling = resampling, simplify = FALSE)
+                      out.unfav <- coef(object, statistic = "unfavorable",
+                                        endpoint = valid.endpoint, strata = level.strata, cumulative = cumulative,
+                                        resampling = resampling, simplify = FALSE)
+
+                      out.ratio <- out.fav/out.unfav
+
+                      if(resampling){
+                          out <- array(NA, dim = c(n.resampling, n.strata+1, n.endpoint),
+                                       dimnames = list(NULL, c("global",level.strata), valid.endpoint))
+                          out[,level.strata,valid.endpoint] <- out.ratio
                               
-              ## ** extract information
-              if(cumulative==TRUE && stratified==FALSE){
-
-                  if(statistic %in% type.count){
-                      out <- cumsum(colSums(Mcount))
-                  }else if(resampling==FALSE){
-                      out <- stats::setNames(Delta[,statistic],
-                                             rownames(Delta))
-                  }else{
-                      out <- matrix(DeltaResampling[,,statistic],
-                                    nrow = dim(DeltaResampling)[1], ncol = dim(DeltaResampling)[2],
-                                    dimnames = dimnames(DeltaResampling)[1:2])
-                  }
-
-              }else if(cumulative==FALSE && stratified==TRUE){
-
-                  if(statistic %in% type.count){
-                      out <- Mcount
-                  }else if(resampling==FALSE){
-                      out <- matrix(delta[,,statistic],
-                                    nrow = dim(delta)[1], ncol = dim(delta)[2],
-                                    dimnames = dimnames(delta)[1:2])
-                      if(rm.strata){
-                          out <- stats::setNames(out[1,], dimnames(delta)[[2]])
-                      }
-                  }else{
-                      out <- array(deltaResampling[,,,statistic],
-                                   dim = dim(deltaResampling)[1:3],
-                                   dimnames = dimnames(deltaResampling)[1:3])
-                      if(rm.strata){
-                          out <- matrix(out[,1,],
-                                        nrow = dim(deltaResampling)[1], ncol = dim(deltaResampling)[3],
-                                        dimnames = dimnames(deltaResampling)[c(1,3)])
+                          for(iE in 1:n.endpoint){ ## iE <- 1
+                              if(n.strata == 1){
+                                  deltaResampling[,"global",iE] <- out.ratio[,1,iE]
+                              }else{
+                                  deltaResampling[,"global",iE] <- rowSums(out.ratio[,,iE]*weightStrataResampling)
+                              }
+                          }
+                          out <- out[,strata,endpoint,drop=simplify]
+                          
+                      }else{
+                          out <- rbind(global = colSums(.colMultiply_cpp(out.ratio, weightStrata)),
+                                       object.delta)[strata,endpoint,drop=simplify]
                       }
                   }
 
-              }else if(statistic %in% type.count){
+                  return(out)
+                  
+              }
 
-                  if(cumulative==FALSE && stratified==FALSE){
-                      out <- colSums(Mcount)
-                  }else if(cumulative==TRUE && stratified==TRUE){
-                      out <- matrix(.rowCumSum_cpp(Mcount),
-                                    nrow = n.strata, ncol = n.endpoint,
-                                    dimnames = list(level.strata, valid.endpoint))
+              ## ** normalize element in object (add global or stratified result)
+              if(statistic %in% type.count){
+
+                  object.statistic <- slot(object, statistic)                  
+
+                  delta <- rbind(global = colSums(object.statistic),
+                                 object.statistic)
+                  Delta <- matrix(.rowCumSum_cpp(delta),
+                                  nrow = n.strata+1, ncol = n.endpoint,
+                                  dimnames = list(c("global",level.strata), valid.endpoint))
+
+              }else if(if(statistic != "winRatio" && resampling){
+                  
+                  object.deltaResampling <- array(slot(object, "deltaResampling")[,,,statistic],
+                                                  dim = c(n.resampling, n.strata, n.endpoint),
+                                                  dimnames = list(NULL, level.strata, valid.endpoint))
+                  object.DeltaResampling <- matrix(slot(object, "DeltaResampling")[,,statistic],
+                                                   ncol = n.endpoint, dimnames = list(NULL, valid.endpoint))
+                  
+                  deltaResampling <- array(NA, dim = c(n.resampling, n.strata+1, n.endpoint),
+                                           dimnames = list(NULL, c("global",level.strata), valid.endpoint))
+                  deltaResampling[,level.strata,valid.endpoint] <- object.deltaResampling
+                  for(iE in 1:n.endpoint){ ## iE <- 1
+                      if(n.strata == 1){
+                          deltaResampling[,"global",iE] <- object.deltaResampling[,1,iE]
+                      }else{
+                          deltaResampling[,"global",iE] <- rowSums(object.deltaResampling[,,iE]*weightStrataResampling)
+                      }
+                  }
+
+                  DeltaResampling <- array(NA, dim = c(n.resampling, n.strata+1, n.endpoint),
+                                           dimnames = list(NULL, c("global",level.strata), valid.endpoint))
+                  DeltaResampling[,"global",valid.endpoint] <- object.DeltaResampling 
+                  for(iS in 1:n.strata){ ## iS <- 1
+                      if(n.endpoint == 1){
+                          DeltaResampling[,iS+1,1] <- object.deltaResampling[,iS,1]*weightEndpoint
+                      }else{
+                          DeltaResampling[,iS+1,] <- .rowCumSum_cpp(.rowMultiply_cpp(object.deltaResampling[,iS,], weightEndpoint))
+                      }
                   }
 
               }else if(statistic != "winRatio"){
-                  if(resampling==FALSE){
-                      M.stat <- matrix(delta[,,statistic],
-                                       nrow = dim(delta)[1], ncol = dim(delta)[2],
-                                       dimnames = dimnames(delta)[1:2])
 
-                      if(cumulative==FALSE && stratified==FALSE){
+                  object.delta <- matrix(slot(object, "delta")[,,statistic], 
+                                         nrow = n.strata, ncol = n.endpoint, dimnames = list(level.strata, valid.endpoint))
+                  object.Delta <- matrix(slot(object, "Delta")[,statistic],
+                                         nrow = 1, ncol = n.endpoint, dimnames = list("global", valid.endpoint))                  
 
-                          out <- stats::setNames(colSums(.colMultiply_cpp(M.stat, object@weightStrata)),
-                                                 colnames(delta))
-                   
-                      }else if(cumulative==TRUE && stratified==TRUE){
-                          
-                          out <- matrix(.rowCumSum_cpp(.rowMultiply_cpp(M.stat, weightEndpoint)),
-                                        nrow = dim(delta)[1], ncol = dim(delta)[2],
-                                        dimnames = dimnames(delta)[1:2])
-                          
-                      }
+                  delta <- rbind(global = colSums(.colMultiply_cpp(object.delta, weightStrata)),
+                                 object.delta)
+                  Delta <- rbind(object.Delta,
+                                 .rowCumSum_cpp(.rowMultiply_cpp(object.delta, weightEndpoint)))
 
-                  }else{
-                      M.stat <- array(deltaResampling[,,,statistic],
-                                      dim = dim(deltaResampling)[1:3],
-                                      dimnames = dimnames(deltaResampling)[1:3])
-
-                      if(cumulative==FALSE && stratified==FALSE){
-
-                          out <- matrix(apply(M.stat, MARGIN = 3, FUN = function(iM){rowSums(iM*weightStrataResampling)}),
-                                        nrow = dim(deltaResampling)[1], ncol = dim(deltaResampling)[3],
-                                        dimnames = dimnames(deltaResampling)[c(1,3)])                          
-
-                      }else if(cumulative==TRUE && stratified==TRUE){
-
-                          ls.out <- apply(M.stat, MARGIN = 2, FUN = function(iM){.rowCumSum_cpp(.rowMultiply_cpp(iM, weightEndpoint))}, simplify = FALSE)
-                          out <- aperm(array(unlist(ls.out),
-                                             dim = dim(deltaResampling)[c(1,3,2)],
-                                             dimnames = dimnames(deltaResampling)[c(1,3,2)]),
-                                       perm = c(1,3,2))                         
-
-                      }
-                  }                      
-              }else{
-
-                  if(attr(object@weightStrata,"type")=="var-winratio" && cumulative == FALSE && stratified == FALSE){
-                      A.fav <- coef(object, cumulative = cumulative, stratified = TRUE, resampling = resampling, statistic = "favorable")
-                      A.unfav <- coef(object, cumulative = cumulative, stratified = TRUE, resampling = resampling, statistic = "unfavorable")
-                      A.win <- A.fav/A.unfav
-                      if(resampling){
-                          out <- matrix(apply(A.win, MARGIN = 3, FUN = function(iM){rowSums(iM*weightStrataResampling)}),
-                                        nrow = dim(deltaResampling)[1], ncol = dim(deltaResampling)[3],
-                                        dimnames = dimnames(deltaResampling)[c(1,3)])                          
-                      }else{
-                          out <- stats::setNames(colSums(.colMultiply_cpp(A.win, object@weightStrata)),
-                                                 colnames(A.win))
-                      }
-                  }else{
-                      M.fav <- coef(object, cumulative = cumulative, stratified = stratified, resampling = resampling, statistic = "favorable")
-                      M.unfav <- coef(object, cumulative = cumulative, stratified = stratified, resampling = resampling, statistic = "unfavorable")
-                      out <- M.fav/M.unfav
-                  }
               }
+              
+              ## ** extract information
+              if(resampling == FALSE){
+
+                  if(cumulative==TRUE){
+                      out <- Delta[strata,endpoint,drop=simplify]
+                  }else if(cumulative == FALSE){
+                      out <- delta[strata,endpoint,drop=simplify]
+                  }
+                  
+              }else if(resampling){
+
+                  if(cumulative==TRUE){
+                      out <- DeltaResampling[,strata,endpoint,drop=simplify]
+                  }else if(cumulative == FALSE){
+                      out <- deltaResampling[,strata,endpoint,drop=simplify]
+                  }
+              }              
 
               ## ** export
-              if(!is.null(endpoint)){
-                  if((!stratified || rm.strata) && !resampling){
-                      out <- out[endpoint]
-                  }else if((stratified && !resampling) || (!stratified && resampling)){
-                      out <- out[,endpoint,drop=FALSE]                      
-                  }else{
-                      out <- out[,,endpoint,drop=FALSE]
-                  }
-              }
               return(out)
 
           })

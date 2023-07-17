@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Jul  3 2023 (12:05) 
+## Last-Updated: jul  4 2023 (18:43) 
 ##           By: Brice Ozenne
-##     Update #: 1254
+##     Update #: 1256
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,7 +34,8 @@
 #' The vector should be named with the names of the statistics.
 #' @param cpus [integer, >0] the number of CPU to use. Default value is 1.
 #' @param export.cpus [character vector] name of the variables to export to each cluster.
-#' @param seed [integer, >0] the seed to consider for the simulation study. If \code{NULL} no seed is set.
+#' @param seed [integer, >0] Random number generator (RNG) state used when starting the simulation study.
+#' If \code{NULL} no state is set.
 #' @param alternative [character] the type of alternative hypothesis: \code{"two.sided"}, \code{"greater"}, or \code{"less"}.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric, 0-1] type 1 error level.
@@ -323,7 +324,7 @@ powerBuyseTest <- function(sim,
                                                 return(iOut)
                                             })
                                 )
-        }else{
+        }else if(cpus > 1){
             ## define progress bar
             if(trace>0){
                 pb <- utils::txtProgressBar(max = n.rep[2], style = 3)          
