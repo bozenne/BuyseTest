@@ -40,7 +40,8 @@ The vector should be named with the names of the statistics.}
 
 \item{export.cpus}{[character vector] name of the variables to export to each cluster.}
 
-\item{seed}{[integer, >0] the seed to consider for the simulation study. If \code{NULL} no seed is set.}
+\item{seed}{[integer, >0] Random number generator (RNG) state used when starting the simulation study.
+If \code{NULL} no state is set.}
 
 \item{conf.level}{[numeric, 0-1] type 1 error level.
 Default value read from \code{BuyseTest.options()}.}

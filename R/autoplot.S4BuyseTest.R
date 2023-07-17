@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jun 29 2023 (09:27) 
 ## Version: 
-## Last-Updated: Jun 29 2023 (10:28) 
+## Last-Updated: jul 17 2023 (18:04) 
 ##           By: Brice Ozenne
-##     Update #: 23
+##     Update #: 24
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -49,18 +49,35 @@ autoplot.S4BuyseTest <- function(object, type = "hist", strata = "global", endpo
               type <- match.arg(type, c("hist","pie","racetrack"))
 
               ## strata
-              if(!is.null(strata)){
-                  if(is.numeric(strata)){
-                      if(any(strata %in% 1:length(Ustrata)==FALSE)){
-                          stop("Incorrect argument \'strata\': when numeric should be an integer vector with values between 1 and ",length(Ustrata),".\n", sep ="")
-                      }
-                      strata <- Ustrata[strata]
+              level.strata <- object@level.strata
+              if(is.null(strata)){
+                  if(length(level.strata)==1){
+                      strata <- "global"                      
                   }else{
-                      strata <- match.arg(strata, c("global",Ustrata), several.ok = TRUE)
-                  }                  
+                      strata <- c("global", level.strata)
+                  }
+              }else if(identical(strata,FALSE)){
+                  strata <- "global"
+              }else if(identical(strata,TRUE)){
+                  strata <- level.strata
+              }else if(is.numeric(strata)){
+                  validInteger(strata,
+                               name1 = "strata",
+                               valid.length = NULL,
+                               min = 1,
+                               max = length(level.strata),
+                               refuse.NULL = TRUE,
+                               refuse.duplicated = TRUE,
+                               method = "autoplot[S4BuyseTest]")
               }else{
-                  strata <- unique(objectS$strata)
+                  validCharacter(strata,
+                                 name1 = "strata",
+                                 valid.length = NULL,
+                                 valid.values = c("global",level.strata),
+                                 refuse.NULL = FALSE,
+                                 method = "autoplot[S4BuyseTest]")
               }
+              
 
               ## endpoint
               if(!is.null(endpoint)){

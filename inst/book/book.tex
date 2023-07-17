@@ -1,4 +1,4 @@
-% Created 2023-07-04 ti 14:43
+% Created 2023-07-17 ma 17:53
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -136,9 +136,9 @@ BuyseTest version 3.0.0
 \end{verbatim}
 
 \section{Section 2.1 Introduction}
-\label{sec:org2bb34d3}
+\label{sec:orgf9756ef}
 \subsection{subsection 2.1.2 Generating in-silico data}
-\label{sec:orge08694b}
+\label{sec:org900aea0}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 set.seed(10) ## initialize the pseudo-random number generator 
@@ -195,30 +195,18 @@ dt.data
 \end{lstlisting}
 
 \begin{verbatim}
-      id treatment           OS statusOS        PFS statusPFS toxicity
-  1:   1         C  0.628786006        0  0.6946706         1        3
-  2:   2         C  0.003647332        1  1.7228221         1        3
-  3:   3         C  5.501584752        1  0.9092541         1        3
-  4:   4         C  0.286446665        1  5.8723232         1        1
-  5:   5         C 17.221063409        1  1.0965019         0        5
- ---                                                                  
-396: 396         T 18.771937367        1  1.4219555         0        4
-397: 397         T  2.914445864        1 49.5964070         1        3
-398: 398         T  1.105391425        1 16.1741055         1        2
-399: 399         T  1.318957979        0 10.1102146         1        4
-400: 400         T  3.338426913        1 10.9857381         1        3
-     gender
-  1:      F
-  2:      F
-  3:      M
-  4:      M
-  5:      M
- ---       
-396:      F
-397:      M
-398:      M
-399:      F
-400:      M
+      id treatment           OS statusOS        PFS statusPFS toxicity gender
+  1:   1         C  0.628786006        0  0.6946706         1        3      F
+  2:   2         C  0.003647332        1  1.7228221         1        3      F
+  3:   3         C  5.501584752        1  0.9092541         1        3      M
+  4:   4         C  0.286446665        1  5.8723232         1        1      M
+  5:   5         C 17.221063409        1  1.0965019         0        5      M
+ ---                                                                         
+396: 396         T 18.771937367        1  1.4219555         0        4      F
+397: 397         T  2.914445864        1 49.5964070         1        3      M
+398: 398         T  1.105391425        1 16.1741055         1        2      M
+399: 399         T  1.318957979        0 10.1102146         1        4      F
+400: 400         T  3.338426913        1 10.9857381         1        3      M
 \end{verbatim}
 
 
@@ -303,7 +291,7 @@ null device
           1
 \end{verbatim}
 \section{section 2.2 GPC with a single endpoint}
-\label{sec:org1aeee16}
+\label{sec:org62d09d2}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -332,7 +320,7 @@ plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
 \end{lstlisting}
 
 \subsection{subsection 2.2.1 Relation to the Wilcoxon-Mann-Whitney test}
-\label{sec:orgdfe5895}
+\label{sec:org274bb9b}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -408,7 +396,7 @@ CI [2.5% ; 97.5%] p.value
 
 
 \subsection{subsection 2.2.2 Adjustment for ties}
-\label{sec:org1180696}
+\label{sec:orga6f9824}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -500,7 +488,7 @@ Null hypothesis: b = 0
 \end{verbatim}
 
 \subsection{subsection 2.2.3 Threshold of clinical relevance}
-\label{sec:orgae49a35}
+\label{sec:org7959203}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -562,7 +550,7 @@ model.tables(eTox.BT, columns = "threshold")
 \end{verbatim}
 
 \subsection{subsection 2.2.4 Accounting for baseline covariates}
-\label{sec:org3540166}
+\label{sec:org4813f22}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -674,7 +662,7 @@ treatmentT
 \end{verbatim}
 
 \subsection{subsection 2.2.5 Handling right-censoring when assessing efficacy}
-\label{sec:org6c35ca6}
+\label{sec:org2174ff5}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -797,10 +785,10 @@ getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
 \end{verbatim}
 
 \section{section 2.3 Benefit risk analysis using GPC}
-\label{sec:orgcfc100a}
+\label{sec:org082a6e7}
 
 \subsection{subsection 2.3.1 Hierarchical \& non-hierarchical analyses}
-\label{sec:org9dc378e}
+\label{sec:org8921477}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 eBRB.BT <- BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num),
@@ -890,7 +878,7 @@ non-prioritized   0.0368 0.02808930 -0.01825401 0.09185401    0 0.1901594
 \end{verbatim}
 
 \subsection{subsection 2.3.2 Threshold of clinical relevance}
-\label{sec:org8584531}
+\label{sec:orgd7e3df2}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 eSH.BT <- BuyseTest(treatment ~ tte(OS, statusOS, threshold = 28)
@@ -943,7 +931,7 @@ windows
 \end{verbatim}
 
 \subsection{subsection 2.3.3 Encoding of the outcome}
-\label{sec:org71085fe}
+\label{sec:org0dc0b46}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 dt.data$OS2 <- dt.data$OS
@@ -1027,7 +1015,7 @@ print(eR2.BT, percentage = FALSE)
 \end{verbatim}
 
 \subsection{subsection 2.3.4 Sensitivity analysis}
-\label{sec:orge51effc}
+\label{sec:org87dbfff}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1137,9 +1125,9 @@ threshold -0.010365320  0.2518908  0.07288010
 \end{verbatim}
 
 \section{section 2.4 Power calculation for GPC analyses}
-\label{sec:org7aec7d6}
+\label{sec:org1c89f4d}
 \subsection{subsection 2.4.1 Data generating mechanism}
-\label{sec:org2441b44}
+\label{sec:org13b9b65}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 simFCT <- function(n.C, n.T){
@@ -1185,7 +1173,7 @@ simFCT2(2,2)
 \end{verbatim}
 
 \subsection{subsection 2.4.2 Simulation-based power and sample size estimation}
-\label{sec:org01f8a67}
+\label{sec:orgd05c6d9}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}

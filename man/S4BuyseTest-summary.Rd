@@ -35,7 +35,8 @@ Default value read from \code{BuyseTest.options()}.}
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{strata}{[character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.}
+\item{strata}{[logical] should the strata-specific results be displayed or the results pooled across strata?
+Can also be \code{NULL} to display both.}
 
 \item{type.display}{[numeric or character] the results/summary statistics to be displayed.
 Either an integer indicating refering to a type of display in \code{BuyseTest.options()}

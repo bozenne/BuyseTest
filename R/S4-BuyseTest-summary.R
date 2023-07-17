@@ -18,9 +18,8 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param strata [character vector] the strata relative to which the results should be output.
-#' Can also be \code{"global"} or \code{FALSE} to ouput the global results (i.e. pooled over all strata),
-#' or \code{TRUE} to output each strata-specific result.
+#' @param strata [logical] should the strata-specific results be displayed or the results pooled across strata?
+#' Can also be \code{NULL} to display both.
 #' @param type.display [numeric or character] the results/summary statistics to be displayed.
 #' Either an integer indicating refering to a type of display in \code{BuyseTest.options()}
 #' or the name of the column to be output (e.g. \code{c("strata","Delta","p.value")}).

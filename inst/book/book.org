@@ -12,8 +12,6 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 #+END_SRC
 
 #+RESULTS:
-: Indlæser krævet pakke: Rcpp
-: BuyseTest version 3.0.0
 
 ** Section 2.1 Introduction
 *** subsection 2.1.2 Generating in-silico data
@@ -551,7 +549,6 @@ model.tables(eTox.BTG, percentage = FALSE)
 : 1 -0.07308342 -0.07308342 -0.1823085 0.03792338 0.1967195
 : 2 -0.08973601          NA         NA         NA        NA
 : 3 -0.05609106          NA         NA         NA        NA
-: [1] -0.08973601
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 getPairScore(eTox.BTG)
@@ -575,7 +572,7 @@ getPairScore(eTox.BTG)
 
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(eTox.BTG, stratified = TRUE)
+confint(eTox.BTG, strata = TRUE)
 #+END_SRC
 
 #+RESULTS:
@@ -608,13 +605,12 @@ Null hypothesis: b = 0
 
 #+BEGIN_SRC R :exports none :results output :session *R* :cache no
 eTox.BTG2 <- BuyseTest(ffG, data=dt.data, add.halfNeutral = TRUE, trace = FALSE)
-coef(eTox.BTG2, statistic = "unfavorable", stratified = TRUE)
+coef(eTox.BTG2, statistic = "unfavorable", strata = TRUE)
 #+END_SRC
 
 #+RESULTS:
-:   toxicity.num
-: M    0.5448680
-: F    0.5280455
+:         M         F 
+: 0.5448680 0.5280455
 
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -746,9 +742,9 @@ getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
     id treatment       OS statusOS      PFS statusPFS toxicity gender
 1:  44         C 33.86813        1 5.935977         1        6      F
 2: 211         T 34.53610        1 6.308944         1        5      M
-   toxicity.num
-1:            6
-2:            5
+   toxicity.num treatment2
+1:            6          C
+2:            5          T
    index.C index.T favorable unfavorable neutral uninf weight
 1:      44     211         0           0       1     0      1
    index.C index.T favorable unfavorable neutral uninf weight
@@ -827,7 +823,7 @@ dev.off()
 :       2
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-rbind("prioritized" = confint(eH.BT, transform = FALSE, endpoint = 1),
+rbind("prioritized" = confint(eRBB.BT, transform = FALSE, endpoint = 1),
       "non-prioritized" = confint(eNH.BT, transform = FALSE, endpoint = 1))
 
 #+END_SRC

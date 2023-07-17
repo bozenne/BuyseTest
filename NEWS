@@ -6,11 +6,15 @@
 - NEW FEATURE: plot method for S4BuyseTest object
 - bounds for the confidence intervals have been renamed: CIinf.Delta
   -> lower.ci and CIsup.Delta -> upper.ci
+- stratified argument has been renamed strata.
 - the effect of the seed argument in BuyseTest and powerBuyseTest has
   been changed. Instead of setting the seed at the start of the
   function, now the seed is used to generate sample or simulation
   specific seeds. Results are now identical whether one or more CPUs
   are used, and reproducible when multiple CPUs are used.
+
+** Internal change
+- more uniform effect of the strata argument
 
 * Version 2.4.1
 ** User visible changes

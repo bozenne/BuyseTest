@@ -84,8 +84,8 @@ See Details, section "Handling missing values".}
 
 \item{keep.pairScore}{[logical] should the result of each pairwise comparison be kept?}
 
-\item{seed}{[integer, >0] the seed to consider when performing resampling.
-If \code{NULL} no seed is set.}
+\item{seed}{[integer, >0] Random number generator (RNG) state used when starting resampling.
+If \code{NULL} no state is set.}
 
 \item{cpus}{[integer, >0] the number of CPU to use.
 Only the permutation test can use parallel computation.

@@ -31,7 +31,8 @@ Default value read from \code{BuyseTest.options()}.}
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{strata}{[character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.}
+\item{strata}{[logical] should the strata-specific results be displayed or the results pooled across strata?
+Can also be \code{NULL} to display both.}
 
 \item{columns}{[character vector] subset of columns to be output (e.g. \code{"endpoint"}, \code{"favorable"}, ...).
 Can also be \code{"summary"} or \code{"print"} to only select columns displayed in the summary or print. \code{NULL} will select all columns.}

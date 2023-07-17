@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Mar 20 2023 (12:17) 
 ## Version: 
-## Last-Updated: Mar 20 2023 (12:29) 
+## Last-Updated: jul 17 2023 (14:24) 
 ##           By: Brice Ozenne
-##     Update #: 4
+##     Update #: 6
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,7 +35,7 @@ test_that("same weight for all",{
                        method.inference = "u-statistic")
 
     expect_equal(unlist(confint(e.wBT)), unlist(confint(e.BT2)), tol = 1e-6)
-    expect_equal(unlist(confint(e.wBT, stratified = TRUE)), unlist(confint(e.BT2, stratified = TRUE)), tol = 1e-6)
+    expect_equal(unlist(confint(e.wBT, strata = TRUE)), unlist(confint(e.BT2, strata = TRUE)), tol = 1e-6)
 
     ## note when using time to event endpoint, there might not be equality 
     ## because the weights are only used for the GPC, not when fitting the survival model
@@ -56,7 +56,7 @@ test_that("individual specific weight",{
                        method.inference = "u-statistic")
 
     expect_equal(unlist(confint(e.wBT)), unlist(confint(e.BT2)), tol = 1e-6)
-    expect_equal(unlist(confint(e.wBT, stratified = TRUE)), unlist(confint(e.BT2, stratified = TRUE)), tol = 1e-6)
+    expect_equal(unlist(confint(e.wBT, strata = TRUE)), unlist(confint(e.BT2, strata = TRUE)), tol = 1e-6)
 
     ## note when using time to event endpoint, there might not be equality 
     ## because the weights are only used for the GPC, not when fitting the survival model

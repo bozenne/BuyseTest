@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: jul  3 2023 (15:54) 
+## Last-Updated: jul 17 2023 (16:34) 
 ##           By: Brice Ozenne
-##     Update #: 50
+##     Update #: 62
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -85,26 +85,26 @@ test_that("no strata (check coef)",{
                      as.double(GS.coef[iStat]), tol = 1e-5)        
         if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
             expect_equal(coef(e.BT, statistic = iStat),
-                         coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
+                         coef(e.BT, statistic = iStat, strata = FALSE, cumulative = TRUE), tol = 1e-5)
             expect_equal(as.double(coef(e.BT, statistic = iStat)),
-                         as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE)), tol = 1e-5)
+                         as.double(coef(e.BT, statistic = iStat, strata = TRUE, cumulative = TRUE)), tol = 1e-5)
         }
         expect_equal(coef(e.BT, statistic = iStat),
-                     coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE), tol = 1e-5)
+                     coef(e.BT, statistic = iStat, strata = FALSE, cumulative = FALSE), tol = 1e-5)
         expect_equal(as.double(coef(e.BT, statistic = iStat)),
-                     as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE)), tol = 1e-5)
+                     as.double(coef(e.BT, statistic = iStat, strata = TRUE, cumulative = FALSE)), tol = 1e-5)
 
         if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
             if(iStat %in% c("neutral","uninf") == FALSE){
                 expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
-                             coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+                             coef(e.BT, statistic = iStat, strata = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
                 expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
-                             as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)), tol = 1e-5)
+                             as.double(coef(e.BT, statistic = iStat, strata = TRUE, cumulative = TRUE, resampling = TRUE)), tol = 1e-5)
             }
             expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
-                         coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE), tol = 1e-5)
+                         coef(e.BT, statistic = iStat, strata = FALSE, cumulative = FALSE, resampling = TRUE), tol = 1e-5)
             expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
-                         as.double(coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)), tol = 1e-5)
+                         as.double(coef(e.BT, statistic = iStat, strata = TRUE, cumulative = FALSE, resampling = TRUE)), tol = 1e-5)
         }
     }
 
@@ -123,37 +123,37 @@ test_that("no strata (check coef)",{
                      as.double(GS.coef[iStat]), tol = 1e-5)
         if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
             expect_equal(coef(e.BT2, statistic = iStat),
-                         coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
+                         coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = TRUE), tol = 1e-5)
             expect_equal(as.double(coef(e.BT2, statistic = iStat)),
-                         as.double(coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE)), tol = 1e-5)
+                         as.double(coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = TRUE)), tol = 1e-5)
         }
 
-        test1 <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE)
-        test2 <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE)
+        test1 <- coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = FALSE)
+        test2 <- coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = FALSE)
         if(iStat %in% c("count.neutral","neutral","count.uninf","uninf")){
             expect_equal(coef(e.BT2, statistic = iStat), test1, tol = 1e-5)
             expect_equal(unname(coef(e.BT2, statistic = iStat)), as.double(test2), tol = 1e-5)
         }else if(iStat != "winRatio"){
             expect_equal(coef(e.BT2, statistic = iStat), cumsum(test1), tol = 1e-5)
-            expect_equal(unname(coef(e.BT2, statistic = iStat)), cumsum(test2), tol = 1e-5)
+            expect_equal(coef(e.BT2, statistic = iStat), cumsum(test2), tol = 1e-5)
         }
 
         if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
             if(iStat %in% c("neutral","uninf") == FALSE){
                 expect_equal(coef(e.BT2, statistic = iStat, resampling = TRUE),
-                             coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+                             coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
                 expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)),
-                             as.double(coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)), tol = 1e-5)
+                             as.double(coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = TRUE, resampling = TRUE)), tol = 1e-5)
             }
 
-            test1 <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE)
-            test2 <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)
+            test1 <- coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = FALSE, resampling = TRUE)
+            test2 <- coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = FALSE, resampling = TRUE)
             if(iStat %in% c("neutral","uninf")){
                 expect_equal(coef(e.BT2, statistic = iStat, resampling = TRUE), test1, tol = 1e-5)
                 expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)), as.double(test2), tol = 1e-5)
             }else if(iStat != "winRatio"){        
                 expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), .rowCumSum_cpp(test1), tol = 1e-5)
-                expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), unname(cbind(test2[,,"Y_1"], test2[,,"Y_1"]+test2[,,"Y_2"])), tol = 1e-5)
+                expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), unname(cbind(test2[,"Y_1"], test2[,"Y_1"]+test2[,"Y_2"])), tol = 1e-5)
             }
         }
     }
@@ -192,36 +192,40 @@ test_that("strata (historical weight)",{
     expect_equal(unname(test["WR"]), sum(count.favorable)/sum(count.unfavorable))
 
     ## *** iid
-    iid.via.ls <- do.call(rbind,lapply(1:length(ls.eBT), function(iStrata){e.BT@weightStrata[iStrata]*getIid(ls.eBT[[iStrata]], statistic = c("favorable","unfavorable","netBenefit"))}))
-    iid.direct <- getIid(e.BT, statistic = c("netBenefit","winRatio"))
-    Delta.direct <- c(coef(e.BT, statistic = "favorable"), coef(e.BT, statistic = "unfavorable"))
+    iid.via.ls <- do.call(cbind,lapply(c("favorable","unfavorable","netBenefit"), function(iStat){do.call(c,lapply(ls.eBT, getIid, statistic = iStat))}))
+    colnames(iid.via.ls) <- c("favorable","unfavorable","netBenefit")
+    iid.direct <- cbind(netBenefit = rowSums(getIid(e.BT, strata = TRUE, statistic = "netBenefit")),
+                        winRatio = rowSums(getIid(e.BT, strata = TRUE, statistic = "winRatio")))
+    Delta.direct <- cbind(favorable = coef(e.BT, strata = TRUE, statistic = "favorable"),
+                          unfavorable = coef(e.BT, strata = TRUE, statistic = "unfavorable"))[dt.strata$stratum,]
     
     expect_equal(as.double(iid.direct[,"netBenefit"]),
                  as.double(iid.via.ls[,"netBenefit"]),
                  tol = 1e-7)
 
     expect_equal(as.double(iid.direct[,"winRatio"]),
-                 as.double(iid.via.ls[,"favorable"]/Delta.direct[2] - iid.via.ls[,"unfavorable"]*Delta.direct[1]/Delta.direct[2]^2),
+                 as.double(iid.via.ls[,"favorable"]/Delta.direct[,2] - iid.via.ls[,"unfavorable"]*Delta.direct[,1]/Delta.direct[,2]^2),
                  tol = 1e-7)
 
-    expect_equal(colSums(iid.direct^2),
-                 e.BT@covariance[,c("netBenefit","winRatio")],
+    expect_equal(c(sum(getIid(e.BT, statistic = "netBenefit")^2), sum(getIid(e.BT, statistic = "winRatio")^2)),
+                 unname(e.BT@covariance[,c("netBenefit","winRatio")]),
                  tol = 1e-7)
 
     ## *** stratified iid
-    iid.via.ls <- lapply(ls.eBT, getIid, statistic = c("netBenefit","winRatio"))
-    iid.directNB <- getIid(e.BT, statistic = "netBenefit", stratified = TRUE)
-    iid.directWR <- getIid(e.BT, statistic = "winRatio", stratified = TRUE)
+    iid.directNB <- getIid(e.BT, strata = TRUE, statistic = "netBenefit")
+    iid.directWR <- getIid(e.BT, strata = TRUE, statistic = "winRatio")
 
-    for(iStrata in 1:3){
-        expect_equal(unname(iid.via.ls[[iStrata]]),
-                     unname(cbind(iid.directNB[iid.directNB[,iStrata]!=0,iStrata],
-                                  iid.directWR[iid.directWR[,iStrata]!=0,iStrata])),
+    for(iStrata in 1:3){ ## iStrata <- 1
+        expect_equal(unname(getIid(ls.eBT[[iStrata]], statistic = "netBenefit")),
+                     unname(iid.directNB[dt.strata$stratum==iStrata,iStrata]),
+                     tol = 1e-7)
+        expect_equal(unname(getIid(ls.eBT[[iStrata]], statistic = "winRatio")),
+                     unname(iid.directWR[dt.strata$stratum==iStrata,iStrata]),
                      tol = 1e-7)
     }
   
     ## *** confint
-    test <- confint(e.BT, stratified = TRUE)
+    test <- confint(e.BT, strata = TRUE)
     GS <- do.call(rbind,lapply(ls.eBT,confint))
 
     expect_equal(as.double(unlist(test)), as.double(unlist(GS)), tol = 1e-6)
@@ -242,8 +246,8 @@ test_that("strata (check coef)",{
                    as.double(GS.coef[iStat]), tol = 1e-5)        
       if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
           expect_equal(coef(e.BT, statistic = iStat),
-                       coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
-          test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE)
+                       coef(e.BT, statistic = iStat, strata = FALSE, cumulative = TRUE), tol = 1e-5)
+          test <- coef(e.BT, statistic = iStat, strata = TRUE, cumulative = TRUE)
           if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf")){
               expect_equal(as.double(coef(e.BT, statistic = iStat)), as.double(sum(test)), tol = 1e-5)
           }else if(iStat != "winRatio"){
@@ -251,8 +255,8 @@ test_that("strata (check coef)",{
           }
       }
       expect_equal(coef(e.BT, statistic = iStat),
-                   coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE), tol = 1e-5)
-      test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE)
+                   coef(e.BT, statistic = iStat, strata = FALSE, cumulative = FALSE), tol = 1e-5)
+      test <- coef(e.BT, statistic = iStat, strata = TRUE, cumulative = FALSE)
       if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf")){
           expect_equal(as.double(coef(e.BT, statistic = iStat)), as.double(sum(test)), tol = 1e-5)
       }else if(iStat != "winRatio"){
@@ -262,19 +266,19 @@ test_that("strata (check coef)",{
       if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
           if(iStat %in% c("neutral","uninf") == FALSE){
               expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
-                           coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
-              test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)
+                           coef(e.BT, statistic = iStat, strata = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+              test <- coef(e.BT, statistic = iStat, strata = TRUE, cumulative = TRUE, resampling = TRUE)
               if(iStat != "winRatio"){
                   expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
-                               as.double(rowSums(test[,,1] * e.BT@weightStrataResampling)), tol = 1e-5)
+                               as.double(rowSums(test * e.BT@weightStrataResampling)), tol = 1e-5)
               }
           }
           expect_equal(coef(e.BT, statistic = iStat, resampling = TRUE),
-                       coef(e.BT, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE), tol = 1e-5)
-          test <- coef(e.BT, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)
+                       coef(e.BT, statistic = iStat, strata = FALSE, cumulative = FALSE, resampling = TRUE), tol = 1e-5)
+          test <- coef(e.BT, statistic = iStat, strata = TRUE, cumulative = FALSE, resampling = TRUE)
           if(iStat != "winRatio"){
               expect_equal(as.double(coef(e.BT, statistic = iStat, resampling = TRUE)),
-                           as.double(rowSums(test[,,1] * e.BT@weightStrataResampling)), tol = 1e-5)
+                           as.double(rowSums(test * e.BT@weightStrataResampling)), tol = 1e-5)
           }
       }
   }
@@ -286,8 +290,8 @@ test_that("strata (check coef)",{
   for(iStat in all.stat){ ## iStat <- "favorable"
       if(iStat %in% c("count.neutral","neutral","count.uninf","uninf") == FALSE){
           expect_equal(coef(e.BT2, statistic = iStat),
-                       coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE), tol = 1e-5)
-          test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE)
+                       coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = TRUE), tol = 1e-5)
+          test <- coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = TRUE)
           if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf")){
               expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(test)), tol = 1e-5)
           }else if(iStat != "winRatio"){
@@ -295,13 +299,13 @@ test_that("strata (check coef)",{
           }
       }
 
-      test <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE)
+      test <- coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = FALSE)
       if(iStat %in% c("count.neutral","neutral","count.uninf","uninf")){
           expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(test), tol = 1e-5)
       }else if(iStat != "winRatio"){
           expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(cumsum(test)), tol = 1e-5)
       }
-      test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE)
+      test <- coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = FALSE)
       if(iStat %in% c("count.neutral","count.uninf")){
           expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(test)), tol = 1e-5)
       }else if(iStat %in% c("count.favorable","count.unfavorable")){
@@ -315,14 +319,14 @@ test_that("strata (check coef)",{
       if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
           if(iStat %in% c("neutral","uninf") == FALSE){
               expect_equal(coef(e.BT2, statistic = iStat, resampling = TRUE),
-                           coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
-              test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = TRUE, resampling = TRUE)
+                           coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = TRUE, resampling = TRUE), tol = 1e-5)
+              test <- coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = TRUE, resampling = TRUE)
               if(iStat != "winRatio"){
                   expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)),
                                c(as.double(rowSums(test[,,1] * e.BT2@weightStrataResampling)), as.double(rowSums(test[,,2] * e.BT2@weightStrataResampling))), tol = 1e-5)
               }
           }
-          test <- coef(e.BT2, statistic = iStat, stratified = FALSE, cumulative = FALSE, resampling = TRUE)
+          test <- coef(e.BT2, statistic = iStat, strata = FALSE, cumulative = FALSE, resampling = TRUE)
           if(iStat %in% c("neutral","uninf")){
               expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)),
                            unname(test), tol = 1e-5)
@@ -330,7 +334,7 @@ test_that("strata (check coef)",{
               expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)),
                            unname(.rowCumSum_cpp(test)), tol = 1e-5)
           }
-          test <- coef(e.BT2, statistic = iStat, stratified = TRUE, cumulative = FALSE, resampling = TRUE)
+          test <- coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = FALSE, resampling = TRUE)
           if(iStat %in% c("neutral","uninf")){
               expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)),
                            c(as.double(rowSums(test[,,1] * e.BT2@weightStrataResampling)), as.double(rowSums((test[,,2]) * e.BT2@weightStrataResampling))), tol = 1e-5)
@@ -359,8 +363,8 @@ test_that("strata (CMH weights)",{
     ls.eBT <- by(dt.strata, INDICES = dt.strata$stratum, FUN = function(iData){
         BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE)
     })
-    ecount.favorable <- coef(e.BT, statistic = "count.favorable", stratified = TRUE)[,1]
-    ecount.unfavorable <- coef(e.BT, statistic = "count.unfavorable", stratified = TRUE)[,1]
+    ecount.favorable <- coef(e.BT, statistic = "count.favorable", strata = TRUE, simplify = FALSE)[,1]
+    ecount.unfavorable <- coef(e.BT, statistic = "count.unfavorable", strata = TRUE, simplify = FALSE)[,1]
     ecount.strata <- table(dt.strata$stratum)
     ecount.pairs <- e.BT@n.pairs
     weight <- ecount.pairs/ecount.strata
@@ -398,8 +402,8 @@ test_that("strata (variance weights)",{
     ls.eBT <- by(dt.strata, INDICES = dt.strata$stratum, FUN = function(iData){
         BuyseTest(treatment ~ bin(Y_1), data = iData, trace = FALSE, method.inference = "u-statistic")
     })
-    ecount.favorable <- sapply(ls.eBT, function(iBT){coef(iBT, statistic = "count.favorable", stratified = TRUE)[,1]})
-    ecount.unfavorable <- sapply(ls.eBT, function(iBT){coef(iBT, statistic = "count.unfavorable", stratified = TRUE)[,1]})
+    ecount.favorable <- sapply(ls.eBT, function(iBT){coef(iBT, statistic = "count.favorable", strata = TRUE, simplify = FALSE)[,1]})
+    ecount.unfavorable <- sapply(ls.eBT, function(iBT){coef(iBT, statistic = "count.unfavorable", strata = TRUE, simplify = FALSE)[,1]})
     ecount.strata <- table(dt.strata$stratum)
     ecount.pairs <- sapply(ls.eBT, function(iBT){iBT@n.pairs})
 
@@ -415,8 +419,8 @@ test_that("strata (variance weights)",{
 
     expect_equal(test.optimal, GS.optimal, tol = 1e-5)
 
-    expect_equal(coef(e.BTopt4, cumulative = FALSE, stratified = FALSE, statistic = "winRatio"),
-                 coef(e.BTopt4, cumulative = TRUE, stratified = FALSE, statistic = "winRatio"),
+    expect_equal(coef(e.BTopt4, cumulative = FALSE, strata = FALSE, statistic = "winRatio"),
+                 coef(e.BTopt4, cumulative = TRUE, strata = FALSE, statistic = "winRatio"),
                  tol = 1e-6)
 
     ##

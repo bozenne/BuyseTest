@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: jun 27 2023 (10:04) 
+## Last-Updated: jul 17 2023 (14:27) 
 ##           By: Brice Ozenne
-##     Update #: 467
+##     Update #: 468
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -232,7 +232,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     ## ** Fold-specific AUC
     if(!is.null(fold)){
         if(order.Hprojection==1){
-            ePOINT.BT <- coef(e.BT, statistic = "favorable", stratified = TRUE)[,1]
+            ePOINT.BT <- coef(e.BT, statistic = "favorable", strata = TRUE)[,1]
 
             normWithinStrata <- FALSE
             attr(normWithinStrata, "skipScaleCenter") <- TRUE

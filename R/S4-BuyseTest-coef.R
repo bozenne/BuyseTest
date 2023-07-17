@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Jul 17 2023 (10:45) 
+## Last-Updated: jul 17 2023 (18:04) 
 ##           By: Brice Ozenne
-##     Update #: 361
+##     Update #: 363
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,7 +29,7 @@
 #' @param endpoint [character] for which endpoint(s) the summary statistic should be output?
 #' If \code{NULL} returns the summary statistic for all endpoints.
 #' @param strata [character vector] the strata relative to which the statistic should be output.
-#' Can also be \code{"global"} or \code{FALSE} to ouput the statistic pooled over all strata,
+#' Can also be \code{"global"} or \code{FALSE} to output the statistic pooled over all strata,
 #' or \code{TRUE} to output each strata-specific statistic.
 #' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
@@ -149,6 +149,15 @@ setMethod(f = "coef",
                   strata <- "global"
               }else if(identical(strata,TRUE)){
                   strata <- level.strata
+              }else if(is.numeric(strata)){
+                  validInteger(strata,
+                               name1 = "strata",
+                               valid.length = NULL,
+                               min = 1,
+                               max = length(level.strata),
+                               refuse.NULL = TRUE,
+                               refuse.duplicated = TRUE,
+                               method = "autoplot[S4BuyseTest]")
               }else{
                   validCharacter(strata,
                                  name1 = "strata",

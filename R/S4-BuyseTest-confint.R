@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1051
+##     Update #: 1084
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -33,7 +33,8 @@
 #' @param endpoint [character] for which endpoint(s) the confidence intervals should be output?
 #' If \code{NULL} returns the confidence intervals for all endpoints.
 #' @param strata [character] the strata relative to which the statistic should be output.
-#' Can also be \code{"global"} or \code{FALSE} to ouput the statistic pooled over all strata.
+#' Can also be \code{"global"} or \code{FALSE} to output the statistic pooled over all strata,
+#' or \code{TRUE} to output each strata-specific statistic.
 #' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
 #' @param null [numeric] right hand side of the null hypothesis (used for the computation of the p-value).
@@ -127,6 +128,8 @@ setMethod(f = "confint",
                                 sep="."){
 
               option <- BuyseTest.options()
+              sep <- "."
+
               D <- length(object@endpoint)
               method.inference <- object@method.inference
               add.halfNeutral <- object@add.halfNeutral
@@ -162,6 +165,36 @@ setMethod(f = "confint",
                              valid.length = 1,
                              method = "confint[S4BuyseTest]")
 
+              ## strata
+              level.strata <- object@level.strata
+              if(is.null(strata)){
+                  if(length(level.strata)==1){
+                      strata <- "global"                      
+                  }else{
+                      strata <- c("global", level.strata)
+                  }
+              }else if(identical(strata,FALSE)){
+                  strata <- "global"
+              }else if(identical(strata,TRUE)){
+                  strata <- level.strata
+              }else if(is.numeric(strata)){
+                  validInteger(strata,
+                               name1 = "strata",
+                               valid.length = NULL,
+                               min = 1,
+                               max = length(level.strata),
+                               refuse.NULL = TRUE,
+                               refuse.duplicated = TRUE,
+                               method = "autoplot[S4BuyseTest]")
+              }else{
+                  validCharacter(strata,
+                                 name1 = "strata",
+                                 valid.length = NULL,
+                                 valid.values = c("global",level.strata),
+                                 refuse.NULL = FALSE,
+                                 method = "confint[S4BuyseTest]")
+              }
+
               ## method.ci
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
                   if(is.null(method.ci.resampling)){                  
@@ -193,9 +226,9 @@ setMethod(f = "confint",
               }else if(!is.null(method.ci.resampling)){
                   warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")                  
               }
-              if(attr(method.inference,"studentized") && ((stratified!=FALSE) || (cumulative!=TRUE)) ){
+              if(attr(method.inference,"studentized") && (any(strata != "global") || (cumulative!=TRUE)) ){
                   stop("Can only perform statistical inference based on studentized resampling for global cumulative effects. \n",
-                       "Consider setting argument \'stratified\' to FALSE and argument \'cumulative\' to TRUE. \n")
+                       "Consider setting argument \'strata\' to FALSE and argument \'cumulative\' to TRUE. \n")
               }
 
               ## order.Hprojection
@@ -264,19 +297,6 @@ setMethod(f = "confint",
                   endpoint <- valid.endpoint
               }
               n.endpoint <- length(endpoint)
-
-              ## strata
-              level.strata <- object@level.strata
-              if(identical(strata,FALSE)){
-                  strata <- "global"
-              }else{
-                  validCharacter(strata,
-                                 name1 = "strata",
-                                 valid.length = 1,
-                                 valid.values = c("global",object@level.strata),
-                                 refuse.NULL = FALSE,
-                                 method = "confint[S4BuyseTest]")
-              }
               
               ## safety
               test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
@@ -293,10 +313,24 @@ setMethod(f = "confint",
               
               ## ** extract estimate
               all.endpoint <- names(object@endpoint)
-              Delta <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = FALSE, simplify = TRUE)
-              
+              DeltaW <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = FALSE, simplify = FALSE)
+              if(length(strata)==1 && all(strata=="global")){
+                  Delta <- stats::setNames(DeltaW["global",], endpoint)
+              }else{
+                  DeltaL <- stats::reshape(data.frame(strata = strata, DeltaW), direction = "long", varying = endpoint,
+                                           times = endpoint, v.names = "statistic")
+                  Delta <- stats::setNames(DeltaL$statistic, paste(DeltaL$time, DeltaL$strata, sep = sep))
+              }
+
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
-                  Delta.resampling <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = TRUE, simplify = TRUE)                  
+                  DeltaW.resampling <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = TRUE, simplify = FALSE)
+                  if(length(strata)==1 && all(strata=="global")){
+                      Delta.resampling <- matrix(DeltaW.resampling[,"global",], ncol = length(endpoint), dimnames = list(NULL, endpoint))
+                  }else{
+                      Delta.resampling <- do.call(cbind,apply(DeltaW.resampling, MARGIN = 3 , FUN = base::identity, simplify = FALSE))
+                      colnames(Delta.resampling) <- unlist(lapply(endpoint, paste, strata, sep = sep))
+                      Delta.resampling <- Delta.resampling[,names(Delta),drop=FALSE]
+                  }
               }else{
                   Delta.resampling <- NULL
               }
@@ -304,7 +338,7 @@ setMethod(f = "confint",
               ## ** extract standard error
               if(attr(method.inference,"ustatistic") || attr(method.inference,"studentized")){
 
-                  if(object.hprojection && is.null(cluster) && strata=="global" && cumulative == TRUE){
+                  if(object.hprojection && is.null(cluster) && (length(strata)==1 && all(strata=="global")) && cumulative == TRUE){
                       Delta.se <- sqrt(object@covariance[endpoint,statistic])
                       if(attr(method.inference,"studentized")){
                           Delta.se.resampling <- matrix(sqrt(object@covarianceResampling[,endpoint,statistic]),
@@ -317,7 +351,15 @@ setMethod(f = "confint",
                       if(identical(order.Hprojection,2)){
                           warning("Inference will be performed using a first order H projection. \n")
                       }
-                      Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, strata = strata, cluster = cluster, simplify = FALSE)[[strata]]
+                      ls.Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, strata = strata, cluster = cluster, simplify = FALSE)
+                      if(length(strata)==1 || all(strata=="global")){
+                          Delta.iid <- ls.Delta.iid[["global"]][,names(Delta),drop=FALSE]
+                      }else{
+                          for(iS in 1:length(strata)){ ## iS <- 1
+                              colnames(ls.Delta.iid[[iS]]) <- paste(colnames(ls.Delta.iid[[iS]]), strata[iS], sep = sep)
+                          }
+                          Delta.iid <- do.call(cbind,ls.Delta.iid)[,names(Delta),drop=FALSE]
+                      }
                       if(is.null(cluster) && any(object@weightObs!=1)){
                           Delta.iid <- .colMultiply_cpp(Delta.iid, sqrt(object@weightObs))
                       }
@@ -345,7 +387,7 @@ setMethod(f = "confint",
                                min = if("statistic"=="netBenefit"){-1}else{0},
                                max = if("statistic"=="winRatio"){Inf}else{1})
               }
-              null <- rep(null, n.endpoint)
+              null <- rep(null, length(Delta))
 
               ## ** method
               if(method.inference == "none"){

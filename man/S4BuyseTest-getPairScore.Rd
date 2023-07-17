@@ -39,7 +39,7 @@ getPairScore(
 
 \item{endpoint}{[integer/character vector] the endpoint for which the scores should be output.}
 
-\item{strata}{[integer/character vector] the strata for which the scores should be output.}
+\item{strata}{[character vector] the strata relative to which the score should be output.}
 
 \item{sum}{[logical] should the scores be cumulated over endpoints?}
 

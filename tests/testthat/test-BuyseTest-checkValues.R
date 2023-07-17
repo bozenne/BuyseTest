@@ -203,13 +203,13 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
                      as.double(coef(BT.1tte, statistic = "count.favorable", cumulative = FALSE)))
         expect_equal(sum(coef(BT.tte, statistic = "count.unfavorable", cumulative = FALSE)),
                      as.double(coef(BT.1tte, statistic = "count.unfavorable", cumulative = FALSE)))
-        expect_equal(coef(BT.tte, statistic = "count.neutral", cumulative = FALSE)[3],
+        expect_equal(unname(coef(BT.tte, statistic = "count.neutral", cumulative = FALSE)[3]),
                      coef(BT.1tte, statistic = "count.neutral", cumulative = FALSE))
-        expect_equal(coef(BT.tte, statistic = "count.uninf", cumulative = FALSE)[3],
+        expect_equal(unname(coef(BT.tte, statistic = "count.uninf", cumulative = FALSE)[3]),
                      coef(BT.1tte, statistic = "count.uninf", cumulative = FALSE))
-        expect_equal(coef(BT.tte, statistic = "netBenefit", cumulative = TRUE)[3],
+        expect_equal(unname(coef(BT.tte, statistic = "netBenefit", cumulative = TRUE)[3]),
                      coef(BT.1tte, statistic = "netBenefit", cumulative = TRUE))
-        expect_equal(coef(BT.tte, statistic = "winRatio", cumulative = TRUE)[3],
+        expect_equal(unname(coef(BT.tte, statistic = "winRatio", cumulative = TRUE)[3]),
                      coef(BT.1tte, statistic = "winRatio", cumulative = TRUE))
 
         ## *** test against fixed value
@@ -328,14 +328,14 @@ for(method in c("Gehan","Peron")){ ## method <- "Peron"  ## method <- "Gehan"
                             data = dtS.sim, scoring.rule = method)
 
         ## *** test against fixed value
-        test <- list(favorable = as.double(coef(BT.tte, statistic = "count.favorable", stratified = TRUE, cumulative = FALSE)),
-                     unfavorable = as.double(coef(BT.tte, statistic = "count.unfavorable", stratified = TRUE, cumulative = FALSE)),
-                     neutral = as.double(coef(BT.tte, statistic = "count.neutral", stratified = TRUE, cumulative = FALSE)),
-                     uninf = as.double(coef(BT.tte, statistic = "count.uninf", stratified = TRUE, cumulative = FALSE)),
-                     favorable = as.double(coef(BT.tte, statistic = "favorable", stratified = FALSE, cumulative = TRUE)),
-                     unfavorable = as.double(coef(BT.tte, statistic = "unfavorable", stratified = FALSE, cumulative = TRUE)),
-                     netChange = as.double(coef(BT.tte, statistic = "netBenefit", stratified = FALSE, cumulative = TRUE)),
-                     winRatio = as.double(coef(BT.tte, statistic = "winRatio", stratified = FALSE, cumulative = TRUE))
+        test <- list(favorable = as.double(coef(BT.tte, statistic = "count.favorable", strata = TRUE, cumulative = FALSE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "count.unfavorable", strata = TRUE, cumulative = FALSE)),
+                     neutral = as.double(coef(BT.tte, statistic = "count.neutral", strata = TRUE, cumulative = FALSE)),
+                     uninf = as.double(coef(BT.tte, statistic = "count.uninf", strata = TRUE, cumulative = FALSE)),
+                     favorable = as.double(coef(BT.tte, statistic = "favorable", strata = FALSE, cumulative = TRUE)),
+                     unfavorable = as.double(coef(BT.tte, statistic = "unfavorable", strata = FALSE, cumulative = TRUE)),
+                     netChange = as.double(coef(BT.tte, statistic = "netBenefit", strata = FALSE, cumulative = TRUE)),
+                     winRatio = as.double(coef(BT.tte, statistic = "winRatio", strata = FALSE, cumulative = TRUE))
                      )
 
         

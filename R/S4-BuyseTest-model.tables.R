@@ -17,9 +17,8 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param strata [character vector] the strata relative to which the statistic should be output.
-#' Can also be \code{"global"} or \code{FALSE} to ouput the statistic pooled over all strata,
-#' or \code{TRUE} to output each strata-specific statistic.
+#' @param strata [logical] should the strata-specific results be displayed or the results pooled across strata?
+#' Can also be \code{NULL} to display both.
 #' @param columns [character vector] subset of columns to be output (e.g. \code{"endpoint"}, \code{"favorable"}, ...).
 #' Can also be \code{"summary"} or \code{"print"} to only select columns displayed in the summary or print. \code{NULL} will select all columns.
 #' @param ... arguments to be passed to \code{\link{S4BuyseTest-confint}}
@@ -80,19 +79,31 @@ setMethod(f = "model.tables",
                              valid.length = 1,
                              method = "summary[S4BuyseTest]")
 
+              strata.level <- x@level.strata
               if(is.null(strata)){
-                  if(length(x@level.strata)==1){
+                  if(length(strata.level)==1){
                       strata <- "global"
+                  }else{
+                      strata <- c("global",strata.level)
                   }
               }else if(identical(strata,FALSE)){
                   strata <- "global"
               }else if(identical(strata,TRUE)){
-                  strata <- x@level.strata
+                  strata <- strata.level
+              }else if(is.numeric(strata)){
+                  validInteger(strata,
+                               name1 = "strata",
+                               valid.length = NULL,
+                               min = 1,
+                               max = length(level.strata),
+                               refuse.NULL = TRUE,
+                               refuse.duplicated = TRUE,
+                               method = "autoplot[S4BuyseTest]")
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
                                  valid.length = NULL,
-                                 valid.values = c("global",x@level.strata),
+                                 valid.values = c("global",strata.level),
                                  refuse.NULL = FALSE,
                                  method = "summary[S4BuyseTest]")
               }
@@ -109,14 +120,14 @@ setMethod(f = "model.tables",
               count.neutral <- slot(x,"count.neutral")
               count.uninf <- slot(x,"count.uninf")
 
-              delta <- coef(x, statistic = statistic, cumulative = FALSE, strata = TRUE)
-              Delta <- coef(x, statistic = statistic, cumulative = TRUE, strata = "global")
+              delta <- coef(x, statistic = statistic, cumulative = FALSE, strata = c("global",strata.level), simplify = FALSE)
+              Delta <- coef(x, statistic = statistic, cumulative = TRUE, strata = "global", simplify = FALSE)
               n.resampling <- x@n.resampling
 
               method.inference <- x@method.inference
 
               ## ** compute confidence intervals and p-values
-              outConfint  <- confint(x, conf.level = conf.level, statistic = statistic, ...)
+              outConfint  <- confint(x, statistic = statistic, cumulative = TRUE, strata = "global", conf.level = conf.level,  ...)
 
               ## ** generate summary table
               ## *** prepare
@@ -144,9 +155,9 @@ setMethod(f = "model.tables",
               table[index.global,"weight"] <- x@weightEndpoint
               table[index.global,"strata"] <- "global"
               
-              table[index.global,"delta"] <- coef(x, statistic = statistic, strata = FALSE, cumulative = FALSE)
-              table[index.global,"Delta"] <- Delta
-              table[index.global,"Delta(%)"] <- 100*Delta/Delta[n.endpoint]
+              table[index.global,"delta"] <- delta["global",]
+              table[index.global,"Delta"] <- Delta["global",]
+              table[index.global,"Delta(%)"] <- 100*Delta["global",]/Delta["global",n.endpoint]
 
               ## *** strata-sepcific statistic
               for(iStrata in 1:n.strata){
@@ -162,7 +173,7 @@ setMethod(f = "model.tables",
                   table[index.strata,"threshold"] <- x@threshold
                   table[index.strata,"restriction"] <- x@restriction
                   table[index.strata,"weight"] <- x@weightEndpoint
-                  table[index.strata,"delta"] <- delta[iStrata,]
+                  table[index.strata,"delta"] <- delta[iStrata+1,]
               }
 
               ## *** total 

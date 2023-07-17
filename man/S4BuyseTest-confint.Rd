@@ -10,7 +10,7 @@
   object,
   endpoint = NULL,
   statistic = NULL,
-  stratified = FALSE,
+  strata = FALSE,
   cumulative = TRUE,
   null = NULL,
   conf.level = NULL,
@@ -35,8 +35,9 @@ If \code{NULL} returns the confidence intervals for all endpoints.}
 \code{"unfavorable"} displays the proportion in favor of the control.
 Default value read from \code{BuyseTest.options()}.}
 
-\item{stratified}{[logical] should strata-specific statistic be output?
-Otherwise output a global statistics obtained after pooling the strata-specific ones.}
+\item{strata}{[character] the strata relative to which the statistic should be output.
+Can also be \code{"global"} or \code{FALSE} to output the statistic pooled over all strata,
+or \code{TRUE} to output each strata-specific statistic.}
 
 \item{cumulative}{[logical] should the summary statistic be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}

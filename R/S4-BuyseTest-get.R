@@ -119,6 +119,15 @@ setMethod(f = "getIid",
                   strata <- "global"
               }else if(identical(strata,TRUE)){
                   strata <- level.strata
+              }else if(is.numeric(strata)){
+                  validInteger(strata,
+                               name1 = "strata",
+                               valid.length = NULL,
+                               min = 1,
+                               max = length(level.strata),
+                               refuse.NULL = TRUE,
+                               refuse.duplicated = TRUE,
+                               method = "autoplot[S4BuyseTest]")
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
@@ -189,13 +198,13 @@ setMethod(f = "getIid",
                   validCharacter(statistic,
                                  name1 = "statistic",
                                  valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
-                                 valid.length = NULL,
+                                 valid.length = 1,
                                  refuse.duplicates = TRUE,
                                  method = "getIid[S4BuyseTest]")
               }
-              if(length(statistic)>1 && (stratified==TRUE)){
-                  stop("Argument \'statistic\' must be of length one when asking for strata-specific H-decomposition. \n")
-              }
+              ## if(length(statistic)>1 && any(strata %in% level.strata)){
+              ##     stop("Argument \'statistic\' must be of length one when asking for strata-specific H-decomposition. \n")
+              ## }
 
               ## ** extract H-decomposition
               if(type %in% c("all","u-statistic")){
@@ -207,6 +216,7 @@ setMethod(f = "getIid",
                                                           dimnames = list(NULL, valid.endpoint))
                                      )
               }
+
               if(type %in% c("all","nuisance") && (object@scoring.rule=="Peron")){
                   if(length(object@iidNuisance$favorable)>0){
                       object.iid$favorable <- object.iid$favorable + object@iidNuisance$favorable
@@ -285,7 +295,7 @@ setMethod(f = "getIid",
                                           iM[-indexStrata[[iStrata]],] <- 0
                                           return(iM)
                                       }), level.strata))
-              
+
               ## ** aggregate at a cluster level
               if(!is.null(cluster)){
                   ls.iid.favorable <- lapply(ls.iid.favorable, function(iIID){
@@ -306,7 +316,7 @@ setMethod(f = "getIid",
 
                   iIID.fav <- ls.iid.favorable[[iS]][,endpoint,drop=FALSE]
                   iIID.unfav <- ls.iid.unfavorable[[iS]][,endpoint,drop=FALSE]
-                  
+
                   if(statistic == "favorable"){
                       iOut <- iIID.fav
                   }else if(statistic == "unfavorable"){
@@ -314,7 +324,8 @@ setMethod(f = "getIid",
                   }else if(statistic == "netBenefit"){
                       iOut <- iIID.fav - iIID.unfav
                   }else if(statistic == "winRatio"){
-                      iOut <- .rowScale_cpp(iIID.fav,Delta.unfavorable[,iE]) - .rowMultiply_cpp(iIID.unfav, Delta.favorable[,iE]/Delta.unfavorable[,iE]^2)                      
+                      iOut <- .rowScale_cpp(iIID.fav,Delta.unfavorable[iS,]) - .rowMultiply_cpp(iIID.unfav, Delta.favorable[iS,]/Delta.unfavorable[iS,]^2)
+                      colnames(iOut) <- colnames(iIID.fav)
                   }                                        
                   return(iOut)
               }), strata)

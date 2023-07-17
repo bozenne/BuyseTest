@@ -10,24 +10,26 @@ getIid(
   object,
   endpoint = NULL,
   statistic = NULL,
-  stratified = FALSE,
+  strata = FALSE,
   cumulative = TRUE,
   center = TRUE,
   scale = TRUE,
   type = "all",
-  cluster = NULL
+  cluster = NULL,
+  simplify = FALSE
 )
 
 \S4method{getIid}{S4BuyseTest}(
   object,
   endpoint = NULL,
   statistic = NULL,
-  stratified = FALSE,
+  strata = FALSE,
   cumulative = TRUE,
   center = TRUE,
   scale = TRUE,
   type = "all",
-  cluster = NULL
+  cluster = NULL,
+  simplify = TRUE
 )
 }
 \arguments{
@@ -38,8 +40,9 @@ If \code{NULL} returns the sum of the H-decomposition over all endpoints.}
 
 \item{statistic}{[character] statistic relative to which the H-decomposition should be output.}
 
-\item{stratified}{[logical] should the H-decomposition relative to the strata-specific statistics be output?
-Otherwise display the influence function of the global statistic (i.e. over all strata).}
+\item{strata}{[character vector] the strata relative to which the H-decomposition of the statistic should be output.
+Can also be \code{"global"} or \code{FALSE} to output the H-decompositon of the pooled statistic.
+or \code{TRUE} to output the H-decompositon of each strata-specific statistic.}
 
 \item{cumulative}{[logical] should the H-decomposition be cumulated over endpoints?
 Otherwise display the contribution of each endpoint.}
@@ -54,6 +57,11 @@ or for the u-statistic given the nuisance parameters (\code{"u-statistic"}),
 or both.}
 
 \item{cluster}{[numeric vector] return the H-decomposition aggregated by cluster.}
+
+\item{simplify}{[logical] should the result be coerced to the lowest possible dimension?}
+}
+\value{
+A list of matrices, each element of the list correspond to a statistic (global or strata-specific) and each matrix has as many columns as endpoints and rows as observations.
 }
 \description{
 Extract the H-decomposition of the GPC estimator.

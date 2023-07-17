@@ -31,7 +31,7 @@ getSurvival(
 
 \item{endpoint}{[integer/character vector] the endpoint for which the survival should be output.}
 
-\item{strata}{[integer/character vector] the strata for which the survival should be output.}
+\item{strata}{[integer/character vector] the strata relative to which the survival should be output.}
 
 \item{unlist}{[logical] should the structure of the output be simplified when possible.}
 

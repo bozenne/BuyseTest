@@ -61,7 +61,8 @@ or approximating the predicted probability by a normal distribution.}
 
 \item{trace}{[logical] Should the execution of the function be traced.}
 
-\item{seed}{[integer, >0] seed used to ensure reproducibility.}
+\item{seed}{[integer, >0] Random number generator (RNG) state used when starting data spliting.
+If \code{NULL} no state is set.}
 }
 \value{
 An S3 object of class \code{performance}.

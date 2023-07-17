@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: Jul  4 2023 (09:32) 
+## Last-Updated: jul 17 2023 (17:07) 
 ##           By: Brice Ozenne
-##     Update #: 221
+##     Update #: 222
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -528,7 +528,7 @@ test_that("U-stat with stratification",{
         })
 
         weights.strata <- GPC.stratified@n.pairs/sum(GPC.stratified@n.pairs)
-        expect_equivalent(sum(weights.strata*coef(GPC.stratified,statistic="netBenefit",stratified = TRUE)),
+        expect_equivalent(sum(weights.strata*coef(GPC.stratified,statistic="netBenefit",strata = TRUE)),
                           coef(GPC.stratified,statistic="netBenefit"), tol = 1e-6)
         expect_equivalent(sum(weights.strata^2*sapply(ls.GPC,function(iGPC){iGPC@covariance[,"netBenefit"]})),
                           GPC.stratified@covariance[,"netBenefit"], tol = 1e-6)

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: jun 29 2023 (13:54) 
+## Last-Updated: jul 17 2023 (17:29) 
 ##           By: Brice Ozenne
-##     Update #: 289
+##     Update #: 294
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -227,9 +227,11 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
         if(any(duplicated(iName))){
             stop("Duplicated names for the estimates: provide unique name to each element of the list containing the S4BuyseTest objects. \n")
         }
-        vec.beta <- stats::setNames(unlist(lapply(1:n.object, function(iO){coef(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative)})), iName)
+        ls.beta <- lapply(1:n.object, function(iO){coef(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative, strata = "global")})
+        vec.beta <- stats::setNames(unlist(ls.beta), iName)
+
         ls.iid <- lapply(1:n.object, function(iO){ ## iO <- 1
-            iIID <- do.call(cbind,getIid(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative))
+            iIID <- getIid(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative, strata = "global", simplify = FALSE)[["global"]]
             colnames(iIID) <- iName[iO]
             return(iIID)
         })
@@ -297,9 +299,8 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
         }
     }else{
         iName <- endpoint
-
-        vec.beta <- stats::setNames(coef(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative), iName)
-        M.iid <- do.call(cbind,getIid(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative))
+        vec.beta <- stats::setNames(coef(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative, strata = "global"), iName)
+        M.iid <- getIid(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative, strata = "global")
         colnames(M.iid) <- iName
     }
 

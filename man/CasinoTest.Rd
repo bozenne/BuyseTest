@@ -42,7 +42,8 @@ Default value read from \code{BuyseTest.options()}.}
 \item{method.multcomp}{[character] method used to adjust for multiple comparisons.
 Can be any element of ‘p.adjust.methods’ (e.g. "holm"), "maxT-integration", or "maxT-simulation".}
 
-\item{seed}{[integer, >0] seed number set before performing simulations for the confidence bands.}
+\item{seed}{[integer, >0] Random number generator (RNG) state used when adjusting for multiple comparisons.
+If \code{NULL} no state is set.}
 }
 \value{
 An S3 object of class \code{CasinoTest} that inherits from data.frame.

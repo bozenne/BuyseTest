@@ -36,7 +36,8 @@ performanceResample(
 
 \item{cpus}{[integer, >0] the number of CPU to use. If strictly greater than 1, resampling is perform in parallel.}
 
-\item{seed}{[integer, >0] seed used to ensure reproducibility.}
+\item{seed}{[integer, >0] Random number generator (RNG) state used when starting resampling.
+If \code{NULL} no state is set.}
 
 \item{trace}{[logical] Should the execution of the function be traced.}
 

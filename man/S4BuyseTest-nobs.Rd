@@ -6,18 +6,21 @@
 \alias{nobs,S4BuyseTest-method}
 \title{Sample Size for Class "S4BuyseTest"}
 \usage{
-\S4method{nobs}{S4BuyseTest}(object, stratified = NULL, ...)
+\S4method{nobs}{S4BuyseTest}(object, strata = FALSE, simplify = TRUE, ...)
 }
 \arguments{
 \item{object}{an \R object of class \code{S4BuyseTest}, i.e., output of \code{\link{BuyseTest}}}
 
-\item{stratified}{[logical] should strata-specific sample size be output?
-Otherwise output the sample size and number of pairs over all strata.}
+\item{strata}{[character vector] the strata relative to which the number of pairs should be output.
+Can also be \code{"global"} or \code{FALSE} to output the total number of pairs (i.e. across all strata),
+or \code{TRUE} to output each strata-specific number of pairs.}
+
+\item{simplify}{[logical] should the result be coerced to the lowest possible dimension?}
 
 \item{...}{no used, for compatibility with the generic method.}
 }
 \value{
-A vector (when argument \code{stratified} is \code{FALSE}) or a data.frame (when argument \code{stratified} is \code{TRUE}). In the latter case each line correspond to a strata.
+A vector (when argument \code{strata} is \code{FALSE}) or a matrix (when argument \code{strata} is \code{TRUE}). In the latter case each line correspond to a strata.
 }
 \description{
 Display the sample size in each treatmnet arm as well as the number of pairs.
