@@ -17,7 +17,9 @@
 #' Default value read from \code{BuyseTest.options()}.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
-#' @param strata [character vector] the name of the strata to be displayed. Can also be \code{"global"} to display the average over all strata.
+#' @param strata [character vector] the name of the strata to be displayed.
+#' Can also be \code{"global"} or \code{FALSE} to display the statistic pooled over all strata,
+#' or \code{TRUE} to display each strata-specific statistic.
 #' @param columns [character vector] subset of columns to be output (e.g. \code{"endpoint"}, \code{"favorable"}, ...).
 #' Can also be \code{"summary"} or \code{"print"} to only select columns displayed in the summary or print. \code{NULL} will select all columns.
 #' @param ... arguments to be passed to \code{\link{S4BuyseTest-confint}}
@@ -82,6 +84,10 @@ setMethod(f = "model.tables",
                   if(length(x@level.strata)==1){
                       strata <- "global"
                   }
+              }else if(identical(strata,FALSE)){
+                  strata <- "global"
+              }else if(identical(strata,TRUE)){
+                  strata <- x@level.strata
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
@@ -103,8 +109,8 @@ setMethod(f = "model.tables",
               count.neutral <- slot(x,"count.neutral")
               count.uninf <- slot(x,"count.uninf")
 
-              delta <- coef(x, statistic = statistic, cumulative = FALSE, stratified = TRUE)
-              Delta <- coef(x, statistic = statistic, cumulative = TRUE)
+              delta <- coef(x, statistic = statistic, cumulative = FALSE, strata = TRUE)
+              Delta <- coef(x, statistic = statistic, cumulative = TRUE, strata = "global")
               n.resampling <- x@n.resampling
 
               method.inference <- x@method.inference
@@ -138,7 +144,7 @@ setMethod(f = "model.tables",
               table[index.global,"weight"] <- x@weightEndpoint
               table[index.global,"strata"] <- "global"
               
-              table[index.global,"delta"] <- coef(x, statistic = statistic, stratified = FALSE, cumulative = FALSE)
+              table[index.global,"delta"] <- coef(x, statistic = statistic, strata = FALSE, cumulative = FALSE)
               table[index.global,"Delta"] <- Delta
               table[index.global,"Delta(%)"] <- 100*Delta/Delta[n.endpoint]
 

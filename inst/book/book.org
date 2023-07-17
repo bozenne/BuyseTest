@@ -12,7 +12,7 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 #+END_SRC
 
 #+RESULTS:
-: Loading required package: Rcpp
+: Indlæser krævet pakke: Rcpp
 : BuyseTest version 3.0.0
 
 ** Section 2.1 Introduction
@@ -512,8 +512,7 @@ model.tables(eTox.BT, columns = "threshold")
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
-eTox.BTG <- BuyseTest(ffG,
-                      data=dt.data, keep.pairScore = TRUE, trace = FALSE)
+eTox.BTG <- BuyseTest(ffG, data=dt.data, keep.pairScore = TRUE, trace = FALSE)
 summary(eTox.BTG)
 #+END_SRC
 
@@ -537,6 +536,22 @@ summary(eTox.BTG)
         0 -0.0897                                   
         0 -0.0561
 #+end_example
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+model.tables(eTox.BTG, percentage = FALSE)
+#(3541-4452)/10152
+#+END_SRC
+
+#+RESULTS:
+:       endpoint strata total favorable unfavorable neutral uninf
+: 1 toxicity.num global 19904      7051        8509    4344     0
+: 2 toxicity.num      M 10152      3541        4452    2159     0
+: 3 toxicity.num      F  9752      3510        4057    2185     0
+:         delta       Delta   lower.ci   upper.ci   p.value
+: 1 -0.07308342 -0.07308342 -0.1823085 0.03792338 0.1967195
+: 2 -0.08973601          NA         NA         NA        NA
+: 3 -0.05609106          NA         NA         NA        NA
+: [1] -0.08973601
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 getPairScore(eTox.BTG)

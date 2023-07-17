@@ -41,8 +41,8 @@
 #' See Details, section "Handling missing values".
 #' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
-#' @param seed [integer, >0] the seed to consider when performing resampling.
-#' If \code{NULL} no seed is set.
+#' @param seed [integer, >0] Random number generator (RNG) state used when starting resampling.
+#' If \code{NULL} no state is set.
 #' @param cpus [integer, >0] the number of CPU to use.
 #' Only the permutation test can use parallel computation.
 #' See Details, section "Statistical inference".

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  3 2021 (11:17) 
 ## Version: 
-## Last-Updated: jun 27 2023 (14:04) 
+## Last-Updated: jul  4 2023 (18:46) 
 ##           By: Brice Ozenne
-##     Update #: 1190
+##     Update #: 1191
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -39,7 +39,8 @@
 ##' Otherwise they are computed without any transformation.
 ##' @param trace [logical] Should the execution of the function be traced.
 ##' @param simplify [logical] should the number of fold and the size of the fold used for the cross validation be removed from the output?
-##' @param seed [integer, >0] seed used to ensure reproducibility.
+##' @param seed [integer, >0] Random number generator (RNG) state used when starting data spliting.
+##' If \code{NULL} no state is set.
 ##'
 ##' @references LeDell E, Petersen M, van der Laan M. Computationally efficient confidence intervals for cross-validated area under the ROC curve estimates. Electron J Stat. 2015;9(1):1583-1607. doi:10.1214/15-EJS1035 
 ##' 

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: jun 28 2023 (14:06) 
+## Last-Updated: jul  4 2023 (18:45) 
 ##           By: Brice Ozenne
-##     Update #: 108
+##     Update #: 109
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -35,7 +35,8 @@
 ##' @param transformation [logical]  should the CI be computed on the inverse hyperbolic tangent scale / log scale for the net benefit / win ratio and backtransformed.
 ##' Otherwise they are computed without any transformation.
 ##' Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.
-##' @param seed [integer, >0] seed number set before performing simulations for the confidence bands.
+#' @param seed [integer, >0] Random number generator (RNG) state used when adjusting for multiple comparisons.
+#' If \code{NULL} no state is set.
 ##' 
 ##' @details Require to have installed the package riskRegression and BuyseTest
 ##'

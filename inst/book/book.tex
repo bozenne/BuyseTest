@@ -1,4 +1,4 @@
-% Created 2023-06-26 ma 15:14
+% Created 2023-07-04 ti 14:43
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -131,31 +131,17 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 \end{lstlisting}
 
 \begin{verbatim}
-BuyseTest version 2.4.4
-
-Vedhæfter pakke: 'BuyseTest'
-
-De følgende objekter er maskerede _af_ '.GlobalEnv':
-
-    .calcIntegralCif_cpp, .calcIntegralSurv_cpp, auc, boot2pvalue,
-    BuyseMultComp, BuyseTest, BuyseTest.options, BuyseTTEM,
-    calcIntegralSurv2_cpp, CasinoTest, constStrata, discreteRoot,
-    getCount, getIid, getPairScore, getPseudovalue, getSurvival,
-    GPC_cpp, GPC2_cpp, performance, performanceResample,
-    powerBuyseTest, sensitivity, simBuyseTest, simCompetingRisks
-
-De følgende objekter er maskerede fra 'package:riskRegression':
-
-    boot2pvalue, discreteRoot
+Indlæser krævet pakke: Rcpp
+BuyseTest version 3.0.0
 \end{verbatim}
 
 \section{Section 2.1 Introduction}
-\label{sec:org5c906f5}
+\label{sec:org2bb34d3}
 \subsection{subsection 2.1.2 Generating in-silico data}
-\label{sec:org003c0da}
+\label{sec:orge08694b}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-set.seed(10)
+set.seed(10) ## initialize the pseudo-random number generator 
 dt.data <- simBuyseTest(100)
 dt.data
 \end{lstlisting}
@@ -288,16 +274,19 @@ T  3.75  3.50 12.00 15.75 11.00  4.00
 library(ggplot2)
 ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
 ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
+\end{lstlisting}
 
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 library(ggpubr)
 ggOS <- ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
-ggOS <- ggOS + theme(text = element_text(size=15), 
+ggOS <- ggOS + theme(text = element_text(size=20), 
                      axis.line = element_line(linewidth = 1.25),
                      axis.ticks = element_line(linewidth = 1.25),
                      axis.ticks.length=unit(.25, "cm"),
                      legend.key.size = unit(3,"line"))
 ggPFS <- ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
-ggPFS <- ggPFS + theme(text = element_text(size=15), 
+ggPFS <- ggPFS + theme(text = element_text(size=20), 
                        axis.line = element_line(linewidth = 1.25),
                        axis.ticks = element_line(linewidth = 1.25),
                        axis.ticks.length=unit(.25, "cm"),
@@ -313,8 +302,8 @@ dev.off()
 null device 
           1
 \end{verbatim}
-\section{section 2.2 Safety or efficacy assessment with GPC}
-\label{sec:org7e2d6e6}
+\section{section 2.2 GPC with a single endpoint}
+\label{sec:org1aeee16}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -342,16 +331,29 @@ library(prodlim)
 plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
 \end{lstlisting}
 
-\subsection{subsection 2.2.1 Binary or continous endpoint}
-\label{sec:orga3bc661}
+\subsection{subsection 2.2.1 Relation to the Wilcoxon-Mann-Whitney test}
+\label{sec:orgdfe5895}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 dt.data$toxicity.num <- as.numeric(dt.data$toxicity)
+wilcox.test(toxicity.num ~ treatment, data = dt.data)
+\end{lstlisting}
+
+\begin{verbatim}
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  toxicity.num by treatment
+W = 18528, p-value = 0.1893
+alternative hypothesis: true location shift is not equal to 0
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 eTox.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
                      data=dt.data)
-confint(eTox.BT, statistic = "favorable")
-confint(eTox.BT)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -370,16 +372,7 @@ Estimation of the estimator's distribution
    - method: moments of the U-statistic
 
 Gather the results in a S4BuyseTest object
-             estimate         se lower.ci  upper.ci null      p.value
-toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
-             estimate         se   lower.ci   upper.ci null   p.value
-toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
 \end{verbatim}
-
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-BuyseTest.options(trace = 0)
-\end{lstlisting}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -392,90 +385,122 @@ summary(eTox.BT)
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
- - inference       : H-projection of order 1
+ - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: T (treatment) vs. C (control) 
  - results
-     endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
- toxicity.num      100        35.38          42.74      21.87        0 -0.0736
- CI [2.5% ; 97.5%] p.value 
-   [-0.1824;0.037] 0.19177
+     endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+ toxicity.num      100        35.38          42.74      21.87        0
+   Delta CI [2.5% ; 97.5%] p.value 
+ -0.0736   [-0.1824;0.037] 0.19177
 \end{verbatim}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-summary(eTox.BT, percentage = FALSE)
+print(eTox.BT, percentage = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : H-projection of order 1
- - treatment groups: T (treatment) vs. C (control) 
- - results
-     endpoint total favorable unfavorable neutral uninf   Delta CI [2.5% ; 97.5%] p.value
- toxicity.num 40000     14154       17098    8748     0 -0.0736   [-0.1824;0.037] 0.19177
+    endpoint total favorable unfavorable neutral uninf   Delta
+toxicity.num 40000     14154       17098    8748     0 -0.0736
+CI [2.5% ; 97.5%] p.value
+  [-0.1824;0.037] 0.19177
 \end{verbatim}
+
+
+\subsection{subsection 2.2.2 Adjustment for ties}
+\label{sec:org1180696}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(eTox.BT, statistic = "favorable")
+\end{lstlisting}
+
+\begin{verbatim}
+             estimate         se lower.ci  upper.ci null      p.value
+toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eTox.BThalf <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
+                         add.halfNeutral = TRUE,
+                         data=dt.data, trace = FALSE)
+print(eTox.BThalf, statistic = "favorable")
+\end{lstlisting}
+
+\begin{verbatim}
+    endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
+toxicity.num      100        35.38          42.74      21.87        0
+ Delta CI [2.5% ; 97.5%] p.value
+0.4632   [0.4088;0.5185] 0.19177
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(eTox.BThalf)
+\end{lstlisting}
+
+\begin{verbatim}
+             estimate         se   lower.ci   upper.ci null   p.value
+toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
+\end{verbatim}
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest.options(trace = 0)
+\end{lstlisting}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 library(asht)
-wmwTest(toxicity.num ~ treatment, data = dt.data)
+dt.data$treatment2 <- relevel(dt.data$treatment,"T")
+wmwTest(toxicity.num ~ treatment2, data = dt.data)
 \end{lstlisting}
 
 \begin{verbatim}
 
-	Wilcoxon-Mann-Whitney test with continuity correction (confidence interval
-	requires proportional odds assumption, but test does not)
+	Wilcoxon-Mann-Whitney test with continuity correction (confidence
+	interval requires proportional odds assumption, but test does not)
 
-data:  toxicity.num by treatment
-Mann-Whitney estimate = 0.5368, tie factor = 0.94003, p-value = 0.1893
+data:  toxicity.num by treatment2
+Mann-Whitney estimate = 0.4632, tie factor = 0.94003, p-value =
+0.1893
 alternative hypothesis: two distributions are not equal
 95 percent confidence interval:
- 0.4819062 0.5906310
+ 0.4093690 0.5180938
 sample estimates:
 Mann-Whitney estimate 
-               0.5368
-\end{verbatim}
-
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-eTox.BThalf <- BuyseTest(treatment ~ cont(toxicity.num),
-                      add.halfNeutral = TRUE,
-                      data=dt.data, trace = FALSE)
-confint(eTox.BThalf, statistic = "favorable")
-\end{lstlisting}
-
-\begin{verbatim}
-             estimate        se  lower.ci  upper.ci null   p.value
-toxicity.num   0.5368 0.0280893 0.4815212 0.5911888  0.5 0.1917665
+               0.4632
 \end{verbatim}
 
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 library(pim)
-e.pim <- pim(toxicity.num ~ treatment, data = dt.data)
+e.pim <- pim(toxicity.num ~ treatment2, data = dt.data)
 summary(e.pim)
 \end{lstlisting}
 
 \begin{verbatim}
 pim.summary of following model : 
- toxicity.num ~ treatment
+ toxicity.num ~ treatment2
 Type:  difference 
 Link:  logit 
 
 
-           Estimate Std. Error z value Pr(>|z|)
-treatmentT   0.1475     0.1126   1.309     0.19
+            Estimate Std. Error z value Pr(>|z|)
+treatment2C  -0.1475     0.1126  -1.309     0.19
 
 Null hypothesis: b = 0
 \end{verbatim}
 
-\subsection{subsection 2.2.2 Threshold of clinical relevance}
-\label{sec:org319d7c7}
+\subsection{subsection 2.2.3 Threshold of clinical relevance}
+\label{sec:orgae49a35}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -485,23 +510,12 @@ print(eTox.BT2)
 \end{lstlisting}
 
 \begin{verbatim}
-    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
-toxicity.num         2      100        19.44          22.14      58.41        0
- Delta CI [2.5% ; 97.5%] p.value
--0.027  [-0.1077;0.0542] 0.51506
+    endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%)
+toxicity.num         2      100        19.44          22.14      58.42
+uninf(%)  Delta CI [2.5% ; 97.5%] p.value
+       0 -0.027  [-0.1077;0.0542] 0.51506
 \end{verbatim}
 
-
-
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-eTox.BT@threshold
-\end{lstlisting}
-
-\begin{verbatim}
-toxicity.num 
-       1e-12
-\end{verbatim}
 
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -526,24 +540,34 @@ getPairScore(eTox.BT2)
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-dt.data[c(3:4,201),]
+dt.data[c(3:4,201),c("id","treatment","OS","statusOS","toxicity","gender")]
 \end{lstlisting}
 
 \begin{verbatim}
-   treatment         OS statusOS        PFS statusPFS toxicity gender toxicity.num
-1:         C  5.5015848        1  0.9092541         1        3      M            3
-2:         C  0.2864467        1  5.8723232         1        1      M            1
-3:         T 13.8301382        1 19.4802921         1        4      F            4
+    id treatment         OS statusOS toxicity gender
+1:   3         C  5.5015848        1        3      M
+2:   4         C  0.2864467        1        1      M
+3: 201         T 13.8301382        1        4      F
 \end{verbatim}
 
-\subsection{subsection 2.2.3 Accounting for baseline covariates}
-\label{sec:org4cd7ef7}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+model.tables(eTox.BT, columns = "threshold")
+\end{lstlisting}
+
+\begin{verbatim}
+  threshold
+1     1e-12
+\end{verbatim}
+
+\subsection{subsection 2.2.4 Accounting for baseline covariates}
+\label{sec:org3540166}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
-eTox.BTG <- BuyseTest(ffG,
-                      data=dt.data, keep.pairScore = TRUE, trace = FALSE)
+eTox.BTG <- BuyseTest(ffG, data=dt.data, keep.pairScore = TRUE, trace = FALSE)
 summary(eTox.BTG)
 \end{lstlisting}
 
@@ -553,18 +577,18 @@ summary(eTox.BTG)
  - statistic       : net benefit (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
- - inference       : H-projection of order 1
+ - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: T (treatment) vs. C (control) 
  - strata weights  : 50.5%, 49.5% 
  - results
-     endpoint strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
- toxicity.num global      100        35.43          42.74      21.83        0
-                   M       51        17.79          22.37      10.85        0
-                   F       49        17.63          20.38      10.98        0
-   delta   Delta CI [2.5% ; 97.5%] p.value 
- -0.0731 -0.0731  [-0.1823;0.0379] 0.19672 
- -0.0897                                   
- -0.0561
+     endpoint strata total(%) favorable(%) unfavorable(%) neutral(%)
+ toxicity.num global      100        35.43          42.75      21.82
+                   M       51        17.79          22.37      10.85
+                   F       49        17.63          20.38      10.98
+ uninf(%)   delta   Delta CI [2.5% ; 97.5%] p.value 
+        0 -0.0731 -0.0731  [-0.1823;0.0379] 0.19672 
+        0 -0.0897                                   
+        0 -0.0561
 \end{verbatim}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -604,14 +628,24 @@ toxicity.num.F -0.05609106 0.08030000 -0.2108224 0.10138233    0 0.4857698
 \begin{lstlisting}
 e.pimS <- pim(toxicity.num ~ treatment + gender, data = dt.data,
               link = "identity")
-coef(e.pimS)
+summary(e.pimS)
 \end{lstlisting}
 
 \begin{verbatim}
- treatmentT     genderF 
-0.536970673 0.002438191
-\end{verbatim}
+pim.summary of following model : 
+ toxicity.num ~ treatment + gender
+Type:  difference 
+Link:  identity 
 
+
+           Estimate Std. Error z value Pr(>|z|)    
+treatmentT 0.536971   0.028126  19.092   <2e-16 ***
+genderF    0.002438   0.031968   0.076    0.939    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Null hypothesis: b = 0
+\end{verbatim}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -639,8 +673,8 @@ treatmentT
   0.544868
 \end{verbatim}
 
-\subsection{subsection 2.2.4 Handling right-censoring when assessing efficacy}
-\label{sec:org2a907b1}
+\subsection{subsection 2.2.5 Handling right-censoring when assessing efficacy}
+\label{sec:org6c35ca6}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -658,16 +692,7 @@ dt.data[,.(censoring=mean(statusOS==0)),by = "treatment"]
 \begin{lstlisting}
 eEff.BT <- BuyseTest(treatment ~ tte(OS, statusOS), data=dt.data,
                      keep.pairScore = TRUE, trace = FALSE)
-print(eEff.BT)
 \end{lstlisting}
-
-\begin{verbatim}
-endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-      OS      100        58.67          41.12          0      0.2 0.1755
-CI [2.5% ; 97.5%]   p.value
-  [0.0472;0.2981] 0.0075342
-\end{verbatim}
-
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -685,18 +710,18 @@ getPairScore(eEff.BT)[c(1,2,2623,8553),]
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-dt.data[c(1,2,201,23,214,153,243)]
+dt.data[c(1,2,201,23,214,153,243),c("id","treatment","OS","statusOS","gender")]
 \end{lstlisting}
 
 \begin{verbatim}
-   treatment           OS statusOS          PFS statusPFS toxicity gender
-1:         C  0.628786006        0  0.694670560         1        3      F
-2:         C  0.003647332        1  1.722822144         1        3      F
-3:         T 13.830138195        1 19.480292066         1        4      F
-4:         C 55.980040009        0  3.154814245         1        6      F
-5:         T 12.259281475        0  1.993193690         1        4      M
-6:         C 26.429727212        0  0.017697976         0        6      F
-7:         T 52.219932416        0  0.003857412         0        6      M
+    id treatment           OS statusOS gender
+1:   1         C  0.628786006        0      F
+2:   2         C  0.003647332        1      F
+3: 201         T 13.830138195        1      F
+4:  23         C 55.980040009        0      F
+5: 214         T 12.259281475        0      M
+6: 153         C 26.429727212        0      F
+7: 243         T 52.219932416        0      M
 \end{verbatim}
 
 
@@ -730,7 +755,7 @@ CI [2.5% ; 97.5%]  p.value
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-dt30.data <- copy(dt.data)
+dt30.data <- data.table::copy(dt.data)
 dt30.data[OS>30, c("OS", "statusOS") := .(30,0)]
 
 ## plot(prodlim(Hist(OS,statusOS)~treatment, data = dt30.data))
@@ -744,10 +769,10 @@ print(eEff.BT30)
 \end{lstlisting}
 
 \begin{verbatim}
-endpoint restriction total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
-      OS          25      100        56.22          38.91       4.87        0
- Delta CI [2.5% ; 97.5%]   p.value
-0.1731   [0.0468;0.2941] 0.0074591
+endpoint restriction total(%) favorable(%) unfavorable(%) neutral(%)
+      OS          25      100        56.22          38.91       4.87
+uninf(%)  Delta CI [2.5% ; 97.5%]   p.value
+       0 0.1731   [0.0468;0.2941] 0.0074591
 \end{verbatim}
 
 
@@ -759,24 +784,27 @@ getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
 \end{lstlisting}
 
 \begin{verbatim}
+    id treatment       OS statusOS      PFS statusPFS toxicity gender
+1:  44         C 33.86813        1 5.935977         1        6      F
+2: 211         T 34.53610        1 6.308944         1        5      M
+   toxicity.num
+1:            6
+2:            5
    index.C index.T favorable unfavorable neutral uninf weight
 1:      44     211         0           0       1     0      1
    index.C index.T favorable unfavorable neutral uninf weight
 1:      44     211         1           0       0     0      1
-   treatment       OS statusOS      PFS statusPFS toxicity gender
-1:         C 33.86813        1 5.935977         1        6      F
-2:         T 34.53610        1 6.308944         1        5      M
 \end{verbatim}
 
 \section{section 2.3 Benefit risk analysis using GPC}
-\label{sec:org9e97155}
+\label{sec:orgcfc100a}
 
 \subsection{subsection 2.3.1 Hierarchical \& non-hierarchical analyses}
-\label{sec:org68cca4d}
+\label{sec:org9dc378e}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-eBRB.BT <-BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num),
-                    data=dt.data, trace = FALSE)
+eBRB.BT <- BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num),
+                     data=dt.data, trace = FALSE)
 print(eBRB.BT)
 \end{lstlisting}
 
@@ -804,12 +832,12 @@ print(eNH.BT)
 \end{lstlisting}
 
 \begin{verbatim}
-    endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
-toxicity.num      100        42.74          35.38      21.87      0.0
-          OS      100        58.67          41.12       0.00      0.2
- delta  Delta CI [2.5% ; 97.5%]  p.value
-0.0736 0.0368  [-0.0183;0.0917] 0.190560
-0.1755 0.1245   [0.0094;0.2365] 0.034154
+    endpoint weight total(%) favorable(%) unfavorable(%) neutral(%)
+toxicity.num    0.5      100        42.74          35.38      21.87
+          OS    0.5      100        58.67          41.12       0.00
+uninf(%)  delta  Delta CI [2.5% ; 97.5%]  p.value
+     0.0 0.0736 0.0368  [-0.0183;0.0917] 0.190560
+     0.2 0.1755 0.1245   [0.0094;0.2365] 0.034154
 \end{verbatim}
 
 
@@ -847,8 +875,22 @@ windows
       2
 \end{verbatim}
 
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+rbind("prioritized" = confint(eH.BT, transform = FALSE, endpoint = 1),
+      "non-prioritized" = confint(eNH.BT, transform = FALSE, endpoint = 1))
+
+\end{lstlisting}
+
+\begin{verbatim}
+                estimate         se    lower.ci   upper.ci null   p.value
+prioritized       0.0736 0.05617859 -0.03650802 0.18370802    0 0.1901594
+non-prioritized   0.0368 0.02808930 -0.01825401 0.09185401    0 0.1901594
+\end{verbatim}
+
 \subsection{subsection 2.3.2 Threshold of clinical relevance}
-\label{sec:org8fd7a69}
+\label{sec:org8584531}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 eSH.BT <- BuyseTest(treatment ~ tte(OS, statusOS, threshold = 28)
@@ -901,7 +943,7 @@ windows
 \end{verbatim}
 
 \subsection{subsection 2.3.3 Encoding of the outcome}
-\label{sec:org54c6530}
+\label{sec:org71085fe}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 dt.data$OS2 <- dt.data$OS
@@ -985,7 +1027,7 @@ print(eR2.BT, percentage = FALSE)
 \end{verbatim}
 
 \subsection{subsection 2.3.4 Sensitivity analysis}
-\label{sec:orgbb59c2a}
+\label{sec:orge51effc}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1000,35 +1042,16 @@ eRBB.Se[c(1,2,6),]
 2            2  0 0.1628627 0.06304537  0.037375134 0.2832937    0
 6            1  5 0.1137239 0.05999122 -0.004903169 0.2291946    0
      p.value  lower.band upper.band adj.p.value
-1 0.03765646 -0.01009852  0.2603190  0.07354353
-2 0.01116991  0.01910242  0.3000252  0.02380337
-6 0.06020505 -0.02206190  0.2453901  0.11223981
+1 0.03765646 -0.01014002  0.2603577  0.07354353
+2 0.01116991  0.01905884  0.3000649  0.02380337
+6 0.06020505 -0.02210279  0.2454285  0.11223981
 \end{verbatim}
 
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-eRBB.Hdecomp <- attr(eRBB.Se,"iid")
-dim(eRBB.Hdecomp)
-eRBB.cor <- cor(eRBB.Hdecomp)
-range(eRBB.cor[lower.tri(eRBB.cor)])
-rownames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
-colnames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
-pdf("figures/fig_software_corIID.pdf", width = 8, height = 8)
-par(mar  = c(6,6,2,2))
-fields::image.plot(eRBB.cor, axes = FALSE)
-axis(1, at=(1:15)/15, labels=rownames(eRBB.cor), las = 2)
-axis(2, at=(1:15)/15, labels=colnames(eRBB.cor), las = 2)
-dev.off()
+autoplot(eRBB.Se) + facet_wrap(~OS, labeller = label_both)
 \end{lstlisting}
-
-\begin{verbatim}
-[1] 400  15
-[1] 0.8247216 0.9999499
-null device 
-          1
-\end{verbatim}
-
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1050,6 +1073,53 @@ null device
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
+eRBB.Hdecomp <- iid(eRBB.Se)
+dim(eRBB.Hdecomp)
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 400  15
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+eRBB.cor <- cor(eRBB.Hdecomp)
+range(eRBB.cor[lower.tri(eRBB.cor)])
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 0.8247216 0.9999499
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+rownames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
+colnames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
+pdf("figures/fig_software_corIID.pdf", width = 8, height = 8)
+par(mar  = c(6,6,2,2))
+fields::image.plot(eRBB.cor, axes = FALSE)
+axis(1, at=(1:15)/15, labels=rownames(eRBB.cor), las = 2)
+axis(2, at=(1:15)/15, labels=colnames(eRBB.cor), las = 2)
+dev.off()
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+range(eRBB.Se$adj.p.value/eRBB.Se$p.value)
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 1.797917 2.322942
+\end{verbatim}
+
+
+
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 e.MBT <- BuyseMultComp(list("OS-tox" = eBRB.BT, "tox-OS" = eRBB.BT, "threshold" = eSH.BT), cluster = "id", seed = 10)
 e.MBT
 \end{lstlisting}
@@ -1061,15 +1131,15 @@ OS-tox    0.1751986 0.06432289 0.0469276309 0.2977853    0 0.007638296
 tox-OS    0.1274785 0.06066316 0.0073140314 0.2440137    0 0.037656458
 threshold 0.1229079 0.06195027 0.0002498525 0.2419225    0 0.049537494
             lower.band upper.band adj.p.value
-OS-tox     0.035735620  0.3079680  0.01162931
-tox-OS    -0.003103986  0.2537864  0.05609444
-threshold -0.010376616  0.2519014  0.07304297
+OS-tox     0.035747523  0.3079572  0.01256251
+tox-OS    -0.003092911  0.2537760  0.05598424
+threshold -0.010365320  0.2518908  0.07288010
 \end{verbatim}
 
 \section{section 2.4 Power calculation for GPC analyses}
-\label{sec:orgb488ac1}
+\label{sec:org7aec7d6}
 \subsection{subsection 2.4.1 Data generating mechanism}
-\label{sec:org79273b0}
+\label{sec:org2441b44}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 simFCT <- function(n.C, n.T){
@@ -1103,7 +1173,7 @@ simFCT2 <- function(n.T, n.C){
   return(out)
 }
 set.seed(10)
-simFCT2(2,2)
+simFCT2(2,2) 
 \end{lstlisting}
 
 \begin{verbatim}
@@ -1113,15 +1183,22 @@ simFCT2(2,2)
 3:  3         T 29.0185631        0 14.98265076         0        5      F
 4:  4         T  5.9442666        1  0.74317252         0        3      F
 \end{verbatim}
+
 \subsection{subsection 2.4.2 Simulation-based power and sample size estimation}
-\label{sec:org4f632b5}
+\label{sec:org01f8a67}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.power <- powerBuyseTest(formula = treatment ~ tte(OS, statusOS, threshold = 5) + cont(toxicity, operator = "<0"),
                           sim = simFCT2, sample.size = c(10,50,100),
-                          n.rep = 1000, seed = 10)
+                          n.rep = 100, seed = 10)
 \end{lstlisting}
+
+\begin{verbatim}
+Indlæser krævet navnerum: pbapply
+  |                                                  | 0 % ~calculating    |+                                                 | 1 % ~28s            |+                                                 | 2 % ~28s            |++                                                | 3 % ~28s            |++                                                | 4 % ~28s            |+++                                               | 5 % ~32s            |+++                                               | 6 % ~31s            |++++                                              | 7 % ~30s            |++++                                              | 8 % ~29s            |+++++                                             | 9 % ~29s            |+++++                                             | 10% ~28s            |++++++                                            | 11% ~28s            |++++++                                            | 12% ~27s            |+++++++                                           | 13% ~27s            |+++++++                                           | 14% ~26s            |++++++++                                          | 15% ~26s            |++++++++                                          | 16% ~26s            |+++++++++                                         | 17% ~26s            |+++++++++                                         | 18% ~26s            |++++++++++                                        | 19% ~25s            |++++++++++                                        | 20% ~25s            |+++++++++++                                       | 21% ~24s            |+++++++++++                                       | 22% ~24s            |++++++++++++                                      | 23% ~24s            |++++++++++++                                      | 24% ~23s            |+++++++++++++                                     | 25% ~23s            |+++++++++++++                                     | 26% ~23s            |++++++++++++++                                    | 27% ~22s            |++++++++++++++                                    | 28% ~22s            |+++++++++++++++                                   | 29% ~22s            |+++++++++++++++                                   | 30% ~22s            |++++++++++++++++                                  | 31% ~21s            |++++++++++++++++                                  | 32% ~21s            |+++++++++++++++++                                 | 33% ~21s            |+++++++++++++++++                                 | 34% ~20s            |++++++++++++++++++                                | 35% ~20s            |++++++++++++++++++                                | 36% ~20s            |+++++++++++++++++++                               | 37% ~19s            |+++++++++++++++++++                               | 38% ~19s            |++++++++++++++++++++                              | 39% ~19s            |++++++++++++++++++++                              | 40% ~18s            |+++++++++++++++++++++                             | 41% ~18s            |+++++++++++++++++++++                             | 42% ~18s            |++++++++++++++++++++++                            | 43% ~18s            |++++++++++++++++++++++                            | 44% ~17s            |+++++++++++++++++++++++                           | 45% ~17s            |+++++++++++++++++++++++                           | 46% ~17s            |++++++++++++++++++++++++                          | 47% ~16s            |++++++++++++++++++++++++                          | 48% ~16s            |+++++++++++++++++++++++++                         | 49% ~16s            |+++++++++++++++++++++++++                         | 50% ~16s            |++++++++++++++++++++++++++                        | 51% ~15s            |++++++++++++++++++++++++++                        | 52% ~15s            |+++++++++++++++++++++++++++                       | 53% ~15s            |+++++++++++++++++++++++++++                       | 54% ~14s            |++++++++++++++++++++++++++++                      | 55% ~14s            |++++++++++++++++++++++++++++                      | 56% ~14s            |+++++++++++++++++++++++++++++                     | 57% ~13s            |+++++++++++++++++++++++++++++                     | 58% ~13s            |++++++++++++++++++++++++++++++                    | 59% ~13s            |++++++++++++++++++++++++++++++                    | 60% ~12s            |+++++++++++++++++++++++++++++++                   | 61% ~12s            |+++++++++++++++++++++++++++++++                   | 62% ~12s            |++++++++++++++++++++++++++++++++                  | 63% ~12s            |++++++++++++++++++++++++++++++++                  | 64% ~11s            |+++++++++++++++++++++++++++++++++                 | 65% ~11s            |+++++++++++++++++++++++++++++++++                 | 66% ~11s            |++++++++++++++++++++++++++++++++++                | 67% ~10s            |++++++++++++++++++++++++++++++++++                | 68% ~10s            |+++++++++++++++++++++++++++++++++++               | 69% ~10s            |+++++++++++++++++++++++++++++++++++               | 70% ~09s            |++++++++++++++++++++++++++++++++++++              | 71% ~09s            |++++++++++++++++++++++++++++++++++++              | 72% ~09s            |+++++++++++++++++++++++++++++++++++++             | 73% ~08s            |+++++++++++++++++++++++++++++++++++++             | 74% ~08s            |++++++++++++++++++++++++++++++++++++++            | 75% ~08s            |++++++++++++++++++++++++++++++++++++++            | 76% ~08s            |+++++++++++++++++++++++++++++++++++++++           | 77% ~07s            |+++++++++++++++++++++++++++++++++++++++           | 78% ~07s            |++++++++++++++++++++++++++++++++++++++++          | 79% ~07s            |++++++++++++++++++++++++++++++++++++++++          | 80% ~06s            |+++++++++++++++++++++++++++++++++++++++++         | 81% ~06s            |+++++++++++++++++++++++++++++++++++++++++         | 82% ~06s            |++++++++++++++++++++++++++++++++++++++++++        | 83% ~05s            |++++++++++++++++++++++++++++++++++++++++++        | 84% ~05s            |+++++++++++++++++++++++++++++++++++++++++++       | 85% ~05s            |+++++++++++++++++++++++++++++++++++++++++++       | 86% ~04s            |++++++++++++++++++++++++++++++++++++++++++++      | 87% ~04s            |++++++++++++++++++++++++++++++++++++++++++++      | 88% ~04s            |+++++++++++++++++++++++++++++++++++++++++++++     | 89% ~03s            |+++++++++++++++++++++++++++++++++++++++++++++     | 90% ~03s            |++++++++++++++++++++++++++++++++++++++++++++++    | 91% ~03s            |++++++++++++++++++++++++++++++++++++++++++++++    | 92% ~03s            |+++++++++++++++++++++++++++++++++++++++++++++++   | 93% ~02s            |+++++++++++++++++++++++++++++++++++++++++++++++   | 94% ~02s            |++++++++++++++++++++++++++++++++++++++++++++++++  | 95% ~02s            |++++++++++++++++++++++++++++++++++++++++++++++++  | 96% ~01s            |+++++++++++++++++++++++++++++++++++++++++++++++++ | 97% ~01s            |+++++++++++++++++++++++++++++++++++++++++++++++++ | 98% ~01s            |++++++++++++++++++++++++++++++++++++++++++++++++++| 99% ~00s            |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed=31s
+\end{verbatim}
+
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1130,17 +1207,13 @@ summary(e.power)
 
 \begin{verbatim}
         Simulation study with Generalized pairwise comparison
-        with 1000 samples
+        with 100 samples
 
  - statistic   : net benefit (null hypothesis Delta=0)
- endpoint threshold n.T n.C mean.estimate sd.estimate mean.se
- toxicity     1e-12  10  10        0.2251       0.286  0.2441
-                     50  50         0.222      0.1206  0.1163
-                    100 100        0.2187       0.086  0.0823
- rejection.rate
-          0.152
-          0.464
-           0.75
+ endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
+ toxicity     1e-12  10  10        0.1826      0.2719  0.2501           0.09
+                     50  50        0.1954      0.1162  0.1183            0.4
+                    100 100        0.2014      0.0784  0.0829           0.64
 
  n.T          : number of observations in the treatment group
  n.C          : number of observations in the control group
@@ -1150,43 +1223,106 @@ summary(e.power)
  rejection    : frequency of the rejection of the null hypothesis over simulations
 (standard error: H-projection of order 1| p-value: after transformation)
 \end{verbatim}
+
+
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-e.power
+e.power2 <- powerBuyseTest(formula = treatment ~ tte(OS, statusOS, threshold = 5) + cont(toxicity, operator = "<0"),
+                           sim = simFCT2, sample.size = c(10,50,100),
+                           n.rep = 1000, seed = 10, cpus = 5, export.cpus = c("argsTox", "argsSurv"))
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+print(e.power2, endpoint = "all")
 \end{lstlisting}
 
 \begin{verbatim}
-endpoint threshold n.T n.C mean.estimate sd.estimate mean.se
-toxicity     1e-12  10  10         0.225       0.286   0.244
-                    50  50         0.222       0.121   0.116
-                   100 100         0.219       0.086   0.082
-rejection.rate
-         0.152
-         0.464
-          0.75
+endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
+      OS         5  10  10        0.1429      0.2729   0.239          0.092
+                    50  50        0.1515      0.1188  0.1159          0.248
+                   100 100        0.1559       0.083  0.0822          0.483
+toxicity     1e-12  10  10        0.2076      0.2829  0.2449          0.136
+                    50  50        0.2123      0.1199  0.1169          0.425
+                   100 100        0.2161       0.084  0.0825          0.722
 \end{verbatim}
 
 
-
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-print(e.power, endpoint = c("OS_t5","toxicity"))
+e.nSearch <- powerBuyseTest(formula = treatment ~ tte(OS, statusOS, threshold = 5)
+                            + cont(toxicity, operator = "<0"),
+                            sim = simFCT2, power = 0.8, max.sample.size = 1000,
+                            n.rep = c(1000,10), seed = 10, trace = 2, 
+                            cpus = 5, export.cpus = c("argsTox", "argsSurv"))
 \end{lstlisting}
 
 \begin{verbatim}
- endpoint threshold n.T n.C mean.estimate sd.estimate    mean.se
-       OS         5  10  10     0.1586380  0.27565488 0.23862190
-                     50  50     0.1608379  0.11854069 0.11558718
-                    100 100     0.1581603  0.08406150 0.08194723
- toxicity     1e-12  10  10     0.2250974  0.28602662 0.24405687
-                     50  50     0.2219896  0.12055283 0.11633601
-                    100 100     0.2187024  0.08598022 0.08226672
+         Determination of the sample using a large sample (T=1000, C=1000)  
+
+  |                                                                                                  |                                                                                          |   0%  |                                                                                                  |=========                                                                                 |  10%  |                                                                                                  |==================                                                                        |  20%  |                                                                                                  |===========================                                                               |  30%  |                                                                                                  |====================================                                                      |  40%  |                                                                                                  |=============================================                                             |  50%  |                                                                                                  |======================================================                                    |  60%  |                                                                                                  |===============================================================                           |  70%  |                                                                                                  |========================================================================                  |  80%  |                                                                                                  |=================================================================================         |  90%  |                                                                                                  |==========================================================================================| 100%
+   - average estimated effect (variance): 0.2095668 (1.371582)
+   - average estimated sample size [min;max]      : (m=131 [77;206], n=131 [77;206]
+
+         Simulation study with BuyseTest 
+
+Simulation
+   - repetitions: 1000
+   - cpus       : 5
+ 
+  |                                                                                                  |                                                                                          |   0%  |                                                                                                  |=                                                                                         |   1%  |                                                                                                  |=                                                                                         |   2%  |                                                                                                  |==                                                                                        |   2%  |                                                                                                  |==                                                                                        |   3%  |                                                                                                  |===                                                                                       |   3%  |                                                                                                  |===                                                                                       |   4%  |                                                                                                  |====                                                                                      |   4%  |                                                                                                  |====                                                                                      |   5%  |                                                                                                  |=====                                                                                     |   5%  |                                                                                                  |=====                                                                                     |   6%  |                                                                                                  |======                                                                                    |   6%  |                                                                                                  |======                                                                                    |   7%  |                                                                                                  |=======                                                                                   |   7%  |                                                                                                  |=======                                                                                   |   8%  |                                                                                                  |========                                                                                  |   8%  |                                                                                                  |========                                                                                  |   9%  |                                                                                                  |=========                                                                                 |  10%  |                                                                                                  |==========                                                                                |  11%  |                                                                                                  |==========                                                                                |  12%  |                                                                                                  |===========                                                                               |  12%  |                                                                                                  |===========                                                                               |  13%  |                                                                                                  |============                                                                              |  13%  |                                                                                                  |============                                                                              |  14%  |                                                                                                  |=============                                                                             |  14%  |                                                                                                  |=============                                                                             |  15%  |                                                                                                  |==============                                                                            |  15%  |                                                                                                  |==============                                                                            |  16%  |                                                                                                  |===============                                                                           |  16%  |                                                                                                  |===============                                                                           |  17%  |                                                                                                  |================                                                                          |  17%  |                                                                                                  |================                                                                          |  18%  |                                                                                                  |=================                                                                         |  18%  |                                                                                                  |=================                                                                         |  19%  |                                                                                                  |==================                                                                        |  20%  |                                                                                                  |===================                                                                       |  21%  |                                                                                                  |===================                                                                       |  22%  |                                                                                                  |====================                                                                      |  22%  |                                                                                                  |====================                                                                      |  23%  |                                                                                                  |=====================                                                                     |  23%  |                                                                                                  |=====================                                                                     |  24%  |                                                                                                  |======================                                                                    |  24%  |                                                                                                  |======================                                                                    |  25%  |                                                                                                  |=======================                                                                   |  25%  |                                                                                                  |=======================                                                                   |  26%  |                                                                                                  |========================                                                                  |  26%  |                                                                                                  |========================                                                                  |  27%  |                                                                                                  |=========================                                                                 |  27%  |                                                                                                  |=========================                                                                 |  28%  |                                                                                                  |==========================                                                                |  28%  |                                                                                                  |==========================                                                                |  29%  |                                                                                                  |===========================                                                               |  30%  |                                                                                                  |============================                                                              |  31%  |                                                                                                  |============================                                                              |  32%  |                                                                                                  |=============================                                                             |  32%  |                                                                                                  |=============================                                                             |  33%  |                                                                                                  |==============================                                                            |  33%  |                                                                                                  |==============================                                                            |  34%  |                                                                                                  |===============================                                                           |  34%  |                                                                                                  |===============================                                                           |  35%  |                                                                                                  |================================                                                          |  35%  |                                                                                                  |================================                                                          |  36%  |                                                                                                  |=================================                                                         |  36%  |                                                                                                  |=================================                                                         |  37%  |                                                                                                  |==================================                                                        |  37%  |                                                                                                  |==================================                                                        |  38%  |                                                                                                  |===================================                                                       |  38%  |                                                                                                  |===================================                                                       |  39%  |                                                                                                  |====================================                                                      |  40%  |                                                                                                  |=====================================                                                     |  41%  |                                                                                                  |=====================================                                                     |  42%  |                                                                                                  |======================================                                                    |  42%  |                                                                                                  |======================================                                                    |  43%  |                                                                                                  |=======================================                                                   |  43%  |                                                                                                  |=======================================                                                   |  44%  |                                                                                                  |========================================                                                  |  44%  |                                                                                                  |========================================                                                  |  45%  |                                                                                                  |=========================================                                                 |  45%  |                                                                                                  |=========================================                                                 |  46%  |                                                                                                  |==========================================                                                |  46%  |                                                                                                  |==========================================                                                |  47%  |                                                                                                  |===========================================                                               |  47%  |                                                                                                  |===========================================                                               |  48%  |                                                                                                  |============================================                                              |  48%  |                                                                                                  |============================================                                              |  49%  |                                                                                                  |=============================================                                             |  50%  |                                                                                                  |==============================================                                            |  51%  |                                                                                                  |==============================================                                            |  52%  |                                                                                                  |===============================================                                           |  52%  |                                                                                                  |===============================================                                           |  53%  |                                                                                                  |================================================                                          |  53%  |                                                                                                  |================================================                                          |  54%  |                                                                                                  |=================================================                                         |  54%  |                                                                                                  |=================================================                                         |  55%  |                                                                                                  |==================================================                                        |  55%  |                                                                                                  |==================================================                                        |  56%  |                                                                                                  |===================================================                                       |  56%  |                                                                                                  |===================================================                                       |  57%  |                                                                                                  |====================================================                                      |  57%  |                                                                                                  |====================================================                                      |  58%  |                                                                                                  |=====================================================                                     |  58%  |                                                                                                  |=====================================================                                     |  59%  |                                                                                                  |======================================================                                    |  60%  |                                                                                                  |=======================================================                                   |  61%  |                                                                                                  |=======================================================                                   |  62%  |                                                                                                  |========================================================                                  |  62%  |                                                                                                  |========================================================                                  |  63%  |                                                                                                  |=========================================================                                 |  63%  |                                                                                                  |=========================================================                                 |  64%  |                                                                                                  |==========================================================                                |  64%  |                                                                                                  |==========================================================                                |  65%  |                                                                                                  |===========================================================                               |  65%  |                                                                                                  |===========================================================                               |  66%  |                                                                                                  |============================================================                              |  66%  |                                                                                                  |============================================================                              |  67%  |                                                                                                  |=============================================================                             |  67%  |                                                                                                  |=============================================================                             |  68%  |                                                                                                  |==============================================================                            |  68%  |                                                                                                  |==============================================================                            |  69%  |                                                                                                  |===============================================================                           |  70%  |                                                                                                  |================================================================                          |  71%  |                                                                                                  |================================================================                          |  72%  |                                                                                                  |=================================================================                         |  72%  |                                                                                                  |=================================================================                         |  73%  |                                                                                                  |==================================================================                        |  73%  |                                                                                                  |==================================================================                        |  74%  |                                                                                                  |===================================================================                       |  74%  |                                                                                                  |===================================================================                       |  75%  |                                                                                                  |====================================================================                      |  75%  |                                                                                                  |====================================================================                      |  76%  |                                                                                                  |=====================================================================                     |  76%  |                                                                                                  |=====================================================================                     |  77%  |                                                                                                  |======================================================================                    |  77%  |                                                                                                  |======================================================================                    |  78%  |                                                                                                  |=======================================================================                   |  78%  |                                                                                                  |=======================================================================                   |  79%  |                                                                                                  |========================================================================                  |  80%  |                                                                                                  |=========================================================================                 |  81%  |                                                                                                  |=========================================================================                 |  82%  |                                                                                                  |==========================================================================                |  82%  |                                                                                                  |==========================================================================                |  83%  |                                                                                                  |===========================================================================               |  83%  |                                                                                                  |===========================================================================               |  84%  |                                                                                                  |============================================================================              |  84%  |                                                                                                  |============================================================================              |  85%  |                                                                                                  |=============================================================================             |  85%  |                                                                                                  |=============================================================================             |  86%  |                                                                                                  |==============================================================================            |  86%  |                                                                                                  |==============================================================================            |  87%  |                                                                                                  |===============================================================================           |  87%  |                                                                                                  |===============================================================================           |  88%  |                                                                                                  |================================================================================          |  88%  |                                                                                                  |================================================================================          |  89%  |                                                                                                  |=================================================================================         |  90%  |                                                                                                  |==================================================================================        |  91%  |                                                                                                  |==================================================================================        |  92%  |                                                                                                  |===================================================================================       |  92%  |                                                                                                  |===================================================================================       |  93%  |                                                                                                  |====================================================================================      |  93%  |                                                                                                  |====================================================================================      |  94%  |                                                                                                  |=====================================================================================     |  94%  |                                                                                                  |=====================================================================================     |  95%  |                                                                                                  |======================================================================================    |  95%  |                                                                                                  |======================================================================================    |  96%  |                                                                                                  |=======================================================================================   |  96%  |                                                                                                  |=======================================================================================   |  97%  |                                                                                                  |========================================================================================  |  97%  |                                                                                                  |========================================================================================  |  98%  |                                                                                                  |========================================================================================= |  98%  |                                                                                                  |========================================================================================= |  99%  |                                                                                                  |==========================================================================================| 100%
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+print(e.nSearch)
+\end{lstlisting}
+
+\begin{verbatim}
+endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
+toxicity     1e-12 131 131        0.2188        0.07  0.0719          0.845
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+nobs(e.nSearch)
+summary(e.nSearch)
+\end{lstlisting}
+
+\begin{verbatim}
+       C   T
+[1,] 131 131
+attr(,"sample")
+              C         T
+ [1,] 161.00816 161.00816
+ [2,] 147.89495 147.89495
+ [3,] 164.90320 164.90320
+ [4,] 205.56769 205.56769
+ [5,]  76.17603  76.17603
+ [6,] 112.05892 112.05892
+ [7,]  92.22803  92.22803
+ [8,] 103.02269 103.02269
+ [9,] 124.81196 124.81196
+[10,] 112.33469 112.33469
+        Sample size calculation with Generalized pairwise comparison
+        for a power of 0.8 and type 1 error rate of 0.05 
+
+ - estimated sample size (mean [min;max]): 131 [77;206] controls
+                                           131 [77;206] treated
+
+ - net benefit statistic (null hypothesis Delta=0)
+ endpoint threshold n.T n.C mean.estimate sd.estimate mean.se
+ toxicity     1e-12 131 131        0.2188        0.07  0.0719
  rejection.rate
-          0.104
-          0.267
-          0.468
-          0.152
-          0.464
-          0.750
+          0.845
+
+ n.T          : number of observations in the treatment group
+ n.C          : number of observations in the control group
+ mean.estimate: average estimate over simulations
+ sd.estimate  : standard deviation of the estimate over simulations
+ mean.se      : average estimated standard error of the estimate over simulations
+ rejection    : frequency of the rejection of the null hypothesis over simulations
+(standard error: H-projection of order 1| p-value: after transformation)
 \end{verbatim}
 \end{document}
