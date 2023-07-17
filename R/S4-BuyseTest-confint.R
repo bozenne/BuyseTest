@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1019
+##     Update #: 1027
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -714,9 +714,16 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     ## ** standard error
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
+    ## ** null
+    if(any(is.na(null))){
+        null[is.na(null)] <- apply(Delta.resampling,2,stats::median)[is.na(null)]
+    }
+    outTable[,"null"] <- backtransform.delta(null)
+
     ## ** critical quantile
     if(!is.na(alpha) && length(index.var)>0){
-        Delta.statH0.resampling <- apply(Delta.resampling[,index.var,drop=FALSE], MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling[,index.var,drop=FALSE]
+        
+        Delta.statH0.resampling <- .rowCenter_cpp(Delta.resampling[,index.var,drop=FALSE],null[index.var])/Delta.se.resampling[,index.var,drop=FALSE]
 
         Delta.qInf <- switch(alternative,
                              "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
@@ -740,12 +747,6 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
         outTable[index.novar,"lower.ci"] <- backtransform.delta(Delta[index.novar])
         outTable[index.novar,"upper.ci"] <- backtransform.delta(Delta[index.novar])
     }
-
-    ## ** null
-    if(any(is.na(null))){
-        null[is.na(null)] <- apply(Delta.resampling,2,stats::median)[is.na(null)]
-    }
-    outTable[,"null"] <- backtransform.delta(null)
     
     ## ** p.value
     add.1 <- BuyseTest.options()$add.1.presample

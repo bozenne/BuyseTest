@@ -58,9 +58,6 @@ setMethod(f = "model.tables",
               if(is.null(statistic)){
                   statistic <- option$statistic
               }
-              if(is.null(conf.level)){
-                  conf.level <- option$conf.level
-              }
               
               validLogical(percentage,
                            name1 = "percentage",
@@ -111,9 +108,6 @@ setMethod(f = "model.tables",
               n.resampling <- x@n.resampling
 
               method.inference <- x@method.inference
-              if(is.na(conf.level)){
-                  method.inference[] <- "none" ## uses [] to not remove the attributees of method.inference
-              }
 
               ## ** compute confidence intervals and p-values
               outConfint  <- confint(x, conf.level = conf.level, statistic = statistic, ...)
