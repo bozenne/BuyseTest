@@ -65,7 +65,6 @@ initializeArgs <- function(status,
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
     if(is.null(scoring.rule)){ scoring.rule <- option$scoring.rule }
-    if(is.null(pool.strata)){ pool.strata <- option$pool.strata }
     if(is.null(hierarchical)){ hierarchical <- option$hierarchical }
     if(is.null(correction.uninf)){ correction.uninf <- option$correction.uninf }
     if(is.null(method.inference)){ method.inference <- option$method.inference }
@@ -220,7 +219,22 @@ initializeArgs <- function(status,
     ## ** pool.strata
     if(is.null(strata)){
         pool.strata <- 0
-        attr(pool.strata,"original") <- "none"
+        attr(pool.strata,"type") <- "none"
+        attr(pool.strata,"original") <- NA
+    }else if(is.null(pool.strata)){
+        pool.strata <- switch(tolower(option$pool.strata),
+                              "buyse" = 0,
+                              "cmh" = 1,
+                              "equal" = 2,
+                              "var-favorable" = 3.1,
+                              "var-unfavorable" = 3.2,
+                              "var-netbenefit" = 3.3,
+                              "var-winratio" = 3.4,
+                              NA
+                              )
+        attr(pool.strata,"type") <- option$pool.strata   
+        attr(pool.strata,"original") <- NA   
+        
     }else if(is.character(pool.strata)){
         pool.strata_save <- tolower(pool.strata)
         pool.strata <- switch(pool.strata_save,
@@ -233,6 +247,7 @@ initializeArgs <- function(status,
                                "var-winratio" = 3.4,
                                NA
                               )
+        attr(pool.strata,"type") <- pool.strata_save
         attr(pool.strata,"original") <- pool.strata_save
     }else{
         pool.strata <- NA
@@ -365,7 +380,7 @@ initializeArgs <- function(status,
 }
 
 ## * initializeData
-initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, censoring, strata, treatment, hierarchical, copy,
+initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, censoring, strata, pool.strata, treatment, hierarchical, copy,
                            keep.pairScore, endpoint.TTE, status.TTE, iidNuisance, weightEndpoint, weightObs){
 
     if (!data.table::is.data.table(data)) {
@@ -443,7 +458,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         D.UTTE <- 0
         index.UTTE <- rep(-100, D)
     }
-    
+
     ## ** scoring method for each endpoint
     ## check if status
     n.CR <- sapply(status, function(iC){max(data[[iC]])})
@@ -471,6 +486,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     })
     attr(method.score,"test.censoring") <- test.censoring
     attr(method.score,"test.CR") <- test.CR
+    paired <- all(n.obsStrata==2)
     
     ## ** previously analyzed distinct TTE endpoints
     if((scoring.rule==1) && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
@@ -528,6 +544,17 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         weightObs <- data$..weight..
     }
     
+    ## ** pool.strata
+    ## set default pool.strata to Buyse for paired data
+    ## otherwise pooling will do something strange
+    if(paired && pool.strata !=0){
+        if(is.na(attr(pool.strata,"original"))){
+            pool.strata[] <- 0
+        }else{
+            warning("Weights from the \"buyse\" pooling scheme (argument \'pool.strata\') are recommended for paired data. \n")
+        }
+    }
+
     ## ** export
     keep.cols <- union(c(treatment, "..strata.."),
                        na.omit(attr(method.inference,"resampling-strata")))
@@ -540,8 +567,8 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 weightObs = weightObs,
                 index.strata = tapply(data[["..rowIndex.."]], data[["..strata.."]], list),
                 level.treatment = level.treatment,
-                level.strata = level.strata,
-                method.score = method.score,
+                level.strata = level.strata, pool.strata = pool.strata,
+                method.score = method.score, paired = paired,
                 n.strata = n.strata,
                 n.obs = n.obs,
                 n.obsStrata = n.obsStrata,
@@ -554,7 +581,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 endpoint.UTTE = endpoint.UTTE,
                 status.UTTE = status.UTTE,
                 D.UTTE = D.UTTE,
-                index.UTTE = index.UTTE,
+                index.UTTE = index.UTTE,                
                 keep.pairScore = keep.pairScore
                 ))
 }

@@ -341,7 +341,7 @@ BuyseTest <- function(formula,
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("data","M.endpoint","M.status",
                   "index.C","index.T","weightObs","index.strata",
-                  "level.treatment","level.strata", "method.score",
+                  "level.treatment","level.strata", "pool.strata", "method.score", "paired",
                   "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                   "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
 
@@ -356,6 +356,7 @@ BuyseTest <- function(formula,
                                         method.inference = outArgs$method.inference,
                                         censoring = outArgs$censoring,
                                         strata = outArgs$strata,
+                                        pool.strata = outArgs$pool.strata,
                                         treatment = outArgs$treatment,
                                         hierarchical = outArgs$hierarchical,
                                         copy = TRUE,
@@ -472,7 +473,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","paired")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -506,6 +507,7 @@ BuyseTest <- function(formula,
         outSurv <- calcPeron(data = outSample$data,
                              model.tte = envir$outArgs$model.tte,                             
                              method.score = envir$outArgs$method.score,
+                             paired = envir$outArgs$paired,
                              treatment = envir$outArgs$treatment,
                              level.treatment = envir$outArgs$level.treatment,
                              endpoint = envir$outArgs$endpoint,
@@ -600,10 +602,12 @@ BuyseTest <- function(formula,
                                  addHalfNeutral = envir$outArgs$add.halfNeutral,
                                  keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                                  precompute = envir$outArgs$precompute,
+                                 paired = envir$outArgs$paired,
                                  returnIID = c(iid,envir$outArgs$iidNuisance),
                                  debug = envir$outArgs$debug
                                  ))
 
+    
     ## ** export
     if(pointEstimation){
         if(envir$outArgs$keep.survival){ ## useful to test initSurvival 
@@ -660,11 +664,11 @@ calcSample <- function(envir, method.inference){
         ## ** stratified resampling
         n.strataResampling <- length(envir$outArgs$n.obsStrataResampling)
         index.resampling <- NULL
-        for (iSR in 1:n.strataResampling) {
+        for (iSR in 1:n.strataResampling) { ## iSR <- 1
             index.resampling <- c(index.resampling,
-                                  envir$outArgs$cumn.obsStrataResampling[iSR] + sample.int(envir$outArgs$n.obsStrataResampling[iSR], replace = grepl("bootstrap",method.inference)))
+                                  envir$outArgs$cumn.obsStrataResampling[iSR] + sample.int(envir$outArgs$n.obsStrataResampling[iSR], replace = attr(method.inference, "bootstrap")))
         }
-
+        
         ## ** reconstruct groups
         ## index: index of the new observations in the old dataset by treatment group
         ## pos: unique identifier for each observation
@@ -694,7 +698,7 @@ calcSample <- function(envir, method.inference){
             }
             
             for(iStrata in 1:envir$outArgs$n.strata){ ## iStrata <- 1  
-                ## index of the new observation in the old dataset by treatment group
+                ## index of the new observations in the old dataset by treatment group
                 if(grepl("permutation",method.inference)){
                     out$ls.indexC[[iStrata]] <- intersect(index.C, envir$outArgs$index.strata[[iStrata]]) - 1
                     out$ls.indexT[[iStrata]] <- intersect(index.T, envir$outArgs$index.strata[[iStrata]]) - 1

@@ -126,7 +126,7 @@ setMethod(f = "getIid",
                                min = 1,
                                max = length(level.strata),
                                refuse.NULL = TRUE,
-                               refuse.duplicated = TRUE,
+                               refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
               }else{
                   validCharacter(strata,
@@ -298,11 +298,11 @@ setMethod(f = "getIid",
 
               ## ** aggregate at a cluster level
               if(!is.null(cluster)){
-                  ls.iid.favorable <- lapply(ls.iid.favorable, function(iIID){
-                      do.call(rbind,by(iIID,cluster,colSums))
+                  ls.iid.favorable <- lapply(ls.iid.favorable, function(iIID){ ## iIID <- ls.iid.favorable[[1]]
+                      do.call(rbind,by(iIID,cluster,colSums, simplify = FALSE))
                   })
                   ls.iid.unfavorable <- lapply(ls.iid.unfavorable, function(iIID){
-                      do.call(rbind,by(iIID,cluster,colSums))
+                      do.call(rbind,by(iIID,cluster,colSums, simplify = FALSE))
                   })
               }
 
@@ -641,7 +641,6 @@ setMethod(f = "getPseudovalue",
               if(is.null(statistic)){
                   statistic <- option$statistic
               }else{
-
                   statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                       "netbenefit" = "netBenefit",
                                       "winratio" = "winRatio",
@@ -660,14 +659,15 @@ setMethod(f = "getPseudovalue",
               object.delta <- coef(object, statistic = statistic)[endpoint]
               count.favorable <- coef(object, statistic = "favorable")[endpoint]
               count.unfavorable <- coef(object, statistic = "unfavorable")[endpoint]
-              object.iid <- getIid(object, endpoint = endpoint, statistic = c("favorable","unfavorable"))[[1]]
+              object.iid <- data.frame(favorable = unname(getIid(object, endpoint = endpoint, statistic = "favorable", strata = "global", simplify = FALSE)[["global"]]),
+                                       unfavorable = unname(getIid(object, endpoint = endpoint, statistic = "unfavorable", strata = "global", simplify = FALSE)[["global"]]))
               n.obs <- NROW(object.iid)
 
               out <- switch(statistic,
-                            "favorable" = n.obs * object.iid[,"favorable"] + object.delta,
-                            "unfavorable" = n.obs * object.iid[,"unfavorable"] + object.delta,
-                            "netBenefit" = n.obs * (object.iid[,"favorable"] - object.iid[,"unfavorable"]) + object.delta,
-                            "winRatio" = n.obs * (object.iid[,"favorable"] / count.unfavorable - object.iid[,"unfavorable"] * (count.favorable/count.unfavorable^2)) + object.delta,
+                            "favorable" = n.obs * object.iid$favorable + object.delta,
+                            "unfavorable" = n.obs * object.iid$unfavorable + object.delta,
+                            "netBenefit" = n.obs * (object.iid$favorable - object.iid$unfavorable) + object.delta,
+                            "winRatio" = n.obs * (object.iid$favorable / count.unfavorable - object.iid$unfavorable * (count.favorable/count.unfavorable^2)) + object.delta,
                             )
 
               ## ** export

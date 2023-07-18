@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: jun 27 2023 (12:58) 
+## Last-Updated: jul 18 2023 (12:03) 
 ##           By: Brice Ozenne
-##     Update #: 527
+##     Update #: 548
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 #' @noRd
 calcPeron <- function(data,
                       model.tte, fitter, args,
-                      method.score,
+                      method.score, paired,
                       treatment,
                       level.treatment,
                       endpoint,
@@ -46,17 +46,22 @@ calcPeron <- function(data,
     test.CR <- setNames(vector(mode = "logical", length = D.UTTE), endpoint.UTTE)
 
     ## prepare formula
-    if(is.null(model.tte)){        
+    if(is.null(model.tte)){
         model.tte <- vector(length = D.UTTE, mode = "list")
         names(model.tte) <- endpoint.UTTE
         tofit <- TRUE
         if(length(args)==0){args <- NULL}
-        
-        if(any(fitter=="prodlim")){
-            txt.modelUTTE <- paste0("prodlim::Hist(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")
-        }else if(any(fitter=="survreg")){
-            txt.modelUTTE <- paste0("survival::Surv(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")
+
+        txt.fitter <- sapply(fitter, switch,
+                             "prodlim" = "prodlim::Hist",
+                             "survreg" = "survival::Surv",
+                             NA)
+        if(paired){
+            txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment)        
+        }else{
+            txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")        
         }
+        
     }else{
         tofit <- FALSE
     }
@@ -79,7 +84,6 @@ calcPeron <- function(data,
             }
             
         }
-
         model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment, level.treatment = level.treatment, level.strata = level.strata, iid = iidNuisance)
     }
 

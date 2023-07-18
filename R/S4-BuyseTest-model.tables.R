@@ -56,6 +56,7 @@ setMethod(f = "model.tables",
 
               ## ** normalize and check arguments
               option <- BuyseTest.options()
+              mycall <- match.call()
               if(is.null(statistic)){
                   statistic <- option$statistic
               }
@@ -64,7 +65,7 @@ setMethod(f = "model.tables",
                            name1 = "percentage",
                            valid.length = 1,
                            refuse.NA = FALSE, 
-                           method = "summary[S4BuyseTest]")
+                           method = "model.tables[S4BuyseTest]")
 
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
@@ -77,11 +78,12 @@ setMethod(f = "model.tables",
                              name1 = "statistic",
                              valid.values = c("netBenefit","winRatio","favorable","unfavorable"),
                              valid.length = 1,
-                             method = "summary[S4BuyseTest]")
+                             method = "model.tables[S4BuyseTest]")
 
+              scoring.rule <- slot(x,"scoring.rule")
               strata.level <- x@level.strata
               if(is.null(strata)){
-                  if(length(strata.level)==1){
+                  if(length(strata.level)==1 || (attr(scoring.rule,"test.paired") && "strata" %in% names(mycall) == FALSE)){
                       strata <- "global"
                   }else{
                       strata <- c("global",strata.level)
@@ -97,15 +99,15 @@ setMethod(f = "model.tables",
                                min = 1,
                                max = length(level.strata),
                                refuse.NULL = TRUE,
-                               refuse.duplicated = TRUE,
-                               method = "autoplot[S4BuyseTest]")
+                               refuse.duplicates = TRUE,
+                               method = "model.tables[S4BuyseTest]")
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
                                  valid.length = NULL,
                                  valid.values = c("global",strata.level),
                                  refuse.NULL = FALSE,
-                                 method = "summary[S4BuyseTest]")
+                                 method = "model.tables[S4BuyseTest]")
               }
 
               ## ** load info from object

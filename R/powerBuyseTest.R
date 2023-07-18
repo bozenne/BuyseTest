@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jul  4 2023 (18:43) 
+## Last-Updated: jul 18 2023 (12:00) 
 ##           By: Brice Ozenne
-##     Update #: 1256
+##     Update #: 1266
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -440,8 +440,8 @@ powerBuyseTest <- function(sim,
 
         if(trace > 2){
             argsInit <- setdiff(names(as.list(args(initializeData))), c("","copy","data"))
-            M.status <- do.call(initializeData, args = c(outArgs[argsInit], list(copy = FALSE, data = dt.tempo)))$M.status
-            do.call(printGeneral, args = c(outArgs, list(M.status = M.status)))
+            resInitData <- do.call(initializeData, args = c(outArgs[argsInit], list(copy = FALSE, data = dt.tempo)))
+            do.call(printGeneral, args = c(outArgs, list(M.status = resInitData$M.status, paired = resInitData$paired)))
             if(outArgs$method.inference!="none"){
                 do.call(printInference, args = outArgs)
             }
@@ -580,7 +580,7 @@ powerBuyseTest <- function(sim,
 
     ## when creating S4 object
     keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
+                   "correction.uninf","method.inference","method.score","paired","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
 
     ## ** Simulate data
     data <- data.table::as.data.table(envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax))
@@ -596,6 +596,7 @@ powerBuyseTest <- function(sim,
                             method.inference = envir$outArgs$method.inference,
                             censoring = envir$outArgs$censoring,
                             strata = envir$outArgs$strata,
+                            pool.strata = envir$outArgs$pool.strata,
                             treatment = envir$outArgs$treatment,
                             hierarchical = envir$outArgs$hierarchical,
                             copy = FALSE,
@@ -688,6 +689,7 @@ powerBuyseTest <- function(sim,
                                                               method.inference = envir$outArgs$method.inference,
                                                               censoring = envir$outArgs$censoring,
                                                               strata = envir$outArgs$strata,
+                                                              pool.strata = envir$outArgs$pool.strata,
                                                               treatment = envir$outArgs$treatment,
                                                               hierarchical = envir$outArgs$hierarchical,
                                                               copy = FALSE,

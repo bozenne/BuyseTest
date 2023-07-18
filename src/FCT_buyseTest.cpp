@@ -81,6 +81,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param addHalfNeutral Should half of the neutral score be added to the favorable and unfavorable scores?
 //' @param keepScore Should the result of each pairwise comparison be kept?
 //' @param precompute Have the integrals relative to the survival be already computed and stored in list_survTimeC/list_survTimeT and list_survJumpC/list_survJumpT (derivatives)
+//' @param paired In case of paired data, the variance of the summary statistic across strata will be added to the variance of the pooled statistic.
 //' @param returnIID Should the iid be computed? Second element: is there any nuisance parameter?
 //' @param debug Print messages tracing the execution of the function to help debugging. The amount of messages increase with the value of debug (0-5).
 //'
@@ -133,6 +134,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   bool addHalfNeutral,
 		   bool keepScore,
 		   bool precompute,
+		   bool paired,
 		   std::vector< int > returnIID,
 		   int debug){
 
@@ -451,7 +453,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		Mvar, returnIID,
 		posC, posT, weightObs, // note: no need to re-order weightObs as it should only contains 1
                 D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore);
+		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore, paired);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,
@@ -514,6 +516,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    bool addHalfNeutral,
 		    bool keepScore,
 		    bool precompute,
+		    bool paired,
 		    std::vector< int > returnIID,
 		    int debug){
   if(debug>0){Rcpp::Rcout << std::endl;}
@@ -1056,7 +1059,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		Mvar, returnIID,
 		posC, posT, weightObs_sort,
 		D, n_strata, vecn_pairs, vecn_control, vecn_treatment,
-		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore);
+		weightEndpoint, pool, poolWeight, addHalfNeutral, hprojection, pairScore, keepScore, paired);
 
   // ** export
   return(Rcpp::List::create(Rcpp::Named("count_favorable") = Mcount_favorable,

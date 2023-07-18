@@ -43,6 +43,7 @@ GPC_cpp(
   addHalfNeutral,
   keepScore,
   precompute,
+  paired,
   returnIID,
   debug
 )
@@ -85,6 +86,7 @@ GPC2_cpp(
   addHalfNeutral,
   keepScore,
   precompute,
+  paired,
   returnIID,
   debug
 )
@@ -163,6 +165,8 @@ GPC2_cpp(
 \item{keepScore}{Should the result of each pairwise comparison be kept?}
 
 \item{precompute}{Have the integrals relative to the survival be already computed and stored in list_survTimeC/list_survTimeT and list_survJumpC/list_survJumpT (derivatives)}
+
+\item{paired}{In case of paired data, the variance of the summary statistic across strata will be added to the variance of the pooled statistic.}
 
 \item{returnIID}{Should the iid be computed? Second element: is there any nuisance parameter?}
 

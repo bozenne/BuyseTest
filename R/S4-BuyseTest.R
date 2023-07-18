@@ -87,7 +87,7 @@ methods::setMethod(
                                    endpoint,
                                    level.strata,
                                    level.treatment,
-                                   scoring.rule,
+                                   scoring.rule, paired,
                                    hierarchical,
                                    neutral.as.uninf,
                                    add.halfNeutral,
@@ -106,8 +106,8 @@ methods::setMethod(
                                    deltaResampling = NULL, ## from inferenceResampling
                                    DeltaResampling = NULL, ## from inferenceResampling
                                    weightStrataResampling = NULL, ## from inferenceResampling
-                                   covarianceResampling = NULL, ## from inferenceResampling
-                                   args){
+                                   covarianceResampling = NULL ## from inferenceResampling
+                                   ){
 
                  name.endpoint <- paste0(endpoint,ifelse(!is.na(restriction),paste0("_r",restriction),""),ifelse(threshold>1e-12,paste0("_t",threshold),""))
 
@@ -192,6 +192,8 @@ methods::setMethod(
                  attr(method.score, "test.censoring") <- NULL
                  attr(scoring.rule,"test.CR") <- attr(method.score, "test.CR")
                  attr(method.score, "test.CR") <- NULL
+                 attr(scoring.rule,"test.paired") <- paired
+                 attr(method.score, "test.paired") <- NULL
                  attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
 
                  ## ** hierarchical
@@ -221,7 +223,7 @@ methods::setMethod(
 
                  ## ** weightStrata
                  weightStrata <- as.double(weightStrata)
-                 attr(weightStrata,"type") <- attr(pool.strata,"original")
+                 attr(weightStrata,"type") <- attr(pool.strata,"type")
 
                  ## ** n.resampling
                  if(!is.null(deltaResampling)){                     

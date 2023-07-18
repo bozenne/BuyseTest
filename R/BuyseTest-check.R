@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jul  4 2023 (17:03) 
+## Last-Updated: jul 18 2023 (09:34) 
 ##           By: Brice Ozenne
-##     Update #: 342
+##     Update #: 344
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -151,8 +151,8 @@ testArgs <- function(name.call,
     }else{
         strata.tempo <- data[[strata]]
         if(is.factor(strata.tempo)){strata.tempo <- droplevels(strata.tempo)} ## otherwise the next tapply statement generates NA when there are empty levels which leads to an error
-        
-        if(any(sapply(Ustatus.TTE, function(iS){tapply(data[[iS]], strata.tempo, function(iVec){sum(iVec!=0)})})==0)){
+        ## if non-paired data (i.e. more than 2 obs per strata)
+        if(any(table(strata.tempo)>2) && any(sapply(Ustatus.TTE, function(iS){tapply(data[[iS]], strata.tempo, function(iVec){sum(iVec!=0)})})==0)){
             warning("BuyseTest: time to event variables with only censored events in at least one strata \n")
         }
     }

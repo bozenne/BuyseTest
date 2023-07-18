@@ -18,7 +18,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 		   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT, const arma::vec& weightObs,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
-		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore);
+		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore, bool paired);
 
 // * calcStatistic
 void calcStatistic(arma::cube& delta, arma::mat& Delta,
@@ -29,7 +29,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 		   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT, const arma::vec& weightObs,
                    const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
-		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore){
+		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore, bool paired){
 
   // ** total number of pairs and patients in each arm
   double ntot_pair = 0;
@@ -259,7 +259,13 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     Mvar.col(1) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
     iid2 = iidTotal_favorable % iidTotal_unfavorable;
     Mvar.col(2) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
-    	
+
+    if(paired){
+      Mvar.col(0) += arma::var(cumdelta_favorable, 0, 0)/n_strata;
+      Mvar.col(1) += arma::var(cumdelta_unfavorable, 0, 0)/n_strata;
+      Mvar.col(2) += arma::cov(cumdelta_favorable, cumdelta_unfavorable, 0)/n_strata;
+    }
+    
     // second order
     if(hprojection==2){
       if(keepScore){

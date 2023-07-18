@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1084
+##     Update #: 1089
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -184,7 +184,7 @@ setMethod(f = "confint",
                                min = 1,
                                max = length(level.strata),
                                refuse.NULL = TRUE,
-                               refuse.duplicated = TRUE,
+                               refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
               }else{
                   validCharacter(strata,
@@ -193,6 +193,9 @@ setMethod(f = "confint",
                                  valid.values = c("global",level.strata),
                                  refuse.NULL = FALSE,
                                  method = "confint[S4BuyseTest]")
+              }
+              if(attr(slot(object,"scoring.rule"), "test.paired") && any(level.strata %in% strata)){
+                  stop("Cannot output p-values or confidence intervals for stratified statistics with paired data. \n")
               }
 
               ## method.ci

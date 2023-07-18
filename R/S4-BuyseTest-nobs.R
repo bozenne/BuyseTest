@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jul  3 2023 (10:00) 
 ## Version: 
-## Last-Updated: jul 17 2023 (18:05) 
+## Last-Updated: jul 18 2023 (09:29) 
 ##           By: Brice Ozenne
-##     Update #: 38
+##     Update #: 39
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -66,7 +66,7 @@ setMethod(f = "nobs",
                                min = 1,
                                max = length(level.strata),
                                refuse.NULL = TRUE,
-                               refuse.duplicated = TRUE,
+                               refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
               }else{
                   validCharacter(strata,

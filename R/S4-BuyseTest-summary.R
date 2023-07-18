@@ -124,6 +124,7 @@ setMethod(f = "summary",
                                 type.display = 1, digit = c(2,4,5), ...){
 
               ## ** normalize and check arguments
+              mycall <- match.call()
               option <- BuyseTest.options()
               
               if(length(digit) == 1){digit <- rep(digit,3)}
@@ -156,6 +157,7 @@ setMethod(f = "summary",
               alpha <- 1-conf.level              
               method.inference <- slot(object,"method.inference")
               hierarchical <- slot(object,"hierarchical")
+              scoring.rule <- slot(object,"scoring.rule")
 
               if(is.null(statistic)){
                   statistic <- option$statistic
@@ -170,7 +172,10 @@ setMethod(f = "summary",
               endpoint <- slot(object,"endpoint")
               n.endpoint <- length(endpoint)
               n.strata <- length(slot(object,"level.strata"))
-              
+              if(attr(scoring.rule,"test.paired") && "strata" %in% names(mycall) == FALSE){
+                  strata <- FALSE
+              }
+
               ## ** build table
               if(attr(method.inference,"permutation")){
                   attr(conf.level,"warning.permutation") <- FALSE
@@ -325,7 +330,7 @@ setMethod(f = "summary",
                       }else{
                           txt.method <- paste0(txt.method," \n")
                       }
-                      if(test.model.tte && (object@scoring.rule == "Peron" || object@correction.uninf > 0)){
+                      if(test.model.tte && (scoring.rule == "Peron" || object@correction.uninf > 0)){
                           txt.method <- paste0(txt.method,"                     (ignoring the uncertainty of the nuisance parameters)")
                       }
                   }
@@ -358,20 +363,23 @@ setMethod(f = "summary",
               }
                   
               cat(" - treatment groups: ",object@level.treatment[2]," (treatment) vs. ",object@level.treatment[1]," (control) \n", sep = "")
-              if(n.strata>1){
+              if(attr(scoring.rule,"test.paired")){
+                  table.weightStrata <- table(paste0(round(100*object@weightStrata, digit[1]),"%"))
+                  cat(" - pair weights    : ",paste(names(table.weightStrata), collapse = ", ")," (K=",paste(table.weightStrata, collapse=","),")\n", sep = "")
+              }else if(n.strata>1){
                   cat(" - strata weights  : ",paste(paste0(round(100*object@weightStrata, digit[1]),"%"), collapse = ", ")," \n", sep = "")
               }
-              if(any(object@type == "tte") && any(attr(object@scoring.rule,"test.censoring"))){
+              if(any(object@type == "tte") && any(attr(scoring.rule,"test.censoring"))){
                       
-                  if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){
+                  if(all(attr(scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){
                       txt.Peron <- "cif"
-                  }else if(all(attr(object@scoring.rule,"method.score")[object@type=="tte"]=="SurvPeron")){
+                  }else if(all(attr(scoring.rule,"method.score")[object@type=="tte"]=="SurvPeron")){
                       txt.Peron <- "survival"
                   }else{
                       txt.Peron <- "survival/cif"
                   }
 
-                  txt.scoring.rule <- switch(object@scoring.rule,
+                  txt.scoring.rule <- switch(scoring.rule,
                                              "Gehan" = "deterministic score or uninformative",
                                              "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
                                              )

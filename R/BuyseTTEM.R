@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: jun 27 2023 (13:54) 
+## Last-Updated: jul 18 2023 (10:18) 
 ##           By: Brice Ozenne
-##     Update #: 639
+##     Update #: 665
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -127,16 +127,22 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
     level.strata <- object$peron$level.strata
     n.strata <- object$peron$n.strata
     strata.var <- object$peron$strata.var
-
+    object.stratified <- NCOL(object$X)>1
+    
     ## ** compute start/stop indexes per strata
     iIndexX.C <- which(X[[treatment]]==0)
     iIndexX.T <- which(X[[treatment]]==1)
 
     ## position in the results of the pair (treatment,strata)
     iMindexX <- do.call(rbind,lapply(1:n.strata, function(iStrata){
-        iIndexS <- which(X[["..strata.."]]==iStrata)
-        return(c(C = intersect(iIndexX.C,iIndexS),
-                 T = intersect(iIndexX.T,iIndexS)))
+        if(object.stratified){
+            iIndexS <- which(X[["..strata.."]]==iStrata)
+            return(c(C = intersect(iIndexX.C,iIndexS),
+                     T = intersect(iIndexX.T,iIndexS)))
+        }else{
+            return(c(C = iIndexX.C,
+                     T = iIndexX.T))
+        }        
     }))
 
     index.start <- matrix(NA, nrow = n.strata, ncol = 2, dimnames = list(NULL,level.treatment))
@@ -210,7 +216,6 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
     ## cif <- object$peron$cif[[1]][[1]][[1]]
     ## (cif[cif[,"index.cif.after"]+1,"cif"] - cif[cif[,"index.cif.before"]+1,"cif"]) - cif[,"dcif"]
 
-
     ## ** table iid
     if(iid){
         n.obs <- NROW(object$model.response)
@@ -244,8 +249,13 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
                 object$peron$iid.hazard[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
                 object$peron$iid.cif[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
 
-                iIndStrata <- intersect(which(model.matrix[[treatment]]==level.treatment[iTreat]),
-                                        which(model.matrix[["..strata.."]]==iStrata))
+                if(object.stratified){    
+                    iIndStrata <- intersect(which(model.matrix[[treatment]]==level.treatment[iTreat]),
+                                            which(model.matrix[["..strata.."]]==iStrata))
+                }else{
+                    iIndStrata <- which(model.matrix[[treatment]]==level.treatment[iTreat])
+                }
+
                 iIndex.jump <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]]$index.jump
                 iN.jump <- length(iIndex.jump)
                 
@@ -332,6 +342,7 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
     treatment <- object$peron$treatment
     level.treatment <- object$peron$level.treatment
     level.strata <- object$peron$level.strata
+    object.stratified <- NCOL(object$X)>1
 
     if(is.null(object$xlevels[[treatment]])){
         mf[[treatment]] <- factor(mf[[treatment]], levels = sort(unique(mf[[treatment]])), labels = level.treatment)
@@ -347,7 +358,6 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
     object$peron$n.CR <- 1 ## survival case (one type of event)
 
     ## ** prepare for iid
-
     if(iid){
 
         ## *** extract information
@@ -412,11 +422,16 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
     for(iStrata in 1:n.strata){ ## iStrata <- 1
         for(iTreat in level.treatment){ ## iTreat <- 1
 
-            iIndex.obs <- intersect(
-                intersect(which(mf[[treatment]]==iTreat),
-                          which(object$peron$X[,"..strata.."]==iStrata)),
-                which(mf[,1][,2]==1)
-            )
+            if(object.stratified){
+                iIndex.obs <- intersect(
+                    intersect(which(mf[[treatment]]==iTreat),
+                              which(object$peron$X[,"..strata.."]==iStrata)),
+                    which(mf[,1][,2]==1)
+                )
+            }else{
+                iIndex.obs <- intersect(which(mf[[treatment]]==iTreat),
+                                        which(mf[,1][,2]==1))
+            }
 
             ## jump time  in this strata
             iNewdata <- mf[iIndex.obs[1],,drop=FALSE]
