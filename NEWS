@@ -7,6 +7,8 @@
 - bounds for the confidence intervals have been renamed: CIinf.Delta
   -> lower.ci and CIsup.Delta -> upper.ci
 - stratified argument has been renamed strata.
+- studentized bootstrap is now centered around the estimate instead of
+  the empirical mean of the bootstrap sample.
 - the effect of the seed argument in BuyseTest and powerBuyseTest has
   been changed. Instead of setting the seed at the start of the
   function, now the seed is used to generate sample or simulation

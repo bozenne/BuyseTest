@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1089
+##     Update #: 1092
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -831,9 +831,10 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
     ## ** critical quantile
-    ## z-transformation: center around 0 and divide by estimated se
+    ## z-transformation: center around estimate and divide by estimated se
     if(length(index.var)>0){
-        Delta.statH0.resampling <- apply(Delta.resampling[,index.var,drop=FALSE], MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling[,index.var,drop=FALSE]  
+        Delta.statH0.resampling <- sweep(Delta.resampling[,index.var,drop=FALSE], MARGIN = 2, FUN = "-", STATS = Delta)/Delta.se.resampling[,index.var,drop=FALSE]  
+        ## Delta.statH0.resampling <- apply(Delta.resampling[,index.var,drop=FALSE], MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling[,index.var,drop=FALSE]  
 
         if(!is.na(alpha)){
 

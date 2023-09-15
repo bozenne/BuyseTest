@@ -3,9 +3,9 @@
 ## author: Brice
 ## created: maj 12 2017 (14:34) 
 ## Version: 
-## last-updated: Jul  4 2023 (09:31) 
+## last-updated: sep 15 2023 (16:33) 
 ##           By: Brice Ozenne
-##     Update #: 202
+##     Update #: 209
 #----------------------------------------------------------------------
 ## 
 ### Commentary: Check 
@@ -270,7 +270,7 @@ test_that("Bootstrap", {
     expect_equal(as.double(unlist(outSummaryPerc[,c("lower.ci","upper.ci")])),
                  as.double(CI), tol = 1e-6)
 
-    qz <- t(apply(apply(BT.boot@DeltaResampling[,,"netBenefit"],2,scale,scale=FALSE)/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = c(0.025, 0.975)))
+    qz <- t(apply(sweep(BT.boot@DeltaResampling[,,"netBenefit"], MARGIN = 2, FUN = "-", STATS = coef(BT.boot))/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = c(0.025, 0.975)))
     CI <- cbind(BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz[,1],
                 BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz[,2])
     expect_equal(as.double(unlist(outSummaryStud[,c("lower.ci","upper.ci")])),
@@ -285,7 +285,7 @@ test_that("Bootstrap", {
     expect_equal(as.double(unlist(outSummaryPerc[,c("lower.ci","upper.ci")])),
                  as.double(CI), tol = 1e-6)
 
-    qz <- apply(apply(BT.boot@DeltaResampling[,,"netBenefit"],2,scale,scale=FALSE)/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.05)
+    qz <- apply(sweep(BT.boot@DeltaResampling[,,"netBenefit"], MARGIN = 2, FUN = "-", STATS = coef(BT.boot))/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.05)
     CI <- cbind(BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz, Inf)
     expect_equal(as.double(unlist(outSummaryStud[,c("lower.ci","upper.ci")])),
                  as.double(CI), tol = 1e-6)
@@ -299,7 +299,7 @@ test_that("Bootstrap", {
     expect_equal(as.double(unlist(outSummaryPerc[,c("lower.ci","upper.ci")])),
                  as.double(CI), tol = 1e-6)
 
-    qz <- apply(apply(BT.boot@DeltaResampling[,,"netBenefit"],2,scale,scale=FALSE)/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.95)
+    qz <- apply(sweep(BT.boot@DeltaResampling[,,"netBenefit"], MARGIN = 2, FUN = "-", STATS = coef(BT.boot))/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.95)
     CI <- cbind(-Inf, BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz)
     
     expect_equal(as.double(unlist(outSummaryStud[,c("lower.ci","upper.ci")])),
@@ -365,7 +365,7 @@ test_that("stratified bootstrap", {
     expect_equal(as.double(unlist(outSummaryPerc[outSummaryPerc$strata=="global",c("lower.ci","upper.ci")])),
                  as.double(CI), tol = 1e-6)
 
-    qz <- t(apply(apply(BT.boot@DeltaResampling[,,"netBenefit"],2,scale,scale=FALSE)/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = c(0.025, 0.975)))
+    qz <- t(apply(sweep(BT.boot@DeltaResampling[,,"netBenefit"], MARGIN = 2, FUN = "-", STATS = coef(BT.boot))/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = c(0.025, 0.975)))
     CI <- cbind(BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz[,1],
                 BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz[,2])
     expect_equal(as.double(unlist(outSummaryStud[outSummaryStud$strata=="global",c("lower.ci","upper.ci")])),
@@ -379,7 +379,7 @@ test_that("stratified bootstrap", {
     expect_equal(as.double(unlist(outSummaryPerc[outSummaryPerc$strata=="global",c("lower.ci","upper.ci")])),
                  as.double(CI), tol = 1e-6)
 
-    qz <- apply(apply(BT.boot@DeltaResampling[,,"netBenefit"],2,scale,scale=FALSE)/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.05)
+    qz <- apply(sweep(BT.boot@DeltaResampling[,,"netBenefit"], MARGIN = 2, FUN = "-", STATS = coef(BT.boot))/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.05)
     CI <- cbind(BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz, Inf)
     
     expect_equal(as.double(unlist(outSummaryStud[outSummaryStud$strata=="global",c("lower.ci","upper.ci")])),
@@ -393,7 +393,7 @@ test_that("stratified bootstrap", {
     expect_equal(as.double(unlist(outSummaryPerc[outSummaryPerc$strata=="global",c("lower.ci","upper.ci")])),
                  as.double(CI), tol = 1e-6)
 
-    qz <- apply(apply(BT.boot@DeltaResampling[,,"netBenefit"],2,scale,scale=FALSE)/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.95)
+    qz <- apply(sweep(BT.boot@DeltaResampling[,,"netBenefit"], MARGIN = 2, FUN = "-", STATS = coef(BT.boot))/sqrt(BT.boot@covarianceResampling[,,"netBenefit"]), 2, quantile, probs = 0.95)
     CI <- cbind(-Inf, BT.boot@Delta[,"netBenefit"] + sqrt(BT.boot@covariance[,"netBenefit"]) * qz)
     
     expect_equal(as.double(unlist(outSummaryStud[outSummaryStud$strata=="global",c("lower.ci","upper.ci")])),
@@ -507,10 +507,11 @@ test_that("compare with t-test (two.sided)", {
     ## butils::object2script(M.res, digits = 6)
     GS <- data.frame("estimate" = c(-0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112), 
                      "se" = c(0.14543358, 0.15109607, 0.15109607, 0.15109607, 0.14543358, 0.14543358, 0.14543358, 0.14543358), 
-                     "lower.ci" = c(NA, -0.65632966, -0.70734285, -0.6657388, -0.71254615, -0.61868508, -0.69624457, -0.65276625), 
-                     "upper.ci" = c(NA, -0.02091063, -0.11505715, -0.07093912, -0.07533105, 0.00760101, -0.12615543, -0.09372943), 
+                     "lower.ci" = c(NA, -0.65632966, -0.70734285, -0.6657388, -0.70907164, -0.6244038, -0.69624457, -0.65276625), 
+                     "upper.ci" = c(NA, -0.02091063, -0.11505715, -0.07093912, -0.07297107, -0.00322604, -0.12615543, -0.09372943), 
                      "null" = c(0, 0, 0, 0, 0, 0, 0, 0), 
-                     "p.value" = c(0.01, 0.03, 0.00649967, 0.01925831, 0, 0.055, 0.00469266, 0.01252311))
+                     "p.value" = c(0.01, 0.03, 0.00649967, 0.01925831, 0, 0.04, 0.00469266, 0.01252311))
+
     expect_equivalent(GS, M.res, tol = 1e-4)
 })
 
@@ -547,11 +548,11 @@ test_that("compare with t-test (greater)", {
     ## check values
     ## butils::object2script(M.res, digits = 6)
     GS <- data.frame("estimate" = c(-0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112), 
-           "se" = c(0.145434, 0.151096, 0.151096, 0.151096, 0.145434, 0.145434, 0.145434, 0.145434), 
-           "lower.ci" = c(NA, -0.622115, -0.659731, -0.631681, -0.66886, -0.596779, -0.650417, -0.619966), 
-           "upper.ci" = c(NA, Inf, Inf, 1, Inf, 1, Inf, 1), 
-           "null" = c(0, 0, 0, 0, 0, 0, 0, 0), 
-           "p.value" = c(0.995, 0.985, 0.99675, 0.990371, 1, 0.975, 0.997654, 0.993738))
+                     "se" = c(0.14543358, 0.15109607, 0.15109607, 0.15109607, 0.14543358, 0.14543358, 0.14543358, 0.14543358), 
+                     "lower.ci" = c(NA, -0.62211538, -0.65973091, -0.6316809, -0.66549951, -0.60288984, -0.65041694, -0.61996641), 
+                     "upper.ci" = c(NA, Inf, Inf, 1, Inf, 1, Inf, 1), 
+                     "null" = c(0, 0, 0, 0, 0, 0, 0, 0), 
+                     "p.value" = c(0.995, 0.985, 0.99675016, 0.99037084, 1, 0.98, 0.99765367, 0.99373845))
     expect_equivalent(GS, M.res, tol = 1e-4)
 })
 
@@ -588,11 +589,11 @@ test_that("compare with t-test (less)", {
     ## check values
     ## butils::object2script(M.res, digits = 6)
     GS <- data.frame("estimate" = c(-0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112, -0.4112), 
-           "se" = c(0.145434, 0.151096, 0.151096, 0.151096, 0.145434, 0.145434, 0.145434, 0.145434), 
+           "se" = c(0.14543358, 0.15109607, 0.15109607, 0.15109607, 0.14543358, 0.14543358, 0.14543358, 0.14543358), 
            "lower.ci" = c(NA, -Inf, -Inf, -1, -Inf, -1, -Inf, -1), 
-           "upper.ci" = c(NA, -0.150252, -0.162669, -0.129175, -0.183773, -0.129614, -0.171983, -0.148062), 
+           "upper.ci" = c(NA, -0.15025183, -0.16266909, -0.1291752, -0.18137423, -0.14017782, -0.17198306, -0.14806218), 
            "null" = c(0, 0, 0, 0, 0, 0, 0, 0), 
-           "p.value" = c(0.005, 0.015, 0.00325, 0.009629, 0, 0.025, 0.002346, 0.006262))
+           "p.value" = c(0.005, 0.015, 0.00324984, 0.00962916, 0, 0.02, 0.00234633, 0.00626155))
     expect_equivalent(GS, M.res, tol = 1e-4)
 })
 
