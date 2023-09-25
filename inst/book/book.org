@@ -16,14 +16,11 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 
 #+RESULTS:
 : 
-: Vedhæfter pakke: 'ggplot2'
+: Attaching package: ‘ggplot2’
 : 
-: Det følgende objekt er maskeret fra 'package:BuyseTest':
+: The following object is masked from ‘package:BuyseTest’:
 : 
 :     vars
-: 
-: Advarselsbesked:
-: pakke 'ggplot2' blev bygget under R version 4.2.3
 
 * Chapter 1 Statistical inference
 ** Section 1.3.1 Intuition
@@ -417,7 +414,6 @@ ggsave(gg.histBoot, filename = "figures/fig_inference_bootstrap.pdf", width = 9,
 : Advarselsbesked:
 : [1m[22mRemoved 62 rows containing non-finite values (`stat_bin()`).
 
-
 ** Section 1.4.3 Permutation p-values
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -621,7 +617,108 @@ deltai & deltaj & s1 & delta.boot & se.boot & s2 & delta.perm & se.perm \\
 \end{tabular}
 \end{table}
 #+end_example
+** section 1.4.4 Empirical performance
 
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+warper <- function(i, n, mu, sigma, n.resampling){
+  data <- simBuyseTest(n.T = n, n.C = n, argsCont = list(mu.C = 0, mu.T = mu, sigma.C = 1, sigma.T = sigma))
+  tps.U <- system.time(
+    BT.U <- BuyseTest(treatment ~ cont(score), data = data, trace = FALSE,
+                      method.inference = "u-statistic")
+  )
+  tps.boot <- system.time(
+    BT.boot <- BuyseTest(treatment ~ cont(score), data = data, n.resampling = n.resampling, trace = FALSE,
+                         method.inference = "studentized bootstrap", strata.resampling = "treatment")
+  )
+  tps.perm <- system.time(
+    BT.perm <- BuyseTest(treatment ~ cont(score), data = data, n.resampling = n.resampling, trace = FALSE,
+                         method.inference = "studentized permutation")
+  )
+  out <- rbind(
+    cbind(method = "Ustat", statistic = "netBenefit", confint(BT.U, statistic = "netBenefit", transform = FALSE), time = tps.U["sys.self"]),
+    cbind(method = "Ustat-trans", statistic = "netBenefit", confint(BT.U, statistic = "netBenefit", transform = TRUE), time = tps.U["sys.self"]),
+    cbind(method = "boot-perc", statistic = "netBenefit", confint(BT.perm, statistic = "netBenefit", method.ci.resampling = "percentile"), time = NA),
+    cbind(method = "boot-stud", statistic = "netBenefit", confint(BT.perm, statistic = "netBenefit", method.ci.resampling = "studentized"), time = tps.boot["elapsed"]),
+    cbind(method = "perm-perc", statistic = "netBenefit", confint(BT.boot, statistic = "netBenefit", method.ci.resampling = "percentile"), time = NA),
+    cbind(method = "perm-stud", statistic = "netBenefit", confint(BT.boot, statistic = "netBenefit", method.ci.resampling = "studentized"), time = tps.perm["elapsed"]),
+    cbind(method = "Ustat", statistic = "winRatio", confint(BT.U, statistic = "winRatio", transform = FALSE), time = tps.U["sys.self"]),
+    cbind(method = "Ustat-trans", statistic = "winRatio", confint(BT.U, statistic = "winRatio", transform = TRUE), time = tps.U["sys.self"]),
+    cbind(method = "boot-perc", statistic = "winRatio", confint(BT.perm, statistic = "winRatio", method.ci.resampling = "percentile"), time = NA),
+    cbind(method = "boot-stud", statistic = "winRatio", confint(BT.perm, statistic = "winRatio", method.ci.resampling = "studentized"), time = tps.boot["elapsed"]),
+    cbind(method = "perm-perc", statistic = "winRatio", confint(BT.boot, statistic = "winRatio", method.ci.resampling = "percentile"), time = NA),
+    cbind(method = "perm-stud", statistic = "winRatio", confint(BT.boot, statistic = "winRatio", method.ci.resampling = "studentized"), time = tps.perm["elapsed"])
+  )
+
+  return(cbind(i = i,n = n, mu = mu, sigma  = sigma, out))
+}
+## warper(i=1, n = 100, mu = 0, sigma = 3, n.resampling = 1000)
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(pbapply)
+
+n.rep <- 1000
+sigma <- 3
+n.resampling <- 100
+
+ls.sim <- pblapply(1:n.rep, function(i){
+  rbind(warper(i, n = 10, mu = 0, sigma = sigma, n.resampling = n.resampling),
+        warper(i, n = 25, mu = 0, sigma = sigma, n.resampling = n.resampling),
+        warper(i, n = 50, mu = 0, sigma = sigma, n.resampling = n.resampling),
+        warper(i, n = 100, mu = 0, sigma = sigma, n.resampling = n.resampling),
+        warper(i, n = 200, mu = 0, sigma = sigma, n.resampling = n.resampling))
+}, cl = 15)
+#+END_SRC
+
+#+RESULTS:
+:   |                                                  | 0 % ~calculating  Estimated p-value of 1 - consider increasing the number of boostrap samples 
+: 
+:   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed=01m 09s
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(data.table)
+dt.sim <- as.data.table(do.call(rbind,ls.sim))
+dt.sim[,.(rep = .N, type1 = mean(p.value<=0.05), mismatchPCI = mean((p.value>0.05)*((lower.ci>0)+(upper.ci<0)), na.rm = TRUE)),
+       by = c("method","n")]
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+         method   n rep type1 mismatch
+ 1:       Ustat  10  10   0.1        0
+ 2: Ustat-trans  10  10   0.0        0
+ 3:   boot-perc  10  10   0.1      NaN
+ 4:   boot-stud  10  10   0.1      NaN
+ 5:   perm-perc  10  10   0.1        0
+ 6:   perm-stud  10  10   0.0        0
+ 7:       Ustat  25  10   0.0        0
+ 8: Ustat-trans  25  10   0.0        0
+ 9:   boot-perc  25  10   0.0      NaN
+10:   boot-stud  25  10   0.0      NaN
+11:   perm-perc  25  10   0.0        0
+12:   perm-stud  25  10   0.0        0
+13:       Ustat  50  10   0.0        0
+14: Ustat-trans  50  10   0.0        0
+15:   boot-perc  50  10   0.0      NaN
+16:   boot-stud  50  10   0.0      NaN
+17:   perm-perc  50  10   0.0        0
+18:   perm-stud  50  10   0.0        0
+19:       Ustat 100  10   0.0        0
+20: Ustat-trans 100  10   0.0        0
+21:   boot-perc 100  10   0.0      NaN
+22:   boot-stud 100  10   0.0      NaN
+23:   perm-perc 100  10   0.0        0
+24:   perm-stud 100  10   0.0        0
+25:       Ustat 200  10   0.0        0
+26: Ustat-trans 200  10   0.0        0
+27:   boot-perc 200  10   0.0      NaN
+28:   boot-stud 200  10   0.0      NaN
+29:   perm-perc 200  10   0.0        0
+30:   perm-stud 200  10   0.0        0
+         method   n rep type1 mismatch
+#+end_example
 
 * Chapter 2 Software
 ** Section 2.1 Introduction
