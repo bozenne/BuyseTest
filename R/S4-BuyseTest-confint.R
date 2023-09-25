@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1092
+##     Update #: 1103
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -701,6 +701,16 @@ confint_gaussian <- function(Delta, Delta.resampling,
 
     ## ** standard error
     Delta.se <- apply(Delta.resampling, MARGIN = 2, FUN = stats::sd, na.rm = TRUE) ## computed based on the sample
+    if(any(is.infinite(Delta.resampling))){
+        if(abs(Delta!=outTable[,"estimate"])>1e-12){
+            warning("Infinite value for the summary statistic after transformation in some of the bootstrap samples. \n",
+                    "Cannot compute confidence intervals or p-value under Gaussian approximation. \n",
+                    "Consider setting the argument \'transform\' to FALSE. \n")
+        }else{
+            warning("Infinite value for the summary statistic in some of the bootstrap samples. \n",
+                    "Cannot compute confidence intervals or p-value under Gaussian approximation. \n")
+        }
+    }
     outTable[,"se"] <- apply(backtransform.delta(Delta.resampling), MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
 
     ## ** confidence interval
@@ -878,10 +888,11 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
                                                alternative = alternative,
                                                add.1 = add.1)
     }
+    
     ## special case
     if(length(index.novar)>0){
         outTable[index.novar[test.diff],c("p.value")] <- NA
-        outTable[index.novar[test.diff==0],c("p.value")] <- (null==Delta) + add.1*(null!=Delta)/NROW(Delta.resampling)
+        outTable[index.novar[test.diff==0],c("p.value")] <- (null==Delta) + add.1*(null!=Delta)/(NROW(Delta.resampling)+1)
     }
     
     ## ** export

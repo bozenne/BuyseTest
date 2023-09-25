@@ -1,4 +1,4 @@
-% Created 2023-09-14 to 11:55
+% Created 2023-09-21 to 16:19
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -122,6 +122,8 @@ linkcolor=[rgb]{0,0,0.5},
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 options(width=75)
+library(data.table)
+library(xtable)
 library(BuyseTest)
 library(ggplot2)
 if(system("whoami",intern=TRUE)=="bozenne"){
@@ -132,9 +134,9 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 \end{lstlisting}
 
 \section{Chapter 1 Statistical inference}
-\label{sec:orga589b82}
+\label{sec:org5768de1}
 \subsection{Section 1.3.1 Intuition}
-\label{sec:orgc0e1326}
+\label{sec:orge3ec648}
 
 Data
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -200,7 +202,6 @@ B <- cbind(score = dt$score[11:20],
            jack = (coef(e.BT, statistic = "favorable") - vec.jack)[11:20]*(n-1),
            h = getIid(e.BT, statistic = "favorable", scale = FALSE)[11:20])
 
-library(xtable)
 print(xtable(cbind(as.character(round(A[,1],1)),
                    as.character(round(A[,2],3)),
                    as.character(round(A[,3],3)),
@@ -213,7 +214,7 @@ print(xtable(cbind(as.character(round(A[,1],1)),
 
 \begin{verbatim}
 % latex table generated in R 4.2.0 by xtable 1.8-4 package
-% Wed Sep 13 17:28:50 2023
+% Thu Sep 21 15:17:58 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{lllllll}
@@ -249,9 +250,8 @@ sigma_HE sigma_HC  sigma_W       GS
  0.00844  0.00384  0.01228  0.01228
 \end{verbatim}
 
-
 \subsection{Section 1.3.2 First order H-decomposition}
-\label{sec:orgd20f338}
+\label{sec:orga59ba1c}
 
 H-decomposition
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -285,7 +285,7 @@ mean(B[,"score"] > A[1,"score"]) - coef(e.BT, statistic = "favorable")
 \end{verbatim}
 
 \subsection{Section 1.4.1 Confidence intervals and p-values based on asymptotic approximation}
-\label{sec:org846f0ce}
+\label{sec:org42bac10}
 
 Variance formula
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -297,7 +297,7 @@ Deltaj <- sapply(A[,1], function(a){mean(B[,1]>a) - mean(B[,1]<a)})
 getIid(e.BT, statistic = "netBenefit", scale = FALSE, center = TRUE)[11]
 mean(B[1,"score"] > A[,"score"]) - mean(B[1,"score"] < A[,"score"])
 
-c(sum((Deltai-coef(e.BT, statistic = "netBenefit"))^2)/n^2 + sum((Deltaj-coef(e.BT, statistic = "netBenefit"))^2)/n^2,
+c(mean((Deltai-coef(e.BT, statistic = "netBenefit"))^2)/n + mean((Deltaj-coef(e.BT, statistic = "netBenefit"))^2)/n,
   confint(e.BT, statistic = "netBenefit")$se^2)
 \end{lstlisting}
 
@@ -326,6 +326,8 @@ score    -0.48 0.2216303 -0.9143875 -0.04561255    0 0.03032887
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
+0.2216303^2/(1-0.48^2)^2
+atanh(-0.48) + qnorm(c(0.025,0.975))* 0.2216303/(1-0.48^2)
 tanh(atanh(-0.48) + qnorm(c(0.025,0.975))* 0.2216303/(1-0.48^2))
 2*(1-pnorm(abs(-atanh(0.48)*(1-0.48^2)/0.2216303)))
 
@@ -333,6 +335,8 @@ confint(e.BT, statistic = "netBenefit", transformation = TRUE)
 \end{lstlisting}
 
 \begin{verbatim}
+[1] 0.08293315
+[1] -1.08741698  0.04144842
 [1] -0.7959334  0.0414247
 [1] 0.06936478
       estimate        se   lower.ci   upper.ci null    p.value
@@ -340,7 +344,8 @@ score    -0.48 0.2216303 -0.7959335 0.04142476    0 0.06936481
 \end{verbatim}
 
 \subsection{Section 1.4.2 Bootstrap confidence intervals and p-values}
-\label{sec:org133f1f1}
+\label{sec:orgd2c1eec}
+
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BTboot <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
@@ -350,18 +355,244 @@ e.BTboot@covarianceResampling[,"score","netBenefit"]
 \end{lstlisting}
 
 \begin{verbatim}
-    1     2     3     4     5     6     7     8     9    10    11    12    13 
--0.30 -0.52 -0.54  0.22 -0.70 -0.64 -0.42 -0.36 -0.70 -0.22 -0.76 -0.74 -0.54 
-   14    15 
--0.42 -0.46
-      1       2       3       4       5       6       7       8       9      10 
-0.06600 0.04992 0.04408 0.08232 0.02760 0.03888 0.06952 0.06208 0.03960 0.07512 
-     11      12      13      14      15 
-0.02208 0.02408 0.04408 0.05512 0.04968
+    1     2     3     4     5     6     7     8     9    10    11    12 
+-0.30 -0.52 -0.54  0.22 -0.70 -0.64 -0.42 -0.36 -0.70 -0.22 -0.76 -0.74 
+   13    14    15 
+-0.54 -0.42 -0.46
+      1       2       3       4       5       6       7       8       9 
+0.06600 0.04992 0.04408 0.08232 0.02760 0.03888 0.06952 0.06208 0.03960 
+     10      11      12      13      14      15 
+0.07512 0.02208 0.02408 0.04408 0.05512 0.04968
 \end{verbatim}
 
+
+First bootstrap sample by hand
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(e.BTboot@seed[1])
+dt.B1 <- dt[, .SD[sample.int(.N, replace = TRUE)], by = "treatment"]
+table(dt.B1$treatment, dt.B1$id)
+e.BTboot1 <- BuyseTest(treatment ~ cont(score), data = dt.B1, trace = FALSE)
+confint(e.BTboot1)
+\end{lstlisting}
+
+\begin{verbatim}
+   
+    3 4 5 9 10 12 14 17 18 19 20
+  C 1 1 1 2  5  0  0  0  0  0  0
+  T 0 0 0 0  0  1  3  3  1  1  1
+      estimate        se   lower.ci  upper.ci null   p.value
+score     -0.3 0.2569047 -0.6977193 0.2390849    0 0.2729164
+\end{verbatim}
+
+
+Basic
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(e.BTboot, method.ci.resampling = "gaussian", transformation = FALSE) 
+sd(e.BTboot@DeltaResampling[,"score","netBenefit"])^2
+-0.48 + qnorm(c(0.025,0.975))*sd(e.BTboot@DeltaResampling[,"score","netBenefit"])
+\end{lstlisting}
+
+\begin{verbatim}
+      estimate        se   lower.ci   upper.ci null    p.value
+score    -0.48 0.2519259 -0.9737657 0.01376572    0 0.05673822
+[1] 0.06346667
+[1] -0.97376572  0.01376572
+\end{verbatim}
+
+
+Studentized
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest.options(add.1.presample=FALSE)
+confint(e.BTboot, method.ci.resampling = "studentized", transform = FALSE)
+BuyseTest.options(add.1.presample=TRUE)
+confint(e.BTboot, method.ci.resampling = "studentized", transform = FALSE)
+
+t.boot <- quantile((e.BTboot@DeltaResampling[,"score","netBenefit"]-coef(e.BTboot))/sqrt(e.BTboot@covarianceResampling[,"score","netBenefit"]),c(0.025,0.975))
+t.boot
+-0.48 + t.boot*confint(e.BT, statistic = "netBenefit")$se
+\end{lstlisting}
+
+\begin{verbatim}
+Estimated p-value of 0 - consider increasing the number of boostrap samples 
+
+      estimate        se   lower.ci    upper.ci null p.value
+score    -0.48 0.2216303 -0.8814268 -0.05494471    0       0
+      estimate        se   lower.ci    upper.ci null p.value
+score    -0.48 0.2216303 -0.8814268 -0.05494471    0  0.0625
+     2.5%     97.5% 
+-1.811245  1.917857
+       2.5%       97.5% 
+-0.88142676 -0.05494471
+\end{verbatim}
+
+Percentile
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest.options(add.1.presample=FALSE)
+confint(e.BTboot, method.ci.resampling = "percentile") ## no small sample correction
+BuyseTest.options(add.1.presample=TRUE)
+confint(e.BTboot, method.ci.resampling = "percentile") ## include small sample correction 
+
+quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(0.025,0.975))
+## possible quantiles every 1/15
+quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(1-(1:2/15)/2)) ## close to 0
+\end{lstlisting}
+
+\begin{verbatim}
+      estimate        se lower.ci upper.ci null    p.value
+score    -0.48 0.2519259   -0.753    0.066    0 0.06666667
+      estimate        se lower.ci upper.ci null    p.value
+score    -0.48 0.2519259   -0.753    0.066    0 0.06666667
+  2.5%  97.5% 
+-0.753  0.066
+  96.66667%   93.33333% 
+ 0.01466667 -0.19066667
+\end{verbatim}
+
+
+Variability of bootstrap (1000 rep)
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+ls.BTboot <- lapply(1:100, function(x){
+  BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
+            seed = x, method.inference  = "bootstrap", strata.resampling = "treatment", n.resampling = 1000)
+  
+})
+\end{lstlisting}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+table.perc <- do.call(rbind,lapply(ls.BTboot, confint, method.ci.resampling = "percentile", transform = FALSE))
+table.gaus <- do.call(rbind,lapply(ls.BTboot, confint, method.ci.resampling = "gaussian", transform = FALSE))
+rbind(perc = quantile(table.perc$lower),
+      gaus = quantile(table.gaus$lower),
+      perc = quantile(table.perc$upper),
+      gaus = quantile(table.gaus$upper))
+\end{lstlisting}
+
+\begin{verbatim}
+              0%         25%         50%        75%        100%
+perc -0.88000000 -0.88000000 -0.86000000 -0.8600000 -0.84000000
+gaus -0.94913236 -0.93258450 -0.92455817 -0.9203503 -0.90444914
+perc -0.03950000  0.00000000  0.00050000  0.0400000  0.08000000
+gaus -0.05555086 -0.03964966 -0.03544183 -0.0274155 -0.01086764
+\end{verbatim}
+
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+e4.BTboot <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
+                       seed = 10, method.inference  = "studentized bootstrap", strata.resampling = "treatment", n.resampling = 1e4)
+confint(e4.BTboot, method.ci.resampling  = "studentized", transform = FALSE)
+confint(e4.BTboot, method.ci.resampling  = "studentized", transform = TRUE)
+confint(e4.BTboot, method.ci.resampling  = "gaussian", transform = FALSE)
+confint(e4.BTboot, method.ci.resampling  = "gaussian", transform = TRUE)
+\end{lstlisting}
+
+\begin{verbatim}
+      estimate        se  lower.ci    upper.ci null p.value
+score    -0.48 0.2216303 -1.246266 -0.09410991    0  0.0194
+      estimate        se   lower.ci   upper.ci null p.value
+score    -0.48 0.2216303 -0.7812602 0.02333005    0  0.0617
+      estimate       se   lower.ci    upper.ci null    p.value
+score    -0.48 0.226883 -0.9246825 -0.03531746    0 0.03437648
+      estimate       se lower.ci upper.ci null p.value
+score    -0.48 0.226883      NaN      NaN    0     NaN
+Advarselsbesked:
+I (function (Delta, Delta.resampling, null, alternative, alpha,  :
+  Infinite value for the summary statistic after transformation in some of the bootstrap samples. 
+Cannot compute confidence intervals or p-value under Gaussian approximation. 
+Consider setting the argument 'transform' to FALSE.
+\end{verbatim}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(data.table)
+NB.boot <- e4.BTboot@DeltaResampling[,,"netBenefit"]
+seNB.boot <- e4.BTboot@covarianceResampling[,,"netBenefit"]
+
+dt.boot <- rbind(data.table(estimate = NB.boot,
+                            scale = "original scale", type = "bootstrap estimates"),
+                 data.table(estimate = atanh(NB.boot),
+                            scale = "atanh scale", type = "bootstrap estimates"),
+                 data.table(estimate = (NB.boot-coef(e4.BTboot))/sqrt(seNB.boot),
+                            scale = "original scale", type = "bootstrap centered statistics"),
+                 data.table(estimate = (atanh(NB.boot)-atanh(coef(e4.BTboot)))/sqrt(seNB.boot/(1-NB.boot^2)^2),
+                            scale = "atanh scale", type = "bootstrap centered statistics"))
+
+dt.bootQ <- dt.boot[, .(Qlower = quantile(estimate, prob = 0.025, na.rm = TRUE),
+                        Qupper = quantile(estimate, prob = 0.975, na.rm = TRUE)),
+                    by = c("scale","type")]
+dt.bootQ
+
+dt.boot$estimate[is.infinite(dt.boot$estimate)] <- NA
+dt.boot$estimate[abs(dt.boot$estimate)>15] <- NA
+dt.boot$type <- factor(dt.boot$type, levels = unique(dt.boot$type))
+dt.boot$scale <- factor(dt.boot$scale, levels = unique(dt.boot$scale))
+dt.bootQ$type <- factor(dt.bootQ$type, levels = unique(dt.boot$type))
+dt.bootQ$scale <- factor(dt.bootQ$scale, levels = unique(dt.boot$scale))
+
+gg.histBoot <- ggplot()
+gg.histBoot <- gg.histBoot + geom_histogram(data = dt.boot, mapping = aes(x=estimate, y=after_stat(4 * count / sum(count))), color = "black")
+gg.histBoot <- gg.histBoot + geom_vline(data = dt.bootQ, mapping = aes(xintercept=Qlower), color = "gray", linetype = 2, size = 1.25)
+gg.histBoot <- gg.histBoot + geom_vline(data = dt.bootQ, mapping = aes(xintercept=Qupper), color = "gray", linetype = 2, size = 1.25)
+gg.histBoot <- gg.histBoot + facet_grid(scale~type, scales="free")
+gg.histBoot <- gg.histBoot + scale_y_continuous(labels = scales::percent)
+gg.histBoot <- gg.histBoot + labs(y = "Relative frequency", x = NULL)
+gg.histBoot <- gg.histBoot + theme(text = element_text(size=15), 
+                                   axis.line = element_line(linewidth = 1.25),
+                                   axis.ticks = element_line(linewidth = 2),
+                                   axis.ticks.length=unit(.25, "cm"),
+                                   legend.key.size = unit(3,"line"))
+## gg.histBoot
+ggsave(gg.histBoot, filename = "figures/fig_inference_bootstrap.pdf", width = 9, height = 6)
+\end{lstlisting}
+
+\begin{verbatim}
+            scale                          type    Qlower   Qupper
+1: original scale           bootstrap estimates -0.860000 0.000000
+2:    atanh scale           bootstrap estimates -1.293345 0.000000
+3: original scale bootstrap centered statistics -3.457404 1.741143
+4:    atanh scale bootstrap centered statistics -1.803547 1.897063
+[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+Advarselsbesked:
+[1m[22mRemoved 62 rows containing non-finite values (`stat_bin()`).
+\end{verbatim}
+
+
 \subsection{Section 1.4.3 Permutation p-values}
-\label{sec:org36616b0}
+\label{sec:orgebe03b2}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+library(MKinfer)
+ls.permtt <- lapply(1:10, function(x){
+  set.seed(x)
+  X <- rnorm(10, sd = 1)
+  Y <- rnorm(100, sd = sqrt(0.01))
+  perm.t.test(X, Y, var.equal = TRUE)
+})
+unlist(lapply(ls.permtt, function(x){x$perm.p.value}))
+
+
+set.seed(4)
+X <- rnorm(10, sd = 1)
+Y <- rnorm(100, sd = sqrt(0.01))
+c(meanX = mean(X), meanY = mean(Y), sdX = sd(X), sdY = sd(Y))
+perm.t.test(X, Y, var.equal = TRUE)
+\end{lstlisting}
+
+\begin{verbatim}
+ [1] 0.13871387 0.05330533 0.34673467 0.00030003 0.32613261 0.22522252
+ [7] 0.37673767 0.00230023 0.00810081 0.00000000
+      meanX       meanY         sdX         sdY 
+0.566529289 0.001919028 1.047353007 0.090627580+00+
+\end{verbatim}
+
+
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.BTperm <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
@@ -371,22 +602,86 @@ e.BTperm@covarianceResampling[,"score","netBenefit"]
 \end{lstlisting}
 
 \begin{verbatim}
-    1     2     3     4     5     6     7     8     9    10    11    12    13 
--0.08  0.20 -0.01 -0.08  0.21 -0.10  0.19  0.05 -0.04  0.30  0.11  0.09 -0.19 
-   14    15 
- 0.59 -0.30
-      1       2       3       4       5       6       7       8       9      10 
-0.07632 0.06760 0.07218 0.07352 0.06538 0.06760 0.06738 0.06930 0.07288 0.06760 
-     11      12      13      14      15 
-0.07098 0.06738 0.06898 0.05258 0.06040
+    1     2     3     4     5     6     7     8     9    10    11    12 
+-0.08  0.20 -0.01 -0.08  0.21 -0.10  0.19  0.05 -0.04  0.30  0.11  0.09 
+   13    14    15 
+-0.19  0.59 -0.30
+      1       2       3       4       5       6       7       8       9 
+0.07632 0.06760 0.07218 0.07352 0.06538 0.06760 0.06738 0.06930 0.07288 
+     10      11      12      13      14      15 
+0.06760 0.07098 0.06738 0.06898 0.05258 0.06040
 \end{verbatim}
 
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+set.seed(e.BTperm@seed[1])
+dt.P1 <- data.table::copy(dt)
+dt.P1$treatment <- sample(dt$treatment)
+e.BTperm1 <- BuyseTest(treatment ~ cont(score), data = dt.P1, trace = FALSE)
+confint(e.BTperm1)
+
+\end{lstlisting}
+
+\begin{verbatim}
+      estimate        se   lower.ci upper.ci null   p.value
+score    -0.08 0.2762607 -0.5546829  0.43397    0 0.7730832
+\end{verbatim}
+
+\subsection{Table}
+\label{sec:orgd8d844c}
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+df <- data.frame(deltai = c(formatC(Deltai, format = "f", digits = 1), rep(NA,5)),
+                 deltaj = c(formatC(Deltaj, format = "f", digits = 1), rep(NA,5)),
+                 s1 = NA,
+                 delta.boot = e.BTboot@DeltaResampling[,"score","netBenefit"],
+                 se.boot = round(e.BTboot@covarianceResampling[,"score","netBenefit"],3),
+                 s2 = NA,
+                 delta.perm = e.BTperm@DeltaResampling[,"score","netBenefit"],
+                 se.perm = round(e.BTperm@covarianceResampling[,"score","netBenefit"],3))
+print(xtable(df, digits = 3),include.rownames=FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+% latex table generated in R 4.2.0 by xtable 1.8-4 package
+% Thu Sep 14 12:14:28 2023
+\begin{table}[ht]
+\centering
+\begin{tabular}{lllrrlrr}
+  \hline
+deltai & deltaj & s1 & delta.boot & se.boot & s2 & delta.perm & se.perm \\ 
+  \hline
+-0.4 & 0.4 &  & -0.300 & 0.066 &  & -0.080 & 0.076 \\ 
+  -1.0 & -0.4 &  & -0.520 & 0.050 &  & 0.200 & 0.068 \\ 
+  -0.4 & 0.2 &  & -0.540 & 0.044 &  & -0.010 & 0.072 \\ 
+  -1.0 & -1.0 &  & 0.220 & 0.082 &  & -0.080 & 0.074 \\ 
+  -1.0 & -1.0 &  & -0.700 & 0.028 &  & 0.210 & 0.065 \\ 
+  0.0 & -1.0 &  & -0.640 & 0.039 &  & -0.100 & 0.068 \\ 
+  -0.4 & -1.0 &  & -0.420 & 0.070 &  & 0.190 & 0.067 \\ 
+  -0.6 & -0.4 &  & -0.360 & 0.062 &  & 0.050 & 0.069 \\ 
+  0.0 & -1.0 &  & -0.700 & 0.040 &  & -0.040 & 0.073 \\ 
+  0.0 & 0.4 &  & -0.220 & 0.075 &  & 0.300 & 0.068 \\ 
+   &  &  & -0.760 & 0.022 &  & 0.110 & 0.071 \\ 
+   &  &  & -0.740 & 0.024 &  & 0.090 & 0.067 \\ 
+   &  &  & -0.540 & 0.044 &  & -0.190 & 0.069 \\ 
+   &  &  & -0.420 & 0.055 &  & 0.590 & 0.053 \\ 
+   &  &  & -0.460 & 0.050 &  & -0.300 & 0.060 \\ 
+   \hline
+\end{tabular}
+\end{table}
+\end{verbatim}
+
+\subsection{Figure}
+\label{sec:orgbe25cab}
+
 \section{Chapter 2 Software}
-\label{sec:orgbfddf21}
+\label{sec:orgdb4804f}
 \subsection{Section 2.1 Introduction}
-\label{sec:orgfae340e}
+\label{sec:org53cd7d6}
 \subsubsection{subsection 2.1.2 Generating in-silico data}
-\label{sec:org78fcb3e}
+\label{sec:orgffc3fe8}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 set.seed(10) ## initialize the pseudo-random number generator 
@@ -551,7 +846,7 @@ null device
           1
 \end{verbatim}
 \subsection{section 2.2 GPC with a single endpoint}
-\label{sec:orge5686f4}
+\label{sec:orga66b398}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -580,7 +875,7 @@ plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
 \end{lstlisting}
 
 \subsubsection{subsection 2.2.1 Relation to the Wilcoxon-Mann-Whitney test}
-\label{sec:orgdacfadd}
+\label{sec:orgea27541}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -656,7 +951,7 @@ CI [2.5% ; 97.5%] p.value
 
 
 \subsubsection{subsection 2.2.2 Adjustment for ties}
-\label{sec:orgc6489b4}
+\label{sec:org444a356}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -748,7 +1043,7 @@ Null hypothesis: b = 0
 \end{verbatim}
 
 \subsubsection{subsection 2.2.3 Threshold of clinical relevance}
-\label{sec:org242813c}
+\label{sec:org0c5d5c5}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -810,7 +1105,7 @@ model.tables(eTox.BT, columns = "threshold")
 \end{verbatim}
 
 \subsubsection{subsection 2.2.4 Accounting for baseline covariates}
-\label{sec:org818b4d6}
+\label{sec:orge242701}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -922,7 +1217,7 @@ treatmentT
 \end{verbatim}
 
 \subsubsection{subsection 2.2.5 Handling right-censoring when assessing efficacy}
-\label{sec:org14b9048}
+\label{sec:org316ac0f}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1045,10 +1340,10 @@ getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
 \end{verbatim}
 
 \subsection{section 2.3 Benefit risk analysis using GPC}
-\label{sec:org9235831}
+\label{sec:org114c8d2}
 
 \subsubsection{subsection 2.3.1 Hierarchical \& non-hierarchical analyses}
-\label{sec:org5b86843}
+\label{sec:org023ff62}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 eBRB.BT <- BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num),
@@ -1138,7 +1433,7 @@ non-prioritized   0.0368 0.02808930 -0.01825401 0.09185401    0 0.1901594
 \end{verbatim}
 
 \subsubsection{subsection 2.3.2 Threshold of clinical relevance}
-\label{sec:orgb9c24aa}
+\label{sec:org10e8484}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 eSH.BT <- BuyseTest(treatment ~ tte(OS, statusOS, threshold = 28)
@@ -1191,7 +1486,7 @@ windows
 \end{verbatim}
 
 \subsubsection{subsection 2.3.3 Encoding of the outcome}
-\label{sec:orge875731}
+\label{sec:org976784d}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 dt.data$OS2 <- dt.data$OS
@@ -1275,7 +1570,7 @@ print(eR2.BT, percentage = FALSE)
 \end{verbatim}
 
 \subsubsection{subsection 2.3.4 Sensitivity analysis}
-\label{sec:org2c971d8}
+\label{sec:org6f95a3a}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1385,9 +1680,9 @@ threshold -0.010365320  0.2518908  0.07288010
 \end{verbatim}
 
 \subsection{section 2.4 Power calculation for GPC analyses}
-\label{sec:org2bbb498}
+\label{sec:org9f08988}
 \subsubsection{subsection 2.4.1 Data generating mechanism}
-\label{sec:org9524567}
+\label{sec:orgaf1f013}
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 simFCT <- function(n.C, n.T){
@@ -1433,7 +1728,7 @@ simFCT2(2,2)
 \end{verbatim}
 
 \subsubsection{subsection 2.4.2 Simulation-based power and sample size estimation}
-\label{sec:org0fb1fc3}
+\label{sec:org6654a3d}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}

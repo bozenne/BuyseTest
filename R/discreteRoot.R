@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: jun 27 2023 (13:58) 
+## Last-Updated: sep 19 2023 (16:54) 
 ##           By: Brice Ozenne
-##     Update #: 283
+##     Update #: 312
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -203,7 +203,7 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
     }
     sign.statistic <- statistic>=0
     if(add.1){
-        zero <- 1/n.boot
+        zero <- 1/(n.boot+1)
     }else{
         zero <- 0
     }
@@ -228,9 +228,10 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
                              "two.sided" = sign.statistic,
                              "less" = FALSE,
                              "greater" = TRUE)
+        
         ## grid of confidence level
         grid <- seq(0,by=1/n.boot,length.out=n.boot+1)
-        
+
         ## search for critical confidence level
         resSearch <- discreteRoot(fn = function(p.value){
             CI <- FUN.ci(x = x.boot,
@@ -249,13 +250,15 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
             warning("incorrect convergence of the algorithm finding the critical quantile \n",
                     "p-value may not be reliable \n")
 
-        }else if(add.1){
-            ## ensure that the p-value is strictly positive
-            resSearch$par <- seq(0,by=1/(n.boot+1),length.out=n.boot+2)[resSearch$index+1]
         }
-
-        ## do not check unique maximum
-        p.value <- resSearch$par
+        
+        ## ## ensures a conservative estimate by taking the first level where the confidence interval excludes 0 (i.e. the next level if the confidence interval still includes 0)
+        ## if((resSearch$index+1<length(grid)) && ((resSearch$value>0 && sign.statistic==FALSE) || (resSearch$value<0 && sign.statistic==TRUE))){
+        ##     p.value <- grid[resSearch$index+1]
+        ## }else{
+        ## p.value <- resSearch$par
+        ## }
+        p.value <- max(resSearch$par, zero)
     }
 
     if(p.value %in% c(0,1)){

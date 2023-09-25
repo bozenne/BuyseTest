@@ -3,6 +3,7 @@
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 options(width=75)
+library(data.table)
 library(xtable)
 library(BuyseTest)
 library(ggplot2)
@@ -14,12 +15,13 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 #+END_SRC
 
 #+RESULTS:
-: Indlæser krævet pakke: Rcpp
-: BuyseTest version 3.0.0
-: Advarselsbesked:
-: pakke 'Rcpp' blev bygget under R version 4.2.3
-: Need help? Try Stackoverflow:
-: https://stackoverflow.com/tags/ggplot2
+: 
+: Vedhæfter pakke: 'ggplot2'
+: 
+: Det følgende objekt er maskeret fra 'package:BuyseTest':
+: 
+:     vars
+: 
 : Advarselsbesked:
 : pakke 'ggplot2' blev bygget under R version 4.2.3
 
@@ -99,7 +101,7 @@ print(xtable(cbind(as.character(round(A[,1],1)),
 #+RESULTS:
 #+begin_example
 % latex table generated in R 4.2.0 by xtable 1.8-4 package
-% Fri Sep 15 15:55:03 2023
+% Fri Sep 22 12:07:25 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{lllllll}
@@ -196,6 +198,7 @@ confint(e.BT, statistic = "netBenefit", transformation = FALSE)
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 0.2216303^2/(1-0.48^2)^2
+atanh(-0.48) + qnorm(c(0.025,0.975))* 0.2216303/(1-0.48^2)
 tanh(atanh(-0.48) + qnorm(c(0.025,0.975))* 0.2216303/(1-0.48^2))
 2*(1-pnorm(abs(-atanh(0.48)*(1-0.48^2)/0.2216303)))
 
@@ -204,12 +207,14 @@ confint(e.BT, statistic = "netBenefit", transformation = TRUE)
 
 #+RESULTS:
 : [1] 0.08293315
+: [1] -1.08741698  0.04144842
 : [1] -0.7959334  0.0414247
 : [1] 0.06936478
 :       estimate        se   lower.ci   upper.ci null    p.value
 : score    -0.48 0.2216303 -0.7959335 0.04142476    0 0.06936481
 
 ** Section 1.4.2 Bootstrap confidence intervals and p-values
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.BTboot <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
                       seed = 10, method.inference  = "studentized bootstrap", strata.resampling = "treatment", n.resampling = 15)
@@ -257,74 +262,247 @@ sd(e.BTboot@DeltaResampling[,"score","netBenefit"])^2
 : [1] 0.06346667
 : [1] -0.97376572  0.01376572
 
-Percentile
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest.options(add.1.presample=FALSE)
-confint(e.BTboot, method.ci.resampling = "percentile") ## no small sample correction 
-BuyseTest.options(add.1.presample=TRUE)
-confint(e.BTboot, method.ci.resampling = "percentile") ## include small sample correction 
-
-quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(0.025,0.975))
-## possible quantiles every 1/15
-quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(1-(1/15)/2)) ## close to 0
-seq(0, by = 1/16, length.out = 17)[3]
-## BuyseTest:::boot2pvalue(e.BTboot@DeltaResampling[,"score","netBenefit"],
-##                         null = 0,
-##                         estimate = -0.48,
-##                         alternative = "two.sided",
-##                         add.1 = FALSE)
-#+END_SRC
-
-#+RESULTS:
-:       estimate        se lower.ci upper.ci null    p.value
-: score    -0.48 0.2519259   -0.753    0.066    0 0.06666667
-:       estimate        se lower.ci upper.ci null p.value
-: score    -0.48 0.2519259   -0.753    0.066    0   0.125
-:   2.5%  97.5% 
-: -0.753  0.066
-:  96.66667% 
-: 0.01466667
-: [1] 0.125
-
 Studentized
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(add.1.presample=FALSE)
+confint(e.BTboot, method.ci.resampling = "studentized", transform = FALSE)
+BuyseTest.options(add.1.presample=TRUE)
 confint(e.BTboot, method.ci.resampling = "studentized", transform = FALSE)
 
 t.boot <- quantile((e.BTboot@DeltaResampling[,"score","netBenefit"]-coef(e.BTboot))/sqrt(e.BTboot@covarianceResampling[,"score","netBenefit"]),c(0.025,0.975))
 t.boot
 -0.48 + t.boot*confint(e.BT, statistic = "netBenefit")$se
-
 #+END_SRC
 
 #+RESULTS:
-: Estimated p-value of 0 - consider increasing the number of boostrap samples 
-: 
-:       estimate        se   lower.ci    upper.ci null p.value
-: score    -0.48 0.2216303 -0.8814268 -0.05494471    0       0
-:      2.5%     97.5% 
-: -1.811245  1.917857
-:        2.5%       97.5% 
-: -0.88142676 -0.05494471
+#+begin_example
+Estimated p-value of 0 - consider increasing the number of boostrap samples 
+
+      estimate        se   lower.ci    upper.ci null p.value
+score    -0.48 0.2216303 -0.8814268 -0.05494471    0       0
+      estimate        se   lower.ci    upper.ci null p.value
+score    -0.48 0.2216303 -0.8814268 -0.05494471    0  0.0625
+     2.5%     97.5% 
+-1.811245  1.917857
+       2.5%       97.5% 
+-0.88142676 -0.05494471
+#+end_example
+
+Percentile
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(add.1.presample=FALSE)
+confint(e.BTboot, method.ci.resampling = "percentile") ## no small sample correction
+BuyseTest.options(add.1.presample=TRUE)
+confint(e.BTboot, method.ci.resampling = "percentile") ## include small sample correction 
+
+quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(0.025,0.975))
+## possible quantiles every 1/15
+quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(1-(1:2/15)/2)) ## close to 0
+#+END_SRC
+
+#+RESULTS:
+:       estimate        se lower.ci upper.ci null    p.value
+: score    -0.48 0.2519259   -0.753    0.066    0 0.06666667
+:       estimate        se lower.ci upper.ci null    p.value
+: score    -0.48 0.2519259   -0.753    0.066    0 0.06666667
+:   2.5%  97.5% 
+: -0.753  0.066
+:   96.66667%   93.33333% 
+:  0.01466667 -0.19066667
+
+Variability of bootstrap (1000 rep)
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+ls.BTboot <- lapply(1:100, function(x){
+  BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
+            seed = x, method.inference  = "bootstrap", strata.resampling = "treatment", n.resampling = 1000)
+  
+})
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+table.perc <- do.call(rbind,lapply(ls.BTboot, confint, method.ci.resampling = "percentile", transform = FALSE))
+table.gaus <- do.call(rbind,lapply(ls.BTboot, confint, method.ci.resampling = "gaussian", transform = FALSE))
+rbind(perc = quantile(table.perc$lower),
+      gaus = quantile(table.gaus$lower),
+      perc = quantile(table.perc$upper),
+      gaus = quantile(table.gaus$upper))
+#+END_SRC
+
+#+RESULTS:
+:               0%         25%         50%        75%        100%
+: perc -0.88000000 -0.88000000 -0.86000000 -0.8600000 -0.84000000
+: gaus -0.94913236 -0.93258450 -0.92455817 -0.9203503 -0.90444914
+: perc -0.03950000  0.00000000  0.00050000  0.0400000  0.08000000
+: gaus -0.05555086 -0.03964966 -0.03544183 -0.0274155 -0.01086764
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e4.BTboot <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
+                       seed = 10, method.inference  = "studentized bootstrap", strata.resampling = "treatment", n.resampling = 1e4)
+confint(e4.BTboot, method.ci.resampling  = "studentized", transform = FALSE)
+confint(e4.BTboot, method.ci.resampling  = "studentized", transform = TRUE)
+confint(e4.BTboot, method.ci.resampling  = "gaussian", transform = FALSE)
+confint(e4.BTboot, method.ci.resampling  = "gaussian", transform = TRUE)
+var(e4.BTboot@DeltaResampling[,,"netBenefit"])
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+      estimate        se  lower.ci    upper.ci null p.value
+score    -0.48 0.2216303 -1.246266 -0.09410991    0  0.0194
+      estimate        se   lower.ci   upper.ci null p.value
+score    -0.48 0.2216303 -0.7812602 0.02333005    0  0.0617
+      estimate       se   lower.ci    upper.ci null    p.value
+score    -0.48 0.226883 -0.9246825 -0.03531746    0 0.03437648
+      estimate       se lower.ci upper.ci null p.value
+score    -0.48 0.226883      NaN      NaN    0     NaN
+Advarselsbesked:
+I (function (Delta, Delta.resampling, null, alternative, alpha,  :
+  Infinite value for the summary statistic after transformation in some of the bootstrap samples. 
+Cannot compute confidence intervals or p-value under Gaussian approximation. 
+Consider setting the argument 'transform' to FALSE.
+[1] 0.0514759
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(data.table)
+NB.boot <- e4.BTboot@DeltaResampling[,,"netBenefit"]
+seNB.boot <- e4.BTboot@covarianceResampling[,,"netBenefit"]
+
+dt.boot <- rbind(data.table(estimate = NB.boot,
+                            scale = "original scale", type = "bootstrap estimates"),
+                 data.table(estimate = atanh(NB.boot),
+                            scale = "atanh scale", type = "bootstrap estimates"),
+                 data.table(estimate = (NB.boot-coef(e4.BTboot))/sqrt(seNB.boot),
+                            scale = "original scale", type = "bootstrap centered statistics"),
+                 data.table(estimate = (atanh(NB.boot)-atanh(coef(e4.BTboot)))/sqrt(seNB.boot/(1-NB.boot^2)^2),
+                            scale = "atanh scale", type = "bootstrap centered statistics"))
+
+dt.bootQ <- dt.boot[, .(Qlower = quantile(estimate, prob = 0.025, na.rm = TRUE),
+                        Qupper = quantile(estimate, prob = 0.975, na.rm = TRUE)),
+                    by = c("scale","type")]
+dt.bootQ
+
+dt.boot$estimate[is.infinite(dt.boot$estimate)] <- NA
+dt.boot$estimate[abs(dt.boot$estimate)>15] <- NA
+dt.boot$type <- factor(dt.boot$type, levels = unique(dt.boot$type))
+dt.boot$scale <- factor(dt.boot$scale, levels = unique(dt.boot$scale))
+dt.bootQ$type <- factor(dt.bootQ$type, levels = unique(dt.boot$type))
+dt.bootQ$scale <- factor(dt.bootQ$scale, levels = unique(dt.boot$scale))
+
+gg.histBoot <- ggplot()
+gg.histBoot <- gg.histBoot + geom_histogram(data = dt.boot, mapping = aes(x=estimate, y=after_stat(4 * count / sum(count))), color = "black")
+gg.histBoot <- gg.histBoot + geom_vline(data = dt.bootQ, mapping = aes(xintercept=Qlower), color = "gray", linetype = 2, size = 1.25)
+gg.histBoot <- gg.histBoot + geom_vline(data = dt.bootQ, mapping = aes(xintercept=Qupper), color = "gray", linetype = 2, size = 1.25)
+gg.histBoot <- gg.histBoot + facet_grid(scale~type, scales="free")
+gg.histBoot <- gg.histBoot + scale_y_continuous(labels = scales::percent)
+gg.histBoot <- gg.histBoot + labs(y = "Relative frequency", x = NULL)
+gg.histBoot <- gg.histBoot + theme(text = element_text(size=15), 
+                                   axis.line = element_line(linewidth = 1.25),
+                                   axis.ticks = element_line(linewidth = 2),
+                                   axis.ticks.length=unit(.25, "cm"),
+                                   legend.key.size = unit(3,"line"))
+## gg.histBoot
+ggsave(gg.histBoot, filename = "figures/fig_inference_bootstrap.pdf", width = 9, height = 6)
+#+END_SRC
+
+#+RESULTS:
+:             scale                          type    Qlower   Qupper
+: 1: original scale           bootstrap estimates -0.860000 0.000000
+: 2:    atanh scale           bootstrap estimates -1.293345 0.000000
+: 3: original scale bootstrap centered statistics -3.457404 1.741143
+: 4:    atanh scale bootstrap centered statistics -1.803547 1.897063
+: [1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+: Advarselsbesked:
+: [1m[22mRemoved 62 rows containing non-finite values (`stat_bin()`).
 
 
 ** Section 1.4.3 Permutation p-values
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(MKinfer)
+ls.permtt <- lapply(1:10, function(x){
+  set.seed(x)
+  X <- rnorm(10, sd = 1)
+  Y <- rnorm(100, sd = sqrt(0.01))
+  perm.t.test(X, Y, var.equal = TRUE)
+})
+unlist(lapply(ls.permtt, function(x){x$perm.p.value}))
+
+
+set.seed(4)
+X <- rnorm(10, sd = 1)
+Y <- rnorm(100, sd = sqrt(0.01))
+index <- sample.int(110,100,replace =FALSE)
+Z1 <- c(X,Y)[index]
+Z2 <- c(X,Y)[-index]
+c(meanX = mean(X), meanY = mean(Y), sdX = sd(X), sdY = sd(Y), diffZ = mean(Z2)-mean(Z1))
+perm.t.test(X, Y, var.equal = TRUE)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+ [1] 0.13871387 0.05330533 0.34673467 0.00030003 0.32613261 0.22522252
+ [7] 0.37673767 0.00230023 0.00810081 0.00000000
+      meanX       meanY         sdX         sdY       diffZ 
+0.566529289 0.001919028 1.047353007 0.090627580 0.244809401
+
+	Permutation Two Sample t-test
+
+data:  X and Y
+(Monte-Carlo) permutation p-value = 3e-04 
+95 percent (Monte-Carlo) permutation percentile confidence interval:
+ 0.3573708 0.8260502
+
+Results without permutation:
+t = 5.4121, df = 108, p-value = 3.788e-07
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.3578216 0.7713989
+sample estimates:
+  mean of x   mean of y 
+0.566529289 0.001919028
+#+end_example
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+mean(sapply(1:10000,function(x){
+  X <- rnorm(10, sd = 1)
+  Y <- rnorm(100, sd = sqrt(0.01))
+  var(c(X,Y))
+}))
+10/110+100/110*0.01
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.1001106
+: [1] 0.1
+
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.BTperm <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
                       seed = 10, method.inference  = "studentized permutation", n.resampling = 15)
 e.BTperm@DeltaResampling[,"score","netBenefit"]
 e.BTperm@covarianceResampling[,"score","netBenefit"]
+sum(abs(e.BTperm@DeltaResampling[,"score","netBenefit"])>=abs(coef(e.BTperm)))
+confint(e.BTperm, method.ci.resampling = "percentile")
+2/16
 #+END_SRC
 
 #+RESULTS:
-:     1     2     3     4     5     6     7     8     9    10    11    12 
-: -0.08  0.20 -0.01 -0.08  0.21 -0.10  0.19  0.05 -0.04  0.30  0.11  0.09 
-:    13    14    15 
-: -0.19  0.59 -0.30
-:       1       2       3       4       5       6       7       8       9 
-: 0.07632 0.06760 0.07218 0.07352 0.06538 0.06760 0.06738 0.06930 0.07288 
-:      10      11      12      13      14      15 
-: 0.06760 0.07098 0.06738 0.06898 0.05258 0.06040
+#+begin_example
+    1     2     3     4     5     6     7     8     9    10    11    12 
+-0.08  0.20 -0.01 -0.08  0.21 -0.10  0.19  0.05 -0.04  0.30  0.11  0.09 
+   13    14    15 
+-0.19  0.59 -0.30
+      1       2       3       4       5       6       7       8       9 
+0.07632 0.06760 0.07218 0.07352 0.06538 0.06760 0.06738 0.06930 0.07288 
+     10      11      12      13      14      15 
+0.06760 0.07098 0.06738 0.06898 0.05258 0.06040
+[1] 1
+      estimate       se lower.ci upper.ci null p.value
+score    -0.48 0.219202       NA       NA    0   0.125
+[1] 0.125
+#+end_example
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(e.BTperm@seed[1])
@@ -338,6 +516,67 @@ confint(e.BTperm1)
 #+RESULTS:
 :       estimate        se   lower.ci upper.ci null   p.value
 : score    -0.08 0.2762607 -0.5546829  0.43397    0 0.7730832
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e4.BTperm <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
+                       seed = 10, method.inference  = "studentized permutation", n.resampling = 1e4)
+confint(e4.BTperm, method.ci.resampling  = "studentized")
+confint(e4.BTperm, method.ci.resampling  = "percentile")
+var(e4.BTperm@DeltaResampling[,,"netBenefit"])
+#+END_SRC
+
+#+RESULTS:
+:       estimate        se lower.ci upper.ci null    p.value
+: score    -0.48 0.2216303       NA       NA    0 0.05819418
+:       estimate        se lower.ci upper.ci null    p.value
+: score    -0.48 0.2623938       NA       NA    0 0.06869313
+: [1] 0.0688505
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(data.table)
+NB.perm <- e4.BTperm@DeltaResampling[,,"netBenefit"]
+seNB.perm <- e4.BTperm@covarianceResampling[,,"netBenefit"]
+
+dt.perm <- rbind(data.table(estimate = NB.perm,
+                            type = "permutation estimates"),
+                 data.table(estimate = NB.perm/sqrt(seNB.perm),
+                            type = "permutation statistic")
+                 )
+
+dt.permQ <- dt.perm[, .(Qlower = quantile(estimate, prob = 0.025, na.rm = TRUE),
+                        Qupper = quantile(estimate, prob = 0.975, na.rm = TRUE)),
+                    by = "type"]
+dt.permQ
+
+dt.perm[abs(estimate)>10,estimate := NA]
+dt.perm$type <- factor(dt.perm$type, levels = unique(dt.perm$type))
+dt.permQ$type <- factor(dt.permQ$type, levels = unique(dt.perm$type))
+
+gg.histPerm <- ggplot()
+gg.histPerm <- gg.histPerm + geom_histogram(data = dt.perm, mapping = aes(x=estimate, y=after_stat(2 * count / sum(count))), color = "black")
+gg.histPerm <- gg.histPerm + geom_vline(data = dt.permQ, mapping = aes(xintercept=Qlower), color = "gray", linetype = 2, size = 1.25)
+gg.histPerm <- gg.histPerm + geom_vline(data = dt.permQ, mapping = aes(xintercept=Qupper), color = "gray", linetype = 2, size = 1.25)
+gg.histPerm <- gg.histPerm + facet_grid(~type, scales="free")
+gg.histPerm <- gg.histPerm + scale_y_continuous(labels = scales::percent)
+gg.histPerm <- gg.histPerm + labs(y = "Relative frequency", x = NULL)
+gg.histPerm <- gg.histPerm + theme(text = element_text(size=15), 
+                                   axis.line = element_line(linewidth = 1.25),
+                                   axis.ticks = element_line(linewidth = 2),
+                                   axis.ticks.length=unit(.25, "cm"),
+                                   legend.key.size = unit(3,"line"))
+## gg.histPerm
+ggsave(gg.histPerm, filename = "figures/fig_inference_permutation.pdf", width = 9, height = 6)
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.2623938
+:                     type    Qlower  Qupper
+: 1: permutation estimates -0.510000 0.51000
+: 2: permutation statistic -2.276832 2.29012
+: [1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+: Advarselsbesked:
+: [1m[22mRemoved 2 rows containing non-finite values (`stat_bin()`).
+
 
 ** Table
 
@@ -382,6 +621,7 @@ deltai & deltaj & s1 & delta.boot & se.boot & s2 & delta.perm & se.perm \\
 \end{tabular}
 \end{table}
 #+end_example
+
 
 * Chapter 2 Software
 ** Section 2.1 Introduction
