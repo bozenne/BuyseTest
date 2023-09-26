@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: sep 19 2023 (16:54) 
+## Last-Updated: sep 26 2023 (09:42) 
 ##           By: Brice Ozenne
-##     Update #: 312
+##     Update #: 314
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -191,8 +191,11 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
     }
     x.boot <- na.omit(x)
     n.boot <- length(x.boot)
-    statistic.boot <- mean(x.boot) - null
-
+    if(any(is.infinite(x.boot))){
+        statistic.boot <- median(x.boot, na.rm = TRUE) - null
+    }else{
+        statistic.boot <- mean(x.boot, na.rm = TRUE) - null
+    }
     if(is.null(estimate)){
         statistic <- statistic.boot
     }else{
