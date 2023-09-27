@@ -15,12 +15,6 @@ if(system("whoami",intern=TRUE)=="bozenne"){
 #+END_SRC
 
 #+RESULTS:
-: 
-: Attaching package: ‘ggplot2’
-: 
-: The following object is masked from ‘package:BuyseTest’:
-: 
-:     vars
 
 * Chapter 1 Statistical inference
 ** Section 1.3.1 Intuition
@@ -619,106 +613,81 @@ deltai & deltaj & s1 & delta.boot & se.boot & s2 & delta.perm & se.perm \\
 #+end_example
 ** section 1.4.4 Empirical performance
 
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-warper <- function(i, n, mu, sigma, n.resampling){
-  data <- simBuyseTest(n.T = n, n.C = n, argsCont = list(mu.C = 0, mu.T = mu, sigma.C = 1, sigma.T = sigma))
-  tps.U <- system.time(
-    BT.U <- BuyseTest(treatment ~ cont(score), data = data, trace = FALSE,
-                      method.inference = "u-statistic")
-  )
-  tps.boot <- system.time(
-    BT.boot <- BuyseTest(treatment ~ cont(score), data = data, n.resampling = n.resampling, trace = FALSE,
-                         method.inference = "studentized bootstrap", strata.resampling = "treatment")
-  )
-  tps.perm <- system.time(
-    BT.perm <- BuyseTest(treatment ~ cont(score), data = data, n.resampling = n.resampling, trace = FALSE,
-                         method.inference = "studentized permutation")
-  )
-  out <- rbind(
-    cbind(method = "Ustat", statistic = "netBenefit", confint(BT.U, statistic = "netBenefit", transform = FALSE), time = tps.U["sys.self"]),
-    cbind(method = "Ustat-trans", statistic = "netBenefit", confint(BT.U, statistic = "netBenefit", transform = TRUE), time = tps.U["sys.self"]),
-    cbind(method = "boot-perc", statistic = "netBenefit", confint(BT.perm, statistic = "netBenefit", method.ci.resampling = "percentile"), time = NA),
-    cbind(method = "boot-stud", statistic = "netBenefit", confint(BT.perm, statistic = "netBenefit", method.ci.resampling = "studentized"), time = tps.boot["elapsed"]),
-    cbind(method = "perm-perc", statistic = "netBenefit", confint(BT.boot, statistic = "netBenefit", method.ci.resampling = "percentile"), time = NA),
-    cbind(method = "perm-stud", statistic = "netBenefit", confint(BT.boot, statistic = "netBenefit", method.ci.resampling = "studentized"), time = tps.perm["elapsed"]),
-    cbind(method = "Ustat", statistic = "winRatio", confint(BT.U, statistic = "winRatio", transform = FALSE), time = tps.U["sys.self"]),
-    cbind(method = "Ustat-trans", statistic = "winRatio", confint(BT.U, statistic = "winRatio", transform = TRUE), time = tps.U["sys.self"]),
-    cbind(method = "boot-perc", statistic = "winRatio", confint(BT.perm, statistic = "winRatio", method.ci.resampling = "percentile"), time = NA),
-    cbind(method = "boot-stud", statistic = "winRatio", confint(BT.perm, statistic = "winRatio", method.ci.resampling = "studentized"), time = tps.boot["elapsed"]),
-    cbind(method = "perm-perc", statistic = "winRatio", confint(BT.boot, statistic = "winRatio", method.ci.resampling = "percentile"), time = NA),
-    cbind(method = "perm-stud", statistic = "winRatio", confint(BT.boot, statistic = "winRatio", method.ci.resampling = "studentized"), time = tps.perm["elapsed"])
-  )
+See cluster
 
-  return(cbind(i = i,n = n, mu = mu, sigma  = sigma, out))
+** section 1.5 Adjustment for multiple comparisons
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+warper <- function(i, n, mu, sigma, vec.threshold){
+  if(length(n)==1){
+    n <- rep(n,2)
+  }
+  data <- simBuyseTest(n.T = n[1], n.C = n[2], argsCont = list(mu.C = 0, mu.T = mu, sigma.C = 1, sigma.T = sigma))
+  
+  n.threshold <- length(vec.threshold)
+  iBT <- BuyseTest(treatment ~ cont(score) + bin(toxicity), data = data, trace = FALSE,
+                   method.inference = "u-statistic")
+  iSe <- sensitivity(iBT, threshold = list(vec.threshold,0), band = TRUE, adj.p.value = TRUE, trace = FALSE)
+  iSe$bonf.p.value <- pmin(1,iSe$p.value*n.threshold)
+  iSe$lower.bonf <- tanh(atanh(iSe$estimate) + qnorm(0.025/n.threshold) * iSe$se/(1-iSe$estimate^2))
+  iSe$upper.bonf <- tanh(atanh(iSe$estimate) + qnorm(1-0.025/n.threshold) * iSe$se/(1-iSe$estimate^2))
+  colnames(iSe)[1] <- "threshold"
+  out <- cbind(n = n[1], mu = mu, sigma = sigma, iSe[which.min(iSe$p.value)[1],,drop=FALSE])
+  return(out)
 }
-## warper(i=1, n = 100, mu = 0, sigma = 3, n.resampling = 1000)
+
+set.seed(10)
+warper(i = 1, n = 100, mu = 0, sigma = 2, vec.threshold = seq(0,3,by=0.1))
 #+END_SRC
 
 #+RESULTS:
+:   i   n mu sigma threshold estimate        se    lower.ci  upper.ci null
+: 9 1 100  0     2       0.8    0.073 0.0811729 -0.08660077 0.2289475    0
+:     p.value lower.band upper.band adj.p.value bonf.p.value lower.bonf
+: 9 0.3701905 -0.1162919  0.2571746   0.6372866            1  -0.182169
+:   upper.bonf
+: 9  0.3189569
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+vec.threshold <- seq(0,2, length.out = 10)
+grid.sim <- expand.grid(n = c(10,20,35,50,75,100,150,200),
+                        mu = c(0,1),
+                        sigma = 2)
+
 library(pbapply)
-
-n.rep <- 1000
-sigma <- 3
-n.resampling <- 100
-
-ls.sim <- pblapply(1:n.rep, function(i){
-  rbind(warper(i, n = 10, mu = 0, sigma = sigma, n.resampling = n.resampling),
-        warper(i, n = 25, mu = 0, sigma = sigma, n.resampling = n.resampling),
-        warper(i, n = 50, mu = 0, sigma = sigma, n.resampling = n.resampling),
-        warper(i, n = 100, mu = 0, sigma = sigma, n.resampling = n.resampling),
-        warper(i, n = 200, mu = 0, sigma = sigma, n.resampling = n.resampling))
-}, cl = 15)
+ls.simBand0 <- pblapply(1:10, function(seed){
+  iOut <- NULL
+  for(iGrid in 1:NROW(grid.sim)){    
+    set.seed(seed)
+    iOut <- rbind(iOut,
+                  warper(seed, n = grid.sim[iGrid,"n"], mu = grid.sim[iGrid,"mu"], sigma = grid.sim[iGrid,"sigma"], vec.threshold = vec.threshold)
+                  )
+  }
+  return(cbind(seed=seed,iOut))
+})
 #+END_SRC
 
 #+RESULTS:
-:   |                                                  | 0 % ~calculating  Estimated p-value of 1 - consider increasing the number of boostrap samples 
-: 
-:   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed=01m 09s
+:   |                                                  | 0 % ~calculating    |+++++                                             | 10% ~02m 14s        |++++++++++                                        | 20% ~01m 56s        |+++++++++++++++                                   | 30% ~01m 42s        |++++++++++++++++++++                              | 40% ~01m 27s        |+++++++++++++++++++++++++                         | 50% ~01m 14s        |++++++++++++++++++++++++++++++                    | 60% ~01m 03s        |+++++++++++++++++++++++++++++++++++               | 70% ~48s            |++++++++++++++++++++++++++++++++++++++++          | 80% ~33s            |+++++++++++++++++++++++++++++++++++++++++++++     | 90% ~17s            |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed=02m 52s
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(data.table)
-dt.sim <- as.data.table(do.call(rbind,ls.sim))
-dt.sim[,.(rep = .N, type1 = mean(p.value<=0.05), mismatchPCI = mean((p.value>0.05)*((lower.ci>0)+(upper.ci<0)), na.rm = TRUE)),
-       by = c("method","n")]
+dt.simBand <- rbind(as.data.table(do.call(rbind, ls.simBand0)),
+                    as.data.table(do.call(rbind, ls.simBand0)))
+dt.simBand[,.(type1.raw = mean(p.value<=0.05),
+              type1.adj = mean(adj.p.value<=0.05),
+              type1.bonf = mean(bonf.p.value<=0.05)),by="n"]
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-         method   n rep type1 mismatch
- 1:       Ustat  10  10   0.1        0
- 2: Ustat-trans  10  10   0.0        0
- 3:   boot-perc  10  10   0.1      NaN
- 4:   boot-stud  10  10   0.1      NaN
- 5:   perm-perc  10  10   0.1        0
- 6:   perm-stud  10  10   0.0        0
- 7:       Ustat  25  10   0.0        0
- 8: Ustat-trans  25  10   0.0        0
- 9:   boot-perc  25  10   0.0      NaN
-10:   boot-stud  25  10   0.0      NaN
-11:   perm-perc  25  10   0.0        0
-12:   perm-stud  25  10   0.0        0
-13:       Ustat  50  10   0.0        0
-14: Ustat-trans  50  10   0.0        0
-15:   boot-perc  50  10   0.0      NaN
-16:   boot-stud  50  10   0.0      NaN
-17:   perm-perc  50  10   0.0        0
-18:   perm-stud  50  10   0.0        0
-19:       Ustat 100  10   0.0        0
-20: Ustat-trans 100  10   0.0        0
-21:   boot-perc 100  10   0.0      NaN
-22:   boot-stud 100  10   0.0      NaN
-23:   perm-perc 100  10   0.0        0
-24:   perm-stud 100  10   0.0        0
-25:       Ustat 200  10   0.0        0
-26: Ustat-trans 200  10   0.0        0
-27:   boot-perc 200  10   0.0      NaN
-28:   boot-stud 200  10   0.0      NaN
-29:   perm-perc 200  10   0.0        0
-30:   perm-stud 200  10   0.0        0
-         method   n rep type1 mismatch
-#+end_example
+:      n type1.raw type1.adj type1.bonf
+: 1:  10      0.40      0.20       0.10
+: 2:  20      0.20      0.20       0.10
+: 3:  35      0.35      0.20       0.15
+: 4:  50      0.55      0.40       0.10
+: 5:  75      0.50      0.50       0.45
+: 6: 100      0.50      0.50       0.50
+: 7: 150      0.50      0.50       0.50
+: 8: 200      0.55      0.55       0.50
 
 * Chapter 2 Software
 ** Section 2.1 Introduction

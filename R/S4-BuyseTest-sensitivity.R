@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: jul 17 2023 (18:11) 
+## Last-Updated: sep 27 2023 (17:07) 
 ##           By: Brice Ozenne
-##     Update #: 333
+##     Update #: 335
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -230,7 +230,7 @@ setMethod(f = "sensitivity",
                       iConfint <- confint(iBT, statistic = statistic, null = null, conf.level = conf.level, alternative = alternative, transformation = transformation)[n.endpoint,]
                       ls.confint[[iSe]] <- data.frame(c(gridRed.threshold[iSe,,drop=FALSE], iConfint))
                       if(iBT@method.inference=="u-statistic"){
-                          ls.iid[[iSe]] <- getIid(iBT, statistic = statistic)[,n.endpoint]
+                          ls.iid[[iSe]] <- getIid(iBT, statistic = statistic,simplify=FALSE)$global[,n.endpoint]
                       }
                   }
 
