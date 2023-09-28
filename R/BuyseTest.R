@@ -548,15 +548,16 @@ BuyseTest <- function(formula,
                                    which(duplicated(envir$outArgs$index.endpoint))) ## not already visitied
         for(iE in index.rendpoint){ ## iE <- 1
             iRestriction <- envir$outArgs$restriction[iE]
+            iStatus <- envir$outArgs$index.status[iE]+1
 
             if(envir$outArgs$operator[iE]==1){ ## ">0"
                 if(envir$outArgs$method.score[iE] %in% c("TTEgehan","SurvPeron","CRPeron")){ ## right censoring
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]>iRestriction,iE] <- 1/2
+                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]>iRestriction,iStatus] <- 1/2
                 }
                 envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]>iRestriction,iE] <- iRestriction
             }else if(envir$outArgs$operator[iE]==-1){ ## "<0"
                 if(envir$outArgs$method.score[iE] %in% c("TTEgehan2")){ ## left censoring
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]<iRestriction,iE] <- 1/2
+                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]<iRestriction,iStatus] <- 1/2
                 }
                 envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]<iRestriction,iE] <- iRestriction
             }

@@ -15,6 +15,7 @@
   specific seeds. Results are now identical whether one or more CPUs
   are used, and reproducible when multiple CPUs are used.
 - add some support for paired data via strata argument in BuyseTest
+- fix bug when using restriction with multiple endpoints (#11)
 
 ** Internal change
 - more uniform effect of the strata argument

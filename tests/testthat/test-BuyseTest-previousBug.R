@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: jul 17 2023 (17:07) 
+## Last-Updated: sep 28 2023 (14:52) 
 ##           By: Brice Ozenne
-##     Update #: 222
+##     Update #: 231
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -20,6 +20,7 @@ if(FALSE){
     library(BuyseTest)
     library(data.table)
     library(survival)
+    library(prodlim)
 }
 
 context("Check that bugs that have been reported are fixed \n")
@@ -600,6 +601,41 @@ test_that("number of pairs with add.halfNeutral",{
     expect_equal(100,model.tables(BT)$total, tol = 0.0001)
 })
 
+## * SamSalvaggio: (issue #2 on Github): 27 september 2023 restriction with multiple endpoint
+test_that("restriction with multiple endpoints",{
+
+    set.seed(1)
+    dt <- simBuyseTest(n.T = 50, n.C = 50,
+                       names.strata = "strat_column", n.strata = 2,
+                       argsTTE = list(name = c("tte1"), 
+                                      name.censoring = c("cnsr1"),
+                                      scale.T = c(200), scale.censoring.T = c(10^5),
+                                      scale.C = c(200), scale.censoring.C = c(10^5)),
+                       argsBin = list(p.T = list(c(0.4,0.6))),
+                       argsCont = list(mu.T = c(0.3), sigma.T = 1)
+                       )
+
+    formula1 <- treatment ~ strat_column +
+        bin(toxicity, operator = "<0") +
+        cont(score, threshold = 0.5) +
+        tte(tte1, status = cnsr1, threshold = 10, restriction = 365)
+
+    GPC <- BuyseTest(formula1,
+                     data = dt,
+                     trace = FALSE,
+                     method.inference = "u-statistic")
+
+    test <- confint(GPC)
+    rownames(test) <- NULL
+    GS <- data.frame("estimate" = c(-0.04265403, -0.00552923, -0.00592417), 
+                     "se" = c(0.09983531, 0.1159374, 0.11753888), 
+                     "lower.ci" = c(-0.2342771, -0.22865458, -0.23200199), 
+                     "upper.ci" = c(0.15215946, 0.21814805, 0.22076088), 
+                     "null" = c(0, 0, 0), 
+                     "p.value" = c(0.66957926, 0.9619629, 0.95980315))
+
+    expect_equivalent(test,GS,tol = 1e-6)
+})
 
 
 
