@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: sep 27 2023 (17:07) 
+## Last-Updated: okt  3 2023 (19:06) 
 ##           By: Brice Ozenne
-##     Update #: 335
+##     Update #: 346
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -99,9 +99,6 @@ setMethod(f = "sensitivity",
               option <- BuyseTest.options()
               if(is.null(statistic)){
                   statistic <- option$statistic
-              }
-              if(is.null(transformation)){
-                  transformation <- option$transformation
               }
               if(is.null(conf.level)){
                   conf.level <- option$conf.level
@@ -281,7 +278,7 @@ setMethod(f = "sensitivity",
               }
               
               ## ** compute confidence bands
-              if(band){
+              if(band || adj.p.value){
                   requireNamespace("riskRegression")
                   A.iid <- array(NA, dim = c(NROW(attr(df.confint, "iid")), NCOL(attr(df.confint, "iid")),1))
                   A.iid[,,1] <- attr(df.confint, "iid")
@@ -298,22 +295,27 @@ setMethod(f = "sensitivity",
                                       "unfavorable" = 1)
 
                   ## temporary fix: the next few lines should be remove when riskRegression will be updated
-                  if(statistic %in% c("none","netBenefit","winRatio") || !inherits(try(riskRegression::transformCIBP(estimate = 1, se = 1, type = "atanh2", seed = NA, band = FALSE, alternative = "two.sided"),silent=TRUE),"try-error")){
-                      type <- switch(statistic,
-                                     "netBenefit" = "atanh",
-                                     "winRatio" = "log",
-                                     "favorable" = "cloglog",## note: not the same transformation as confint
-                                     "unfavorable" = "cloglog", ## note: not the same transformation as confint
-                                     "none" = "none") 
+                  if(is.null(transformation) || identical(transformation,TRUE)){
+                      if(statistic %in% c("none","netBenefit","winRatio") || !inherits(try(riskRegression::transformCIBP(estimate = 1, se = 1, type = "atanh2", seed = NA, band = FALSE, alternative = "two.sided"),silent=TRUE),"try-error")){
+                          type <- switch(statistic,
+                                         "netBenefit" = "atanh",
+                                         "winRatio" = "log",
+                                         "favorable" = "cloglog",## note: not the same transformation as confint
+                                         "unfavorable" = "cloglog", ## note: not the same transformation as confint
+                                         "none" = "none") 
+                      }else{
+                          type <- switch(statistic,
+                                         "netBenefit" = "atanh",
+                                         "winRatio" = "log",
+                                         "favorable" = "atanh2",
+                                         "unfavorable" = "atanh2",
+                                         "none" = "none") 
+                      }
+                  }else if(identical(transformation,FALSE)){
+                      type <- "none"
                   }else{
-                      type <- switch(statistic,
-                                     "netBenefit" = "atanh",
-                                     "winRatio" = "log",
-                                     "favorable" = "atanh2",
-                                     "unfavorable" = "atanh2",
-                                     "none" = "none") 
+                      type <- transformation                      
                   }
-                  
                   dots <- list(...)
                   if("seed" %in% names(dots) == FALSE){
                       dots$seed <- NA
@@ -324,7 +326,6 @@ setMethod(f = "sensitivity",
                   if("n.sim" %in% names(dots) == FALSE){
                       dots$n.sim <- 10^4
                   }
-
                   iBand <- do.call(riskRegression::transformCIBP,
                                    args = c(list(estimate = rbind(df.confint$estimate[df.confint$se>0]),
                                                  se = rbind(df.confint$se[df.confint$se>0]),
@@ -335,33 +336,19 @@ setMethod(f = "sensitivity",
                                                  ci = TRUE, type = type, min.value = min.value, max.value = max.value,
                                                  band = TRUE, p.value = adj.p.value),
                                             dots))
-                  attr(df.confint,"quantileBand") <- iBand$quantile
-                  df.confint$lower.band <- rep(0,length(df.confint$se))
-                  df.confint$lower.band[df.confint$se>0] <- iBand$lowerBand[1,]
-                  df.confint$upper.band <- rep(0,length(df.confint$se))
-                  df.confint$upper.band[df.confint$se>0] <- iBand$upperBand[1,]
+                  if(band){
+                      attr(df.confint,"quantileBand") <- iBand$quantile
+                      df.confint$lower.band <- rep(0,length(df.confint$se))
+                      df.confint$lower.band[df.confint$se>0] <- iBand$lowerBand[1,]
+                      df.confint$upper.band <- rep(0,length(df.confint$se))
+                      df.confint$upper.band[df.confint$se>0] <- iBand$upperBand[1,]
+                  }
                   if(adj.p.value==TRUE){
                       df.confint$adj.p.value <- rep(1,length(df.confint$se))
                       df.confint$adj.p.value[df.confint$se>0] <- iBand$adj.p.value[1,]
                   }
          
-                  ## iBand <- do.call(riskRegression::transformCIBP,
-                  ##                  args = c(list(estimate = rbind(df.confint$estimate),
-                  ##                                se = rbind(df.confint$se),
-                  ##                                iid = A.iid,
-                  ##                                null = null,
-                  ##                                conf.level = conf.level,
-                  ##                                alternative = alternative,
-                  ##                                ci = TRUE, type = type, min.value = min.value, max.value = max.value,
-                  ##                                band = TRUE, p.value = adj.p.value),
-                  ##                           dots))
 
-                  ## attr(df.confint,"quantileBand") <- iBand$quantile
-                  ## df.confint$lower.band <- iBand$lowerBand[1,]
-                  ## df.confint$upper.band <- iBand$upperBand[1,]
-                  ## if(adj.p.value==TRUE){
-                  ##     df.confint$adj.p.value <- iBand$adj.p.value[1,]
-                  ## }
               }
 
               ## ** export
