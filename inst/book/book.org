@@ -1,2221 +1,0 @@
-#+TITLE: 
-#+Author: 
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-options(width=75)
-library(data.table)
-library(xtable)
-library(BuyseTest)
-library(mvtnorm)
-library(ggplot2)
-library(ggforce)
-library(ggpubr)
-library(ggpattern) ## remotes::install_github("coolbutuseless/ggpattern")
-if(system("whoami",intern=TRUE)=="bozenne"){
-  setwd("~/Documents/GitHub/BuyseTest/inst/book/")
-}else if(system("whoami",intern=TRUE)=="unicph\\hpl802"){
-  setwd("c:/Users/hpl802/Documents/Github/BuyseTest/inst/book/")
-}
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
-#+END_SRC
-
-#+RESULTS:
-
-* Chapter 1 Statistical inference
-** Section 1.3.1 Intuition
-
-Data
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(BuyseTest)
-
-set.seed(10)
-n <- 10
-dt <- simBuyseTest(n)
-dt$score <- round(dt$score,1)
-dt
-#+END_SRC
-
-#+RESULTS:
-
-Estimates
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.BT <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
-                  keep.pairScore = TRUE)
-confint(e.BT, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:       estimate        se  lower.ci  upper.ci null    p.value
-: score     0.26 0.1108152 0.1020333 0.5207124  0.5 0.06936481
-
-H-decomposition / jackknife
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-vec.jack <- sapply(1:20, function(i){
-  coef(BuyseTest(treatment ~ cont(score), data = dt[-i], trace = FALSE), statistic = "favorable")
-})
-
-A <- cbind(score = dt$score[1:10],
-           jack = (coef(e.BT, statistic = "favorable") - vec.jack)[1:10]*(n-1),
-           h = getIid(e.BT, statistic = "favorable", scale = FALSE)[1:10])
-B <- cbind(score = dt$score[11:20],
-           jack = (coef(e.BT, statistic = "favorable") - vec.jack)[11:20]*(n-1),
-           h = getIid(e.BT, statistic = "favorable", scale = FALSE)[11:20])
-
-print(xtable(cbind(as.character(round(A[,1],1)),
-                   as.character(round(A[,2],3)),
-                   as.character(round(A[,3],3)),
-                   NA,
-                   as.character(round(B[,1],1)),
-                   as.character(round(B[,2],3)),
-                   as.character(round(B[,3],3)))),
-             include.rownames=FALSE)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-% latex table generated in R 4.2.0 by xtable 1.8-4 package
-% Tue Oct  3 16:05:29 2023
-\begin{table}[ht]
-\centering
-\begin{tabular}{lllllll}
-  \hline
-1 & 2 & 3 & 4 & 5 & 6 & 7 \\ 
-  \hline
--1.2 & 0.44 & 0.44 &  & -0.6 & 0.04 & 0.04 \\ 
-  -0.5 & 0.04 & 0.04 &  & -2.2 & -0.26 & -0.26 \\ 
-  -0.8 & 0.34 & 0.34 &  & -0.7 & 0.04 & 0.04 \\ 
-  0.3 & -0.26 & -0.26 &  & -2.1 & -0.26 & -0.26 \\ 
-  1.1 & -0.26 & -0.26 &  & -1.3 & -0.26 & -0.26 \\ 
-  1.2 & -0.26 & -0.26 &  & -0.4 & 0.24 & 0.24 \\ 
-  0.7 & -0.26 & -0.26 &  & -0.7 & 0.04 & 0.04 \\ 
-  -0.5 & 0.04 & 0.04 &  & -0.9 & -0.06 & -0.06 \\ 
-  0.6 & -0.26 & -0.26 &  & -0.1 & 0.24 & 0.24 \\ 
-  -1.2 & 0.44 & 0.44 &  & -0.3 & 0.24 & 0.24 \\ 
-   \hline
-\end{tabular}
-\end{table}
-#+end_example
-
-Last line of the table
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-c(sigma_HE = mean(A[,"h"]^2)/n,
-  sigma_HC = mean(B[,"h"]^2)/n,
-  sigma_W = mean(A[,"h"]^2)/n+mean(B[,"h"]^2)/n,
-  GS = confint(e.BT, statistic = "favorable")$se^2)
-#+END_SRC
-
-#+RESULTS:
-: sigma_HE sigma_HC  sigma_W       GS 
-:  0.00844  0.00384  0.01228  0.01228
-
-** Section 1.3.2 First order H-decomposition
-
-H-decomposition
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-coef(e.BT, statistic = "favorable")
-B[1,"score"]
-mean(B[1,"score"] > A[,"score"])
-mean(B[1,"score"] > A[,"score"]) - coef(e.BT, statistic = "favorable")
-getIid(e.BT, statistic = "favorable", scale = FALSE, center = TRUE)[11]
-#+END_SRC
-
-#+RESULTS:
-: [1] 0.26
-: score 
-:  -0.6
-: [1] 0.3
-: [1] 0.04
-: [1] 0.04
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-mean(B[,"score"] > A[1,"score"])
-mean(B[,"score"] > A[1,"score"]) - coef(e.BT, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-: [1] 0.7
-: [1] 0.44
-
-** Section 1.4.1 Confidence intervals and p-values based on asymptotic approximation
-
-Variance formula
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-Delta <- coef(e.BT, statistic = "netBenefit")
-Deltai <- sapply(B[,1], function(b){mean(b>A[,1]) - mean(b<A[,1])})
-Deltaj <- sapply(A[,1], function(a){mean(B[,1]>a) - mean(B[,1]<a)})
-
-getIid(e.BT, statistic = "netBenefit", scale = FALSE, center = TRUE)[11]
-(Deltai-coef(e.BT, statistic = "netBenefit"))[1]
-
-c(mean((Deltai-coef(e.BT, statistic = "netBenefit"))^2)/n + mean((Deltaj-coef(e.BT, statistic = "netBenefit"))^2)/n,
-  confint(e.BT, statistic = "netBenefit")$se^2)
-#+END_SRC
-
-#+RESULTS:
-: [1] 0.08
-: [1] 0.08
-: [1] 0.04912 0.04912
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
--0.48 + qnorm(c(0.025,0.975))* 0.2216303
-2*(1-pnorm(abs(-0.48/0.2216303)))
-confint(e.BT, statistic = "netBenefit", transformation = FALSE)
-#+END_SRC
-
-#+RESULTS:
-: [1] -0.91438741 -0.04561259
-: [1] 0.03032885
-:       estimate        se   lower.ci    upper.ci null    p.value
-: score    -0.48 0.2216303 -0.9143875 -0.04561255    0 0.03032887
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-0.2216303^2/(1-0.48^2)^2
-atanh(-0.48) + qnorm(c(0.025,0.975))* 0.2216303/(1-0.48^2)
-tanh(atanh(-0.48) + qnorm(c(0.025,0.975))* 0.2216303/(1-0.48^2))
-2*(1-pnorm(abs(-atanh(0.48)*(1-0.48^2)/0.2216303)))
-
-confint(e.BT, statistic = "netBenefit", transformation = TRUE)
-#+END_SRC
-
-#+RESULTS:
-: [1] 0.08293315
-: [1] -1.08741698  0.04144842
-: [1] -0.7959334  0.0414247
-: [1] 0.06936478
-:       estimate        se   lower.ci   upper.ci null    p.value
-: score    -0.48 0.2216303 -0.7959335 0.04142476    0 0.06936481
-
-** Section 1.4.2 Bootstrap confidence intervals and p-values
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.BTboot <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
-                      seed = 10, method.inference  = "studentized bootstrap", strata.resampling = "treatment", n.resampling = 15)
-e.BTboot@DeltaResampling[,"score","netBenefit"]
-e.BTboot@covarianceResampling[,"score","netBenefit"]
-#+END_SRC
-
-#+RESULTS:
-:     1     2     3     4     5     6     7     8     9    10    11    12    13    14    15 
-: -0.30 -0.52 -0.54  0.22 -0.70 -0.64 -0.42 -0.36 -0.70 -0.22 -0.76 -0.74 -0.54 -0.42 -0.46
-:       1       2       3       4       5       6       7       8       9      10      11      12      13      14      15 
-: 0.06600 0.04992 0.04408 0.08232 0.02760 0.03888 0.06952 0.06208 0.03960 0.07512 0.02208 0.02408 0.04408 0.05512 0.04968
-
-First bootstrap sample by hand
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-set.seed(e.BTboot@seed[1])
-dt.B1 <- dt[, .SD[sample.int(.N, replace = TRUE)], by = "treatment"]
-table(dt.B1$treatment, dt.B1$id)
-e.BTboot1 <- BuyseTest(treatment ~ cont(score), data = dt.B1, trace = FALSE)
-confint(e.BTboot1)
-#+END_SRC
-
-#+RESULTS:
-:    
-:     3 4 5 9 10 12 14 17 18 19 20
-:   C 1 1 1 2  5  0  0  0  0  0  0
-:   T 0 0 0 0  0  1  3  3  1  1  1
-:       estimate        se   lower.ci  upper.ci null   p.value
-: score     -0.3 0.2569047 -0.6977193 0.2390849    0 0.2729164
-
-Basic
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(e.BTboot, method.ci.resampling = "gaussian", transformation = FALSE) 
-sd(e.BTboot@DeltaResampling[,"score","netBenefit"])^2
--0.48 + qnorm(c(0.025,0.975))*sd(e.BTboot@DeltaResampling[,"score","netBenefit"])
-#+END_SRC
-
-#+RESULTS:
-:       estimate        se   lower.ci   upper.ci null    p.value
-: score    -0.48 0.2519259 -0.9737657 0.01376572    0 0.05673822
-: [1] 0.06346667
-: [1] -0.97376572  0.01376572
-
-Studentized
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest.options(add.1.presample=FALSE)
-confint(e.BTboot, method.ci.resampling = "studentized", transform = FALSE)
-BuyseTest.options(add.1.presample=TRUE)
-confint(e.BTboot, method.ci.resampling = "studentized", transform = FALSE)
-
-t.boot <- (e.BTboot@DeltaResampling[,"score","netBenefit"]-coef(e.BTboot))/sqrt(e.BTboot@covarianceResampling[,"score","netBenefit"])
-quantile(t.boot,c(0.025,0.975))
--0.48 + quantile(t.boot,c(0.025,0.975))*confint(e.BT, statistic = "netBenefit")$se
-sort(t.boot)
--0.48 + sort(t.boot) * confint(e.BT, statistic = "netBenefit")$se
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-Estimated p-value of 0 - consider increasing the number of boostrap samples 
-
-      estimate        se   lower.ci    upper.ci null p.value
-score    -0.48 0.2216303 -0.8814268 -0.05494471    0       0
-      estimate        se   lower.ci    upper.ci null p.value
-score    -0.48 0.2216303 -0.8814268 -0.05494471    0  0.0625
-     2.5%     97.5% 
--1.811245  1.917857
-       2.5%       97.5% 
--0.88142676 -0.05494471
-         11          12           5           9           6           3          13           2          15           7 
--1.88433666 -1.67550260 -1.32424438 -1.10554160 -0.81144083 -0.28577910 -0.28577910 -0.17902872  0.08973032  0.22756023 
-         14           8           1          10           4 
- 0.25556222  0.48162097  0.70064905  0.94862717  2.43975018
-         11          12           5           9           6           3          13           2          15           7 
--0.89762614 -0.85134218 -0.77349271 -0.72502154 -0.65983989 -0.54333731 -0.54333731 -0.51967819 -0.46011304 -0.42956575 
-         14           8           1          10           4 
--0.42335966 -0.37325819 -0.32471492 -0.26975545  0.06072262
-#+end_example
-
-Percentile
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest.options(add.1.presample=FALSE)
-confint(e.BTboot, method.ci.resampling = "percentile") ## no small sample correction
-BuyseTest.options(add.1.presample=TRUE)
-confint(e.BTboot, method.ci.resampling = "percentile") ## include small sample correction 
-
-quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(0.025,0.975))
-## possible quantiles every 1/15
-quantile(e.BTboot@DeltaResampling[,"score","netBenefit"],c(1-(1:2/15)/2)) ## close to 0
-#+END_SRC
-
-#+RESULTS:
-:       estimate        se lower.ci upper.ci null    p.value
-: score    -0.48 0.2519259   -0.753    0.066    0 0.06666667
-:       estimate        se lower.ci upper.ci null    p.value
-: score    -0.48 0.2519259   -0.753    0.066    0 0.06666667
-:   2.5%  97.5% 
-: -0.753  0.066
-:   96.66667%   93.33333% 
-:  0.01466667 -0.19066667
-
-Variability of bootstrap (1000 rep)
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ls.BTboot <- lapply(1:100, function(x){
-  BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
-            seed = x, method.inference  = "bootstrap", strata.resampling = "treatment", n.resampling = 1000)
-  
-})
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-table.perc <- do.call(rbind,lapply(ls.BTboot, confint, method.ci.resampling = "percentile", transform = FALSE))
-table.gaus <- do.call(rbind,lapply(ls.BTboot, confint, method.ci.resampling = "gaussian", transform = FALSE))
-rbind(perc = quantile(table.perc$lower),
-      gaus = quantile(table.gaus$lower),
-      perc = quantile(table.perc$upper),
-      gaus = quantile(table.gaus$upper))
-#+END_SRC
-
-#+RESULTS:
-:               0%         25%         50%        75%        100%
-: perc -0.88000000 -0.88000000 -0.86000000 -0.8600000 -0.84000000
-: gaus -0.94913236 -0.93258450 -0.92455817 -0.9203503 -0.90444914
-: perc -0.03950000  0.00000000  0.00050000  0.0400000  0.08000000
-: gaus -0.05555086 -0.03964966 -0.03544183 -0.0274155 -0.01086764
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e4.BTboot <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
-                       seed = 10, method.inference  = "studentized bootstrap", strata.resampling = "treatment", n.resampling = 1e4)
-confint(e4.BTboot, method.ci.resampling  = "studentized", transform = FALSE)
-confint(e4.BTboot, method.ci.resampling  = "studentized", transform = TRUE)
-confint(e4.BTboot, method.ci.resampling  = "gaussian", transform = FALSE)
-confint(e4.BTboot, method.ci.resampling  = "gaussian", transform = TRUE)
-var(e4.BTboot@DeltaResampling[,,"netBenefit"])
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-      estimate        se  lower.ci    upper.ci null p.value
-score    -0.48 0.2216303 -1.246266 -0.09410991    0  0.0194
-      estimate        se   lower.ci   upper.ci null p.value
-score    -0.48 0.2216303 -0.7812602 0.02333005    0  0.0617
-      estimate       se   lower.ci    upper.ci null    p.value
-score    -0.48 0.226883 -0.9246825 -0.03531746    0 0.03437648
-      estimate       se lower.ci upper.ci null p.value
-score    -0.48 0.226883      NaN      NaN    0     NaN
-Advarselsbesked:
-I (function (Delta, Delta.resampling, null, alternative, alpha,  :
-  Infinite value for the summary statistic after transformation in some of the bootstrap samples. 
-Cannot compute confidence intervals or p-value under Gaussian approximation. 
-Consider setting the argument 'transform' to FALSE.
-[1] 0.0514759
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(data.table)
-NB.boot <- e4.BTboot@DeltaResampling[,,"netBenefit"]
-seNB.boot <- e4.BTboot@covarianceResampling[,,"netBenefit"]
-
-dt.boot <- rbind(data.table(estimate = NB.boot,
-                            scale = "original scale", type = "bootstrap estimates"),
-                 data.table(estimate = atanh(NB.boot),
-                            scale = "atanh scale", type = "bootstrap estimates"),
-                 data.table(estimate = (NB.boot-coef(e4.BTboot))/sqrt(seNB.boot),
-                            scale = "original scale", type = "bootstrap centered statistics"),
-                 data.table(estimate = (atanh(NB.boot)-atanh(coef(e4.BTboot)))/sqrt(seNB.boot/(1-NB.boot^2)^2),
-                            scale = "atanh scale", type = "bootstrap centered statistics"))
-
-dt.bootQ <- dt.boot[, .(Qlower = quantile(estimate, prob = 0.025, na.rm = TRUE),
-                        Qupper = quantile(estimate, prob = 0.975, na.rm = TRUE)),
-                    by = c("scale","type")]
-dt.bootQ
-
-dt.boot$estimate[is.infinite(dt.boot$estimate)] <- NA
-dt.boot$estimate[abs(dt.boot$estimate)>15] <- NA
-dt.boot$type <- factor(dt.boot$type, levels = unique(dt.boot$type))
-dt.boot$scale <- factor(dt.boot$scale, levels = unique(dt.boot$scale))
-dt.bootQ$type <- factor(dt.bootQ$type, levels = unique(dt.boot$type))
-dt.bootQ$scale <- factor(dt.bootQ$scale, levels = unique(dt.boot$scale))
-
-gg.histBoot <- ggplot()
-gg.histBoot <- gg.histBoot + geom_histogram(data = dt.boot, mapping = aes(x=estimate, y=after_stat(4 * count / sum(count))), color = "black")
-gg.histBoot <- gg.histBoot + geom_vline(data = dt.bootQ, mapping = aes(xintercept=Qlower), color = "gray", linetype = 2, size = 1.25)
-gg.histBoot <- gg.histBoot + geom_vline(data = dt.bootQ, mapping = aes(xintercept=Qupper), color = "gray", linetype = 2, size = 1.25)
-gg.histBoot <- gg.histBoot + facet_grid(scale~type, scales="free")
-gg.histBoot <- gg.histBoot + scale_y_continuous(labels = scales::percent)
-gg.histBoot <- gg.histBoot + labs(y = "Relative frequency", x = NULL)
-gg.histBoot <- gg.histBoot + theme(text = element_text(size=15), 
-                                   axis.line = element_line(linewidth = 1.25),
-                                   axis.ticks = element_line(linewidth = 2),
-                                   axis.ticks.length=unit(.25, "cm"),
-                                   legend.key.size = unit(3,"line"))
-## gg.histBoot
-ggsave(gg.histBoot, filename = "figures/fig_inference_bootstrap.pdf", width = 9, height = 6)
-#+END_SRC
-
-#+RESULTS:
-:             scale                          type    Qlower   Qupper
-: 1: original scale           bootstrap estimates -0.860000 0.000000
-: 2:    atanh scale           bootstrap estimates -1.293345 0.000000
-: 3: original scale bootstrap centered statistics -3.457404 1.741143
-: 4:    atanh scale bootstrap centered statistics -1.803547 1.897063
-: [1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-: Advarselsbesked:
-: [1m[22mRemoved 62 rows containing non-finite values (`stat_bin()`).
-
-** Section 1.4.3 Permutation p-values
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(MKinfer)
-ls.permtt <- lapply(1:10, function(x){
-  set.seed(x)
-  X <- rnorm(10, sd = 1)
-  Y <- rnorm(100, sd = sqrt(0.01))
-  perm.t.test(X, Y, var.equal = TRUE)
-})
-unlist(lapply(ls.permtt, function(x){x$perm.p.value}))
-
-
-set.seed(4)
-X <- rnorm(10, sd = 1)
-Y <- rnorm(100, sd = sqrt(0.01))
-index <- sample.int(110,100,replace =FALSE)
-Z1 <- c(X,Y)[index]
-Z2 <- c(X,Y)[-index]
-c(meanX = mean(X), meanY = mean(Y), sdX = sd(X), sdY = sd(Y), diffZ = mean(Z2)-mean(Z1))
-perm.t.test(X, Y, var.equal = TRUE)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
- [1] 0.13871387 0.05330533 0.34673467 0.00030003 0.32613261 0.22522252
- [7] 0.37673767 0.00230023 0.00810081 0.00000000
-      meanX       meanY         sdX         sdY       diffZ 
-0.566529289 0.001919028 1.047353007 0.090627580 0.244809401
-
-	Permutation Two Sample t-test
-
-data:  X and Y
-(Monte-Carlo) permutation p-value = 3e-04 
-95 percent (Monte-Carlo) permutation percentile confidence interval:
- 0.3573708 0.8260502
-
-Results without permutation:
-t = 5.4121, df = 108, p-value = 3.788e-07
-alternative hypothesis: true difference in means is not equal to 0
-95 percent confidence interval:
- 0.3578216 0.7713989
-sample estimates:
-  mean of x   mean of y 
-0.566529289 0.001919028
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-mean(sapply(1:10000,function(x){
-  X <- rnorm(10, sd = 1)
-  Y <- rnorm(100, sd = sqrt(0.01))
-  var(c(X,Y))
-}))
-10/110+100/110*0.01
-#+END_SRC
-
-#+RESULTS:
-: [1] 0.1001106
-: [1] 0.1
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.BTperm <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
-                      seed = 10, method.inference  = "studentized permutation", n.resampling = 15)
-e.BTperm@DeltaResampling[,"score","netBenefit"]
-e.BTperm@covarianceResampling[,"score","netBenefit"]
-sum(abs(e.BTperm@DeltaResampling[,"score","netBenefit"])>=abs(coef(e.BTperm)))
-confint(e.BTperm, method.ci.resampling = "percentile")
-2/16
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-    1     2     3     4     5     6     7     8     9    10    11    12 
--0.08  0.20 -0.01 -0.08  0.21 -0.10  0.19  0.05 -0.04  0.30  0.11  0.09 
-   13    14    15 
--0.19  0.59 -0.30
-      1       2       3       4       5       6       7       8       9 
-0.07632 0.06760 0.07218 0.07352 0.06538 0.06760 0.06738 0.06930 0.07288 
-     10      11      12      13      14      15 
-0.06760 0.07098 0.06738 0.06898 0.05258 0.06040
-[1] 1
-      estimate       se lower.ci upper.ci null p.value
-score    -0.48 0.219202       NA       NA    0   0.125
-[1] 0.125
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-set.seed(e.BTperm@seed[1])
-dt.P1 <- data.table::copy(dt)
-dt.P1$treatment <- sample(dt$treatment)
-e.BTperm1 <- BuyseTest(treatment ~ cont(score), data = dt.P1, trace = FALSE)
-confint(e.BTperm1)
-
-#+END_SRC
-
-#+RESULTS:
-:       estimate        se   lower.ci upper.ci null   p.value
-: score    -0.08 0.2762607 -0.5546829  0.43397    0 0.7730832
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e4.BTperm <- BuyseTest(treatment ~ cont(score), data = dt, trace = FALSE,
-                       seed = 10, method.inference  = "studentized permutation", n.resampling = 1e4)
-confint(e4.BTperm, method.ci.resampling  = "studentized")
-confint(e4.BTperm, method.ci.resampling  = "percentile")
-var(e4.BTperm@DeltaResampling[,,"netBenefit"])
-#+END_SRC
-
-#+RESULTS:
-:       estimate        se lower.ci upper.ci null    p.value
-: score    -0.48 0.2216303       NA       NA    0 0.05819418
-:       estimate        se lower.ci upper.ci null    p.value
-: score    -0.48 0.2623938       NA       NA    0 0.06869313
-: [1] 0.0688505
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(data.table)
-NB.perm <- e4.BTperm@DeltaResampling[,,"netBenefit"]
-seNB.perm <- e4.BTperm@covarianceResampling[,,"netBenefit"]
-
-dt.perm <- rbind(data.table(estimate = NB.perm,
-                            type = "permutation estimates"),
-                 data.table(estimate = NB.perm/sqrt(seNB.perm),
-                            type = "permutation statistics")
-                 )
-
-dt.permQ <- dt.perm[, .(Qlower = quantile(estimate, prob = 0.025, na.rm = TRUE),
-                        Qupper = quantile(estimate, prob = 0.975, na.rm = TRUE)),
-                    by = "type"]
-dt.permQ
-dt.obsQ <- rbind(data.table(estimate = coef(e4.BTperm),
-                            type = "permutation estimates"),
-                 data.table(estimate = coef(e4.BTperm)/confint(e4.BTperm)$se,
-                            type = "permutation statistics")
-                 )
-
-dt.perm[abs(estimate)>10,estimate := NA]
-dt.perm$type <- factor(dt.perm$type, levels = unique(dt.perm$type))
-dt.permQ$type <- factor(dt.permQ$type, levels = unique(dt.perm$type))
-
-gg.histPerm <- ggplot()
-gg.histPerm <- gg.histPerm + geom_histogram(data = dt.perm, mapping = aes(x=estimate, y=after_stat(2 * count / sum(count))), color = "black")
-gg.histPerm <- gg.histPerm + geom_vline(data = dt.obsQ, mapping = aes(xintercept=estimate), color = "red", linetype = 1, size = 1.25)
-gg.histPerm <- gg.histPerm + geom_vline(data = dt.permQ, mapping = aes(xintercept=Qlower), color = "gray", linetype = 2, size = 1.25)
-gg.histPerm <- gg.histPerm + geom_vline(data = dt.permQ, mapping = aes(xintercept=Qupper), color = "gray", linetype = 2, size = 1.25)
-gg.histPerm <- gg.histPerm + facet_grid(~type, scales="free")
-gg.histPerm <- gg.histPerm + scale_y_continuous(labels = scales::percent)
-gg.histPerm <- gg.histPerm + labs(y = "Relative frequency", x = NULL)
-gg.histPerm <- gg.histPerm + theme(text = element_text(size=15), 
-                                   axis.line = element_line(linewidth = 1.25),
-                                   axis.ticks = element_line(linewidth = 2),
-                                   axis.ticks.length=unit(.25, "cm"),
-                                   legend.key.size = unit(3,"line"))
-ggsave(gg.histPerm, filename = "figures/fig_inference_permutation.pdf", width = 9, height = 6)
-#+END_SRC
-
-#+RESULTS:
-:                      type    Qlower  Qupper
-: 1:  permutation estimates -0.510000 0.51000
-: 2: permutation statistics -2.276832 2.29012
-: [1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-: Advarselsbesked:
-: [1m[22mRemoved 2 rows containing non-finite values (`stat_bin()`).
-
-
-** Table
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-df <- data.frame(deltai = c(formatC(Deltai, format = "f", digits = 1), rep(NA,5)),
-                 deltaj = c(formatC(Deltaj, format = "f", digits = 1), rep(NA,5)),
-                 s1 = NA,
-                 delta.boot = e.BTboot@DeltaResampling[,"score","netBenefit"],
-                 se.boot = round(e.BTboot@covarianceResampling[,"score","netBenefit"],3),
-                 s2 = NA,
-                 delta.perm = e.BTperm@DeltaResampling[,"score","netBenefit"],
-                 se.perm = round(e.BTperm@covarianceResampling[,"score","netBenefit"],3))
-print(xtable(df, digits = 3),include.rownames=FALSE)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-% latex table generated in R 4.2.0 by xtable 1.8-4 package
-% Thu Sep 14 12:14:28 2023
-\begin{table}[ht]
-\centering
-\begin{tabular}{lllrrlrr}
-  \hline
-deltai & deltaj & s1 & delta.boot & se.boot & s2 & delta.perm & se.perm \\ 
-  \hline
--0.4 & 0.4 &  & -0.300 & 0.066 &  & -0.080 & 0.076 \\ 
-  -1.0 & -0.4 &  & -0.520 & 0.050 &  & 0.200 & 0.068 \\ 
-  -0.4 & 0.2 &  & -0.540 & 0.044 &  & -0.010 & 0.072 \\ 
-  -1.0 & -1.0 &  & 0.220 & 0.082 &  & -0.080 & 0.074 \\ 
-  -1.0 & -1.0 &  & -0.700 & 0.028 &  & 0.210 & 0.065 \\ 
-  0.0 & -1.0 &  & -0.640 & 0.039 &  & -0.100 & 0.068 \\ 
-  -0.4 & -1.0 &  & -0.420 & 0.070 &  & 0.190 & 0.067 \\ 
-  -0.6 & -0.4 &  & -0.360 & 0.062 &  & 0.050 & 0.069 \\ 
-  0.0 & -1.0 &  & -0.700 & 0.040 &  & -0.040 & 0.073 \\ 
-  0.0 & 0.4 &  & -0.220 & 0.075 &  & 0.300 & 0.068 \\ 
-   &  &  & -0.760 & 0.022 &  & 0.110 & 0.071 \\ 
-   &  &  & -0.740 & 0.024 &  & 0.090 & 0.067 \\ 
-   &  &  & -0.540 & 0.044 &  & -0.190 & 0.069 \\ 
-   &  &  & -0.420 & 0.055 &  & 0.590 & 0.053 \\ 
-   &  &  & -0.460 & 0.050 &  & -0.300 & 0.060 \\ 
-   \hline
-\end{tabular}
-\end{table}
-#+end_example
-** section 1.4.4 Empirical performance
-
-See cluster
-
-** section 1.5 Adjustment for multiple comparisons
-
-*** Introduction (F-test)
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-grid1D <- seq(-3,3,0.025)
-rejection1D <- c(qnorm(0.025), qnorm(0.975))
-
-rejection2D.2uni <- data.table(xmax = qnorm(0.975, mean = 0, sd = 1),
-                               ymax = qnorm(0.975, mean = 0, sd = 1),
-                               xmin = qnorm(0.025, mean = 0, sd = 1),
-                               ymin = qnorm(0.025, mean = 0, sd = 1))
-rejection2D.2uni
-
-
-qq <- qmvnorm(0.95, mean = c(0,0), sigma = diag(1,2), tail = "both")
-rejection2D.2uniadj <- data.table(
-  xmax = qq$quantile, ymax = qq$quantile,
-  xmin = -qq$quantile, ymin = -qq$quantile
-)
-rejection2D.2uniadj
-
-rejection2D.chisq <- sqrt(qchisq(0.95, df = 2))
-rejection2D.chisq
-#+END_SRC
-
-#+RESULTS:
-:        xmax     ymax      xmin      ymin
-: 1: 1.959964 1.959964 -1.959964 -1.959964
-:        xmax     ymax      xmin      ymin
-: 1: 2.236422 2.236422 -2.236422 -2.236422
-: [1] 2.447747
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-mismatch <- sqrt(rejection2D.chisq^2 - qq$quantile^2)
-mismatch2 <- -(0.7*qq$quantile+1.3*rejection2D.chisq)/2
-dtFisher.areaTrunCi <- data.table(x = c(-5, -5, -qq$quantile, -qq$quantile, mismatch2, -rejection2D.chisq, mismatch2, -qq$quantile, -qq$quantile),
-                                  y = c(-qq$quantile,  qq$quantile, qq$quantile,     mismatch, mismatch/2,                 0, -mismatch/2,   -mismatch, -qq$quantile))
-dtFisher.areaTrunCiC <- data.table(x = c(-qq$quantile, mismatch2, -rejection2D.chisq, mismatch2, -qq$quantile),
-                                   y = c(mismatch, mismatch/2,                 0, -mismatch/2,   -mismatch))
-dtFisher.areaTrunCiC2 <- data.table(x = c(-qq$quantile, -qq$quantile, -mismatch, -(0.4*qq$quantile+0.5*mismatch), -(0.6*qq$quantile+0.5*mismatch)),
-                                    y = c(-mismatch, -qq$quantile, -qq$quantile, -(0.5*qq$quantile+0.9*mismatch), -(qq$quantile+mismatch)/2))
-dtFisher.areaRect <- data.table(xmin = -5, xmax = -qq$quantile, ymin = -5, ymax = -qq$quantile)
-dtFisher.label12 <- data.frame(x = c(-3.35,3.35,-3.35,3.35), y = c(-3.25,-3.25,3.25,3.25), label = as.character(expression(reject~H[0]^1~and~H[0]^2)))
-dtFisher.label1 <- data.frame(x = c(-3.35,3.35,0,0), y = c(0,0,3.25,-3.25),
-                              label = c(rep(as.character(expression("reject H"[0]^1)),2),rep(as.character(expression("reject H"[0]^2)),2)))
-ggFisher <- ggplot() + labs(x=expression(hat(Delta)[1]/sigma[hat(Delta)[1]]), y=expression(hat(Delta)[2]/sigma[hat(Delta)[2]]))
-ggFisher <- ggFisher + geom_text(data = data.frame(x=0,y=0,label="No rejection"), aes(x=x,y=y,label=label), size = 3.5)
-ggFisher <- ggFisher + geom_text(data = dtFisher.label12, aes(x=x,y=y,label=label), size = 3.5, parse = TRUE)
-ggFisher <- ggFisher + geom_text(data = dtFisher.label1, aes(x=x,y=y,label=label), size = 3.5, parse = TRUE)
-ggFisher <- ggFisher + geom_rect(data = dtFisher.areaRect, aes(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax), fill = "red", alpha = 0.4)
-ggFisher <- ggFisher + geom_rect(data = dtFisher.areaRect, aes(xmin = xmin, ymin = -ymin, xmax = xmax, ymax = -ymax), fill = "red", alpha = 0.4)
-ggFisher <- ggFisher + geom_rect(data = dtFisher.areaRect, aes(xmin = -xmin, ymin = ymin, xmax = -xmax, ymax = ymax), fill = "red", alpha = 0.4)
-ggFisher <- ggFisher + geom_rect(data = dtFisher.areaRect, aes(xmin = -xmin, ymin = -ymin, xmax = -xmax, ymax = -ymax), fill = "red", alpha = 0.4)
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC2, aes(x=x,y=y), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "circle")
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC2, aes(x=x,y=-y), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "circle")
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC2, aes(x=-x,y=y), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "circle")
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC2, aes(x=-x,y=-y), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "circle")
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC, aes(x=x,y=y), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "stripe")
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC, aes(x=-x,y=y), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "stripe")
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC, aes(x=y,y=x), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "stripe")
-ggFisher <- ggFisher + geom_polygon_pattern(data = dtFisher.areaTrunCiC, aes(x=y,y=-x), fill = NA, pattern_density = 0.1, pattern_spacing = 0.01, pattern = "stripe")
-ggFisher <- ggFisher + geom_polygon(data = dtFisher.areaTrunCi, aes(x=x,y=y), fill = "red", alpha = 0.2)
-ggFisher <- ggFisher + geom_polygon(data = dtFisher.areaTrunCi, aes(x=-x,y=y), fill = "red", alpha = 0.2)
-ggFisher <- ggFisher + geom_polygon(data = dtFisher.areaTrunCi, aes(x=y,y=x), fill = "red", alpha = 0.2)
-ggFisher <- ggFisher + geom_polygon(data = dtFisher.areaTrunCi, aes(x=y,y=-x), fill = "red", alpha = 0.2)
-ggFisher <- ggFisher + geom_rect(data = rejection2D.2uni,
-                                 aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
-                                     color = "Gaussian (\u03B1=0.05)", linetype = "Gaussian (\u03B1=0.05)"),
-                                 size = 2,
-                                 fill = NA)
-ggFisher <- ggFisher + geom_rect(data = rejection2D.2uniadj,
-                                 aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
-                                     color = "Gaussian (\u03B1=0.025)", linetype = "Gaussian (\u03B1=0.025)"),
-                                 size = 2,
-                                 fill = NA)
-ggFisher <- ggFisher + geom_circle(aes(x0=0, y0=0, r = rejection2D.chisq,
-                                       color = "Chi-squared (df=2)", linetype = "Chi-squared (df=2)"),
-                                   size = 2)
-ggFisher <- ggFisher + scale_linetype_manual(values = c(1,2,3))
-ggFisher <- ggFisher + labs(linetype = "critical quantile", color = "critical quantile")
-ggFisher <- ggFisher + theme_light()
-ggFisher <- ggFisher + theme(text = element_text(size=14), 
-                             axis.line = element_line(linewidth = 1.25),
-                             axis.ticks = element_line(linewidth = 2),
-                             axis.ticks.length=unit(.25, "cm"),
-                             legend.key.size = unit(1.5,"line"))
-ggFisher <- ggFisher + coord_cartesian(xlim = c(-4,4), ylim = c(-4,4))
-ggFisher <- ggFisher + ggtitle("(A) Multivariate Wald test")
-ggFisher
-#+END_SRC
-
-#+RESULTS:
-
-*** 1.5.1 Traditional strategies to assess multiple hypotheses
-
-Sequential testing
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-rejection2D.gate <- data.table(
-  xmax = c(5,qnorm(0.025, mean = 0, sd = 1)), ymax = qnorm(0.975, mean = 0, sd = 1),
-  xmin = c(qnorm(0.975, mean = 0, sd = 1), -5), ymin = qnorm(0.025, mean = 0, sd = 1)
-)
-rejection2D.gate2 <- rbind(data.table(
-  ymax = c(5,qnorm(0.025, mean = 0, sd = 1)), xmax = qnorm(0.025, mean = 0, sd = 1),
-  ymin = c(qnorm(0.975, mean = 0, sd = 1), -5), xmin = -5
-),
-data.table(
-  ymax = c(5,qnorm(0.025, mean = 0, sd = 1)), xmax = 5,
-  ymin = c(qnorm(0.975, mean = 0, sd = 1), -5), xmin = qnorm(0.975, mean = 0, sd = 1)
-))
-dtGate.label1 <- data.frame(x = c(-3,3),
-                            y = 0,
-                            label = as.character(expression("reject H"[0]^1)))
-dtGate.label12 <- data.frame(x = c(-3,3,-3,3),
-                             y = c(-3,-3,3,3),
-                             label = as.character(expression(reject~H[0]^1~and~H[0]^2)))
-
-ggGate <- ggplot() + labs(x=expression(hat(Delta)[1]/sigma[hat(Delta)[1]]), y=expression(hat(Delta)[2]/sigma[hat(Delta)[2]]))
-ggGate <- ggGate + geom_vline(data = data.table(xintercept = c(qnorm(0.025, mean = 0, sd = 1),qnorm(0.975, mean = 0, sd = 1))),
-                              aes(xintercept = xintercept), size = 2, linetype = 3, color = gg_color_hue(3)[3])
-ggGate <- ggGate + geom_rect(data = rejection2D.gate,
-                             aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-                             size = 2,
-                             fill = "red", alpha = 0.2)
-ggGate <- ggGate + geom_rect(data = rejection2D.gate2,
-                             aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-                             size = 2,
-                             fill = "red", alpha = 0.4)
-ggGate <- ggGate + geom_text(data = data.frame(x=0,y=0,label="No rejection"), aes(x=x,y=y,label=label), size = 3.5)
-ggGate <- ggGate + geom_text(data = dtGate.label1, aes(x=x,y=y,label=label), size = 3.5, parse = TRUE)
-ggGate <- ggGate + geom_text(data = dtGate.label12, aes(x=x,y=y,label=label), size = 3.5, parse = TRUE)
-ggGate <- ggGate + coord_cartesian(xlim = c(-4,4), ylim = c(-4,4))
-ggGate <- ggGate + theme_light()
-ggGate <- ggGate + ggtitle("(B) Sequential testing")
-ggGate <- ggGate + theme(text = element_text(size=14), 
-                         axis.line = element_line(linewidth = 1.25),
-                         axis.ticks = element_line(linewidth = 2),
-                         axis.ticks.length=unit(.25, "cm"),
-                         legend.key.size = unit(1.5,"line"))
-ggGate
-#+END_SRC
-
-#+RESULTS:
-
-Selective simultaneous testing
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dtMax.areaRect1 <- data.table(xmin = -qq$quantile, xmax = qq$quantile, ymin = -5, ymax = -qq$quantile)
-dtMax.areaRect2 <- data.table(xmin = -5, xmax = -qq$quantile, ymin = -5, ymax = -qq$quantile)
-dtMax.label12 <- data.frame(x = c(-3.35,3.35,-3.35,3.35), y = c(-3.25,-3.25,3.25,3.25), label = as.character(expression(reject~H[0]^1~and~H[0]^2)))
-dtMax.label1 <- data.frame(x = c(-3.35,3.35,0,0), y = c(0,0,3.25,-3.25),
-                           label = c(rep(as.character(expression("reject H"[0]^1)),2),rep(as.character(expression("reject H"[0]^2)),2)))
-ggMax <- ggplot() + labs(x=expression(hat(Delta)[1]/sigma[hat(Delta)[1]]), y=expression(hat(Delta)[2]/sigma[hat(Delta)[2]]))
-ggMax <- ggMax + geom_rect(data = data.table(xmin = -qq$quantile, xmax = qq$quantile, ymin = -qq$quantile, ymax = qq$quantile),
-                           aes(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax), fill=NA, size = 2, linetype = 2, color = gg_color_hue(3)[2])
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect1, aes(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax), fill = "red", alpha = 0.2)
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect1, aes(xmin = xmin, ymin = -ymin, xmax = xmax, ymax = -ymax), fill = "red", alpha = 0.2)
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect1, aes(xmin = ymin, ymin = xmin, xmax = ymax, ymax = xmax), fill = "red", alpha = 0.2)
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect1, aes(xmin = -ymin, ymin = xmin, xmax = -ymax, ymax = xmax), fill = "red", alpha = 0.2)
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect2, aes(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax), fill = "red", alpha = 0.4)
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect2, aes(xmin = xmin, ymin = -ymin, xmax = xmax, ymax = -ymax), fill = "red", alpha = 0.4)
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect2, aes(xmin = -xmin, ymin = ymin, xmax = -xmax, ymax = ymax), fill = "red", alpha = 0.4)
-ggMax <- ggMax + geom_rect(data = dtMax.areaRect2, aes(xmin = -xmin, ymin = -ymin, xmax = -xmax, ymax = -ymax), fill = "red", alpha = 0.4)
-ggMax <- ggMax + geom_text(data = data.frame(x=0,y=0,label="No rejection"), aes(x=x,y=y,label=label), size = 3.5)
-ggMax <- ggMax + geom_text(data = dtMax.label12, aes(x=x,y=y,label=label), size = 3.5, parse = TRUE)
-ggMax <- ggMax + geom_text(data = dtMax.label1, aes(x=x,y=y,label=label), size = 3.5, parse = TRUE)
-ggMax <- ggMax + labs(linetype = "critical quantile", color = "critical quantile")
-ggMax <- ggMax + theme_light()
-ggMax <- ggMax + theme(text = element_text(size=14), 
-                       axis.line = element_line(linewidth = 1.25),
-                       axis.ticks = element_line(linewidth = 2),
-                       axis.ticks.length=unit(.25, "cm"),
-                       legend.key.size = unit(1.5,"line"))
-ggMax <- ggMax + coord_cartesian(xlim = c(-4,4), ylim = c(-4,4))
-ggMax <- ggMax + ggtitle("(C) Selective testing")
-ggMax
-#+END_SRC
-
-#+RESULTS:
-
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-pdf("figures/fig_inference_consonanceCoherence.pdf", width = 12, height = 10)
-ggarrange(ggarrange(ggFisher + guides(color="none",linetype="none"),
-                    as_ggplot(cowplot::get_legend(ggFisher)),ncol=2),
-          ggarrange(ggGate,ggMax,ncol=2),nrow=2)
-dev.off()
-#+END_SRC
-
-#+RESULTS:
-: null device 
-:           1
-
-*** 1.5.2 Dunnett procedure for GPC
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eSe0.BT <- sensitivity(e.BT, threshold = 0:1, band = TRUE, adj.p.value = TRUE,
-                       transformation = FALSE, trace = FALSE)
-eSe0.BT
--0.48 - 2.120035 * 0.2216303
--0.48 + 2.120035 * 0.2216303
-
-R0 <- cov2cor(crossprod(attr(eSe0.BT,"iid")))
-R0
-1-pmvnorm(lower = rep(-0.49/0.1475805,2), upper = rep(0.49/0.1475805,2), mean = c(0,0), sigma = R0)
-1-pmvnorm(lower = rep(-0.48/0.2216303,2), upper = rep(0.48/0.2216303,2), mean = c(0,0), sigma = R0)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-  score estimate        se   lower.ci    upper.ci null      p.value lower.band  upper.band adj.p.value
-1     0    -0.48 0.2216303 -0.9143875 -0.04561255    0 0.0303288719 -0.9498640 -0.01013601  0.04475506
-2     1    -0.49 0.1475805 -0.7792524 -0.20074756    0 0.0008994584 -0.8028758 -0.17712424  0.00147072
-[1] -0.949864
-[1] -0.01013601
-          [,1]      [,2]
-[1,] 1.0000000 0.8792872
-[2,] 0.8792872 1.0000000
-[1] 0.001470722
-attr(,"error")
-[1] 1e-15
-attr(,"msg")
-[1] "Normal Completion"
-[1] 0.04475504
-attr(,"error")
-[1] 1e-15
-attr(,"msg")
-[1] "Normal Completion"
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eSe.BT <- sensitivity(e.BT, threshold = 0:1, band = TRUE, adj.p.value = TRUE,
-                      transformation = TRUE, trace = FALSE)
-eSe.BT
-c(tanh(atanh(-0.48) - 2.120035 * 0.2216303/(1-0.48^2)),
-  tanh(atanh(-0.48) + 2.120035 * 0.2216303/(1-0.48^2)))
-c(tanh(atanh(-0.49) - 2.120035 * 0.1475805/(1-0.49^2)),
-  tanh(atanh(-0.49) + 2.120035 * 0.1475805/(1-0.49^2)))
-#+END_SRC
-
-#+RESULTS:
-:   score estimate        se   lower.ci    upper.ci null     p.value lower.band  upper.band adj.p.value
-: 1     0    -0.48 0.2216303 -0.7959335  0.04142476    0 0.069364812 -0.8122186  0.08732288 0.098720663
-: 2     1    -0.49 0.1475805 -0.7243353 -0.15417562    0 0.005776528 -0.7387823 -0.12369087 0.009017036
-: [1] -0.81221864  0.08732288
-: [1] -0.7387824 -0.1236908
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-getIid(e.BT, statistic = "netBenefit", scale = FALSE, center = TRUE)[11:20]
-(Deltai-coef(e.BT, statistic = "netBenefit"))[1]
-#+END_SRC
-
-#+RESULTS:
-:  [1]  0.08 -0.52  0.08 -0.52 -0.52  0.48  0.08 -0.12  0.48  0.48
-: [1] 0.08
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-attr(eSe.BT,"quantileBand")
-R <- cov2cor(crossprod(attr(eSe.BT,"iid")))
-R
-pmvnorm(lower = rep(-1.96,2), upper = rep(1.96,2), mean = c(0,0), sigma = R)
-pmvnorm(lower = rep(-2.12,2), upper = rep(2.12,2), mean = c(0,0), sigma = R)
-qmvnorm(0.95, mean = c(0,0), sigma = R, tail = "both.tails")
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-[1] 2.120035
-          [,1]      [,2]
-[1,] 1.0000000 0.8792872
-[2,] 0.8792872 1.0000000
-[1] 0.9277588
-attr(,"error")
-[1] 1e-15
-attr(,"msg")
-[1] "Normal Completion"
-[1] 0.9500496
-attr(,"error")
-[1] 1e-15
-attr(,"msg")
-[1] "Normal Completion"
-$quantile
-[1] 2.120035
-
-$f.quantile
-[1] 1.471865e-05
-
-attr(,"message")
-[1] "Normal Completion"
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-cor(10*attr(eSe.BT,"iid") + matrix(eSe.BT$estimate, byrow = 2, nrow = 20, ncol = 2))
-round(10*attr(eSe.BT,"iid")[1:10,] + matrix(eSe.BT$estimate, byrow = 2, nrow = 10, ncol = 2),2)
-round(10*attr(eSe.BT,"iid")[11:20,] + matrix(eSe.BT$estimate, byrow = 2, nrow = 10, ncol = 2),2)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-          [,1]      [,2]
-[1,] 1.0000000 0.8792872
-[2,] 0.8792872 1.0000000
-      [,1] [,2]
- [1,]  0.4  0.0
- [2,] -0.4 -0.2
- [3,]  0.2 -0.2
- [4,] -1.0 -0.6
- [5,] -1.0 -1.0
- [6,] -1.0 -1.0
- [7,] -1.0 -0.9
- [8,] -0.4 -0.2
- [9,] -1.0 -0.8
-[10,]  0.4  0.0
-      [,1] [,2]
- [1,] -0.4 -0.4
- [2,] -1.0 -1.0
- [3,] -0.4 -0.5
- [4,] -1.0 -0.8
- [5,] -1.0 -0.5
- [6,]  0.0 -0.4
- [7,] -0.4 -0.5
- [8,] -0.6 -0.5
- [9,]  0.0  0.0
-[10,]  0.0 -0.3
-#+end_example
-
-
-
-* Chapter 2 Software
-** Section 2.1 Introduction
-*** subsection 2.1.2 Generating in-silico data
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-set.seed(10) ## initialize the pseudo-random number generator 
-dt.data <- simBuyseTest(100)
-dt.data
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-      id treatment   eventtime status toxicity       score
-  1:   1         C 0.445451079      1       no -0.90197026
-  2:   2         C 0.183056094      0      yes -0.05474996
-  3:   3         C 0.410940283      0       no -1.35675471
-  4:   4         C 0.185677294      1      yes  0.31723058
-  5:   5         C 0.128177108      0       no  1.39571912
- ---                                                      
-196: 196         T 0.137252959      1      yes  1.05104467
-197: 197         T 0.008692819      1      yes  1.15579748
-198: 198         T 1.668044329      0      yes -1.03443796
-199: 199         T 0.112796594      0      yes -0.25446807
-200: 200         T 0.196786863      0      yes  1.27368427
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-argsSurv <- list(name = c("OS","PFS"),
-                 name.censoring = c("statusOS","statusPFS"),
-                 scale.C = c(8.995655, 4.265128),
-                 scale.T = c(13.76543, 7.884477),
-                 shape.C = c(1.28993, 1.391015),
-                 shape.T = c(1.275269, 1.327461),
-                 scale.censoring.C = c(34.30562, 20.748712),
-                 scale.censoring.T = c(27.88519, 17.484281),
-                 shape.censoring.C = c(1.369449, 1.463876),
-                 shape.censoring.T = c(1.490881, 1.835526))
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-argsTox <- list(name = "toxicity",
-                p.C =  c(1.17, 2.92, 36.26, 39.18, 19.88, 0.59)/100,
-                p.T = c(3.51, 4.09, 23.39, 47.37, 21.05, 0.59)/100,
-                rho.T = 1, rho.C = 1)
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-set.seed(1)
-dt.data <- simBuyseTest(n.T = 200, n.C = 200,
-                        argsBin = argsTox,
-                        argsCont = NULL,
-                        argsTTE = argsSurv,
-                        level.strata = c("M","F"), names.strata = "gender")
-dt.data
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-      id treatment           OS statusOS        PFS statusPFS toxicity gender
-  1:   1         C  0.628786006        0  0.6946706         1        3      F
-  2:   2         C  0.003647332        1  1.7228221         1        3      F
-  3:   3         C  5.501584752        1  0.9092541         1        3      M
-  4:   4         C  0.286446665        1  5.8723232         1        1      M
-  5:   5         C 17.221063409        1  1.0965019         0        5      M
- ---                                                                         
-396: 396         T 18.771937367        1  1.4219555         0        4      F
-397: 397         T  2.914445864        1 49.5964070         1        3      M
-398: 398         T  1.105391425        1 16.1741055         1        2      M
-399: 399         T  1.318957979        0 10.1102146         1        4      F
-400: 400         T  3.338426913        1 10.9857381         1        3      M
-#+end_example
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-set.seed(10)
-rbind(simBuyseTest(n.T = 100, n.C = 100,
-                   argsBin = NULL,
-                   argsCont = list(mu.C = 1, mu.T = 2),
-                   argsTTE = NULL,
-                   prefix.cluster = "M", level.strata = "M", names.strata = "gender"),
-      simBuyseTest(n.T = 100, n.C = 100,
-                   argsBin = NULL,
-                   argsCont = list(mu.C = 10, mu.T = 20),
-                   argsTTE = NULL,
-                   prefix.cluster = "F", level.strata = "F", names.strata = "gender")
-      )
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-       id treatment      score gender
-  1:   M1         C  1.8694750      M
-  2:   M2         C  0.3199904      M
-  3:   M3         C  1.1732145      M
-  4:   M4         C  0.8405620      M
-  5:   M5         C  1.7934994      M
- ---                                 
-396: F196         T 21.6977207      F
-397: F197         T 19.9273100      F
-398: F198         T 19.2823911      F
-399: F199         T 19.5834856      F
-400: F200         T 22.1935868      F
-#+end_example
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dtPC.toxW <- prop.table(table(dt.data$treatment,
-                              dt.data$toxicity))
-dtPC.toxW * 100
-#+END_SRC
-
-#+RESULTS:
-:    
-:         1     2     3     4     5     6
-:   C  2.75  3.25 19.00 12.75  6.75  5.50
-:   T  3.75  3.50 12.00 15.75 11.00  4.00
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(ggplot2)
-ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
-ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(ggpubr)
-ggOS <- ggplot(dt.data, aes(x = toxicity, y = OS, fill = treatment)) + geom_boxplot()
-ggOS <- ggOS + theme(text = element_text(size=20), 
-                     axis.line = element_line(linewidth = 1.25),
-                     axis.ticks = element_line(linewidth = 1.25),
-                     axis.ticks.length=unit(.25, "cm"),
-                     legend.key.size = unit(3,"line"))
-ggPFS <- ggplot(dt.data, aes(x = toxicity, y = PFS, fill = treatment)) + geom_boxplot()
-ggPFS <- ggPFS + theme(text = element_text(size=20), 
-                       axis.line = element_line(linewidth = 1.25),
-                       axis.ticks = element_line(linewidth = 1.25),
-                       axis.ticks.length=unit(.25, "cm"),
-                       legend.key.size = unit(3,"line"))
-ggOSPFS <- ggarrange(ggOS, ggPFS, nrow = 1, ncol = 2, common.legend = TRUE, legend = "bottom")
-graphics.off()
-pdf("figures/fig_software_OS-PFS-tox.pdf", width = 12, height = 8)
-ggOSPFS
-dev.off()
-#+END_SRC
-
-#+RESULTS:
-: null device 
-:           1
-
-*** Extra :noexport:
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-dt.prodige[, d_dn2 := as.Date(d_dn, "%d/%m/%Y")]
-dt.prodige[, randodt2 := as.Date(randodt, "%d/%m/%Y")]
-dt.prodige[, d_progdt2 := as.Date(d_progdt, "%d/%m/%Y")]
-dt.prodige[, OS := as.numeric(difftime(d_dn2,randodt2,units="days")/30.44)]
-dt.prodige[, PFS := as.numeric(difftime(d_progdt2,randodt2,units="days")/30.44)]
-
-AFT0 <- flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Gemcitabine",], dist = "Weibull")
-AFT1 <- flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Folfirinox",], dist = "Weibull")
-exp(coef(AFT0))
-exp(coef(AFT1))
-
-AFT2 <- flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Gemcitabine",], dist = "Weibull")
-AFT3 <- flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras == "Folfirinox",], dist = "Weibull")
-exp(coef(AFT2))
-exp(coef(AFT3))
-
-AFT2.cens <- flexsurvreg(Surv(PFS, etat==0) ~ 1, data = dt.prodige[dt.prodige$bras == "Gemcitabine",], dist = "Weibull")
-AFT3.cens <- flexsurvreg(Surv(PFS, etat==0) ~ 1, data = dt.prodige[dt.prodige$bras == "Folfirinox",], dist = "Weibull")
-exp(coef(AFT2.cens))
-exp(coef(AFT3.cens))
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-Error: object 'dt.prodige' not found
-Error: object 'dt.prodige' not found
-Error: object 'dt.prodige' not found
-Error: object 'dt.prodige' not found
-Error: object 'dt.prodige' not found
-Error in flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
-  could not find function "flexsurvreg"
-Error in flexsurvreg(Surv(OS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
-  could not find function "flexsurvreg"
-Error in h(simpleError(msg, call)) : 
-  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT0' not found
-Error in h(simpleError(msg, call)) : 
-  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT1' not found
-Error in flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
-  could not find function "flexsurvreg"
-Error in flexsurvreg(Surv(PFS, etat) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
-  could not find function "flexsurvreg"
-Error in h(simpleError(msg, call)) : 
-  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT2' not found
-Error in h(simpleError(msg, call)) : 
-  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT3' not found
-Error in flexsurvreg(Surv(PFS, etat == 0) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
-  could not find function "flexsurvreg"
-Error in flexsurvreg(Surv(PFS, etat == 0) ~ 1, data = dt.prodige[dt.prodige$bras ==  : 
-  could not find function "flexsurvreg"
-Error in h(simpleError(msg, call)) : 
-  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT2.cens' not found
-Error in h(simpleError(msg, call)) : 
-  error in evaluating the argument 'object' in selecting a method for function 'coef': object 'AFT3.cens' not found
-#+end_example
-
-** section 2.2 GPC with a single endpoint
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dtPC.toxL <- as.data.frame(dtPC.toxW, responseName = "Probability")
-names(dtPC.toxL)[1:2] <- c("treatment","grade")
-#+END_SRC
-
-#+RESULTS:
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-colorG2R <- scales::seq_gradient_pal(low = rgb(green=0.9,0,0),
-                                     high = rgb(red=0.9,0,0))
-
-gg.tox <- ggplot(dtPC.toxL, aes(x = treatment, fill = grade, y = Probability))
-gg.tox <- gg.tox + geom_bar(position = position_fill(reverse = TRUE),
-                            stat = "identity")
-gg.tox <- gg.tox + scale_y_continuous(labels = scales::percent)
-gg.tox <- gg.tox + scale_fill_manual("Worse\nadverse event",
-                                     values = colorG2R(seq(0,1,length.out=6)))
-gg.tox 
-#+END_SRC
-
-#+RESULTS:
-
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(prodlim)
-plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-pdf("figures/fig_software_hist-tox.pdf", width = 5, height = 5)
-gg.tox + theme(text = element_text(size=15), 
-                       axis.line = element_line(linewidth = 1.25),
-                       axis.ticks = element_line(linewidth = 1.25),
-                       axis.ticks.length=unit(.25, "cm"),
-                       legend.key.size = unit(2,"line"))
-dev.off()
-pdf("figures/fig_software_KM-OS.pdf", width = 5, height = 5)
-plot(prodlim(Hist(OS,statusOS) ~ treatment, data = dt.data))
-dev.off()
-
-#+END_SRC
-
-#+RESULTS:
-: X11cairo 
-:        2
-: X11cairo 
-:        2
-
-*** subsection 2.2.1 Relation to the Wilcoxon-Mann-Whitney test
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data$toxicity.num <- as.numeric(dt.data$toxicity)
-wilcox.test(toxicity.num ~ treatment, data = dt.data)
-#+END_SRC
-
-#+RESULTS:
-: 
-: 	Wilcoxon rank sum test with continuity correction
-: 
-: data:  toxicity.num by treatment
-: W = 18528, p-value = 0.1893
-: alternative hypothesis: true location shift is not equal to 0
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eTox.BT <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
-                     data=dt.data)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-         Generalized Pairwise Comparisons
-
-Settings 
-   - 2 groups  : Control = C and Treatment = T
-   - 1 endpoint: 
-       priority endpoint      type        operator           
-       1        toxicity.num  continuous  lower is favorable 
-
-Point estimation and calculation of the iid decomposition
-
-Estimation of the estimator's distribution 
-   - method: moments of the U-statistic
-
-Gather the results in a S4BuyseTest object
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(eTox.BT)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: T (treatment) vs. C (control) 
- - results
-     endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
- toxicity.num      100        35.38          42.74      21.87        0
-   Delta CI [2.5% ; 97.5%] p.value 
- -0.0736   [-0.1824;0.037] 0.19177
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-print(eTox.BT, percentage = FALSE)
-#+END_SRC
-
-#+RESULTS:
-:      endpoint total favorable unfavorable neutral uninf   Delta
-:  toxicity.num 40000     14154       17098    8748     0 -0.0736
-:  CI [2.5% ; 97.5%] p.value
-:    [-0.1824;0.037] 0.19177
-
-
-*** subsection 2.2.2 Adjustment for ties
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(eTox.BT, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:              estimate         se lower.ci  upper.ci null      p.value
-: toxicity.num  0.35385 0.02808395 0.300924 0.4106169  0.5 9.469156e-07
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eTox.BThalf <- BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
-                         add.halfNeutral = TRUE,
-                         data=dt.data, trace = FALSE)
-print(eTox.BThalf, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:      endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
-:  toxicity.num      100        35.38          42.74      21.87        0
-:   Delta CI [2.5% ; 97.5%] p.value
-:  0.4632   [0.4088;0.5185] 0.19177
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(eTox.BThalf)
-#+END_SRC
-
-#+RESULTS:
-:              estimate         se   lower.ci   upper.ci null   p.value
-: toxicity.num  -0.0736 0.05617859 -0.1823776 0.03695755    0 0.1917665
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest.options(trace = 0)
-#+END_SRC
-
-#+RESULTS:
-
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(asht)
-dt.data$treatment2 <- relevel(dt.data$treatment,"T")
-wmwTest(toxicity.num ~ treatment2, data = dt.data)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-	Wilcoxon-Mann-Whitney test with continuity correction (confidence
-	interval requires proportional odds assumption, but test does not)
-
-data:  toxicity.num by treatment2
-Mann-Whitney estimate = 0.4632, tie factor = 0.94003, p-value =
-0.1893
-alternative hypothesis: two distributions are not equal
-95 percent confidence interval:
- 0.4093690 0.5180938
-sample estimates:
-Mann-Whitney estimate 
-               0.4632
-#+end_example
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(pim)
-e.pim <- pim(toxicity.num ~ treatment2, data = dt.data)
-summary(e.pim)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-pim.summary of following model : 
- toxicity.num ~ treatment2
-Type:  difference 
-Link:  logit 
-
-
-            Estimate Std. Error z value Pr(>|z|)
-treatment2C  -0.1475     0.1126  -1.309     0.19
-
-Null hypothesis: b = 0
-#+end_example
-
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-BuyseTest(treatment ~ cont(toxicity.num, operator = "<0"),
-          add.halfNeutral = TRUE, method.inference = "permutation",
-          data=dt.data, cpus = 5, n.resampling = 1e4, seed = 10)
-#+END_SRC
-
-#+RESULTS:
-:      endpoint   Delta
-:  toxicity.num -0.0736
-
-*** subsection 2.2.3 Threshold of clinical relevance
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eTox.BT2 <- BuyseTest(treatment ~ cont(toxicity.num, threshold = 2, operator = "<0"),
-                     data=dt.data, keep.pairScore = TRUE, trace = FALSE)
-print(eTox.BT2)
-#+END_SRC
-
-#+RESULTS:
-:      endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%)
-:  toxicity.num         2      100        19.44          22.14      58.42
-:  uninf(%)  Delta CI [2.5% ; 97.5%] p.value
-:         0 -0.027  [-0.1077;0.0542] 0.51506
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-getPairScore(eTox.BT2)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-       index.C index.T favorable unfavorable neutral uninf weight
-    1:       1     201         0           0       1     0      1
-    2:       2     201         0           0       1     0      1
-    3:       3     201         0           0       1     0      1
-    4:       4     201         0           1       0     0      1
-    5:       5     201         0           0       1     0      1
-   ---                                                           
-39996:     196     400         0           0       1     0      1
-39997:     197     400         0           1       0     0      1
-39998:     198     400         0           0       1     0      1
-39999:     199     400         1           0       0     0      1
-40000:     200     400         0           0       1     0      1
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data[c(3:4,201),c("id","treatment","OS","statusOS","toxicity","gender")]
-#+END_SRC
-
-#+RESULTS:
-:     id treatment         OS statusOS toxicity gender
-: 1:   3         C  5.5015848        1        3      M
-: 2:   4         C  0.2864467        1        1      M
-: 3: 201         T 13.8301382        1        4      F
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-model.tables(eTox.BT, columns = "threshold")
-#+END_SRC
-
-#+RESULTS:
-:   threshold
-: 1     1e-12
-
-*** subsection 2.2.4 Accounting for baseline covariates
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ffG <- treatment ~ cont(toxicity.num, operator = "<0") + strata(gender)
-eTox.BTG <- BuyseTest(ffG, data=dt.data, keep.pairScore = TRUE, trace = FALSE)
-summary(eTox.BTG)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-       Generalized pairwise comparisons with 1 endpoint and 2 strata
-
- - statistic       : net benefit (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 0 
- - confidence level: 0.95 
- - inference       : H-projection of order 1 after atanh transformation 
- - treatment groups: T (treatment) vs. C (control) 
- - strata weights  : 50.5%, 49.5% 
- - results
-     endpoint strata total(%) favorable(%) unfavorable(%) neutral(%)
- toxicity.num global      100        35.43          42.75      21.82
-                   M       51        17.79          22.37      10.85
-                   F       49        17.63          20.38      10.98
- uninf(%)   delta   Delta CI [2.5% ; 97.5%] p.value 
-        0 -0.0731 -0.0731  [-0.1823;0.0379] 0.19672 
-        0 -0.0897                                   
-        0 -0.0561
-#+end_example
-
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-model.tables(eTox.BTG, percentage = FALSE)
-#(3541-4452)/10152
-#+END_SRC
-
-#+RESULTS:
-:       endpoint strata total favorable unfavorable neutral uninf
-: 1 toxicity.num global 19904      7051        8509    4344     0
-: 2 toxicity.num      M 10152      3541        4452    2159     0
-: 3 toxicity.num      F  9752      3510        4057    2185     0
-:         delta       Delta   lower.ci   upper.ci   p.value
-: 1 -0.07308342 -0.07308342 -0.1823085 0.03792338 0.1967195
-: 2 -0.08973601          NA         NA         NA        NA
-: 3 -0.05609106          NA         NA         NA        NA
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-getPairScore(eTox.BTG)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-       strata index.C index.T favorable unfavorable neutral uninf weight
-    1:      F       1     201         0           1       0     0      1
-    2:      F       2     201         0           1       0     0      1
-    3:      F       7     201         0           1       0     0      1
-    4:      F      11     201         0           1       0     0      1
-    5:      F      12     201         0           0       1     0      1
-   ---                                                                  
-19900:      M     192     400         0           0       1     0      1
-19901:      M     195     400         1           0       0     0      1
-19902:      M     196     400         0           0       1     0      1
-19903:      M     198     400         0           0       1     0      1
-19904:      M     199     400         1           0       0     0      1
-#+end_example
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(eTox.BTG, strata = TRUE)
-#+END_SRC
-
-#+RESULTS:
-:                   estimate         se   lower.ci   upper.ci null   p.value
-: toxicity.num.M -0.08973601 0.07926141 -0.2417093 0.06653413    0 0.2601380
-: toxicity.num.F -0.05609106 0.08030000 -0.2108224 0.10138233    0 0.4857698
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.pimS <- pim(toxicity.num ~ treatment + gender, data = dt.data,
-              link = "identity")
-summary(e.pimS)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-pim.summary of following model : 
- toxicity.num ~ treatment + gender
-Type:  difference 
-Link:  identity 
-
-
-           Estimate Std. Error z value Pr(>|z|)    
-treatmentT 0.536971   0.028126  19.092   <2e-16 ***
-genderF    0.002438   0.031968   0.076    0.939    
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Null hypothesis: b = 0
-#+end_example
-
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-eTox.BTG2 <- BuyseTest(ffG, data=dt.data, add.halfNeutral = TRUE, trace = FALSE)
-coef(eTox.BTG2, statistic = "unfavorable", strata = TRUE)
-#+END_SRC
-
-#+RESULTS:
-:         M         F 
-: 0.5448680 0.5280455
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-coef(pim(toxicity.num ~ 1+gender, data = dt.data,
-         compare = expand.grid(which(dt.data$treatment == "C"),
-                               which(dt.data$treatment == "T")),
-         link = "identity"))
-
-#+END_SRC
-
-#+RESULTS:
-:   (Intercept)       genderF 
-:  0.5367438593 -0.0008020101
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-coef(pim(toxicity.num ~ treatment, data = dt.data[dt.data$gender == "M",],
-              link = "identity"))
-#+END_SRC
-
-#+RESULTS:
-: treatmentT 
-:   0.544868
-
-*** subsection 2.2.5 Handling right-censoring when assessing efficacy
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data[,.(censoring=mean(statusOS==0)),by = "treatment"]
-#+END_SRC
-
-#+RESULTS:
-:    treatment censoring
-: 1:         C     0.320
-: 2:         T     0.445
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eEff.BT <- BuyseTest(treatment ~ tte(OS, statusOS), data=dt.data,
-                     keep.pairScore = TRUE, trace = FALSE)
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-getPairScore(eEff.BT)[c(1,2,2623,8553),]
-#+END_SRC
-
-#+RESULTS:
-:    index.C index.T favorable unfavorable neutral     uninf weight
-: 1:       1     201 0.6888801   0.3111199       0 0.0000000      1
-: 2:       2     201 1.0000000   0.0000000       0 0.0000000      1
-: 3:      23     214 0.0000000   0.8099176       0 0.1900824      1
-: 4:     153     243 0.8200000   0.0600000       0 0.1200000      1
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data[c(1,2,201,23,214,153,243),c("id","treatment","OS","statusOS","gender")]
-#+END_SRC
-
-#+RESULTS:
-:     id treatment           OS statusOS gender
-: 1:   1         C  0.628786006        0      F
-: 2:   2         C  0.003647332        1      F
-: 3: 201         T 13.830138195        1      F
-: 4:  23         C 55.980040009        0      F
-: 5: 214         T 12.259281475        0      M
-: 6: 153         C 26.429727212        0      F
-: 7: 243         T 52.219932416        0      M
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-print(eEff.BT)
-#+END_SRC
-
-#+RESULTS:
-:  endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-:        OS      100        58.67          41.12          0      0.2 0.1755
-:  CI [2.5% ; 97.5%]   p.value
-:    [0.0472;0.2981] 0.0075342
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eEff.BT2 <- BuyseTest(treatment ~ tte(OS, statusOS), data=dt.data,
-                      scoring.rule = "Gehan", keep.pairScore = TRUE, trace = FALSE)
-print(eEff.BT2)
-#+END_SRC
-
-#+RESULTS:
-:  endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-:        OS      100        35.22          24.33          0    40.45 0.1089
-:  CI [2.5% ; 97.5%]  p.value
-:    [0.0229;0.1934] 0.013205
-
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-getPairScore(eEff.BT2)[c(1,2,2623,8553),]
-#+END_SRC
-
-#+RESULTS:
-:    index.C index.T favorable unfavorable neutral uninf weight
-: 1:       1     201         0           0       0     1      1
-: 2:       2     201         1           0       0     0      1
-: 3:      23     214         0           0       0     1      1
-: 4:     153     243         0           0       0     1      1
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt30.data <- data.table::copy(dt.data)
-dt30.data[OS>30, c("OS", "statusOS") := .(30,0)]
-
-## plot(prodlim(Hist(OS,statusOS)~treatment, data = dt30.data))
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eEff.BT30 <- BuyseTest(treatment ~ tte(OS, statusOS, restriction = 25), data=dt30.data,
-                       keep.pairScore = TRUE, trace = FALSE)
-print(eEff.BT30)
-#+END_SRC
-
-#+RESULTS:
-:  endpoint restriction total(%) favorable(%) unfavorable(%) neutral(%)
-:        OS          25      100        56.22          38.91       4.87
-:  uninf(%)  Delta CI [2.5% ; 97.5%]   p.value
-:         0 0.1731   [0.0468;0.2941] 0.0074591
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data[c(44,211)]
-getPairScore(eEff.BT30)[index.C==44 & index.T == 211,]
-getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-    id treatment       OS statusOS      PFS statusPFS toxicity gender
-1:  44         C 33.86813        1 5.935977         1        6      F
-2: 211         T 34.53610        1 6.308944         1        5      M
-   toxicity.num treatment2
-1:            6          C
-2:            5          T
-   index.C index.T favorable unfavorable neutral uninf weight
-1:      44     211         0           0       1     0      1
-   index.C index.T favorable unfavorable neutral uninf weight
-1:      44     211         1           0       0     0      1
-#+end_example
-
-** section 2.3 Benefit risk analysis using GPC
-
-*** subsection 2.3.1 Hierarchical & non-hierarchical analyses
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eBRB.BT <- BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num, operator = "<0"),
-                     data=dt.data, trace = FALSE)
-print(eBRB.BT)
-#+END_SRC
-
-#+RESULTS:
-:      endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
-:            OS    100.0        58.67          41.12       0.00      0.2
-:  toxicity.num      0.2         0.05           0.08       0.07      0.0
-:    delta  Delta CI [2.5% ; 97.5%]   p.value
-:   0.1755 0.1755   [0.0472;0.2981] 0.0075342
-:  -0.0003 0.1752   [0.0469;0.2978] 0.0076383
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eRBB.BT <- BuyseTest(treatment ~ cont(toxicity.num) + tte(OS, statusOS),
-                     data=dt.data, trace = FALSE)
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eNH.BT <- BuyseTest(treatment ~ cont(toxicity.num) + tte(OS, statusOS),
-                    data=dt.data, hierarchical = FALSE, trace = FALSE)
-print(eNH.BT)
-#+END_SRC
-
-#+RESULTS:
-:      endpoint weight total(%) favorable(%) unfavorable(%) neutral(%)
-:  toxicity.num    0.5      100        42.74          35.38      21.87
-:            OS    0.5      100        58.67          41.12       0.00
-:  uninf(%)  delta  Delta CI [2.5% ; 97.5%]  p.value
-:       0.0 0.0736 0.0368  [-0.0183;0.0917] 0.190560
-:       0.2 0.1755 0.1245   [0.0094;0.2365] 0.034154
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-library(ggplot2)
-eRBB.plot <- plot(eRBB.BT)
-eNH.plot <- plot(eNH.BT)
-ggpubr::ggarrange(eRBB.plot$plot + ggtitle("Hierarchical"),
-                  eNH.plot$plot + ggtitle("Non-hierarchical"),
-                  common.legend = TRUE, legend = "bottom")
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eRBBNH.plot <- ggpubr::ggarrange(eRBB.plot$plot + ggtitle("Hierarchical") + theme(text = element_text(size=20), 
-                                                                                  axis.line = element_line(linewidth = 1.25),
-                                                                                  axis.ticks = element_line(linewidth = 1.25),
-                                                                                  axis.ticks.length=unit(.25, "cm"),
-                                                                                  legend.key.size = unit(2,"line")),
-                                 eNH.plot$plot + ggtitle("Non-hierarchical") + theme(text = element_text(size=20), 
-                                                                                     axis.line = element_line(linewidth = 1.25),
-                                                                                     axis.ticks = element_line(linewidth = 1.25),
-                                                                                     axis.ticks.length=unit(.25, "cm"),
-                                                                                     legend.key.size = unit(2,"line")),
-                                 common.legend = TRUE, legend = "bottom")
-
-pdf("figures/fig_software_hierarchical.pdf", width = 12, height = 8)
-eRBBNH.plot
-dev.off()
-#+END_SRC
-
-#+RESULTS:
-: windows 
-:       2
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-rbind("prioritized" = confint(eRBB.BT, transform = FALSE, endpoint = 1),
-      "non-prioritized" = confint(eNH.BT, transform = FALSE, endpoint = 1))
-
-#+END_SRC
-
-#+RESULTS:
-:                 estimate         se    lower.ci   upper.ci null   p.value
-: prioritized       0.0736 0.05617859 -0.03650802 0.18370802    0 0.1901594
-: non-prioritized   0.0368 0.02808930 -0.01825401 0.09185401    0 0.1901594
-
-*** subsection 2.3.2 Threshold of clinical relevance
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eSH.BT <- BuyseTest(treatment ~ tte(OS, statusOS, threshold = 28)
-                              + cont(toxicity.num, threshold = 2)
-                              + tte(OS, statusOS, threshold = 14)
-                              + cont(toxicity.num),
-                    data=dt.data, trace = FALSE)
-print(eSH.BT)
-12.59+13.20+11.85+11.23
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-     endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%)
-           OS        28   100.00        17.62           8.66      73.02
- toxicity.num         2    73.72        12.59          13.20      47.93
-           OS        14    47.93         6.20           2.88      38.53
- toxicity.num              38.85        11.85          11.23      15.77
- uninf(%)   delta  Delta CI [2.5% ; 97.5%]  p.value
-     0.71  0.0897 0.0897  [-0.0014;0.1792] 0.053522
-     0.00 -0.0061 0.0835  [-0.0203;0.1855] 0.114665
-     0.32  0.0332 0.1168   [0.0033;0.2273] 0.043808
-     0.00  0.0062 0.1229    [2e-04;0.2419] 0.049537
-[1] 48.87
-#+end_example
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eSH.plot <- plot(eSH.BT, label.endpoint = c("OS\n(\U2265 28 days)","Toxicity\n(\U2265 2 grade)","OS\n(\U2265 14 days)","Toxicity\n(any difference)"))
-eBRB.plot <- plot(eBRB.BT, label.endpoint = c("OS\n(any difference)","Toxicity\n(any difference)")) 
-eSHBRB.plot <- ggpubr::ggarrange(eBRB.plot$plot + ggtitle("No threshold") + theme(text = element_text(size=20), 
-                                                                                  axis.line = element_line(linewidth = 1.25),
-                                                                                  axis.ticks = element_line(linewidth = 1.25),
-                                                                                  axis.ticks.length=unit(.25, "cm"),
-                                                                                  legend.key.size = unit(2,"line")),
-                                 eSH.plot$plot + ggtitle("With thresholds") + theme(text = element_text(size=20), 
-                                                                                    axis.line = element_line(linewidth = 1.25),
-                                                                                    axis.ticks = element_line(linewidth = 1.25),
-                                                                                    axis.ticks.length=unit(.25, "cm"),
-                                                                                    legend.key.size = unit(2,"line")),
-                                 common.legend = TRUE, legend = "bottom", widths = c(1,1.5))
-pdf("figures/fig_software_hierarchical-threshold.pdf", width = 12, height = 8)
-eSHBRB.plot
-dev.off()
-#+END_SRC
-
-#+RESULTS:
-: windows 
-:       2
-
-*** subsection 2.3.3 Encoding of the outcome
-# https://stackoverflow.com/questions/7356120/how-to-properly-document-s4-methods-using-roxygen2
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data$OS2 <- dt.data$OS
-dt.data$OS2[dt.data$statusOS==0] <- 150
-#+END_SRC
-
-#+RESULTS:
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-print(BuyseTest(treatment ~ tte(OS2, statusOS), data=dt.data, trace = FALSE))
-#+END_SRC
-
-#+RESULTS:
-:  endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-:       OS2      100        50.92          34.84          0    14.24 0.1608
-:  CI [2.5% ; 97.5%]   p.value
-:    [0.0508;0.2669] 0.0042969
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eD2.BT <- BuyseTest(treatment ~ bin(statusOS, operator = "<0") + tte(OS2, statusOS), data=dt.data, trace = FALSE)
-print(eD2.BT)
-#+END_SRC
-
-#+RESULTS:
-:  endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  delta
-:  statusOS   100.00        30.26          17.76      51.98     0.00 0.1250
-:       OS2    51.98        20.66          17.08       0.00    14.24 0.0358
-:   Delta CI [2.5% ; 97.5%]   p.value
-:  0.1250   [0.0297;0.2181] 0.0102741
-:  0.1608   [0.0508;0.2669] 0.0042969
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data$toxicity2 <- dt.data$toxicity.num
-dt.data$toxicity2[dt.data$statusOS==1] <- -1
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eBRB2.BT <- BuyseTest(treatment ~ bin(statusOS, operator = "<0") + cont(toxicity2, operator = "<0"), data=dt.data, trace = FALSE)
-print(eBRB2.BT)
-#+END_SRC
-
-#+RESULTS:
-:   endpoint total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)
-:   statusOS   100.00        30.26          17.76      51.98        0
-:  toxicity2    51.98         4.87           5.70      41.42        0
-:    delta  Delta CI [2.5% ; 97.5%]  p.value
-:   0.1250 0.1250   [0.0297;0.2181] 0.010274
-:  -0.0083 0.1167   [0.0176;0.2135] 0.021043
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt.data2 <- rbind(cbind(dt.data[treatment == "C" & statusOS==0,], strata = 1),
-                  cbind(dt.data[treatment == "T" & statusOS==0,], strata = 1),
-                  cbind(dt.data[treatment == "C" & statusOS==0,], strata = 2),
-                  cbind(dt.data[treatment == "T" & statusOS==1,], strata = 2),
-                  cbind(dt.data[treatment == "C" & statusOS==1,], strata = 3),
-                  cbind(dt.data[treatment == "T" & statusOS==0,], strata = 3)
-                  )
-eR2.BT <- BuyseTest(treatment ~ cont(toxicity2, operator = "<0"),
-                    data=dt.data[statusOS==0], trace = FALSE)
-print(eR2.BT, percentage = FALSE)
-(1947 - 2279)/40000
-#+END_SRC
-
-#+RESULTS:
-:   endpoint total favorable unfavorable neutral uninf   Delta
-:  toxicity2  5696      1947        2279    1470     0 -0.0583
-:  CI [2.5% ; 97.5%] p.value
-:    [-0.2378;0.125] 0.53435
-: [1] -0.0083
-
-*** subsection 2.3.4 Sensitivity analysis
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eRBB.Se <- sensitivity(eRBB.BT, threshold = list(1:5,c(0,5,10)),
-                       band = TRUE, adj.p.value = TRUE, seed = 10, trace = FALSE)
-eRBB.Se[c(1,2,6),]
-#+END_SRC
-
-#+RESULTS:
-:   toxicity.num OS  estimate         se     lower.ci  upper.ci null
-: 1            1  0 0.1274785 0.06066316  0.007314031 0.2440137    0
-: 2            2  0 0.1628627 0.06304537  0.037375134 0.2832937    0
-: 6            1  5 0.1137239 0.05999122 -0.004903169 0.2291946    0
-:      p.value  lower.band upper.band adj.p.value
-: 1 0.03765646 -0.01014002  0.2603577  0.07354353
-: 2 0.01116991  0.01905884  0.3000649  0.02380337
-: 6 0.06020505 -0.02210279  0.2454285  0.11223981
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-autoplot(eRBB.Se) + facet_wrap(~OS, labeller = label_both)
-#+END_SRC
-
-#+RESULTS:
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-pdf("figures/fig_software_sensitivity.pdf", width = 12, height = 8)
-autoplot(eRBB.Se) + facet_wrap(~OS, labeller = label_both) + theme(text = element_text(size=20), 
-                                                                   axis.line = element_line(linewidth = 1.25),
-                                                                   axis.ticks = element_line(linewidth = 1.25),
-                                                                   axis.ticks.length=unit(.25, "cm"),
-                                                                   legend.key.size = unit(2,"line"))
-dev.off()
-#+END_SRC
-
-#+RESULTS:
-: null device 
-:           1
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eRBB.Hdecomp <- iid(eRBB.Se)
-dim(eRBB.Hdecomp)
-#+END_SRC
-
-#+RESULTS:
-: [1] 400  15
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eRBB.cor <- cor(eRBB.Hdecomp)
-range(eRBB.cor[lower.tri(eRBB.cor)])
-#+END_SRC
-
-#+RESULTS:
-: [1] 0.8247216 0.9999499
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-rownames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
-colnames(eRBB.cor) <- paste0("tox=",eRBB.Se$toxicity.num,";OS=",eRBB.Se$OS,"")
-pdf("figures/fig_software_corIID.pdf", width = 8, height = 8)
-par(mar  = c(6,6,2,2))
-fields::image.plot(eRBB.cor, axes = FALSE)
-axis(1, at=(1:15)/15, labels=rownames(eRBB.cor), las = 2)
-axis(2, at=(1:15)/15, labels=colnames(eRBB.cor), las = 2)
-dev.off()
-#+END_SRC
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-range(eRBB.Se$adj.p.value/eRBB.Se$p.value)
-#+END_SRC
-
-#+RESULTS:
-: [1] 1.797917 2.322942
-
-
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.MBT <- BuyseMultComp(list("OS-tox" = eBRB.BT, "tox-OS" = eRBB.BT, "threshold" = eSH.BT), cluster = "id", seed = 10)
-e.MBT
-#+END_SRC
-
-#+RESULTS:
-:   - Univariate tests:
-:            estimate         se     lower.ci  upper.ci null     p.value
-: OS-tox    0.1751986 0.06432289 0.0469276309 0.2977853    0 0.007638296
-: tox-OS    0.1274785 0.06066316 0.0073140314 0.2440137    0 0.037656458
-: threshold 0.1229079 0.06195027 0.0002498525 0.2419225    0 0.049537494
-:             lower.band upper.band adj.p.value
-: OS-tox     0.035747523  0.3079572  0.01256251
-: tox-OS    -0.003092911  0.2537760  0.05598424
-: threshold -0.010365320  0.2518908  0.07288010
-
-** section 2.4 Power calculation for GPC analyses
-*** subsection 2.4.1 Data generating mechanism
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-simFCT <- function(n.C, n.T){
-     out <- rbind(data.frame(Y=stats::rt(n.C, df = 5), group=0),
-                  data.frame(Y=stats::rt(n.T, df = 5) + 1, group=1))
-     return(out)
-}
-set.seed(10)
-simFCT(2,2)
-#+END_SRC
-
-#+RESULTS:
-:             Y group
-: 1  0.02241932     0
-: 2 -1.07273566     0
-: 3  1.76072274     1
-: 4  0.74187644     1
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-simFCT2 <- function(n.T, n.C){
-  out <- simBuyseTest(n.T, n.C,
-                      argsBin = argsTox,
-                      argsCont = NULL,
-                      argsTTE = argsSurv,
-                      level.strata = c("M","F"), names.strata = "gender")
-  out$toxicity <- as.numeric(out$toxicity)
-  return(out)
-}
-set.seed(10)
-simFCT2(2,2) 
-#+END_SRC
-
-#+RESULTS:
-:    id treatment         OS statusOS         PFS statusPFS toxicity gender
-: 1:  1         C 18.8315614        1  0.43958694         1        5      F
-: 2:  2         C  0.4947032        1  0.05958343         1        3      F
-: 3:  3         T 29.0185631        0 14.98265076         0        5      F
-: 4:  4         T  5.9442666        1  0.74317252         0        3      F
-
-*** subsection 2.4.2 Simulation-based power and sample size estimation
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.power <- powerBuyseTest(formula = treatment ~ tte(OS, statusOS, threshold = 5) + cont(toxicity, operator = "<0"),
-                          sim = simFCT2, sample.size = c(10,50,100),
-                          n.rep = 100, seed = 10)
-#+END_SRC
-
-#+RESULTS:
-: Indlæser krævet navnerum: pbapply
-:   |                                                  | 0 % ~calculating    |+                                                 | 1 % ~28s            |+                                                 | 2 % ~28s            |++                                                | 3 % ~28s            |++                                                | 4 % ~28s            |+++                                               | 5 % ~32s            |+++                                               | 6 % ~31s            |++++                                              | 7 % ~30s            |++++                                              | 8 % ~29s            |+++++                                             | 9 % ~29s            |+++++                                             | 10% ~28s            |++++++                                            | 11% ~28s            |++++++                                            | 12% ~27s            |+++++++                                           | 13% ~27s            |+++++++                                           | 14% ~26s            |++++++++                                          | 15% ~26s            |++++++++                                          | 16% ~26s            |+++++++++                                         | 17% ~26s            |+++++++++                                         | 18% ~26s            |++++++++++                                        | 19% ~25s            |++++++++++                                        | 20% ~25s            |+++++++++++                                       | 21% ~24s            |+++++++++++                                       | 22% ~24s            |++++++++++++                                      | 23% ~24s            |++++++++++++                                      | 24% ~23s            |+++++++++++++                                     | 25% ~23s            |+++++++++++++                                     | 26% ~23s            |++++++++++++++                                    | 27% ~22s            |++++++++++++++                                    | 28% ~22s            |+++++++++++++++                                   | 29% ~22s            |+++++++++++++++                                   | 30% ~22s            |++++++++++++++++                                  | 31% ~21s            |++++++++++++++++                                  | 32% ~21s            |+++++++++++++++++                                 | 33% ~21s            |+++++++++++++++++                                 | 34% ~20s            |++++++++++++++++++                                | 35% ~20s            |++++++++++++++++++                                | 36% ~20s            |+++++++++++++++++++                               | 37% ~19s            |+++++++++++++++++++                               | 38% ~19s            |++++++++++++++++++++                              | 39% ~19s            |++++++++++++++++++++                              | 40% ~18s            |+++++++++++++++++++++                             | 41% ~18s            |+++++++++++++++++++++                             | 42% ~18s            |++++++++++++++++++++++                            | 43% ~18s            |++++++++++++++++++++++                            | 44% ~17s            |+++++++++++++++++++++++                           | 45% ~17s            |+++++++++++++++++++++++                           | 46% ~17s            |++++++++++++++++++++++++                          | 47% ~16s            |++++++++++++++++++++++++                          | 48% ~16s            |+++++++++++++++++++++++++                         | 49% ~16s            |+++++++++++++++++++++++++                         | 50% ~16s            |++++++++++++++++++++++++++                        | 51% ~15s            |++++++++++++++++++++++++++                        | 52% ~15s            |+++++++++++++++++++++++++++                       | 53% ~15s            |+++++++++++++++++++++++++++                       | 54% ~14s            |++++++++++++++++++++++++++++                      | 55% ~14s            |++++++++++++++++++++++++++++                      | 56% ~14s            |+++++++++++++++++++++++++++++                     | 57% ~13s            |+++++++++++++++++++++++++++++                     | 58% ~13s            |++++++++++++++++++++++++++++++                    | 59% ~13s            |++++++++++++++++++++++++++++++                    | 60% ~12s            |+++++++++++++++++++++++++++++++                   | 61% ~12s            |+++++++++++++++++++++++++++++++                   | 62% ~12s            |++++++++++++++++++++++++++++++++                  | 63% ~12s            |++++++++++++++++++++++++++++++++                  | 64% ~11s            |+++++++++++++++++++++++++++++++++                 | 65% ~11s            |+++++++++++++++++++++++++++++++++                 | 66% ~11s            |++++++++++++++++++++++++++++++++++                | 67% ~10s            |++++++++++++++++++++++++++++++++++                | 68% ~10s            |+++++++++++++++++++++++++++++++++++               | 69% ~10s            |+++++++++++++++++++++++++++++++++++               | 70% ~09s            |++++++++++++++++++++++++++++++++++++              | 71% ~09s            |++++++++++++++++++++++++++++++++++++              | 72% ~09s            |+++++++++++++++++++++++++++++++++++++             | 73% ~08s            |+++++++++++++++++++++++++++++++++++++             | 74% ~08s            |++++++++++++++++++++++++++++++++++++++            | 75% ~08s            |++++++++++++++++++++++++++++++++++++++            | 76% ~08s            |+++++++++++++++++++++++++++++++++++++++           | 77% ~07s            |+++++++++++++++++++++++++++++++++++++++           | 78% ~07s            |++++++++++++++++++++++++++++++++++++++++          | 79% ~07s            |++++++++++++++++++++++++++++++++++++++++          | 80% ~06s            |+++++++++++++++++++++++++++++++++++++++++         | 81% ~06s            |+++++++++++++++++++++++++++++++++++++++++         | 82% ~06s            |++++++++++++++++++++++++++++++++++++++++++        | 83% ~05s            |++++++++++++++++++++++++++++++++++++++++++        | 84% ~05s            |+++++++++++++++++++++++++++++++++++++++++++       | 85% ~05s            |+++++++++++++++++++++++++++++++++++++++++++       | 86% ~04s            |++++++++++++++++++++++++++++++++++++++++++++      | 87% ~04s            |++++++++++++++++++++++++++++++++++++++++++++      | 88% ~04s            |+++++++++++++++++++++++++++++++++++++++++++++     | 89% ~03s            |+++++++++++++++++++++++++++++++++++++++++++++     | 90% ~03s            |++++++++++++++++++++++++++++++++++++++++++++++    | 91% ~03s            |++++++++++++++++++++++++++++++++++++++++++++++    | 92% ~03s            |+++++++++++++++++++++++++++++++++++++++++++++++   | 93% ~02s            |+++++++++++++++++++++++++++++++++++++++++++++++   | 94% ~02s            |++++++++++++++++++++++++++++++++++++++++++++++++  | 95% ~02s            |++++++++++++++++++++++++++++++++++++++++++++++++  | 96% ~01s            |+++++++++++++++++++++++++++++++++++++++++++++++++ | 97% ~01s            |+++++++++++++++++++++++++++++++++++++++++++++++++ | 98% ~01s            |++++++++++++++++++++++++++++++++++++++++++++++++++| 99% ~00s            |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed=31s
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(e.power)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-        Simulation study with Generalized pairwise comparison
-        with 100 samples
-
- - statistic   : net benefit (null hypothesis Delta=0)
- endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
- toxicity     1e-12  10  10        0.1826      0.2719  0.2501           0.09
-                     50  50        0.1954      0.1162  0.1183            0.4
-                    100 100        0.2014      0.0784  0.0829           0.64
-
- n.T          : number of observations in the treatment group
- n.C          : number of observations in the control group
- mean.estimate: average estimate over simulations
- sd.estimate  : standard deviation of the estimate over simulations
- mean.se      : average estimated standard error of the estimate over simulations
- rejection    : frequency of the rejection of the null hypothesis over simulations
-(standard error: H-projection of order 1| p-value: after transformation)
-#+end_example
-
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.power2 <- powerBuyseTest(formula = treatment ~ tte(OS, statusOS, threshold = 5) + cont(toxicity, operator = "<0"),
-                           sim = simFCT2, sample.size = c(10,50,100),
-                           n.rep = 1000, seed = 10, cpus = 5, export.cpus = c("argsTox", "argsSurv"))
-#+END_SRC
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-print(e.power2, endpoint = "all")
-#+END_SRC
-
-#+RESULTS:
-:  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
-:        OS         5  10  10        0.1429      0.2729   0.239          0.092
-:                      50  50        0.1515      0.1188  0.1159          0.248
-:                     100 100        0.1559       0.083  0.0822          0.483
-:  toxicity     1e-12  10  10        0.2076      0.2829  0.2449          0.136
-:                      50  50        0.2123      0.1199  0.1169          0.425
-:                     100 100        0.2161       0.084  0.0825          0.722
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.nSearch <- powerBuyseTest(formula = treatment ~ tte(OS, statusOS, threshold = 5)
-                            + cont(toxicity, operator = "<0"),
-                            sim = simFCT2, power = 0.8, max.sample.size = 1000,
-                            n.rep = c(1000,10), seed = 10, trace = 2, 
-                            cpus = 5, export.cpus = c("argsTox", "argsSurv"))
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-         Determination of the sample using a large sample (T=1000, C=1000)  
-
-  |                                                                                                  |                                                                                          |   0%  |                                                                                                  |=========                                                                                 |  10%  |                                                                                                  |==================                                                                        |  20%  |                                                                                                  |===========================                                                               |  30%  |                                                                                                  |====================================                                                      |  40%  |                                                                                                  |=============================================                                             |  50%  |                                                                                                  |======================================================                                    |  60%  |                                                                                                  |===============================================================                           |  70%  |                                                                                                  |========================================================================                  |  80%  |                                                                                                  |=================================================================================         |  90%  |                                                                                                  |==========================================================================================| 100%
-   - average estimated effect (variance): 0.2095668 (1.371582)
-   - average estimated sample size [min;max]      : (m=131 [77;206], n=131 [77;206]
-
-         Simulation study with BuyseTest 
-
-Simulation
-   - repetitions: 1000
-   - cpus       : 5
- 
-  |                                                                                                  |                                                                                          |   0%  |                                                                                                  |=                                                                                         |   1%  |                                                                                                  |=                                                                                         |   2%  |                                                                                                  |==                                                                                        |   2%  |                                                                                                  |==                                                                                        |   3%  |                                                                                                  |===                                                                                       |   3%  |                                                                                                  |===                                                                                       |   4%  |                                                                                                  |====                                                                                      |   4%  |                                                                                                  |====                                                                                      |   5%  |                                                                                                  |=====                                                                                     |   5%  |                                                                                                  |=====                                                                                     |   6%  |                                                                                                  |======                                                                                    |   6%  |                                                                                                  |======                                                                                    |   7%  |                                                                                                  |=======                                                                                   |   7%  |                                                                                                  |=======                                                                                   |   8%  |                                                                                                  |========                                                                                  |   8%  |                                                                                                  |========                                                                                  |   9%  |                                                                                                  |=========                                                                                 |  10%  |                                                                                                  |==========                                                                                |  11%  |                                                                                                  |==========                                                                                |  12%  |                                                                                                  |===========                                                                               |  12%  |                                                                                                  |===========                                                                               |  13%  |                                                                                                  |============                                                                              |  13%  |                                                                                                  |============                                                                              |  14%  |                                                                                                  |=============                                                                             |  14%  |                                                                                                  |=============                                                                             |  15%  |                                                                                                  |==============                                                                            |  15%  |                                                                                                  |==============                                                                            |  16%  |                                                                                                  |===============                                                                           |  16%  |                                                                                                  |===============                                                                           |  17%  |                                                                                                  |================                                                                          |  17%  |                                                                                                  |================                                                                          |  18%  |                                                                                                  |=================                                                                         |  18%  |                                                                                                  |=================                                                                         |  19%  |                                                                                                  |==================                                                                        |  20%  |                                                                                                  |===================                                                                       |  21%  |                                                                                                  |===================                                                                       |  22%  |                                                                                                  |====================                                                                      |  22%  |                                                                                                  |====================                                                                      |  23%  |                                                                                                  |=====================                                                                     |  23%  |                                                                                                  |=====================                                                                     |  24%  |                                                                                                  |======================                                                                    |  24%  |                                                                                                  |======================                                                                    |  25%  |                                                                                                  |=======================                                                                   |  25%  |                                                                                                  |=======================                                                                   |  26%  |                                                                                                  |========================                                                                  |  26%  |                                                                                                  |========================                                                                  |  27%  |                                                                                                  |=========================                                                                 |  27%  |                                                                                                  |=========================                                                                 |  28%  |                                                                                                  |==========================                                                                |  28%  |                                                                                                  |==========================                                                                |  29%  |                                                                                                  |===========================                                                               |  30%  |                                                                                                  |============================                                                              |  31%  |                                                                                                  |============================                                                              |  32%  |                                                                                                  |=============================                                                             |  32%  |                                                                                                  |=============================                                                             |  33%  |                                                                                                  |==============================                                                            |  33%  |                                                                                                  |==============================                                                            |  34%  |                                                                                                  |===============================                                                           |  34%  |                                                                                                  |===============================                                                           |  35%  |                                                                                                  |================================                                                          |  35%  |                                                                                                  |================================                                                          |  36%  |                                                                                                  |=================================                                                         |  36%  |                                                                                                  |=================================                                                         |  37%  |                                                                                                  |==================================                                                        |  37%  |                                                                                                  |==================================                                                        |  38%  |                                                                                                  |===================================                                                       |  38%  |                                                                                                  |===================================                                                       |  39%  |                                                                                                  |====================================                                                      |  40%  |                                                                                                  |=====================================                                                     |  41%  |                                                                                                  |=====================================                                                     |  42%  |                                                                                                  |======================================                                                    |  42%  |                                                                                                  |======================================                                                    |  43%  |                                                                                                  |=======================================                                                   |  43%  |                                                                                                  |=======================================                                                   |  44%  |                                                                                                  |========================================                                                  |  44%  |                                                                                                  |========================================                                                  |  45%  |                                                                                                  |=========================================                                                 |  45%  |                                                                                                  |=========================================                                                 |  46%  |                                                                                                  |==========================================                                                |  46%  |                                                                                                  |==========================================                                                |  47%  |                                                                                                  |===========================================                                               |  47%  |                                                                                                  |===========================================                                               |  48%  |                                                                                                  |============================================                                              |  48%  |                                                                                                  |============================================                                              |  49%  |                                                                                                  |=============================================                                             |  50%  |                                                                                                  |==============================================                                            |  51%  |                                                                                                  |==============================================                                            |  52%  |                                                                                                  |===============================================                                           |  52%  |                                                                                                  |===============================================                                           |  53%  |                                                                                                  |================================================                                          |  53%  |                                                                                                  |================================================                                          |  54%  |                                                                                                  |=================================================                                         |  54%  |                                                                                                  |=================================================                                         |  55%  |                                                                                                  |==================================================                                        |  55%  |                                                                                                  |==================================================                                        |  56%  |                                                                                                  |===================================================                                       |  56%  |                                                                                                  |===================================================                                       |  57%  |                                                                                                  |====================================================                                      |  57%  |                                                                                                  |====================================================                                      |  58%  |                                                                                                  |=====================================================                                     |  58%  |                                                                                                  |=====================================================                                     |  59%  |                                                                                                  |======================================================                                    |  60%  |                                                                                                  |=======================================================                                   |  61%  |                                                                                                  |=======================================================                                   |  62%  |                                                                                                  |========================================================                                  |  62%  |                                                                                                  |========================================================                                  |  63%  |                                                                                                  |=========================================================                                 |  63%  |                                                                                                  |=========================================================                                 |  64%  |                                                                                                  |==========================================================                                |  64%  |                                                                                                  |==========================================================                                |  65%  |                                                                                                  |===========================================================                               |  65%  |                                                                                                  |===========================================================                               |  66%  |                                                                                                  |============================================================                              |  66%  |                                                                                                  |============================================================                              |  67%  |                                                                                                  |=============================================================                             |  67%  |                                                                                                  |=============================================================                             |  68%  |                                                                                                  |==============================================================                            |  68%  |                                                                                                  |==============================================================                            |  69%  |                                                                                                  |===============================================================                           |  70%  |                                                                                                  |================================================================                          |  71%  |                                                                                                  |================================================================                          |  72%  |                                                                                                  |=================================================================                         |  72%  |                                                                                                  |=================================================================                         |  73%  |                                                                                                  |==================================================================                        |  73%  |                                                                                                  |==================================================================                        |  74%  |                                                                                                  |===================================================================                       |  74%  |                                                                                                  |===================================================================                       |  75%  |                                                                                                  |====================================================================                      |  75%  |                                                                                                  |====================================================================                      |  76%  |                                                                                                  |=====================================================================                     |  76%  |                                                                                                  |=====================================================================                     |  77%  |                                                                                                  |======================================================================                    |  77%  |                                                                                                  |======================================================================                    |  78%  |                                                                                                  |=======================================================================                   |  78%  |                                                                                                  |=======================================================================                   |  79%  |                                                                                                  |========================================================================                  |  80%  |                                                                                                  |=========================================================================                 |  81%  |                                                                                                  |=========================================================================                 |  82%  |                                                                                                  |==========================================================================                |  82%  |                                                                                                  |==========================================================================                |  83%  |                                                                                                  |===========================================================================               |  83%  |                                                                                                  |===========================================================================               |  84%  |                                                                                                  |============================================================================              |  84%  |                                                                                                  |============================================================================              |  85%  |                                                                                                  |=============================================================================             |  85%  |                                                                                                  |=============================================================================             |  86%  |                                                                                                  |==============================================================================            |  86%  |                                                                                                  |==============================================================================            |  87%  |                                                                                                  |===============================================================================           |  87%  |                                                                                                  |===============================================================================           |  88%  |                                                                                                  |================================================================================          |  88%  |                                                                                                  |================================================================================          |  89%  |                                                                                                  |=================================================================================         |  90%  |                                                                                                  |==================================================================================        |  91%  |                                                                                                  |==================================================================================        |  92%  |                                                                                                  |===================================================================================       |  92%  |                                                                                                  |===================================================================================       |  93%  |                                                                                                  |====================================================================================      |  93%  |                                                                                                  |====================================================================================      |  94%  |                                                                                                  |=====================================================================================     |  94%  |                                                                                                  |=====================================================================================     |  95%  |                                                                                                  |======================================================================================    |  95%  |                                                                                                  |======================================================================================    |  96%  |                                                                                                  |=======================================================================================   |  96%  |                                                                                                  |=======================================================================================   |  97%  |                                                                                                  |========================================================================================  |  97%  |                                                                                                  |========================================================================================  |  98%  |                                                                                                  |========================================================================================= |  98%  |                                                                                                  |========================================================================================= |  99%  |                                                                                                  |==========================================================================================| 100%
-#+end_example
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-print(e.nSearch)
-#+END_SRC
-
-#+RESULTS:
-:  endpoint threshold n.T n.C mean.estimate sd.estimate mean.se rejection.rate
-:  toxicity     1e-12 131 131        0.2188        0.07  0.0719          0.845
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-nobs(e.nSearch)
-summary(e.nSearch)
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-       C   T
-[1,] 131 131
-attr(,"sample")
-              C         T
- [1,] 161.00816 161.00816
- [2,] 147.89495 147.89495
- [3,] 164.90320 164.90320
- [4,] 205.56769 205.56769
- [5,]  76.17603  76.17603
- [6,] 112.05892 112.05892
- [7,]  92.22803  92.22803
- [8,] 103.02269 103.02269
- [9,] 124.81196 124.81196
-[10,] 112.33469 112.33469
-        Sample size calculation with Generalized pairwise comparison
-        for a power of 0.8 and type 1 error rate of 0.05 
-
- - estimated sample size (mean [min;max]): 131 [77;206] controls
-                                           131 [77;206] treated
-
- - net benefit statistic (null hypothesis Delta=0)
- endpoint threshold n.T n.C mean.estimate sd.estimate mean.se
- toxicity     1e-12 131 131        0.2188        0.07  0.0719
- rejection.rate
-          0.845
-
- n.T          : number of observations in the treatment group
- n.C          : number of observations in the control group
- mean.estimate: average estimate over simulations
- sd.estimate  : standard deviation of the estimate over simulations
- mean.se      : average estimated standard error of the estimate over simulations
- rejection    : frequency of the rejection of the null hypothesis over simulations
-(standard error: H-projection of order 1| p-value: after transformation)
-#+end_example
-
-* CONFIG :noexport:
-# #+LaTeX_HEADER:\affil{Department of Biostatistics, University of Copenhagen, Copenhagen, Denmark}
-#+LANGUAGE:  en
-#+LaTeX_CLASS: org-article
-#+LaTeX_CLASS_OPTIONS: [12pt]
-#+OPTIONS:   title:t author:t toc:nil todo:nil
-#+OPTIONS:   H:3 num:t 
-#+OPTIONS:   TeX:t LaTeX:t
-#+LATEX_HEADER: %
-#+LATEX_HEADER: %%%% specifications %%%%
-#+LATEX_HEADER: %
-** Latex command
-#+LATEX_HEADER: \usepackage{ifthen}
-#+LATEX_HEADER: \usepackage{xifthen}
-#+LATEX_HEADER: \usepackage{xargs}
-#+LATEX_HEADER: \usepackage{xspace}
-#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
-** Notations
-** Code
-# Documentation at https://org-babel.readthedocs.io/en/latest/header-args/#results
-# :tangle (yes/no/filename) extract source code with org-babel-tangle-file, see http://orgmode.org/manual/Extracting-source-code.html 
-# :cache (yes/no)
-# :eval (yes/no/never)
-# :results (value/output/silent/graphics/raw/latex)
-# :export (code/results/none/both)
-#+PROPERTY: header-args :session *R* :tangle yes :cache no ## extra argument need to be on the same line as :session *R*
-# Code display:
-#+LATEX_HEADER: \RequirePackage{fancyvrb}
-#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
-# ## change font size input
-# ## #+ATTR_LATEX: :options basicstyle=\ttfamily\scriptsize
-# ## change font size output
-# ## \RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\tiny,formatcom = {\color[rgb]{0.5,0,0}}}
-** Display 
-#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
-#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
-#+LaTeX_HEADER:\renewcommand{\baselinestretch}{1.1}
-#+LATEX_HEADER:\geometry{top=1cm}
-#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
-# ## valid and cross symbols
-#+LaTeX_HEADER: \RequirePackage{pifont}
-#+LaTeX_HEADER: \RequirePackage{relsize}
-#+LaTeX_HEADER: \newcommand{\Cross}{{\raisebox{-0.5ex}%
-#+LaTeX_HEADER:		{\relsize{1.5}\ding{56}}}\hspace{1pt} }
-#+LaTeX_HEADER: \newcommand{\Valid}{{\raisebox{-0.5ex}%
-#+LaTeX_HEADER:		{\relsize{1.5}\ding{52}}}\hspace{1pt} }
-#+LaTeX_HEADER: \newcommand{\CrossR}{ \textcolor{red}{\Cross} }
-#+LaTeX_HEADER: \newcommand{\ValidV}{ \textcolor{green}{\Valid} }
-# ## warning symbol
-#+LaTeX_HEADER: \usepackage{stackengine}
-#+LaTeX_HEADER: \usepackage{scalerel}
-#+LaTeX_HEADER: \newcommand\Warning[1][3ex]{%
-#+LaTeX_HEADER:   \renewcommand\stacktype{L}%
-#+LaTeX_HEADER:   \scaleto{\stackon[1.3pt]{\color{red}$\triangle$}{\tiny\bfseries !}}{#1}%
-#+LaTeX_HEADER:   \xspace
-#+LaTeX_HEADER: }
-# # change the color of the links
-#+LaTeX_HEADER: \hypersetup{
-#+LaTeX_HEADER:  citecolor=[rgb]{0,0.5,0},
-#+LaTeX_HEADER:  urlcolor=[rgb]{0,0,0.5},
-#+LaTeX_HEADER:  linkcolor=[rgb]{0,0,0.5},
-#+LaTeX_HEADER: }
-** Image
-#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
-#+LATEX_HEADER: \RequirePackage{capt-of} % 
-#+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
-** List
-#+LATEX_HEADER: \RequirePackage{enumitem} % to be able to convert .eps to .pdf image files
-** Color
-#+LaTeX_HEADER: \definecolor{light}{rgb}{1, 1, 0.9}
-#+LaTeX_HEADER: \definecolor{lightred}{rgb}{1.0, 0.7, 0.7}
-#+LaTeX_HEADER: \definecolor{lightblue}{rgb}{0.0, 0.8, 0.8}
-#+LaTeX_HEADER: \newcommand{\darkblue}{blue!80!black}
-#+LaTeX_HEADER: \newcommand{\darkgreen}{green!50!black}
-#+LaTeX_HEADER: \newcommand{\darkred}{red!50!black}
-** Box
-#+LATEX_HEADER: \usepackage{mdframed}
-** Shortcut
-#+LATEX_HEADER: \newcommand{\first}{1\textsuperscript{st} }
-#+LATEX_HEADER: \newcommand{\second}{2\textsuperscript{nd} }
-#+LATEX_HEADER: \newcommand{\third}{3\textsuperscript{rd} }
