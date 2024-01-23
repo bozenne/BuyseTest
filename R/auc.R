@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: jul 17 2023 (14:27) 
+## Last-Updated: okt 25 2023 (11:23) 
 ##           By: Brice Ozenne
-##     Update #: 468
+##     Update #: 470
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -158,7 +158,8 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     ## *** Make sure that all prediction are in the increasing means outcome direction
     direction.save <- direction
     if(direction == "auto"){
-        if(sum(e.BT@count.favorable)>=sum(e.BT@count.unfavorable)){
+        e0.BT <- BuyseTest(formula, method.inference = "none", data = df, trace = 0, add.halfNeutral = add.halfNeutral)
+        if(sum(e0.BT@count.favorable)>=sum(e0.BT@count.unfavorable)){
             direction <- rep(">",max(n.fold,1))
         }else{
             direction <- rep("<",max(n.fold,1))

@@ -1254,11 +1254,11 @@ std::vector< double > calcIntegralSurv_cpp(const arma::mat& survival, double sta
 //' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR).
 //' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
 //'
-//' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
+//' @param cifJump [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
 //' T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).
 //' @param start_val [numeric] Time at which to start the integral.
 //' @param stop_val [numeric] Time at which to stop the integral.
-//' @param CIF_t [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
+//' @param cifTimeT [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
 //' @param lastCIF [numeric, >0] last value of CIF of event type 1 in group T.
 //' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two
 //' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with

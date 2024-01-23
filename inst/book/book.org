@@ -1000,30 +1000,18 @@ dt.data
 
 #+RESULTS:
 #+begin_example
-      id treatment           OS statusOS        PFS statusPFS toxicity
-  1:   1         C  0.628786006        0  0.6946706         1        3
-  2:   2         C  0.003647332        1  1.7228221         1        3
-  3:   3         C  5.501584752        1  0.9092541         1        3
-  4:   4         C  0.286446665        1  5.8723232         1        1
-  5:   5         C 17.221063409        1  1.0965019         0        5
- ---                                                                  
-396: 396         T 18.771937367        1  1.4219555         0        4
-397: 397         T  2.914445864        1 49.5964070         1        3
-398: 398         T  1.105391425        1 16.1741055         1        2
-399: 399         T  1.318957979        0 10.1102146         1        4
-400: 400         T  3.338426913        1 10.9857381         1        3
-     gender
-  1:      F
-  2:      F
-  3:      M
-  4:      M
-  5:      M
- ---       
-396:      F
-397:      M
-398:      M
-399:      F
-400:      M
+      id treatment           OS statusOS        PFS statusPFS toxicity gender
+  1:   1         C  0.628786006        0  0.6946706         1        3      F
+  2:   2         C  0.003647332        1  1.7228221         1        3      F
+  3:   3         C  5.501584752        1  0.9092541         1        3      M
+  4:   4         C  0.286446665        1  5.8723232         1        1      M
+  5:   5         C 17.221063409        1  1.0965019         0        5      M
+ ---                                                                         
+396: 396         T 18.771937367        1  1.4219555         0        4      F
+397: 397         T  2.914445864        1 49.5964070         1        3      M
+398: 398         T  1.105391425        1 16.1741055         1        2      M
+399: 399         T  1.318957979        0 10.1102146         1        4      F
+400: 400         T  3.338426913        1 10.9857381         1        3      M
 #+end_example
 
 
@@ -1682,7 +1670,7 @@ getPairScore(eEff.BT)[index.C==44 & index.T == 211,]
 
 *** subsection 2.3.1 Hierarchical & non-hierarchical analyses
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eBRB.BT <- BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num),
+eBRB.BT <- BuyseTest(treatment ~ tte(OS, statusOS) + cont(toxicity.num, operator = "<0"),
                      data=dt.data, trace = FALSE)
 print(eBRB.BT)
 #+END_SRC

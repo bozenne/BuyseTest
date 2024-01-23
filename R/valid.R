@@ -19,7 +19,6 @@
 #' @param validDimension the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.
 #' @param valid.length the acceptable length(s) for the argument. If \code{NULL} no test is performed.
 #' @param valid.values the acceptable value(s) for the argument. If \code{NULL} no test is performed. Can also be "character" or "character_or_logical".
-#' @param super.classes uses the \code{is} function instead of \code{class} to test the class of the object.
 #' @param refuse.NULL should an error be output if value is \code{NULL}.
 #' @param refuse.NA should an error be output if value contains \code{NA}.
 #' @param refuse.duplicates should an error be output if value contains duplicated values.

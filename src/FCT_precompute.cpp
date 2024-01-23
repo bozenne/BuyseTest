@@ -15,7 +15,7 @@
 //' 
 //' @param time [numeric vector] vector of jump time for S2.
 //' @param survival [numeric vector] the survival at each jump time: \eqn{S1(t+\tau)}.
-//' @param dsurvival [numeric vector] the jump in survival at each jump time: \eqn{S2(t+)-S2(t-)}
+//' @param dSurvival [numeric vector] the jump in survival at each jump time: \eqn{S2(t+)-S2(t-)}
 //' @param index_survival [numeric vector] the position of survival parameter \eqn{S1(t+\tau)} among all parameters relative to S1.
 //' @param index_dSurvival1 [numeric vector] the position of survival parameter \eqn{S2(t-)} among all parameters relative to S2.
 //' @param index_dSurvival2 [numeric vector] the position of survival parameter \eqn{S2(t+)} among all parameters relative to S2.
