@@ -17,9 +17,14 @@
 )
 }
 \arguments{
+\item{cifJump}{[matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
+T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).}
+
 \item{start_val}{[numeric] Time at which to start the integral.}
 
 \item{stop_val}{[numeric] Time at which to stop the integral.}
+
+\item{cifTimeT}{[numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.}
 
 \item{lastCIF}{[numeric, >0] last value of CIF of event type 1 in group T.}
 
@@ -32,11 +37,6 @@ t+tau and t-tau).}
 \item{derivSurv}{[matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival.}
 
 \item{derivSurvD}{[matrix] matrix column filled of 0 whose number of rows is the number of parameters of the survival used to compute the jumps.}
-
-\item{cif}{[matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
-T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).}
-
-\item{CIF_t}{[numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.}
 }
 \description{
 Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.

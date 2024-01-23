@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: jun 27 2023 (14:03) 
+## Last-Updated: jan 23 2024 (13:54) 
 ##           By: Brice Ozenne
-##     Update #: 131
+##     Update #: 133
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -29,15 +29,15 @@
 #' Formula for the influence function can be found in (Ozenne et al., 2017).
 #' 
 #' @return A list containing:
-#'  \itemize{
-#'  \item{IFbeta}{Influence function for the regression coefficient.}
-#'  \item{IFhazard}{Time differential of the influence function of the hazard.}
-#'  \item{IFcumhazard}{Influence function of the cumulative hazard.}
-#'  \item{time}{Times at which the influence function has been evaluated.}
-#'  \item{etime.max}{Last observation time (i.e. jump or censoring) in each strata.}
-#'  \item{label.strata}{Strata to which each observation belong}
-#'  \item{X}{Design matrix}
-#'  \item{table}{Hazard at each time for each strata}
+#' \itemize{
+#'  \item IFbeta: Influence function for the regression coefficient.
+#'  \item IFhazard: Time differential of the influence function of the hazard.
+#'  \item IFcumhazard: Influence function of the cumulative hazard.
+#'  \item time: Times at which the influence function has been evaluated.
+#'  \item etime.max: Last observation time (i.e. jump or censoring) in each strata.
+#'  \item label.strata: Strata to which each observation belong.
+#'  \item X: Design matrix.
+#'  \item table: Hazard at each time for each strata.
 #' }
 #'
 #' @keywords methods

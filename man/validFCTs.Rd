@@ -145,8 +145,6 @@ validPath(
 \item{validClass}{the acceptable classes(s) for the argument.}
 
 \item{validDimension}{the acceptable dimension for the argument. If \code{NULL} then name2 is used as a reference.}
-
-\item{super.classes}{uses the \code{is} function instead of \code{class} to test the class of the object.}
 }
 \value{
 An invisible \code{TRUE} or an error message.

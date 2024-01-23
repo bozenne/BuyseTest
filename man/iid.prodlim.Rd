@@ -15,15 +15,15 @@
 }
 \value{
 A list containing:
- \itemize{
- \item{IFbeta}{Influence function for the regression coefficient.}
- \item{IFhazard}{Time differential of the influence function of the hazard.}
- \item{IFcumhazard}{Influence function of the cumulative hazard.}
- \item{time}{Times at which the influence function has been evaluated.}
- \item{etime.max}{Last observation time (i.e. jump or censoring) in each strata.}
- \item{label.strata}{Strata to which each observation belong}
- \item{X}{Design matrix}
- \item{table}{Hazard at each time for each strata}
+\itemize{
+ \item IFbeta: Influence function for the regression coefficient.
+ \item IFhazard: Time differential of the influence function of the hazard.
+ \item IFcumhazard: Influence function of the cumulative hazard.
+ \item time: Times at which the influence function has been evaluated.
+ \item etime.max: Last observation time (i.e. jump or censoring) in each strata.
+ \item label.strata: Strata to which each observation belong.
+ \item X: Design matrix.
+ \item table: Hazard at each time for each strata.
 }
 }
 \description{

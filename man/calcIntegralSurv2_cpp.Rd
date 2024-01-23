@@ -22,6 +22,8 @@ calcIntegralSurv2_cpp(
 
 \item{survival}{[numeric vector] the survival at each jump time: \eqn{S1(t+\tau)}.}
 
+\item{dSurvival}{[numeric vector] the jump in survival at each jump time: \eqn{S2(t+)-S2(t-)}}
+
 \item{index_survival}{[numeric vector] the position of survival parameter \eqn{S1(t+\tau)} among all parameters relative to S1.}
 
 \item{index_dSurvival1}{[numeric vector] the position of survival parameter \eqn{S2(t-)} among all parameters relative to S2.}
@@ -33,8 +35,6 @@ calcIntegralSurv2_cpp(
 \item{iidNuisance}{[logical] should the derivative of the integral relative to the S1 and S2 parameter be output.}
 
 \item{nJump}{[integer] the number of jump times relative to S2.}
-
-\item{dsurvival}{[numeric vector] the jump in survival at each jump time: \eqn{S2(t+)-S2(t-)}}
 }
 \description{
 Compute the integral with respect to the jump in survival for pairs where both outcomes are censored, i.e. \eqn{\int S1(t+\tau) dS2(t)}.

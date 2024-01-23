@@ -90,11 +90,11 @@ GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, re
 #' @title C++ Function Computing the Integral Terms for the Peron Method in the presence of competing risks (CR).
 #' @description Compute the integral with respect to the jump in CIF for pairs where both outcomes are censored.
 #'
-#' @param cif [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
+#' @param cifJump [matrix] cif[1] = jump times in control group (event of interest), cif[2-3] = CIF of event of interest in group
 #' T at times - tau and times + tau, cif[4] : jump in cif of control group at times (event of interest).
 #' @param start_val [numeric] Time at which to start the integral.
 #' @param stop_val [numeric] Time at which to stop the integral.
-#' @param CIF_t [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
+#' @param cifTimeT [numeric] CIF of event of interest in group T evaluated at observed time of treatment patient.
 #' @param lastCIF [numeric, >0] last value of CIF of event type 1 in group T.
 #' @param type [numeric] Indicates the type of integral to compute (1 for wins, 2 for losses, 3 for neutral pairs with two
 #' events of interest - integral with t+tau and xi - and 4 for neutral pairs with two events of interest - integral with
@@ -116,7 +116,7 @@ GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, re
 #' 
 #' @param time [numeric vector] vector of jump time for S2.
 #' @param survival [numeric vector] the survival at each jump time: \eqn{S1(t+\tau)}.
-#' @param dsurvival [numeric vector] the jump in survival at each jump time: \eqn{S2(t+)-S2(t-)}
+#' @param dSurvival [numeric vector] the jump in survival at each jump time: \eqn{S2(t+)-S2(t-)}
 #' @param index_survival [numeric vector] the position of survival parameter \eqn{S1(t+\tau)} among all parameters relative to S1.
 #' @param index_dSurvival1 [numeric vector] the position of survival parameter \eqn{S2(t-)} among all parameters relative to S2.
 #' @param index_dSurvival2 [numeric vector] the position of survival parameter \eqn{S2(t+)} among all parameters relative to S2.
