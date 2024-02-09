@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1103
+##     Update #: 1136
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -700,18 +700,29 @@ confint_gaussian <- function(Delta, Delta.resampling,
     outTable[,"estimate"] <- backtransform.delta(Delta)
 
     ## ** standard error
-    Delta.se <- apply(Delta.resampling, MARGIN = 2, FUN = stats::sd, na.rm = TRUE) ## computed based on the sample
-    if(any(is.infinite(Delta.resampling))){
-        if(abs(Delta!=outTable[,"estimate"])>1e-12){
-            warning("Infinite value for the summary statistic after transformation in some of the bootstrap samples. \n",
-                    "Cannot compute confidence intervals or p-value under Gaussian approximation. \n",
-                    "Consider setting the argument \'transform\' to FALSE. \n")
-        }else{
-            warning("Infinite value for the summary statistic in some of the bootstrap samples. \n",
-                    "Cannot compute confidence intervals or p-value under Gaussian approximation. \n")
-        }
-    }
     outTable[,"se"] <- apply(backtransform.delta(Delta.resampling), MARGIN = 2, FUN = stats::sd, na.rm = TRUE)
+
+    if(any(is.infinite(Delta.resampling))){
+        txt.range <- NULL
+        pc.infinite <- 100*mean(is.infinite(Delta.resampling))
+        if(any(Delta.resampling[is.infinite(Delta.resampling)]>0)){
+            Delta.resampling.max <- max(Delta.resampling[!is.infinite(Delta.resampling)])
+            if(Delta.resampling.max<0){Delta.resampling.max <- 1}
+            txt.range <- paste(txt.range, signif(Delta.resampling.max), collapse = " and ")
+            Delta.resampling[is.infinite(Delta.resampling) & Delta.resampling > 0] <- 1.1*Delta.resampling.max
+        }
+        if(any(Delta.resampling[is.infinite(Delta.resampling)]<0)){
+            Delta.resampling.min <- min(Delta.resampling[!is.infinite(Delta.resampling)])
+            if(Delta.resampling.min>0){Delta.resampling.min <- -1}
+            txt.range <- paste(txt.range, signif(Delta.resampling.min), collapse = " and ")
+            Delta.resampling[is.infinite(Delta.resampling) & Delta.resampling < 0] <- 1.1*Delta.resampling.min
+        }
+
+        warning("Infinite statistic value after transformation in ",round(pc.infinite,2),"% of the bootstrap samples. \n",
+                "Will be set to",txt.range," when evaluating CIs or p-value under Gaussian approximation. \n",
+                "(110% of the most extreme, non-infinite, value or +/- 1 if not finite value of the same sign)", sep = "")
+    }
+    Delta.se <- apply(Delta.resampling, MARGIN = 2, FUN = stats::sd, na.rm = TRUE) ## computed based on the sample
 
     ## ** confidence interval
     if(!is.na(alpha)){
@@ -847,7 +858,6 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
         ## Delta.statH0.resampling <- apply(Delta.resampling[,index.var,drop=FALSE], MARGIN = 2, FUN = scale, scale = FALSE, center = TRUE)/Delta.se.resampling[,index.var,drop=FALSE]  
 
         if(!is.na(alpha)){
-
             Delta.qInf <- switch(alternative,
                                  "two.sided" = apply(Delta.statH0.resampling, MARGIN = 2, FUN = stats::quantile, na.rm = TRUE, probs = alpha/2),
                                  "less" = -Inf,
