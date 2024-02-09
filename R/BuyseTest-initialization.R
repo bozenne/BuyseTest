@@ -138,10 +138,13 @@ initializeArgs <- function(status,
     
     ## ** default values
     if(is.null(formula)){
-
         if(is.null(threshold)){
             threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
+            attr(threshold, "original") <- ifelse(type=="bin",NA,0)
+        }else{
+            attr(threshold, "original") <- threshold
         }
+
         if(is.null(restriction)){
             restriction <- rep(as.numeric(NA),D)  
         }
@@ -171,6 +174,8 @@ initializeArgs <- function(status,
             censoring <- rep("right", D)
             censoring[index.typeTTE] <- status.save             
         }
+    }else{
+        attr(threshold, "original") <- threshold
     }
 
     ## ** status

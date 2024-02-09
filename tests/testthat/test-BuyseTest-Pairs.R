@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 30 2018 (13:17) 
 ## Version: 
-## Last-Updated: jul 17 2023 (14:28) 
+## Last-Updated: feb  9 2024 (12:28) 
 ##           By: Brice Ozenne
-##     Update #: 194
+##     Update #: 195
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -248,8 +248,11 @@ test_that("check neutral - continous",{
     BT <- BuyseTest(treatment ~ continuous(size, threshold = 0), data=data)
     BT.bis <- BuyseTest(treatment ~ continuous(size), data=data)
     BT@call <- list()
+    attr(BT@threshold,"original") <- NULL
     BT.bis@call <- list()
+    attr(BT.bis@threshold,"original") <- NULL
     expect_equal(BT.bis,BT)
+
     expect_equal(as.double(coef(BT, statistic = "count.favorable", cumulative = FALSE)),0)
     expect_equal(as.double(coef(BT, statistic = "count.unfavorable", cumulative = FALSE)),0)
     expect_equal(as.double(coef(BT, statistic = "count.neutral", cumulative = FALSE)),1)

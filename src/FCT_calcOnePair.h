@@ -15,9 +15,9 @@ inline std::vector< double > calcOnePair_Continuous(double diff, double threshol
 double normalCDF(double mu, double sigma, double x);
 inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, double std_C, double std_T, double rho, double threshold);
 
-inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, double status_T, double threshold);
+inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, double status_T, double threshold, bool threshold0);
 
-inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C, double status_T, double threshold);
+inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C, double status_T, double threshold, bool threshold0);
  
 inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold, double restriction,
 						   arma::rowvec survTimeC, arma::rowvec survTimeT,
@@ -95,7 +95,7 @@ inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, 
 
 // * calcOnePair_TTEgehan
 // author Brice Ozenne
-inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, double status_T, double threshold){
+inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, double status_T, double threshold, bool threshold0){
   
   // ** initialize
   std::vector< double > score(4,0.0);
@@ -120,7 +120,8 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
       
     }else if(status_C==0){ // (treatment event, control right-censored)
 	
-      if(diff <= -threshold){ // <= -tau   : unfavorable
+      if(diff <= -threshold || (threshold0 && status_T==1 && diff==0)){ // <= -tau   : unfavorable
+	// also unfavorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[1] = 1.0;
       }else{ // otheriwise : uninformative
 	score[3] = 1.0;
@@ -140,7 +141,8 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
     
     if(status_C==1 || status_C==0.5){ // (treatment right-censored, control event/restricted)
     
-      if(diff >= threshold){ // >= tau    : favorable
+      if(diff >= threshold ||  (threshold0 && status_C==1 && diff==0)){ // >= tau    : favorable
+	// also favorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[0] = 1.0;
       }else{ // otherwise: uninformative
 	score[3] = 1.0;
@@ -169,7 +171,7 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
 
 // * calcOnePair_TTEgehan2
 // author Brice Ozenne
-inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C, double status_T, double threshold){
+inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C, double status_T, double threshold, bool threshold0){
   
   // ** initialize
   std::vector< double > score(4,0.0);
@@ -194,7 +196,8 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
       
     }else if(status_C==0){ // (treatment event, control left-censored)
 	
-      if(diff >= threshold){ // >= tau   : favorable
+      if(diff >= threshold || (threshold0 && status_T==1 && diff==0)){ // >= tau   : favorable
+	// also favorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[0] = 1.0;
       }else{ // otheriwise : uninformative
 	score[3] = 1.0;
@@ -212,9 +215,10 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
     
   }else if(status_T==0){
     
-    if(status_C==1){ // (treatment left-censored, control event)
+    if(status_C==1 || status_C==0.5){ // (treatment left-censored, control event/restricted)
     
-      if(diff <= -threshold){ // <= tau    : unfavorable
+      if(diff <= -threshold ||  (threshold0 && status_C==1 && diff==0)){ // <= tau    : unfavorable
+	// also unfavorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[1] = 1.0;
       }else{ // otherwise: uninformative
 	score[3] = 1.0;

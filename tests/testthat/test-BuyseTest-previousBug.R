@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 28 2023 (14:52) 
+## Last-Updated: feb  9 2024 (12:36) 
 ##           By: Brice Ozenne
-##     Update #: 231
+##     Update #: 237
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -637,7 +637,57 @@ test_that("restriction with multiple endpoints",{
     expect_equivalent(test,GS,tol = 1e-6)
 })
 
+## * graemeleehickey: (issue #13 on Github): fredag 24-02-09 at 12:20 Handling ties with Gehan's scoring rule
+test_that("Handling ties with Gehan's scoring rule",{
 
+    dat <- data.frame(time = c(10, 10),
+                      event = c(0, 1),
+                      treat = c(0, 1))
+ 
+    test <- BuyseTest(treat ~ TTE(time, status = event), data = dat, trace = FALSE,
+                      method.inference = "none", scoring.rule = "Gehan")
+
+    expect_equal(c(0,1,0,0),
+                 c(coef(test, statistic = "count.favorable"),
+                   coef(test, statistic = "count.unfavorable"),
+                   coef(test, statistic = "count.neutral"),
+                   coef(test, statistic = "count.uninf"))
+                 )
+
+    testR <- BuyseTest(treat ~ TTE(time, status = event, restriction = 10), data = dat, trace = FALSE,
+                       method.inference = "none", scoring.rule = "Gehan")
+
+    expect_equal(c(0,0,1,0),
+                 c(coef(testR, statistic = "count.favorable"),
+                   coef(testR, statistic = "count.unfavorable"),
+                   coef(testR, statistic = "count.neutral"),
+                   coef(testR, statistic = "count.uninf"))
+                 )
+
+    dat <- data.frame(time = c(10, 10),
+                      event = c(0, 1),
+                      treat = c(1, 0))
+ 
+    test <- BuyseTest(treat ~ TTE(time, status = event), data = dat, trace = FALSE,
+                      method.inference = "none", scoring.rule = "Gehan")
+
+    expect_equal(c(1,0,0,0),
+                 c(coef(test, statistic = "count.favorable"),
+                   coef(test, statistic = "count.unfavorable"),
+                   coef(test, statistic = "count.neutral"),
+                   coef(test, statistic = "count.uninf"))
+                 )
+
+    testR <- BuyseTest(treat ~ TTE(time, status = event, restriction = 10), data = dat, trace = FALSE,
+                       method.inference = "none", scoring.rule = "Gehan")
+
+    expect_equal(c(0,0,1,0),
+                 c(coef(testR, statistic = "count.favorable"),
+                   coef(testR, statistic = "count.unfavorable"),
+                   coef(testR, statistic = "count.neutral"),
+                   coef(testR, statistic = "count.uninf"))
+                 )
+})
 
 
 

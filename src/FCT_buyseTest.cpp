@@ -51,6 +51,7 @@ arma::sp_mat subcol_sp_mat(const arma::sp_mat& X, arma::uvec index);
 //' @param indexT A list containing, for each strata, which rows of the endpoint and status matrices corresponds to the treatment observations. Not unique when bootstraping.
 //' @param posT A list containing, for each strata, the unique identifier of each treatment observations.
 //' @param threshold Store the thresholds associated to each endpoint. Must have length D. The threshold is ignored for binary endpoints. 
+//' @param threshold0 Was the 'original' threshold 0. Must have length D. Ignored for binary endpoints. 
 //' @param restriction Store the restriction time associated to each endpoint. Must have length D. 
 //' @param weightEndpoint Store the weight associated to each endpoint. Must have length D. 
 //' @param weightObs A vector containing the weight associated to each observation.
@@ -104,6 +105,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   std::vector< arma::uvec > indexT,
 		   std::vector< arma::uvec > posT,
 		   std::vector< double > threshold,
+		   std::vector< bool > threshold0,
 		   std::vector< double > restriction,
 		   arma::vec weightEndpoint,
 		   arma::vec weightObs, // not used just for compatibility
@@ -271,7 +273,8 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
       arma::uvec iUvec_endpoint = {index_endpoint[iter_d]};
       arma::uvec iUvec_status = {index_status[iter_d]};
 
-      iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d], restriction[iter_d],
+      iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint),
+				threshold[iter_d], threshold0[iter_d], restriction[iter_d],
 				status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
 				list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 				list_lastSurv[iter_d].row(iter_strata),
@@ -299,7 +302,8 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 	arma::mat iDscore_Dnuisance_C_M1,iDscore_Dnuisance_T_M1;
 
 	// note the values in endpoint, status, survTime, survJump, lastSurv are not used (only their dimensions)
-	arma::mat iPairScore_M1 = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint), threshold[iter_d], restriction[iter_d],
+	arma::mat iPairScore_M1 = calcAllPairs(endpoint.submat(indexC[iter_strata],iUvec_endpoint), endpoint.submat(indexT[iter_strata],iUvec_endpoint),
+					       threshold[iter_d], threshold0[iter_d], restriction[iter_d],
 					       status.submat(indexC[iter_strata],iUvec_status), status.submat(indexT[iter_strata],iUvec_status),
 					       list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 					       list_lastSurv[iter_d].row(iter_strata), 
@@ -486,6 +490,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    std::vector< arma::uvec > indexT,
 		    std::vector< arma::uvec > posT,
 		    std::vector< double > threshold,
+		    std::vector< bool > threshold0,
 		    std::vector< double > restriction,
 		    arma::vec weightEndpoint,
 		    arma::vec weightObs,
@@ -758,12 +763,12 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	    iPairScore = calcOnePair_TTEgehan(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 					      status(indexStrataC[iter_C], index_status[iter_d]),
 					      status(indexStrataT[iter_T], index_status[iter_d]),
-					      threshold[iter_d]);
+					      threshold[iter_d], threshold0[iter_d]);
 	  }else if(iMethod == 4){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
 	    iPairScore = calcOnePair_TTEgehan2(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
 					       status(indexStrataC[iter_C], index_status[iter_d]),
 					       status(indexStrataT[iter_T], index_status[iter_d]),
-					       threshold[iter_d]);
+					       threshold[iter_d], threshold0[iter_d]);
 	  }else if(iMethod == 5){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
 
 	    // note: iDscore_Dnuisance_C, iDscore_Dnuisance_T are initalized to 0 in calcOnePair_SurvPeron

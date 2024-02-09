@@ -1,5 +1,12 @@
 # -*- mode: org -*-
 
+* Version 3.0.3
+** Internal change
+- fix how Gehan scoring rule handles censoring (Github issue #13)
+- statistical inference for bootstrap assuming normally distributed
+  statistic handles infinite estimates that may occur due to
+  transformation (e.g. atanh(1)).
+
 * Version 3.0.0
 ** User visible changes
 - NEW FEATURE: method model.tables providing the table favorable/unfavorable/neutral/uninformative in the summary
