@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1136
+##     Update #: 1152
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -136,9 +136,6 @@ setMethod(f = "confint",
               if(is.null(statistic)){
                   statistic <- option$statistic
               }
-              if(is.null(transformation)){
-                  transformation <- option$transformation
-              }
               if(is.null(conf.level)){
                   if(!attr(method.inference,"permutation")){
                       conf.level <- option$conf.level
@@ -226,8 +223,20 @@ setMethod(f = "confint",
                            "Consider applying the BuyseTest function separately to each endpoint \n",
                            "or set \'method.inference\' to \"studentized bootstrap\" or \"studentized permutation\" when calling BuyseTest. \n")
                   }
-              }else if(!is.null(method.ci.resampling)){
-                  warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")                  
+                  if(is.null(transformation)){
+                      if(method.ci.resampling=="percentile"){
+                          transformation <- FALSE ## ensures consistency between p-values for different statistics as transformation may lead to numerical unaccuracies when comparing resampling to observed
+                      }else{
+                          transformation <- option$transformation
+                      }
+                  }              
+              }else{
+                  if(is.null(transformation)){
+                      transformation <- option$transformation
+                  }              
+                  if(!is.null(method.ci.resampling)){
+                      warning("Argument \'method.ci.resampling\' is disregarded when not using resampling\n")                  
+                  }
               }
               if(attr(method.inference,"studentized") && (any(strata != "global") || (cumulative!=TRUE)) ){
                   stop("Can only perform statistical inference based on studentized resampling for global cumulative effects. \n",
@@ -387,8 +396,8 @@ setMethod(f = "confint",
               }else {
                   validNumeric(null, valid.length = 1,
                                refuse.NA = !attr(method.inference,"permutation"),
-                               min = if("statistic"=="netBenefit"){-1}else{0},
-                               max = if("statistic"=="winRatio"){Inf}else{1})
+                               min = if(statistic=="netBenefit"){-1}else{0},
+                               max = if(statistic=="winRatio"){Inf}else{1})
               }
               null <- rep(null, length(Delta))
 
@@ -537,6 +546,11 @@ setMethod(f = "confint",
               }
 
               ## ** compute the confidence intervals
+              if(statistic=="winRatio" && transformation==FALSE){
+                  attr(null, "type")  <- "relative"
+              }else{
+                  attr(null, "type")  <- "absolute"
+              }
               outConfint <- do.call(method.confint,
                                     args = list(Delta = trans.delta(Delta),
                                                 Delta.resampling = trans.delta(Delta.resampling),
@@ -623,15 +637,27 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
     ## ** p-value
     add.1 <- BuyseTest.options()$add.1.presample
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-        test.alternative <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-                                   "two.sided" = abs(Delta[iE] - null[iE]) <= abs(Delta.resampling[,iE] - null[iE]),
-                                   "less" = Delta[iE] >= Delta.resampling[,iE],
-                                   "greater" = Delta[iE] <= Delta.resampling[,iE]
-                                   )
+
+        if(alternative == "two.sided"){
+            if(attr(null,"type")=="relative"){ ## win ratio without transformation
+                ## H0 WR=1 so if hat(WR)=3/2 more extreme is above 3/2 or below 2/3
+                test.alternative <- pmax(Delta.resampling[,iE]/null,null/Delta.resampling[,iE])/max(Delta[iE]/null,null/Delta[iE]) >= 1
+                ## test.alternative <- abs(log(Delta[iE]/null)) <= abs(log(Delta.resampling[,iE]/null)) ## try to avoid log-transformation
+            }else if(attr(null,"type")=="absolute"){
+                test.alternative <- abs(Delta[iE]-null) <= abs(Delta.resampling[,iE]-null)
+            }
+
+        }else{
+            test.alternative <- switch(alternative, 
+                                       "less" = Delta[iE] >= Delta.resampling[,iE],
+                                       "greater" = Delta[iE] <= Delta.resampling[,iE]
+                                       )
+        }
+
         p.alternative <- (add.1 + sum(test.alternative, na.rm = TRUE)) / (add.1 + sum(!is.na(test.alternative), na.rm = TRUE))
         return(p.alternative)        
     })
-    
+
     ## ** export
     return(outTable)
 }
