@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1152
+##     Update #: 1155
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -637,20 +637,21 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
     ## ** p-value
     add.1 <- BuyseTest.options()$add.1.presample
     outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-
+        ## rounding is here to mitigate p-value mismatch between netBenefit and winRatio due to finite numeric precision
+        
         if(alternative == "two.sided"){
             if(attr(null,"type")=="relative"){ ## win ratio without transformation
                 ## H0 WR=1 so if hat(WR)=3/2 more extreme is above 3/2 or below 2/3
-                test.alternative <- pmax(Delta.resampling[,iE]/null,null/Delta.resampling[,iE])/max(Delta[iE]/null,null/Delta[iE]) >= 1
+                test.alternative <- round(pmax(Delta.resampling[,iE]/null,null/Delta.resampling[,iE]),10)/round(max(Delta[iE]/null,null/Delta[iE]),10) >= 1
                 ## test.alternative <- abs(log(Delta[iE]/null)) <= abs(log(Delta.resampling[,iE]/null)) ## try to avoid log-transformation
             }else if(attr(null,"type")=="absolute"){
-                test.alternative <- abs(Delta[iE]-null) <= abs(Delta.resampling[,iE]-null)
+                test.alternative <- round(abs(Delta[iE]-null),10) <= round(abs(Delta.resampling[,iE]-null),10)
             }
 
         }else{
             test.alternative <- switch(alternative, 
-                                       "less" = Delta[iE] >= Delta.resampling[,iE],
-                                       "greater" = Delta[iE] <= Delta.resampling[,iE]
+                                       "less" = round(Delta[iE],10) >= round(Delta.resampling[,iE],10),
+                                       "greater" = round(Delta[iE],10) <= round(Delta.resampling[,iE],10)
                                        )
         }
 
