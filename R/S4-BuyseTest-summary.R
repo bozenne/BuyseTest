@@ -140,8 +140,8 @@ setMethod(f = "summary",
                                min = 1,
                                max = 9, ## limitation in model.tables
                                valid.length = 1)
-                  type.display.original <- option$summary.display[[type.display]]
-                  type.display <- paste0("summary",type.display)
+                  type.display.original <- paste0("summary",type.display)
+                  type.display <- option$summary.display[[type.display]]
               }else{
                   validCharacter(type.display,
                                  name1 = "type.display",
@@ -149,7 +149,6 @@ setMethod(f = "summary",
                                                   "delta","Delta","Delta(%)",
                                                   "p.value","CI","significance"),
                                  valid.length = NULL)
-                  type.display.original <- type.display
               }
               if(is.null(conf.level)){
                   conf.level <- option$conf.level
@@ -181,8 +180,11 @@ setMethod(f = "summary",
                   attr(conf.level,"warning.permutation") <- FALSE
               }
               table.print <- model.tables(object, percentage = percentage, statistic = statistic, conf.level = conf.level, strata = strata,
-                                          columns = type.display, ...)
-
+                                          columns = union(setdiff(type.display,c("CI","significance")),"null"), ...)
+              null <- table.print$null
+              if("null" %in% type.display == FALSE){
+                  table.print$null <- NULL
+              }
               name.print <- names(table.print)
               endpoint.restriction.threshold <- attr(table.print,"endpoint")
               transform <- attr(table.print,"transform")
@@ -205,7 +207,7 @@ setMethod(f = "summary",
 
               ## ** reformat table
               ## *** add column with stars
-              if(("p.value" %in% name.print) && ("significance" %in% type.display.original)){
+              if(("p.value" %in% name.print) && ("significance" %in% type.display)){
                   colStars <- sapply(table.print[,"p.value"],function(x){
                       if(is.na(x)){""}else if(x<0.001){"***"}else if(x<0.01){"**"}else if(x<0.05){"*"}else if(x<0.1){"."}else{""}
                   })
@@ -273,7 +275,7 @@ setMethod(f = "summary",
               }
 
               ## *** merge CI inf and CI sup column
-              if("CI" %in% type.display.original && "lower.ci" %in% name.print && "upper.ci" %in% name.print){
+              if("CI" %in% type.display && "lower.ci" %in% name.print && "upper.ci" %in% name.print){
                   qInf <- round(100*alpha/2, digits = digit[2])
                   qSup <- round(100*(1-alpha/2), digits = digit[2])
                   name.ci <- paste0("CI [",qInf,"% ; ",qSup,"%]")
@@ -301,22 +303,27 @@ setMethod(f = "summary",
                   
               ## *** display
               if(print){
-              cat("       Generalized pairwise comparisons ",txt.endpoint,txt.strata,"\n\n", sep = "")
-              if(statistic == "winRatio"){
-                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"win ratio (delta: endpoint specific, Delta: global) \n",
-                      " - null hypothesis : Delta == 1 \n", sep = "")
-              }else if(statistic == "netBenefit"){
-                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"net benefit (delta: endpoint specific, Delta: global) \n",
-                      " - null hypothesis : Delta == 0 \n", sep = "")
-              }else if(statistic == "favorable"){
-                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of treatment (delta: endpoint specific, Delta: global) \n",
-                      " - null hypothesis : Delta == 1/2 \n", sep = "")
-              }else if(statistic == "favorable"){
-                  cat(" - statistic       : ",if(any(!is.na(object@restriction))){"restricted "}else{""},"proportion in favor of control (delta: endpoint specific, Delta: global) \n",
-                      " - null hypothesis : Delta == 1/2 \n", sep = "")
-              }
-              if(method.inference != "none"){
-                  cat(" - confidence level: ",1-alpha," \n", sep = "")
+                  cat("       Generalized pairwise comparisons ",txt.endpoint,txt.strata,"\n\n", sep = "")
+
+                  txt.statistic <- c(" - statistic       : ",
+                                     ifelse(any(!is.na(object@restriction)),"restricted",""),
+                                     switch(statistic,
+                                            "winRatio" = ifelse(object@add.halfNeutral,"win odds","win ratio"),
+                                            "netBenefit" = "net treatment benefit",
+                                            "favorable" = ifelse(object@add.halfNeutral,"proportion in favor of treatment","proportion strictly in favor of treatment"),
+                                            "unfavorable" = ifelse(object@add.halfNeutral,"proportion in favor of control","proportion strictly in favor of control")
+                                            )
+                                     )
+                  cat(paste(txt.statistic, collapse = "")," (delta: endpoint specific, Delta: global) \n")
+                  if(all(is.na(null))){
+                      cat(" - null hypothesis : requires specification of the argument \'null\' \n", sep = "")
+                      table.print$p.value <- NULL
+                  }else{
+                      cat(" - null hypothesis : Delta == ",stats::na.omit(null)[1]," \n", sep = "")
+                  }
+
+                  if(method.inference != "none"){
+                      cat(" - confidence level: ",1-alpha," \n", sep = "")
 
                   if(attr(method.inference,"permutation")){
                       txt.method <- "permutation test"

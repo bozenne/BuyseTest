@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1155
+##     Update #: 1160
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -391,8 +391,8 @@ setMethod(f = "confint",
                   null <- switch(statistic,
                                  "netBenefit" = 0,
                                  "winRatio" = 1,
-                                 "favorable" = 1/2,
-                                 "unfavorable" = 1/2)
+                                 "favorable" = ifelse(add.halfNeutral,1/2,NA),
+                                 "unfavorable" = ifelse(add.halfNeutral,1/2,NA))
               }else {
                   validNumeric(null, valid.length = 1,
                                refuse.NA = !attr(method.inference,"permutation"),
