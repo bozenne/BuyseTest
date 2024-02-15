@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1160
+##     Update #: 1177
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -798,12 +798,6 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     ## ** standard error
     outTable[,"se"] <- backtransform.se(Delta, se = Delta.se)
 
-    ## ** null
-    if(any(is.na(null))){
-        null[is.na(null)] <- apply(Delta.resampling,2,stats::median)[is.na(null)]
-    }
-    outTable[,"null"] <- backtransform.delta(null)
-
     ## ** critical quantile
     if(!is.na(alpha) && length(index.var)>0){
         
@@ -832,26 +826,39 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
         outTable[index.novar,"upper.ci"] <- backtransform.delta(Delta[index.novar])
     }
     
+    ## ** null
+    if(any(is.na(null))){
+        null[is.na(null)] <- apply(Delta.resampling,2,stats::median)[is.na(null)]
+    }
+    outTable[,"null"] <- backtransform.delta(null)
+
     ## ** p.value
-    add.1 <- BuyseTest.options()$add.1.presample
+
     if(length(index.var)>0){
+        add.1 <- BuyseTest.options()$add.1.presample
         Delta.stat <- (Delta-null)/Delta.se
         Delta.stat.resampling <- (Delta.resampling-null)/Delta.se.resampling
+        if(any(is.infinite(Delta.resampling))){
+            Delta.stat.resampling[is.infinite(Delta.resampling)] <- Delta.resampling[is.infinite(Delta.resampling)]
+        }
         outTable[index.var,"p.value"] <- sapply(index.var, FUN = function(iE){ ## iE <- 1
-            test.alternative <- switch(alternative, # test whether each sample is has a cumulative proportions in favor of treatment more extreme than the point estimate
-                                       "two.sided" = abs(Delta.stat[iE]) <= abs(Delta.stat.resampling[,iE]),
-                                       "less" = Delta.stat[iE] >= Delta.stat.resampling[,iE],
-                                       "greater" = Delta.stat[iE] <= Delta.stat.resampling[,iE]
+
+            ## rounding is here to mitigate p-value mismatch between netBenefit and winRatio due to finite numeric precision
+            test.alternative <- switch(alternative,
+                                       "two.sided" = round(abs(Delta.stat[iE]),10) <= round(abs(Delta.stat.resampling[,iE]),10),
+                                       "less" = round(Delta.stat[iE],10) >= round(Delta.stat.resampling[,iE],10),
+                                       "greater" = round(Delta.stat[iE],10) <= round(Delta.stat.resampling[,iE],10)
                                        )
-            p.alternative <- (add.1 + sum(test.alternative, na.rm = TRUE)) / (add.1 + sum(!is.na(test.alternative), na.rm = TRUE))
+
+            p.alternative <- (add.1 + sum(test.alternative, na.rm = TRUE)) / (add.1 + sum(!is.na(test.alternative)))
             return(p.alternative)        
         })
     }
-
-    if(length(index.novar)>0){
-        outTable[index.novar,c("p.value")] <- 1
-    }
     
+    if(length(index.novar)>0){
+        outTable[index.novar,"p.value"] <- as.numeric(abs(outTable[index.novar,"estimate"]-outTable[index.novar,"null"])<1e-10)
+    }
+
     ## ** export
     return(outTable)
 
