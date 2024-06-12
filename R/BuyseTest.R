@@ -461,6 +461,33 @@ BuyseTest <- function(formula,
 
         outPoint$covariance <- outCovariance$Sigma
         attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
+    }else if(outArgs$method.inference == "varexact-permutation"){
+
+        if(!is.null(outArgs$weightObs) && any(abs(outArgs$weightObs-1)>1e-10)){
+            warning("Argument \'weightObs\' is being ignored when computing the exact permutation variance. \n")
+        }
+
+        outVariance <- inferenceVarPermutation(data = as.data.frame(data),
+                                               treatment = outArgs$treatment,
+                                               level.treatment = outArgs$level.treatment,
+                                               scoring.rule = outArgs$scoring.rule,
+                                               pool.strata = outArgs$pool.strata,
+                                               correction.uninf = outArgs$correction.uninf,
+                                               model.tte = outArgs$model.tte,
+                                               hierarchical = outArgs$hierarchical,
+                                               weightEndpoint = outArgs$weightEndpoint,
+                                               neutral.as.uninf = outArgs$neutral.as.uninf,
+                                               add.halfNeutral = outArgs$add.halfNeutral,
+                                               endpoint = outArgs$endpoint,
+                                               type = outArgs$type,
+                                               threshold = outArgs$threshold,                      
+                                               status = type$status,
+                                               operator = type$operator,
+                                               censoring = type$censoring,
+                                               restriction = outArgs$restriction,
+                                               strata = outArgs$strata)
+
+        outPoint$covariance <- outVariance
     }else if(grepl("bootstrap|permutation",outArgs$method.inference)){
         outResampling <- inferenceResampling(envirBT)
     }

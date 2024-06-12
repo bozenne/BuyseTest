@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jul 18 2023 (09:34) 
+## Last-Updated: jun 12 2024 (12:28) 
 ##           By: Brice Ozenne
-##     Update #: 344
+##     Update #: 351
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -353,10 +353,10 @@ testArgs <- function(name.call,
     if(length(method.inference)!=1){
         stop("Argument \'method.inference\' must have length 1. \n")
     }
-    if(method.inference != "u-statistic-bebu"){ ## asympototic bebu - hidden value only for debugging
+    if(method.inference %in% c("u-statistic-bebu","varexact-permutation") == FALSE){ ## asympototic bebu and varexact-permutation - hidden value only for debugging
         validCharacter(method.inference,
                        valid.length = 1,
-                       valid.values = c("none","u-statistic","permutation", "studentized permutation", "bootstrap", "studentized bootstrap"),
+                       valid.values = c("none","u-statistic","permutation","studentized permutation","bootstrap","studentized bootstrap"),
                        method = "BuyseTest")
     }
     if(pool.strata>3 && method.inference %in% c("u-statistic","studentized permutation","studentized bootstrap")){
@@ -533,11 +533,11 @@ testArgs <- function(name.call,
     }
 
     ## ** weightObs
-    if(!is.null(weightObs)){
+    if(!is.null(weightObs) && any(weightObs!=1)){
         test1 <- is.character(weightObs) && length(weightObs) == 1 && weightObs %in% names(data)
         test2 <- is.numeric(weightObs) && length(weightObs) == NROW(data)
         if((test1 == FALSE) && (test2 == FALSE)){
-            stop("BuyseTest: argument \'weightObs\' must correspond to a column in argument \'data\'",
+            stop("BuyseTest: argument \'weightObs\' must correspond to a column in argument \'data\' ",
                  "or must have as many element as rows in argument \'data\'. \n")
         }
 

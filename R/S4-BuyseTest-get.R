@@ -453,6 +453,7 @@ setMethod(f = "getPairScore",
                                 rm.withinStrata, rm.strata, rm.indexPair, rm.weight, rm.corrected,
                                 unlist, trace){
 
+              ## ** extract table
               if(length(object@tablePairScore)==0){
                   if(trace){
                       cat("pairScore was not exported from the object \n",
@@ -479,7 +480,8 @@ setMethod(f = "getPairScore",
 
                       out <- out[endpoint] 
                   }
-                  
+
+                  ## ** add strata
                   if(!is.null(strata)){
                       if(is.numeric(strata)){
                           validInteger(strata, min = 1, max = length(strata.names), valid.length = NULL,
@@ -502,23 +504,45 @@ setMethod(f = "getPairScore",
 
                   old.names <- c("index.C", "index.T", "indexWithinStrata.C", "indexWithinStrata.T")
                   new.names <- c(paste0("index.",object@level.treatment), paste0("indexWithinStrata.",object@level.treatment))
-
+                  
+                  ## ** cumulate endpoints
                   if(sum && length(out)>1){
-                      out.save <- out
-                      out <- out.save[1]                     
-                      for(iEndpoint in 2:length(out.save)){
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorable") := .SD$favorable + out.save[[iEndpoint]]$favorable]
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("unfavorable") := .SD$unfavorable + out.save[[iEndpoint]]$unfavorable]
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("neutral") := .SD$neutral + out.save[[iEndpoint]]$neutral]
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("uninf") := .SD$uninf + out.save[[iEndpoint]]$uninf]
 
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("weight") := .SD$weight + out.save[[iEndpoint]]$weight]
-
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorableC") := .SD$favorableC + out.save[[iEndpoint]]$favorableC]
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("unfavorableC") := .SD$unfavorableC + out.save[[iEndpoint]]$unfavorableC]
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("neutralC") := .SD$neutralC + out.save[[iEndpoint]]$neutralC]
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("uninfC") := .SD$uninfC + out.save[[iEndpoint]]$uninfC]
+                      ## *** add weights
+                      weightEndpoint <- object@weightEndpoint[endpoint]
+                      if(any(weightEndpoint!=1)){
+                          test <- lapply(1:length(out), function(iE){
+                              out[[iE]][, c("favorable","unfavorable","neutral","uninf") := .(.SD$favorable*weightEndpoint[iE],
+                                                                                              .SD$unfavorable*weightEndpoint[iE],
+                                                                                              .SD$neutral*weightEndpoint[iE],
+                                                                                              .SD$uninf*weightEndpoint[iE])]
+                              out[[iE]][, c("favorableC","unfavorableC","neutralC","uninfC") := .(.SD$favorableC*weightEndpoint[iE],
+                                                                                                  .SD$unfavorableC*weightEndpoint[iE],
+                                                                                                  .SD$neutralC*weightEndpoint[iE],
+                                                                                                  .SD$uninfC*weightEndpoint[iE])]
+                              return(NULL)
+                          })
                       }
+
+                      ## *** cumulate
+                      test <- lapply(out, function(iOut){data.table::setkeyv(iOut,"index.pair")})
+                      out.save <- out
+                      out <- out.save[1]
+
+                      for(iEndpoint in 2:length(out.save)){ ## iEndpoint
+                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorable","unfavorable","neutral","uninf") := .(.SD$favorable + out.save[[iEndpoint]]$favorable,
+                                                                                                                         .SD$unfavorable + out.save[[iEndpoint]]$unfavorable,
+                                                                                                                         .SD$neutral + out.save[[iEndpoint]]$neutral,
+                                                                                                                         .SD$uninf + out.save[[iEndpoint]]$uninf)]
+
+                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorableC","unfavorableC","neutralC","uninfC") := .(.SD$favorableC + out.save[[iEndpoint]]$favorableC,
+                                                                                                                             .SD$unfavorableC + out.save[[iEndpoint]]$unfavorableC,
+                                                                                                                             .SD$neutralC + out.save[[iEndpoint]]$neutralC,
+                                                                                                                             .SD$uninfC + out.save[[iEndpoint]]$uninfC)]
+
+
+                      }
+                      data.table::setkeyv(out[[1]],c("index.T","index.C"))                      
                   }
                   
                   for(iEndpoint in 1:length(out)){ ## iEndpoint <- 1

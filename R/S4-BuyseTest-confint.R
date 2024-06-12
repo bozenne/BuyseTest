@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1183
+##     Update #: 1201
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -335,7 +335,7 @@ setMethod(f = "confint",
                   Delta <- stats::setNames(DeltaL$statistic, paste(DeltaL$time, DeltaL$strata, sep = sep))
               }
 
-              if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
+              if(((attr(method.inference,"permutation") && method.inference != "varexact-permutation")) || attr(method.inference,"bootstrap")){
                   DeltaW.resampling <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = TRUE, simplify = FALSE)
                   if(length(strata)==1 && all(strata=="global")){
                       Delta.resampling <- matrix(DeltaW.resampling[,"global",], ncol = length(endpoint), dimnames = list(NULL, endpoint))
@@ -381,7 +381,11 @@ setMethod(f = "confint",
                       Delta.se.resampling <- NULL
                   }
               }else{
-                  Delta.se <- NULL
+                  if(method.inference == "varexact-permutation"){
+                      Delta.se <- sqrt(object@covariance[endpoint,statistic])
+                  }else{
+                      Delta.se <- NULL
+                  }
                   Delta.se.resampling <- NULL
               }
 
@@ -406,6 +410,8 @@ setMethod(f = "confint",
               if(method.inference == "none"){
                   method.confint <- confint_none
                   transformation <- FALSE
+              }else if(method.inference == "varexact-permutation"){
+                  method.confint <- confint_varexactPermutation
               }else if(attr(method.inference,"ustatistic")){
                   method.confint <- confint_Ustatistic
               }else if(attr(method.inference,"permutation")){
@@ -572,7 +578,7 @@ setMethod(f = "confint",
               outConfint <- as.data.frame(outConfint)
 
               ## ** number of permutations
-              if(method.inference != "none" && (attr(method.inference,"permutation") || attr(method.inference,"bootstrap"))){
+              if(method.inference != "none" && ((attr(method.inference,"permutation") && (method.inference!="varexact-permutation")) || attr(method.inference,"bootstrap"))){
                   attr(outConfint, "n.resampling")  <- colSums(!is.na(Delta.resampling))
               }else{
                   attr(outConfint, "n.resampling")  <- stats::setNames(rep(as.numeric(NA), D), all.endpoint)
@@ -947,6 +953,42 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
 
 }
 
+
+## * confint_varexactPermutation (called by confint)
+confint_varexactPermutation <- function(Delta, Delta.se, statistic, null,
+                                        alternative, alpha,
+                                        endpoint, ...){
+
+    n.endpoint <- length(endpoint)
+    outTable <- matrix(as.numeric(NA), nrow = n.endpoint, ncol = 6,
+                       dimnames = list(endpoint, c("estimate","se","lower.ci","upper.ci","null","p.value")))
+    ## Note: no transformation
+
+    ## ** point estimate
+    outTable[,"estimate"] <- Delta
+
+    ## ** standard error
+    outTable[,"se"] <- Delta.se
+
+    ## ** confidence interval
+    ## No CI because se estimated under H0 instead of H1
+    
+    ## ** p-value
+    outTable[,"null"] <- null
+    outTable[,"p.value"] <- switch(alternative,
+                                   "two.sided" = 2*(1-stats::pnorm(abs((Delta-null)/Delta.se))), 
+                                   "less" = stats::pnorm((Delta-null)/Delta.se),
+                                   "greater" = 1-stats::pnorm((Delta-null)/Delta.se) 
+                                   )
+
+    ## special case with no variability
+    if(any(na.omit((Delta==null)*(Delta.se==0)) == 1)){
+        outTable[(Delta==null)*(Delta.se==0) == 1,"p.value"] <- 1
+    }
+
+    ## ** export
+    return(outTable)
+}
 
 ## * confint_Ustatistic (called by confint)
 confint_Ustatistic <- function(Delta, Delta.se, statistic, null,
