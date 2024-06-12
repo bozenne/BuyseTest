@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jul 18 2023 (12:00) 
+## Last-Updated: jun 12 2024 (11:00) 
 ##           By: Brice Ozenne
-##     Update #: 1266
+##     Update #: 1303
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -71,9 +71,12 @@
 ##' library(data.table)
 ##' 
 ##' #### Using simBuyseTest ####
+##' ## save time by not generating TTE outcomes
+##' simBuyseTest2 <- function(...){simBuyseTest(..., argsCont = NULL, argsTTE = NULL)}
+##' 
 ##' ## only point estimate
 ##' \dontrun{
-##' pBT <- powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
+##' pBT <- powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 25, 50, 75, 100), 
 ##'                   formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
 ##'                   method.inference = "none", keep.pairScore = FALSE, cpus = 5)
 ##' summary(pBT)
@@ -82,12 +85,12 @@
 ##' 
 ##' ## point estimate with rejection rate
 ##' \dontshow{
-##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+##' powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
 ##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 10,
 ##'                method.inference = "u-statistic", trace = 4)
 ##' }
 ##' \dontrun{
-##' powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+##' powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
 ##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
 ##'                method.inference = "u-statistic", trace = 4)
 ##' }
@@ -298,10 +301,14 @@ powerBuyseTest <- function(sim,
         if (!is.null(seed)) {
             parallel::clusterExport(cl, varlist = "seqSeed", envir = environment())
         }         
-        ## export package
-        parallel::clusterCall(cl, fun = function(x){
-            suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
-        })
+        ## export all BuyseTest functions (except C++)
+        BT.fct <- ls(getNamespace("BuyseTest"))
+        toExport <- c(".BuyseTest", ".powerBuyseTest", "wsumPairScore", "S4BuyseTest", "initializeData", "calcSample", "calcPeron", "pairScore2dt", "confint_Ustatistic",
+                      grep("^valid",BT.fct,value = TRUE))
+
+        ## parallel::clusterExport(cl, varlist = c(BT.fct[!grepl("_cpp$",BT.fct)], ".powerBuyseTest", ".BuyseTest"))
+        ## [:forCRANcheck:] foreach
+        iB <- NULL        
     }
 
     ## ** initialize sample size
@@ -315,7 +322,7 @@ powerBuyseTest <- function(sim,
             cat("         Determination of the sample using a large sample (T=",max.sample.size[1],", C=",max.sample.size[2],")  \n\n",sep="")
         }
 
-        if (cpus == 1) {
+        if (cpus == 1) {            
             ls.BTmax <- do.call(method.loop,
                                 args = list(X = 1:n.rep[2],
                                             FUN = function(X){
@@ -325,23 +332,38 @@ powerBuyseTest <- function(sim,
                                             })
                                 )
         }else if(cpus > 1){
+
+            ## split into a 100 jobs
+            split.resampling <- parallel::splitIndices(nx = n.rep[2], ncl = min(max(100,10*cpus), n.rep[2]))
+            nsplit.resampling <- length(split.resampling)
+
             ## define progress bar
             if(trace>0){
-                pb <- utils::txtProgressBar(max = n.rep[2], style = 3)          
+                pb <- utils::txtProgressBar(max = nsplit.resampling, style = 3)          
                 progress <- function(n){utils::setTxtProgressBar(pb, n)}
                 opts <- list(progress = progress)
             }else{
                 opts <- list()
             }
 
-            ls.BTmax <- foreach::`%dopar%`(
-                                     foreach::foreach(i=1:n.rep[2], .options.snow = opts), {
-                                         if(!is.null(seed)){set.seed(seqSeed[i])}
-                                         iOut <- BuyseTest(..., data = sim(n.T = max.sample.size["T"], n.C = max.sample.size["C"]), trace = 0)
-                                         return(iOut)
+            ## export functions
+            ls2.BTmax <- foreach::`%dopar%`(
+                                      foreach::foreach(iB=1:nsplit.resampling,
+                                                       .export = toExport,
+                                                       .packages = c("data.table","BuyseTest","lava"),
+                                                       .options.snow = opts), {
+                                         iOut <- lapply(split.resampling[[iB]], function(iSplit){
+                                             if(!is.null(seed)){set.seed(seqSeed[iSplit])}
+                                             iBT <- BuyseTest(..., data = sim(n.T = max.sample.size["T"], n.C = max.sample.size["C"]), trace = 0)
+                                             return(iBT)                                             
+                                         })
+                                         return(iOut)                                         
                                      })
             if(trace>0){close(pb)}
             if(n.rep[1]<=0){parallel::stopCluster(cl)}
+
+            ## collect
+            ls.BTmax <- do.call("c",ls2.BTmax)
         }
 
         if(ls.BTmax[[1]]@method.inference == "u-statistic"){
@@ -473,6 +495,7 @@ powerBuyseTest <- function(sim,
 
     ## ** simulation study
     if (cpus == 1) { ## *** sequential simulation
+
         ls.simulation <- do.call(method.loop,
                                  args = list(X = 1:n.rep[1],
                                              FUN = function(X){
@@ -493,54 +516,64 @@ powerBuyseTest <- function(sim,
                                              })
                                  )
     }else { ## *** parallel simulation
+
+        ## split into a 100 jobs
+        split.resampling <- parallel::splitIndices(nx = n.rep[1], ncl = min(max(100,10*cpus), n.rep[1]))
+        nsplit.resampling <- length(split.resampling)
+
         ## define progress bar
         if(trace>0){
-            pb <- utils::txtProgressBar(max = n.rep[1], style = 3)          
+            pb <- utils::txtProgressBar(max = nsplit.resampling, style = 3)          
             progress <- function(n){utils::setTxtProgressBar(pb, n)}
             opts <- list(progress = progress)
         }else{
             opts <- list()
         }
+
+
         ## try sim
-        test <- try(parallel::clusterCall(cl, fun = function(x){
-            sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
-        }), silent = TRUE)
+        test <- try(foreach::`%dopar%`(
+                                 foreach::foreach(iB=1:cpus,
+                                                  .export = toExport,
+                                                  .packages = c("data.table","BuyseTest","lava"),
+                                                  .options.snow = opts), {
+                                                      sim(n.T = sample.sizeTmax, n.C = sample.sizeCmax)
+                                                  }),
+                    silent = TRUE)
         if(inherits(test,"try-error")){
             stop(paste0("Could not run argument \'sim\' when using multiple CPUs. \n Consider trying first to run powerBuyseTest with cpus=1. \n If it runs, make sure that \'sim\' does not depend on any variable in the global environment or package without explicit mention of the namespace. \n",test))
         }
 
         ## run simul
-        i <- NULL ## [:forCRANcheck:] foreach
-        ## not recognized by parallel::clusterExport since not exported by the package
-        toExport <- c(".BuyseTest", ".powerBuyseTest", "wsumPairScore",
-                      "S4BuyseTest",
-                      "initializeData",
-                      "calcSample",
-                      "calcPeron",
-                      "pairScore2dt",
-                      "confint_Ustatistic",
-                      "validNumeric") 
-                                                
-        ls.simulation <- foreach::`%dopar%`(
-                                      foreach::foreach(i=1:n.rep[1], .export = toExport, .options.snow = opts), {
-                                          if(!is.null(seed)){set.seed(seqSeed[i])}
-                                          iOut <- .powerBuyseTest(i = i,
-                                                                  envir = envirBT,
-                                                                  statistic = statistic,
-                                                                  null = null,
-                                                                  conf.level = conf.level,
-                                                                  alternative = alternative,
-                                                                  transformation = transformation,
-                                                                  order.Hprojection = order.Hprojection)
-                                          if(!is.null(seed)){
-                                              return(cbind(iOut,seed = seqSeed[i]))
-                                          }else{
-                                              return(iOut)
-                                          }
-                                      })
+        ls2.simulation <- foreach::`%dopar%`(
+                                       foreach::foreach(iB=1:nsplit.resampling,
+                                                        .export = toExport,
+                                                        .packages = c("data.table","BuyseTest","lava"),
+                                                        .options.snow = opts), {
+
+                                                            iOut <- lapply(split.resampling[[iB]], function(iSplit){
+                                                                if(!is.null(seed)){set.seed(seqSeed[iSplit])}
+                                                                iBT <- .powerBuyseTest(i = iSplit,
+                                                                                       envir = envirBT,
+                                                                                       statistic = statistic,
+                                                                                       null = null,
+                                                                                       conf.level = conf.level,
+                                                                                       alternative = alternative,
+                                                                                       transformation = transformation,
+                                                                                       order.Hprojection = order.Hprojection)
+                                                                if(!is.null(seed)){
+                                                                    return(cbind(iBT,seed = seqSeed[iSplit]))
+                                                                }else{
+                                                                    return(iBT)
+                                                                }
+                                                            })
+                                                        })
 
         parallel::stopCluster(cl)
         if(trace>0){close(pb)}
+
+        ## collect
+        ls.simulation <- do.call("c",ls2.simulation)
     }
     dt.out <- data.table::as.data.table(do.call(rbind, ls.simulation))
 

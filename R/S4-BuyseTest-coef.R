@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: jul 18 2023 (09:28) 
+## Last-Updated: jun  4 2024 (10:33) 
 ##           By: Brice Ozenne
-##     Update #: 365
+##     Update #: 366
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -158,6 +158,7 @@ setMethod(f = "coef",
                                refuse.NULL = TRUE,
                                refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
+                  strata <- level.strata[strata]
               }else{
                   validCharacter(strata,
                                  name1 = "strata",

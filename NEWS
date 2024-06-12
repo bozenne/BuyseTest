@@ -1,11 +1,17 @@
 # -*- mode: org -*-
 
 * Version 3.0.3
+** User visible changes
+- fix too lengthy table in summary output
+
 ** Internal change
-- fix how Gehan scoring rule handles censoring (Github issue #13)
+- fix how Gehan scoring rule handles censoring (Github issue #13).
 - statistical inference for bootstrap assuming normally distributed
   statistic handles infinite estimates that may occur due to
   transformation (e.g. atanh(1)).
+- improve parallelisation for BuyseTest and powerBuyseTest (was
+  previously slow with fast jobs so now jobs are grouped).
+- update package documentation for new roxygen requirements.
 
 * Version 3.0.0
 ** User visible changes

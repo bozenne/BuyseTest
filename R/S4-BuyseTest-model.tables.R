@@ -97,10 +97,11 @@ setMethod(f = "model.tables",
                                name1 = "strata",
                                valid.length = NULL,
                                min = 1,
-                               max = length(level.strata),
+                               max = length(strata.level),
                                refuse.NULL = TRUE,
                                refuse.duplicates = TRUE,
                                method = "model.tables[S4BuyseTest]")
+                  strata <- strata.level[strata]
               }else{
                   validCharacter(strata,
                                  name1 = "strata",

@@ -1,4 +1,3 @@
-#' @docType package
 #' @title BuyseTest package: Generalized Pairwise Comparisons
 #' @name BuyseTest-package
 #' 
@@ -63,6 +62,6 @@
 #' @importFrom stats4 summary
 #' @importFrom prodlim prodlim Hist
 #' @importFrom utils capture.output tail
-NULL
+"_PACKAGE"
 
 

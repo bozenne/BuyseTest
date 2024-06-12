@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1177
+##     Update #: 1183
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -183,6 +183,7 @@ setMethod(f = "confint",
                                refuse.NULL = TRUE,
                                refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
+                  strata <- level.strata[strata]
               }else{
                   validCharacter(strata,
                                  name1 = "strata",

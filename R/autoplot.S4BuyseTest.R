@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jun 29 2023 (09:27) 
 ## Version: 
-## Last-Updated: jul 18 2023 (09:29) 
+## Last-Updated: jun  4 2024 (10:34) 
 ##           By: Brice Ozenne
-##     Update #: 25
+##     Update #: 26
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -69,6 +69,7 @@ autoplot.S4BuyseTest <- function(object, type = "hist", strata = "global", endpo
                                refuse.NULL = TRUE,
                                refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
+                  strata <- level.strata[strata]
               }else{
                   validCharacter(strata,
                                  name1 = "strata",

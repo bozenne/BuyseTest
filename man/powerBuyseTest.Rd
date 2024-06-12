@@ -87,9 +87,12 @@ To evaluate the approximation, a simulation study is then performed with the est
 library(data.table)
 
 #### Using simBuyseTest ####
+## save time by not generating TTE outcomes
+simBuyseTest2 <- function(...){simBuyseTest(..., argsCont = NULL, argsTTE = NULL)}
+
 ## only point estimate
 \dontrun{
-pBT <- powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 25, 50, 75, 100), 
+pBT <- powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 25, 50, 75, 100), 
                   formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
                   method.inference = "none", keep.pairScore = FALSE, cpus = 5)
 summary(pBT)
@@ -98,12 +101,12 @@ model.tables(pBT)
 
 ## point estimate with rejection rate
 \dontshow{
-powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 10,
                method.inference = "u-statistic", trace = 4)
 }
 \dontrun{
-powerBuyseTest(sim = simBuyseTest, sample.size = c(10, 50, 100), 
+powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 1000,
                method.inference = "u-statistic", trace = 4)
 }

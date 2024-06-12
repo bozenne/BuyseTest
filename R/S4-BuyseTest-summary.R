@@ -143,6 +143,7 @@ setMethod(f = "summary",
                   type.display.original <- paste0("summary",type.display)
                   type.display <- option$summary.display[[type.display]]
               }else{
+                  type.display.original <- NA
                   validCharacter(type.display,
                                  name1 = "type.display",
                                  valid.values = c("endpoint","restriction","threshold","strata","weight","total","favorable","unfavorable","neutral","uninf","information(%)",
@@ -179,17 +180,50 @@ setMethod(f = "summary",
               if(attr(method.inference,"permutation")){
                   attr(conf.level,"warning.permutation") <- FALSE
               }
-              table.print <- model.tables(object, percentage = percentage, statistic = statistic, conf.level = conf.level, strata = strata,
-                                          columns = union(setdiff(type.display,c("CI","significance")),"null"), ...)
-              null <- table.print$null
-              if("null" %in% type.display == FALSE){
-                  table.print$null <- NULL
+              columns.tables <- union(setdiff(type.display,"significance"),"null")
+              if(method.inference == "none"){
+                  columns.tables <- setdiff(columns.tables, c("CI","p.value"))
+              }else if(attr(method.inference,"permutation")){
+                  columns.tables <- setdiff(columns.tables, "CI")
+              }else if("CI" %in% type.display){
+                  columns.tables <- c(columns.tables[1:which(type.display=="CI")],
+                                      columns.tables[which(type.display=="CI"):length(columns.tables)])
+                  columns.tables[columns.tables=="CI"] <- c("lower.ci","upper.ci")
               }
-              name.print <- names(table.print)
+              table.print <- model.tables(object, percentage = percentage, statistic = statistic, conf.level = conf.level, strata = strata,
+                                          columns = columns.tables, ...)
+              null <- table.print$null
               endpoint.restriction.threshold <- attr(table.print,"endpoint")
               transform <- attr(table.print,"transform")
               n.resampling <- attr(table.print,"n.resampling")
               method.ci.resampling <- attr(table.print,"method.ci.resampling")
+
+              ## ** remove unnecessary columns
+              if("null" %in% type.display == FALSE){
+                  table.print$null <- NULL
+              }
+              name.print <- names(table.print)
+
+              if(!is.na(type.display.original) && "restriction" %in% name.print && all(is.na(table.print[["restriction"]]))){
+                  table.print$restriction <- NULL
+                  name.print <- setdiff(name.print, "restriction")
+              }
+              if(!is.na(type.display.original) && "threshold" %in% name.print && all(table.print[["threshold"]]<1e-10)){
+                  table.print$threshold <- NULL
+                  name.print <- setdiff(name.print, "threshold")
+              }
+              if(!is.na(type.display.original) && "weight" %in% name.print && all(table.print[["weight"]]==1)){
+                  table.print$weight <- NULL
+                  name.print <- setdiff(name.print, "weight")
+              }
+              if(!is.na(type.display.original) && "strata" %in% name.print && n.strata==1){
+                  table.print$strata <- NULL
+                  name.print <- setdiff(name.print, "strata")
+              }
+              if(!is.na(type.display.original) && "delta" %in% name.print && n.endpoint==1){
+                  table.print$delta <- NULL
+                  name.print <- setdiff(name.print, "delta")
+              }
 
               ## CI when the estimate is not defined
               if("lower.ci" %in% name.print && "upper.ci" %in% name.print){
@@ -413,7 +447,7 @@ setMethod(f = "summary",
                                       )
                   cat(" - uninformative pairs: ",txt.uninf,"\n", sep = "")
               }
-                  
+
               cat(" - results\n")
               table.print2 <- table.print
               if("significance" %in% names(table.print)){

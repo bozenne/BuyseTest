@@ -66,10 +66,14 @@ inferenceResampling <- function(envir){
                                  )
     }else { ## *** parallel resampling test
 
+        ## split into a 100 jobs
+        split.resampling <- parallel::splitIndices(nx = n.resampling, ncl = min(max(100,10*cpus), n.resampling))
+        nsplit.resampling <- length(split.resampling)
+
         ## define cluster
         cl <- parallel::makeCluster(cpus)
         if(trace>0){
-            pb <- utils::txtProgressBar(max = n.resampling, style = 3)          
+            pb <- utils::txtProgressBar(max = nsplit.resampling, style = 3)          
             progress <- function(n){utils::setTxtProgressBar(pb, n)}
             opts <- list(progress = progress)
         }else{
@@ -83,33 +87,35 @@ inferenceResampling <- function(envir){
             parallel::clusterExport(cl, varlist = "seqSeed", envir = environment())
         }         
 
-        ## export package
-        parallel::clusterCall(cl, fun = function(x){
-            suppressPackageStartupMessages(library(BuyseTest, quietly = TRUE, warn.conflicts = FALSE, verbose = FALSE))
-        })
         ## export functions
         toExport <- c(".BuyseTest","calcPeron","calcSample")
-        iB <- NULL ## [:forCRANcheck:] foreach        
-        ls.resampling <- foreach::`%dopar%`(
-                                      foreach::foreach(iB=1:n.resampling,
-                                                       .export = toExport,
-                                                       .packages = "data.table",
-                                                       .options.snow = opts),                                            
-                                      {
-                                          if(!is.null(seed)){set.seed(seqSeed[iB])}
-                                          iOut <- .BuyseTest(envir = envir,
-                                                             iid = iid,
-                                                             method.inference = method.inference,
-                                                             pointEstimation = FALSE)
-                                          if(!is.null(seed)){
-                                              return(c(iOut,list(seed = seqSeed[iB])))
-                                          }else{
-                                              return(iOut)
-                                          }                      
-                                       })
+        iB <- NULL ## [:forCRANcheck:] foreach
+
+        ls2.resampling <- foreach::`%dopar%`(
+                                       foreach::foreach(iB=1:nsplit.resampling,
+                                                        .export = toExport,
+                                                        .packages = c("data.table","BuyseTest"),
+                                                        .options.snow = opts), {
+                                           iOut <- lapply(split.resampling[[iB]], function(iSplit){
+                                               if(!is.null(seed)){set.seed(seqSeed[iSplit])}
+                                               iBT <- .BuyseTest(envir = envir,
+                                                                 iid = iid,
+                                                                 method.inference = method.inference,
+                                                                 pointEstimation = FALSE)
+                                               if(!is.null(seed)){
+                                                   return(c(iBT,list(seed = seqSeed[iSplit])))
+                                               }else{
+                                                   return(iBT)
+                                               }
+                                           })
+                                           return(iOut)
+                                       })        
 
         parallel::stopCluster(cl)
         if(trace>0){close(pb)}
+
+        ## collect
+        ls.resampling <- do.call("c",ls2.resampling)
     }
 
     ## ** post treatment

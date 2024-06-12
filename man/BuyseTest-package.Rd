@@ -54,3 +54,25 @@ Comparison between the net benefit and alternative measures of treatment effect:
 J. Peron, P. Roy, B. Ozenne, L. Roche, M. Buyse (2016). \bold{The net chance of a longer survival as a patient-oriented measure of benefit in randomized clinical trials}. \emph{JAMA Oncology} 2:901-5. \cr
 E. D. Saad , J. R. Zalcberg, J. Peron, E. Coart, T. Burzykowski, M. Buyse (2018). \bold{Understanding and communicating measures of treatment effect on survival: can we do better?}. \emph{J Natl Cancer Inst}.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/bozenne/BuyseTest}
+  \item Report bugs at \url{https://github.com/bozenne/BuyseTest/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Brice Ozenne \email{brice.mh.ozenne@gmail.com} (\href{https://orcid.org/0000-0001-9694-2956}{ORCID})
+
+Authors:
+\itemize{
+  \item Eva Cantagallo
+}
+
+Other contributors:
+\itemize{
+  \item Julien Peron [contributor]
+}
+
+}

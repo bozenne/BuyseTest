@@ -128,6 +128,7 @@ setMethod(f = "getIid",
                                refuse.NULL = TRUE,
                                refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
+                  strata <- level.strata[strata]
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
