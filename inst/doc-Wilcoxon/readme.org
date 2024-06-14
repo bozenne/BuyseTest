@@ -2,9 +2,18 @@ Instructions to run to prepare the vignette (to run before installing the packag
 
 - export R code
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-## devtools::build_vignettes("BuyseTest", quiet = FALSE) ## generate the META folder
-setwd(butils.base::pathGitHub())
-butils:::extractRchunk(file = "./BuyseTest/inst/doc-Wilcoxon/wilcoxonTest.org", newfile = "./BuyseTest/doc/wilcoxonTest.R", overwrite = TRUE)
+## devtools::build_vignettes("BuyseTest", quiet = FALSE) ## generate the META & DOC folder
+library(butils.base)
+setwd(pathGitHub())
+extractRchunk(file = "./BuyseTest/inst/doc-Wilcoxon/wilcoxonTest.org",
+              newfile = "./BuyseTest/vignettes/wilcoxonTest.pdf.asis",
+              header = c("%\\VignetteIndexEntry{BuyseTest: wilcoxon test}",
+                         "%\\VignetteEngine{R.rsp::asis}",
+                         "%\\VignetteKeyword{PDF}",
+                         "%\\VignetteKeyword{vignette}",
+                         "%\\VignetteKeyword{package}",
+                         ""),
+              overwrite = TRUE)
 #+END_SRC
 
 #+RESULTS:
@@ -12,8 +21,6 @@ butils:::extractRchunk(file = "./BuyseTest/inst/doc-Wilcoxon/wilcoxonTest.org", 
 - move to directory containing the package, compress vignette pdf file, and copy to =doc= and =vignettes= directories
 #+BEGIN_SRC shell
 cd ~/Documents/GitHub/BuyseTest/inst/doc-wilcoxonTest/
-gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=wilcoxonTest-compress.pdf wilcoxonTest.pdf
-cp wilcoxonTest-compress.pdf ../../doc/wilcoxonTest.pdf 
 gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=wilcoxonTest-compress.pdf wilcoxonTest.pdf
 cp wilcoxonTest-compress.pdf ../../vignettes/wilcoxonTest.pdf 
 #+END_SRC

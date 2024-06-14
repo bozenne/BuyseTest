@@ -220,7 +220,7 @@ setMethod(f = "summary",
                   table.print$strata <- NULL
                   name.print <- setdiff(name.print, "strata")
               }
-              if(!is.na(type.display.original) && "delta" %in% name.print && n.endpoint==1){
+              if(!is.na(type.display.original) && "delta" %in% name.print && n.endpoint==1 && n.strata == 1){
                   table.print$delta <- NULL
                   name.print <- setdiff(name.print, "delta")
               }
@@ -349,11 +349,14 @@ setMethod(f = "summary",
                                             )
                                      )
                   cat(paste(txt.statistic, collapse = "")," (delta: endpoint specific, Delta: global) \n")
-                  if(all(is.na(null))){
-                      cat(" - null hypothesis : requires specification of the argument \'null\' \n", sep = "")
-                      table.print$p.value <- NULL
-                  }else{
-                      cat(" - null hypothesis : Delta == ",stats::na.omit(null)[1]," \n", sep = "")
+
+                  if(method.inference != "none"){
+                      if(all(is.na(null))){
+                          cat(" - null hypothesis : requires specification of the argument \'null\' \n", sep = "")
+                          table.print$p.value <- NULL
+                      }else{
+                          cat(" - null hypothesis : Delta == ",stats::na.omit(null)[1]," \n", sep = "")
+                      }
                   }
 
                   if(method.inference != "none"){
@@ -404,12 +407,13 @@ setMethod(f = "summary",
               }
                   
               cat(" - treatment groups: ",object@level.treatment[2]," (treatment) vs. ",object@level.treatment[1]," (control) \n", sep = "")
-              if(attr(scoring.rule,"test.paired")){
+
+              if(n.strata>1){
+                  cat(" - strata weights  : ",paste(paste0(round(100*object@weightStrata, digit[1]),"%"), collapse = ", ")," \n", sep = "")
+              }else if(attr(scoring.rule,"test.paired") & length(object@weightStrata)>1){
                   table.weightStrata <- table(paste0(round(100*object@weightStrata, digit[1]),"%"))
                   cat(" - pair weights    : ",paste(names(table.weightStrata), collapse = ", ")," (K=",paste(table.weightStrata, collapse=","),")\n", sep = "")
-              }else if(n.strata>1){
-                  cat(" - strata weights  : ",paste(paste0(round(100*object@weightStrata, digit[1]),"%"), collapse = ", ")," \n", sep = "")
-              }
+              }else 
               if(any(object@type == "tte") && any(attr(scoring.rule,"test.censoring"))){
                       
                   if(all(attr(scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){

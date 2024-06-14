@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1201
+##     Update #: 1204
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -382,6 +382,10 @@ setMethod(f = "confint",
                   }
               }else{
                   if(method.inference == "varexact-permutation"){
+                      if(statistic == "winRatio"){
+                          stop("BuyseTest: cannot evaluate the exact variance of the permutation distribution for the win ratio. \n",
+                               "Consider using the net benefit instead (argument statistic = \"netBenefit\")")
+                      }
                       Delta.se <- sqrt(object@covariance[endpoint,statistic])
                   }else{
                       Delta.se <- NULL
@@ -955,7 +959,7 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
 
 
 ## * confint_varexactPermutation (called by confint)
-confint_varexactPermutation <- function(Delta, Delta.se, statistic, null,
+confint_varexactPermutation <- function(Delta, Delta.se, null,
                                         alternative, alpha,
                                         endpoint, ...){
 
@@ -991,7 +995,7 @@ confint_varexactPermutation <- function(Delta, Delta.se, statistic, null,
 }
 
 ## * confint_Ustatistic (called by confint)
-confint_Ustatistic <- function(Delta, Delta.se, statistic, null,
+confint_Ustatistic <- function(Delta, Delta.se, null,
                                alternative, alpha,
                                endpoint, backtransform.delta, backtransform.se, ...){
 

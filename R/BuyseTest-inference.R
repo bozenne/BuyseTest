@@ -326,8 +326,11 @@ inferenceUstatisticBebu <- function(tablePairScore, subset.C = NULL, subset.T = 
 }
 
 ## * inference permutation (Anderson and Verbeeck 2023)
-inferenceVarPermutation <- function(data, treatment, level.treatment,
-                                    ...){
+##' @description Implement the computation of the variance of the permutation distribution as described in Anderson and Verbeeck (2023)
+##' warperVarPerm, the core of this function, is essentially a copy of the code provided by the authors (Anderson and Verbeeck).
+##' @noRd
+##' @references William N Anderson and Johan Verbeeck. Exact permutation and bootstrap distribution of generalized pairwise comparisons statistics (2023), Mathematics.
+inferenceVarPermutation <- function(data, treatment, level.treatment, ...){
 
     ## ** extend data
     n.obs <- NROW(data)
@@ -349,7 +352,12 @@ inferenceVarPermutation <- function(data, treatment, level.treatment,
     if(sum(!is.na(strata))!=0){
         stop("BuyseTest: cannot handle strata when evaluating the exact variance of the permutation distribution. \n")
     }
-    
+    if(any("Peron" %in% eBT.all@scoring.rule)){
+        warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using the Peron scoring rule. \n")
+    }else if(any(eBT.all@correction.uninf>0)){
+        warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using a correction for uninformative pairs. \n")
+    }
+
     ## ** re-create the score matrix
     ls.winmatrix <- lapply(1:length(endpoint), function(iE){
         U.favorable <- matrix(0, nrow = n.obs, ncol = n.obs)

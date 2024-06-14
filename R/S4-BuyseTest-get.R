@@ -512,14 +512,14 @@ setMethod(f = "getPairScore",
                       weightEndpoint <- object@weightEndpoint[endpoint]
                       if(any(weightEndpoint!=1)){
                           test <- lapply(1:length(out), function(iE){
-                              out[[iE]][, c("favorable","unfavorable","neutral","uninf") := .(.SD$favorable*weightEndpoint[iE],
-                                                                                              .SD$unfavorable*weightEndpoint[iE],
-                                                                                              .SD$neutral*weightEndpoint[iE],
-                                                                                              .SD$uninf*weightEndpoint[iE])]
-                              out[[iE]][, c("favorableC","unfavorableC","neutralC","uninfC") := .(.SD$favorableC*weightEndpoint[iE],
-                                                                                                  .SD$unfavorableC*weightEndpoint[iE],
-                                                                                                  .SD$neutralC*weightEndpoint[iE],
-                                                                                                  .SD$uninfC*weightEndpoint[iE])]
+                              out[[iE]][, c("favorable","unfavorable","neutral","uninf") := list(.SD$favorable*weightEndpoint[iE],
+                                                                                                 .SD$unfavorable*weightEndpoint[iE],
+                                                                                                 .SD$neutral*weightEndpoint[iE],
+                                                                                                 .SD$uninf*weightEndpoint[iE])]
+                              out[[iE]][, c("favorableC","unfavorableC","neutralC","uninfC") := list(.SD$favorableC*weightEndpoint[iE],
+                                                                                                     .SD$unfavorableC*weightEndpoint[iE],
+                                                                                                     .SD$neutralC*weightEndpoint[iE],
+                                                                                                     .SD$uninfC*weightEndpoint[iE])]
                               return(NULL)
                           })
                       }
@@ -530,15 +530,15 @@ setMethod(f = "getPairScore",
                       out <- out.save[1]
 
                       for(iEndpoint in 2:length(out.save)){ ## iEndpoint
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorable","unfavorable","neutral","uninf") := .(.SD$favorable + out.save[[iEndpoint]]$favorable,
-                                                                                                                         .SD$unfavorable + out.save[[iEndpoint]]$unfavorable,
-                                                                                                                         .SD$neutral + out.save[[iEndpoint]]$neutral,
-                                                                                                                         .SD$uninf + out.save[[iEndpoint]]$uninf)]
+                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorable","unfavorable","neutral","uninf") := list(.SD$favorable + out.save[[iEndpoint]]$favorable,
+                                                                                                                            .SD$unfavorable + out.save[[iEndpoint]]$unfavorable,
+                                                                                                                            .SD$neutral + out.save[[iEndpoint]]$neutral,
+                                                                                                                            .SD$uninf + out.save[[iEndpoint]]$uninf)]
 
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorableC","unfavorableC","neutralC","uninfC") := .(.SD$favorableC + out.save[[iEndpoint]]$favorableC,
-                                                                                                                             .SD$unfavorableC + out.save[[iEndpoint]]$unfavorableC,
-                                                                                                                             .SD$neutralC + out.save[[iEndpoint]]$neutralC,
-                                                                                                                             .SD$uninfC + out.save[[iEndpoint]]$uninfC)]
+                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorableC","unfavorableC","neutralC","uninfC") := list(.SD$favorableC + out.save[[iEndpoint]]$favorableC,
+                                                                                                                                .SD$unfavorableC + out.save[[iEndpoint]]$unfavorableC,
+                                                                                                                                .SD$neutralC + out.save[[iEndpoint]]$neutralC,
+                                                                                                                                .SD$uninfC + out.save[[iEndpoint]]$uninfC)]
 
 
                       }

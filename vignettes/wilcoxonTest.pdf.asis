@@ -3,3 +3,103 @@
 %\VignetteKeyword{PDF}
 %\VignetteKeyword{vignette}
 %\VignetteKeyword{package}
+
+## * Single Wilcoxon test
+## ** Exact test
+
+## chunk 2
+x <- c(0.80, 0.83, 1.89, 1.04, 1.45, 1.38, 1.91, 1.64, 0.73, 1.46)
+y <- c(1.15, 0.88, 0.90, 0.74, 1.21)
+df <- rbind(data.frame(value = x, group="x"),
+            data.frame(value = y, group="y"))
+
+## chunk 3
+wilcox.test(value ~ group, data = df)
+
+## chunk 4
+asht::wmwTest(value ~ group, data = df, method = "exact.ce")
+
+## chunk 5
+eperm.BT <- BuyseTest(group ~ cont(value), data = df, add.halfNeutral = TRUE,
+                      method.inference = "permutation", n.resampling = 1e4,
+                      trace = FALSE, cpus = 5, seed = 10)
+confint(eperm.BT, statistic = "favorable")
+
+## chunk 6
+eU.BT <- BuyseTest(group ~ cont(value), data = df,
+                  add.halfNeutral = TRUE)
+confint(eU.BT, statistic = "favorable")
+
+## chunk 7
+etperm.BT <- BuyseTest(group ~ cont(value), data = df, add.halfNeutral = TRUE,
+                      method.inference = "studentized permutation", n.resampling = 1e4,
+                      trace = FALSE, seed = 10)
+confint(etperm.BT, statistic = "favorable")
+
+## ** Approximate test
+
+## chunk 8
+set.seed(10)
+df2 <- rbind(data.frame(value = round(rnorm(50),2), group="x"),
+             data.frame(value = round(rnorm(50),2), group="y"))
+any(duplicated(df2$value)) ## test whether there are any ties
+
+## chunk 9
+wilcox.test(value ~ group, data = df2)
+
+## chunk 10
+wmwTest(value ~ group, data = df2)
+
+## chunk 11
+wmwTest(value ~ group, data = df2, correct = FALSE)
+
+## chunk 12
+eperm.BT2 <- BuyseTest(group ~ cont(value), data = df2, add.halfNeutral = TRUE,
+                       method.inference = "varexact-permutation")
+confint(eperm.BT2, statistic = "favorable")
+
+## chunk 13
+eperm.BT2 <- BuyseTest(group ~ cont(value), data = df2, add.halfNeutral = TRUE,
+                       method.inference = "permutation", n.resampling = 1e4,
+                       trace = FALSE, cpus = 5, seed = 10)
+confint(eperm.BT2, statistic = "favorable", method.ci.resampling = "gaussian")
+
+## * Multiple Wilcoxon tests
+
+## chunk 14
+set.seed(35)
+dt <- simBuyseTest(n.T=25, n.strata = 5)
+dt$id <- paste0("id",1:NROW(dt))
+dt$strata <- as.character(dt$strata) 
+head(dt)
+
+## chunk 15
+BuyseTest.options(order.Hprojection=1);BuyseTest.options(trace=0)
+
+ls.BT <- list("b-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+                                  data = dt[dt$strata %in% c("a","b"),],
+                                  method.inference = "u-statistic"),
+              "c-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+                                  data = dt[dt$strata %in% c("a","c"),],
+                                  method.inference = "u-statistic"),
+              "d-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+                                  data = dt[dt$strata %in% c("a","d"),],
+                                  method.inference = "u-statistic"),
+              "e-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
+                                  data = dt[dt$strata %in% c("a","e"),],
+                                  method.inference = "u-statistic")
+              )
+
+M.confint <- do.call(rbind,lapply(ls.BT,confint, statistic = "favorable"))
+cbind(M.confint,adj.p.value = p.adjust(M.confint[,"p.value"], method = "bonferroni"))
+
+## chunk 16
+e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id", global = TRUE)
+print(e.mc, cols = c("estimate","se","p.value","adj.p.value"))
+
+## chunk 17
+M.cor <- cor(lava::iid(e.mc))
+dimnames(M.cor) <- list(names(ls.BT),names(ls.BT))
+M.cor
+
+## * References

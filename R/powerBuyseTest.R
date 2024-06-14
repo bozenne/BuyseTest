@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jun 12 2024 (11:00) 
+## Last-Updated: jun 14 2024 (14:50) 
 ##           By: Brice Ozenne
-##     Update #: 1303
+##     Update #: 1306
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -402,10 +402,10 @@ powerBuyseTest <- function(sim,
             if (trace > 1) {
                 if(cpus==1){
                     cat("   - estimated effect (variance): ",unname(DeltaMax)," (",sigma2Max,")\n",sep="")
-                    cat("   - estimated sample size      : (m=",sample.sizeC,", n=",sample.sizeT,")\n\n",sep="")
+                    cat("   - estimated sample size      : m=",sample.sizeC,", n=",sample.sizeT,"\n\n",sep="")
                 }else{
-                    cat("   - average estimated effect (variance): ",unname(mean(DeltaMax))," (",mean(sigma2Max),")\n",sep="")
-                    cat("   - average estimated sample size [min;max]      : (m=",
+                    cat("   - average estimated effect (variance)    : ",unname(mean(DeltaMax))," (",mean(sigma2Max),")\n",sep="")
+                    cat("   - average estimated sample size [min;max]: m=",
                         sample.sizeC," [",ceiling(min(n.approx*ratio["C"])),";",ceiling(max(n.approx*ratio["C"])),"], n=",
                         sample.sizeT," [",ceiling(min(n.approx*ratio["T"])),";",ceiling(max(n.approx*ratio["T"])),"]\n\n",sep="")
                 }
