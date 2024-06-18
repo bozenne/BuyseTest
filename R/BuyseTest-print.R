@@ -154,6 +154,8 @@ printInference <- function(method.inference, n.resampling, cpus, seed, ...){
             txt.type <- "moments of the U-statistic"
         }else if(attr(method.inference,"bootstrap")){
             txt.type <- paste0("non-parametric bootstrap with ",n.resampling," samples")
+        }else if(method.inference == "varexact-permutation"){
+            txt.type <- paste0("permutation test with all possible permutations")
         }else if(attr(method.inference,"permutation")){
             txt.type <- paste0("permutation test with ",n.resampling," permutations")
         }

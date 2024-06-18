@@ -21,7 +21,7 @@ setGeneric(name = "getCount",
 #' @exportMethod getPairScore
 #' @keywords methods
 setGeneric(name = "getPairScore",
-           def = function(object, endpoint = NULL, strata = NULL, sum = FALSE,
+           def = function(object, endpoint = NULL, strata = NULL, cumulative = FALSE,
                           rm.withinStrata = TRUE, rm.strata = is.na(object@strata),
                           rm.indexPair = TRUE, rm.weight = FALSE, rm.corrected = (object@correction.uninf==0),
                           unlist = TRUE, trace = 1){

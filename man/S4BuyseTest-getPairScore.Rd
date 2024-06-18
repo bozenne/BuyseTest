@@ -10,7 +10,7 @@ getPairScore(
   object,
   endpoint = NULL,
   strata = NULL,
-  sum = FALSE,
+  cumulative = FALSE,
   rm.withinStrata = TRUE,
   rm.strata = is.na(object@strata),
   rm.indexPair = TRUE,
@@ -24,7 +24,7 @@ getPairScore(
   object,
   endpoint = NULL,
   strata = NULL,
-  sum = FALSE,
+  cumulative = FALSE,
   rm.withinStrata = TRUE,
   rm.strata = is.na(object@strata),
   rm.indexPair = TRUE,
@@ -41,7 +41,7 @@ getPairScore(
 
 \item{strata}{[character vector] the strata relative to which the score should be output.}
 
-\item{sum}{[logical] should the scores be cumulated over endpoints?}
+\item{cumulative}{[logical] should the scores be cumulated over endpoints?}
 
 \item{rm.withinStrata}{[logical] should the columns indicating the position of each member of the pair
 within each treatment group be removed?}

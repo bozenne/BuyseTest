@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1204
+##     Update #: 1216
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -198,8 +198,10 @@ setMethod(f = "confint",
 
               ## method.ci
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
-                  if(is.null(method.ci.resampling)){                  
-                      if(attr(method.inference,"studentized")){
+                  if(is.null(method.ci.resampling)){
+                      if(method.inference == "varexact-permutation"){
+                          method.ci.resampling <- "gaussian"
+                      }else if(attr(method.inference,"studentized")){
                           method.ci.resampling <- "studentized"
                       }else{
                           method.ci.resampling <- "percentile"
@@ -214,6 +216,9 @@ setMethod(f = "confint",
                                  refuse.NULL = FALSE,                             
                                  method = "confint[S4BuyseTest]")
 
+                  if(method.ci.resampling != "gaussian" && method.inference == "varexact-permutation"){
+                      stop("Argument \'method.ci.resampling\' must be set to \'gaussian\' if argument \'method.inference\' has been set to \"varexact-permutation\" when calling BuyseTest. \n")
+                  }
                   if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
                       stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap/permutation has been performed.\n",
                            "Consider setting \'method.ci.resampling\' to \"percentile\" or \"gaussian\" \n",
@@ -225,11 +230,15 @@ setMethod(f = "confint",
                            "or set \'method.inference\' to \"studentized bootstrap\" or \"studentized permutation\" when calling BuyseTest. \n")
                   }
                   if(is.null(transformation)){
-                      if(method.ci.resampling=="percentile"){
+                      if(method.ci.resampling=="percentile" || method.inference == "varexact-permutation"){
                           transformation <- FALSE ## ensures consistency between p-values for different statistics as transformation may lead to numerical unaccuracies when comparing resampling to observed
                       }else{
                           transformation <- option$transformation
                       }
+                  }else if(transformation && method.inference == "varexact-permutation"){
+                      transformation <- FALSE
+                      message("Argument \'transformation\' has been set to FALSE. \n",
+                              "Transformation is not available if argument \'method.inference\' has been set to \"varexact-permutation\" when calling BuyseTest. \n")
                   }              
               }else{
                   if(is.null(transformation)){
@@ -381,12 +390,26 @@ setMethod(f = "confint",
                       Delta.se.resampling <- NULL
                   }
               }else{
+                  if(!is.null(cluster)){
+                      message("BuyseTest: argument \'cluster\' ignored when evaluating uncertainty with resampling methods. \n")
+                  }
+                      
                   if(method.inference == "varexact-permutation"){
                       if(statistic == "winRatio"){
                           stop("BuyseTest: cannot evaluate the exact variance of the permutation distribution for the win ratio. \n",
-                               "Consider using the net benefit instead (argument statistic = \"netBenefit\")")
+                               "Consider using the net benefit instead (argument statistic = \"netBenefit\"). \n")
                       }
-                      Delta.se <- sqrt(object@covariance[endpoint,statistic])
+                      if(cumulative == FALSE){
+                          stop("BuyseTest: cannot evaluate the exact variance of the permutation distribution for each endpoint separately. \n",
+                               "Consider setting the argument \'cumulative\' to TRUE. \n")
+                      }
+                      if((length(strata)==1 && all(strata=="global"))){
+                          Delta.se <- sqrt(object@covariance[endpoint,statistic])
+                      }else{
+                          Delta.se <- unlist(stats::setNames(lapply(endpoint, function(iE){ ## iE <- endpoint[1]
+                              c("global" = sqrt(object@covariance[iE,statistic]), sqrt(attr(object@covariance,"strata")[[iE]][,statistic]))[strata]
+                          }),endpoint))
+                      }
                   }else{
                       Delta.se <- NULL
                   }

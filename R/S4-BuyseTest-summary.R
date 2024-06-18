@@ -380,8 +380,11 @@ setMethod(f = "summary",
                   }
 
                   if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap") ){
-                      ok.resampling <- all(n.resampling[1]==n.resampling)
-                      if(ok.resampling){
+                      
+                      if(method.inference == "varexact-permutation"){
+                          txt.method <- paste0(txt.method, " with all possible samples \n")
+                          table.print$n.resampling <- NULL
+                      }else if(all(n.resampling[1]==n.resampling)){
                           txt.method <- paste0(txt.method, " with ",n.resampling[1]," samples \n")
                           table.print$n.resampling <- NULL
                       }else{

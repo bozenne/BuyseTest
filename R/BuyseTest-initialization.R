@@ -254,6 +254,19 @@ initializeArgs <- function(status,
                               )
         attr(pool.strata,"type") <- pool.strata_save
         attr(pool.strata,"original") <- pool.strata_save
+    }else if(is.numeric(pool.strata)){
+        pool.strata_save <- switch(as.character(pool.strata),
+                               "0" = "buyse",
+                               "1" = "cmh",
+                               "2" = "equal",
+                               "3.1" = "var-favorable",
+                               "3.2" = "var-unfavorable",
+                               "3.3" = "var-netbenefit",
+                               "3.4" = "var-winratio",
+                               NA
+                              )
+        attr(pool.strata,"type") <- pool.strata_save
+        attr(pool.strata,"original") <- pool.strata_save
     }else{
         pool.strata <- NA
     }
@@ -276,6 +289,9 @@ initializeArgs <- function(status,
         attr(method.inference,"resampling-strata") <- as.character(NA)
     }else{
         attr(method.inference,"resampling-strata") <- strata.resampling
+    }
+    if(method.inference == "varexact-permutation"){
+        n.resampling <- Inf
     }
 
     ## ** neutral.as.uninf

@@ -364,7 +364,7 @@ setMethod(f = "getIid",
 #' @param rm.indexPair [logical] should the column containing the number associated to each pair be removed from the output?
 #' @param rm.weight [logical] should the column weight be removed from the output?
 #' @param rm.corrected [logical] should the columns corresponding to the scores after weighting be removed from the output?
-#' @param sum [logical] should the scores be cumulated over endpoints?
+#' @param cumulative [logical] should the scores be cumulated over endpoints?
 #' @param unlist [logical] should the structure of the output be simplified when possible?
 #' @param trace [logical] should a message be printed to explain what happened
 #' when the function returned \code{NULL}?
@@ -449,7 +449,7 @@ setMethod(f = "getIid",
 ## * getPairScore (code)
 setMethod(f = "getPairScore",
           signature = "S4BuyseTest",
-          definition = function(object, endpoint, strata, sum,
+          definition = function(object, endpoint, strata, cumulative,
                                 rm.withinStrata, rm.strata, rm.indexPair, rm.weight, rm.corrected,
                                 unlist, trace){
 
@@ -481,32 +481,33 @@ setMethod(f = "getPairScore",
                       out <- out[endpoint] 
                   }
 
-                  ## ** add strata
+                  ## ** restrict to strata strata
                   if(!is.null(strata)){
                       if(is.numeric(strata)){
                           validInteger(strata, min = 1, max = length(strata.names), valid.length = NULL,
                                        refuse.duplicates = TRUE)
+                          strata <- strata.names[strata]
                       }else if(is.character(strata)){
                           validCharacter(strata, valid.length = NULL, valid.values = strata.names,
                                          refuse.duplicates = TRUE)
-                          strata <- match(strata, strata.names)
                       }else{
                           stop("Argument \'endpoint\' must be a numeric of character vector \n")
                       }
-                      
-                      for(iEndpoint in 1:length(out)){ ## iEndpoint <- 1
-                          index.strata <- which(out[[iEndpoint]]$strata %in% strata)
-                          out[[iEndpoint]][, c("strata") := factor(.SD$strata, levels = 1:length(strata.names), labels = strata.names)]
-                          out[[iEndpoint]] <- out[[iEndpoint]][index.strata]
+
+                      if(length(strata.names)>1){
+                          for(iEndpoint in 1:length(out)){ ## iEndpoint <- 1
+                              index.strata <- which(out[[iEndpoint]]$strata %in% strata)
+                              out[[iEndpoint]] <- out[[iEndpoint]][index.strata]
+                          }
                       }
 
                   }
 
                   old.names <- c("index.C", "index.T", "indexWithinStrata.C", "indexWithinStrata.T")
                   new.names <- c(paste0("index.",object@level.treatment), paste0("indexWithinStrata.",object@level.treatment))
-                  
+
                   ## ** cumulate endpoints
-                  if(sum && length(out)>1){
+                  if(cumulative){
 
                       ## *** add weights
                       weightEndpoint <- object@weightEndpoint[endpoint]
@@ -525,27 +526,28 @@ setMethod(f = "getPairScore",
                       }
 
                       ## *** cumulate
-                      test <- lapply(out, function(iOut){data.table::setkeyv(iOut,"index.pair")})
-                      out.save <- out
-                      out <- out.save[1]
+                      if(length(out)>1){
+                          out <- lapply(out, function(iOut){data.table::setkeyv(iOut,"index.pair")})
 
-                      for(iEndpoint in 2:length(out.save)){ ## iEndpoint
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorable","unfavorable","neutral","uninf") := list(.SD$favorable + out.save[[iEndpoint]]$favorable,
-                                                                                                                            .SD$unfavorable + out.save[[iEndpoint]]$unfavorable,
-                                                                                                                            .SD$neutral + out.save[[iEndpoint]]$neutral,
-                                                                                                                            .SD$uninf + out.save[[iEndpoint]]$uninf)]
+                          for(iEndpoint in 2:length(out)){ ## iEndpoint <- 2
+                              iOut.save <- out[[iEndpoint]]
+                              out[[iEndpoint]] <- data.table::copy(out[[iEndpoint-1]])
+                              out[[iEndpoint]][iOut.save$index.pair, c("favorable","unfavorable","neutral","uninf") := list(.SD$favorable + iOut.save$favorable,
+                                                                                                                            .SD$unfavorable + iOut.save$unfavorable,
+                                                                                                                            iOut.save$neutral,
+                                                                                                                            iOut.save$uninf)]
 
-                          out[[1]][out.save[[iEndpoint]]$index.pair, c("favorableC","unfavorableC","neutralC","uninfC") := list(.SD$favorableC + out.save[[iEndpoint]]$favorableC,
-                                                                                                                                .SD$unfavorableC + out.save[[iEndpoint]]$unfavorableC,
-                                                                                                                                .SD$neutralC + out.save[[iEndpoint]]$neutralC,
-                                                                                                                                .SD$uninfC + out.save[[iEndpoint]]$uninfC)]
-
+                              out[[iEndpoint]][iOut.save$index.pair, c("favorableC","unfavorableC","neutralC","uninfC") := list(.SD$favorableC + iOut.save$favorableC,
+                                                                                                                                .SD$unfavorableC + iOut.save$unfavorableC,
+                                                                                                                                iOut.save$neutralC,
+                                                                                                                                iOut.save$uninfC)]
+                          }
+                          out <- lapply(out, function(iOut){data.table::setkeyv(iOut,c("index.T","index.C"))})
 
                       }
-                      data.table::setkeyv(out[[1]],c("index.T","index.C"))                      
                   }
-                  
-                  for(iEndpoint in 1:length(out)){ ## iEndpoint <- 1
+ 
+                  for(iEndpoint in 1:length(out)){ ## iEndpoint <- 2
                       if(rm.withinStrata){
                           out[[iEndpoint]][,c("indexWithinStrata.T","indexWithinStrata.C") := NULL]
                           data.table::setnames(out[[iEndpoint]], old = old.names[1:2], new = new.names[1:2])
