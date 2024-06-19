@@ -280,17 +280,17 @@ initializeArgs <- function(status,
     }
 
     ## ** method.inference
-    method.inference <- tolower(method.inference)    
+    method.inference <- gsub("-"," ",tolower(method.inference),fixed = TRUE)
     attr(method.inference,"permutation") <- grepl("permutation",method.inference)
     attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
     attr(method.inference,"studentized") <- grepl("studentized",method.inference)
-    attr(method.inference,"ustatistic") <- grepl("u-statistic",method.inference)
+    attr(method.inference,"ustatistic") <- grepl("u statistic",method.inference)
     if(is.na(strata.resampling) || length(strata.resampling)== 0){
         attr(method.inference,"resampling-strata") <- as.character(NA)
     }else{
         attr(method.inference,"resampling-strata") <- strata.resampling
     }
-    if(method.inference == "varexact-permutation"){
+    if(method.inference == "varexact permutation"){
         n.resampling <- Inf
     }
 
@@ -324,7 +324,7 @@ initializeArgs <- function(status,
     }
 
     ## ** iid
-    iid <- attr(method.inference,"studentized") || (method.inference == "u-statistic")
+    iid <- attr(method.inference,"studentized") || (method.inference == "u statistic")
     if(iid){
         attr(method.inference,"hprojection") <- option$order.Hprojection
     }else{

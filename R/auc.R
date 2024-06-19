@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: okt 25 2023 (11:23) 
+## Last-Updated: jun 19 2024 (12:22) 
 ##           By: Brice Ozenne
-##     Update #: 470
+##     Update #: 471
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -151,7 +151,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
     if(is.na(conf.level)){
         method.inference <- "none"
     }else{
-        method.inference <- "u-statistic"
+        method.inference <- "u statistic"
     }
     
     ## ** Prepare 
@@ -243,7 +243,7 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
             if(method.inference!="none"){
                 iIID.BT <- getIid(e.BT, scale = normWithinStrata, center = normWithinStrata, statistic = "favorable")[,1]
                 out[match(name.fold,out$fold),"se"] <- sqrt(as.double(tapply(iIID.BT, fold, crossprod)))
-                ## iE.BT <- BuyseTest(formula0, method.inference = "u-statistic", data = df[df$fold==name.fold[2],,drop=FALSE], trace = 0, add.halfNeutral = add.halfNeutral)
+                ## iE.BT <- BuyseTest(formula0, method.inference = "u statistic", data = df[df$fold==name.fold[2],,drop=FALSE], trace = 0, add.halfNeutral = add.halfNeutral)
                 ## confint(iE.BT, statistic = "favorable")
 
                 for(iFold in 1:n.fold){

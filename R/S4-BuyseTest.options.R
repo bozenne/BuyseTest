@@ -105,11 +105,12 @@ setClass(
                    name1 = "@keep.survival",
                    valid.length = 1,
                    method = "Class BuyseTest.options")
-      validCharacter(object@method.inference,
+      validCharacter(gsub("-"," ",tolower(object@method.inference), fixed = TRUE),
                      name1 = "@resampling",
                      valid.values = c("bootstrap", "stratified bootstrap", "studentized bootstrap", "studentized stratified bootstrap",
-                                      "permutation", "stratified permutation",
-                                      "none", "u-statistic", "u-statistic-bebu"),
+                                      "none",
+                                      "permutation", "stratified permutation", "varexact permutation",
+                                      "u statistic", "u statistic bebu"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
       validCharacter(object@scoring.rule,

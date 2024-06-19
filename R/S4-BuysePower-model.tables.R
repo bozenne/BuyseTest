@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 27 2023 (14:29) 
 ## Version: 
-## Last-Updated: Jul  3 2023 (10:53) 
+## Last-Updated: jun 19 2024 (12:19) 
 ##           By: Brice Ozenne
-##     Update #: 46
+##     Update #: 47
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -155,7 +155,7 @@ setMethod(f = "model.tables",
               }
               
               ## ** export
-              if(method.inference == "u-statistic"){                          
+              if(method.inference == "u statistic"){                          
                   if(transformation){
                       attr(dtS.res,"transformation") <- stats::setNames(dt.res[index.subset,.SD$transformation],dt.res[index.subset,.SD$statistic])[!duplicated(dt.res[index.subset,.SD$transformation])]
                   }

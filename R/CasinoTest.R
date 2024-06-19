@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: jul 18 2023 (12:06) 
+## Last-Updated: jun 19 2024 (12:23) 
 ##           By: Brice Ozenne
-##     Update #: 111
+##     Update #: 114
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -129,9 +129,9 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     }
     data <- as.data.frame(data)
     data$XXindexXX <- 1:NROW(data)
-    method.inference <- match.arg(method.inference, c("none","u-statistic","rank"))
+    method.inference <- match.arg(gsub("-"," ",tolower(method.inference), fixed = TRUE), c("none","u statistic","rank"))
     if(method.inference=="rank"){
-        method.inference <- "u-statistic"
+        method.inference <- "u statistic"
         ssc <- TRUE
     }else{
         ssc <- FALSE
@@ -172,7 +172,7 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     ## prepare to store output
     M.estimate <- matrix(NA, nrow = n.treatment, ncol = n.treatment,
                          dimnames = list(level.treatment, level.treatment))
-    if(method.inference == "u-statistic"){
+    if(method.inference == "u statistic"){
         M.iid <- array(0, dim = c(n.obs,n.treatment,n.treatment),
                        dimnames = list(NULL, level.treatment, level.treatment))
     }else{
@@ -201,7 +201,7 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
         }
 
         ## store iid
-        if(method.inference == "u-statistic"){
+        if(method.inference == "u statistic"){
             if(iTreat1==iTreat2){
                 iIndex <- unique(sort(iData$XXindexXX))
                 M.iid[iIndex,iTreat1,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = "favorable", scale = FALSE, center = TRUE, cluster = iData$XXindexXX)/n.group[iTreat1]
@@ -289,7 +289,7 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
 
 
 ## alternative implementation 
-##     if(method.inference == "u-statistic"){
+##     if(method.inference == "u statistic"){
 ##         if(iTreat1==iTreat2){
 ##             iIndex <- unique(sort(iData$XXindexXX))
 ##             M.iid[iIndex,iTreat1,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = "favorable", scale = FALSE, center = FALSE, cluster = iData$XXindexXX)

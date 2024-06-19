@@ -441,9 +441,9 @@ BuyseTest <- function(formula,
     }
 
     outResampling <- NULL
-    if(outArgs$method.inference == "u-statistic"){
+    if(outArgs$method.inference == "u statistic"){
         ## done in the C++ code        
-    }else if(outArgs$method.inference == "u-statistic-bebu"){
+    }else if(outArgs$method.inference == "u statistic bebu"){
         if(outArgs$keep.pairScore == FALSE){
             stop("Argument \'keep.pairScore\' needs to be TRUE when argument \'method.inference\' is \"u-statistic-bebu\" \n")
         }
@@ -461,7 +461,7 @@ BuyseTest <- function(formula,
 
         outPoint$covariance <- outCovariance$Sigma
         attr(outArgs$method.inference,"Hprojection") <- option$order.Hprojection
-    }else if(outArgs$method.inference == "varexact-permutation"){
+    }else if(outArgs$method.inference == "varexact permutation"){
 
         if(!is.null(outArgs$weightObs) && any(abs(outArgs$weightObs-1)>1e-10)){
             warning("Argument \'weightObs\' is being ignored when computing the exact permutation variance. \n")
@@ -670,7 +670,7 @@ calcSample <- function(envir, method.inference){
         data = data.table::data.table()
     )
 
-    if(method.inference %in% c("none","u-statistic")){
+    if(method.inference %in% c("none","u statistic")){
 
         ## ** no resampling
         if(envir$outArgs$n.strata==1){        

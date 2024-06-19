@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: okt  3 2023 (19:06) 
+## Last-Updated: jun 19 2024 (12:22) 
 ##           By: Brice Ozenne
-##     Update #: 346
+##     Update #: 347
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -89,7 +89,7 @@ setMethod(f = "sensitivity",
 
               ## ** normalize user input
               ## band
-              if(object@method.inference!="u-statistic"){
+              if(object@method.inference!="u statistic"){
                   stop("Cannot compute confidence bands when \'method.inference\' used to obtain the object is not \"u-statistic\". \n")
               }
               
@@ -226,7 +226,7 @@ setMethod(f = "sensitivity",
 
                       iConfint <- confint(iBT, statistic = statistic, null = null, conf.level = conf.level, alternative = alternative, transformation = transformation)[n.endpoint,]
                       ls.confint[[iSe]] <- data.frame(c(gridRed.threshold[iSe,,drop=FALSE], iConfint))
-                      if(iBT@method.inference=="u-statistic"){
+                      if(iBT@method.inference=="u statistic"){
                           ls.iid[[iSe]] <- getIid(iBT, statistic = statistic,simplify=FALSE)$global[,n.endpoint]
                       }
                   }
@@ -257,7 +257,7 @@ setMethod(f = "sensitivity",
 
                                                      iConfint <- confint(iBT, statistic = statistic, null = null, conf.level = conf.level, alternative = alternative, transformation = transformation)[n.endpoint,]
                                                      iOut <- list(confint = data.frame(c(gridRed.threshold[i,,drop=FALSE], iConfint)))
-                                                     if(iBT@method.inference=="u-statistic"){
+                                                     if(iBT@method.inference=="u statistic"){
                                                          iOut[["iid"]] <- getIid(iBT, statistic = statistic)[,n.endpoint]
                                                      }
                                                      return(iOut)
@@ -267,13 +267,13 @@ setMethod(f = "sensitivity",
                   if(trace>0){close(pb)}
 
                   ls.confint <- lapply(ls.sensitivity,"[[","confint")
-                  if(object@method.inference=="u-statistic"){
+                  if(object@method.inference=="u statistic"){
                       ls.iid <- lapply(ls.sensitivity,"[[","iid")
                   }
               }
               
               df.confint <- as.data.frame(do.call(rbind,ls.confint))
-              if(object@method.inference=="u-statistic"){
+              if(object@method.inference=="u statistic"){
                   attr(df.confint, "iid") <- do.call(cbind,ls.iid)
               }
               

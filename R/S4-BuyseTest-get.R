@@ -98,7 +98,7 @@ setMethod(f = "getIid",
               n.obs <- NROW(object@iidAverage$favorable)
 
               ## iid has been stored in object
-              if(object@method.inference != "u-statistic"){
+              if(object@method.inference != "u statistic"){
                   stop("No H-decomposition in the object \n",
                        "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
               }
@@ -178,9 +178,9 @@ setMethod(f = "getIid",
               indexT <- attr(object@level.treatment,"indexT")
               
               ## type
-              validCharacter(type,
+              validCharacter(gsub("-"," ",tolower(type), fixed = TRUE),
                              valid.length = 1,
-                             valid.values = c("all","nuisance","u-statistic"),
+                             valid.values = c("all","nuisance","u statistic"),
                              refuse.NULL = FALSE)
 
 
@@ -208,7 +208,7 @@ setMethod(f = "getIid",
               ## }
 
               ## ** extract H-decomposition
-              if(type %in% c("all","u-statistic")){
+              if(type %in% c("all","u statistic")){
                   object.iid <- object@iidAverage[c("favorable","unfavorable")]
               }else{
                   object.iid <- list(favorable = matrix(0, nrow = n.obs, ncol = n.endpoint,

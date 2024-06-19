@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1216
+##     Update #: 1224
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -199,7 +199,7 @@ setMethod(f = "confint",
               ## method.ci
               if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap")){
                   if(is.null(method.ci.resampling)){
-                      if(method.inference == "varexact-permutation"){
+                      if(method.inference == "varexact permutation"){
                           method.ci.resampling <- "gaussian"
                       }else if(attr(method.inference,"studentized")){
                           method.ci.resampling <- "studentized"
@@ -216,8 +216,8 @@ setMethod(f = "confint",
                                  refuse.NULL = FALSE,                             
                                  method = "confint[S4BuyseTest]")
 
-                  if(method.ci.resampling != "gaussian" && method.inference == "varexact-permutation"){
-                      stop("Argument \'method.ci.resampling\' must be set to \'gaussian\' if argument \'method.inference\' has been set to \"varexact-permutation\" when calling BuyseTest. \n")
+                  if(method.ci.resampling != "gaussian" && method.inference == "varexact permutation"){
+                      stop("Argument \'method.ci.resampling\' must be set to \'gaussian\' if argument \'method.inference\' has been set to \"varexact permutation\" when calling BuyseTest. \n")
                   }
                   if(method.ci.resampling == "studentized" && !attr(method.inference,"studentized")){
                       stop("Argument \'method.ci.resampling\' cannot be set to \'studentized\' unless a studentized bootstrap/permutation has been performed.\n",
@@ -230,15 +230,15 @@ setMethod(f = "confint",
                            "or set \'method.inference\' to \"studentized bootstrap\" or \"studentized permutation\" when calling BuyseTest. \n")
                   }
                   if(is.null(transformation)){
-                      if(method.ci.resampling=="percentile" || method.inference == "varexact-permutation"){
+                      if(method.ci.resampling=="percentile" || method.inference == "varexact permutation"){
                           transformation <- FALSE ## ensures consistency between p-values for different statistics as transformation may lead to numerical unaccuracies when comparing resampling to observed
                       }else{
                           transformation <- option$transformation
                       }
-                  }else if(transformation && method.inference == "varexact-permutation"){
+                  }else if(transformation && method.inference == "varexact permutation"){
                       transformation <- FALSE
                       message("Argument \'transformation\' has been set to FALSE. \n",
-                              "Transformation is not available if argument \'method.inference\' has been set to \"varexact-permutation\" when calling BuyseTest. \n")
+                              "Transformation is not available if argument \'method.inference\' has been set to \"varexact permutation\" when calling BuyseTest. \n")
                   }              
               }else{
                   if(is.null(transformation)){
@@ -322,7 +322,7 @@ setMethod(f = "confint",
               
               ## safety
               test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
-              if(method.inference %in% c("u-statistic","u-statistic-bebu") && object@correction.uninf > 0){
+              if(method.inference %in% c("u statistic","u statistic bebu") && object@correction.uninf > 0){
                   warning("The current implementation of the asymptotic distribution is not valid when using a correction. \n",
                           "Standard errors / confidence intervals / p-values may not be correct. \n",
                           "Consider using a resampling approach or checking the control of the type 1 error with powerBuyseTest. \n")
@@ -344,7 +344,7 @@ setMethod(f = "confint",
                   Delta <- stats::setNames(DeltaL$statistic, paste(DeltaL$time, DeltaL$strata, sep = sep))
               }
 
-              if(((attr(method.inference,"permutation") && method.inference != "varexact-permutation")) || attr(method.inference,"bootstrap")){
+              if(((attr(method.inference,"permutation") && method.inference != "varexact permutation")) || attr(method.inference,"bootstrap")){
                   DeltaW.resampling <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = TRUE, simplify = FALSE)
                   if(length(strata)==1 && all(strata=="global")){
                       Delta.resampling <- matrix(DeltaW.resampling[,"global",], ncol = length(endpoint), dimnames = list(NULL, endpoint))
@@ -394,7 +394,7 @@ setMethod(f = "confint",
                       message("BuyseTest: argument \'cluster\' ignored when evaluating uncertainty with resampling methods. \n")
                   }
                       
-                  if(method.inference == "varexact-permutation"){
+                  if(method.inference == "varexact permutation"){
                       if(statistic == "winRatio"){
                           stop("BuyseTest: cannot evaluate the exact variance of the permutation distribution for the win ratio. \n",
                                "Consider using the net benefit instead (argument statistic = \"netBenefit\"). \n")
@@ -437,7 +437,7 @@ setMethod(f = "confint",
               if(method.inference == "none"){
                   method.confint <- confint_none
                   transformation <- FALSE
-              }else if(method.inference == "varexact-permutation"){
+              }else if(method.inference == "varexact permutation"){
                   method.confint <- confint_varexactPermutation
               }else if(attr(method.inference,"ustatistic")){
                   method.confint <- confint_Ustatistic
@@ -605,7 +605,7 @@ setMethod(f = "confint",
               outConfint <- as.data.frame(outConfint)
 
               ## ** number of permutations
-              if(method.inference != "none" && ((attr(method.inference,"permutation") && (method.inference!="varexact-permutation")) || attr(method.inference,"bootstrap"))){
+              if(method.inference != "none" && ((attr(method.inference,"permutation") && (method.inference!="varexact permutation")) || attr(method.inference,"bootstrap"))){
                   attr(outConfint, "n.resampling")  <- colSums(!is.na(Delta.resampling))
               }else{
                   attr(outConfint, "n.resampling")  <- stats::setNames(rep(as.numeric(NA), D), all.endpoint)

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jun 14 2024 (14:50) 
+## Last-Updated: jun 19 2024 (12:22) 
 ##           By: Brice Ozenne
-##     Update #: 1306
+##     Update #: 1309
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -366,7 +366,7 @@ powerBuyseTest <- function(sim,
             ls.BTmax <- do.call("c",ls2.BTmax)
         }
 
-        if(ls.BTmax[[1]]@method.inference == "u-statistic"){
+        if(ls.BTmax[[1]]@method.inference == "u statistic"){
             DeltaMax <- sapply(ls.BTmax, function(iBT){utils::tail(coef(iBT, statistic = names(null)),1) - null})
             IidMax <- do.call(cbind,lapply(ls.BTmax, FUN = getIid, statistic = names(null), scale = FALSE))
                 
@@ -412,7 +412,7 @@ powerBuyseTest <- function(sim,
             }
             
         }else{
-            stop("Can only determine the sample size when argument \'method.inference\' equals \"u-statistic\". \n")
+            stop("Can only determine the sample size when argument \'method.inference\' equals \"u statistic\". \n")
         }
     }
     
@@ -437,7 +437,7 @@ powerBuyseTest <- function(sim,
         ##     if(!is.null(outArgs$strata)){
         ##         stop("Cannot use argument \'strata\' with powerBuyseTest \n")
         ##     }
-        ##     if(outArgs$method.inference %in% c("none","u-statistic") == FALSE){
+        ##     if(outArgs$method.inference %in% c("none","u statistic") == FALSE){
         ##         stop("Argument \'method.inference\' must be \"none\" or \"u-statistic\" \n")
         ##     }
     }
@@ -645,7 +645,7 @@ powerBuyseTest <- function(sim,
     index.T <- envir$outArgs$index.T
 
     ## ** Point estimate for the largest sample size
-    if(envir$outArgs$method.inference %in% c("none","u-statistic")){
+    if(envir$outArgs$method.inference %in% c("none","u statistic")){
         ## compute estimate and possibly uncertainty
         outPoint <- .BuyseTest(envir = envir,
                                method.inference = envir$outArgs$method.inference,
@@ -710,7 +710,7 @@ powerBuyseTest <- function(sim,
                 iData <- rbind(data[index.C[1:envir$sample.sizeC[iSize]]],
                                data[index.T[1:envir$sample.sizeT[iSize]]])
 
-                if(envir$outArgs$method.inference %in% c("none","u-statistic")){
+                if(envir$outArgs$method.inference %in% c("none","u statistic")){
                     envir$outArgs[out.name] <- initializeData(data = iData,
                                                               type = envir$outArgs$type,
                                                               endpoint = envir$outArgs$endpoint,
