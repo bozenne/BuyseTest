@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jun 19 2024 (12:17) 
+## Last-Updated: jun 24 2024 (12:02) 
 ##           By: Brice Ozenne
-##     Update #: 357
+##     Update #: 359
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -353,14 +353,14 @@ testArgs <- function(name.call,
     if(length(method.inference)!=1){
         stop("Argument \'method.inference\' must have length 1. \n")
     }
-    if(method.inference %in% c("u statistic bebu","varexact permutation") == FALSE){ ## asympototic bebu and varexact-permutation - hidden value only for debugging
+    if(method.inference %in% c("u statistic bebu") == FALSE){ ## asympototic bebu - hidden value only for debugging
         validCharacter(method.inference,
                        valid.length = 1,
-                       valid.values = c("none","u statistic","permutation","studentized permutation","bootstrap","studentized bootstrap"),
+                       valid.values = c("none","u statistic","permutation","studentized permutation","varexact permutation","bootstrap","studentized bootstrap"),
                        method = "BuyseTest")
     }
     
-    if(pool.strata>3 && method.inference %in% c("u statistic","varexact permutation","studentized permutation","studentized bootstrap")){
+    if(pool.strata>3 && method.inference %in% c("u statistic","varexact permutation","studentized permutation","varexact permutation","studentized bootstrap")){
         stop("Only bootstrap and permutation can be used to quantify uncertainty when weighting strata-specific effects by the inverse of the variance. \n")
     }
     if(method.inference != "none" && any(table(data[[treatment]])<2) ){

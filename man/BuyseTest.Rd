@@ -59,7 +59,7 @@ See Details, section "Handling missing values".}
 Models must \code{prodlim} objects and stratified on the treatment and strata variable. When used, the uncertainty from the estimates of these survival models is ignored.}
 
 \item{method.inference}{[character] method used to compute confidence intervals and p-values.
-Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"studentized permutation"}, \code{"bootstrap"}, \code{"studentized bootstrap"}.
+Can be \code{"none"}, \code{"u-statistic"}, \code{"permutation"}, \code{"studentized permutation"}, \code{"bootstrap"}, \code{"studentized bootstrap"}, \code{"varExact permutation"}.
 See Details, section "Statistical inference".}
 
 \item{n.resampling}{[integer] the number of permutations/samples used for computing the confidence intervals and the p.values. 
@@ -165,15 +165,14 @@ The argument \code{method.inference} defines how to approximate the distribution
 Available methods are:
 \itemize{
   \item argument \code{method.inference="none"}: only the point estimate is computed which makes the execution of the \code{BuyseTest} faster than with the other methods.
-  \item argument \code{method.inference="u-statistic"}: uses a Gaussian approximation to obtain the distribution of the GPC estimators.
-The U-statistic theory indicates that this approximation is asymptotically exact.
-The variance is computed using a H-projection of order 1 (default option), which is a consistent but downward biased estimator.
-An unbiased estimator can be obtained using a H-projection of order 2 (only available for the uncorrected Gehan's scoring rule, see \code{BuyseTest.options}).
+  \item argument \code{method.inference="u-statistic"}: compute the variance of the estimate using a H-projection of order 1 (default option) or 2 (see \code{BuyseTest.options}). The first order is downward biased but consistent. When considering the Gehan scoring rule, no transformation nor correction, the second order is unbiased and equivalent to the variance of the bootstrap distribution. P-values and confidence intervals are then evaluated assuming that the estimates follow a Gaussian distribution.
 \bold{WARNING}: the current implementation of the H-projection is not valid when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}).
   \item argument \code{method.inference="permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio).
   \item argument \code{method.inference="studentized permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimate.
+  \item argument \code{method.inference="varExact permutation"}: compute the variance of the permutation distribution using a closed-form formula (Anderson and Verbeeck 2023). P-values and confidence intervals are then evaluated assuming that the estimates follow a Gaussian distribution.
+\bold{WARNING}: the current implementation of the variance estimator for the permutation distribution is not valid when using the Peron scoring rule or corrections for uninformative pairs.
   \item argument \code{method.inference="bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio).
-  \item argument \code{method.inference=" studentized bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimator.
+  \item argument \code{method.inference="studentized bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimator.
 }
 Additional arguments for permutation and bootstrap resampling:
 \itemize{
@@ -297,7 +296,8 @@ On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to compa
 On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
 On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 On inference in GPC using the U-statistic theory: Ozenne B, Budtz-Jorgensen E, Peron J (2021). \bold{The asymptotic distribution of the Net Benefit estimator in presence of right-censoring}. \emph{Statistical Methods in Medical Research} 2021 doi:10.1177/09622802211037067 \cr
-On how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906.
+On how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. 
+On closed-form formula for permutation variance:  W.N. Anderson and J. Verbeeck (2023). \bold{Exact Permutation and Bootstrap Distribution of Generalized Pairwise Comparisons Statistics}. \emph{Mathematics} , 11, 1502. doi:10.3390/math11061502.
 }
 \seealso{
 \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
