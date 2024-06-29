@@ -5,7 +5,7 @@ Instructions to run to prepare the vignette (to run before installing the packag
 ## devtools::build_vignettes("BuyseTest", quiet = FALSE) ## generate the META & DOC folder
 library(butils.base)
 setwd(pathGitHub())
-extractRchunk(file = "./BuyseTest/inst/doc-overview/overview.org",
+extractRchunk(file = "./BuyseTest/inst/doc-software/overview.org",
               newfile = "./BuyseTest/vignettes/overview.pdf.asis",
               header = c("%\\VignetteIndexEntry{BuyseTest: overview}",
                          "%\\VignetteEngine{R.rsp::asis}",
