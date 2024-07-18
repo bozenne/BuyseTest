@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: sep 27 2023 (17:33) 
+## Last-Updated: jul 12 2024 (13:48) 
 ##           By: Brice Ozenne
-##     Update #: 315
+##     Update #: 316
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -201,7 +201,7 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
     }else{
         statistic <- estimate - null
         if(checkSign && sign(statistic.boot)!=sign(statistic)){
-            message("the estimate and the average bootstrap estimate do not have same sign \n")
+            message("the estimate and the average bootstrap estimate are not of the same side of the null hypothesis \n")
         }
     }
     sign.statistic <- statistic>=0
