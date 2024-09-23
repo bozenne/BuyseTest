@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  1 2019 (23:06) 
 ## Version: 
-## Last-Updated: jan 23 2024 (13:54) 
+## Last-Updated: sep 23 2024 (18:17) 
 ##           By: Brice Ozenne
-##     Update #: 133
+##     Update #: 134
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -163,7 +163,8 @@ iid.prodlim <- function(x, add0 = FALSE, ...){
 
         ## survival
         ## note use exp(-surv) instead of product limit for consistency with riskRegression
-        IFsurvival[[iStrata]][iSubsetObs,] <- .rowMultiply_cpp(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], scale = exp(-cumsum(iTableHazard$hazard)))
+        ## IFsurvival[[iStrata]][iSubsetObs,] <- .rowMultiply_cpp(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], scale = exp(-cumsum(iTableHazard$hazard)))
+        IFsurvival[[iStrata]][iSubsetObs,] <- .rowMultiply_cpp(-IFcumhazard[[iStrata]][iSubsetObs,,drop=FALSE], scale = iTableHazard$survival)
         IFcif[[iStrata]][iSubsetObs,] <- 1 - IFsurvival[[iStrata]][iSubsetObs,]
     }
     

@@ -185,6 +185,7 @@ setMethod(f = "getIid",
 
 
               ##  statistic
+              add.halfNeutral <- slot(object,"add.halfNeutral")
               if(is.null(statistic)){
                   statistic <- option$statistic
               }else{
@@ -209,12 +210,14 @@ setMethod(f = "getIid",
 
               ## ** extract H-decomposition
               if(type %in% c("all","u statistic")){
-                  object.iid <- object@iidAverage[c("favorable","unfavorable")]
+                  object.iid <- object@iidAverage[c("favorable","unfavorable","neutral")]
               }else{
                   object.iid <- list(favorable = matrix(0, nrow = n.obs, ncol = n.endpoint,
                                                         dimnames = list(NULL, valid.endpoint)),
                                      unfavorable = matrix(0, nrow = n.obs, ncol = n.endpoint,
-                                                          dimnames = list(NULL, valid.endpoint))
+                                                          dimnames = list(NULL, valid.endpoint)),
+                                     neutral = matrix(0, nrow = n.obs, ncol = n.endpoint,
+                                                      dimnames = list(NULL, neutral))
                                      )
               }
 
@@ -225,6 +228,9 @@ setMethod(f = "getIid",
                   if(length(object@iidNuisance$unfavorable)>0){
                       object.iid$unfavorable <- object.iid$unfavorable + object@iidNuisance$unfavorable
                   } ## otherwise model.tte has been passed as argument and there is no uncertainty regarding nuisance
+                  if(length(object@iidNuisance$neutral)>0){
+                      object.iid$neutral <- object.iid$neutral + object@iidNuisance$neutral
+                  } ## otherwise model.tte has been passed as argument and there is no uncertainty regarding nuisance
               }
 
               ## ** remove normalization
@@ -233,6 +239,7 @@ setMethod(f = "getIid",
                   if(center==FALSE){
                       delta.favorable <- coef(object, endpoint = valid.endpoint, cumulative = FALSE, statistic = "favorable", strata = level.strata, resampling = FALSE, simplify = FALSE)
                       delta.unfavorable <- coef(object, endpoint = valid.endpoint, cumulative = FALSE, statistic = "unfavorable", strata = level.strata, resampling = FALSE, simplify = FALSE)
+                      delta.neutral <- coef(object, endpoint = valid.endpoint, cumulative = FALSE, statistic = "neutral", strata = level.strata, resampling = FALSE, simplify = FALSE)
                   }
                   
                   for(iter_strata in 1:n.strata){  ## iter_strata <- 1
@@ -245,28 +252,33 @@ setMethod(f = "getIid",
 
                           object.iid$unfavorable[iStrataC,] <- length(iStrataC) * object.iid$unfavorable[iStrataC,,drop=FALSE]
                           object.iid$unfavorable[iStrataT,] <- length(iStrataT) * object.iid$unfavorable[iStrataT,,drop=FALSE]
+
+                          object.iid$neutral[iStrataC,] <- length(iStrataC) * object.iid$neutral[iStrataC,,drop=FALSE]
+                          object.iid$neutral[iStrataT,] <- length(iStrataT) * object.iid$neutral[iStrataT,,drop=FALSE]
                       }
                       
                       ## remove centering
                       if(center==FALSE){
                           object.iid$favorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE], - delta.favorable[iter_strata,,drop=FALSE])
                           object.iid$unfavorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$unfavorable[c(iStrataC,iStrataT),,drop=FALSE], -delta.unfavorable[iter_strata,,drop=FALSE])
+                          object.iid$neutral[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$neutral[c(iStrataC,iStrataT),,drop=FALSE], -delta.neutral[iter_strata,,drop=FALSE])
                           if(scale){ ## restaure scaling
                               object.iid$favorable[iStrataC,] <- object.iid$favorable[iStrataC,,drop=FALSE]/length(iStrataC)
                               object.iid$favorable[iStrataT,] <- object.iid$favorable[iStrataT,,drop=FALSE]/length(iStrataT)
 
                               object.iid$unfavorable[iStrataC,] <- object.iid$unfavorable[iStrataC,,drop=FALSE]/length(iStrataC)
                               object.iid$unfavorable[iStrataT,] <- object.iid$unfavorable[iStrataT,,drop=FALSE]/length(iStrataT)
+
+                              object.iid$neutral[iStrataC,] <- object.iid$neutral[iStrataC,,drop=FALSE]/length(iStrataC)
+                              object.iid$neutral[iStrataT,] <- object.iid$neutral[iStrataT,,drop=FALSE]/length(iStrataT)
                           }
                       }
-
                   }
 
               }
 
               ## ** cumulate over endpoints
               if(cumulative && n.endpoint > 1){
-                  
                   keep.names <- list(favorable = colnames(object.iid$favorable),
                                      unfavorable = colnames(object.iid$unfavorable))
 
@@ -274,6 +286,11 @@ setMethod(f = "getIid",
                   colnames(object.iid$favorable) <- keep.names$favorable
                   object.iid$unfavorable <- .rowCumSum_cpp(.rowMultiply_cpp(object.iid$unfavorable, weightEndpoint))
                   colnames(object.iid$unfavorable) <- keep.names$unfavorable
+                  if(add.halfNeutral && statistic %in% c("favorable","unfavorable","winRatio")){
+                      ## do not cumulate neutral over endpoints, only keep the proportion w.r.t. the last endpoint
+                      object.iid$favorable <- object.iid$favorable - 0.5 * .rowCumSum_cpp(cbind(0,.rowMultiply_cpp(object.iid$neutral, weightEndpoint)[,1:(n.endpoint-1),drop=FALSE]))
+                      object.iid$unfavorable <- object.iid$unfavorable - 0.5 * .rowCumSum_cpp(cbind(0,.rowMultiply_cpp(object.iid$neutral, weightEndpoint)[,1:(n.endpoint-1),drop=FALSE]))
+                  }
 
               }
 
