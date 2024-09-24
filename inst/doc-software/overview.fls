@@ -1561,9 +1561,9 @@ INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
 INPUT C:\Users\hpl802\AppData\Local\MiKTeX\2.9\fonts\tfm\public\stmaryrd\stmary10.tfm
 INPUT C:\Users\hpl802\AppData\Roaming\MiKTeX\2.9\fonts\tfm\public\prodint\prodint.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmbx12.tfm
-INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtt10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmr6.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmbx6.tfm
+INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtt10.tfm
 INPUT .\figures\plot-BuyseTest.pdf
 INPUT .\figures\plot-BuyseTest.pdf
 INPUT figures\plot-BuyseTest.pdf

@@ -1,12 +1,12 @@
 year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
 vers <- paste("R package version", meta$Version)
 
-citHeader(paste("To cite the 'BuyseTest' package in publications use the citation from ",year,".\n
-                 To cite the statistical method used by the 'BuyseTest' package, use the citation from:
-        (2010) when using BuyseTest binary/continous endpoint or time to event endpoints with scoring.rule=\"Gehan\",
-        (2016) when using BuyseTest with time to event endpoint with scoring.rule=\"Peron\" (default value in the package).",sep=""))
-
-
+citHeader(paste("To cite the 'BuyseTest' package in publications use the citation Ozenne et al. from ",year,".\n
+                 To cite the statistical method used by the 'BuyseTest' package, use
+          Buyse (2010): binary/continous endpoint or time to event endpoints with scoring.rule=\"Gehan\",
+          Peron et al. (2016): time to event endpoint with scoring.rule=\"Peron\" (default),
+          Ozenne et al. (2018): inferential method based on U-statistics  (default),
+          Piffoux et al. (2024) time to event endpoint with a restriction time.",sep=""))
 
 bibentry(bibtype="Manual",
          title = "BuyseTest: Implementation of the Generalized Pairwise Comparisons",
@@ -47,5 +47,12 @@ bibentry(bibtype="Article",
          journal = "Statistical methods in medical research",
          doi = "10.1177/09622802211037067")
 
+bibentry(bibtype="Article",
+         title = "Restricted Net Treatment Benefit in oncology",
+         author = c(person("Max","Piffoux"), person("Brice","Ozenne"), person("Mickaël","De Backer"), person("Marc","Buyse"), person("Jean-Christophe","Chiem"), person("Julien","Peron")),
+         year = "2024",
+         volume = "170",
+         journal = "Statistical methods in medical research",
+         doi = "10.1016/j.jclinepi.2024.111340")
          
          
