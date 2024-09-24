@@ -1552,7 +1552,6 @@ INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtt10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmr10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmr17.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmbx12.tfm
-INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtk10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\rm-lmr10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\lmmi10.tfm
 INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\lmsy10.tfm
@@ -1588,6 +1587,7 @@ INPUT figures\plot-crossingSurv.pdf
 INPUT .\figures\plot-crossingSurv.pdf
 INPUT .\figures\plot-crossingSurv.pdf
 INPUT .\figures\plot-crossingSurv.pdf
+INPUT C:\Program Files\MiKTeX 2.9\fonts\tfm\public\lm\ec-lmtk10.tfm
 INPUT .\overview.bbl
 INPUT overview.bbl
 INPUT .\overview.bbl

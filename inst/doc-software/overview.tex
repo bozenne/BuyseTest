@@ -1,4 +1,4 @@
-% Created 2024-09-24 ti 18:49
+% Created 2024-09-24 ti 19:40
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -207,25 +207,32 @@ linkcolor=[rgb]{0,0,0.5},
 
 \maketitle
 This vignette describes the main functionalities of the \textbf{BuyseTest}
-package. This package implements the Generalized Pairwise Comparisons
+package, focusing on software (and not statistical) aspects, and assume
+that the reader is familar with the GPC framework \footnote{if not,
+\cite{buyse2010generalized} is a good place to start.}.
+
+\bigskip
+
+The BuyseTest package implements the Generalized Pairwise Comparisons
 (GPC) as defined in \cite{buyse2010generalized} for complete
 observations, and extended in \cite{peron2018extension} to deal with
-right-censoring. When considering a single endpoint, the GPC procedure
-can be summarized as follow. Denote the endpoint by \(Y\) in the
-treatment group and by \(X\) in the control group. Given a threshold
-of clinical relevance \(\tau\), the aim of GPC is to estimate the
-proportion in favor of treatment\footnote{in absence of ties this equals
-the Wilcoxon-Mann-Whitney parameter} \(\Prob[Y \geq X + \tau]\) and
-the proportion in favor of control \(\Prob[X \geq Y + \tau]\). Their
-difference \(\Prob[Y \geq X + \tau]-\Prob[X \geq Y + \tau]\) leads to
-the net treatment benefit and their ratio \(\frac{\Prob[Y \geq X +
-\tau]}{\Prob[X \geq Y + \tau]}\) to the win ratio (in absence of
-ties). The vignette is written for readers familar with the GPC
-framework \footnote{if not, \cite{buyse2010generalized} is a good place to
-start.}, e.g. prioritized endpoints, pair, net treatment benefit, win
-ratio, win odds, threshold of clinical relevance, \ldots, since it focuses on
-the software aspect of the \textbf{BuyseTest} package (not on the underlying
-statistical model):
+right-censoring and \cite{piffoux2024restricted} to incorporate a
+restriction time. When considering a single endpoint, the GPC
+procedure can be summarized as follow. Denote the endpoint by \(Y\) in
+the treatment group and by \(X\) in the control group. Given a
+threshold of clinical relevance \(\tau\), the aim of GPC is to
+estimate the proportion in favor of treatment\footnote{in absence of ties
+this equals the Wilcoxon-Mann-Whitney parameter} \(\Prob[Y \geq X +
+\tau]\) and the proportion in favor of control \(\Prob[X \geq Y +
+\tau]\). Their difference \(\Prob[Y \geq X + \tau]-\Prob[X \geq Y +
+\tau]\) leads to the net treatment benefit and their ratio
+\(\frac{\Prob[Y \geq X + \tau]}{\Prob[X \geq Y + \tau]}\) to the win
+ratio. The software also evaluate the proportion of neutral pairs
+\(\Prob[ |X - Y| < \tau]\) and which can be included to obtain the
+probabilistic index \(\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X - Y| <
+\tau]\) or win odds \(\frac{\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X -
+Y| < \tau] }{\Prob[X \geq Y + \tau] + 0.5\Prob[ |X - Y| < \tau]}\).
+of the \textbf{BuyseTest} package (not on the underlying statistical model):
 \begin{itemize}
 \item the function \texttt{BuyseTest} performs the GPC procedure and is the main
 function of the package. The user can interact with its output via
@@ -235,7 +242,7 @@ various methods:
 estimated net treatment benefit. The result table at the end of
 the output can be directly access using \texttt{model.tables}.
 \item \texttt{coef} to extract the estimates.
-\item \texttt{confint} to extract estimates, confidence intervals, and p.values.
+\item \texttt{confint} or \texttt{model.tables} to extract estimates, confidence intervals, and p.values.
 \item \texttt{plot} for a graphical display of the scoring of the pair per endpoint.
 \item \texttt{sensitivity} to perform a sensitivity analysis on the choice of the threshold(s).
 \item \texttt{nobs} to extract the number of observations and pairs.
@@ -254,13 +261,8 @@ also change the default values to better match the user needs.
 \end{itemize}
 
 Another vignette, "Wilcoxon test via GPC", details connexions between
-GPC and the Wilcoxon rank sum test.
-
-
-\clearpage
-
-Before going further we need to load the \textbf{BuyseTest} package in the R
-session:
+GPC and the Wilcoxon rank sum test. Before going further we need to
+load the \textbf{BuyseTest} package in the R session:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 library(BuyseTest)
@@ -346,21 +348,21 @@ loaded via a namespace (and not attached):
 
 \clearpage
 
-\section{Performing generalized pairwise comparisons (GPC) using the \texttt{BuyseTest} function}
-\label{sec:org4bd0e25}
+\section{Performing generalized pairwise comparisons (GPC)}
+\label{sec:orgce114fc}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
-\item where the data are stored \hfill - argument \texttt{data}
-\item the name of the endpoints \hfill - argument \texttt{endpoint}
-\item the type of each endpoint \hfill - argument \texttt{type}
-\item the variable defining the two treatment groups \hfill - argument
-\texttt{treatment}
+\item where the data are stored \hfill \textcolor{orange}{- argument \texttt{data}}
+\item the name of the endpoints \hfill \textcolor{orange}{- argument \texttt{endpoint}}
+\item the type of each endpoint \hfill \textcolor{orange}{- argument \texttt{type}}
+\item the variable defining the two treatment groups \hfill
+\textcolor{orange}{- argument \texttt{treatment}}
 \end{itemize}
 The \texttt{BuyseTest} function has many optional arguments. For example:
 \begin{itemize}
-\item the threshold of clinical relevance associated to each endpoint \hfill - argument \texttt{threshold}
-\item the censoring associated to each endpoint (for time to event endpoints) \hfill - argument \texttt{status}
+\item the threshold of clinical relevance associated to each endpoint \hfill \textcolor{orange}{- argument \texttt{threshold}}
+\item the censoring associated to each endpoint (for time to event endpoints) \hfill \textcolor{orange}{- argument \texttt{status}}
 \end{itemize}
 
 \bigskip
@@ -427,7 +429,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org720e748}
+\label{sec:orgab2a3b3}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -522,10 +524,9 @@ coef(BT)
 \bigskip
 
 \subsection{What about other summary statistics?}
-\label{sec:orga7c1a6c}
+\label{sec:orgdd1b0c7}
 
-Results for other summary statistics are also accessible: \hfill -
-argument \texttt{statistic}
+Results for other summary statistics are also accessible: \hfill \textcolor{orange}{- argument \texttt{statistic}}
 \begin{itemize}
 \item proportion in favor of treatment (\texttt{favorable}): \(\Prob[Y\geq X + \tau]\)
 \item proportion in favor of control (\texttt{unfavorable}): \(\Prob[X\geq Y + \tau]\)
@@ -604,15 +605,15 @@ time_t201 0.3777905 0.04902199 0.2874747 0.477467 0.50 0.01673643
 
 \clearpage
 
-Considering the proportion of neutral pairs in the summary statistics:
-\hfill
+\noindent Considering the proportion of neutral pairs in the summary
+statistics: \hfill \textcolor{orange}{- argument \texttt{add.halfNeutral}}
 \begin{itemize}
 \item Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
 \item win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
 \end{itemize}
-has been recommended \citep{ajufo2023fallacies} and can be output by
-specifying the argument \texttt{add.halfNeutral} to \texttt{TRUE} when calling
-\texttt{BuyseTest}:
+has been recommended (e.g. \cite{ajufo2023fallacies}) and these summary
+statistics can be output by specifying the argument \texttt{add.halfNeutral}
+to \texttt{TRUE} when calling \texttt{BuyseTest}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.half <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
@@ -637,7 +638,7 @@ time_t20 0.8388127 0.1650208 0.5704361 1.233454    1 0.3716211
 \end{verbatim}
 
 
-Testing a Net Treatment Benefit of 0, a Win Odds of 1, or a
+Testing a net treatment benefit of 0, a win odds of 1, or a
  Wilcoxon-Mann-Whitney parameter of 0.5 corresponds to the same
  hypothesis and therefore the same p-value should be obtained. The
  (small) discrepancy in p-values observed in this example (0.371617
@@ -667,14 +668,14 @@ favorable   0.45617082 0.05010816  0.3639745 0.5516987  0.5   0.383
 \clearpage
 
 \subsection{Stratified GPC}
-\label{sec:org86555a9}
+\label{sec:orgf99542e}
 
-GPC can be performed for subgroups of a categorical variable \hfill -
-argument \texttt{strata} \newline For instance, the celltype may have huge
-influence on the survival time and the investigator would like to only
-compare patients that have the same celltype. In the formula interface
-this is achieved by adding a single variable in the right hand side of
-the formula:
+GPC can be performed for subgroups of a categorical variable \hfill
+\textcolor{orange}{- argument \texttt{strata}} \newline For
+instance, the celltype may have huge influence on the survival time
+and the investigator would like to only compare patients that have the
+same celltype. In the formula interface this is achieved by adding a
+single variable in the right hand side of the formula:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
@@ -774,8 +775,6 @@ delta
 \end{verbatim}
 
 
-
-
 The global net treatment benefit is then the sum of the strata-specific net
 treatment benefits weighted by the strata weights:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -795,6 +794,11 @@ $weight
 \end{verbatim}
 
 
+\Warning One exception is for the win ratio and win odds where the
+ratio between the global proportions is taken, i.e., pooling is
+performed at the numerator and at the denominator instead of pooling
+fractions (see \citep{dong2018stratified}, equation 1).
+
 
 \clearpage
 
@@ -802,10 +806,14 @@ The default weighting scheme is \texttt{CMH}, standing for
 Cochran-Mantel-Haenszel, which has been recommaned in the litterature
 \citep{dong2018stratified}. It is efficient under the assumption of a
 common multiplicative effect (across strata) on the odds ratio
-scale. If the effect is thought additive, one should instead weight
-proportionnaly to the number of pairs. This can be
-achieved by specifying the argument \texttt{pool.strata}:
+scale. 
 
+\bigskip 
+
+Other weighting schemes can be used. \hfill \textcolor{orange}{-
+argument \texttt{strata}}. \newline For instance, if the effect is
+thought additive, one should instead weight proportionnaly to the
+number of pairs:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BTstrata2 <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "buyse")
@@ -833,9 +841,7 @@ summary(BTstrata2, type.display = keep.colStrata)
 
 The weighting scheme only affect the evaluation of the overall net
 treatment benefit, which now equals the difference between the overall
-proportion of favorable vs. unfavorable pairs. As before the
-strata-specific net treatment benefits are still not equal to the difference
-between the proportion of favorable and unfavorable pairs. While
+proportion of favorable vs. unfavorable pairs (\texttt{36.06\%-45.77\%}). While
 extractors will by default output global estimates (i.e. after pooling
 the results over strata)
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -867,7 +873,8 @@ time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 \clearpage
 
 \subsection{Using multiple endpoints}
-\label{sec:org0800d97}
+\label{sec:org1f53897}
+
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -979,7 +986,7 @@ model.tables(BT.nHw)
 This has been refered as the O’Brien test in the litterature
 (\cite{verbeeck2019generalized}, section 3.2). Alternatively, one may be
 interested in the endpoint specific results. This can be performed
-apply the \texttt{BuyseTest} function separately to each endpoint, e.g.:
+by applying the \texttt{BuyseTest} function separately to each endpoint, e.g.:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 confint(BuyseTest(trt ~ cont(karno, threshold = 0), data = veteran, trace = 0))
@@ -1005,16 +1012,34 @@ karno    -0.03132992 0.09787113 -0.2197111 0.1593037    0 0.7490407
 \end{verbatim}
 
 
+\bigskip
+
+Note: the apparent discrepency in p-value between the hierarchical and
+non-hierarchical GPC at the first priority (0.3762 vs 0.3698 vs
+0-3707) is due to the use of a transformation that makes the p-value
+dependent on the estimate. Otherwise the p-value would be the same at
+the first priority, e.g.:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(BT.nHw, transform = FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+            estimate         se   lower.ci   upper.ci null   p.value
+time_t20 -0.07012668 0.07808721 -0.2231748 0.08292143    0 0.3691557
+karno    -0.07639267 0.09093303 -0.2546181 0.10183280    0 0.4008534
+\end{verbatim}
+
+
+
 \clearpage
 
 \subsection{Statistical inference}
-\label{sec:org66c7161}
+\label{sec:org2511ba9}
 
-Several methods are available in \texttt{BuyseTest} to quantify uncertainty
-about the estimates:
+Uncertainty about the estimates can be quantified using: \hfill \textcolor{orange}{- argument \texttt{method.inference}}
 \begin{itemize}
-\item \textbf{permutation test} setting the argument \texttt{method.inference} to
-\texttt{"permutation"}. Assuming exchangeability under the null hypothesis,
+\item \textbf{permutation test} (\texttt{"permutation"}). Assuming exchangeability under the null hypothesis,
 this approach gives valid p-values (regardless to the sample size)
 for testing the absence of a difference between the groups.
 \end{itemize}
@@ -1042,8 +1067,7 @@ summary(BT.perm)
 \end{verbatim}
 
 \begin{itemize}
-\item \textbf{bootstrap resampling} setting the argument \texttt{method.inference} to
-\texttt{"bootstrap"}. In large enough samples, this approach gives valid
+\item \textbf{bootstrap resampling} (\texttt{"bootstrap"}). In large enough samples, this approach gives valid
 p-values and confidence intervals.
 \end{itemize}
 
@@ -1073,9 +1097,9 @@ summary(BT.boot)
 \end{verbatim}
 
 \begin{itemize}
-\item \textbf{asymptotic distribution} setting the argument \texttt{method.inference} to
-\texttt{"u-statistic"}. In large enough samples, this approach gives valid
-p-values and confidence intervals \citep{ozenne2021asymptotic}.
+\item \textbf{asymptotic distribution} (\texttt{"u-statistic"}). In large enough
+samples, this approach gives valid p-values and confidence intervals
+\citep{ozenne2021asymptotic}.
 \end{itemize}
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1131,7 +1155,7 @@ increase by a factor 5 to 10 compared to the point estimate alone
 
 \bigskip
 
-Note: it is possible to relax the exchangeability assumption using a
+It is possible to relax the exchangeability assumption using a
 studentized permutation. A studentized bootstrap is also possible to
 improve on the better small samples properties of the bootstrap
 confidence intervals. Both rely on the asymptotic approach to estimate
@@ -1140,7 +1164,7 @@ standard errors and are more numerically intensive.
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:org370f184}
+\label{sec:orgf78bbf1}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -1174,7 +1198,7 @@ score as usual and then switch them around if the operator equals
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org12083fa}
+\label{sec:orgb233442}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -1248,7 +1272,7 @@ So in this case no pair is analyzed at second priority.
 
 
 \subsection{Is multiple testing a concern with GPC?}
-\label{sec:org33ebd75}
+\label{sec:org126b5fe}
 
 Yes, as with any other statistical method. Having a pre-defined
 statistical plan (i.e. written before looking at the data) specifying
@@ -1468,7 +1492,7 @@ varied at the same time.
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:orgf139efe}
+\label{sec:org0005e09}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -1477,7 +1501,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:orgdbb105e}
+\label{sec:orgb484f29}
 The net treatment benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -1568,7 +1592,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:orge845243}
+\label{sec:org0da413c}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} and
@@ -1613,7 +1637,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org341f46e}
+\label{sec:orgc4a3001}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1731,7 +1755,7 @@ survivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:orgd220078}
+\label{sec:org1c0f1a5}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1838,7 +1862,7 @@ outSurv$lastSurv
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org242fa15}
+\label{sec:orgca9a1d5}
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
@@ -1936,7 +1960,7 @@ estimator.
 \end{itemize}
 
 \subsection{Gehan's scoring rule}
-\label{sec:org4b7e08b}
+\label{sec:orga95b2da}
 In the example, Gehan's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -1957,7 +1981,7 @@ leads to many uninformative pairs (about 60\%) and an estimate much
 closer to 0 than the truth.
 
 \subsection{Peron's scoring rule}
-\label{sec:org38edb6d}
+\label{sec:org4de615f}
 In the example, Peron's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -2105,7 +2129,7 @@ defining an appropriate \texttt{BuyseTTEM} method. Looking at the code use
 for defining \texttt{BuyseTTEM.survreg} can be helpful.
 
 \subsection{Correction via inverse probability-of-censoring weights (IPCW)}
-\label{sec:orgf9add3a}
+\label{sec:org75eda31}
 
 With IPCW, the weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
@@ -2175,7 +2199,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsection{Correction at the pair level}
-\label{sec:org0bf9b5c}
+\label{sec:org6d6ea23}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -2237,7 +2261,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \end{verbatim}
 
 \subsection{Note on the use of the corrections}
-\label{sec:orge975e3f}
+\label{sec:org09b66d0}
 
 As mentioned in \cite{peron2021correcting}, the corrections (at the pair
 level or IPCW) are assumes that uninformative pairs would on average
@@ -2312,7 +2336,7 @@ correction     55.25931    44.74069       0  0.00000 0.10518628
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orga368ed6}
+\label{sec:org59fcb62}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -2374,16 +2398,16 @@ package.
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:org37da868}
+\label{sec:orgc87767f}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
 hypothesis under a specific generative mechanism. The user therefore
 need to specify:
 \begin{itemize}
-\item the generative mechanism via a function \hfill - argument \texttt{sim}
-\item the null hypothesis \hfill - argument \texttt{null}
-\item the sample size(s) for the which the power should be computed  \hfill - argument \texttt{sample.size}
+\item the generative mechanism via a function \hfill \textcolor{orange}{- argument \texttt{sim}}
+\item the null hypothesis \hfill \textcolor{orange}{- argument \texttt{null}}
+\item the sample size(s) for the which the power should be computed  \hfill \textcolor{orange}{- argument \texttt{sample.size}}
 \end{itemize}
 
 \bigskip
@@ -2522,7 +2546,7 @@ summary(nW)
 \clearpage
 
 \section{Modifying default options}
-\label{sec:org89b7218}
+\label{sec:orge191227}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -2573,7 +2597,7 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 \section*{References}
-\label{sec:org6e762fb}
+\label{sec:orgd810d6d}
 \begingroup
 \renewcommand{\section}[2]{}
 

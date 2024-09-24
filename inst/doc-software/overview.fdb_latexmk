@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex overview"] 1727199394 "overview.aux" "overview.bbl" "overview" 1727199403
+["bibtex overview"] 1727199642 "overview.aux" "overview.bbl" "overview" 1727199653
   "C:/Program Files/MiKTeX 2.9/bibtex/bst/bibtex/apalike.bst" 1291976391 24635 604dafcc79f521a11ea73e506e1fbd98 ""
   "bibliography.bib" 1727197267 3222 949f0a385060dcff4174ea156f185343 ""
-  "overview.aux" 1727199402 7101 23681f59d3e8fde3a241f030443a4b4b "pdflatex"
+  "overview.aux" 1727199651 7101 06f4240097b3337d2ce2744a43bc63d0 "pdflatex"
   (generated)
   "overview.blg"
   "overview.bbl"
-["pdflatex"] 1727199395 "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-software/overview.tex" "overview.pdf" "overview" 1727199403
+["pdflatex"] 1727199644 "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-software/overview.tex" "overview.pdf" "overview" 1727199653
   "C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-ec.enc" 1254938640 2375 baa924870cfb487815765f9094cf3728 ""
   "C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathex.enc" 1254938640 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "C:/Program Files/MiKTeX 2.9/fonts/enc/dvips/lm/lm-mathit.enc" 1254938640 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
@@ -281,19 +281,19 @@
   "C:/Users/hpl802/AppData/Roaming/MiKTeX/2.9/tex/latex/xargs/xargs.sty" 1206234660 12403 a11204384274e5980f17ec9564088fa4 ""
   "C:/Users/hpl802/AppData/Roaming/MiKTeX/2.9/tex/latex/xifthen/xifthen.sty" 1448278036 5689 1bfa68243e89a54479e7d0580773c57e ""
   "C:/Users/hpl802/AppData/Roaming/MiKTeX/2.9/tex/latex/xstring/xstring.sty" 1626884962 123 a302f2c651a95033260db60e51527ae8 ""
-  "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-software/overview.tex" 1727199370 107930 eab191cf58818fad08dff4447d685bb1 ""
+  "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-software/overview.tex" 1727199617 107961 532da122ae99d692e2425544d1795f57 ""
   "figures/gg-sensitivity1.pdf" 1679309658 6187 b3fee92db01ce31635d30602c4a2aec3 ""
   "figures/gg-sensitivity2.pdf" 1679309658 8104 68a59133784e25f4515d1b82c3f7edc7 ""
   "figures/plot-BuyseTest.pdf" 1688039248 15034 d814ac7a496256feb03f85d6b836fe26 ""
   "figures/plot-crossingSurv.pdf" 1679309658 30518 82768025a1bc84e6ff158cead7fb4389 ""
-  "overview.aux" 1727199402 7101 23681f59d3e8fde3a241f030443a4b4b "pdflatex"
-  "overview.bbl" 1727199395 2559 32cb719bfec87815314a0e87906c59a2 "bibtex overview"
-  "overview.out" 1727199402 5690 6f196b9e1eadc9ea68624a8bbfba467d "pdflatex"
-  "overview.tex" 1727199370 107930 eab191cf58818fad08dff4447d685bb1 ""
+  "overview.aux" 1727199651 7101 06f4240097b3337d2ce2744a43bc63d0 "pdflatex"
+  "overview.bbl" 1727199643 2559 32cb719bfec87815314a0e87906c59a2 "bibtex overview"
+  "overview.out" 1727199651 5690 6f196b9e1eadc9ea68624a8bbfba467d "pdflatex"
+  "overview.tex" 1727199617 107961 532da122ae99d692e2425544d1795f57 ""
   (generated)
-  "overview.aux"
-  "overview.pdf"
-  "overview.log"
-  "overview.soc"
   "overview.loc"
   "overview.out"
+  "overview.soc"
+  "overview.aux"
+  "overview.log"
+  "overview.pdf"

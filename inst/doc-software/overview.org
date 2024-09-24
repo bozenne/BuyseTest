@@ -373,9 +373,9 @@ rbind(confint(BT, statistic = "favorable", null = 0.42),
 statistics: \hfill @@latex:\textcolor{orange}{- argument \texttt{add.halfNeutral}}@@
 - Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
 - win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
-has been recommended citep:ajufo2023fallacies and can be output by
-specifying the argument =add.halfNeutral= to =TRUE= when calling
-=BuyseTest=:
+has been recommended (e.g. cite:ajufo2023fallacies) and these summary
+statistics can be output by specifying the argument =add.halfNeutral=
+to =TRUE= when calling =BuyseTest=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.half <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                      data = veteran, trace = FALSE, add.halfNeutral = TRUE)
