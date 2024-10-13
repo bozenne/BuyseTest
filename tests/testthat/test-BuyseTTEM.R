@@ -3,9 +3,15 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
+<<<<<<< HEAD
 ## Last-Updated: Oct 13 2024 (20:09) 
 ##           By: Brice Ozenne
 ##     Update #: 45
+=======
+## Last-Updated: sep 23 2024 (14:37) 
+##           By: Brice Ozenne
+##     Update #: 46
+>>>>>>> d13c78f050f278515e0e62035a1e0847520aacb7
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -51,14 +57,18 @@ test_that("no strata, survival", {
     test <- predict(e.bb, time = seqTau, treatment  = "T", iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-    expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    if(packageVersion("riskRegression")>='2024.9.10'){
+        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    }
 
     ## Control
     GS <- predictCox(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, product.limit = TRUE)
     test <- predict(e.bb, time = seqTau, treatment  = "C", iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-    expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    if(packageVersion("riskRegression")>='2024.9.10'){
+        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    }
 
     ## ## censoring ## ##
     e.r <- coxph(Surv(eventtime,status)~strata(treatment), data = dt, x = TRUE, y = TRUE)
@@ -69,14 +79,18 @@ test_that("no strata, survival", {
     test <- predict(e.b, time = seqTau, treatment  = "T", iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-    expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    if(packageVersion("riskRegression")>='2024.9.10'){
+        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    }
 
     ## Control
     GS <- predictCox(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, product.limit = TRUE)
     test <- predict(e.b, time = seqTau, treatment  = "C", iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-    expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    if(packageVersion("riskRegression")>='2024.9.10'){
+        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+    }
 })
 }
 
@@ -94,14 +108,18 @@ test_that("strata, survival", {
         test <- predict(e.bb, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        if(packageVersion("riskRegression")>='2024.9.10'){
+            expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        }
 
         ## Control
         GS <- predictCox(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE)
         test <- predict(e.bb, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        if(packageVersion("riskRegression")>='2024.9.10'){
+            expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        }
     }
 
     ## ## censoring ## ##
@@ -115,14 +133,18 @@ test_that("strata, survival", {
         test <- predict(e.b, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        if(packageVersion("riskRegression")>='2024.9.10'){
+            expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        }
 
         ## Control
         GS <- predictCox(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE)
         test <- predict(e.b, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
-        expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        if(packageVersion("riskRegression")>='2024.9.10'){
+            expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
+        }
     }
 })
 }
@@ -178,7 +200,9 @@ test_that("no strata, competing risks", {
         GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
 
         expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
-        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        if(packageVersion("riskRegression")>='2024.9.10'){
+            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        }
     }
     
     ## ## censoring ## ##
@@ -191,14 +215,18 @@ test_that("no strata, competing risks", {
         GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
 
         expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
-        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        if(packageVersion("riskRegression")>='2024.9.10'){
+            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        }
 
         ## Control
         test <- predict(e.b, time = seqTau, treatment  = "C", iid = TRUE, cause = iCause)
         GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
 
         expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
-        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        if(packageVersion("riskRegression")>='2024.9.10'){
+            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+        }
     }
 })
 
@@ -216,14 +244,18 @@ test_that("with strata, competing risks", {
             GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
 
             expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
-            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            if(packageVersion("riskRegression")>='2024.9.10'){
+                expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            }
 
             ## Control
             test <- predict(e.bb, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE, cause = iCause)
             GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
 
             expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
-            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            if(packageVersion("riskRegression")>='2024.9.10'){
+                expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            }
         }
     }
     
@@ -237,15 +269,19 @@ test_that("with strata, competing risks", {
             test <- predict(e.b, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE, cause = iCause)
             GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
 
-        expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
-        expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
+            if(packageVersion("riskRegression")>='2024.9.10'){
+                expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            }
 
-        ## Control
-        test <- predict(e.b, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE, cause = iCause)
-        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+            ## Control
+            test <- predict(e.b, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE, cause = iCause)
+            GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
 
             expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
-            expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            if(packageVersion("riskRegression")>='2024.9.10'){
+                expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
+            }
         }
     }
 })

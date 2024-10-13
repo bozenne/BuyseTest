@@ -1,5 +1,11 @@
 \begin{thebibliography}{}
 
+\bibitem[Ajufo et~al., 2023]{ajufo2023fallacies}
+Ajufo, E., Nayak, A., and Mehra, M.~R. (2023).
+\newblock Fallacies of using the win ratio in cardiovascular trials: challenges
+  and solutions.
+\newblock {\em Basic to Translational Science}, 8(6):720--727.
+
 \bibitem[Brunner et~al., 2018]{brunner2018rank}
 Brunner, E., Bathke, A.~C., and Konietschke, F. (2018).
 \newblock {\em Rank and pseudo-rank procedures for independent observations in
@@ -35,6 +41,12 @@ P{\'e}ron, J., Idlhaj, M., Maucort-Boulch, D., Giai, J., Roy, P., Collette, L.,
 \newblock Correcting the bias of the net benefit estimator due to
   right-censored observations.
 \newblock {\em Biometrical Journal}, 63(4):893--906.
+
+\bibitem[Piffoux et~al., 2024]{piffoux2024restricted}
+Piffoux, M., Ozenne, B., De~Backer, M., Buyse, M., Chiem, J.-C., and P{\'e}ron,
+  J. (2024).
+\newblock Restricted net treatment benefit in oncology.
+\newblock {\em Journal of Clinical Epidemiology}, 170:111340.
 
 \bibitem[Verbeeck et~al., 2019]{verbeeck2019generalized}
 Verbeeck, J., Spitzer, E., de~Vries, T., van Es, G., Anderson, W., Van~Mieghem,

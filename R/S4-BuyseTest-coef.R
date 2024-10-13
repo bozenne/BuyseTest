@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Aug 22 2024 (15:49) 
+## Last-Updated: Oct 13 2024 (20:29) 
 ##           By: Brice Ozenne
-##     Update #: 375
+##     Update #: 397
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -81,6 +81,7 @@ setMethod(f = "coef",
               }
     
               ## statistic
+              add.halfNeutral <- slot(object,"add.halfNeutral")
               if(is.null(statistic)){
                   statistic <- option$statistic
               }
@@ -197,53 +198,46 @@ setMethod(f = "coef",
 
               }else if(resampling == FALSE){
 
-                  object.delta <- matrix(slot(object, "delta")[,,statistic], 
+                  ## *** outcome specific
+                  delta.strata <- matrix(slot(object, "delta")[,,statistic], 
                                          nrow = n.strata, ncol = n.endpoint, dimnames = list(level.strata, valid.endpoint))
-                  object.Delta <- matrix(slot(object, "Delta")[,statistic],
+                  
+                  if(statistic == "winRatio" && type.weightStrata != "var-winratio"){
+                      out.fav <- coef(object, statistic = "favorable",
+                                      endpoint = valid.endpoint, strata = "global", cumulative = FALSE,
+                                      resampling = FALSE, simplify = FALSE)
+                      out.unfav <- coef(object, statistic = "unfavorable",
+                                        endpoint = valid.endpoint, strata = "global", cumulative = FALSE,
+                                        resampling = FALSE, simplify = FALSE)
+                      delta.global <- out.fav/out.unfav
+                  }else{
+                      delta.global <- colSums(.colMultiply_cpp(delta.strata, weightStrata))
+                  }
+                  delta <- rbind(global = delta.global, delta.strata)
+
+                  ## *** cumulated over outcomes
+                  Delta.global <- matrix(slot(object, "Delta")[,statistic],
                                          nrow = 1, ncol = n.endpoint, dimnames = list("global", valid.endpoint))                  
 
-                  if(statistic != "winRatio"){
-
-                      delta <- rbind(global = colSums(.colMultiply_cpp(object.delta, weightStrata)),
-                                     object.delta)
-
-                      Delta.strata <- .rowCumSum_cpp(.rowMultiply_cpp(object.delta, weightEndpoint))
-                      rownames(Delta.strata) <- rownames(object.delta)
-                      Delta <- rbind(object.Delta, Delta.strata)
-
-                  }else if(statistic == "winRatio"){
-
-
-                      if(type.weightStrata == "var-winratio"){
-                      
-                          delta <- rbind(global = colSums(.colMultiply_cpp(object.delta, weightStrata)),
-                                         object.delta)
-
-                      }else{
-
-                          out.fav <- coef(object, statistic = "favorable",
-                                          endpoint = valid.endpoint, strata = "global", cumulative = FALSE,
-                                          resampling = FALSE, simplify = FALSE)
-                          out.unfav <- coef(object, statistic = "unfavorable",
-                                            endpoint = valid.endpoint, strata = "global", cumulative = FALSE,
-                                            resampling = FALSE, simplify = FALSE)
-
-                          delta <- rbind(global = out.fav/out.unfav,
-                                         object.delta)
-
-                      }
-
+                  if(statistic == "winRatio"){
                       out.cumFav <- coef(object, statistic = "favorable",
-                                      endpoint = valid.endpoint, strata = level.strata, cumulative = TRUE,
-                                      resampling = FALSE, simplify = FALSE)
+                                         endpoint = valid.endpoint, strata = level.strata, cumulative = TRUE,
+                                         resampling = FALSE, simplify = FALSE)
                       out.cumUnfav <- coef(object, statistic = "unfavorable",
-                                        endpoint = valid.endpoint, strata = level.strata, cumulative = TRUE,
-                                        resampling = FALSE, simplify = FALSE)
-
-                      Delta <- rbind(object.Delta, out.cumFav/out.cumUnfav)
-
+                                           endpoint = valid.endpoint, strata = level.strata, cumulative = TRUE,
+                                           resampling = FALSE, simplify = FALSE)
+                      Delta.strata <- out.cumFav/out.cumUnfav
+                  }else{
+                      Delta.strata <- .rowCumSum_cpp(.rowMultiply_cpp(delta.strata, weightEndpoint))
+                      if(add.halfNeutral && n.endpoint>1 && statistic %in% c("favorable","unfavorable")){
+                          ## do not cumulate neutral over endpoints, only keep the proportion w.r.t. the last endpoint
+                          neutral.strata <- matrix(slot(object, "delta")[,,"neutral"], 
+                                                   nrow = n.strata, ncol = n.endpoint, dimnames = list(level.strata, valid.endpoint))
+                          Delta.strata <- Delta.strata - 0.5 * .rowCumSum_cpp(cbind(0,.rowMultiply_cpp(neutral.strata, weightEndpoint)[,1:(n.endpoint-1),drop=FALSE]))
+                      }
                   }
-
+                  rownames(Delta.strata) <- rownames(delta.strata)
+                  Delta <- rbind(global = Delta.global, Delta.strata)
 
               }else if(resampling){
                   
@@ -277,16 +271,21 @@ setMethod(f = "coef",
                       cumUnfavorableResampling <- coef(object, statistic = "unfavorable",
                                                        endpoint = valid.endpoint, strata = level.strata, cumulative = TRUE,
                                                        resampling = TRUE, simplify = FALSE)
+                  }else if(add.halfNeutral && n.endpoint>1 && statistic %in% c("favorable","unfavorable")){
+                      object.neutralResampling <- array(slot(object, "deltaResampling")[,,,"neutral"],
+                                                        dim = c(n.resampling, n.strata, n.endpoint),
+                                                        dimnames = list(NULL, level.strata, valid.endpoint))                              
+                                  
                   }
 
                   for(iE in 1:n.endpoint){ ## iE <- 1
                       if(n.strata == 1){
                           deltaResampling[,"global",iE] <- object.deltaResampling[,1,iE]
                       }else{
-                          if(statistic != "winRatio" || type.weightStrata == "var-winratio"){
-                              deltaResampling[,"global",iE] <- rowSums(object.deltaResampling[,,iE]*weightStrataResampling)
-                          }else{
+                          if(statistic == "winRatio" && type.weightStrata != "var-winratio"){
                               deltaResampling[,"global",iE] <- favorableResampling[,"global",iE]/unfavorableResampling[,"global",iE]
+                          }else{
+                              deltaResampling[,"global",iE] <- rowSums(object.deltaResampling[,,iE]*weightStrataResampling)
                           }                  
                       }
                   }
@@ -295,10 +294,17 @@ setMethod(f = "coef",
                       if(n.endpoint == 1){
                           DeltaResampling[,iS+1,1] <- object.deltaResampling[,iS,]
                       }else{
-                          if(statistic != "winRatio"){                              
-                              DeltaResampling[,iS+1,] <- .rowCumSum_cpp(.rowMultiply_cpp(object.deltaResampling[,iS,], weightEndpoint))
-                          }else{
+                          if(statistic == "winRatio"){
                               DeltaResampling[,iS+1,] <- cumFavorableResampling[,iS,]/cumUnfavorableResampling[,iS,]
+                          }else{
+                              DeltaResampling[,iS+1,] <- .rowCumSum_cpp(.rowMultiply_cpp(object.deltaResampling[,iS,], weightEndpoint))
+
+                              if(add.halfNeutral && n.endpoint>1 && statistic %in% c("favorable","unfavorable")){
+                                  ## do not cumulate neutral over endpoints, only keep the proportion w.r.t. the last endpoint
+                                  DeltaResampling[,iS+1,] <- DeltaResampling[,iS+1,] - 0.5 * .rowCumSum_cpp(cbind(0,.rowMultiply_cpp(object.neutralResampling[,iS,], weightEndpoint)[,1:(n.endpoint-1),drop=FALSE]))
+                                  
+                              }
+                              
                           }
                       }
                   }

@@ -37,18 +37,22 @@
 #' Method papers on the GPC procedure and its extensions:
 #' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
+#' On the stratified win ratio: G. Dong et al. (2018). \bold{The stratified win ratio}. \emph{Journal of biopharmaceutical statistics}. 28(4):778-796 \cr
 #' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
 #' On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 #' On inference in GPC using the U-statistic theory: Ozenne B, Budtz-Jorgensen E, Peron J (2021). \bold{The asymptotic distribution of the Net Benefit estimator in presence of right-censoring}. \emph{Statistical Methods in Medical Research} 2021 doi:10.1177/09622802211037067 \cr
 #' On how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. \cr
+#' On how using a restriction time: Piffoux M, Ozenne B, De Backer M, Buyse M, Chiem JC, Péron J (2024). \bold{Restricted Net Treatment Benefit in oncology}. \emph{Journal of Clinical Epidemiology}. Jun;170:111340. \cr
 #' 
 #' Examples of application in clinical studies: \cr 
 #' J. Peron, P. Roy, K. Ding, W. R. Parulekar, L. Roche, M. Buyse (2015). \bold{Assessing the benefit-risk of new treatments using generalized pairwise comparisons: the case of erlotinib in pancreatic cancer}. \emph{British journal of cancer} 112:(6)971-976.  \cr
 #' J. Peron, P. Roy, T. Conroy, F. Desseigne, M. Ychou, S. Gourgou-Bourgade, T. Stanbury, L. Roche, B. Ozenne, M. Buyse (2016). \bold{An assessment of the benefit-risk balance of FOLFORINOX in metastatic pancreatic adenocarcinoma}. \emph{Oncotarget} 7:82953-60, 2016. \cr
 #'
-#' Comparison between the net benefit and alternative measures of treatment effect: \cr 
+#' Discussion about the relevance of GPC based measures of treatment effect: \cr 
 #' J. Peron, P. Roy, B. Ozenne, L. Roche, M. Buyse (2016). \bold{The net chance of a longer survival as a patient-oriented measure of benefit in randomized clinical trials}. \emph{JAMA Oncology} 2:901-5. \cr
 #' E. D. Saad , J. R. Zalcberg, J. Peron, E. Coart, T. Burzykowski, M. Buyse (2018). \bold{Understanding and communicating measures of treatment effect on survival: can we do better?}. \emph{J Natl Cancer Inst}.
+#' Ezimamaka Ajufo, Aditi Nayak, Mandeep R. Mehra (2023). \bold{Fallacies of Using the Win Ratio in Cardiovascular Trials: Challenges and Solutions}. \emph{JACC: Basic to Translational Science}. 8(6):720-727.
+#' 
 #' @useDynLib BuyseTest, .registration=TRUE
 #' @import data.table
 #' @importFrom scales percent

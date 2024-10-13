@@ -39,6 +39,13 @@ endpoint considered the most clinically relevant.  The endpoint with
 highest priority is analyzed first, and neutral and uninformative pair
 are analyzed regarding endpoint of lower priority.
 
+* Tutorial
+
+A half day tutorial is planned at the DAG Stat 2025 conference
+(https://dagstat2025.de/, Berlin, 24-28th of March):
+- title: a practical guide to the design and analysis of patient-centric trials (Verbeek et al)
+- instructors: Johan Verbeeck and Brice Ozenne
+
 * Installation
 
 You can download the latest stable version on =CRAN= using:

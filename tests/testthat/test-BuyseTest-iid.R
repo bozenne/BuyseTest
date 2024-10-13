@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: jul 17 2023 (16:53) 
+## Last-Updated: sep 23 2024 (12:08) 
 ##           By: Brice Ozenne
-##     Update #: 219
+##     Update #: 220
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -171,7 +171,7 @@ d2.bis <- rbind(cbind(d.bis, strata = 1),
                 cbind(d.bis, strata = 3))
 
 test_that("iid: binary and strata (unbalanced groups)", {
-    for(iOrder in 1:2){ ## iOrder <- 1
+    for(iOrder in 1:2){ ## iOrder <- 2
         BuyseTest.options(order.Hprojection = iOrder)
 
         e.BT <- BuyseTest(group ~ bin(toxicity) + strata,

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  14 JUN 2024 14:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.23 (MiKTeX 21.8) (preloaded format=pdflatex 2021.8.26)  24 SEP 2024 19:40
 entering extended mode
 **c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-software/overview.tex
 (c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-software/overview.tex
@@ -1259,27 +1259,27 @@ LaTeX Font Info:    Trying to load font information for U+stmry on input line 2
 
 (C:\Users\hpl802\AppData\Roaming\MiKTeX\2.9\tex/latex/stmaryrd\ustmry.fd)
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 214.
+(Font)              <12> on input line 211.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 214.
+(Font)              <8> on input line 211.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 214.
+(Font)              <6> on input line 211.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 218.
+(Font)              <5> on input line 212.
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 2
-30.
+37.
 
 (C:\Program Files\MiKTeX 2.9\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
-30.
+37.
 
 (C:\Program Files\MiKTeX 2.9\tex/latex/lm\t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [1
 
-{C:/Users/hpl802/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2]
+{C:/Users/hpl802/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}]
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang1.sty
 File: lstlang1.sty 2020/03/24 1.8d listings language file
 )
@@ -1288,102 +1288,95 @@ File: lstlang2.sty 2020/03/24 1.8d listings language file
 )
 (C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang3.sty
 File: lstlang3.sty 2020/03/24 1.8d listings language file
-) [3
-
-] [4]
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <17.28> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 380.
- [5
+) [2] [3] [4
 
 ]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 449.
+(Font)              <10.95> on input line 420.
 
-[6
+[5
 
-] [7] [8
+] [6] [7] [8
 
-] [9] [10]
-<./figures/plot-BuyseTest.pdf, id=244, 433.62pt x 433.62pt>
+] [9
+
+] [10] [11
+
+]
+<./figures/plot-BuyseTest.pdf, id=281, 433.62pt x 433.62pt>
 File: ./figures/plot-BuyseTest.pdf Graphic file (type pdf)
 <use ./figures/plot-BuyseTest.pdf>
-Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 816.
+Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 932.
 (pdftex.def)             Requested size: 378.42001pt x 378.43733pt.
- [11
+ [12
 
-] [12 <./figures/plot-BuyseTest.pdf>] [13] [14
+] [13 <./figures/plot-BuyseTest.pdf>] [14]
+[15
 
-]
-[15] [16
+] [16] [17
 
-] [17
+] [18
 
-]
-Overfull \hbox (32.48889pt too wide) in paragraph at lines 1218--1224
-[]\T1/lmr/m/n/12 For sta-tis-ti-cal test-ing we there-fore recom-mand defin-ing
- the pro-por-tion in fa-vor of treat-ment as $\U/msb/m/n/12 P [] \OT1/lmr/m/n/1
-2 +
- []
+] [19
 
-[18
-
-] [19] [20
-
-] [21]
-<./figures/gg-sensitivity1.pdf, id=399, 361.35pt x 216.81pt>
+] [20]
+<./figures/gg-sensitivity1.pdf, id=404, 361.35pt x 216.81pt>
 File: ./figures/gg-sensitivity1.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity1.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1422
+Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1417
 .
 (pdftex.def)             Requested size: 270.3012pt x 162.18033pt.
- [22 <./figures/gg-sensitivity1.pdf>]
-<./figures/gg-sensitivity2.pdf, id=427, 505.89pt x 216.81pt>
+ [21 <./figures/gg-sensitivity1.pdf>]
+<./figures/gg-sensitivity2.pdf, id=432, 505.89pt x 216.81pt>
 File: ./figures/gg-sensitivity2.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity2.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1492
+Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1487
 .
 (pdftex.def)             Requested size: 540.60239pt x 231.68996pt.
- [23 <./figures/gg-sensitivity2.pdf>] [24
+ [22 <./figures/gg-sensitivity2.pdf>] [23
 
-] [25] [26] [27] [28] [29] [30
+] [24] [25] [26] [27] [28] [29
 
-] [31
+] [30
 
-] [32] [33] [34] [35]
-<./figures/plot-crossingSurv.pdf, id=645, 722.7pt x 505.89pt>
+] [31] [32]
+[33] [34]
+<./figures/plot-crossingSurv.pdf, id=650, 722.7pt x 505.89pt>
 File: ./figures/plot-crossingSurv.pdf Graphic file (type pdf)
 <use ./figures/plot-crossingSurv.pdf>
 Package pdftex.def Info: ./figures/plot-crossingSurv.pdf  used on input line 22
-88.
+83.
 (pdftex.def)             Requested size: 432.48355pt x 302.74124pt.
+ [35 <./figures/plot-crossingSurv.pdf>] [36]
+LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <17.28> not available
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 2338.
+ [37
 
-[36 <./figures/plot-crossingSurv.pdf>] [37] [38
+] [38
 
 ] [39
 
-] [40
+] [40]
+[41
 
-] [41] [42
-
-]
-(overview.bbl)
+] (overview.bbl)
 \Changes@OutFile=\write6
 \openout6 = `overview.soc'.
 
 \tf@loc=\write7
 \openout7 = `overview.loc'.
 
- [43
+ [42
 
 ] (overview.aux)
 Package rerunfilecheck Info: File `overview.out' has not changed.
-(rerunfilecheck)             Checksum: 2CD0D89768B4FEFDA3CEB2EB6AF8DF1F;5964.
+(rerunfilecheck)             Checksum: 6F196B9E1EADC9EA68624A8BBFBA467D;5690.
  ) 
 Here is how much of TeX's memory you used:
- 30963 strings out of 478868
- 544052 string characters out of 2856724
- 1270262 words of memory out of 3000000
- 47763 multiletter control sequences out of 15000+600000
+ 30973 strings out of 478868
+ 544310 string characters out of 2856724
+ 1270540 words of memory out of 3000000
+ 47770 multiletter control sequences out of 15000+600000
  485029 words of font info for 108 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  114i,8n,117p,664b,1888s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1424,9 +1417,9 @@ TeX 2.9/fonts/type1/public/lm/lmtk10.pfb><C:/Program Files/MiKTeX 2.9/fonts/typ
 e1/public/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt
 12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/symbols/msbm10.
 pfb>
-Output written on overview.pdf (43 pages, 620356 bytes).
+Output written on overview.pdf (42 pages, 624541 bytes).
 PDF statistics:
- 965 PDF objects out of 1000 (max. 8388607)
- 475 named destinations out of 1000 (max. 500000)
+ 970 PDF objects out of 1000 (max. 8388607)
+ 478 named destinations out of 1000 (max. 500000)
  217 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -15,38 +15,45 @@ library(prodlim) ## avoid messages when loading the package later on
 #+RESULTS:
 
 This vignette describes the main functionalities of the *BuyseTest*
-package. This package implements the Generalized Pairwise Comparisons
+package, focusing on software (and not statistical) aspects, and assume
+that the reader is familar with the GPC framework [fn::if not,
+cite:buyse2010generalized is a good place to start.].
+
+\bigskip
+
+The BuyseTest package implements the Generalized Pairwise Comparisons
 (GPC) as defined in cite:buyse2010generalized for complete
 observations, and extended in cite:peron2018extension to deal with
-right-censoring. When considering a single endpoint, the GPC procedure
-can be summarized as follow. Denote the endpoint by \(Y\) in the
-treatment group and by \(X\) in the control group. Given a threshold
-of clinical relevance \(\tau\), the aim of GPC is to estimate the
-proportion in favor of treatment[fn::in absence of ties this equals
-the Wilcoxon-Mann-Whitney parameter] \(\Prob[Y \geq X + \tau]\) and
-the proportion in favor of control \(\Prob[X \geq Y + \tau]\). Their
-difference \(\Prob[Y \geq X + \tau]-\Prob[X \geq Y + \tau]\) leads to
-the net benefit and their ratio \(\frac{\Prob[Y \geq X +
-\tau]}{\Prob[X \geq Y + \tau]}\) to the win ratio (in absence of
-ties). The vignette is written for readers familar with the GPC
-framework [fn::if not, cite:buyse2010generalized is a good place to
-start.], e.g. prioritized endpoints, pair, net benefit, win ratio,
-threshold of clinical relevance, \ldots, since it focuses on the
-software aspect of the *BuyseTest* package (not on the underlying
-statistical model):
+right-censoring and cite:piffoux2024restricted to incorporate a
+restriction time. When considering a single endpoint, the GPC
+procedure can be summarized as follow. Denote the endpoint by \(Y\) in
+the treatment group and by \(X\) in the control group. Given a
+threshold of clinical relevance \(\tau\), the aim of GPC is to
+estimate the proportion in favor of treatment[fn::in absence of ties
+this equals the Wilcoxon-Mann-Whitney parameter] \(\Prob[Y \geq X +
+\tau]\) and the proportion in favor of control \(\Prob[X \geq Y +
+\tau]\). Their difference \(\Prob[Y \geq X + \tau]-\Prob[X \geq Y +
+\tau]\) leads to the net treatment benefit and their ratio
+\(\frac{\Prob[Y \geq X + \tau]}{\Prob[X \geq Y + \tau]}\) to the win
+ratio. The software also evaluate the proportion of neutral pairs
+\(\Prob[ |X - Y| < \tau]\) and which can be included to obtain the
+probabilistic index \(\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X - Y| <
+\tau]\) or win odds \(\frac{\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X -
+Y| < \tau] }{\Prob[X \geq Y + \tau] + 0.5\Prob[ |X - Y| < \tau]}\).
+of the *BuyseTest* package (not on the underlying statistical model):
 - the function =BuyseTest= performs the GPC procedure and is the main
   function of the package. The user can interact with its output via
   various methods:
     + =summary= to obtain an overview of the results, including the
-      estimated net benefit. The result table at the end of the output
-      can be directly access using =model.tables=.
+      estimated net treatment benefit. The result table at the end of
+      the output can be directly access using =model.tables=.
     + =coef= to extract the estimates.
-    + =confint= to extract estimates, confidence intervals, and p.values.
+    + =confint= or =model.tables= to extract estimates, confidence intervals, and p.values.
     + =plot= for a graphical display of the scoring of the pair per endpoint.
     + =sensitivity= to perform a sensitivity analysis on the choice of the threshold(s).
     + =nobs= to extract the number of observations and pairs.
     + =getIid= to extract the iid decomposition of the estimator.
-    + =getPairScore= to extract the contribution of each pair to the net benefit/win ratio.
+    + =getPairScore= to extract the contribution of each pair to the net treatment benefit.
     + =getSurvival= to extract the estimates of the survival used for right-censored endpoints.
     + =BuyseMultComp= to adjust p-values and confidence intervals for multiple comparisons.
 - the =powerBuyseTest= function performs simulation studies, e.g. to
@@ -58,13 +65,8 @@ statistical model):
   also change the default values to better match the user needs.
 
 Another vignette, "Wilcoxon test via GPC", details connexions between
-GPC and the Wilcoxon rank sum test.
-
-
-\clearpage
-
-Before going further we need to load the *BuyseTest* package in the R
-session:
+GPC and the Wilcoxon rank sum test. Before going further we need to
+load the *BuyseTest* package in the R session:
 #+BEGIN_SRC R  :results silent   :exports code  :session *R* :cache no
 library(BuyseTest)
 library(data.table)
@@ -100,7 +102,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '3.0.4'
+: [1] '3.0.5'
 
 For completness, the details of the R session used to generate this
 document are:
@@ -125,66 +127,35 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] prodlim_2019.11.13 ggplot2_3.4.3      survival_3.3-1     BuyseTest_3.0.4   
- [5] rhub_1.1.2         spelling_2.2       roxygen2_7.3.1     butils.base_1.3   
- [9] Rcpp_1.0.12        data.table_1.15.4  devtools_2.4.5     usethis_2.2.3     
+[1] data.table_1.15.4  BuyseTest_3.0.5    Rcpp_1.0.12        prodlim_2019.11.13
+[5] ggplot2_3.4.3      survival_3.3-1    
 
 loaded via a namespace (and not attached):
-  [1] TH.data_1.1-1             colorspace_2.1-0          deldir_1.0-6             
-  [4] ellipsis_0.3.2            rprojroot_2.0.4           htmlTable_2.4.1          
-  [7] RcppArmadillo_0.11.2.0.0  base64enc_0.1-3           fs_1.6.4                 
- [10] rstudioapi_0.16.0         listenv_0.9.0             MatrixModels_0.5-0       
- [13] remotes_2.4.2             fansi_1.0.4               mvtnorm_1.2-3            
- [16] xml2_1.3.6                codetools_0.2-18          splines_4.2.0            
- [19] cachem_1.0.8              knitr_1.46                pkgload_1.3.4            
- [22] Formula_1.2-4             jsonlite_1.8.8            rematch_1.0.1            
- [25] whoami_1.3.0              cluster_2.1.3             png_0.1-8                
- [28] shiny_1.8.1.1             riskRegression_2023.12.19 compiler_4.2.0           
- [31] httr_1.4.7                backports_1.4.1           assertthat_0.2.1         
- [34] Matrix_1.5-1              fastmap_1.1.1             cli_3.6.1                
- [37] later_1.3.2               quantreg_5.93             htmltools_0.5.8.1        
- [40] prettyunits_1.2.0         tools_4.2.0               gtable_0.3.4             
- [43] glue_1.6.2                dplyr_1.1.3               rappdirs_0.3.3           
- [46] xopen_1.0.1               vctrs_0.6.3               nlme_3.1-158             
- [49] iterators_1.0.14          xfun_0.43                 stringr_1.5.1            
- [52] globals_0.16.2            ps_1.7.6                  mime_0.12                
- [55] parsedate_1.3.1           miniUI_0.1.1.1            lifecycle_1.0.4          
- [58] polspline_1.1.20          future_1.31.0             zoo_1.8-12               
- [61] MASS_7.3-57               scales_1.2.1              doSNOW_1.0.20            
- [64] promises_1.3.0            sandwich_3.0-2            parallel_4.2.0           
- [67] SparseM_1.81              RColorBrewer_1.1-3        curl_5.0.2               
- [70] memoise_2.0.1             gridExtra_2.3             rcmdcheck_1.4.0          
- [73] rms_6.3-0                 rpart_4.1.16              latticeExtra_0.6-30      
- [76] stringi_1.8.4             desc_1.4.3                foreach_1.5.2            
- [79] checkmate_2.1.0           pkgbuild_1.4.4            lava_1.7.2.1             
- [82] mets_1.3.2                rlang_1.1.1               pkgconfig_2.0.3          
- [85] lattice_0.20-45           purrr_1.0.2               htmlwidgets_1.6.4        
- [88] cmprsk_2.2-11             processx_3.8.4            tidyselect_1.2.0         
- [91] parallelly_1.34.0         magrittr_2.0.3            R6_2.5.1                 
- [94] snow_0.4-4                generics_0.1.3            Hmisc_4.7-0              
- [97] profvis_0.3.8             multcomp_1.4-22           pillar_1.9.0             
-[100] foreign_0.8-84            withr_3.0.0               nnet_7.3-17              
-[103] tibble_3.2.1              future.apply_1.10.0       crayon_1.5.2             
-[106] uuid_1.1-0                interp_1.1-3              utf8_1.2.3               
-[109] urlchecker_1.0.1          timereg_2.0.2             jpeg_0.1-9               
-[112] grid_4.2.0                callr_3.7.6               digest_0.6.33            
-[115] xtable_1.8-4              httpuv_1.6.15             numDeriv_2016.8-1.1      
-[118] stats4_4.2.0              munsell_0.5.0             sessioninfo_1.2.2
+ [1] pillar_1.9.0        compiler_4.2.0      tools_4.2.0         digest_0.6.33      
+ [5] lifecycle_1.0.4     tibble_3.2.1        gtable_0.3.4        lattice_0.20-45    
+ [9] pkgconfig_2.0.3     rlang_1.1.1         Matrix_1.5-1        cli_3.6.1          
+[13] parallel_4.2.0      SparseM_1.81        withr_3.0.0         dplyr_1.1.3        
+[17] MatrixModels_0.5-0  generics_0.1.3      vctrs_0.6.3         globals_0.16.2     
+[21] stats4_4.2.0        grid_4.2.0          tidyselect_1.2.0    glue_1.6.2         
+[25] listenv_0.9.0       R6_2.5.1            future.apply_1.10.0 fansi_1.0.4        
+[29] parallelly_1.34.0   lava_1.7.2.1        magrittr_2.0.3      scales_1.2.1       
+[33] codetools_0.2-18    splines_4.2.0       future_1.31.0       colorspace_2.1-0   
+[37] utf8_1.2.3          munsell_0.5.0
 #+end_example
 
 \clearpage
 
-* Performing generalized pairwise comparisons (GPC) using the =BuyseTest= function
+* Performing generalized pairwise comparisons (GPC)
 
 To perform generalized pairwise comparisons, the =BuyseTest= function needs:
-- where the data are stored \hfill - argument =data=
-- the name of the endpoints \hfill - argument =endpoint=
-- the type of each endpoint \hfill - argument =type=
-- the variable defining the two treatment groups \hfill - argument
-  =treatment=
+- where the data are stored \hfill @@latex:\textcolor{orange}{- argument \texttt{data}}@@
+- the name of the endpoints \hfill @@latex:\textcolor{orange}{- argument \texttt{endpoint}}@@
+- the type of each endpoint \hfill @@latex:\textcolor{orange}{- argument \texttt{type}}@@
+- the variable defining the two treatment groups \hfill
+  @@latex:\textcolor{orange}{- argument \texttt{treatment}}@@
 The =BuyseTest= function has many optional arguments. For example:
-- the threshold of clinical relevance associated to each endpoint \hfill - argument =threshold=
-- the censoring associated to each endpoint (for time to event endpoints) \hfill - argument =status=
+- the threshold of clinical relevance associated to each endpoint \hfill @@latex:\textcolor{orange}{- argument \texttt{threshold}}@@
+- the censoring associated to each endpoint (for time to event endpoints) \hfill @@latex:\textcolor{orange}{- argument \texttt{status}}@@
 
 \bigskip
 
@@ -273,7 +244,7 @@ summary(BT)
 
 It displays information about each endpoint, percentage of pairs
 classified as favorable, unfavorable, neutral, and uninformative, as
-well as the estimated net benefit (column =Delta=), its confidence
+well as the estimated net treatment benefit (column =Delta=), its confidence
 interval, and the corresponding p-value testing the absence of a group
 difference. Other To display the number of pairs instead of the
 percentage of pairs that are
@@ -326,17 +297,137 @@ coef(BT)
 #+RESULTS:
 : [1] -0.08765836
 
+\bigskip
+
+** What about other summary statistics?
+
+Results for other summary statistics are also accessible: \hfill @@latex:\textcolor{orange}{- argument \texttt{statistic}}@@
+- proportion in favor of treatment (=favorable=): \(\Prob[Y\geq X + \tau]\)
+- proportion in favor of control (=unfavorable=): \(\Prob[X\geq Y + \tau]\)
+- win ratio (=winRatio=): \(\frac{\Prob[Y\geq X + \tau]}{\Prob[X\geq Y + \tau]}\)
+
+\noindent For instance, to display the estimated win ratio instead of
+the estimated net treatment benefit, use:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+summary(BT, statistic = "winRatio")
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+       Generalized pairwise comparisons with 1 endpoint
+
+ - statistic       : win ratio  (delta: endpoint specific, Delta: global) 
+ - null hypothesis : Delta == 1 
+ - confidence level: 0.95 
+ - inference       : H-projection of order 1 after log transformation 
+ - treatment groups: Exp (treatment) vs. Pl (control) 
+ - censored pairs  : probabilistic score based on the survival curves
+ - results
+ endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
+     time        20      100        37.78          46.54      15.68        0 0.8117
+ CI [2.5% ; 97.5%] p.value 
+   [0.5134;1.2833] 0.37195
+#+end_example
+
+\Warning In presence of ties, the null distribution of the proportion
+in favor of treatment or control depends on the data generative
+mechanism and the threshold of clinical relevance. This is why the
+=confint= method will not produce any =p.value=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(BT, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:           estimate         se  lower.ci upper.ci null p.value
+: time_t20 0.3777905 0.04902199 0.2874747 0.477467   NA      NA
+
+unless the argument =null= is provided by the user. A permutation test
+may be used to empirically estimate a value for the null hypothesis:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                     data = veteran, trace = FALSE,
+                     method.inference = "permutation", seed = 10)
+confint(BT.perm, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:           estimate         se lower.ci upper.ci      null   p.value
+: time_t20 0.3777905 0.04770182       NA       NA 0.4205855 0.3636364
+
+which, in this example, is around 0.42. It worth noting that testing
+an inadequate null hypothesis can have dramatic consequences on the
+p-value:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+rbind(confint(BT, statistic = "favorable", null = 0.42),
+      confint(BT, statistic = "favorable", null = 0.5))
+#+END_SRC
+
+#+RESULTS:
+:            estimate         se  lower.ci upper.ci null    p.value
+: time_t20  0.3777905 0.04902199 0.2874747 0.477467 0.42 0.39826735
+: time_t201 0.3777905 0.04902199 0.2874747 0.477467 0.50 0.01673643
+
+\clearpage
+
+\noindent Considering the proportion of neutral pairs in the summary
+statistics: \hfill @@latex:\textcolor{orange}{- argument \texttt{add.halfNeutral}}@@
+- Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
+- win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
+has been recommended (e.g. cite:ajufo2023fallacies) and these summary
+statistics can be output by specifying the argument =add.halfNeutral=
+to =TRUE= when calling =BuyseTest=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.half <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                     data = veteran, trace = FALSE, add.halfNeutral = TRUE)
+confint(BT.half, statistic = "favorable")
+#+END_SRC
+
+#+RESULTS:
+:           estimate         se  lower.ci  upper.ci null   p.value
+: time_t20 0.4561708 0.04880921 0.3632263 0.5522714  0.5 0.3716632
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(BT.half, statistic = "winRatio")
+#+END_SRC
+
+#+RESULTS:
+:           estimate        se  lower.ci upper.ci null   p.value
+: time_t20 0.8388127 0.1650208 0.5704361 1.233454    1 0.3716211
+
+Testing a net treatment benefit of 0, a win odds of 1, or a
+ Wilcoxon-Mann-Whitney parameter of 0.5 corresponds to the same
+ hypothesis and therefore the same p-value should be obtained. The
+ (small) discrepancy in p-values observed in this example (0.371617
+ vs. 0.3716211 vs. 0.3716632) are due to small sample
+ approximation. Such discrepancies will not arise when using
+ non-parametric bootstrap or permutation tests using quantiles of the
+ bootstrap or permutation distribution, e.g.:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BT.halfperm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+                         data = veteran, trace = FALSE, add.halfNeutral = TRUE,
+                         method.inference = "bootstrap", seed = 10)
+Mstat <- rbind(netBenefit = confint(BT.halfperm, statistic = "netBenefit"),
+               winRatio = confint(BT.halfperm, statistic = "winRatio"),
+               favorable = confint(BT.halfperm, statistic = "favorable"))
+Mstat
+#+END_SRC
+
+#+RESULTS:
+:               estimate         se   lower.ci  upper.ci null p.value
+: netBenefit -0.08765836 0.10021632 -0.2720510 0.1033974  0.0   0.383
+: winRatio    0.83881270 0.17440155  0.5722640 1.2306429  1.0   0.383
+: favorable   0.45617082 0.05010816  0.3639745 0.5516987  0.5   0.383
 
 \clearpage
 
 ** Stratified GPC
 
-GPC can be performed for subgroups of a categorical variable \hfill -
-argument =strata= \newline For instance, the celltype may have huge
-influence on the survival time and the investigator would like to only
-compare patients that have the same celltype. In the formula interface
-this is achieved by adding a single variable in the right hand side of
-the formula:
+GPC can be performed for subgroups of a categorical variable \hfill
+@@latex:\textcolor{orange}{- argument \texttt{strata}}@@ \newline For
+instance, the celltype may have huge influence on the survival time
+and the investigator would like to only compare patients that have the
+same celltype. In the formula interface this is achieved by adding a
+single variable in the right hand side of the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
 BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
@@ -379,16 +470,13 @@ summary(BTstrata, type.display = keep.colStrata)
 The percentage of pairs in the
 total/favorable/unfavorable/neutral/uninf columns are relative to the
 overall number of pairs whereas the column =delta= presents the
-strata-specific net benefits (in the last 4 lines). The last column
-(=Delta=) displays the overall net benefit.
-
-\bigskip
-
-\Warning With this weighting scheme the proportion of favorable pairs
-minus the proportion of unfavorable pairs does not equal the
-stata-specific nor the global net benefit. To retrieve the net
-benefits, we first extract the number of pairs per strata using the
-method =nobs=:
+endpoint and strata-specific net treatment benefits (in the last 4 lines). The
+last column (=Delta=) displays the global net treatment benefit (i.e. pooled
+over strata). \newline \Warning With this weighting scheme the
+proportion of favorable pairs minus the proportion of unfavorable
+pairs (=36.06%-45.77%=9.71%=) does not equal the global net treatment benefit
+(=9.97%=). To retrieve the net treatment benefits, we first extract the number
+of pairs per strata using the method =nobs=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 strata.obs <- as.data.frame(nobs(BTstrata, strata = TRUE))
 strata.obs
@@ -417,7 +505,7 @@ dfStrata
 : 4     adeno   162  56.00000     72.7500
 : 5     large   180  50.83333    117.8333
 
-We retrieve the strata-specific net benefits by comparing, in each
+We retrieve the strata-specific net treatment benefits by comparing, in each
 strata, the number of favorable and unfavorable pairs relative to the
 number of pairs[fn::Alernatively one could compute, from the \texttt{summary}, the difference
 between the percentage of favorable and unfavorable pairs relative to
@@ -431,10 +519,8 @@ delta
 #+RESULTS:
 : [1]  0.2193074 -0.1792181 -0.1033951 -0.3722222
 
-
-
-The global net benefit is then the sum of the strata-specific net
-benefits weighted by the strata weights:
+The global net treatment benefit is then the sum of the strata-specific net
+treatment benefits weighted by the strata weights:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 weightCMH <- strata.obs$pairs/(strata.obs$Pl + strata.obs$Exp)
 
@@ -449,16 +535,26 @@ list(estimate = sum(delta * weightCMH/sum(weightCMH)),
 : $weight
 : [1] 26.38329 34.62807 18.46830 20.52034
 
+\Warning One exception is for the win ratio and win odds where the
+ratio between the global proportions is taken, i.e., pooling is
+performed at the numerator and at the denominator instead of pooling
+fractions (see citep:dong2018stratified, equation 1).
 
+
+\clearpage
 
 The default weighting scheme is =CMH=, standing for
 Cochran-Mantel-Haenszel, which has been recommaned in the litterature
 citep:dong2018stratified. It is efficient under the assumption of a
 common multiplicative effect (across strata) on the odds ratio
-scale. If the effect is thought additive, one should instead weight
-proportionnaly to the number of pairs. This can be
-achieved by specifying the argument =pool.strata=:
+scale. 
 
+\bigskip 
+
+Other weighting schemes can be used. \hfill @@latex:\textcolor{orange}{-
+argument \texttt{strata}}@@. \newline For instance, if the effect is
+thought additive, one should instead weight proportionnaly to the
+number of pairs:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BTstrata2 <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "buyse")
 summary(BTstrata2, type.display = keep.colStrata)
@@ -474,7 +570,6 @@ summary(BTstrata2, type.display = keep.colStrata)
  - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: Exp (treatment) vs. Pl (control) 
  - strata weights  : 25.38%, 45.69%, 13.71%, 15.23% 
- - censored pairs  : probabilistic score based on the survival curves
  - uninformative pairs: no contribution
  - results
  endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
@@ -486,10 +581,8 @@ summary(BTstrata2, type.display = keep.colStrata)
 #+end_example
 
 The weighting scheme only affect the evaluation of the overall net
-benefit, which now equals the difference between the overall
-proportion of favorable vs. unfavorable pairs. As before the
-strata-specific net benefits are still not equal to the difference
-between the proportion of favorable and unfavorable pairs. While
+treatment benefit, which now equals the difference between the overall
+proportion of favorable vs. unfavorable pairs (=36.06%-45.77%=). While
 extractors will by default output global estimates (i.e. after pooling
 the results over strata)
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -515,6 +608,7 @@ confint(BTstrata, strata = TRUE)
 \clearpage
 
 ** Using multiple endpoints
+
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
 different endpoints must be separated with a "+" on the right hand
@@ -549,8 +643,8 @@ The hierarchy of the endpoint is defined from left (most important
 endpoint, here =time=) to right (least important endpoint, here
 =karno=). In the =summary= output, the confidence intervals and
 p.values are computed for the column =Delta=, i.e. here -8.77% is the
-net benefit for the first endpoint (line 1) and -10.09% is the net
-benefit for the first and second endpoint (line 2). In other words,
+net treatment benefit for the first endpoint (line 1) and -10.09% is the net
+treatment benefit for the first and second endpoint (line 2). In other words,
 the last confidence interval and p-value is the one for the analysis
 over all endpoints (generally the one to report).
 
@@ -639,7 +733,7 @@ model.tables(BT.nHw)
 This has been refered as the O’Brien test in the litterature
 (cite:verbeeck2019generalized, section 3.2). Alternatively, one may be
 interested in the endpoint specific results. This can be performed
-apply the =BuyseTest= function separately to each endpoint, e.g.:
+by applying the =BuyseTest= function separately to each endpoint, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 confint(BuyseTest(trt ~ cont(karno, threshold = 0), data = veteran, trace = 0))
 #+END_SRC
@@ -659,14 +753,29 @@ confint(BT.nHw, cumulative = FALSE)
 : time_t20 -0.08765836 0.09760901 -0.2735301 0.1045245    0 0.3716170
 : karno    -0.03132992 0.09787113 -0.2197111 0.1593037    0 0.7490407
 
+\bigskip
+
+Note: the apparent discrepency in p-value between the hierarchical and
+non-hierarchical GPC at the first priority (0.3762 vs 0.3698 vs
+0-3707) is due to the use of a transformation that makes the p-value
+dependent on the estimate. Otherwise the p-value would be the same at
+the first priority, e.g.:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(BT.nHw, transform = FALSE)
+#+END_SRC
+
+#+RESULTS:
+:             estimate         se   lower.ci   upper.ci null   p.value
+: time_t20 -0.07012668 0.07808721 -0.2231748 0.08292143    0 0.3691557
+: karno    -0.07639267 0.09093303 -0.2546181 0.10183280    0 0.4008534
+
+
 \clearpage
 
 ** Statistical inference
 
-Several methods are available in =BuyseTest= to quantify uncertainty
-about the estimates:
-- *permutation test* setting the argument =method.inference= to
-  ="permutation"=. Assuming exchangeability under the null hypothesis,
+Uncertainty about the estimates can be quantified using: \hfill @@latex:\textcolor{orange}{- argument \texttt{method.inference}}@@
+- *permutation test* (="permutation"=). Assuming exchangeability under the null hypothesis,
   this approach gives valid p-values (regardless to the sample size)
   for testing the absence of a difference between the groups. 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -692,8 +801,7 @@ summary(BT.perm)
      time        20      100        37.78          46.54      15.68        0 -0.0877 0.35265
 #+end_example
 
-- *bootstrap resampling* setting the argument =method.inference= to
-  ="bootstrap"=. In large enough samples, this approach gives valid
+- *bootstrap resampling* (="bootstrap"=). In large enough samples, this approach gives valid
   p-values and confidence intervals.
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -721,9 +829,9 @@ summary(BT.boot)
   [-0.2721;0.1034]   0.383
 #+end_example
 
-- *asymptotic distribution* setting the argument =method.inference= to
-  ="u-statistic"=. In large enough samples, this approach gives valid
-  p-values and confidence intervals citep:ozenne2021asymptotic.
+- *asymptotic distribution* (="u-statistic"=). In large enough
+  samples, this approach gives valid p-values and confidence intervals
+  citep:ozenne2021asymptotic.
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.ustat <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
@@ -775,7 +883,7 @@ increase by a factor 5 to 10 compared to the point estimate alone
 
 \bigskip
 
-Note: it is possible to relax the exchangeability assumption using a
+It is possible to relax the exchangeability assumption using a
 studentized permutation. A studentized bootstrap is also possible to
 improve on the better small samples properties of the bootstrap
 confidence intervals. Both rely on the asymptotic approach to estimate
@@ -879,125 +987,6 @@ So in this case no pair is analyzed at second priority.
 
 \clearpage
 
-** What about other summary statistics than the net benefit?
-
-By default methods such as =summary= display results relative to the
-net benefit. Three other summary statistics are accessible: proportion
-in favor of treatment \(\Prob[Y\geq X + \tau]\), proportion in favor
-of control \(\Prob[X\geq Y + \tau]\), and their ratio \(\Prob[X\geq
-Y + \tau]\). They can be access via the argument
-=statistic=, e.g.:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-summary(BT, statistic = "winRatio")
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-       Generalized pairwise comparisons with 1 endpoint
-
- - statistic       : win ratio  (delta: endpoint specific, Delta: global) 
- - null hypothesis : Delta == 1 
- - confidence level: 0.95 
- - inference       : H-projection of order 1 after log transformation 
- - treatment groups: Exp (treatment) vs. Pl (control) 
- - censored pairs  : probabilistic score based on the survival curves
- - results
- endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-     time        20      100        37.78          46.54      15.68        0 0.8117
- CI [2.5% ; 97.5%] p.value 
-   [0.5134;1.2833] 0.37195
-#+end_example
-
-\Warning In presence of ties, it is recommanded to use another
-definition for the proportion in favorable of treatment/control as
-their null distribution depends on the data generative mechanism and
-the threshold of clinical relevance. This is why the =confint= method
-will not produce any =p.value=:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(BT, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:           estimate         se  lower.ci upper.ci null p.value
-: time_t20 0.3777905 0.04902199 0.2874747 0.477467   NA      NA
-
-unless the argument =null= is provided by the user. A permutation test
-may be used to empirically estimate a value for the null hypothesis:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                     data = veteran, trace = FALSE,
-                     method.inference = "permutation", seed = 10)
-confint(BT.perm, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:           estimate         se lower.ci upper.ci      null   p.value
-: time_t20 0.3777905 0.04770182       NA       NA 0.4205855 0.3636364
-
-which, in this example, is around 0.42. It worth noting that testing
-an inadequate null hypothesis can have dramatic consequences on the
-p-value:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-rbind(confint(BT, statistic = "favorable", null = 0.42),
-      confint(BT, statistic = "favorable", null = 0.5))
-#+END_SRC
-
-#+RESULTS:
-:            estimate         se  lower.ci upper.ci null    p.value
-: time_t20  0.3777905 0.04902199 0.2874747 0.477467 0.42 0.39826735
-: time_t201 0.3777905 0.04902199 0.2874747 0.477467 0.50 0.01673643
-
-For statistical testing we therefore recommand defining the proportion
-in favor of treatment as \(\Prob[Y\geq X + \tau] + 0.5\Prob[|Y- X| <
-\tau]\) which matches the definition of the Wilcoxon-Mann-Whitney
-parameter. To do so, one should set the argument =add.halfNeutral= to
-=TRUE= when calling =BuyseTest=:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.half <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                     data = veteran, trace = FALSE, add.halfNeutral = TRUE)
-confint(BT.half, statistic = "favorable")
-#+END_SRC
-
-#+RESULTS:
-:           estimate         se  lower.ci  upper.ci null   p.value
-: time_t20 0.4561708 0.04880921 0.3632263 0.5522714  0.5 0.3716632
-
-Note that the win ratio is also often defined that way, i.e. as
-\(\frac{\Prob[Y\geq X + \tau] + 0.5\Prob[|Y- X| < \tau]}{\Prob[X\geq Y +
-\tau] + 0.5\Prob[|Y- X| < \tau]}\), leading to:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-confint(BT.half, statistic = "winRatio")
-#+END_SRC
-
-#+RESULTS:
-:           estimate        se  lower.ci upper.ci null   p.value
-: time_t20 0.8388127 0.1650208 0.5704361 1.233454    1 0.3716211
-
-Testing a Net Benefit of 0, a Win Ratio of 1, and a
-Wilcoxon-Mann-Whitney parameter of 0.5 corresponds to the same
-hypothesis and therefore the same p-value should be obtained. The
-(small) discrepancy in p-values observed in this example (0.371617
-vs. 0.3716211 vs. 0.3716632) are due to small sample
-approximation. Such discrepancies will not arise when using
-non-parametric bootstrap or permutation tests using quantiles of the
-bootstrap or permutation distribution, e.g.:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BT.halfperm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
-                         data = veteran, trace = FALSE, add.halfNeutral = TRUE,
-                         method.inference = "bootstrap", seed = 10)
-Mstat <- rbind(netBenefit = confint(BT.halfperm, statistic = "netBenefit"),
-               winRatio = confint(BT.halfperm, statistic = "winRatio"),
-               favorable = confint(BT.halfperm, statistic = "favorable"))
-Mstat
-#+END_SRC
-
-#+RESULTS:
-:               estimate         se   lower.ci  upper.ci null p.value
-: netBenefit -0.08765836 0.10021632 -0.2720510 0.1033974  0.0   0.383
-: winRatio    0.83881270 0.17440155  0.5722640 1.2306429  1.0   0.383
-: favorable   0.45617082 0.05010816  0.3639745 0.5516987  0.5   0.383
-
-\clearpage
 
 ** Is multiple testing a concern with GPC?
 
@@ -1012,7 +1001,7 @@ done via one of two principles:
   the results are not too sensitive to the choice of an
   hyperparameter. No multiplicity adjustment is needed other than
   considering the largest p-value among all tests. For instance, when
-  checking whether the estimated net benefit is similar across a range
+  checking whether the estimated net treatment benefit is similar across a range
   of threshold of clincial relevance, we would obtain a p-value of
   0.76
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -1217,7 +1206,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 ** Extracting the contribution of each pair to the statistic
-The net benefit or the win ratio statistics can be expressed as a sum
+The net treatment benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument =keep.pairScore=
 enables to export the score relative to each pair in the output of
 BuyseTest:
@@ -1284,7 +1273,7 @@ getPairScore(BT.keep, endpoint = 1)[, mean(favorable) - mean(unfavorable)]
 #+RESULTS:
 : [1] -0.08765836
 
- gives the net benefit in favor of the treatment for the first
+ gives the net treatment benefit in favor of the treatment for the first
  endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.keep
@@ -1545,7 +1534,7 @@ outSurv$lastSurv
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
  mechanism. The unclassified pairs, called uninformative, have a score
- of 0 which will typically bias the estimate of the net net benefit
+ of 0 which will typically bias the estimate of the net net treatment benefit
  towards 0 [fn::While the power is typically reduced, the type 1 error
  will still be controled if censoring is at random]. Consider the
  following dataset:
@@ -1578,7 +1567,7 @@ times (=eventtime=). The percentage of censored observations is:
 #+RESULTS:
 : [1] 44
 
-We would like to be able to recover the net benefit estimated with the uncensored event times:
+We would like to be able to recover the net treatment benefit estimated with the uncensored event times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
           data = dt,
@@ -1615,7 +1604,7 @@ censoring model rely on Kaplan Meier curve is fitted in each treatment
 group. When the last observation are censored, then part of the
 survival curve is unknown and there is no perfect solution. One can:
 - only use the Peron's scoring rule, which will lead to a non-0
-  uninformative score and therefore a "conservative" estimate of the net benefit.
+  uninformative score and therefore a "conservative" estimate of the net treatment benefit.
 - use the Peron's scoring rule in conjonction with the correction
   which will led to an unbiased estimator if certain assumption are met.
 - only use the Peron's scoring rule with a parametric model which, if
@@ -1772,7 +1761,7 @@ for defining =BuyseTTEM.survreg= can be helpful.
 With IPCW, the weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
 no neutral pairs or there are no lower priority endpoints. This gives
-an estimate much closer to the true net benefit:
+an estimate much closer to the true net treatment benefit:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
                 data = dt, keep.pairScore = TRUE, trace = 0,
@@ -1917,7 +1906,7 @@ dev.off()
 :           1
 
 
-Here the net benefit that we would have estimated with complete data:
+Here the net treatment benefit that we would have estimated with complete data:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BuyseTest.options(method.inference = "none")
 e.ref <- BuyseTest(group ~ tte(time,status), data = df, trace = FALSE)
@@ -2027,9 +2016,9 @@ The function =powerBuyseTest= can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
 hypothesis under a specific generative mechanism. The user therefore
 need to specify:
-- the generative mechanism via a function \hfill - argument =sim=
-- the null hypothesis \hfill - argument =null=
-- the sample size(s) for the which the power should be computed  \hfill - argument =sample.size=
+- the generative mechanism via a function \hfill @@latex:\textcolor{orange}{- argument \texttt{sim}}@@
+- the null hypothesis \hfill @@latex:\textcolor{orange}{- argument \texttt{null}}@@
+- the sample size(s) for the which the power should be computed  \hfill @@latex:\textcolor{orange}{- argument \texttt{sample.size}}@@
 
 \bigskip
 
@@ -2071,8 +2060,8 @@ null <- c("netBenefit" = 0)
 #+RESULTS:
 
 Naming the value is important since that will indicate which statistic
-should be used (here the net benefit). We can assess the power of a
-test based on the net benefit using the following syntax:
+should be used (here the net treatment benefit). We can assess the power of a
+test based on the net treatment benefit using the following syntax:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 powerW <- powerBuyseTest(sim = simFCT, method.inference = "u-statistic", null = null,
                          sample.size = c(5,10,20,30,50,100),                         

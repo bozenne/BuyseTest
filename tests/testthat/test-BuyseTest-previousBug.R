@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: feb  9 2024 (12:36) 
+## Last-Updated: sep 23 2024 (18:12) 
 ##           By: Brice Ozenne
-##     Update #: 237
+##     Update #: 244
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -689,6 +689,76 @@ test_that("Handling ties with Gehan's scoring rule",{
                  )
 })
 
+## * aghaynes: (issue #14 on Github): Mi-september 2024 Bug with win odds
+test_that("Handling neutral pairs with win odds",{
+
+    set.seed(1)
+    ddd <- simBuyseTest(1e2)
+    ddd$sss <- ddd$id %% 2
+
+    ## ** estimate
+    eFALSE.BT <- BuyseTest(treatment ~ bin(toxicity) + cont(score, threshold = 0.1), data = ddd, add.halfNeutral = FALSE, trace = FALSE, method.inference = "u-statistic")
+    expect_equivalent(coef(eFALSE.BT, cumulative = TRUE, statistic = "winRatio"), cumsum(eFALSE.BT@count.favorable)/cumsum(eFALSE.BT@count.unfavorable), tol = 1e-6)
+    expect_equivalent(coef(eFALSE.BT, cumulative = FALSE, statistic = "winRatio"), eFALSE.BT@count.favorable/eFALSE.BT@count.unfavorable, tol = 1e-6)
+
+    eTRUE.BT <- BuyseTest(treatment ~ bin(toxicity) + cont(score, threshold = 0.1), data = ddd, add.halfNeutral = TRUE, trace = FALSE, method.inference = "u-statistic")
+    expect_equivalent(coef(eTRUE.BT, cumulative = TRUE, statistic = "winRatio"),
+                     (cumsum(eTRUE.BT@count.favorable)+0.5*eTRUE.BT@count.neutral)/(cumsum(eTRUE.BT@count.unfavorable)+0.5*eTRUE.BT@count.neutral),
+                     tol = 1e-6)
+    expect_equivalent(coef(eTRUE.BT, cumulative = FALSE, statistic = "winRatio"),
+                     (eTRUE.BT@count.favorable+0.5*eTRUE.BT@count.neutral)/(eTRUE.BT@count.unfavorable+0.5*eTRUE.BT@count.neutral),
+                     tol = 1e-6)
+
+    eSFALSE.BT <- BuyseTest(treatment ~ bin(toxicity) + cont(score, threshold = 0.1) + sss, data = ddd, add.halfNeutral = FALSE, trace = FALSE, method.inference = "u-statistic")
+    expect_equivalent(coef(eSFALSE.BT, cumulative = TRUE, statistic = "winRatio"),
+                      cumsum(colSums(eSFALSE.BT@count.favorable))/cumsum(colSums(eSFALSE.BT@count.unfavorable)),
+                      tol = 1e-6)
+    expect_equivalent(coef(eSFALSE.BT, cumulative = FALSE, statistic = "winRatio"),
+                      colSums(eSFALSE.BT@count.favorable)/colSums(eSFALSE.BT@count.unfavorable),
+                      tol = 1e-6)
+    expect_equivalent(coef(eSFALSE.BT, cumulative = TRUE, strata = TRUE, statistic = "winRatio"),
+                      riskRegression::rowCumSum(eSFALSE.BT@count.favorable)/riskRegression::rowCumSum(eSFALSE.BT@count.unfavorable),
+                      tol = 1e-6)
+    expect_equivalent(coef(eSFALSE.BT, cumulative = FALSE, strata = TRUE, statistic = "winRatio"),
+                      eSFALSE.BT@count.favorable/eSFALSE.BT@count.unfavorable,
+                      tol = 1e-6)
+
+    eSTRUE.BT <- BuyseTest(treatment ~ bin(toxicity) + cont(score, threshold = 0.1) + sss, data = ddd, add.halfNeutral = TRUE, trace = FALSE, method.inference = "u-statistic")
+    expect_equivalent(coef(eSTRUE.BT, cumulative = TRUE, statistic = "winRatio"),
+                      (cumsum(colSums(eSTRUE.BT@count.favorable))+0.5*colSums(eSTRUE.BT@count.neutral))/(cumsum(colSums(eSTRUE.BT@count.unfavorable))+0.5*colSums(eSTRUE.BT@count.neutral)),
+                      tol = 1e-6)
+    expect_equivalent(coef(eSTRUE.BT, cumulative = FALSE, statistic = "winRatio"),
+                      (colSums(eSTRUE.BT@count.favorable)+0.5*colSums(eSTRUE.BT@count.neutral))/(colSums(eSTRUE.BT@count.unfavorable)+0.5*colSums(eSTRUE.BT@count.neutral)),
+                      tol = 1e-6)
+    expect_equivalent(coef(eSTRUE.BT, cumulative = TRUE, strata = TRUE, statistic = "winRatio"),
+                      (riskRegression::rowCumSum(eSTRUE.BT@count.favorable)+0.5*eSTRUE.BT@count.neutral)/(riskRegression::rowCumSum(eSTRUE.BT@count.unfavorable)+0.5*eSTRUE.BT@count.neutral),
+                      tol = 1e-6)
+    expect_equivalent(coef(eSTRUE.BT, cumulative = FALSE, strata = TRUE, statistic = "winRatio"),
+                      (eSTRUE.BT@count.favorable+0.5*eSTRUE.BT@count.neutral)/(eSTRUE.BT@count.unfavorable+0.5*eSTRUE.BT@count.neutral),
+                      tol = 1e-6)
+
+    ## ** iid (outcome specific)
+    expect_equivalent(eTRUE.BT@iidAverage$favorable, eFALSE.BT@iidAverage$favorable + 0.5 * eTRUE.BT@iidAverage$neutral, tol = 1e-6)
+    expect_equivalent(eTRUE.BT@iidAverage$unfavorable, eFALSE.BT@iidAverage$unfavorable + 0.5 * eTRUE.BT@iidAverage$neutral, tol = 1e-6)
+    expect_equivalent(eTRUE.BT@iidAverage$neutral, eFALSE.BT@iidAverage$neutral, tol = 1e-6)
+    expect_equivalent(eSTRUE.BT@iidAverage$favorable, eSFALSE.BT@iidAverage$favorable + 0.5 * eSTRUE.BT@iidAverage$neutral, tol = 1e-6)
+    expect_equivalent(eSTRUE.BT@iidAverage$unfavorable, eSFALSE.BT@iidAverage$unfavorable + 0.5 * eSTRUE.BT@iidAverage$neutral, tol = 1e-6)
+    expect_equivalent(eSTRUE.BT@iidAverage$neutral, eSFALSE.BT@iidAverage$neutral, tol = 1e-6)
+
+    ## ** se (cumulated over outcomes)
+    if(attr(eSTRUE.BT@method.inference,"hprojection")==1){
+        expect_equivalent(colSums(getIid(eFALSE.BT, statistic = "favorable")^2), eFALSE.BT@covariance[,"favorable"], tol = 1e-6)
+        expect_equivalent(colSums(getIid(eTRUE.BT, statistic = "favorable")^2), eTRUE.BT@covariance[,"favorable"], tol = 1e-6)
+
+        expect_equivalent(colSums(getIid(eSFALSE.BT, statistic = "favorable")^2), eSFALSE.BT@covariance[,"favorable"], tol = 1e-6)
+        expect_equivalent(colSums(getIid(eSTRUE.BT, statistic = "favorable")^2), eSTRUE.BT@covariance[,"favorable"], tol = 1e-6)
+    }
+
+    xxx <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.1) + cont(score, threshold = 3) + sss,
+                     data = ddd, add.halfNeutral = TRUE, method.inference = "u-statistic")
+    summary(xxx, statistic = "winRatio")
+    summary(xxx, statistic = "netBenefit")
+})
 
 
 
