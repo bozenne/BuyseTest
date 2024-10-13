@@ -68,13 +68,13 @@ Useful links:
 Authors:
 \itemize{
   \item Eva Cantagallo
-  \item Johan Verbeeck
+  \item William Anderson
 }
 
 Other contributors:
 \itemize{
   \item Julien Peron [contributor]
-  \item William Anderson [contributor]
+  \item Johan Verbeeck [contributor]
 }
 
 }

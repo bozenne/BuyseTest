@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1224
+##     Update #: 1230
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -670,16 +670,16 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
     
     ## ** p-value
     add.1 <- BuyseTest.options()$add.1.presample
-    outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 1
-        ## rounding is here to mitigate p-value mismatch between netBenefit and winRatio due to finite numeric precision
-        
+    outTable[,"p.value"] <- sapply(1:n.endpoint, FUN = function(iE){ ## iE <- 2
+    ## rounding is here to mitigate p-value mismatch between netBenefit and winRatio due to finite numeric precision
+
         if(alternative == "two.sided"){
             if(attr(null,"type")=="relative"){ ## win ratio without transformation
                 ## H0 WR=1 so if hat(WR)=3/2 more extreme is above 3/2 or below 2/3
-                test.alternative <- round(pmax(Delta.resampling[,iE]/null,null/Delta.resampling[,iE]),10)/round(max(Delta[iE]/null,null/Delta[iE]),10) >= 1
+                test.alternative <- round(pmax(Delta.resampling[,iE]/null[iE],null[iE]/Delta.resampling[,iE]),10)/round(max(Delta[iE]/null[iE],null[iE]/Delta[iE]),10) >= 1
                 ## test.alternative <- abs(log(Delta[iE]/null)) <= abs(log(Delta.resampling[,iE]/null)) ## try to avoid log-transformation
             }else if(attr(null,"type")=="absolute"){
-                test.alternative <- round(abs(Delta[iE]-null),10) <= round(abs(Delta.resampling[,iE]-null),10)
+                test.alternative <- round(abs(Delta[iE]-null[iE]),10) <= round(abs(Delta.resampling[,iE]-null[iE]),10)
             }
 
         }else{
@@ -867,7 +867,6 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
     outTable[,"null"] <- backtransform.delta(null)
 
     ## ** p.value
-
     if(length(index.var)>0){
         add.1 <- BuyseTest.options()$add.1.presample
         Delta.stat <- (Delta-null)/Delta.se

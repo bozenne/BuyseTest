@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: May  1 2023 (10:09) 
+## Last-Updated: Oct 13 2024 (20:09) 
 ##           By: Brice Ozenne
-##     Update #: 42
+##     Update #: 45
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -40,63 +40,65 @@ dt2 <- dt[status!=0]
 seqTau <- c(0,unique(dt$eventtime),runif(100,0,max(dt$eventtime)),1e5)
 
 ## ** no strata (other than treatment group)
+if(packageVersion("riskRegression")>="2024.9.10"){ ## change in riskRegression: predictCoxPL --> predictCox(, product.limit = TRUE) + change in how product limit affects iid
 test_that("no strata, survival", {
     ## ## no censoring ## ##
     e.rr <- coxph(Surv(eventtime,status)~strata(treatment), data = dt2, x = TRUE, y = TRUE)
-    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt2, iid = TRUE, iid.surv = "exp") 
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt2, iid = TRUE, iid.surv = "prodlim") 
 
     ## Treatment
+    GS <- predictCox(e.rr, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, product.limit = TRUE)
     test <- predict(e.bb, time = seqTau, treatment  = "T", iid = TRUE)
-    GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
     expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
 
     ## Control
+    GS <- predictCox(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, product.limit = TRUE)
     test <- predict(e.bb, time = seqTau, treatment  = "C", iid = TRUE)
-    GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
     expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
 
     ## ## censoring ## ##
     e.r <- coxph(Surv(eventtime,status)~strata(treatment), data = dt, x = TRUE, y = TRUE)
-    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE, iid.surv = "exp")
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE, iid.surv = "prodlim")
 
     ## Treamtent
+    GS <- predictCox(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, product.limit = TRUE)
     test <- predict(e.b, time = seqTau, treatment  = "T", iid = TRUE)
-    GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
     expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
 
     ## Control
+    GS <- predictCox(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, product.limit = TRUE)
     test <- predict(e.b, time = seqTau, treatment  = "C", iid = TRUE)
-    GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE)
 
     expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
     expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
 })
+}
 
 ## ** with strata (other than treatment group)
-
+if(packageVersion("riskRegression")>="2024.9.10"){ ## change in riskRegression: predictCoxPL --> predictCox(, product.limit = TRUE) + change in how product limit affects iid
 test_that("strata, survival", {
     ## ## no censoring ## ##
     e.rr <- coxph(Surv(eventtime,status)~strata(treatment)+strata(toxicity), data = dt2, x = TRUE, y = TRUE)
-    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt2, iid = TRUE, iid.surv = "exp",
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt2, iid = TRUE, iid.surv = "prodlim",
                      treatment = "treatment")
 
     for(iStrata in c("yes","no")){ ## iStrata <- "yes"
         ## Treatment
+        GS <- predictCox(e.rr, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE)
         test <- predict(e.bb, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE)
-        GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
         expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
 
         ## Control
+        GS <- predictCox(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE)
         test <- predict(e.bb, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE)
-        GS <- predictCoxPL(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
         expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
@@ -104,25 +106,26 @@ test_that("strata, survival", {
 
     ## ## censoring ## ##
     e.r <- coxph(Surv(eventtime,status)~strata(treatment)+strata(toxicity), data = dt, x = TRUE, y = TRUE)
-    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt, iid = TRUE, iid.surv = "exp",
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment+toxicity, data = dt, iid = TRUE, iid.surv = "prodlim",
                      treatment = "treatment")
 
     for(iStrata in c("yes","no")){
         ## Treatment
+        GS <- predictCox(e.r, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE)
         test <- predict(e.b, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE)
-        GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
         expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
 
         ## Control
+        GS <- predictCox(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE)
         test <- predict(e.b, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE)
-        GS <- predictCoxPL(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE)
 
         expect_equal(test$survival,GS$survival[1,], tol = 1e-6)
         expect_equal(test$survival.iid,GS$survival.iid[,,1], tol = 1e-6)
     }
 })
+}
 
 ## ** other
 dataT <- data.table(time = 1:5,

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: jun  4 2024 (10:33) 
+## Last-Updated: Aug 22 2024 (15:49) 
 ##           By: Brice Ozenne
-##     Update #: 366
+##     Update #: 375
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -252,7 +252,7 @@ setMethod(f = "coef",
                                                   dimnames = list(NULL, level.strata, valid.endpoint))
                   object.DeltaResampling <- matrix(slot(object, "DeltaResampling")[,,statistic],
                                                    ncol = n.endpoint, dimnames = list(NULL, valid.endpoint))
-                  
+
                   deltaResampling <- array(NA, dim = c(n.resampling, n.strata+1, n.endpoint),
                                            dimnames = list(NULL, c("global",level.strata), valid.endpoint))
                   deltaResampling[,level.strata,valid.endpoint] <- object.deltaResampling
@@ -293,7 +293,7 @@ setMethod(f = "coef",
 
                   for(iS in 1:n.strata){ ## iS <- 1
                       if(n.endpoint == 1){
-                          DeltaResampling[,iS+1,1] <- object.DeltaResampling
+                          DeltaResampling[,iS+1,1] <- object.deltaResampling[,iS,]
                       }else{
                           if(statistic != "winRatio"){                              
                               DeltaResampling[,iS+1,] <- .rowCumSum_cpp(.rowMultiply_cpp(object.deltaResampling[,iS,], weightEndpoint))
@@ -304,8 +304,7 @@ setMethod(f = "coef",
                   }
 
               }
-              
-              
+
               ## ** extract information
               if(resampling == FALSE){
 
@@ -316,11 +315,13 @@ setMethod(f = "coef",
                   }
                   
               }else if(resampling){
+
                   if(cumulative==TRUE){
                       out <- DeltaResampling[,strata,endpoint,drop=simplify]
                   }else if(cumulative == FALSE){
                       out <- deltaResampling[,strata,endpoint,drop=simplify]
                   }
+
               }              
 
               ## ** export

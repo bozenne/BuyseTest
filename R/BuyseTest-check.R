@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: jun 24 2024 (12:02) 
+## Last-Updated: Aug 22 2024 (16:04) 
 ##           By: Brice Ozenne
-##     Update #: 359
+##     Update #: 364
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -363,8 +363,11 @@ testArgs <- function(name.call,
     if(pool.strata>3 && method.inference %in% c("u statistic","varexact permutation","studentized permutation","varexact permutation","studentized bootstrap")){
         stop("Only bootstrap and permutation can be used to quantify uncertainty when weighting strata-specific effects by the inverse of the variance. \n")
     }
-    if(method.inference != "none" && any(table(data[[treatment]])<2) ){
-        warning("P-value/confidence intervals will not be valid with only one observation. \n")
+
+    if(any(table(data[[treatment]])<2) && (method.inference %in% c("none","permutation") == FALSE) ){
+        warning("P-value/confidence intervals will not be valid when a treatment group contain a single observation. \n")
+    }else if(!is.null(strata) && any(table(data[[treatment]],data[[strata]])<2) && (method.inference %in% c("none","permutation") == FALSE) ){
+        warning("P-value/confidence intervals will not be valid when a treatment group contain a single observation in one of the strata. \n")
     }
     if(!is.na(attr(method.inference,"resampling-strata")) && any(attr(method.inference,"resampling-strata") %in% names(data) == FALSE)){
         stop("Incorrect value for argument \'strata.resampling\': must correspond to a column in argument \'data\'. \n")

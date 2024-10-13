@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 3.0.4
-Date: 2024-07-01
+Version: 3.0.5
+Date: 2024-10-13
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Eva", "Cantagallo", role = "aut"),
@@ -94,6 +94,7 @@ Collate:
     'powerBuyseTest.R'
     'predict.logit.R'
     'rbind.performanceResample.R'
+    'sim.simBuyseTest.R'
     'simBuyseTest.R'
     'simCompetingRisks.R'
     'summary.performance.R'

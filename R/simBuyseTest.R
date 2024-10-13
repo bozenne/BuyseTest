@@ -8,7 +8,7 @@
 #' 
 #' @param n.T [integer, >0] number of patients in the treatment arm
 #' @param n.C [integer, >0] number of patients in the control arm
-#' @param format [character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.
+#' @param format [character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"}, \code{"matrix"} or \code{"function"}.
 #' @param argsBin [list] arguments to be passed to \code{simBuyseTest_bin}. They specify the distribution parameters of the categorical endpoints.
 #' @param argsCont [list] arguments to be passed to \code{simBuyseTest_continuous}. They specify the distribution parameters of the continuous endpoints.
 #' @param argsTTE [list]  arguments to be passed to \code{simBuyseTest_TTE}. They specify the distribution parameters of the time to event endpoints.
@@ -21,7 +21,8 @@
 #' @param level.treatment [character vector of length 2] levels of the treatment variable. 
 #' @param latent [logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).
 #' 
-#' @return A data.frame, data.table, or matrix depending of the argument \code{format}.
+#' @return Depends on the argument \code{format}: either a data.frame, data.table, matrix containing the simulated data, 
+#' or a function that can be used to simulate data.
 #' 
 #' @details 
 #' Endpoints are simulated independently of the strata variable and independently of each other,
@@ -158,6 +159,14 @@
 #' 
 #' boxplot(eventtime ~ toxicity, data = dt.corr)
 #' 
+#' #### pre-computation ####
+#' library(lava)
+#' mySimulator <- simBuyseTest(n, format = "function") ## creates lvm object once for all
+#' set.seed(1)
+#' sim(mySimulator)
+#' set.seed(2)
+#' sim(mySimulator) 
+#' 
 #' @keywords datagen
 #' @author Brice Ozenne
 
@@ -237,15 +246,34 @@ simBuyseTest <- function(n.T, n.C = NULL,
                        method = "simBuyseTest")
         validCharacter(format,
                        valid.length = 1,
-                       valid.values = c("data.table","data.frame","matrix"),
+                       valid.values = c("data.table","data.frame","matrix","function"),
                        method = "simBuyseTest")
     }
     
-    ## ** build the generative model
+    ## ** initialize the generative model
     mT.lvm <- lvm()
     mC.lvm <- lvm()
+
+    ## ** add cluster variable to the generative model
+    if(!is.null(name.cluster)){
+        ## if(is.null(prefix.cluster)){
+            lava::distribution(mC.lvm,stats::reformulate(name.cluster)) <- lava::Sequence.lvm(1,n.C)
+            lava::distribution(mT.lvm,stats::reformulate(name.cluster)) <- lava::Sequence.lvm(n.C+1,n.C+n.T)
+        ## }else{
+            ## creates conflict later on with lava::categorical
+            ## distribution(mC.lvm,stats::reformulate(name.cluster)) <- function(n,...){paste0(prefix.cluster,1:n)}
+            ## distribution(mT.lvm,stats::reformulate(name.cluster)) <- function(n,...){paste0(prefix.cluster,n.C + 1:n)}
+            ## affects the states of the random generator
+            ## transform(mC.lvm,stats::reformulate("1",name.cluster)) <- function(n,...){paste0(prefix.cluster,1:length(n))}
+            ## transform(mT.lvm,stats::reformulate("1",name.cluster)) <- function(n,...){paste0(prefix.cluster,(n.C+1):(n.C+length(n)))}
+        ## }
+    }
+
+    ## ** add treatment variable to the generative model
     lava::categorical(mC.lvm,labels=level.treatment[1]) <- name.treatment
     lava::categorical(mT.lvm,labels=level.treatment[2]) <- name.treatment
+
+    ## ** add outcome variables to the generative model
     if(!is.null(argsTTE)){
         newLVM <- do.call("simBuyseTest_TTE", args = c(list(modelT = mT.lvm, modelC = mC.lvm, check = option$check), argsTTE))
         mT.lvm <- newLVM$modelT
@@ -296,21 +324,26 @@ simBuyseTest <- function(n.T, n.C = NULL,
     }
 
     ## ** simulate data from the generative model
-    df.T <- lava::sim(mT.lvm, n.T, latent = latent)
-    df.C <- lava::sim(mC.lvm, n.C, latent = latent)
-  
-    ## ** export
-    if(!is.null(name.cluster)){
-        if(is.null(prefix.cluster)){
-            res <- cbind(1:(n.T+n.C), do.call(format, args =  rbind(df.C, df.T)))
-        }else{
-            res <- cbind(paste0(prefix.cluster,1:(n.T+n.C)), do.call(format, args =  rbind(df.C, df.T)))
-        }
-        names(res)[1] <- name.cluster
-    }else{
-            res <- do.call(format, args =  rbind(df.C, df.T))
+    if(format != "lvm"){
+        df.T <- lava::sim(mT.lvm, n = n.T, latent = latent)
+        df.C <- lava::sim(mC.lvm, n = n.C, latent = latent)
     }
-    return(res)
+
+    ## ** export
+    if(format == "function"){
+        out <- list(lvm = list(C = mC.lvm, T = mT.lvm),
+                    n = c(C = n.C, T = n.T),
+                    latent = latent,
+                    name.cluster = name.cluster,
+                    prefix.cluster = prefix.cluster)
+        class(out) <- append("simBuyseTest", class(out))
+    }else{
+        out <- do.call(format, args =  rbind(df.C, df.T))
+        if(!is.null(prefix.cluster)){
+            out[[name.cluster]] <- paste0(prefix.cluster,out[[name.cluster]])
+        }
+    }
+    return(out)
 }
 
 ## * Function simBuyseTest_bin

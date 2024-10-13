@@ -46,12 +46,13 @@ simBuyseTest(
 
 \item{level.treatment}{[character vector of length 2] levels of the treatment variable.}
 
-\item{format}{[character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"} or \code{"matrix"}.}
+\item{format}{[character] the format of the output. Can be \code{"data.table"}, \code{"data.frame"}, \code{"matrix"} or \code{"function"}.}
 
 \item{latent}{[logical] If \code{TRUE} also export the latent variables (e.g. censoring times or event times).}
 }
 \value{
-A data.frame, data.table, or matrix depending of the argument \code{format}.
+Depends on the argument \code{format}: either a data.frame, data.table, matrix containing the simulated data, 
+or a function that can be used to simulate data.
 }
 \description{
 Simulate categorical, continuous or time to event endpoints, possibly along with a strata variable.
@@ -194,6 +195,14 @@ dt.corr <- simBuyseTest(n, argsBin = args.bin, argsCont = NULL, argsTTE = args.t
 table(dt.corr$toxicity)/NROW(dt.corr)
 
 boxplot(eventtime ~ toxicity, data = dt.corr)
+
+#### pre-computation ####
+library(lava)
+mySimulator <- simBuyseTest(n, format = "function") ## creates lvm object once for all
+set.seed(1)
+sim(mySimulator)
+set.seed(2)
+sim(mySimulator) 
 
 }
 \author{
