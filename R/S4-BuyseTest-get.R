@@ -217,7 +217,7 @@ setMethod(f = "getIid",
                                      unfavorable = matrix(0, nrow = n.obs, ncol = n.endpoint,
                                                           dimnames = list(NULL, valid.endpoint)),
                                      neutral = matrix(0, nrow = n.obs, ncol = n.endpoint,
-                                                      dimnames = list(NULL, neutral))
+                                                      dimnames = list(NULL, valid.endpoint))
                                      )
               }
 
