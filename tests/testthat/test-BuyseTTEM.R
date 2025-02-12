@@ -3,15 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-<<<<<<< HEAD
-## Last-Updated: Oct 13 2024 (20:09) 
-##           By: Brice Ozenne
-##     Update #: 45
-=======
-## Last-Updated: sep 23 2024 (14:37) 
+## Last-Updated: feb 12 2025 (12:06) 
 ##           By: Brice Ozenne
 ##     Update #: 46
->>>>>>> d13c78f050f278515e0e62035a1e0847520aacb7
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 

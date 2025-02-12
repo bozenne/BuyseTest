@@ -23,6 +23,7 @@ extractRchunk(file = "./BuyseTest/inst/doc-Wilcoxon/wilcoxonTest.org",
 cd ~/Documents/GitHub/BuyseTest/inst/doc-wilcoxonTest/
 gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=wilcoxonTest-compress.pdf wilcoxonTest.pdf
 cp wilcoxonTest-compress.pdf ../../vignettes/wilcoxonTest.pdf 
+cp wilcoxonTest.R ../../vignettes/wilcoxonTest.R 
 #+END_SRC
 
 #+RESULTS:

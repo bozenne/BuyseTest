@@ -485,9 +485,9 @@ BuyseTest <- function(formula,
                                                endpoint = outArgs$endpoint,
                                                type = outArgs$type,
                                                threshold = outArgs$threshold,                      
-                                               status = type$status,
-                                               operator = type$operator,
-                                               censoring = type$censoring,
+                                               status = outArgs$status,
+                                               operator = outArgs$operator,
+                                               censoring = outArgs$censoring,
                                                restriction = outArgs$restriction,
                                                strata = outArgs$strata)
 
