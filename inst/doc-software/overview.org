@@ -40,7 +40,6 @@ ratio. The software also evaluate the proportion of neutral pairs
 probabilistic index \(\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X - Y| <
 \tau]\) or win odds \(\frac{\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X -
 Y| < \tau] }{\Prob[X \geq Y + \tau] + 0.5\Prob[ |X - Y| < \tau]}\).
-of the *BuyseTest* package (not on the underlying statistical model):
 - the function =BuyseTest= performs the GPC procedure and is the main
   function of the package. The user can interact with its output via
   various methods:
@@ -552,7 +551,7 @@ scale.
 \bigskip 
 
 Other weighting schemes can be used. \hfill @@latex:\textcolor{orange}{-
-argument \texttt{strata}}@@. \newline For instance, if the effect is
+argument \texttt{pool.strata}}@@. \newline For instance, if the effect is
 thought additive, one should instead weight proportionnaly to the
 number of pairs:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -1500,6 +1499,9 @@ calcInt <- function(...){ ## no need for the functionnal derivative of the score
 #+END_SRC
 
 #+RESULTS:
+
+\clearpage
+
 and then call it to compute the probabilities:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 denom <- as.double(outSurv$survTimeT[3,"survivalT_0"] * outSurv$survTimeC[10,"survivalC_0"])
