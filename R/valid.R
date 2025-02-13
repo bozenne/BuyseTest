@@ -79,14 +79,14 @@ validCharacter <- function(value1,
             
             if(any(is.character(value1) == FALSE)){
                 stop(method, "\'", name1, "\' must be a ", if(n.value1 == 1){"character"}else{"vector of characters"}," \n", 
-                     "is(", name1, ") : ", paste(is(value1), collapse = " "), "\n")
+                     "is(", name1, ") : ", paste(methods::is(value1), collapse = " "), "\n")
             }
             
         } else if(identical(valid.values,"character_or_logical")){
             
             if(any( (is.character(value1) == FALSE) * (is.logical(value1) == FALSE) > 0 )){
                 stop(method, "\'", name1, "\' must be a ", if(n.value1 == 1){"character or logical"}else{"vector of characters or logicals"}," \n", 
-                     "is(", name1, ") : ", paste(is(value1), collapse = " "), "\n")
+                     "is(", name1, ") : ", paste(methods::is(value1), collapse = " "), "\n")
             }
             
         } else if(!is.null(valid.values) && any(value1 %in% valid.values == FALSE)){
@@ -123,9 +123,9 @@ validClass <- function(value1,
         
     }else if(type == "is"){
         
-        if( all(is(value1) %in% validClass == FALSE) ){
+        if( all(methods::is(value1) %in% validClass == FALSE) ){
             stop(method, "class of \'", name1, "\' must be one of the following \"", paste(valid.class,collapse="\" \""), "\"  \n", 
-                 "current superclass : \"", paste(is(value1),collapse="\" \""), "\" \n")
+                 "current superclass : \"", paste(methods::is(value1),collapse="\" \""), "\" \n")
         }  
         
     }else if(type == "class"){
@@ -267,7 +267,7 @@ validLogical <- function(value1,
 #### Type
         if(any(is.logical(value1) == FALSE)){
             stop(method, "\'", name1, "\' must be ", if(refuse.NULL == FALSE){"NULL or "}, if(refuse.NA == FALSE){"NA or "},"TRUE or FALSE \n",        
-                 "is(", name1, ") : ", paste(is(value1), collapse = " "), "\n")
+                 "is(", name1, ") : ", paste(methods::is(value1), collapse = " "), "\n")
         }
         
         if(refuse.NA == TRUE && any(is.na(value1)) ){
@@ -401,7 +401,7 @@ validNumeric <- function(value1,
 #### check numeric
         if(any( (is.numeric(value1) == FALSE) * (is.na(value1) == FALSE) )){
             stop(method, "\'", name1, "\' must be numeric \n",        
-                 "is(", name1, ") : ", paste(is(value1), collapse = " "), "\n")
+                 "is(", name1, ") : ", paste(methods::is(value1), collapse = " "), "\n")
         }
         
 #### check duplicates
