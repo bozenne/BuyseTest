@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: jun 19 2024 (12:22) 
+## Last-Updated: feb 13 2025 (16:30) 
 ##           By: Brice Ozenne
-##     Update #: 347
+##     Update #: 352
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -17,8 +17,8 @@
 
 ## * sensitivity (documentation)
 #' @docType methods
-#' @name S4BuyseTest-sensitivity
-#' @title  Sensitivity Analysis for the Choice of the Thresholds
+#' @name sensitivity
+#' @title Sensitivity Analysis for the Choice of the Thresholds
 #' @aliases sensitivity,S4BuyseTest-method
 #' @include S4-BuyseTest.R
 #' 
@@ -79,7 +79,7 @@
 
 
 ## * sensitivity (method)
-#' @rdname S4BuyseTest-sensitivity
+#' @rdname sensitivity
 #' @exportMethod sensitivity
 setMethod(f = "sensitivity",
           signature = "S4BuyseTest",

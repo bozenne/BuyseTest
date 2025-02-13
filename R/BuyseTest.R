@@ -169,10 +169,10 @@
 #' \code{\link{S4BuyseTest-summary}} for a summary of the results of generalized pairwise comparison. \cr
 #' \code{\link{S4BuyseTest-confint}} for exporting estimates with confidence intervals and p-values. \cr
 #' \code{\link{S4BuyseTest-model.tables}} for exporting the number or percentage of favorable/unfavorable/neutral/uninformative pairs. \cr
-#' \code{\link{S4BuyseTest-sensitivity}} for performing a sensitivity analysis on the choice of the threshold(s). \cr
+#' \code{\link{sensitivity}} for performing a sensitivity analysis on the choice of the threshold(s). \cr
 #' \code{\link{S4BuyseTest-plot}} for graphical display of the pairs across endpoints. \cr
-#' \code{\link{S4BuyseTest-getIid}} for exporting the first order H-decomposition. \cr
-#' \code{\link{S4BuyseTest-getPairScore}} for exporting the scoring of each pair. 
+#' \code{\link{getIid}} for exporting the first order H-decomposition. \cr
+#' \code{\link{getPairScore}} for exporting the scoring of each pair. 
 #' @keywords models
 #' @author Brice Ozenne
 
