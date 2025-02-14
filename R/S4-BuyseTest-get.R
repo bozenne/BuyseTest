@@ -83,6 +83,7 @@ setMethod(f = "getCount",
 
 ## * getIid (code)
 #' @rdname getIid
+#' @exportMethod getIid
 setMethod(f = "getIid",
           signature = "S4BuyseTest",
           definition = function(object,
@@ -468,6 +469,8 @@ setMethod(f = "getIid",
 #' }
 
 ## * getPairScore (code)
+#' @rdname getPairScore
+#' @exportMethod getPairScore
 setMethod(f = "getPairScore",
           signature = "S4BuyseTest",
           definition = function(object, endpoint, strata, cumulative,
@@ -659,6 +662,8 @@ setMethod(f = "getPairScore",
 #' confint(e.BT, statistic = "unfavorable", transformation = TRUE)
 
 ## * getPseudovalue (code)
+#' @rdname getPseudovalue
+#' @exportMethod getPseudovalue
 setMethod(f = "getPseudovalue",
           signature = "S4BuyseTest",
           definition = function(object, statistic = NULL, endpoint = NULL){
@@ -754,6 +759,7 @@ setMethod(f = "getPseudovalue",
 
 ## * getSurvival (code)
 #' @rdname getSurvival
+#' @exportMethod getSurvival
 setMethod(f = "getSurvival",
           signature = "S4BuyseTest",
           definition = function(object, type, endpoint, strata, unlist, trace){
