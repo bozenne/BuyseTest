@@ -414,9 +414,6 @@ setMethod(f = "getIid",
 #' For time to event endpoint an additional weighting may be performed to avoid a possible bias in presence of censoring.
 #' @keywords get S4BuyseTest-method
 #' @author Brice Ozenne
-
-## * getPairScore (examples)
-#' @rdname getPairScore
 #' @examples
 #' library(data.table)
 #' library(prodlim)
@@ -623,9 +620,6 @@ setMethod(f = "getPairScore",
 #' 
 #' @keywords method
 #' @author Brice Ozenne
-
-## * getPseudovalue (examples)
-#' @rdname getPseudovalue
 #' @examples
 #' set.seed(10)
 #' n <- 250

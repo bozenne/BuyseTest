@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 13 2025 (11:30) 
 ## Version: 
-## Last-Updated: feb 13 2025 (15:21) 
+## Last-Updated: Feb 16 2025 (18:05) 
 ##           By: Brice Ozenne
-##     Update #: 32
+##     Update #: 34
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -36,6 +36,7 @@
 #'
 #' @author Brice Ozenne
 #' @docType data
+#' @usage data(prodige, package = "BuyseTest")
 #' @references Conroy, Thierry, et al. "FOLFIRINOX versus gemcitabine for metastatic pancreatic cancer" New England Journal of Medicine (2011) 364(19):1817-25. doi: 10.1056/NEJMoa1011923.
 #' @keywords datasets
 "prodige"
@@ -60,6 +61,7 @@
 #' 
 #' @author Johan Verbeeck
 #' @docType data
+#' @usage data(CHARM, package = "BuyseTest")
 #' @references Yusuf Salim, et al. "Effects of candesartan in patients with chronic heart failure and preserved left-ventricular ejection fraction: the CHARM-Preserved Trial". The Lancet (2003) 9386(362):777-781.
 #' @keywords datasets
 "CHARM"
@@ -82,6 +84,7 @@
 #' }
 #' 
 #' @docType data
+#' @usage data(CHARM, package = "BuyseTest")
 #' @references Wally et al. "Diacerein orphan drug development for epidermolysis bullosa simplex: A phase 2/3 randomized, placebo-controlled, double-blind clinical trial". Journal of American Academy of Dermatology (2018) 78(5):892-901. https://doi.org/10.1016/j.jaad.2018.01.019.
 #' @keywords datasets
 "EB"

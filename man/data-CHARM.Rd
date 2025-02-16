@@ -8,7 +8,7 @@
 An object of class \code{data.frame} with 3023 rows and 8 columns.
 }
 \usage{
-CHARM
+data(CHARM, package = "BuyseTest")
 }
 \description{
 Simulated data inspired from the CHARM-Preserved Trial comparing cardiovascular death or admission to hospital for chronic heart failure (CHF) among patients with CHF treated with candesartan or placebo.

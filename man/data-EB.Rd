@@ -8,7 +8,7 @@
 An object of class \code{data.frame} with 30 rows and 7 columns.
 }
 \usage{
-EB
+data(CHARM, package = "BuyseTest")
 }
 \description{
 16 pediatric subjects suffering from a aare skin disease (epidermolysis bullosa simplex) treated with placebo or diacerin cream in a longitudinal cross-over trial (14 paired).

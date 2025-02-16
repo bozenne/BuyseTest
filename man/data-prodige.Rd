@@ -8,7 +8,7 @@
 An object of class \code{data.frame} with 400 rows and 8 columns.
 }
 \usage{
-prodige
+data(prodige, package = "BuyseTest")
 }
 \description{
 Simulated data inspired from the PRODIGE trial comparing the survival of patients with metastatic pancreatic cancer

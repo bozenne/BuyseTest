@@ -1,4 +1,5 @@
 .travis.yml
+.github
 README.org
 vignettes/*.org
 vignettes/*.pdf
@@ -12,9 +13,6 @@ inst/doc-software
 inst/doc-theory
 inst/doc-Wilcoxon
 inst/todo.org
-data/
-data/pa3_OS_TOXshort.csv
-data/PRODIGE.csv
 .github/
 LICENSE
 ^appveyor\.yml$
