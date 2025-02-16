@@ -356,14 +356,14 @@ inferenceVarPermutation <- function(data, treatment, level.treatment, weightStra
     }
 
     ## ** extract all pairwise scores
-    eBTscore.all <- getPairScore(eBT.all, endpoint = endpoint, cumulative = TRUE, unlist = FALSE)        
+    eBTscore.all <- getPairScore(eBT.all, endpoint = 1:length(endpoint), cumulative = TRUE, unlist = FALSE)        
 
     ## ** create score matrix
-    U.favorable <- lapply(endpoint, function(iE){matrix(0, nrow = n.obs, ncol = n.obs)})
-    U.unfavorable <- lapply(endpoint, function(iE){matrix(0, nrow = n.obs, ncol = n.obs)})
-    U.score <- lapply(endpoint, function(iE){matrix(0, nrow = n.obs, ncol = n.obs)})
+    U.favorable <- stats::setNames(lapply(names(endpoint), function(iE){matrix(0, nrow = n.obs, ncol = n.obs)}), names(endpoint))
+    U.unfavorable <- stats::setNames(lapply(names(endpoint), function(iE){matrix(0, nrow = n.obs, ncol = n.obs)}), names(endpoint))
+    U.score <- stats::setNames(lapply(names(endpoint), function(iE){matrix(0, nrow = n.obs, ncol = n.obs)}), names(endpoint))
         
-    for(iEndpoint in endpoint){
+    for(iEndpoint in names(endpoint)){
         eBTscore.all[[iEndpoint]]$pos.A <- data.ext$XXindexXX[eBTscore.all[[iEndpoint]]$index.A] ## location in the original dataset
         eBTscore.all[[iEndpoint]]$pos.B <- data.ext$XXindexXX[eBTscore.all[[iEndpoint]]$index.B] ## location in the original dataset
 
@@ -374,12 +374,12 @@ inferenceVarPermutation <- function(data, treatment, level.treatment, weightStra
 
     ## ** evaluate permutation variance
     if(length(strata)==1){
-        ls.permvar <- lapply(endpoint, function(iEndpoint){
+        ls.permvar <- lapply(names(endpoint), function(iEndpoint){ ## iEndpoint <- names(endpoint)
             exactVarPermutation(U.score[[iEndpoint]], treatment = data[[treatment]], level.treatment = level.treatment)
         })
     }else{
         index.strata <- lapply(attr(strata,"index"), intersect, 1:n.obs) ## to retrieve original size since the dataset was duplicated
-        ls.permvar <- lapply(endpoint, function(iEndpoint){ ## iEndpoint <- "score"
+        ls.permvar <- lapply(names(endpoint), function(iEndpoint){ ## iEndpoint <- "score"
             iM.permvar <- do.call(rbind,lapply(index.strata, function(iIndex){ ## iIndex <- index.strata[[1]]
                 exactVarPermutation(U.score[[iEndpoint]][iIndex,iIndex], treatment = data[iIndex,treatment], level.treatment = level.treatment)
             }))
@@ -392,7 +392,7 @@ inferenceVarPermutation <- function(data, treatment, level.treatment, weightStra
 
     ## ** reshape
     out <- do.call(rbind, ls.permvar)
-    rownames(out) <- endpoint
+    rownames(out) <- names(endpoint)
     if(length(strata)>1){
         attr(out,"strata") <- lapply(ls.permvar,attr,"strata")
     }

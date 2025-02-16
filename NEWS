@@ -1,5 +1,9 @@
 # -*- mode: org -*-
 
+* Version 3.0.6
+** User visible changes
+- fix bug in user interface with method.inference = "varExact permutation".
+
 * Version 3.0.5
 ** User visible changes
 - fix bug in win odds calculation (Issue #14)

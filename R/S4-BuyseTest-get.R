@@ -1,5 +1,6 @@
 ## * getCount (documentation)
-#' @name S4BuyseTest-getCount
+#' @docType methods
+#' @name getCount
 #' @title Extract the Number of Favorable, Unfavorable, Neutral, Uninformative pairs
 #' @aliases getCount,S4BuyseTest-method
 #' @include S4-BuyseTest.R
@@ -16,7 +17,8 @@
 #' @author Brice Ozenne
 
 ## * getCount (code)
-#' @rdname S4BuyseTest-getCount
+#' @rdname getCount
+#' @exportMethod getCount
 setMethod(f = "getCount",
           signature = "S4BuyseTest",
           definition = function(object, type){
@@ -42,7 +44,8 @@ setMethod(f = "getCount",
 
 
 ## * getIid (documentation)
-#' @name S4BuyseTest-getIid
+#' @docType methods
+#' @name getIid
 #' @title Extract the H-decomposition of the Estimator
 #' @aliases getIid,S4BuyseTest-method
 #' @include S4-BuyseTest.R
@@ -79,7 +82,8 @@ setMethod(f = "getCount",
 #' @author Brice Ozenne
 
 ## * getIid (code)
-#' @rdname S4BuyseTest-getIid
+#' @rdname getIid
+#' @exportMethod getIid
 setMethod(f = "getIid",
           signature = "S4BuyseTest",
           definition = function(object,
@@ -365,7 +369,8 @@ setMethod(f = "getIid",
           })
 
 ## * getPairScore (documentation)
-#' @name S4BuyseTest-getPairScore
+#' @docType methods
+#' @name getPairScore
 #' @title Extract the Score of Each Pair
 #' @aliases getPairScore,S4BuyseTest-method
 #' @include S4-BuyseTest.R
@@ -411,7 +416,7 @@ setMethod(f = "getIid",
 #' @author Brice Ozenne
 
 ## * getPairScore (examples)
-#' @rdname S4BuyseTest-getPairScore
+#' @rdname getPairScore
 #' @examples
 #' library(data.table)
 #' library(prodlim)
@@ -464,6 +469,8 @@ setMethod(f = "getIid",
 #' }
 
 ## * getPairScore (code)
+#' @rdname getPairScore
+#' @exportMethod getPairScore
 setMethod(f = "getPairScore",
           signature = "S4BuyseTest",
           definition = function(object, endpoint, strata, cumulative,
@@ -594,7 +601,8 @@ setMethod(f = "getPairScore",
           })
 
 ## * getPseudovalue (documentation)
-#' @name S4BuyseTest-getPseudovalue
+#' @docType methods
+#' @name getPseudovalue
 #' @title Extract the pseudovalues of the Estimator
 #' @aliases getPseudovalue,S4BuyseTest-method
 #' @include S4-BuyseTest.R
@@ -617,7 +625,7 @@ setMethod(f = "getPairScore",
 #' @author Brice Ozenne
 
 ## * getPseudovalue (examples)
-#' @rdname S4BuyseTest-getPseudovalue
+#' @rdname getPseudovalue
 #' @examples
 #' set.seed(10)
 #' n <- 250
@@ -654,6 +662,8 @@ setMethod(f = "getPairScore",
 #' confint(e.BT, statistic = "unfavorable", transformation = TRUE)
 
 ## * getPseudovalue (code)
+#' @rdname getPseudovalue
+#' @exportMethod getPseudovalue
 setMethod(f = "getPseudovalue",
           signature = "S4BuyseTest",
           definition = function(object, statistic = NULL, endpoint = NULL){
@@ -719,7 +729,8 @@ setMethod(f = "getPseudovalue",
           })
 
 ## * getSurvival (documentation)
-#' @name S4BuyseTest-getSurvival
+#' @docType methods
+#' @name getSurvival
 #' @title Extract the Survival and Survival Jumps
 #' @aliases getSurvival,S4BuyseTest-method
 #' @include S4-BuyseTest.R
@@ -747,7 +758,8 @@ setMethod(f = "getPseudovalue",
 #' @author Brice Ozenne
 
 ## * getSurvival (code)
-#' @rdname S4BuyseTest-getSurvival
+#' @rdname getSurvival
+#' @exportMethod getSurvival
 setMethod(f = "getSurvival",
           signature = "S4BuyseTest",
           definition = function(object, type, endpoint, strata, unlist, trace){

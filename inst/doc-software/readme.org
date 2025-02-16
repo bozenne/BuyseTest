@@ -23,6 +23,7 @@ extractRchunk(file = "./BuyseTest/inst/doc-software/overview.org",
 cd ~/Documents/GitHub/BuyseTest/inst/doc-software/
 gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=overview-compress.pdf overview.pdf
 cp overview-compress.pdf ../../vignettes/overview.pdf 
+cp overview.R ../../vignettes/overview.R 
 #+END_SRC
 
 #+RESULTS:

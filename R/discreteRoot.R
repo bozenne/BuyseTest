@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 22 2017 (13:39) 
 ## Version: 
-## Last-Updated: jul 12 2024 (13:48) 
+## Last-Updated: feb 13 2025 (15:02) 
 ##           By: Brice Ozenne
-##     Update #: 316
+##     Update #: 317
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -189,7 +189,7 @@ boot2pvalue <- function(x, null, estimate = NULL, alternative = "two.sided",
     if(all(is.na(x))){
         stop("Incorrect argument \'x\': only contain NA values. \n")
     }
-    x.boot <- na.omit(x)
+    x.boot <- stats::na.omit(x)
     n.boot <- length(x.boot)
     if(any(is.infinite(x.boot))){
         statistic.boot <- stats::median(x.boot, na.rm = TRUE) - null

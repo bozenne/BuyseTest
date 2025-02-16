@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 23 2024 (18:12) 
+## Last-Updated: feb 12 2025 (13:01) 
 ##           By: Brice Ozenne
-##     Update #: 244
+##     Update #: 246
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -760,7 +760,31 @@ test_that("Handling neutral pairs with win odds",{
     summary(xxx, statistic = "netBenefit")
 })
 
+## * Schuurhuis, Stephen: 12 feb 2025 om 08:53 issue with the user interface
+test_that("Old user interface",{
+    set.seed(12022025)
+    n1 <- n2 <- 15
+    df <- data.frame(
+        y = c(rnorm(n1, mean=0.5, sd = 1), rnorm(n2, mean=0, sd = 1)),
+        g = rep(c("A","B"), c(n1,n2))
+    )
 
+    BT.GS <- BuyseTest(g ~ c(y), data=df, 
+                       method.inference = "varExact permutation")
+    ## ok
+    BT <- BuyseTest(data=df,
+                    treatment="g",
+                    endpoint="y",
+                    type="continuous",
+                    method.inference = "varExact permutation")
+    ## ERROR: $ operator is invalid for atomic vectors
+    expect_equal(model.tables(BT.GS),model.tables(BT), tol = 1e-6)
+    model.tables(BT)
+    ##   endpoint total favorable unfavorable neutral uninf      Delta   p.value
+    ## 1        y   100  40.88889    59.11111       0     0 -0.1822222 0.3951581
+    
+    BT.GS2 <- BuyseTest(g ~ c(y, threshold = 1) + c(y, threshold = 0), data=df,
+                       method.inference = "varExact permutation")
+    expect_equal(model.tables(BT.GS2)[2,"p.value"], model.tables(BT.GS)[1,"p.value"], tol = 1e-6)
 
-
-
+})
