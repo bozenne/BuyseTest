@@ -128,10 +128,11 @@ printGeneral <- function(status,
         }else{
             txt.Peron <- "survival/cif"
         }
-        
+
         switch(as.character(scoring.rule),
                "0" = cat("deterministic score or uninformative \n"),
-               "1" = cat("probabilistic score based on the ",txt.Peron," curves \n",sep="")
+               "1" = cat("probabilistic score based on the ",txt.Peron," curves \n",sep=""),
+               "2" = cat("probabilistic score based on the ",txt.Peron," curves \n \t\t\t   (set to 0 beyond available follow-up) \n",sep="")
                )
     }
     ## if(trace>2){

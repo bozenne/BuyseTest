@@ -431,6 +431,9 @@ setMethod(f = "summary",
                                              "Gehan" = "deterministic score or uninformative",
                                              "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
                                              )
+                  if(attr(scoring.rule,"efron")){
+                      txt.scoring.rule <- paste0(txt.scoring.rule, "\n \t\t     (set to 0 beyond available follow-up)")
+                  }
                   cat(" - censored pairs  : ",txt.scoring.rule,"\n", sep = "")
               }
               if(hierarchical && n.endpoint>1 && any(object@count.neutral>0)){

@@ -187,7 +187,8 @@ methods::setMethod(
                  attr(level.treatment,"indexT") <- index.T
 
                  ## ** scoring.rule
-                 scoring.rule <- c("Gehan","Peron")[scoring.rule+1]
+                 efron <- (scoring.rule==2)
+                 scoring.rule <- c("Gehan","Peron")[(scoring.rule>0)+1]
                  attr(scoring.rule,"test.censoring") <- attr(method.score, "test.censoring")
                  attr(method.score, "test.censoring") <- NULL
                  attr(scoring.rule,"test.CR") <- attr(method.score, "test.CR")
@@ -195,6 +196,7 @@ methods::setMethod(
                  attr(scoring.rule,"test.paired") <- paired
                  attr(method.score, "test.paired") <- NULL
                  attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
+                 attr(scoring.rule,"efron") <- efron
 
                  ## ** hierarchical
                  

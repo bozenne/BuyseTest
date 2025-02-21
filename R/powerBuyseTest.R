@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jun 19 2024 (12:22) 
+## Last-Updated: feb 19 2025 (16:05) 
 ##           By: Brice Ozenne
-##     Update #: 1309
+##     Update #: 1310
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -153,10 +153,9 @@ powerBuyseTest <- function(sim,
                            trace = 1,
                            ...){
 
-    call <- match.call()
+    mycall <- match.call()
 
     ## ** normalize and check arguments
-    name.call <- names(call)
     option <- BuyseTest.options()
     if(is.null(conf.level)){
         conf.level <- option$conf.level
@@ -171,9 +170,9 @@ powerBuyseTest <- function(sim,
         transformation <- option$transformation
     }
     alpha <- 1 - conf.level
-    outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
+    outArgs <- initializeArgs(cpus = cpus, option = option, call = mycall, 
                               data = NULL, model.tte = NULL, ...)
-    outArgs$call <- setNames(as.list(call),names(call))
+    outArgs$call <- setNames(as.list(mycall),names(mycall))
 
     ## power
     if(!is.null(power) && (!missing(sample.size) && !is.null(sample.size))){

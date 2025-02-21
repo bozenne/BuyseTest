@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Aug 22 2024 (16:04) 
+## Last-Updated: feb 21 2025 (09:56) 
 ##           By: Brice Ozenne
-##     Update #: 364
+##     Update #: 373
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -200,11 +200,16 @@ testArgs <- function(name.call,
     ## must be before time to event endpoints
     if(is.na(scoring.rule)){
         stop("BuyseTest: wrong specification of \'scoring.rule\'. \n",
-             "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\". \n")
+             "valid values: \"Gehan\", \"Peron\", or \"Efron\". \n")
     }
-    if(scoring.rule>0 && any(censoring=="left")){
-        warning("The Peron's scoring rule does not support left-censored endpoints \n",
-                "For those endpoints, the Gehan's scoring rule will be used instead.")
+    if(any(!is.na(censoring)) && any(stats::na.omit(censoring)=="left")){
+        if(scoring.rule==1){
+            warning("The Peron scoring rule does not support left-censored endpoints \n",
+                    "For those endpoints, the Gehan's scoring rule will be used instead.")
+        }else if(scoring.rule==2){
+            warning("The Efron scoring rule does not support left-censored endpoints \n",
+                    "For those endpoints, the Gehan's scoring rule will be used instead.")
+        }
     }
 
     ## ** pool.strata
@@ -241,10 +246,10 @@ testArgs <- function(name.call,
             stop("Incorrect model for time to event: cannot handle continuous variables. \n",
                  "Consider setting the argument \"discrete.level\" to a large value when calling prodlim for endpoint(s) \"",paste(names(test.prodlim.continuous)[test.prodlim.continuous], collapse = "\" \""),"\". \n")
         }
-        vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(all.vars(stats::update(stats::formula(model.tte[[1]]), "0~."))), sort(c(treatment,strata)))})
-        if(any(vec.predictors == FALSE) ){
-            stop("BuyseTest: argument \'model.tte\' must be a list of objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors. \n")
-        }        
+        ## vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(all.vars(stats::update(stats::formula(model.tte[[1]]), "0~."))), sort(c(treatment,strata)))})
+        ## if(any(vec.predictors == FALSE) ){
+        ##     stop("BuyseTest: argument \'model.tte\' must be a list of objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors. \n")
+        ## }        
     }
     
     ## ** data (endpoints)

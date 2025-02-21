@@ -21,9 +21,10 @@ BuyseTTEM(object, ...)
 \arguments{
 \item{object}{time to event model.}
 
-\item{...}{additional arguments passed to lower lever methods.}
+\item{...}{For compatibility with the generic method.}
 
-\item{treatment}{[character] Name of the treatment variable.}
+\item{treatment}{[list or character] List containing the value of the treatment variable for each individual or name of the treatment variable.
+The former is necessary when the survival model do not dependent on treatment.}
 
 \item{iid}{[logical] Should the iid decomposition of the predictions be output.}
 

@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 3.0.6
-Date: 2025-02-16
+Version: 3.1.0
+Date: 2025-02-21
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Eva", "Cantagallo", role = "aut"),
@@ -86,6 +86,7 @@ Collate:
     'constStrata.R'
     'discreteRoot.R'
     'doc-data.R'
+    'efronlim.R'
     'iid.S3sensitivity.R'
     'iid.prodlim.R'
     'normexp.R'

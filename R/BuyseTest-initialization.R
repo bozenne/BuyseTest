@@ -44,7 +44,7 @@ initializeArgs <- function(status,
                            model.tte,
                            n.resampling = NULL,
                            strata.resampling = NULL,
-                           name.call,
+                           call,
                            neutral.as.uninf = NULL,
                            add.halfNeutral = NULL,
                            operator = NULL,
@@ -60,6 +60,8 @@ initializeArgs <- function(status,
                            weightEndpoint = NULL,
                            weightObs = NULL,
                            envir){
+
+    name.call <- names(call)
 
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
@@ -77,7 +79,7 @@ initializeArgs <- function(status,
     engine <- option$engine
     alternative <- option$alternative
     precompute <- option$precompute
-    
+        
     ## ** convert formula into separate arguments
     if(!missing(formula)){
         ## the missing is for BuysePower where the arguments are not necessarily specified
@@ -210,6 +212,7 @@ initializeArgs <- function(status,
         scoring.rule <- switch(tolower(scoring.rule),
                                "gehan" = 0,
                                "peron" = 1,
+                               "efron" = 2,
                                NA
                                )
     }
@@ -306,7 +309,7 @@ initializeArgs <- function(status,
     }
     
     ## ** model.tte
-    if(identical(scoring.rule,1)){
+    if(scoring.rule>0){
         if((!is.null(model.tte)) && (length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
             attr.save <- attr(model.tte,"iidNuisance")
             
@@ -330,7 +333,22 @@ initializeArgs <- function(status,
     }else{
         attr(method.inference,"hprojection") <- NA
     }
-    iidNuisance <- iid && identical(scoring.rule,1) && (is.null(model.tte) || identical(attr(model.tte,"iidNuisance"),TRUE))
+    if(iid && scoring.rule>0){ ## Peron/Efron scoring rule
+        if(is.null(model.tte)){
+            iidNuisance <- TRUE
+        }else if(!is.null(attr(model.tte,"iidNuisance"))){
+            iidNuisance <- attr(model.tte,"iidNuisance")
+        }else if(all(deparse(expr = call$data) == sapply(model.tte, function(iModel){deparse(expr=iModel$call$data)}))){
+            iidNuisance <- TRUE
+        }else{
+            iidNuisance <- FALSE
+            message("Uncertainty related to the estimation of the survival probabilities is ignored. \n",
+                    "Consider adding an attribute \"iidNuisance\" to the argument \'model.tte\' taking value TRUE to change this default behavior. \n")
+        }
+    }else{
+        iidNuisance <- FALSE
+    }
+    
 
     ## ** cpu
     if (cpus == "all") { 
@@ -498,7 +516,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 return(switch(censoring[iE],
                               "left" = "TTEgehan2",
                               "right" = "TTEgehan"))
-            }else if(scoring.rule == 1){
+            }else if(scoring.rule>0){
                 return(switch(as.character(test.CR[iE]),
                               "FALSE" = "SurvPeron",
                               "TRUE" = "CRPeron"))
@@ -510,7 +528,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     paired <- all(n.obsStrata==2)
     
     ## ** previously analyzed distinct TTE endpoints
-    if((scoring.rule==1) && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
+    if(scoring.rule>0 && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
         ## number of distinct, previously analyzed, TTE endpoints
         nUTTE.analyzedPeron_M1 <- sapply(1:D, function(iE){
             if(iE>1){

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: jul 18 2023 (12:03) 
+## Last-Updated: feb 20 2025 (11:44) 
 ##           By: Brice Ozenne
-##     Update #: 548
+##     Update #: 587
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -37,6 +37,7 @@ calcPeron <- function(data,
                       restriction,
                       precompute,
                       iidNuisance,
+                      efron,
                       out){
 
     zeroPlus <- 1e-12
@@ -61,10 +62,15 @@ calcPeron <- function(data,
         }else{
             txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")        
         }
+        if(all(fitter!="prodlim")){
+            stop("Can only use the Efron scoring rule with the Kaplan-Meier estimator. \n",
+                 "Consider using the function \'efronlim\' to specify the survival model(s). \n")
+        }
         
     }else{
         tofit <- FALSE
     }
+
     
     ## fit survival model and prepare for extracting survival
     for(iUTTE in 1:D.UTTE){ ## iUTTE <- 1
@@ -74,7 +80,18 @@ calcPeron <- function(data,
         if(fitter[iUTTE]=="prodlim"){
 
             if(tofit){
-                model.tte[[iUTTE]] <- do.call(prodlim::prodlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
+                if(efron){
+                    model.tte[[iUTTE]] <- do.call(efronlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
+                }else{
+                    model.tte[[iUTTE]] <- do.call(prodlim::prodlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
+                }
+                
+            }else{
+                if(efron && is.null(model.tte[[iUTTE]]$efron)){
+                    stop("Use function \'efronlim\' instead of \'prodlim\' when providing the survival model with argument scoring.rule=\"Efron\". \n")
+                }else if(!efron && !is.null(model.tte[[iUTTE]]$efron)){
+                    stop("Use function \'prodlim\' instead of \'efronlim\' when providing the survival model with argument scoring.rule=\"Peron\". \n")
+                }
             }
 
         }else if(fitter[iUTTE]=="survreg"){
@@ -84,7 +101,12 @@ calcPeron <- function(data,
             }
             
         }
-        model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment, level.treatment = level.treatment, level.strata = level.strata, iid = iidNuisance)
+        model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment,
+                                        level.treatment = level.treatment,
+                                        level.strata = list(NULL,level.strata)[[tofit+1]], ## only pass the original strata level when the model is fit internally
+                                        iid = iidNuisance)
+        model.tte[[iUTTE]]$efron <- efron & (fitter[iUTTE]=="prodlim")
+                
     }
 
     ## ** estimate quantities for scoring pairs
@@ -326,7 +348,7 @@ calcPeron <- function(data,
             }
         }
     }
-
+    
     ## ** export
     return(out)
     

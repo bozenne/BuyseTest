@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: jul 18 2023 (10:18) 
+## Last-Updated: feb 21 2025 (10:02) 
 ##           By: Brice Ozenne
-##     Update #: 665
+##     Update #: 812
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,12 +23,13 @@
 #' Only does something for prodlim objects.
 #' 
 #' @param object time to event model. 
-#' @param treatment [character] Name of the treatment variable.
+#' @param treatment [list or character] List containing the value of the treatment variable for each individual or name of the treatment variable.
+#' The former is necessary when the survival model do not dependent on treatment.
 #' @param iid [logical] Should the iid decomposition of the predictions be output. 
 #' @param iid.surv [character] Estimator of the survival used when computing the influence function.
 #' Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCoxPL}).
 #' @param n.grid [integer, >0] Number of timepoints used to discretize the time scale. Not relevant for prodlim objects.
-#' @param ... additional arguments passed to lower lever methods.
+#' @param ... For compatibility with the generic method.
 #'
 #' @return An S3 object of class \code{BuyseTTEM}.
 #' @keywords models
@@ -78,7 +79,7 @@
 #' @export
 BuyseTTEM.formula <- function(object, treatment, iid, iid.surv = "exp", ...){
     e.prodlim <- prodlim(object, ...)
-    return(BuyseTTEM(e.prodlim, treatment = treatment, iid = iid, iid.surv = iid.surv, ...))
+    return(BuyseTTEM(e.prodlim, treatment = treatment, iid = iid, iid.surv = iid.surv))
 }
 
 ## * BuyseTTEM.prodlim
@@ -91,14 +92,20 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
     dots <- list(...)
 
     ## ** check arguments
+    ## *** object
     if(any(object$time<=0)){
         stop("Only handles strictly positive event times \n")
     }
+
+    ## *** iid surv
     iid.surv <- match.arg(iid.surv, c("prodlim","exp"))
 
+    ## *** ...
+    ## levels are converted to numeric by BuyseTest
+    ## this makes sure to keep track of the original labels
     level.treatment <- dots$level.treatment
     level.strata <- dots$level.strata
-    
+
     ## ** prepare output
     test.CR <- switch(object$type,
                       "surv" = FALSE,
@@ -112,14 +119,13 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
     }
 
     ## Note: object$xlevels is not in the right order
-    object$peron <- .initPeron(X = object$X,
+    object$peron <- .initPeron(object = object,
+                               X = object$X,
                                treatment = treatment,
-                               level.treatment = level.treatment,
-                               level.strata = level.strata,
+                               level.treatment = dots$level.treatment,
+                               level.strata = dots$level.strata,
                                xlevels = NULL,
                                n.CR = n.CR)
-
-    X <- object$peron$X
 
     treatment <- object$peron$treatment
     level.treatment <- object$peron$level.treatment
@@ -130,35 +136,50 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
     object.stratified <- NCOL(object$X)>1
     
     ## ** compute start/stop indexes per strata
-    iIndexX.C <- which(X[[treatment]]==0)
-    iIndexX.T <- which(X[[treatment]]==1)
-
     ## position in the results of the pair (treatment,strata)
-    iMindexX <- do.call(rbind,lapply(1:n.strata, function(iStrata){
-        if(object.stratified){
-            iIndexS <- which(X[["..strata.."]]==iStrata)
-            return(c(C = intersect(iIndexX.C,iIndexS),
-                     T = intersect(iIndexX.T,iIndexS)))
-        }else{
-            return(c(C = iIndexX.C,
-                     T = iIndexX.T))
-        }        
-    }))
-
     index.start <- matrix(NA, nrow = n.strata, ncol = 2, dimnames = list(NULL,level.treatment))
-    index.start[] <- object$first.strata[iMindexX]
-
     index.stop <- matrix(NA, nrow = n.strata, ncol = 2, dimnames = list(NULL,level.treatment))
-    index.stop[] <- object$first.strata[iMindexX] + object$size.strata[iMindexX] - 1
+
+    if(is.null(object$X)){ ## no covariate at all in the survival model
+
+        index.start[] <- object$first.strata
+        index.stop[] <- object$first.strata + object$size.strata - 1
+
+    }else if(treatment %in% names(object$X)){ ## survival model includes treatment
+
+        iIndexX.C <- which(object$peron$X[[treatment]]==0)
+        iIndexX.T <- which(object$peron$X[[treatment]]==1)
+
+        iMindexX <- do.call(rbind,lapply(1:n.strata, function(iStrata){ ## iStrata <- 1
+            if(object.stratified){
+                iIndexS <- which(object$peron$X[["..strata.."]] == iStrata)
+                return(c(C = intersect(iIndexX.C,iIndexS),
+                         T = intersect(iIndexX.T,iIndexS)))
+            }else{
+                return(c(C = iIndexX.C,
+                         T = iIndexX.T))
+            }        
+        }))
+
+        index.start[] <- object$first.strata[iMindexX]
+        index.stop[] <- object$first.strata[iMindexX] + object$size.strata[iMindexX] - 1
+
+    }else{ ## stratified survival model but not on treatment
+
+        index.start[] <- cbind(object$first.strata, object$first.strata)
+        index.stop[] <- cbind(object$first.strata + object$size.strata - 1,
+                              object$first.strata + object$size.strata - 1)
+
+    }
 
     ## ** find last CIF value
     object$peron$last.time[,1] <- object$time[index.stop[,1]]
     object$peron$last.time[,2] <- object$time[index.stop[,2]]
-    for(iCause in 1:n.CR){
+    for(iCause in 1:n.CR){ ## iCause <- 1
         object$peron$last.estimate[,1,iCause] <- object$cuminc[[iCause]][index.stop[,1]]
         object$peron$last.estimate[,2,iCause] <- object$cuminc[[iCause]][index.stop[,2]]
     }
-
+    
     ## ** table CIF 
     index.allJump <- sort(unlist(lapply(object$cause.hazard, function(iVec){which(iVec>0)})))
 
@@ -166,11 +187,11 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
         object$peron$jumpSurvHaz[[iStrata]] <- setNames(vector(mode = "list", length=2), level.treatment)
 
         for(iTreat in 1:2){ ## iTreat <- 1
-
             iMissingCIF <- sum(object$peron$last.estimate[iStrata,iTreat,])<(1-tol12)
             
             ## jump time (for all causes) in this strata
             iIndex.jump <- intersect(index.allJump, index.start[iStrata,iTreat]:index.stop[iStrata,iTreat])
+    
             object$peron$jumpSurvHaz[[iStrata]][[iTreat]] <- data.frame(index.jump = iIndex.jump,
                                                                         time.jump = object$time[iIndex.jump],
                                                                         survival = object$surv[iIndex.jump],
@@ -215,11 +236,13 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
 
     ## cif <- object$peron$cif[[1]][[1]][[1]]
     ## (cif[cif[,"index.cif.after"]+1,"cif"] - cif[cif[,"index.cif.before"]+1,"cif"]) - cif[,"dcif"]
+    ## tail(object$peron$cif[[1]]$C[[1]])
+    ## tail(object$peron$cif[[1]]$T[[1]])
 
     ## ** table iid
     if(iid){
         n.obs <- NROW(object$model.response)
-        
+
         vec.eventtime <- object$model.response[object$originalDataOrder,"time"]
         if(test.CR){
             vec.status <- object$model.response[object$originalDataOrder,"event"] ## 1:n.CR event, n.CR+1 censoring
@@ -227,14 +250,18 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
             vec.status <- object$model.response[object$originalDataOrder,"status"] ## 0 censoring, 1 event
         }
 
-        model.matrix <- object$model.matrix[object$originalDataOrder,,drop=FALSE]
-        model.matrix[[treatment]] <- factor(model.matrix[[treatment]], labels = level.treatment)
+        if(treatment %in% names(object$model.matrix)){
+            model.matrix <- object$model.matrix[object$originalDataOrder,,drop=FALSE]
+            model.matrix[[treatment]] <- factor(model.matrix[[treatment]], labels = level.treatment)
+        }else{
+            model.matrix <- NULL
+        }
         if(is.null(attr(strata.var,"original"))){
-            model.matrix <- cbind(model.matrix, "..strata.." = 1)
+            model.matrix <- cbind(model.matrix, "..strata.." = rep(1,n.obs))
         }else if(!identical(attr(strata.var,"original"),"..strata..")){
             model.matrix <- cbind(model.matrix, "..strata.." = as.numeric(factor(interaction(model.matrix[,strata.var,drop=FALSE]), levels = level.strata)))
         }
-        
+
         object$peron$iid.hazard <- setNames(vector(mode = "list", length=n.strata), level.strata)
         object$peron$iid.survival <- setNames(vector(mode = "list", length=n.strata), level.strata)
         object$peron$iid.cif <- setNames(vector(mode = "list", length=n.strata), level.strata)
@@ -249,13 +276,14 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
                 object$peron$iid.hazard[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
                 object$peron$iid.cif[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
 
-                if(object.stratified){    
-                    iIndStrata <- intersect(which(model.matrix[[treatment]]==level.treatment[iTreat]),
-                                            which(model.matrix[["..strata.."]]==iStrata))
-                }else{
+                if(treatment %in% names(object$model.matrix)){
                     iIndStrata <- which(model.matrix[[treatment]]==level.treatment[iTreat])
+                }else{
+                    iIndStrata <- 1:n.obs
                 }
-
+                if(object.stratified){
+                    iIndStrata <- intersect(iIndStrata, which(model.matrix[["..strata.."]]==iStrata))
+                }
                 iIndex.jump <- object$peron$jumpSurvHaz[[iStrata]][[iTreat]]$index.jump
                 iN.jump <- length(iIndex.jump)
                 
@@ -325,14 +353,23 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
 
     tol12 <- 1e-12
     tol11 <- 1e-11
-
     dots <- list(...)
+
+    ## ** check arguments
+
+    ## *** object
+    if(any(object$y[,"time"]<=0)){
+        stop("Only handles strictly positive event times \n")
+    }
+
+    ## *** ...
     level.treatment <- dots$level.treatment
     level.strata <- dots$level.strata
 
-    ## ** check arguments and prepare output
+    ## ** prepare output
     mf <- stats::model.frame(object)
-    object$peron <- .initPeron(X = mf[,-1,drop=FALSE], ## first column for the Surv object,
+    object$peron <- .initPeron(object = object,
+                               X = mf[,-1,drop=FALSE], ## first column for the Surv object,
                                treatment = treatment,
                                level.treatment = level.treatment,
                                level.strata = level.strata,
@@ -344,16 +381,14 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
     level.strata <- object$peron$level.strata
     object.stratified <- NCOL(object$X)>1
 
-    if(is.null(object$xlevels[[treatment]])){
-        mf[[treatment]] <- factor(mf[[treatment]], levels = sort(unique(mf[[treatment]])), labels = level.treatment)
-    }else{
-        mf[[treatment]] <- factor(mf[[treatment]], levels = object$xlevels[[treatment]], labels = level.treatment)
+    if(treatment %in% names(mf)){
+        if(is.null(object$xlevels[[treatment]])){
+            mf[[treatment]] <- factor(mf[[treatment]], levels = sort(unique(mf[[treatment]])), labels = level.treatment)
+        }else{
+            mf[[treatment]] <- factor(mf[[treatment]], levels = object$xlevels[[treatment]], labels = level.treatment)
+        }
     }
-    
-    if(any(object$y[,"time"]<=0)){
-        stop("Only handles strictly positive event times \n")
-    }
-        
+            
     ## ** handling competing risks
     object$peron$n.CR <- 1 ## survival case (one type of event)
 
@@ -422,15 +457,14 @@ BuyseTTEM.survreg <- function(object, treatment, n.grid = 1e3, iid, ...){
     for(iStrata in 1:n.strata){ ## iStrata <- 1
         for(iTreat in level.treatment){ ## iTreat <- 1
 
-            if(object.stratified){
-                iIndex.obs <- intersect(
-                    intersect(which(mf[[treatment]]==iTreat),
-                              which(object$peron$X[,"..strata.."]==iStrata)),
-                    which(mf[,1][,2]==1)
-                )
+            if(treatment %in% names(mf)){
+                ## restrict to cases? which(mf[,1][,2]==1)
+                iIndex.obs <- which(mf[[treatment]]==iTreat)
             }else{
-                iIndex.obs <- intersect(which(mf[[treatment]]==iTreat),
-                                        which(mf[,1][,2]==1))
+                iIndex.obs <- 1:n.obs
+            }
+            if(object.stratified){
+                iIndex.obs <- intersect(iIndex.obs,which(object$peron$X[,"..strata.."]==iStrata))
             }
 
             ## jump time  in this strata
@@ -488,34 +522,60 @@ BuyseTTEM.BuyseTTEM <- function(object, ...){
 }
 
 ## * .initPeron
-## X (data.frame) containing the stratification variables (including treatment)
-## treatment (character) variable identifying the treatment variable in X
-## levels.treatment (character vector) possible values of the treatment variable
-## n.CR (integer) number of competing risks
-## xlevels (list) order of the levels of each factor variable (optional)
-.initPeron <- function(X, treatment, level.treatment, level.strata, n.CR, xlevels){
+##' @param object survival model
+##' @param X [data.frame] containing the stratification variables
+##' @param treatment [character] variable identifying the treatment variable in X
+##' @param n.CR [integer] number of competing risks
+##' @param levels.treatment [character vector] possible values of the treatment variable (optional)
+##' @param levels.strata [character vector] possible values of the strata variable (optional)
+##' @param xlevels [list] order of the levels of each factor variable (optional)
+##'
+##' @noRd
+.initPeron <- function(object, data, X, n.CR, treatment = NULL, level.treatment = NULL, level.strata = NULL, xlevels = NULL){
 
-    ## ** automatically set treatment and level.treatment if necessary and possible
-    if(missing(treatment)){
+    ## ** recover treatment if possible
+    if(is.null(treatment)){
         if(NCOL(X)==1){
             treatment <- names(X)[1]
-        }else{
-            stop("Argument \'treatment\' is missing \n")
+        }else if(NCOL(object$X)==0){
+            stop("Argument \'treatment\' is missing (cannot guess it when there is no covariate in the survival model). \n")
+        }else if(NCOL(object$X)>1){
+            stop("Argument \'treatment\' is missing (cannot guess it when there is more than one covariate in the survival model). \n")
         }
+    }else if(length(treatment)!=1){
+        stop("Argument \'treatment\' should have length 1. \n")
     }
-    if(treatment %in% names(X) == FALSE){
-        stop("Wrong specification of the argument \'treatment\' \n",
-             "Could not be found in the prodlim object, e.g. in object$X. \n")
-    }
+
+    ## ** recover level.treatment if possible
     if(is.null(level.treatment)){
         if(!is.null(xlevels)){
             level.treatment <- xlevels[[treatment]]
+        }else if(!is.null(X) && treatment %in% names(X)){
+            if(is.factor(X[[treatment]])){
+                level.treatment <- levels(X[[treatment]])
+            }else{
+                level.treatment <- unique(X[[treatment]])
+            }          
         }else{
-            level.treatment <- unique(X[[treatment]])
+            data <- eval(object$call$data)
+            if(treatment %in% names(data) == FALSE){
+                stop("Argument \'treatment\' does not match any of the column in the original dataset. \n",
+                     "Argument value: ",treatment,".\n",
+                     "Possible columns: \"",paste(names(data), collapse = "\", \""),"\"\n")
+            }
+            if(is.factor(data[[treatment]])){
+                level.treatment <- levels(data[[treatment]])
+            }else{
+                level.treatment <- sort(unique(data[[treatment]]))
+            } 
         }
-    }else if(length(level.treatment) != length(unique(X[[treatment]]))){
-        stop("Wrong specification of the argument \'level.treatment\' \n",
-             "Does not match the number of possible values in object$X. \n")
+    }
+
+    ## ** recover level.treatment if possible
+    if(is.null(X)){
+        X <- as.data.frame(stats::setNames(list(level.treatment),treatment))
+    }else if(treatment %in% names(X) == FALSE){
+        X <- expand.grid(c(as.list(X), stats::setNames(list(level.treatment),treatment)))
     }
 
     ## ** normalize treatment and strata variable to numeric
@@ -558,6 +618,7 @@ BuyseTTEM.BuyseTTEM <- function(object, ...){
         
         X <- cbind(X, "..strata.." = as.numeric(factor(UX.strata, levels = level.strata)))
     }
+
     n.strata <- length(level.strata)
 
     ## ** collect elements
@@ -613,8 +674,8 @@ predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = 
 
     type <- ifelse(object$peron$n.CR==1,"survival","competing.risks")
 
-    ## ** output last cif estimate
-    if(identical(time,"last")){
+    ## ** output last cif estimate    
+    if(identical(time,"last")){        
         if(type=="survival"){
             return(1-object$peron$last.estimate[strata,treatment,cause])
         }else{
