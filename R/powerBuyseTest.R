@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: feb 19 2025 (16:05) 
+## Last-Updated: mar  4 2025 (14:41) 
 ##           By: Brice Ozenne
-##     Update #: 1310
+##     Update #: 1318
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -274,7 +274,7 @@ powerBuyseTest <- function(sim,
             on.exit(rm(.Random.seed, envir=.GlobalEnv))
         }
         set.seed(seed)
-        seqSeed <- sample.int(tol.seed, n.rep[1],  replace = FALSE)        
+        seqSeed <- sample.int(tol.seed, max(n.rep),  replace = FALSE)        
     }else{
         seqSeed <- NULL
     }
@@ -399,11 +399,11 @@ powerBuyseTest <- function(sim,
 
             ## (mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2) + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2))*(stats::qnorm(1-alpha/2)+stats::qnorm(power))^2/DeltaMax^2
             if (trace > 1) {
-                if(cpus==1){
+                if(n.rep[2]==1){
                     cat("   - estimated effect (variance): ",unname(DeltaMax)," (",sigma2Max,")\n",sep="")
                     cat("   - estimated sample size      : m=",sample.sizeC,", n=",sample.sizeT,"\n\n",sep="")
                 }else{
-                    cat("   - average estimated effect (variance)    : ",unname(mean(DeltaMax))," (",mean(sigma2Max),")\n",sep="")
+                    cat("   - average estimated effect (average asymptotic variance)    : ",unname(mean(DeltaMax))," (",mean(sigma2Max),")\n",sep="")
                     cat("   - average estimated sample size [min;max]: m=",
                         sample.sizeC," [",ceiling(min(n.approx*ratio["C"])),";",ceiling(max(n.approx*ratio["C"])),"], n=",
                         sample.sizeT," [",ceiling(min(n.approx*ratio["T"])),";",ceiling(max(n.approx*ratio["T"])),"]\n\n",sep="")

@@ -1723,7 +1723,7 @@ considered. Add-hoc modification of the data can be used to obtain
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt2[, last := (max(eventtime)==eventtime), by = "treatment"]
 ## survival stays constant after end of follow-up
-dt2[treatment=="C" & last == TRUE, eventtime := max(dt2$eventtime)+1]
+dt2[treatment=="C" & last == TRUE, c("eventtime","status") := .(max(dt2$eventtime)+1,1)]
 ## survival drop to 0 after end of follow-up
 dt2[treatment=="T" & last == TRUE, status := 1]
 ## modified Kaplan Meier estimator
