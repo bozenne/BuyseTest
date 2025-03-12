@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: feb 21 2025 (10:02) 
+## Last-Updated: mar 12 2025 (17:36) 
 ##           By: Brice Ozenne
-##     Update #: 812
+##     Update #: 814
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -670,6 +670,9 @@ predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, iid = 
     }
     if(missing(strata) && object$peron$n.strata == 1){
         strata <- 1
+    }
+    if(length(strata)>1){
+        stop("Argument \'strata\' should have length at most 1. \n")
     }
 
     type <- ifelse(object$peron$n.CR==1,"survival","competing.risks")

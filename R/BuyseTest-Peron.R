@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: feb 20 2025 (11:44) 
+## Last-Updated: mar 12 2025 (17:44) 
 ##           By: Brice Ozenne
-##     Update #: 587
+##     Update #: 612
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -123,8 +123,20 @@ calcPeron <- function(data,
 
                 iTreat.num <- as.numeric(iTreat==level.treatment[2])                
                 iTime <- data[list(iTreat.num,iStrata),.SD[[endpoint.UTTE[iUTTE]]],on=c(treatment,"..strata..")]
-                iTime.jump <- predict(model.tte[[iUTTE]], time = "jump", strata = iStrata, treatment = iTreat)
-
+                
+                ## strata variable in the time to event model
+                ## may not match the strata variable in the GPC formula when the user specifies its own survival model
+                if(length(model.tte[[iUTTE]]$peron$level.strata)==1){
+                    iStrata.model <- 1
+                }else{
+                    iStrata.model <- unique(data[list(iTreat.num,iStrata), on=c(treatment,"..strata..")][[model.tte[[iUTTE]]$peron$strata.var]])
+                    if(length(iStrata.model)>1){
+                        stop("Cannot handle a survival model conditional on covariates that are not included in the GPC procedure as group or strata variables. \n")
+                    }
+                }
+                
+                iTime.jump <- predict(model.tte[[iUTTE]], time = "jump", treatment = iTreat, strata = iStrata.model)
+                
                 iRestriction <- restriction[ls.indexAssociatedEndpoint[[iUTTE]][1]]
                 if(!is.na(iRestriction)){ 
                     iTime <- pmin(iTime, iRestriction) ## take minimum between outcome and restriction
@@ -132,17 +144,17 @@ calcPeron <- function(data,
                 }
                 if(length(iTime.jump)==0){iTime.jump <- 0}
 
-                iPred1.C <- predict(model.tte[[iUTTE]], time = iTime, treatment = level.treatment[1], strata = iStrata, cause = 1)
-                iPred1.T <- predict(model.tte[[iUTTE]], time = iTime, treatment = level.treatment[2], strata = iStrata, cause = 1)
+                iPred1.C <- predict(model.tte[[iUTTE]], time = iTime, treatment = level.treatment[1], strata = iStrata.model, cause = 1)
+                iPred1.T <- predict(model.tte[[iUTTE]], time = iTime, treatment = level.treatment[2], strata = iStrata.model, cause = 1)
                 if(iN.CR>1){
-                    iPred2 <- predict(model.tte[[iUTTE]], time = iTime, treatment = iTreat, strata = iStrata, cause = 2)
+                    iPred2 <- predict(model.tte[[iUTTE]], time = iTime, treatment = iTreat, strata = iStrata.model, cause = 2)
                 }
-                iPred1.iTreat.beforeJump <- predict(model.tte[[iUTTE]], time = iTime.jump-zeroPlus, treatment = iTreat,  strata = iStrata, iid = iidNuisance)
-                iPred1.iTreat.afterJump <- predict(model.tte[[iUTTE]], time = iTime.jump+zeroPlus, treatment = iTreat, strata = iStrata, iid = iidNuisance) ## technically already computed in the previous lines
+                iPred1.iTreat.beforeJump <- predict(model.tte[[iUTTE]], time = iTime.jump-zeroPlus, treatment = iTreat,  strata = iStrata.model, iid = iidNuisance)
+                iPred1.iTreat.afterJump <- predict(model.tte[[iUTTE]], time = iTime.jump+zeroPlus, treatment = iTreat, strata = iStrata.model, iid = iidNuisance) ## technically already computed in the previous lines
 
                 iLastEstimate <- sapply(1:iN.CR, function(iCause){
                     if(is.na(iRestriction) || model.tte[[iUTTE]]$peron$last.time[iStrata,iTreat]<=iRestriction){ 
-                        return(predict(model.tte[[iUTTE]], time = "last", strata = iStrata, treatment = iTreat, cause = iCause))
+                        return(predict(model.tte[[iUTTE]], time = "last", strata = iStrata.model, treatment = iTreat, cause = iCause))
                     }else{ ## no remainder term if end of the survival curve after restriction (i.e. fully known survival up to the restriction)
                         return(0)
                     }
@@ -157,9 +169,9 @@ calcPeron <- function(data,
 
                         ## *** CIF at jump times
                         iPred1.iOther.beforeTau <- predict(model.tte[[iUTTE]], time = iTime.jump - iThreshold,
-                                                           treatment = setdiff(level.treatment,iTreat), strata = iStrata)
+                                                           treatment = setdiff(level.treatment,iTreat), strata = iStrata.model)
                         iPred1.iOther.afterTau <- predict(model.tte[[iUTTE]], time = iTime.jump + iThreshold,
-                                                          treatment = setdiff(level.treatment,iTreat), strata = iStrata)
+                                                          treatment = setdiff(level.treatment,iTreat), strata = iStrata.model)
                         out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime.jump,
                                                                            "CIF1-threshold" = iPred1.iOther.beforeTau$cif,
                                                                            "CIF1+threshold" = iPred1.iOther.afterTau$cif,
@@ -170,20 +182,20 @@ calcPeron <- function(data,
                                                                            "index.dCIF12" = iPred1.iTreat.afterJump$index)
 
                         if(iidNuisance){
-                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- cbind(lava::iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat, cause = 1),
-                                                                               lava::iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat, cause = 2))
+                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- cbind(lava::iid(model.tte[[iUTTE]], strata = iStrata.model, treatment = iTreat, cause = 1),
+                                                                               lava::iid(model.tte[[iUTTE]], strata = iStrata.model, treatment = iTreat, cause = 2))
                             out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
                         }
 
                         ## *** CIF at observation time (+/- threshold)
                         iPred1.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold,
-                                                    treatment = level.treatment[1], strata = iStrata)
+                                                    treatment = level.treatment[1], strata = iStrata.model)
                         iPred1.C.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold,
-                                                   treatment = level.treatment[1], strata = iStrata)
+                                                   treatment = level.treatment[1], strata = iStrata.model)
                         iPred1.T.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold,
-                                                    treatment = level.treatment[2], strata = iStrata)
+                                                    treatment = level.treatment[2], strata = iStrata.model)
                         iPred1.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold,
-                                                   treatment = level.treatment[2], strata = iStrata)
+                                                   treatment = level.treatment[2], strata = iStrata.model)
 
                         out[[iStoreTime]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime, ## 0
                                                                            "CIF1C-threshold" = iPred1.C.beforeTau$cif, ## 1
@@ -212,7 +224,7 @@ calcPeron <- function(data,
 
                         
                         if(iidNuisance){
-                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- lava::iid(model.tte[[iUTTE]], strata = iStrata, treatment = iTreat)
+                            out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- lava::iid(model.tte[[iUTTE]], strata = iStrata.model, treatment = iTreat)
                             out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
                             if(any(is.na(out$iid[[iStoreJump]][[iUTTE]][[iStrata]]))){ stop("NA in the iid decomposition of the survival model. \n") }
                         }
@@ -226,7 +238,7 @@ calcPeron <- function(data,
                                                                                index.dsurvival2 = NA) ## index of the survival parameter after the jump
                         }else{
                             iSurvTau.jump <- predict(model.tte[[iUTTE]], time = iTimeTau.jump[iSubset.restriction], treatment = setdiff(level.treatment, iTreat),
-                                                     strata = iStrata, iid = iidNuisance)
+                                                     strata = iStrata.model, iid = iidNuisance)
                             out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind(time = iTime.jump[iSubset.restriction], ## jump time
                                                                                survival = iSurvTau.jump$survival, 
                                                                                dSurvival = iPred1.iTreat.afterJump$survival[iSubset.restriction] - iPred1.iTreat.beforeJump$survival[iSubset.restriction],
@@ -236,11 +248,11 @@ calcPeron <- function(data,
                         }
 
                         ## *** survival at observation time (+/- threshold)
-                        iPred.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold, treatment = level.treatment[1], strata = iStrata)
-                        iPred.C.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold, treatment = level.treatment[1], strata = iStrata)
+                        iPred.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold, treatment = level.treatment[1], strata = iStrata.model)
+                        iPred.C.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold, treatment = level.treatment[1], strata = iStrata.model)
 
-                        iPred.T.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold, treatment = level.treatment[2], strata = iStrata)
-                        iPred.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold, treatment = level.treatment[2], strata = iStrata)
+                        iPred.T.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold, treatment = level.treatment[2], strata = iStrata.model)
+                        iPred.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold, treatment = level.treatment[2], strata = iStrata.model)
 
                         out[[iStoreTime]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime,
                                                                            "survivalC-threshold" = iPred.C.beforeTau$survival,

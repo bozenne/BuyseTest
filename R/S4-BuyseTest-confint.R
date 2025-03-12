@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1230
+##     Update #: 1244
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -374,13 +374,17 @@ setMethod(f = "confint",
                           warning("Inference will be performed using a first order H projection. \n")
                       }
                       ls.Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, strata = strata, cluster = cluster, simplify = FALSE)
-                      if(length(strata)==1 || all(strata=="global")){
-                          Delta.iid <- ls.Delta.iid[["global"]][,names(Delta),drop=FALSE]
+                      if(length(strata) == 1 && all(strata=="global")){
+                          Delta.iid <- ls.Delta.iid$global[,names(Delta),drop=FALSE]
                       }else{
                           for(iS in 1:length(strata)){ ## iS <- 1
                               colnames(ls.Delta.iid[[iS]]) <- paste(colnames(ls.Delta.iid[[iS]]), strata[iS], sep = sep)
                           }
-                          Delta.iid <- do.call(cbind,ls.Delta.iid)[,names(Delta),drop=FALSE]
+                          if(length(strata)==1){
+                              Delta.iid <- ls.Delta.iid[[1]][,names(Delta),drop=FALSE]
+                          }else{
+                              Delta.iid <- do.call(cbind,ls.Delta.iid)[,names(Delta),drop=FALSE]
+                          }
                       }
                       if(is.null(cluster) && any(object@weightObs!=1)){
                           Delta.iid <- .colMultiply_cpp(Delta.iid, sqrt(object@weightObs))

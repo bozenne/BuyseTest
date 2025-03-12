@@ -310,12 +310,17 @@ initializeArgs <- function(status,
     
     ## ** model.tte
     if(scoring.rule>0){
-        if((!is.null(model.tte)) && (length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
-            attr.save <- attr(model.tte,"iidNuisance")
+        if((!is.null(model.tte))){
+            if((length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
+                attr.save <- attr(model.tte,"iidNuisance")
             
-            model.tte <- list(model.tte)
-            names(model.tte) <- unique(endpoint.TTE)
-            attr(model.tte,"iidNuisance") <- attr.save
+                model.tte <- list(model.tte)
+                names(model.tte) <- unique(endpoint.TTE)
+                attr(model.tte,"iidNuisance") <- attr.save
+            }
+            attr(data,"model.tte_regressor") <- unique(unlist(lapply(model.tte, function(iM){
+                all.vars(stats::delete.response(terms(formula(iM))))
+            })))
         }
     }else{
         model.tte <- NULL
@@ -595,8 +600,9 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
 
     ## ** export
-    keep.cols <- union(c(treatment, "..strata.."),
-                       na.omit(attr(method.inference,"resampling-strata")))
+    keep.cols <- union(union(c(treatment, "..strata.."),
+                             na.omit(attr(method.inference,"resampling-strata"))),
+                       attr(data,"model.tte_regressor")) ## add regressor from survival models in case they do not match GPC strata variable (user-specific survival)
 
     return(list(data = data[,.SD,.SDcols = keep.cols],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
