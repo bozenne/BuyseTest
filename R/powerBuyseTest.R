@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar  7 2025 (16:47) 
+## Last-Updated: mar 31 2025 (19:03) 
 ##           By: Brice Ozenne
-##     Update #: 1320
+##     Update #: 1323
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -88,7 +88,7 @@
 ##' 
 ##' ## point estimate with rejection rate
 ##' \dontshow{
-##' powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
+##' powerbuysetest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
 ##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 10,
 ##'                method.inference = "u-statistic", trace = 4)
 ##' }
@@ -468,7 +468,7 @@ powerBuyseTest <- function(formula,
             resInitData <- do.call(initializeData, args = c(outArgs[argsInit], list(copy = FALSE, data = dt.tempo)))
             do.call(printGeneral, args = c(outArgs, list(M.status = resInitData$M.status, paired = resInitData$paired)))
             if(outArgs$method.inference!="none"){
-                do.call(printInference, args = outArgs)
+                do.call(printInference, args = c(outArgs, list(paired = resInitData$paired)))
             }
         }
         if(!missing(sample.size) && !is.null(sample.size)){
