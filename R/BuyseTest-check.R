@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: feb 21 2025 (09:56) 
+## Last-Updated: mar 31 2025 (18:45) 
 ##           By: Brice Ozenne
-##     Update #: 373
+##     Update #: 380
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -369,10 +369,13 @@ testArgs <- function(name.call,
         stop("Only bootstrap and permutation can be used to quantify uncertainty when weighting strata-specific effects by the inverse of the variance. \n")
     }
 
-    if(any(table(data[[treatment]])<2) && (method.inference %in% c("none","permutation") == FALSE) ){
-        warning("P-value/confidence intervals will not be valid when a treatment group contain a single observation. \n")
-    }else if(!is.null(strata) && any(table(data[[treatment]],data[[strata]])<2) && (method.inference %in% c("none","permutation") == FALSE) ){
-        warning("P-value/confidence intervals will not be valid when a treatment group contain a single observation in one of the strata. \n")
+    if(method.inference %in% c("none","permutation") == FALSE){
+        ## no minimal sample size
+    }else if(is.null(strata) && any(table(data[[treatment]])<=5)){
+        warning("P-value/confidence intervals may not be valid with few observations in a treatment group. \n")
+    }else if(!is.null(strata) && any(table(data[[treatment]],data[[strata]])!=1)  && any(table(data[[treatment]],data[[strata]])<=5) ){
+        ## any(table(data[[treatment]],data[[strata]])!=1): make sure that the design is not paired
+        warning("P-value/confidence intervals may not be valid with few observations in a treatment and strata group. \n")
     }
     if(!is.na(attr(method.inference,"resampling-strata")) && any(attr(method.inference,"resampling-strata") %in% names(data) == FALSE)){
         stop("Incorrect value for argument \'strata.resampling\': must correspond to a column in argument \'data\'. \n")

@@ -36,7 +36,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   for(int iter_strata = 0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
     ntot_pair += n_pairs[iter_strata];
   }
-
+  
   // ** Proportion of favorable/unfavorable/neutral/uniformative pairs within each strata and priority 
   delta.slice(0) = Mcount_favorable;
   delta.slice(0).each_col() /= n_pairs;
@@ -114,7 +114,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
       iidTotal_unfavorable = iidAverage_unfavorable;
       iidTotal_neutral = iidAverage_neutral;
     }
-
+    
     // *** weight endpoints and cumulate them to obtain (cumulative) first order projection
     // logically should be in the next subection (Global) but is put here because used for the point estimate with pooling = 2.1-2.4
     iidTotal_favorable.each_row() %= rowweightEndpoint;
@@ -129,7 +129,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
       iidTotal_unfavorable += 0.5*iidTotal_neutral;
     }
   }
-
+  
   // ** Weights to pool across strata
   if(paired){
     weightPool.fill(1.0);
@@ -244,10 +244,13 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     Mvar.col(2) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
     
     if(paired){
-
-      Mvar.col(0) += arma::var(cumdelta_favorable, 0, 0)/n_strata;
-      Mvar.col(1) += arma::var(cumdelta_unfavorable, 0, 0)/n_strata;
-      Mvar.col(2) += arma::cov(cumdelta_favorable, cumdelta_unfavorable, 0)/n_strata;
+      // var(data, norm_type, dim): norm_type=0 divides by n-1 whereas norm_type=1 divides by n
+      //                            dim = 0 finds the statistic for each column whereas dim = 1 finds the statistic for each row
+      Mvar.col(0) += arma::var(cumdelta_favorable, 0, 0).t()/n_strata;
+      Mvar.col(1) += arma::var(cumdelta_unfavorable, 0, 0).t()/n_strata;
+      // cov(X, Y, norm_type):
+      arma::mat SigmaCov = arma::cov(cumdelta_favorable, cumdelta_unfavorable, 0);
+      Mvar.col(2) += SigmaCov.diag()/n_strata;
 
     }
 
