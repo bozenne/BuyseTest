@@ -53,9 +53,7 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    n.resampling = 1000, ## default value of argument n.resampling in BuyseTest()
                    neutral.as.uninf = TRUE, ## default value of argument neutral.as.uninf in BuyseTest()
                    order.Hprojection = 1, ## hidden argument in BuyseTest() to control the type of H-projection when using method.inference="u-statistic". Can be 1 or 2
-                   pool.strata = "CMH", ## default weighting scheme to pool estimates across strata in BuyseTest(). Can be "Buyse" (weighted average proportional to number of pairs per strata),
-                                                                                                                          ## "CMH" (Cochran-Mantel-Haenszel weights)
-                                                                                                                          ## "equal" (equal weights for all strata)
+                   pool.strata = "CMH", ## default weighting scheme to pool estimates across strata in BuyseTest(). Can be "Buyse" (weighted average proportional to number of pairs per strata), "CMH" (Cochran-Mantel-Haenszel weights), "equal" (equal weights for all strata), "standardization" (average over all possible combinations of strata), "var-netbenefit" (optimal weight w.r.t. net benefit)                   
                    precompute = TRUE, ## hidden argument in BuyseTest() to pre-compute integrals over time before the C++ routine
                    print.display = c("endpoint","restriction","threshold","delta","Delta"), ## what to display when showing a S4BuyseTest object 
                    scoring.rule = "Peron", ## default value of argument scoring.rule in BuyseTest()               

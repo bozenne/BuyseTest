@@ -30,7 +30,7 @@ printGeneral <- function(status,
                          weightEndpoint,
                          Wscheme,
                          ...){
-    
+
     if(!is.null(strata)){
         n.strata <- length(level.strata)
     }else{

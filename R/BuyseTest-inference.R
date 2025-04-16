@@ -5,11 +5,13 @@ inferenceResampling <- function(envir){
     D <- envir$outArgs$D
     endpoint <- envir$outArgs$endpoint
     iid <- envir$outArgs$iid
-    level.strata <- envir$outArgs$level.strata
+
+    level.strata <- rownames(envir$outArgs$grid.strata)
+    level.treatment <- envir$outArgs$level.treatment
     method.inference <- envir$outArgs$method.inference
 
     n.resampling <- envir$outArgs$n.resampling
-    n.strata <- envir$outArgs$n.strata
+    n.strata <- NROW(envir$outArgs$grid.strata)
     seed <- envir$outArgs$seed
 
     if (!is.null(seed)) {
@@ -127,11 +129,13 @@ inferenceResampling <- function(envir){
     
     dim.delta <- c(n.resampling, n.strata, D, 6)
     dimnames.delta <- list(as.character(1:n.resampling), level.strata, endpoint, c("favorable","unfavorable","neutral","uninf","netBenefit","winRatio"))
-    out <- list(deltaResampling = array(NA, dim = dim.delta, dimnames = dimnames.delta),
+    out <- list(nResampling = array(NA, dim = c(n.resampling, 2, n.strata), dimnames = list(as.character(1:n.resampling), level.treatment, level.strata)),
+                deltaResampling = array(NA, dim = dim.delta, dimnames = dimnames.delta),
                 DeltaResampling = array(NA, dim = dim.delta[c(1,3,4)], dimnames = dimnames.delta[c(1,3,4)]),
                 weightStrataResampling = matrix(NA, nrow = n.resampling, ncol = n.strata,
                                                 dimnames = list(NULL, level.strata))
                 )
+
     if(!is.null(seed)){
         out$seed <- rep(NA, n.resampling)
     }
@@ -143,6 +147,7 @@ inferenceResampling <- function(envir){
     }
     
     for(iR in test.resampling){ ## iR <- 1
+        out$nResampling[iR,,] <- ls.resampling[[iR]]$n
         out$deltaResampling[iR,,,] <- ls.resampling[[iR]]$delta
         out$DeltaResampling[iR,,] <- ls.resampling[[iR]]$Delta
         out$weightStrataResampling[iR,] <- ls.resampling[[iR]]$weightStrata
@@ -333,7 +338,7 @@ inferenceUstatisticBebu <- function(tablePairScore, subset.C = NULL, subset.T = 
 inferenceVarPermutation <- function(data, treatment, level.treatment, weightStrata, ...){
 
     ## ** extend data
-    n.obs <- NROW(data)
+    n.obs <- NROW(data)    
     if("XXgroupXX" %in% names(data)){
         stop("BuyseTest: Argument \'data\' must not contain a column \"XXgroupXX\". \n")
     }
@@ -349,10 +354,21 @@ inferenceVarPermutation <- function(data, treatment, level.treatment, weightStra
                          trace = FALSE, ...)
     endpoint <- eBT.all@endpoint
     strata <- eBT.all@level.strata
+    names(attr(strata,"index")) <- attr(strata,"original")
+    ## reconstruct strata variable (in case of standarization)
+    level.strata0 <- attr(strata,"original")
+    n.strata0 <- length(level.strata0)
+    grid.strata <- as.matrix(expand.grid(level.strata0, level.strata0))
+    rownames(grid.strata) <- ifelse(grid.strata[,1]==grid.strata[,2],
+                                    grid.strata[,1],
+                                    paste(grid.strata[,1],grid.strata[,2],sep="."))
+
     if(any("Peron" %in% eBT.all@scoring.rule)){
         warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using the Peron scoring rule. \n")
     }else if(any(eBT.all@correction.uninf>0)){
         warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using a correction for uninformative pairs. \n")
+    }else if(length(eBT.all@weightStrata)>1 && attr(eBT.all@weightStrata,"type")=="standardization"){
+        warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using standardization. \n")
     }
 
     ## ** extract all pairwise scores
@@ -379,9 +395,11 @@ inferenceVarPermutation <- function(data, treatment, level.treatment, weightStra
         })
     }else{
         index.strata <- lapply(attr(strata,"index"), intersect, 1:n.obs) ## to retrieve original size since the dataset was duplicated
-        ls.permvar <- lapply(names(endpoint), function(iEndpoint){ ## iEndpoint <- "score"
-            iM.permvar <- do.call(rbind,lapply(index.strata, function(iIndex){ ## iIndex <- index.strata[[1]]
-                exactVarPermutation(U.score[[iEndpoint]][iIndex,iIndex], treatment = data[iIndex,treatment], level.treatment = level.treatment)
+        ls.permvar <- lapply(names(endpoint), function(iEndpoint){ ## iEndpoint <- names(endpoint)[1]
+            iM.permvar <- do.call(rbind,lapply(1:NROW(grid.strata), function(iG){ ## iG <- 1
+                iIndexC <- index.strata[[grid.strata[iG,1]]]
+                iIndexT <- index.strata[[grid.strata[iG,2]]]
+                exactVarPermutation(U.score[[iEndpoint]][c(iIndexC,iIndexT), c(iIndexC,iIndexT)], treatment = data[c(iIndexC,iIndexT),treatment], level.treatment = level.treatment)
             }))
             rownames(iM.permvar) <- strata
             iOut <- colSums(sweep(iM.permvar, MARGIN = 1, FUN = "*", STATS = weightStrata^2))

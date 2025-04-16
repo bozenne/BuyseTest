@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: mar 31 2025 (19:03) 
+## Last-Updated: apr  2 2025 (10:19) 
 ##           By: Brice Ozenne
-##     Update #: 1323
+##     Update #: 1325
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -88,7 +88,7 @@
 ##' 
 ##' ## point estimate with rejection rate
 ##' \dontshow{
-##' powerbuysetest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
+##' powerBuyseTest(sim = simBuyseTest2, sample.size = c(10, 50, 100), 
 ##'                formula = treatment ~ bin(toxicity), seed = 10, n.rep = 10,
 ##'                method.inference = "u-statistic", trace = 4)
 ##' }

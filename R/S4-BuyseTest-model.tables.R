@@ -125,7 +125,7 @@ setMethod(f = "model.tables",
 
               delta <- coef(x, statistic = statistic, cumulative = FALSE, strata = c("global",strata.level), simplify = FALSE)
               Delta <- coef(x, statistic = statistic, cumulative = TRUE, strata = "global", simplify = FALSE)
-              n.resampling <- x@n.resampling
+              n.resampling <- dim(x@nResampling)[1]
 
               method.inference <- x@method.inference
 

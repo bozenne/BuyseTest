@@ -345,7 +345,7 @@ BuyseTest <- function(formula,
     out.name <- c("data","M.endpoint","M.status",
                   "index.C","index.T","weightObs","index.strata",
                   "level.treatment","level.strata", "pool.strata", "method.score", "paired",
-                  "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
+                  "grid.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                   "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
 
     outArgs[out.name] <- initializeData(data = outArgs$data,
@@ -418,7 +418,7 @@ BuyseTest <- function(formula,
 
     ## check number of pairs
     if(option$check){
-        vec.nPair <- (outPoint$count_favorable + outPoint$count_unfavorable + outPoint$count_neutral + outPoint$count_uninf )[,1]
+        vec.nPair <- (outPoint$count_favorable + outPoint$count_unfavorable + outPoint$count_neutral + outPoint$count_uninf)[,1]
         if(any(abs(outPoint$n_pairs - vec.nPair) > 0.01)){
             warning("Incorrect estimation of the number of pairs \n",
                     "Something probably went wrong - contact the package maintainer\n")
@@ -431,8 +431,8 @@ BuyseTest <- function(formula,
         ## needed for inference with bebu
         outPoint$tableScore <- pairScore2dt(outPoint$tableScore,
                                             level.treatment = outArgs$level.treatment,
-                                            level.strata = outArgs$level.strata,
-                                            n.strata = outArgs$n.strata,
+                                            level.strata = rownames(outArgs$grid.strata),
+                                            n.strata = NROW(outArgs$grid.strata),
                                             endpoint = outArgs$endpoint,
                                             threshold = outArgs$threshold,
                                             restriction = outArgs$restriction)
@@ -459,7 +459,7 @@ BuyseTest <- function(formula,
                                                  n.C = length(envirBT$outArgs$index.C),
                                                  n.T = length(envirBT$outArgs$index.T),
                                                  level.strata = outArgs$level.strata,
-                                                 n.strata = outArgs$n.strata,
+                                                 n.strata = NROW(outArgs$grid.strata),
                                                  endpoint = outArgs$endpoint)
 
         outPoint$covariance <- outCovariance$Sigma
@@ -504,7 +504,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","paired")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling","paired")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -535,6 +535,7 @@ BuyseTest <- function(formula,
     if(envir$outArgs$scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$skeletonPeron
     }else{ ## Peron
+
         outSurv <- calcPeron(data = outSample$data,
                              model.tte = envir$outArgs$model.tte,                             
                              method.score = envir$outArgs$method.score,
@@ -552,7 +553,7 @@ BuyseTest <- function(formula,
                              threshold = envir$outArgs$threshold,
                              restriction = envir$outArgs$restriction,
                              level.strata = envir$outArgs$level.strata,
-                             n.strata = envir$outArgs$n.strata,
+                             grid.strata = envir$outArgs$grid.strata,
                              strata = envir$outArgs$strata,
                              precompute = envir$outArgs$precompute,
                              iidNuisance = envir$outArgs$iidNuisance * iid,
@@ -560,7 +561,7 @@ BuyseTest <- function(formula,
                              fitter = envir$outArgs$fitter.model.tte,
                              efron = envir$outArgs$scoring.rule==2,
                              args = envir$outArgs$args.model.tte)
-        
+
         index.test <- which(envir$outArgs$method.score == "SurvPeron")
         if(!grepl("permutation|bootstrap",method.inference) && envir$outArgs$correction.uninf>0 && length(index.test)>0 && all(is.na(envir$outArgs$restriction))){
             maxLastSurv <- setNames(sapply(outSurv$lastSurv[index.test],max),envir$outArgs$endpoint[index.test])[!duplicated(envir$outArgs$endpoint[index.test])]
@@ -615,7 +616,7 @@ BuyseTest <- function(formula,
                                  op = envir$outArgs$operator,
                                  D = envir$outArgs$D,
                                  D_UTTE = envir$outArgs$D.UTTE,
-                                 n_strata = envir$outArgs$n.strata,
+                                 grid_strata = envir$outArgs$grid.strata,
                                  nUTTE_analyzedPeron_M1 = envir$outArgs$nUTTE.analyzedPeron_M1,
                                  index_endpoint = envir$outArgs$index.endpoint,
                                  index_status = envir$outArgs$index.status,
@@ -653,7 +654,8 @@ BuyseTest <- function(formula,
         ## index <- 5
         ## resBT$Delta[,index]
         ## sum(resBT$delta[,,index][,1] * resBT$weightStrata)
-        return(list(delta = resBT$delta,
+        return(list(n = rbind(T = lengths(outSample$ls.indexT), C = lengths(outSample$ls.indexC)),
+                    delta = resBT$delta,
                     Delta = resBT$Delta,
                     weightStrata = resBT$weightStrata,
                     covariance = resBT$covariance))
@@ -664,12 +666,13 @@ BuyseTest <- function(formula,
 calcSample <- function(envir, method.inference){
 
     ## ** initialization
+    nlevel.strata <- length(envir$outArgs$level.strata)
     out <- list(## rows in M.endpoint/M.status corresponding to observations from the control/treatment group (not unique when boostraping)
-        ls.indexC = vector(mode = "list", length = envir$outArgs$n.strata), 
-        ls.indexT = vector(mode = "list", length = envir$outArgs$n.strata),
+        ls.indexC = vector(mode = "list", length = nlevel.strata), 
+        ls.indexT = vector(mode = "list", length = nlevel.strata),
         ## identifier for each observation from the control/treatment group (unique even when boostrap)
-        ls.posC = vector(mode = "list", length = envir$outArgs$n.strata),
-        ls.posT = vector(mode = "list", length = envir$outArgs$n.strata),
+        ls.posC = vector(mode = "list", length = nlevel.strata),
+        ls.posT = vector(mode = "list", length = nlevel.strata),
         ## dataset
         data = data.table::data.table()
     )
@@ -677,11 +680,11 @@ calcSample <- function(envir, method.inference){
     if(method.inference %in% c("none","u statistic")){
 
         ## ** no resampling
-        if(envir$outArgs$n.strata==1){        
+        if(nlevel.strata==1){        
             out$ls.indexC[[1]] <- envir$outArgs$index.C - 1
             out$ls.indexT[[1]] <- envir$outArgs$index.T - 1
         }else{        
-            for(iStrata in 1:envir$outArgs$n.strata){ ## iStrata <- 1  
+            for(iStrata in 1:nlevel.strata){ ## iStrata <- 1  
                 out$ls.indexC[[iStrata]] <- intersect(envir$outArgs$index.C, envir$outArgs$index.strata[[iStrata]]) - 1
                 out$ls.indexT[[iStrata]] <- intersect(envir$outArgs$index.T, envir$outArgs$index.strata[[iStrata]]) - 1
             }
@@ -707,7 +710,7 @@ calcSample <- function(envir, method.inference){
         ## ** reconstruct groups
         ## index: index of the new observations in the old dataset by treatment group
         ## pos: unique identifier for each observation
-        if(envir$outArgs$n.strata==1){ ## no strata
+        if(nlevel.strata==1){ ## no strata
             
             if(grepl("permutation",method.inference)){
                 out$ls.indexC[[1]] <- which(index.resampling %in% envir$outArgs$index.C) - 1
@@ -732,7 +735,7 @@ calcSample <- function(envir, method.inference){
                 index.T <- which(index.resampling %in% envir$outArgs$index.T)
             }
             
-            for(iStrata in 1:envir$outArgs$n.strata){ ## iStrata <- 1  
+            for(iStrata in 1:nlevel.strata){ ## iStrata <- 1  
                 ## index of the new observations in the old dataset by treatment group
                 if(grepl("permutation",method.inference)){
                     out$ls.indexC[[iStrata]] <- intersect(index.C, envir$outArgs$index.strata[[iStrata]]) - 1

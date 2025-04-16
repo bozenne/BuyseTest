@@ -17,11 +17,11 @@
 #' @param weightEndpoint Store the weight associated to each endpoint. Must have length D. 
 #' @param weightObs A vector containing the weight associated to each observation.
 #' @param method The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).
-#' @param pool The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size), 1 (Mantel Haenszel weights), 2 (equal weights), 3 (precision weights)
+#' @param pool The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size), 1 (Mantel Haenszel weights), 2 (equal weights), 3 (standardization), 4 (precision weights)
 #' @param op The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.
 #' @param D The number of endpoints.
 #' @param D_UTTE The number of distinct time to event endpoints.
-#' @param n_strata The number of strata. 
+#' @param grid_strata A matrix containing in each row the strata to be compared between the control and treatment group. Usually each row correspond to the same strata for both group except with standardisation.  
 #' @param nUTTE_analyzedPeron_M1 The number of unique time-to-event endpoints that have been analyzed the Peron scoring rule before the current endpoint. Must have length D.
 #' @param index_endpoint The position of the endpoint at each priority in the argument endpoint. Must have length D. 
 #' @param index_status The position of the status at each priority in the argument status. Must have length D. 
@@ -58,14 +58,14 @@ NULL
 
 #' @name GPC_cpp
 #' @export
-GPC_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug) {
-    .Call(`_BuyseTest_GPC_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug)
+GPC_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, grid_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug) {
+    .Call(`_BuyseTest_GPC_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, grid_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug)
 }
 
 #' @name GPC_cpp
 #' @export
-GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug) {
-    .Call(`_BuyseTest_GPC2_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, n_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug)
+GPC2_cpp <- function(endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, grid_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug) {
+    .Call(`_BuyseTest_GPC2_cpp`, endpoint, status, indexC, posC, indexT, posT, threshold, threshold0, restriction, weightEndpoint, weightObs, method, pool, op, D, D_UTTE, grid_strata, nUTTE_analyzedPeron_M1, index_endpoint, index_status, index_UTTE, list_survTimeC, list_survTimeT, list_survJumpC, list_survJumpT, list_lastSurv, p_C, p_T, iid_survJumpC, iid_survJumpT, zeroPlus, correctionUninf, hierarchical, hprojection, neutralAsUninf, addHalfNeutral, keepScore, precompute, paired, returnIID, debug)
 }
 
 #' @title C++ Function Computing the Integral Terms for the Peron Method in the survival case. 

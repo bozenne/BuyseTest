@@ -40,7 +40,7 @@ setClass(
       strata = "vector",
       threshold = "numeric",
       restriction = "numeric",
-      n.resampling = "numeric",
+      nResampling = "array",
       deltaResampling = "array",
       DeltaResampling = "array",
       covariance = "matrix",
@@ -102,7 +102,9 @@ methods::setMethod(
                                    weightEndpoint,
                                    weightStrata,
                                    pool.strata,
+                                   grid.strata,
                                    n.resampling,
+                                   nResampling = NULL, ## from inferenceResampling
                                    deltaResampling = NULL, ## from inferenceResampling
                                    DeltaResampling = NULL, ## from inferenceResampling
                                    weightStrataResampling = NULL, ## from inferenceResampling
@@ -110,25 +112,26 @@ methods::setMethod(
                                    ){
 
                  name.endpoint <- paste0(endpoint,ifelse(!is.na(restriction),paste0("_r",restriction),""),ifelse(threshold>1e-12,paste0("_t",threshold),""))
-
+                 level.strata2 <- rownames(grid.strata)
+                 
                  ## ** call
                  call <- call[-1]
 
                  ## ** count
-                 dimnames(count_favorable) <- list(level.strata, name.endpoint)
-                 dimnames(count_unfavorable) <- list(level.strata, name.endpoint)
-                 dimnames(count_neutral) <- list(level.strata, name.endpoint)
-                 dimnames(count_uninf) <- list(level.strata, name.endpoint)
+                 dimnames(count_favorable) <- list(level.strata2, name.endpoint)
+                 dimnames(count_unfavorable) <- list(level.strata2, name.endpoint)
+                 dimnames(count_neutral) <- list(level.strata2, name.endpoint)
+                 dimnames(count_uninf) <- list(level.strata2, name.endpoint)
 
                  ## ** delta/Delta
-                 dimnames(delta) <- list(level.strata,
+                 dimnames(delta) <- list(level.strata2,
                                          name.endpoint,
                                          c("favorable","unfavorable","neutral","uninf","netBenefit","winRatio"))
                  dimnames(Delta) <- list(name.endpoint,
                                          c("favorable","unfavorable","neutral","uninf","netBenefit","winRatio"))
 
                  ## ** n_pairs
-                 names(n_pairs) <- level.strata
+                 names(n_pairs) <- level.strata2
 
                  ## ** iid and variance
                  if(!is.null(iidAverage_favorable) && NCOL(iidAverage_favorable)>0){
@@ -164,8 +167,8 @@ methods::setMethod(
                  if(!is.null(tableScore) && length(tableScore)>0 && any(sapply(tableScore, data.table::is.data.table)==FALSE)){
                      tableScore <- pairScore2dt(tableScore,
                                                 level.treatment = level.treatment,
-                                                level.strata = level.strata,
-                                                n.strata = length(level.strata),
+                                                level.strata = level.strata2,
+                                                n.strata = length(level.strata2),
                                                 endpoint = endpoint,
                                                 threshold = threshold,
                                                 restriction = restriction)
@@ -180,7 +183,8 @@ methods::setMethod(
                  names(endpoint) <- name.endpoint
 
                  ## ** level.strata
-                 attr(level.strata,"index") <- index.strata
+                 attr(level.strata2,"index") <- index.strata
+                 attr(level.strata2,"original") <- level.strata
 
                  ## ** level.treatment
                  attr(level.treatment,"indexC") <- index.C
@@ -227,7 +231,7 @@ methods::setMethod(
                  weightStrata <- as.double(weightStrata)
                  attr(weightStrata,"type") <- attr(pool.strata,"type")
 
-                 ## ** n.resampling
+                 ## ** prepare resampling object
                  if(!is.null(deltaResampling)){                     
                      dimnames(deltaResampling)[[3]] <- name.endpoint
                      dimnames(DeltaResampling)[[2]] <- name.endpoint
@@ -263,7 +267,7 @@ methods::setMethod(
                  .Object@call <- call
                  .Object@type <- type
                  .Object@endpoint <- endpoint
-                 .Object@level.strata <- level.strata
+                 .Object@level.strata <- level.strata2
                  .Object@level.treatment <- level.treatment
                  .Object@scoring.rule <- scoring.rule
                  .Object@hierarchical <- hierarchical
@@ -277,7 +281,6 @@ methods::setMethod(
                  .Object@weightObs <- weightObs
                  .Object@weightEndpoint <- weightEndpoint
                  .Object@weightStrata <- weightStrata
-                 .Object@n.resampling <- n.resampling
                  if(!missing(seed)){
                      .Object@seed <- seed
                  }
@@ -285,6 +288,7 @@ methods::setMethod(
                  ## *** optional information
                  ## resampling
                  if(!is.null(deltaResampling)){
+                     .Object@nResampling <- nResampling
                      .Object@deltaResampling <- deltaResampling
                      .Object@DeltaResampling <- DeltaResampling
                      .Object@weightStrataResampling <- weightStrataResampling

@@ -107,11 +107,29 @@ setMethod(f = "getIid",
                        "Set the argument \'method.inference\' to \"u-statistic\" when calling BuyseTest \n")
               }
 
+              ## index group
+              indexC <- attr(object@level.treatment,"indexC")
+              indexT <- attr(object@level.treatment,"indexT")
+
               ## strata
               level.strata <- object@level.strata
               n.strata <- length(level.strata)
               weightStrata <- object@weightStrata
-              indexStrata <- attr(level.strata,"index")
+              if(attr(weightStrata,"type")=="standardization"){
+                  grid.strata <- expand.grid(attr(level.strata,"original"),
+                                             attr(level.strata,"original"))
+                  rownames(grid.strata) <- ifelse(grid.strata[,1]==grid.strata[,2],
+                                                  grid.strata[,1],
+                                                  paste(grid.strata[,1],grid.strata[,2],sep="."))
+                  colnames(grid.strata) <- object@level.treatment
+                  grid.strata <- grid.strata[level.strata,,drop=FALSE]
+                  indexStrata <- lapply(1:NROW(grid.strata), function(iS){
+                      c(intersect(indexC,attr(level.strata,"index")[[grid.strata[iS,1]]]),
+                        intersect(indexT,attr(level.strata,"index")[[grid.strata[iS,2]]]))
+                  })
+              }else{
+                  indexStrata <- attr(level.strata,"index")
+              }
               attr(level.strata,"index") <- NULL
               if(is.null(strata)){
                   if(length(level.strata)==1){
@@ -176,10 +194,6 @@ setMethod(f = "getIid",
               ## pairs
               n.pairs <- object@n.pairs
               ntot.pair <- sum(n.pairs)
-
-              ## index group
-              indexC <- attr(object@level.treatment,"indexC")
-              indexT <- attr(object@level.treatment,"indexT")
               
               ## type
               validCharacter(gsub("-"," ",tolower(type), fixed = TRUE),
@@ -245,7 +259,7 @@ setMethod(f = "getIid",
                       delta.unfavorable <- coef(object, endpoint = valid.endpoint, cumulative = FALSE, statistic = "unfavorable", strata = level.strata, resampling = FALSE, simplify = FALSE)
                       delta.neutral <- coef(object, endpoint = valid.endpoint, cumulative = FALSE, statistic = "neutral", strata = level.strata, resampling = FALSE, simplify = FALSE)
                   }
-                  
+
                   for(iter_strata in 1:n.strata){  ## iter_strata <- 1
                       iStrataC <- intersect(indexC,indexStrata[[iter_strata]])
                       iStrataT <- intersect(indexT,indexStrata[[iter_strata]])
@@ -260,7 +274,7 @@ setMethod(f = "getIid",
                           object.iid$neutral[iStrataC,] <- length(iStrataC) * object.iid$neutral[iStrataC,,drop=FALSE]
                           object.iid$neutral[iStrataT,] <- length(iStrataT) * object.iid$neutral[iStrataT,,drop=FALSE]
                       }
-                      
+
                       ## remove centering
                       if(center==FALSE){
                           object.iid$favorable[c(iStrataC,iStrataT),] <- .rowCenter_cpp(object.iid$favorable[c(iStrataC,iStrataT),,drop=FALSE], - delta.favorable[iter_strata,,drop=FALSE])
