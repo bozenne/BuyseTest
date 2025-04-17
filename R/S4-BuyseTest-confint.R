@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1230
+##     Update #: 1252
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -184,6 +184,10 @@ setMethod(f = "confint",
                                refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
                   strata <- level.strata[strata]
+              }else if("standardize" %in% strata || "standardise" %in% strata){
+                  if(length(strata)>1){
+                      stop("Argument \'strata\' should have length 1 when set to \"standardize\" or \"standardise\". \n")
+                  }
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
@@ -332,11 +336,11 @@ setMethod(f = "confint",
               if(!is.null(cluster) && any(object@weightObs!=1)){
                   stop("Cannot handle clustered observations when observations are weighted. \n")
               }
-              
+
               ## ** extract estimate
               all.endpoint <- names(object@endpoint)
               DeltaW <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = FALSE, simplify = FALSE)
-              if(length(strata)==1 && all(strata=="global")){
+              if(length(strata)==1 && all(strata %in% c("global","standardize","standardise"))){
                   Delta <- stats::setNames(DeltaW["global",], endpoint)
               }else{
                   DeltaL <- stats::reshape(data.frame(strata = strata, DeltaW), direction = "long", varying = endpoint,
@@ -346,7 +350,7 @@ setMethod(f = "confint",
 
               if(((attr(method.inference,"permutation") && method.inference != "varexact permutation")) || attr(method.inference,"bootstrap")){
                   DeltaW.resampling <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = TRUE, simplify = FALSE)
-                  if(length(strata)==1 && all(strata=="global")){
+                  if(length(strata)==1 && all(strata %in% c("global","standardize","standardise"))){
                       Delta.resampling <- matrix(DeltaW.resampling[,"global",], ncol = length(endpoint), dimnames = list(NULL, endpoint))
                   }else{
                       Delta.resampling <- do.call(cbind,apply(DeltaW.resampling, MARGIN = 3 , FUN = base::identity, simplify = FALSE))
@@ -374,13 +378,17 @@ setMethod(f = "confint",
                           warning("Inference will be performed using a first order H projection. \n")
                       }
                       ls.Delta.iid <- getIid(object, statistic = statistic, cumulative = cumulative, endpoint = endpoint, strata = strata, cluster = cluster, simplify = FALSE)
-                      if(length(strata)==1 || all(strata=="global")){
-                          Delta.iid <- ls.Delta.iid[["global"]][,names(Delta),drop=FALSE]
+                      if(length(strata) == 1 && all(strata=="global")){
+                          Delta.iid <- ls.Delta.iid$global[,names(Delta),drop=FALSE]
                       }else{
                           for(iS in 1:length(strata)){ ## iS <- 1
                               colnames(ls.Delta.iid[[iS]]) <- paste(colnames(ls.Delta.iid[[iS]]), strata[iS], sep = sep)
                           }
-                          Delta.iid <- do.call(cbind,ls.Delta.iid)[,names(Delta),drop=FALSE]
+                          if(length(strata)==1){
+                              Delta.iid <- ls.Delta.iid[[1]][,names(Delta),drop=FALSE]
+                          }else{
+                              Delta.iid <- do.call(cbind,ls.Delta.iid)[,names(Delta),drop=FALSE]
+                          }
                       }
                       if(is.null(cluster) && any(object@weightObs!=1)){
                           Delta.iid <- .colMultiply_cpp(Delta.iid, sqrt(object@weightObs))

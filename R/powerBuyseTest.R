@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: jun 19 2024 (12:22) 
+## Last-Updated: apr  2 2025 (10:19) 
 ##           By: Brice Ozenne
-##     Update #: 1309
+##     Update #: 1325
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,6 +23,9 @@
 #' Returns estimates, their standard deviation, the average estimated standard error, and the rejection rate.
 #' Can also be use for power calculation or to approximate the sample size needed to reach a specific power.
 #'
+#' @param formula [formula] a symbolic description of the GPC model,
+#' typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
+#' See Details in the documentation of the \code{\link{BuyseTest}} function, section "Specification of the GPC model".
 #' @param sim [function] take two arguments:
 #' the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
 #' and generate datasets. The datasets must be data.frame objects or inherits from data.frame.
@@ -137,7 +140,8 @@
 
 ## * powerBuyseTest (code)
 ##' @export
-powerBuyseTest <- function(sim,
+powerBuyseTest <- function(formula,
+                           sim,
                            sample.size,
                            n.rep = c(1000,10),
                            null = c("netBenefit" = 0),
@@ -153,10 +157,9 @@ powerBuyseTest <- function(sim,
                            trace = 1,
                            ...){
 
-    call <- match.call()
+    mycall <- match.call()
 
     ## ** normalize and check arguments
-    name.call <- names(call)
     option <- BuyseTest.options()
     if(is.null(conf.level)){
         conf.level <- option$conf.level
@@ -171,9 +174,9 @@ powerBuyseTest <- function(sim,
         transformation <- option$transformation
     }
     alpha <- 1 - conf.level
-    outArgs <- initializeArgs(cpus = cpus, option = option, name.call = name.call, 
+    outArgs <- initializeArgs(formula = formula, cpus = cpus, option = option, call = mycall, 
                               data = NULL, model.tte = NULL, ...)
-    outArgs$call <- setNames(as.list(call),names(call))
+    outArgs$call <- setNames(as.list(mycall),names(mycall))
 
     ## power
     if(!is.null(power) && (!missing(sample.size) && !is.null(sample.size))){
@@ -275,7 +278,7 @@ powerBuyseTest <- function(sim,
             on.exit(rm(.Random.seed, envir=.GlobalEnv))
         }
         set.seed(seed)
-        seqSeed <- sample.int(tol.seed, n.rep[1],  replace = FALSE)        
+        seqSeed <- sample.int(tol.seed, max(n.rep),  replace = FALSE)        
     }else{
         seqSeed <- NULL
     }
@@ -327,7 +330,7 @@ powerBuyseTest <- function(sim,
                                 args = list(X = 1:n.rep[2],
                                             FUN = function(X){
                                                 if(!is.null(seed)){set.seed(seqSeed[X])}
-                                                iOut <- BuyseTest(..., data = sim(n.T = max.sample.size["T"], n.C = max.sample.size["C"]), trace = 0)
+                                                iOut <- BuyseTest(formula, data = sim(n.T = max.sample.size["T"], n.C = max.sample.size["C"]), trace = 0, ...)
                                                 return(iOut)
                                             })
                                 )
@@ -354,7 +357,7 @@ powerBuyseTest <- function(sim,
                                                        .options.snow = opts), {
                                          iOut <- lapply(split.resampling[[iB]], function(iSplit){
                                              if(!is.null(seed)){set.seed(seqSeed[iSplit])}
-                                             iBT <- BuyseTest(..., data = sim(n.T = max.sample.size["T"], n.C = max.sample.size["C"]), trace = 0)
+                                             iBT <- BuyseTest(formula, data = sim(n.T = max.sample.size["T"], n.C = max.sample.size["C"]), trace = 0, ...)
                                              return(iBT)                                             
                                          })
                                          return(iOut)                                         
@@ -400,11 +403,11 @@ powerBuyseTest <- function(sim,
 
             ## (mean(IidMax[attr(e.BTmax@level.treatment,"indexC"),]^2) + mean(IidMax[attr(e.BTmax@level.treatment,"indexT"),]^2))*(stats::qnorm(1-alpha/2)+stats::qnorm(power))^2/DeltaMax^2
             if (trace > 1) {
-                if(cpus==1){
+                if(n.rep[2]==1){
                     cat("   - estimated effect (variance): ",unname(DeltaMax)," (",sigma2Max,")\n",sep="")
                     cat("   - estimated sample size      : m=",sample.sizeC,", n=",sample.sizeT,"\n\n",sep="")
                 }else{
-                    cat("   - average estimated effect (variance)    : ",unname(mean(DeltaMax))," (",mean(sigma2Max),")\n",sep="")
+                    cat("   - average estimated effect (average asymptotic variance)    : ",unname(mean(DeltaMax))," (",mean(sigma2Max),")\n",sep="")
                     cat("   - average estimated sample size [min;max]: m=",
                         sample.sizeC," [",ceiling(min(n.approx*ratio["C"])),";",ceiling(max(n.approx*ratio["C"])),"], n=",
                         sample.sizeT," [",ceiling(min(n.approx*ratio["T"])),";",ceiling(max(n.approx*ratio["T"])),"]\n\n",sep="")
@@ -465,7 +468,7 @@ powerBuyseTest <- function(sim,
             resInitData <- do.call(initializeData, args = c(outArgs[argsInit], list(copy = FALSE, data = dt.tempo)))
             do.call(printGeneral, args = c(outArgs, list(M.status = resInitData$M.status, paired = resInitData$paired)))
             if(outArgs$method.inference!="none"){
-                do.call(printInference, args = outArgs)
+                do.call(printInference, args = c(outArgs, list(paired = resInitData$paired)))
             }
         }
         if(!missing(sample.size) && !is.null(sample.size)){

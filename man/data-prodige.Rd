@@ -5,7 +5,7 @@
 \alias{prodige}
 \title{RCT In Metastatic Pancreatic Cancer Comparing Two Chemoterapy.}
 \format{
-An object of class \code{data.frame} with 400 rows and 8 columns.
+An object of class \code{data.table} (inherits from \code{data.frame}) with 823 rows and 8 columns.
 }
 \usage{
 data(prodige, package = "BuyseTest")

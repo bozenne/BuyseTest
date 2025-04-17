@@ -22,7 +22,7 @@ GPC_cpp(
   op,
   D,
   D_UTTE,
-  n_strata,
+  grid_strata,
   nUTTE_analyzedPeron_M1,
   index_endpoint,
   index_status,
@@ -66,7 +66,7 @@ GPC2_cpp(
   op,
   D,
   D_UTTE,
-  n_strata,
+  grid_strata,
   nUTTE_analyzedPeron_M1,
   index_endpoint,
   index_status,
@@ -118,7 +118,7 @@ GPC2_cpp(
 
 \item{method}{The index of the method used to score the pairs. Must have length D. 1 for binary/continuous, 2 for Gaussian, 3/4 for Gehan (left or right-censoring), and 5/6 for Peron (right-censoring survival or competing risks).}
 
-\item{pool}{The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size), 1 (Mantel Haenszel weights), 2 (equal weights), 3 (precision weights)}
+\item{pool}{The index of the method used to pool results across strata. Can be 0 (weight inversely proportional to the sample size), 1 (Mantel Haenszel weights), 2 (equal weights), 3 (standardization), 4 (precision weights)}
 
 \item{op}{The index of the operator used to score the pairs. Must have length D. 1 for larger is beter, -1 for smaller is better.}
 
@@ -126,7 +126,7 @@ GPC2_cpp(
 
 \item{D_UTTE}{The number of distinct time to event endpoints.}
 
-\item{n_strata}{The number of strata.}
+\item{grid_strata}{A matrix containing in each row the strata to be compared between the control and treatment group. Usually each row correspond to the same strata for both group except with standardisation.}
 
 \item{nUTTE_analyzedPeron_M1}{The number of unique time-to-event endpoints that have been analyzed the Peron scoring rule before the current endpoint. Must have length D.}
 

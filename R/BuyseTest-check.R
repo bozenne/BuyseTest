@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Aug 22 2024 (16:04) 
+## Last-Updated: apr 16 2025 (15:13) 
 ##           By: Brice Ozenne
-##     Update #: 364
+##     Update #: 396
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -147,9 +147,10 @@ testArgs <- function(name.call,
     if(is.null(strata)){
         if(any(sapply(Ustatus.TTE, function(iS){sum(data[[iS]]!=0)})==0)){
             warning("BuyseTest: time to event variables with only censored events \n")
-        }   
+        }
+        strata.tempo <- rep(1,NROW(data))
     }else{
-        strata.tempo <- data[[strata]]
+        strata.tempo <- interaction(as.data.frame(data)[strata])
         if(is.factor(strata.tempo)){strata.tempo <- droplevels(strata.tempo)} ## otherwise the next tapply statement generates NA when there are empty levels which leads to an error
         ## if non-paired data (i.e. more than 2 obs per strata)
         if(any(table(strata.tempo)>2) && any(sapply(Ustatus.TTE, function(iS){tapply(data[[iS]], strata.tempo, function(iVec){sum(iVec!=0)})})==0)){
@@ -200,17 +201,29 @@ testArgs <- function(name.call,
     ## must be before time to event endpoints
     if(is.na(scoring.rule)){
         stop("BuyseTest: wrong specification of \'scoring.rule\'. \n",
-             "valid values: \"Gehan\" \"Gehan corrected\" \"Peron\" \"Peron corrected\". \n")
+             "valid values: \"Gehan\", \"Peron\", or \"Efron\". \n")
     }
-    if(scoring.rule>0 && any(censoring=="left")){
-        warning("The Peron's scoring rule does not support left-censored endpoints \n",
-                "For those endpoints, the Gehan's scoring rule will be used instead.")
+    if(any(!is.na(censoring)) && any(stats::na.omit(censoring)=="left")){
+        if(scoring.rule==1){
+            warning("The Peron scoring rule does not support left-censored endpoints \n",
+                    "For those endpoints, the Gehan's scoring rule will be used instead.")
+        }else if(scoring.rule==2){
+            warning("The Efron scoring rule does not support left-censored endpoints \n",
+                    "For those endpoints, the Gehan's scoring rule will be used instead.")
+        }
     }
 
     ## ** pool.strata
     if(is.na(pool.strata)){
         stop("BuyseTest: wrong specification of \'pool.strata\'. \n",
-             "valid values: \"Buyse\", \"CMH\", \"equal\", \"var-favorable\", \"var-unfavorable\", \"var-netBenefit\", \"var-winRatio\". \n")
+             "valid values: \"Buyse\", \"CMH\", \"equal\", \"standardisation\", \"standardization\", \"var-favorable\", \"var-unfavorable\", \"var-netBenefit\", \"var-winRatio\". \n")
+    }else if(pool.strata == "standardization"){
+        if(engine != "GPC2_cpp"){
+            stop("BuyseTest: argument \'pool.strata\' set to \"standardization\" only available for engine = \"GPC2_cpp\". \n")
+        }
+        if(!is.null(strata) && all(table(data[[treatment]],data[[strata]])==1)){
+            stop("BuyseTest: argument \'pool.strata\' set to \"standardization\" is not available for paired data. \n")
+        }
     }
 
     ## ** model.tte
@@ -241,10 +254,10 @@ testArgs <- function(name.call,
             stop("Incorrect model for time to event: cannot handle continuous variables. \n",
                  "Consider setting the argument \"discrete.level\" to a large value when calling prodlim for endpoint(s) \"",paste(names(test.prodlim.continuous)[test.prodlim.continuous], collapse = "\" \""),"\". \n")
         }
-        vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(all.vars(stats::update(stats::formula(model.tte[[1]]), "0~."))), sort(c(treatment,strata)))})
-        if(any(vec.predictors == FALSE) ){
-            stop("BuyseTest: argument \'model.tte\' must be a list of objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors. \n")
-        }        
+        ## vec.predictors  <- sapply(model.tte, function(iTTE){identical(sort(all.vars(stats::update(stats::formula(model.tte[[1]]), "0~."))), sort(c(treatment,strata)))})
+        ## if(any(vec.predictors == FALSE) ){
+        ##     stop("BuyseTest: argument \'model.tte\' must be a list of objects with \"",paste0(c(treatment,strata),collapse = "\" \""),"\" as predictors. \n")
+        ## }        
     }
     
     ## ** data (endpoints)
@@ -360,14 +373,17 @@ testArgs <- function(name.call,
                        method = "BuyseTest")
     }
     
-    if(pool.strata>3 && method.inference %in% c("u statistic","varexact permutation","studentized permutation","varexact permutation","studentized bootstrap")){
+    if(pool.strata>4 && method.inference %in% c("u statistic","varexact permutation","studentized permutation","varexact permutation","studentized bootstrap")){
         stop("Only bootstrap and permutation can be used to quantify uncertainty when weighting strata-specific effects by the inverse of the variance. \n")
     }
 
-    if(any(table(data[[treatment]])<2) && (method.inference %in% c("none","permutation") == FALSE) ){
-        warning("P-value/confidence intervals will not be valid when a treatment group contain a single observation. \n")
-    }else if(!is.null(strata) && any(table(data[[treatment]],data[[strata]])<2) && (method.inference %in% c("none","permutation") == FALSE) ){
-        warning("P-value/confidence intervals will not be valid when a treatment group contain a single observation in one of the strata. \n")
+    if(method.inference %in% c("none","permutation") == FALSE){
+        ## no minimal sample size
+    }else if(is.null(strata) && any(table(data[[treatment]])<=5)){
+        warning("P-value/confidence intervals may not be valid with few observations in a treatment group. \n")
+    }else if(!is.null(strata) && any(table(data[[treatment]],strata.tempo)!=1)  && any(table(data[[treatment]],strata.tempo)<=5) ){
+        ## any(table(data[[treatment]],data[[strata]])!=1): make sure that the design is not paired
+        warning("P-value/confidence intervals may not be valid with few observations in a treatment and strata group. \n")
     }
     if(!is.na(attr(method.inference,"resampling-strata")) && any(attr(method.inference,"resampling-strata") %in% names(data) == FALSE)){
         stop("Incorrect value for argument \'strata.resampling\': must correspond to a column in argument \'data\'. \n")
@@ -437,13 +453,17 @@ testArgs <- function(name.call,
                    required.values = strata,
                    valid.length = NULL,
                    method = "BuyseTest")
-
        
         if(length(level.strata) != length(levels(strataC)) || any(level.strata != levels(strataC))){
             stop("BuyseTest: wrong specification of \'strata\'. \n",
                  "different levels between Control and Treatment \n",
                  "levels(strataT) : ",paste(levels(strataT),collapse=" "),"\n",
                  "levels(strataC) : ",paste(levels(strataC),collapse=" "),"\n")
+        }
+
+        if(any(level.strata %in% c("global", "standardise", "standardize"))){
+            stop("BuyseTest: wrong specification of \'strata\'. \n",
+                 "\"",paste(intersect(level.strata, c("global", "standardise", "standardize")),collapse="\" \""),"\" is a reserved name used internally. \n")
         }
     }
 
@@ -544,7 +564,6 @@ testArgs <- function(name.call,
             stop("BuyseTest: argument \'weightObs\' must correspond to a column in argument \'data\' ",
                  "or must have as many element as rows in argument \'data\'. \n")
         }
-
         if(engine == "GPC_cpp"){
             stop("Cannot weigth observations with engine GPC_cpp. \n")
         }

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 12 2025 (13:04) 
+## Last-Updated: feb 21 2025 (09:50) 
 ##           By: Brice Ozenne
-##     Update #: 47
+##     Update #: 48
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -44,7 +44,7 @@ if(packageVersion("riskRegression")>="2024.9.10"){ ## change in riskRegression: 
 test_that("no strata, survival", {
     ## ## no censoring ## ##
     e.rr <- coxph(Surv(eventtime,status)~strata(treatment), data = dt2, x = TRUE, y = TRUE)
-    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt2, iid = TRUE, iid.surv = "prodlim") 
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, treatment = "treatment", data = dt2, iid = TRUE, iid.surv = "prodlim") 
 
     ## Treatment
     GS <- predictCox(e.rr, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, product.limit = TRUE)
@@ -66,7 +66,7 @@ test_that("no strata, survival", {
 
     ## ## censoring ## ##
     e.r <- coxph(Surv(eventtime,status)~strata(treatment), data = dt, x = TRUE, y = TRUE)
-    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE, iid.surv = "prodlim")
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, treatment = "treatment", data = dt, iid = TRUE, iid.surv = "prodlim")
 
     ## Treamtent
     GS <- predictCox(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, product.limit = TRUE)
@@ -157,7 +157,7 @@ dataC <- data.table(time = c(1:5-0.1,5,5),
 data <- rbind(dataC, dataT)
 seqThreshold <- c(1e-12,0.5,1)
 
-e.TTEM <- BuyseTTEM(Hist(time, status1) ~ treatment, data = data, iid = FALSE, iid.surv = "prodlim")
+e.TTEM <- BuyseTTEM(Hist(time, status1) ~ treatment, treatment = "treatment", data = data, iid = FALSE, iid.surv = "prodlim")
 expect_equal(predict(e.TTEM, treatment = "C", time = c(1,3,4,5)+1e-12)$survival,
              c(0.8571429, 0.7142857, 0.5357143, 0.5357143), tol = 1e-6)
              
@@ -179,7 +179,7 @@ seqTau <- c(0,unique(dt$eventtime),runif(100,0,max(dt$eventtime)),1e5)
 test_that("no strata, competing risks", {
     ## ## no censoring ## ##
     e.rr <- CSC(Hist(eventtime,status)~strata(treatment), data = dt2)
-    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt2, iid = TRUE, iid.surv = "prodlim")
+    e.bb <- BuyseTTEM(Hist(eventtime,status)~treatment, treatment = "treatment", data = dt2, iid = TRUE, iid.surv = "prodlim")
 
     for(iCause in 1:2){
         ## Treatment
@@ -201,7 +201,7 @@ test_that("no strata, competing risks", {
     
     ## ## censoring ## ##
     e.r <- CSC(Hist(eventtime,status)~strata(treatment), data = dt)
-    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid = TRUE, iid.surv = "prodlim")
+    e.b <- BuyseTTEM(Hist(eventtime,status)~treatment, treatment = "treatment", data = dt, iid = TRUE, iid.surv = "prodlim")
 
     for(iCause in 1:2){
         ## Treatment

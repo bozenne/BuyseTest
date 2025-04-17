@@ -1,5 +1,14 @@
 # -*- mode: org -*-
 
+* Version 3.1.2
+** User visible changes
+- NEW FEATURE: scoring.rule = "Efron": same formula as Peron scoring rule but the Kaplan Meier estimator is constrained to 0 at end of follow-up.
+- NEW FEATURE: model.tte now accepts models without the treatment variable as covariate.
+- fix bug when using paired GPC with multiple endpoints.
+- BREAK: when providing a survival model with argument model.tte,
+  uncertainty about the estimated survival will be considered when the
+  dataset used to fit the model is the same as the dataset provided to BuyseTest.
+
 * Version 3.0.6
 ** User visible changes
 - fix bug in user interface with method.inference = "varExact permutation".

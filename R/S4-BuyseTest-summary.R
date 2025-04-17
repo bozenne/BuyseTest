@@ -362,22 +362,26 @@ setMethod(f = "summary",
                   if(method.inference != "none"){
                       cat(" - confidence level: ",1-alpha," \n", sep = "")
 
-                  if(attr(method.inference,"permutation")){
-                      txt.method <- "permutation test"
-                  }else if(attr(method.inference,"bootstrap")){
-                      txt.method <- "bootstrap resampling"
-                  }else if(attr(method.inference,"ustatistic")){
-                      test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
-                      txt.method <- paste0("H-projection of order ",attr(method.inference,"hprojection"))
-                      if(transform != "id"){
-                          txt.method <- paste0(txt.method," after ",transform," transformation \n")
-                      }else{
-                          txt.method <- paste0(txt.method," \n")
+                      if(attr(method.inference,"permutation")){
+                          txt.method <- "permutation test"
+                      }else if(attr(method.inference,"bootstrap")){
+                          txt.method <- "bootstrap resampling"
+                      }else if(attr(method.inference,"ustatistic")){
+                          test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
+                          if(attr(object@scoring.rule,"test.paired")){
+                              txt.method <- paste0("variability of the estimate across strata")
+                          }else{
+                              txt.method <- paste0("H-projection of order ",attr(method.inference,"hprojection"))
+                          }
+                          if(transform != "id"){
+                              txt.method <- paste0(txt.method," after ",transform," transformation \n")
+                          }else{
+                              txt.method <- paste0(txt.method," \n")
+                          }
+                          if(test.model.tte && (scoring.rule == "Peron" || object@correction.uninf > 0)){
+                              txt.method <- paste0(txt.method,"                     (ignoring the uncertainty of the nuisance parameters)")
+                          }
                       }
-                      if(test.model.tte && (scoring.rule == "Peron" || object@correction.uninf > 0)){
-                          txt.method <- paste0(txt.method,"                     (ignoring the uncertainty of the nuisance parameters)")
-                      }
-                  }
 
                   if(attr(method.inference,"permutation") || attr(method.inference,"bootstrap") ){
                       
@@ -431,6 +435,9 @@ setMethod(f = "summary",
                                              "Gehan" = "deterministic score or uninformative",
                                              "Peron" = paste0("probabilistic score based on the ",txt.Peron," curves")
                                              )
+                  if(attr(scoring.rule,"efron")){
+                      txt.scoring.rule <- paste0(txt.scoring.rule, "\n \t\t     (set to 0 beyond available follow-up)")
+                  }
                   cat(" - censored pairs  : ",txt.scoring.rule,"\n", sep = "")
               }
               if(hierarchical && n.endpoint>1 && any(object@count.neutral>0)){

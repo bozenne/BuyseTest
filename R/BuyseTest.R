@@ -12,7 +12,7 @@
 #' See Details, section "Specification of the GPC model".
 #' @param data [data.frame] dataset.
 #' @param scoring.rule [character] method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
-#' Can be \code{"Gehan"} or \code{"Peron"}.
+#' Can be \code{"Gehan"}, \code{"Peron"}, or \code{"Efron"}.
 #' See Details, section "Handling missing values".
 #' @param pool.strata [character] weights used to combine estimates across strata. Can be
 #' \code{"Buyse"} to weight proportionally to the number of pairs in the strata,
@@ -70,7 +70,7 @@
 #' a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 #' a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
 #' or a time to event outcome  (\code{"t"}, \code{"tte"}, \code{"time"}, or \code{"timetoevent"})
-#'   \item \code{censoring}: [character vector] is the endpoint subject to right or left censoring (\code{"left"} or \code{"right"}). The default is right-censoring.
+#'   \item \code{censoring}: [character vector] is the endpoint subject to right or left censoring (\code{"left"} or \code{"right"}). The default is right-censoring and left-censoring is only implemented with the Gehan's scoring rule.
 #'   \item \code{restriction}: [numeric vector] value above which any difference is classified as neutral.
 #'   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 #' }
@@ -87,22 +87,23 @@
 #' }
 #' With complete data, pairs can be decidely classified as favorable/unfavorable/neutral.
 #' In presence of missing values, the GPC procedure uses the scoring rule (argument \code{scoring.rule}) and the correction for uninformative pairs (argument \code{correction.uninf}) to classify the pairs.
-#' The classification may not be 0,1, e.g. the probability that the pair is favorable/unfavorable/neutral with the Peron's scoring rule.
+#' The classification may not be 0,1, e.g. the probability that the pair is favorable/unfavorable/neutral with the Peron's/Efron's scoring rule.
 #' To export the classification of each pair set the argument \code{keep.pairScore} to \code{TRUE} and call the function \code{getPairScore} on the result of the \code{BuyseTest} function. \cr \cr \cr
 #' 
 #' 
-#' \bold{Handling missing values}
+#' \bold{Handling missing values}: the recommended default approach is to use the Peron's scoring rule with a restriction time if a non-neglectable part of the survival is unknown and otherwise analyse uniformative pairs using the following endpoint(s) if any. 
 #' \itemize{
-#'   \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints using information from the survival curves.
-#' The Gehan's scoring rule (argument \code{scoring.rule="Gehan"}) only scores pairs that can be decidedly classified as favorable, unfavorable, or neutral
-#' while the "Peron"'s scoring rule (argument \code{scoring.rule="Peron"}) uses the empirical survival curves of each group to also score the pairs that cannot be decidedly classified.
-#' The Peron's scoring rule is the recommanded scoring rule but only handles right-censoring. 
-#'   \item \code{correction.uninf}: indicates how to handle missing values that could not be classified by the scoring rule.  \describe{
+#'   \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints using information from the survival curves. \describe{
+#'    \item{\code{scoring.rule="Gehan"}}{When no observations is censored or only the pair with the largest timepoint is censored, the pair is decidedly classified as favorable, unfavorable, or neutral. Otherwise pairs are classified as uninformative.}
+#'    \item{\code{scoring.rule="Peron"}}{Score pairs involving censored observations using the (group-specific) survival curves. It may still lead to uninformative pairs when the survival curve is only partially known.}
+#'    \item{\code{scoring.rule="Efron"}}{Same as the Peron's scoring rule except that the survival curve is extrapolated to 0 when its tail is unknown. Only relevant when using a (stratified) Kaplan-Meier estimator and no competing risks.}
+#' }
+#' 
+#'   \item \code{correction.uninf}: indicates how to handle pairs that were classified as uninformative by the scoring rule.  \describe{
 #'    \item{\code{correction.uninf=0}}{ treat them as uninformative: this is an equivalent to complete case analysis when \code{neutral.as.uninf=FALSE}, while when \code{neutral.as.uninf=TRUE}, uninformative pairs are treated as neutral, i.e., analyzed at the following endpoint (if any). This approach will (generally) lead to biased estimates for the proportion of favorable, unfavorable, or neutral pairs.}
 #'    \item{\code{correction.uninf=1}}{ imputes to the uninformative pairs the average score of the informative pairs, i.e. assumes that uninformative pairs would on average behave like informative pairs. This is therefore the recommanded approach when this assumption is resonnable, typically when the the tail of the survival function estimated by the Kaplan–Meier method is close to 0.}
-#'    \item{\code{correction.uninf=2}}{ uses inverse probability of censoring weights (IPCW), i.e. up-weight informative pairs to represent uninformative pairs. It also assumes that uninformative pairs would on average behave like informative pairs and is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.}
+#'    \item{\code{correction.uninf=2}}{ up-weight informative pairs to represent uninformative pairs. It also assumes that uninformative pairs would on average behave like informative pairs and is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.}
 #' }
-#' Note that both corrections will convert the whole proportion of uninformative pairs of a given endpoint into favorable, unfavorable, or neutral pairs. See Peron et al (2021) for further details and recommandations \cr \cr
 #' }
 #' 
 #'
@@ -158,11 +159,11 @@
 #' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
 #' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
 #' On the stratified win ratio: G. Dong et al. (2018). \bold{The stratified win ratio}. \emph{Journal of biopharmaceutical statistics}. 28(4):778-796 \cr
-#' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An exten sion of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
+#' On the Peron's scoring rule: J. Peron, M. Buyse, B. Ozenne, L. Roche and P. Roy (2018). \bold{An extension of generalized pairwise comparisons for prioritized outcomes in the presence of censoring}. \emph{Statistical Methods in Medical Research} 27: 1230-1239. \cr
 #' On the Gehan's scoring rule: Gehan EA (1965). \bold{A generalized two-sample Wilcoxon test for doubly censored data}. \emph{Biometrika}  52(3):650-653 \cr
 #' On inference in GPC using the U-statistic theory: Ozenne B, Budtz-Jorgensen E, Peron J (2021). \bold{The asymptotic distribution of the Net Benefit estimator in presence of right-censoring}. \emph{Statistical Methods in Medical Research} 2021 doi:10.1177/09622802211037067 \cr
-#' On how to handle right-censoring: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. 
 #' On how using a restriction time: Piffoux M, Ozenne B, De Backer M, Buyse M, Chiem JC, Péron J (2024). \bold{Restricted Net Treatment Benefit in oncology}. \emph{Journal of Clinical Epidemiology}. Jun;170:111340. \cr
+#' On the argument \code{correction.uninf}: J. Peron, M. Idlhaj, D. Maucort-Boulch, et al. (2021) \bold{Correcting the bias of the net benefit estimator due to right-censored observations}. \emph{Biometrical Journal} 63: 893–906. \cr
 #' On closed-form formula for permutation variance:  W.N. Anderson and J. Verbeeck (2023). \bold{Exact Permutation and Bootstrap Distribution of Generalized Pairwise Comparisons Statistics}. \emph{Mathematics} , 11, 1502. doi:10.3390/math11061502.
 #'
 #' @seealso 
@@ -294,7 +295,6 @@ BuyseTest <- function(formula,
                       strata = NULL){
 
     mycall <- match.call()
-    name.call <- names(mycall)
     option <- BuyseTest.options()
 
     ## ** compatibility with previous version
@@ -319,7 +319,7 @@ BuyseTest <- function(formula,
                               model.tte = model.tte,
                               n.resampling = n.resampling,
                               strata.resampling = strata.resampling,
-                              name.call = name.call,
+                              call = mycall,
                               neutral.as.uninf = neutral.as.uninf,
                               add.halfNeutral = add.halfNeutral,
                               operator = operator,
@@ -345,7 +345,7 @@ BuyseTest <- function(formula,
     out.name <- c("data","M.endpoint","M.status",
                   "index.C","index.T","weightObs","index.strata",
                   "level.treatment","level.strata", "pool.strata", "method.score", "paired",
-                  "n.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
+                  "grid.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                   "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
 
     outArgs[out.name] <- initializeData(data = outArgs$data,
@@ -418,7 +418,7 @@ BuyseTest <- function(formula,
 
     ## check number of pairs
     if(option$check){
-        vec.nPair <- (outPoint$count_favorable + outPoint$count_unfavorable + outPoint$count_neutral + outPoint$count_uninf )[,1]
+        vec.nPair <- (outPoint$count_favorable + outPoint$count_unfavorable + outPoint$count_neutral + outPoint$count_uninf)[,1]
         if(any(abs(outPoint$n_pairs - vec.nPair) > 0.01)){
             warning("Incorrect estimation of the number of pairs \n",
                     "Something probably went wrong - contact the package maintainer\n")
@@ -431,8 +431,8 @@ BuyseTest <- function(formula,
         ## needed for inference with bebu
         outPoint$tableScore <- pairScore2dt(outPoint$tableScore,
                                             level.treatment = outArgs$level.treatment,
-                                            level.strata = outArgs$level.strata,
-                                            n.strata = outArgs$n.strata,
+                                            level.strata = rownames(outArgs$grid.strata),
+                                            n.strata = NROW(outArgs$grid.strata),
                                             endpoint = outArgs$endpoint,
                                             threshold = outArgs$threshold,
                                             restriction = outArgs$restriction)
@@ -459,7 +459,7 @@ BuyseTest <- function(formula,
                                                  n.C = length(envirBT$outArgs$index.C),
                                                  n.T = length(envirBT$outArgs$index.T),
                                                  level.strata = outArgs$level.strata,
-                                                 n.strata = outArgs$n.strata,
+                                                 n.strata = NROW(outArgs$grid.strata),
                                                  endpoint = outArgs$endpoint)
 
         outPoint$covariance <- outCovariance$Sigma
@@ -504,7 +504,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","paired")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling","paired")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -535,6 +535,7 @@ BuyseTest <- function(formula,
     if(envir$outArgs$scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$skeletonPeron
     }else{ ## Peron
+
         outSurv <- calcPeron(data = outSample$data,
                              model.tte = envir$outArgs$model.tte,                             
                              method.score = envir$outArgs$method.score,
@@ -552,14 +553,15 @@ BuyseTest <- function(formula,
                              threshold = envir$outArgs$threshold,
                              restriction = envir$outArgs$restriction,
                              level.strata = envir$outArgs$level.strata,
-                             n.strata = envir$outArgs$n.strata,
+                             grid.strata = envir$outArgs$grid.strata,
                              strata = envir$outArgs$strata,
                              precompute = envir$outArgs$precompute,
                              iidNuisance = envir$outArgs$iidNuisance * iid,
                              out = envir$outArgs$skeletonPeron,
                              fitter = envir$outArgs$fitter.model.tte,
+                             efron = envir$outArgs$scoring.rule==2,
                              args = envir$outArgs$args.model.tte)
-        
+
         index.test <- which(envir$outArgs$method.score == "SurvPeron")
         if(!grepl("permutation|bootstrap",method.inference) && envir$outArgs$correction.uninf>0 && length(index.test)>0 && all(is.na(envir$outArgs$restriction))){
             maxLastSurv <- setNames(sapply(outSurv$lastSurv[index.test],max),envir$outArgs$endpoint[index.test])[!duplicated(envir$outArgs$endpoint[index.test])]
@@ -614,7 +616,7 @@ BuyseTest <- function(formula,
                                  op = envir$outArgs$operator,
                                  D = envir$outArgs$D,
                                  D_UTTE = envir$outArgs$D.UTTE,
-                                 n_strata = envir$outArgs$n.strata,
+                                 grid_strata = envir$outArgs$grid.strata,
                                  nUTTE_analyzedPeron_M1 = envir$outArgs$nUTTE.analyzedPeron_M1,
                                  index_endpoint = envir$outArgs$index.endpoint,
                                  index_status = envir$outArgs$index.status,
@@ -652,7 +654,8 @@ BuyseTest <- function(formula,
         ## index <- 5
         ## resBT$Delta[,index]
         ## sum(resBT$delta[,,index][,1] * resBT$weightStrata)
-        return(list(delta = resBT$delta,
+        return(list(n = rbind(T = lengths(outSample$ls.indexT), C = lengths(outSample$ls.indexC)),
+                    delta = resBT$delta,
                     Delta = resBT$Delta,
                     weightStrata = resBT$weightStrata,
                     covariance = resBT$covariance))
@@ -663,12 +666,13 @@ BuyseTest <- function(formula,
 calcSample <- function(envir, method.inference){
 
     ## ** initialization
+    nlevel.strata <- length(envir$outArgs$level.strata)
     out <- list(## rows in M.endpoint/M.status corresponding to observations from the control/treatment group (not unique when boostraping)
-        ls.indexC = vector(mode = "list", length = envir$outArgs$n.strata), 
-        ls.indexT = vector(mode = "list", length = envir$outArgs$n.strata),
+        ls.indexC = vector(mode = "list", length = nlevel.strata), 
+        ls.indexT = vector(mode = "list", length = nlevel.strata),
         ## identifier for each observation from the control/treatment group (unique even when boostrap)
-        ls.posC = vector(mode = "list", length = envir$outArgs$n.strata),
-        ls.posT = vector(mode = "list", length = envir$outArgs$n.strata),
+        ls.posC = vector(mode = "list", length = nlevel.strata),
+        ls.posT = vector(mode = "list", length = nlevel.strata),
         ## dataset
         data = data.table::data.table()
     )
@@ -676,11 +680,11 @@ calcSample <- function(envir, method.inference){
     if(method.inference %in% c("none","u statistic")){
 
         ## ** no resampling
-        if(envir$outArgs$n.strata==1){        
+        if(nlevel.strata==1){        
             out$ls.indexC[[1]] <- envir$outArgs$index.C - 1
             out$ls.indexT[[1]] <- envir$outArgs$index.T - 1
         }else{        
-            for(iStrata in 1:envir$outArgs$n.strata){ ## iStrata <- 1  
+            for(iStrata in 1:nlevel.strata){ ## iStrata <- 1  
                 out$ls.indexC[[iStrata]] <- intersect(envir$outArgs$index.C, envir$outArgs$index.strata[[iStrata]]) - 1
                 out$ls.indexT[[iStrata]] <- intersect(envir$outArgs$index.T, envir$outArgs$index.strata[[iStrata]]) - 1
             }
@@ -706,7 +710,7 @@ calcSample <- function(envir, method.inference){
         ## ** reconstruct groups
         ## index: index of the new observations in the old dataset by treatment group
         ## pos: unique identifier for each observation
-        if(envir$outArgs$n.strata==1){ ## no strata
+        if(nlevel.strata==1){ ## no strata
             
             if(grepl("permutation",method.inference)){
                 out$ls.indexC[[1]] <- which(index.resampling %in% envir$outArgs$index.C) - 1
@@ -731,7 +735,7 @@ calcSample <- function(envir, method.inference){
                 index.T <- which(index.resampling %in% envir$outArgs$index.T)
             }
             
-            for(iStrata in 1:envir$outArgs$n.strata){ ## iStrata <- 1  
+            for(iStrata in 1:nlevel.strata){ ## iStrata <- 1  
                 ## index of the new observations in the old dataset by treatment group
                 if(grepl("permutation",method.inference)){
                     out$ls.indexC[[iStrata]] <- intersect(index.C, envir$outArgs$index.strata[[iStrata]]) - 1

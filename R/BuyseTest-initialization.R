@@ -44,7 +44,7 @@ initializeArgs <- function(status,
                            model.tte,
                            n.resampling = NULL,
                            strata.resampling = NULL,
-                           name.call,
+                           call,
                            neutral.as.uninf = NULL,
                            add.halfNeutral = NULL,
                            operator = NULL,
@@ -60,6 +60,8 @@ initializeArgs <- function(status,
                            weightEndpoint = NULL,
                            weightObs = NULL,
                            envir){
+
+    name.call <- names(call)
 
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
@@ -77,7 +79,7 @@ initializeArgs <- function(status,
     engine <- option$engine
     alternative <- option$alternative
     precompute <- option$precompute
-    
+        
     ## ** convert formula into separate arguments
     if(!missing(formula)){
         ## the missing is for BuysePower where the arguments are not necessarily specified
@@ -210,6 +212,7 @@ initializeArgs <- function(status,
         scoring.rule <- switch(tolower(scoring.rule),
                                "gehan" = 0,
                                "peron" = 1,
+                               "efron" = 2,
                                NA
                                )
     }
@@ -231,40 +234,53 @@ initializeArgs <- function(status,
                               "buyse" = 0,
                               "cmh" = 1,
                               "equal" = 2,
-                              "var-favorable" = 3.1,
-                              "var-unfavorable" = 3.2,
-                              "var-netbenefit" = 3.3,
-                              "var-winratio" = 3.4,
+                              "standardisation" = 3,
+                              "standardization" = 3,
+                              "var-favorable" = 4.1,
+                              "var-unfavorable" = 4.2,
+                              "var-netbenefit" = 4.3,
+                              "var-winratio" = 4.4,
                               NA
                               )
-        attr(pool.strata,"type") <- option$pool.strata   
+        if(tolower(option$pool.strata)=="standardisation"){
+            attr(pool.strata,"type") <- "standardization"
+        }else{
+            attr(pool.strata,"type") <- tolower(option$pool.strata)
+        }
         attr(pool.strata,"original") <- NA   
         
     }else if(is.character(pool.strata)){
         pool.strata_save <- tolower(pool.strata)
         pool.strata <- switch(pool.strata_save,
-                               "buyse" = 0,
-                               "cmh" = 1,
-                               "equal" = 2,
-                               "var-favorable" = 3.1,
-                               "var-unfavorable" = 3.2,
-                               "var-netbenefit" = 3.3,
-                               "var-winratio" = 3.4,
-                               NA
+                              "buyse" = 0,
+                              "cmh" = 1,
+                              "equal" = 2,
+                              "standardisation" = 3,
+                              "standardization" = 3,
+                              "var-favorable" = 4.1,
+                              "var-unfavorable" = 4.2,
+                              "var-netbenefit" = 4.3,
+                              "var-winratio" = 4.4,
+                              NA
                               )
-        attr(pool.strata,"type") <- pool.strata_save
+        if(!is.na(pool.strata_save) && pool.strata_save=="standardisation"){
+            attr(pool.strata,"type") <- "standardization"
+        }else{
+            attr(pool.strata,"type") <- pool.strata_save
+        }
         attr(pool.strata,"original") <- pool.strata_save
     }else if(is.numeric(pool.strata)){
         pool.strata_save <- switch(as.character(pool.strata),
-                               "0" = "buyse",
-                               "1" = "cmh",
-                               "2" = "equal",
-                               "3.1" = "var-favorable",
-                               "3.2" = "var-unfavorable",
-                               "3.3" = "var-netbenefit",
-                               "3.4" = "var-winratio",
-                               NA
-                              )
+                                   "0" = "buyse",
+                                   "1" = "cmh",
+                                   "2" = "equal",
+                                   "3" = "standardization",
+                                   "4.1" = "var-favorable",
+                                   "4.2" = "var-unfavorable",
+                                   "4.3" = "var-netbenefit",
+                                   "4.4" = "var-winratio",
+                                   NA
+                                   )
         attr(pool.strata,"type") <- pool.strata_save
         attr(pool.strata,"original") <- pool.strata_save
     }else{
@@ -306,13 +322,18 @@ initializeArgs <- function(status,
     }
     
     ## ** model.tte
-    if(identical(scoring.rule,1)){
-        if((!is.null(model.tte)) && (length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
-            attr.save <- attr(model.tte,"iidNuisance")
+    if(scoring.rule>0){
+        if((!is.null(model.tte))){
+            if((length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
+                attr.save <- attr(model.tte,"iidNuisance")
             
-            model.tte <- list(model.tte)
-            names(model.tte) <- unique(endpoint.TTE)
-            attr(model.tte,"iidNuisance") <- attr.save
+                model.tte <- list(model.tte)
+                names(model.tte) <- unique(endpoint.TTE)
+                attr(model.tte,"iidNuisance") <- attr.save
+            }
+            attr(data,"model.tte_regressor") <- unique(unlist(lapply(model.tte, function(iM){
+                all.vars(stats::delete.response(terms(formula(iM))))
+            })))
         }
     }else{
         model.tte <- NULL
@@ -330,7 +351,22 @@ initializeArgs <- function(status,
     }else{
         attr(method.inference,"hprojection") <- NA
     }
-    iidNuisance <- iid && identical(scoring.rule,1) && (is.null(model.tte) || identical(attr(model.tte,"iidNuisance"),TRUE))
+    if(iid && scoring.rule>0){ ## Peron/Efron scoring rule
+        if(is.null(model.tte)){
+            iidNuisance <- TRUE
+        }else if(!is.null(attr(model.tte,"iidNuisance"))){
+            iidNuisance <- attr(model.tte,"iidNuisance")
+        }else if(all(deparse(expr = call$data) == sapply(model.tte, function(iModel){deparse(expr=iModel$call$data)}))){
+            iidNuisance <- TRUE
+        }else{
+            iidNuisance <- FALSE
+            message("Uncertainty related to the estimation of the survival probabilities is ignored. \n",
+                    "Consider adding an attribute \"iidNuisance\" to the argument \'model.tte\' taking value TRUE to change this default behavior. \n")
+        }
+    }else{
+        iidNuisance <- FALSE
+    }
+    
 
     ## ** cpu
     if (cpus == "all") { 
@@ -441,8 +477,18 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         level.strata <- 1
     }
 
-    n.strata <- length(level.strata)
-   
+    nlevel.strata <- length(level.strata)
+    if(pool.strata==3){
+        grid.strata <- as.matrix(expand.grid(0:(nlevel.strata-1), 0:(nlevel.strata-1)))
+        rownames(grid.strata) <- ifelse(level.strata[grid.strata[,1]+1]==level.strata[grid.strata[,2]+1],
+                                        level.strata[grid.strata[,1]+1],
+                                        paste(level.strata[grid.strata[,1]+1],level.strata[grid.strata[,2]+1],sep="."))
+    }else{
+        grid.strata <- cbind(0:(nlevel.strata-1), 0:(nlevel.strata-1))
+        rownames(grid.strata) <- level.strata
+    }
+    n.strata <- NROW(grid.strata)
+    
     ## ** convert treatment to binary indicator
     level.treatment <- levels(as.factor(data[[treatment]]))
     trt2bin <- stats::setNames(0:1,level.treatment)
@@ -498,7 +544,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 return(switch(censoring[iE],
                               "left" = "TTEgehan2",
                               "right" = "TTEgehan"))
-            }else if(scoring.rule == 1){
+            }else if(scoring.rule>0){
                 return(switch(as.character(test.CR[iE]),
                               "FALSE" = "SurvPeron",
                               "TRUE" = "CRPeron"))
@@ -510,7 +556,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     paired <- all(n.obsStrata==2)
     
     ## ** previously analyzed distinct TTE endpoints
-    if((scoring.rule==1) && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
+    if(scoring.rule>0 && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
         ## number of distinct, previously analyzed, TTE endpoints
         nUTTE.analyzedPeron_M1 <- sapply(1:D, function(iE){
             if(iE>1){
@@ -577,8 +623,9 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
 
     ## ** export
-    keep.cols <- union(c(treatment, "..strata.."),
-                       na.omit(attr(method.inference,"resampling-strata")))
+    keep.cols <- union(union(c(treatment, strata, "..strata.."),
+                             na.omit(attr(method.inference,"resampling-strata"))),
+                       attr(data,"model.tte_regressor")) ## add regressor from survival models in case they do not match GPC strata variable (user-specific survival)
 
     return(list(data = data[,.SD,.SDcols = keep.cols],
                 M.endpoint = as.matrix(data[, .SD, .SDcols = Uendpoint]),
@@ -588,9 +635,9 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 weightObs = weightObs,
                 index.strata = tapply(data[["..rowIndex.."]], data[["..strata.."]], list),
                 level.treatment = level.treatment,
-                level.strata = level.strata, pool.strata = pool.strata,
+                level.strata = level.strata, pool.strata = pool.strata, ## distinct strata levels (e.g. M, F)
                 method.score = method.score, paired = paired,
-                n.strata = n.strata,
+                grid.strata = grid.strata, ## strata (e.g. M, F, M.F, F.M) - different from level.strata when using standardisation
                 n.obs = n.obs,
                 n.obsStrata = n.obsStrata,
                 n.obsStrataResampling = n.obsStrataResampling,

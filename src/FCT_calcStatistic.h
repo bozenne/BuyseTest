@@ -16,7 +16,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
 		   arma::mat& Mvar, std::vector< int > returnIID,
 		   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT, const arma::vec& weightObs,
-                   const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
+                   const unsigned int& D, const int& n_strata, arma::mat grid_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
 		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore, bool paired);
 
@@ -27,17 +27,41 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 		   arma::mat& iidNuisance_favorable, arma::mat& iidNuisance_unfavorable, arma::mat& iidNuisance_neutral,
 		   arma::mat& Mvar, std::vector< int > returnIID,
 		   const std::vector< arma::uvec >& posC, const std::vector< arma::uvec >& posT, const arma::vec& weightObs,
-                   const unsigned int& D, const int& n_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
+                   const unsigned int& D, const int& n_strata, arma::mat grid_strata, const arma::vec& n_pairs, const arma::vec& n_control, const arma::vec& n_treatment,
 		   const arma::vec& weightEndpoint, double pool, arma::vec& weightPool,
 		   bool addHalfNeutral, int hprojection, const std::vector< arma::mat >& lsScore, bool keepScore, bool paired){
 
   // ** Total number of pairs and patients in each arm
   double ntot_pair = 0;
+  int iter_strataC;
+  int iter_strataT;
   for(int iter_strata = 0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
     ntot_pair += n_pairs[iter_strata];
   }
 
-  // ** Proportion of favorable/unfavorable/neutral/uniformative pairs within each strata and priority 
+  int ntot_control=0,ntot_treatment=0;
+  arma::vec n_control2 = n_control;
+  arma::vec n_treatment2 = n_treatment;
+  arma::vec nObs_strata(grid_strata.max()+1); // number of observations per strata
+  if(pool == 3){ // standardization
+    for(int iter_strata = 0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
+      if(grid_strata(iter_strata,0)==grid_strata(iter_strata,1)){
+	n_treatment2(iter_strata) = 1;
+	n_control2(iter_strata)	= 1;
+	ntot_control += n_control[iter_strata];
+	ntot_treatment += n_treatment[iter_strata];
+	nObs_strata[grid_strata(iter_strata,0)] = n_control[iter_strata]+n_treatment[iter_strata];
+      }else{
+	n_treatment2(iter_strata) = 0;
+	n_control2(iter_strata)	= 0;
+      }
+    }
+    // sample size in defaul strata (Male-Male, Female-Female) and 1 in additional strata (Female-Male, Male-Female)
+    n_treatment2 = n_treatment2*(ntot_treatment-1) + 1;
+    n_control2 = n_control2*(ntot_control-1) + 1;
+  }
+  
+  // ** proportion of favorable/unfavorable/neutral/uniformative pairs within each strata and priority 
   delta.slice(0) = Mcount_favorable;
   delta.slice(0).each_col() /= n_pairs;
 
@@ -62,46 +86,62 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   arma::mat iidTotal_unfavorable;
   arma::mat iidTotal_neutral;
 
-  if(returnIID[0]>0 || pool>=3){
+  if(returnIID[0]>0 || pool>=4){
 
-    // *** compute expectation (E[s^{\gamma}_{l,j}|x_l]) from sum 
+    // *** scale to move from a sum to an expectation (E[s^{\gamma}_{l,j}|x_l])
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
-      iidAverage_favorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
-      iidAverage_favorable.rows(posT[iter_strata]) /= n_control[iter_strata];
-      iidAverage_unfavorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
-      iidAverage_unfavorable.rows(posT[iter_strata]) /= n_control[iter_strata];
-      iidAverage_neutral.rows(posC[iter_strata]) /= n_treatment[iter_strata];
-      iidAverage_neutral.rows(posT[iter_strata]) /= n_control[iter_strata];
-    }
+      iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+      iter_strataT = grid_strata(iter_strata,1); // 
 
+      iidAverage_favorable.rows(posC[iter_strataC]) /= n_treatment2[iter_strata];
+      iidAverage_favorable.rows(posT[iter_strataT]) /= n_control2[iter_strata];
+      iidAverage_unfavorable.rows(posC[iter_strataC]) /= n_treatment2[iter_strata];
+      iidAverage_unfavorable.rows(posT[iter_strataT]) /= n_control2[iter_strata];
+      iidAverage_neutral.rows(posC[iter_strataC]) /= n_treatment2[iter_strata];
+      iidAverage_neutral.rows(posT[iter_strataT]) /= n_control2[iter_strata];
+    }
+    
     // *** center to obtain (endpoint specific) first order projection (h_1^{\gamma}(l) = E[s^{\gamma}_{l,j}|x_l]-U^{\gamma})
     arma::uvec ivecD(1);
     
-    for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
       for(unsigned int iter_d=0 ; iter_d < D ; iter_d ++){
 	ivecD[0] = iter_d;
-	
-	iidAverage_favorable(posC[iter_strata],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];
-	iidAverage_favorable(posT[iter_strata],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];
+
+	  for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
+	    if(pool==3){
+	      weightPool[iter_strata] = nObs_strata(grid_strata(iter_strata,0))*nObs_strata(grid_strata(iter_strata,1))/pow(ntot_control+ntot_treatment,2);
+	      iidAverage_favorable.col(iter_d) -= weightPool[iter_strata]*delta.slice(0)(iter_strata,iter_d);
+	      iidAverage_unfavorable.col(iter_d) -= weightPool[iter_strata]*delta.slice(1)(iter_strata,iter_d);
+	      iidAverage_neutral.col(iter_d) -= weightPool[iter_strata]*delta.slice(2)(iter_strata,iter_d);
+	    }else{
+	      iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+	      iter_strataT = grid_strata(iter_strata,1); //
+
+	      iidAverage_favorable(posC[iter_strataC],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_favorable(posT[iter_strataT],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];
       
-	iidAverage_unfavorable(posC[iter_strata],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
-	iidAverage_unfavorable(posT[iter_strata],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_unfavorable(posC[iter_strataC],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_unfavorable(posT[iter_strataT],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
 
-	iidAverage_neutral(posC[iter_strata],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
-	iidAverage_neutral(posT[iter_strata],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_neutral(posC[iter_strataC],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_neutral(posT[iter_strataT],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
+	  }
+	}
       }
-    }
-
+  
     // *** rescale such that the sum of squares of the projection equals the variance, i.e. obtain h_1^{\gamma}(l)/m
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
-      iidAverage_favorable.rows(posC[iter_strata]) /= n_control[iter_strata];
-      iidAverage_favorable.rows(posT[iter_strata]) /= n_treatment[iter_strata];
+      iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+      iter_strataT = grid_strata(iter_strata,1); // 
 
-      iidAverage_unfavorable.rows(posC[iter_strata]) /= n_control[iter_strata];
-      iidAverage_unfavorable.rows(posT[iter_strata]) /= n_treatment[iter_strata];
+      iidAverage_favorable.rows(posC[iter_strataC]) /= n_control2[iter_strata];
+      iidAverage_favorable.rows(posT[iter_strataT]) /= n_treatment2[iter_strata];
 
-      iidAverage_neutral.rows(posC[iter_strata]) /= n_control[iter_strata];
-      iidAverage_neutral.rows(posT[iter_strata]) /= n_treatment[iter_strata];
+      iidAverage_unfavorable.rows(posC[iter_strataC]) /= n_control2[iter_strata];
+      iidAverage_unfavorable.rows(posT[iter_strataT]) /= n_treatment2[iter_strata];
+
+      iidAverage_neutral.rows(posC[iter_strataC]) /= n_control2[iter_strata];
+      iidAverage_neutral.rows(posT[iter_strataT]) /= n_treatment2[iter_strata];
     }
      
     // *** add the two source of uncertainty into a single iid
@@ -116,7 +156,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     }
 
     // *** weight endpoints and cumulate them to obtain (cumulative) first order projection
-    // logically should be in the next subection (Global) but is put here because used for the point estimate with pooling = 2.1-2.4
+    // logically should be in the next subection (Global) but is put here because used for the point estimate with pooling = 4.1-4.4
     iidTotal_favorable.each_row() %= rowweightEndpoint;
     iidTotal_favorable = arma::cumsum(iidTotal_favorable,1);
 
@@ -139,20 +179,27 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     weightPool = n_pairs/(n_control+n_treatment);
   }else if(pool==2){ // equal
     weightPool.fill(1.0);
-  }else if(pool >= 3){ // precision
+  }else if(pool==3 && returnIID[0]==0){ // standardization
+    for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
+      weightPool[iter_strata] = nObs_strata(grid_strata(iter_strata,0))*nObs_strata(grid_strata(iter_strata,1));
+    }
+  }else if(pool >= 4){ // precision
     arma::vec iIID;
     arma::uvec iPos;
     arma::uvec iUvec = {D-1};
     double iDeltaFA, iDeltaUF;
     for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
-      iPos = arma::join_cols(posC[iter_strata], posT[iter_strata]);
-      if(pool==3.1){
+      iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+      iter_strataT = grid_strata(iter_strata,1); // 
+
+      iPos = arma::join_cols(posC[iter_strataC], posT[iter_strataT]);
+      if(pool==4.1){
 	iIID = iidTotal_favorable(iPos,iUvec);
-      }else if(pool==3.2){
+      }else if(pool==4.2){
 	iIID = iidTotal_unfavorable(iPos,iUvec);
-      }else if(pool==3.3){
+      }else if(pool==4.3){
 	iIID = iidTotal_favorable(iPos,iUvec) - iidTotal_unfavorable(iPos,iUvec);
-      }else if(pool==3.4){
+      }else if(pool==4.4){
 	iDeltaFA = sum(delta.slice(0).row(iter_strata) % rowweightEndpoint);
 	iDeltaUF = sum(delta.slice(1).row(iter_strata) % rowweightEndpoint);
 	if(addHalfNeutral){  // only add neutral relative to the latest endpoint for each priority
@@ -184,7 +231,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   if(addHalfNeutral){  // only add neutral relative to the latest endpoint for each priority
     delta.slice(0) += 0.5*delta.slice(2);
     delta.slice(1) += 0.5*delta.slice(2);
-    if(returnIID[0]>0 || pool>=3){
+    if(returnIID[0]>0 || pool>=4){
       iidAverage_favorable += 0.5*iidAverage_neutral;
       iidAverage_unfavorable += 0.5*iidAverage_neutral;
     }
@@ -211,7 +258,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 
   // win ratio equals number of favorable pairs divided by the number of favorable plus unfavorable pairs
   delta.slice(5) = delta.slice(0) / delta.slice(1);
-  if(pool==3.4){
+  if(pool==4.4){
     arma::mat winRatioStrata = cumdelta_favorable/cumdelta_unfavorable;
     Delta.col(5) = arma::trans(arma::sum(winRatioStrata.each_col() % weightPool,0));
   }else{
@@ -221,19 +268,20 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   // ** Variance and iid estimation
   if(returnIID[0] > 0){
 
+    if(pool!=3){
     // *** rescale to account for the pooling across strata i.e. T = \sum_s n_pair(s) T(s) / n_tot
-    if(n_strata>1){
       for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
+	iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+	iter_strataT = grid_strata(iter_strata,1); // 
 
-	iidTotal_favorable.rows(posC[iter_strata]) *= weightPool[iter_strata];
-	iidTotal_favorable.rows(posT[iter_strata]) *= weightPool[iter_strata];
+	iidTotal_favorable.rows(posC[iter_strataC]) *= weightPool[iter_strata];
+	iidTotal_favorable.rows(posT[iter_strataT]) *= weightPool[iter_strata];
 	
-	iidTotal_unfavorable.rows(posC[iter_strata]) *= weightPool[iter_strata];
-	iidTotal_unfavorable.rows(posT[iter_strata]) *= weightPool[iter_strata];
-	
+	iidTotal_unfavorable.rows(posC[iter_strataC]) *= weightPool[iter_strata];
+	  iidTotal_unfavorable.rows(posT[iter_strataT]) *= weightPool[iter_strata];
+	}
       }
-    }
-  
+    
     // *** first order variance 
     arma::mat iid2;
     iid2 = pow(iidTotal_favorable,2);
@@ -244,10 +292,13 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     Mvar.col(2) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
     
     if(paired){
-
-      Mvar.col(0) += arma::var(cumdelta_favorable, 0, 0)/n_strata;
-      Mvar.col(1) += arma::var(cumdelta_unfavorable, 0, 0)/n_strata;
-      Mvar.col(2) += arma::cov(cumdelta_favorable, cumdelta_unfavorable, 0)/n_strata;
+      // var(data, norm_type, dim): norm_type=0 divides by n-1 whereas norm_type=1 divides by n
+      //                            dim = 0 finds the statistic for each column whereas dim = 1 finds the statistic for each row
+      Mvar.col(0) += arma::var(cumdelta_favorable, 0, 0).t()/n_strata;
+      Mvar.col(1) += arma::var(cumdelta_unfavorable, 0, 0).t()/n_strata;
+      // cov(X, Y, norm_type):
+      arma::mat SigmaCov = arma::cov(cumdelta_favorable, cumdelta_unfavorable, 0);
+      Mvar.col(2) += SigmaCov.diag()/n_strata;
 
     }
 
@@ -258,15 +309,29 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 	// **** retrive h1
 	arma::mat h1_favorable; 
 	arma::mat h1_unfavorable;
+	double iter_weight;
 
 	h1_favorable = iidTotal_favorable;
 	h1_unfavorable = iidTotal_unfavorable;
-	for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
-	  h1_favorable.rows(posC[iter_strata]) *= (n_control[iter_strata]/weightPool[iter_strata]);
-	  h1_favorable.rows(posT[iter_strata]) *= (n_treatment[iter_strata]/weightPool[iter_strata]);
+	for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
 
-	  h1_unfavorable.rows(posC[iter_strata]) *= (n_control[iter_strata]/weightPool[iter_strata]);
-	  h1_unfavorable.rows(posT[iter_strata]) *= (n_treatment[iter_strata]/weightPool[iter_strata]);
+	  iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+	  iter_strataT = grid_strata(iter_strata,1); // 
+	  if(pool==3){ // standardization
+	      if(iter_strataC!=iter_strataT){
+		continue;
+	      }else{
+		iter_weight = 1;
+	      }
+	  }else{
+	    iter_weight = weightPool[iter_strata];
+	  }
+
+	  h1_favorable.rows(posC[iter_strataC]) *= (n_control2[iter_strata]/iter_weight);
+	  h1_favorable.rows(posT[iter_strataT]) *= (n_treatment2[iter_strata]/iter_weight);
+
+	  h1_unfavorable.rows(posC[iter_strataC]) *= (n_control2[iter_strata]/iter_weight);
+	  h1_unfavorable.rows(posT[iter_strataT]) *= (n_treatment2[iter_strata]/iter_weight);
 	}
 
 	// **** reconstruct individual score
@@ -291,25 +356,35 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 	pairScoreUF.each_row() %= rowweightEndpoint;
 	pairScoreF = arma::cumsum(pairScoreF,1);
 	pairScoreUF = arma::cumsum(pairScoreUF,1);
-	
+
 	// **** compute second order h-projection, its variance and covariance
 	// NOTE: when computing h we use iid = E[]-U so h2 = s - E[] - E[] + U = s - iid - iid - U
 	arma::rowvec H2_favorable, H2_unfavorable;
 	arma::mat H2_moments(5,D,arma::fill::zeros);
 	int iter_strata, iter_C, iter_T;
-	double iter_weight;
-
+	arma::rowvec strataDelta_favorable(D);
+	arma::rowvec strataDelta_unfavorable(D);
+	
 	// endpoint specific    
 	for(int iter_pair=0; iter_pair<ntot_pair ; iter_pair++){
 
 	  iter_strata = lsScore[0](iter_pair,0);
+	  iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+	  iter_strataT = grid_strata(iter_strata,1); // 
+	  if(pool==3){
+	    strataDelta_favorable = arma::trans(Delta.col(0));
+	    strataDelta_unfavorable = arma::trans(Delta.col(1));
+	  }else{
+	    strataDelta_favorable = cumdelta_favorable.row(iter_strata);
+	    strataDelta_unfavorable = cumdelta_unfavorable.row(iter_strata);
+	  }
+
 	  iter_C = lsScore[0](iter_pair,4); // index within strata
 	  iter_T = lsScore[0](iter_pair,5); // index within strata
-	  iter_weight = weightObs(posC[iter_strata][iter_C])*weightObs(posT[iter_strata][iter_T]);
 
-	  H2_favorable = (pairScoreF.row(iter_pair) - h1_favorable.row(posC[iter_strata][iter_C]) - h1_favorable.row(posT[iter_strata][iter_T]) - cumdelta_favorable.row(iter_strata));
-	  H2_unfavorable = (pairScoreUF.row(iter_pair) - h1_unfavorable.row(posC[iter_strata][iter_C]) - h1_unfavorable.row(posT[iter_strata][iter_T]) - cumdelta_unfavorable.row(iter_strata));
-	  
+	  iter_weight = weightObs(posC[iter_strataC][iter_C])*weightObs(posT[iter_strataT][iter_T]);
+	  H2_favorable = (pairScoreF.row(iter_pair) - h1_favorable.row(posC[iter_strataC][iter_C]) - h1_favorable.row(posT[iter_strataT][iter_T]) - strataDelta_favorable);
+	  H2_unfavorable = (pairScoreUF.row(iter_pair) - h1_unfavorable.row(posC[iter_strataC][iter_C]) - h1_unfavorable.row(posT[iter_strataT][iter_T]) - strataDelta_unfavorable);
 	  // Rcpp::Rcout << iter_pair << " (" << iter_strata << ":" << iter_C << " " << iter_T << ") " << H2_favorable[0] << " " << H2_unfavorable[0] << std::endl;
 
 	  // var(H2) = \sum_ij H2 / n_pair[iter_strata]
@@ -319,42 +394,68 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 	  Mvar.col(1) += iter_weight * arma::trans(pow(H2_unfavorable,2)) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
 	  Mvar.col(2) += iter_weight * arma::trans(H2_favorable % H2_unfavorable) * pow(weightPool[iter_strata],2)/pow(n_pairs[iter_strata],2);
 	}
-
 	
       }else{ // only ok for binary scores i.e. win neutral or loss
 	arma::colvec strataDelta_favorable(D);
 	arma::colvec strataDelta_unfavorable(D);
 	arma::vec strataWeightC, strataWeightT;
+	double iN_pairs, iN_treatment, iN_control, iWeightPool;
 
-	for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
-	  // strata specific cumulative endpoint
-	  strataDelta_favorable = arma::trans(cumdelta_favorable.row(iter_strata));
-	  strataDelta_unfavorable = arma::trans(cumdelta_unfavorable.row(iter_strata));
-	  strataWeightC = weightObs(posC[iter_strata]);
-	  strataWeightT = weightObs(posT[iter_strata]);
+	  for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
 	  
-	  // (n_pairs[iter_strata] / ntot_pair)^2 * (1/n_pairs[iter_strata]) = n_pairs[iter_strata]/ntot_pair^2
-	  Mvar.col(0) += strataDelta_favorable % (1-strataDelta_favorable) * pow(weightPool[iter_strata],2)/n_pairs[iter_strata];
-	  iid2 = pow(iidTotal_favorable.rows(posC[iter_strata]),2);
-	  Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / n_treatment[iter_strata] );
-	  iid2 = pow(iidTotal_favorable.rows(posT[iter_strata]),2);
-	  Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / n_control[iter_strata] );
+	    iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
+	    iter_strataT = grid_strata(iter_strata,1); //
+	    
+	    // strata specific cumulative endpoint
+	    if(pool==3){ // standardization (back to no strata)
+	      if(iter_strataC!=iter_strataT){
+		continue;
+	      }else if(iter_strataC==0){
+		strataDelta_favorable = Delta.col(0);	      
+		strataDelta_unfavorable = Delta.col(1);
+	      }else{
+		strataDelta_favorable.fill(0.0); 
+		strataDelta_unfavorable.fill(0.0);
+	      }
+	      iN_pairs = ntot_pair;
+	      iN_treatment = ntot_treatment;
+	      iN_control = ntot_control;
+	      iWeightPool = 1;
+	    }else{
+	      strataDelta_favorable = arma::trans(cumdelta_favorable.row(iter_strata));
+	      strataDelta_unfavorable = arma::trans(cumdelta_unfavorable.row(iter_strata));
+	      iN_pairs = n_pairs[iter_strata];
+	      iN_treatment = n_treatment[iter_strata];
+	      iN_control = n_control[iter_strata];
+	      iWeightPool = weightPool[iter_strata];
+	    }
+	    strataWeightC = weightObs(posC[iter_strataC]);
+	    strataWeightT = weightObs(posT[iter_strataT]);
+
+    
+	    // (n_pairs[iter_strata] / ntot_pair)^2 * (1/n_pairs[iter_strata]) = n_pairs[iter_strata]/ntot_pair^2
+	    Mvar.col(0) += strataDelta_favorable % (1-strataDelta_favorable) * pow(iWeightPool,2)/ iN_pairs;
+	    iid2 = pow(iidTotal_favorable.rows(posC[iter_strataC]),2);
+	    Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / iN_treatment );
+	    iid2 = pow(iidTotal_favorable.rows(posT[iter_strataT]),2);
+	    Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / iN_control );
 	  
-	  Mvar.col(1) += strataDelta_unfavorable % (1-strataDelta_unfavorable) * pow(weightPool[iter_strata],2)/n_pairs[iter_strata];
-	  iid2 = pow(iidTotal_unfavorable.rows(posC[iter_strata]),2);
-	  Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / n_treatment[iter_strata] );
-	  iid2 = pow(iidTotal_unfavorable.rows(posT[iter_strata]),2);
-	  Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / n_control[iter_strata] );
+	    Mvar.col(1) += strataDelta_unfavorable % (1-strataDelta_unfavorable) * pow(iWeightPool,2)/ iN_pairs;
+	    iid2 = pow(iidTotal_unfavorable.rows(posC[iter_strataC]),2);
+	    Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / iN_treatment );
+	    iid2 = pow(iidTotal_unfavorable.rows(posT[iter_strataT]),2);
+	    Mvar.col(1) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / iN_control );
 	  
-	  Mvar.col(2) -= strataDelta_favorable % strataDelta_unfavorable * pow(weightPool[iter_strata],2)/n_pairs[iter_strata];
-	  iid2 = iidTotal_favorable.rows(posC[iter_strata]) % iidTotal_unfavorable.rows(posC[iter_strata]);
-	  Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / n_treatment[iter_strata]);
-	  iid2 = iidTotal_favorable.rows(posT[iter_strata]) % iidTotal_unfavorable.rows(posT[iter_strata]);
-	  Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / n_control[iter_strata]);
-	  }
+	    Mvar.col(2) -= strataDelta_favorable % strataDelta_unfavorable * pow(iWeightPool,2)/ iN_pairs;
+	    iid2 = iidTotal_favorable.rows(posC[iter_strataC]) % iidTotal_unfavorable.rows(posC[iter_strataC]);
+	    Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / iN_treatment);
+	    iid2 = iidTotal_favorable.rows(posT[iter_strataT]) % iidTotal_unfavorable.rows(posT[iter_strataT]);
+	    Mvar.col(2) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / iN_control);
+	}
       }
 
     }
+
     // Rcpp::Rcout << std::endl << "delta method" << std::endl;  
     // delta method
     // var(A-B) = var(A) + var(B) - 2 * cov(A,B)

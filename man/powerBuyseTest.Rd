@@ -5,6 +5,7 @@
 \title{Performing simulation studies with BuyseTest}
 \usage{
 powerBuyseTest(
+  formula,
   sim,
   sample.size,
   n.rep = c(1000, 10),
@@ -23,6 +24,10 @@ powerBuyseTest(
 )
 }
 \arguments{
+\item{formula}{[formula] a symbolic description of the GPC model,
+typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
+See Details in the documentation of the \code{\link{BuyseTest}} function, section "Specification of the GPC model".}
+
 \item{sim}{[function] take two arguments:
 the sample size in the control group (\code{n.C}) and the sample size in the treatment group (\code{n.C})
 and generate datasets. The datasets must be data.frame objects or inherits from data.frame.}

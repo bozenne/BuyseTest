@@ -1,8 +1,8 @@
 Package: BuyseTest
 Type: Package
 Title: Generalized Pairwise Comparisons
-Version: 3.0.6
-Date: 2025-02-16
+Version: 3.2.0
+Date: 2025-04-07
 Authors@R: c(
     person("Brice", "Ozenne", role = c("aut", "cre"), email = "brice.mh.ozenne@gmail.com", comment = c(ORCID = "0000-0001-9694-2956")),
     person("Eva", "Cantagallo", role = "aut"),
@@ -79,6 +79,7 @@ Collate:
     'S4-BuyseTest-sensitivity.R'
     'S4-BuyseTest-show.R'
     'S4-BuyseTest.options.R'
+    'anonymize.R'
     'as.data.table.performance.R'
     'auc.R'
     'autoplot.S4BuyseTest.R'
@@ -86,6 +87,7 @@ Collate:
     'constStrata.R'
     'discreteRoot.R'
     'doc-data.R'
+    'efronlim.R'
     'iid.S3sensitivity.R'
     'iid.prodlim.R'
     'normexp.R'
@@ -98,5 +100,6 @@ Collate:
     'sim.simBuyseTest.R'
     'simBuyseTest.R'
     'simCompetingRisks.R'
+    'standardisation.R'
     'summary.performance.R'
     'valid.R'

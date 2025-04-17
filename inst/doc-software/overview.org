@@ -101,7 +101,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '3.0.5'
+: [1] '3.1.0'
 
 For completness, the details of the R session used to generate this
 document are:
@@ -113,7 +113,7 @@ sessionInfo()
 #+begin_example
 R version 4.2.0 (2022-04-22 ucrt)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 19045)
+Running under: Windows 10 x64 (build 22621)
 
 Matrix products: default
 
@@ -126,7 +126,7 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.15.4  BuyseTest_3.0.5    Rcpp_1.0.12        prodlim_2019.11.13
+[1] data.table_1.15.4  BuyseTest_3.1.0    Rcpp_1.0.12        prodlim_2019.11.13
 [5] ggplot2_3.4.3      survival_3.3-1    
 
 loaded via a namespace (and not attached):
@@ -1552,7 +1552,7 @@ head(dt)
 
 #+RESULTS:
 :       id treatment eventtimeUncensored eventtime status toxicity eta_toxicity status1
-:    <int>    <fctr>               <num>     <num>  <num>   <fctr>        <num>   <num>
+:    <num>    <fctr>               <num>     <num>  <num>   <fctr>        <num>   <num>
 : 1:     1         C           0.2135567 0.2135567      1      yes  -0.07945702       1
 : 2:     2         C           0.3422379 0.3422379      1       no   1.18175155       1
 : 3:     3         C           1.3933222 1.3933222      1       no   2.18614406       1
@@ -1596,22 +1596,36 @@ using the censored survival times.
       distribution. If the full survival curve can be identified then
       all pairs can be fully classified otherwise some of the pair
       will be partially uninformative.
+    + *the Efron's scoring rule* same as the Peron's scoring rule
+      except that the survival curve is extrapolated to 0 when its
+      tail is unknown. Only relevant when using a (stratified)
+      Kaplan-Meier estimator and no competing risks.
 - =correction.uninf= indicates what to do with the uninformative
-  scores. Setting this argument to =TRUE= will re-distribute this
-  score to favorable/unfavorable/neutral scores.
+  scores. For instance setting this argument to =TRUE= will
+  re-distribute this score to favorable/unfavorable/neutral scores.
 
-When the survival curve can be fully identified, the default (and
-recommanded) approach is to use the Peron's scoring rule where the
-censoring model rely on Kaplan Meier curve is fitted in each treatment
-group. When the last observation are censored, then part of the
-survival curve is unknown and there is no perfect solution. One can:
-- only use the Peron's scoring rule, which will lead to a non-0
-  uninformative score and therefore a "conservative" estimate of the net treatment benefit.
-- use the Peron's scoring rule in conjonction with the correction
-  which will led to an unbiased estimator if certain assumption are met.
-- only use the Peron's scoring rule with a parametric model which, if
-  appropriate, will lead to an unbiased (and rather efficient)
-  estimator.
+The Peron's scoring rule is the default (and recommanded) approach. It
+uses a Kaplan Meier estimator stratified on treatment and GPC =strata=
+variable (if any) as survival model. When the last observation is
+censored, then part of the survival curve is unknown which can be
+necessary to score some of the pairs (especially in presence of a
+threshold of clinical relevance). One can:
+- use a restriction time within the time interval where the survival
+  curve can be estimated for each group.
+- still use the default Peron's scoring rule: this will lead to
+  uninformative pairs which can be re-classified based on a lower
+  priority endpoint.
+- use the Peron's scoring rule with another survival model, using
+  parametric assumptions to inform about the unknown part of the
+  survival curve. This can be achieved via the =model.tte= argument or
+  using the Efron's scoring rule.
+- use an add-hoc correction for the uninformative pairs
+  (=correction.uninf=)
+
+The first two solutions lead to a change of estimand, the first being
+much more clearly defined than the second. The last two solutions
+correspond to make statistical assumptions, the former assumptions
+being more explicit than with the later solution.
 
 ** Gehan's scoring rule
 In the example, Gehan's scoring rule:
@@ -1643,14 +1657,16 @@ model.tables(e.P)
 : 1 eventtime       0.5   100   11.1737    43.33707 44.12373 1.365504 -0.3216337 -0.4584262
 :     upper.ci      p.value
 : 1 -0.1699543 5.385074e-05
-leads to no uninformative pairs. Indeed the last observation in each group is an (uncensored) event:
+
+leads to no uninformative pairs. Indeed the last observation in each
+group is an (uncensored) event:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt[,.SD[which.max(eventtime)],by="treatment"]
 #+END_SRC
 
 #+RESULTS:
 :    treatment    id eventtimeUncensored eventtime status toxicity eta_toxicity status1
-:       <fctr> <int>               <num>     <num>  <num>   <fctr>        <num>   <num>
+:       <fctr> <num>               <num>     <num>  <num>   <fctr>        <num>   <num>
 : 1:         C    72            2.668629  2.668629      1      yes   -1.9256436       1
 : 2:         T   154            1.674053  1.588657      0      yes   -0.8647272       1
 so the full survival curve could be identified. As a result the estimate is very close to the
@@ -1658,8 +1674,8 @@ truth.
 
 \bigskip
 
-_Note 1:_ the censoring model can be specified by first fitting a
-Kaplan Meier model for the survival time:
+\noindent _Note 1:_ the censoring model can be specified by first fitting a
+survival model (=prodlim= or =survreg=) for the survival time:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(prodlim)
 e.prodlim <- prodlim(Hist(eventtime, status) ~ treatment, data = dt)
@@ -1677,26 +1693,54 @@ model.tables(e.P1)
 
 #+RESULTS:
 :    endpoint threshold total favorable unfavorable  neutral    uninf      Delta   lower.ci
-: 1 eventtime       0.5   100   11.1737    43.33707 44.12373 1.365504 -0.3216337 -0.4187087
+: 1 eventtime       0.5   100   11.1737    43.33707 44.12373 1.365504 -0.3216337 -0.4584262
 :     upper.ci      p.value
-: 1 -0.2172912 6.570106e-09
+: 1 -0.1699543 5.385074e-05
 
-Note that the CI/p-value have changed since, unless stated otherwise,
-=BuyseTest= assumes no uncertainty about the survival model when using
-=model.tte=. One can force it to account for the uncertainty adding an attribute:
+When the dataset used to fit the survival model match the one used to
+run the GPC procedure, the overall uncertainty will be
+computed. Otherwise:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-attr(e.prodlim, "iidNuisance") <- TRUE
+dt2 <- dt[order(dt$eventtime)]
 e.P2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.prodlim,
+                  model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dt2),
                   data = dt, scoring.rule = "Peron", trace = 0)
 model.tables(e.P2)
 #+END_SRC
 
 #+RESULTS:
+: Uncertainty related to the estimation of the survival probabilities is ignored. 
+: Consider adding an attribute "iidNuisance" to the argument 'model.tte' taking value TRUE to change this default behavior.
 :    endpoint threshold total favorable unfavorable  neutral    uninf      Delta   lower.ci
-: 1 eventtime       0.5   100   11.1737    43.33707 44.12373 1.365504 -0.3216337 -0.4584262
+: 1 eventtime       0.5   100   11.1737    43.33707 44.12373 1.365504 -0.3216337 -0.4187087
 :     upper.ci      p.value
-: 1 -0.1699543 5.385074e-05
+: 1 -0.2172912 6.570106e-09
+
+the survival probabilities will assumed to be known with infinite
+precision and only the uncertainty of the GPC procedure will be
+considered. Add-hoc modification of the data can be used to obtain
+'conservative' estimates when considering a single endpoint, e.g.:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt2[, last := (max(eventtime)==eventtime), by = "treatment"]
+## survival stays constant after end of follow-up
+dt2[treatment=="C" & last == TRUE, c("eventtime","status") := .(max(dt2$eventtime)+1,1)]
+## survival drop to 0 after end of follow-up
+dt2[treatment=="T" & last == TRUE, status := 1]
+## modified Kaplan Meier estimator
+e.prodlim2 <- prodlim(Hist(eventtime, status) ~ treatment, data = dt2)
+attr(e.prodlim2, "iidNuisance") <- TRUE
+## run GPC
+e.P3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                  model.tte = e.prodlim2,
+                  data = dt, scoring.rule = "Peron", trace = 0)
+model.tables(e.P3) ## even more unfavorable to treatment
+#+END_SRC
+
+#+RESULTS:
+:    endpoint threshold total favorable unfavorable  neutral uninf      Delta   lower.ci
+: 1 eventtime       0.5   100   11.1737    43.97856 44.84774     0 -0.3280486 -0.4378751
+:     upper.ci     p.value
+: 1 -0.2085751 2.25273e-07
 
 \bigskip
 
@@ -1705,7 +1749,6 @@ _Note 2:_ it is possible to use a parametric model via the =survreg= function:
 library(survival)
 e.survreg <- survreg(Surv(eventtime, status) ~ treatment, data = dt, 
                      dist = "weibull")
-attr(e.survreg, "iidNuisance") <- TRUE
 #+END_SRC
 
 #+RESULTS:
@@ -1719,9 +1762,9 @@ model.tables(e.P3)
 #+END_SRC
 #+RESULTS:
 :    endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
-: 1 eventtime       0.5   100  11.87642    34.18787 53.92248 0.01322952 -0.2231145 -0.3455224
+: 1 eventtime       0.5   100  11.65444    34.18937 54.14472 0.01147085 -0.2253494 -0.3476693
 :      upper.ci      p.value
-: 1 -0.09324086 0.0008570172
+: 1 -0.09548719 0.0007624659
 
 Internally the survival curve is discretized using 1000 points
 starting from survival = 1 to survival = 0.001 (this is why there is a
@@ -1730,7 +1773,6 @@ internally by applying the =BuyseTTEM= method. Another discretisation
 can be obtained by calling =BuyseTTEM= with another value for the =n.grid= argument:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.TTEM <- BuyseTTEM(e.survreg, treatment = "treatment", iid = TRUE, n.grid = 2500)
-attr(e.TTEM, "iidNuisance") <- TRUE
 str(e.TTEM$peron$jumpSurvHaz[[1]][[1]])
 #+END_SRC
 
@@ -1750,17 +1792,17 @@ model.tables(e.P4)
 
 #+RESULTS:
 :    endpoint threshold total favorable unfavorable  neutral       uninf      Delta   lower.ci
-: 1 eventtime       0.5   100  11.87355    34.18293 53.93826 0.005270581 -0.2230938 -0.3455005
+: 1 eventtime       0.5   100  11.64894    34.18631 54.16019 0.004558007 -0.2253737 -0.3476861
 :      upper.ci      p.value
-: 1 -0.09322237 0.0008577635
+: 1 -0.09551899 0.0007609754
 
 It is therefore possible to extend the approach to other model by
 defining an appropriate =BuyseTTEM= method. Looking at the code use
 for defining =BuyseTTEM.survreg= can be helpful.
 
-** Correction via inverse probability-of-censoring weights (IPCW)
+** Correction via re-weighting
 
-With IPCW, the weights of the non-informative pairs is redistributed
+The weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
 no neutral pairs or there are no lower priority endpoints. This gives
 an estimate much closer to the true net treatment benefit:

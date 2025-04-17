@@ -30,7 +30,7 @@ printGeneral <- function(status,
                          weightEndpoint,
                          Wscheme,
                          ...){
-    
+
     if(!is.null(strata)){
         n.strata <- length(level.strata)
     }else{
@@ -128,10 +128,11 @@ printGeneral <- function(status,
         }else{
             txt.Peron <- "survival/cif"
         }
-        
+
         switch(as.character(scoring.rule),
                "0" = cat("deterministic score or uninformative \n"),
-               "1" = cat("probabilistic score based on the ",txt.Peron," curves \n",sep="")
+               "1" = cat("probabilistic score based on the ",txt.Peron," curves \n",sep=""),
+               "2" = cat("probabilistic score based on the ",txt.Peron," curves \n \t\t\t   (set to 0 beyond available follow-up) \n",sep="")
                )
     }
     ## if(trace>2){
@@ -145,13 +146,17 @@ printGeneral <- function(status,
 }
 
 ## * Function printInference
-printInference <- function(method.inference, n.resampling, cpus, seed, ...){
+printInference <- function(method.inference, paired, n.resampling, cpus, seed, ...){
 
     if(method.inference != "none"){
 
         ## method        
         if(attr(method.inference,"ustatistic")){
-            txt.type <- "moments of the U-statistic"
+            if(paired){
+                txt.type <- "variability of the estimate across strata"
+            }else{
+                txt.type <- "moments of the U-statistic"
+            }
         }else if(attr(method.inference,"bootstrap")){
             txt.type <- paste0("non-parametric bootstrap with ",n.resampling," samples")
         }else if(method.inference == "varexact permutation"){

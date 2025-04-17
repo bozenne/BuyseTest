@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: sep 23 2024 (12:08) 
+## Last-Updated: feb 21 2025 (09:46) 
 ##           By: Brice Ozenne
-##     Update #: 220
+##     Update #: 223
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -174,15 +174,16 @@ test_that("iid: binary and strata (unbalanced groups)", {
     for(iOrder in 1:2){ ## iOrder <- 2
         BuyseTest.options(order.Hprojection = iOrder)
 
-        e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                          data = d2.bis, keep.pairScore = FALSE,
-                          method.inference = "u-statistic")
-        e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                           data = d2.bis, keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
-        ebebu.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                              data = d2.bis, keep.pairScore = TRUE,
-                              method.inference = "u-statistic-bebu")
+        ## remove warning about low sample size
+        e.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity) + strata,
+                                           data = d2.bis, keep.pairScore = FALSE,
+                                           method.inference = "u-statistic"))
+        e2.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity) + strata,
+                                            data = d2.bis, keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
+        ebebu.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity) + strata,
+                                               data = d2.bis, keep.pairScore = TRUE,
+                                               method.inference = "u-statistic-bebu"))
         ## 0 0.1875 0
         expect_equal(e.BT@covariance, e2.BT@covariance)
         expect_equal(e.BT@covariance, ebebu.BT@covariance)
@@ -653,7 +654,7 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     expect_equivalent(test, as.data.frame(GS), tol = 1e-6)
 
     ## exponential approximation of the survival when computing the influence function
-    e.TTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, data = dt, iid=TRUE, iid.surv="prodlim")
+    e.TTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, treatment = "treatment", data = dt, iid=TRUE, iid.surv="prodlim")
     attr(e.TTEM, "iidNuisance") <- TRUE
     
     e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
@@ -722,8 +723,8 @@ test_that("iid with nuisance parameters: 2 TTE",{
     expect_equivalent(test, as.data.frame(GS), tol = 1e-3)
 
     ## exponential approximation of the survival when computing the influence function
-    e.TTEM <- list(BuyseTTEM(Hist(eventtime1,status1)~treatment, data = dt.sim, iid=TRUE, iid.surv="prodlim"),
-                   BuyseTTEM(Hist(eventtime2,status2)~treatment, data = dt.sim, iid=TRUE, iid.surv="prodlim"))
+    e.TTEM <- list(BuyseTTEM(Hist(eventtime1,status1)~treatment, treatment = "treatment", data = dt.sim, iid=TRUE, iid.surv="prodlim"),
+                   BuyseTTEM(Hist(eventtime2,status2)~treatment, treatment = "treatment", data = dt.sim, iid=TRUE, iid.surv="prodlim"))
     attr(e.TTEM, "iidNuisance") <- TRUE
 
     e.BT_tte <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + tte(eventtime2, status2, threshold = 1) + bin(toxicity1),
