@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 11 2025 (15:42) 
 ## Version: 
-## Last-Updated: Apr 21 2025 (13:24) 
+## Last-Updated: Apr 21 2025 (14:12) 
 ##           By: Brice Ozenne
-##     Update #: 56
+##     Update #: 59
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -188,19 +188,18 @@ dtB.strata <- do.call(rbind,by(dt.strata, interaction(dt.strata$treatment,dt.str
 rownames(dtB.strata) <- NULL
 
 
-BTB.raw <- BuyseTest(treatment ~ tte(eventtime, status), trace = FALSE, data = dtB.strata,
-                     model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
-confint(BTB.raw)
-##             estimate        se   lower.ci  upper.ci null   p.value
-## eventtime 0.02881503 0.1422114 -0.2450483 0.2984197    0 0.8395189
+test_that("BuyseTest - standarization (tte outcome)",{
+    BTB.raw <- BuyseTest(treatment ~ tte(eventtime, status), trace = FALSE, data = dtB.strata,
+                         model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
+    ##             estimate        se   lower.ci  upper.ci null   p.value
+    ## eventtime 0.02881503 0.1417496 -0.2441965 0.2975942    0 0.8390032
 
-BTB.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dtB.strata,
-                     pool.strata = "standardization", 
-                     model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
-confint(BTB.std)
-##             estimate        se   lower.ci  upper.ci null   p.value
-## eventtime 0.02881503 0.2348638 -0.4068946 0.4538434    0 0.9024077
-
+    BTB.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dtB.strata,
+                         pool.strata = "standardization", 
+                         model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
+    expect_equal(as.double(confint(BTB.raw)), as.double(confint(BTB.std)), tol = 1e-5)
+    expect_equal(as.double(confint(BTB.raw)), c(0.028815, 0.1417496, -0.2441965, 0.2975942, 0, 0.8390032), tol = 1e-5)
+})
 
 
 ##----------------------------------------------------------------------

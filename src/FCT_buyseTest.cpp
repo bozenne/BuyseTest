@@ -690,7 +690,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
   double iWeightObsC,iWeightObsT,iWeightObs; // initial weight of the pair
   double iCumWeight; // current weight of the pair
   double iNewWeight; // remaining weight to analyze after the current endpoint
-  double iStdWeight=1; // weight use to standardize the h-decomposition accross strata
+  double iStdWeight=1,iStdRatio=1; // weight use to standardize the h-decomposition accross strata
   double iRho; arma::mat iMatRho;
   
   std::vector< double > iPairScore;
@@ -711,7 +711,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     nStrata_Control = indexStrataC.size();
     nStrata_Treatment = indexStrataT.size();
     if(pool==3){ // standardization: weight iid differently across strata (w_standardization / w_marginalization)
-      iStdWeight = nObs_strata(iter_strataC)*nObs_strata(iter_strataT)*n_pairs/(vecn_control[iter_strata]*vecn_treatment[iter_strata]*pow(n_obs,2));
+      iStdWeight = nObs_strata(iter_strataC)*nObs_strata(iter_strataT)/pow(n_obs,2);
+      iStdRatio = iStdWeight/(vecn_control[iter_strata]*vecn_treatment[iter_strata]/n_pairs);
     }
 
     // prepare d(survival)/d(nuisance)
@@ -867,8 +868,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	  
 	  if(returnIID[0] > 0 || pool >=4){
 	    // iid (sum over all pairs)
-	    iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScoreW[0] * iWeightObsT * iStdWeight;
-	    iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScoreW[0] * iWeightObsC * iStdWeight;
+	    iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScoreW[0] * iWeightObsT * iStdRatio;
+	    iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScoreW[0] * iWeightObsC * iStdRatio;
 	  }
 
 	  // iid (nuisance) for the score
@@ -897,8 +898,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
 	  if(returnIID[0] > 0 || pool >= 4){
 	    // iid (sum over all pairs)
-	    iidAverage_unfavorable(posStrataC[iter_C],iter_d) += iPairScoreW[1] * iWeightObsT * iStdWeight;
-	    iidAverage_unfavorable(posStrataT[iter_T],iter_d) += iPairScoreW[1] * iWeightObsC * iStdWeight;
+	    iidAverage_unfavorable(posStrataC[iter_C],iter_d) += iPairScoreW[1] * iWeightObsT * iStdRatio;
+	    iidAverage_unfavorable(posStrataT[iter_T],iter_d) += iPairScoreW[1] * iWeightObsC * iStdRatio;
 	  }
       
 	  // iid (nuisance) for the score
@@ -928,8 +929,8 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			
 	    if(returnIID[0] > 0 || pool>=4){
 	    // iid (sum over all pairs)
-	      iidAverage_neutral(posStrataC[iter_C],iter_d) += iPairScoreW[2] * iWeightObsT * iStdWeight;
-	      iidAverage_neutral(posStrataT[iter_T],iter_d) += iPairScoreW[2] * iWeightObsC * iStdWeight;
+	      iidAverage_neutral(posStrataC[iter_C],iter_d) += iPairScoreW[2] * iWeightObsT * iStdRatio;
+	      iidAverage_neutral(posStrataT[iter_T],iter_d) += iPairScoreW[2] * iWeightObsC * iStdRatio;
 	    }
 
 	    // iid (nuisance) for the score
