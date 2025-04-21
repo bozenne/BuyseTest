@@ -39,13 +39,6 @@ endpoint considered the most clinically relevant.  The endpoint with
 highest priority is analyzed first, and neutral and uninformative pair
 are analyzed regarding endpoint of lower priority.
 
-* Tutorial
-
-A half day tutorial is planned at the DAG Stat 2025 conference
-(https://dagstat2025.de/, Berlin, 24-28th of March):
-- title: a practical guide to the design and analysis of patient-centric trials (Verbeek et al)
-- instructors: Johan Verbeeck and Brice Ozenne
-
 * Installation
 
 You can download the latest stable version on =CRAN= using:
@@ -58,6 +51,16 @@ or download the development version from =GitHub=:
 library(remotes)
 install_github("bozenne/BuyseTest")
 #+END_SRC
+
+* Functionalities
+See the vignette "Overview of the package BuyseTest" in [[./vignettes/overview.pdf]]
+
+* Tutorial
+
+The material of the half day tutorial taught at the DAG Stat 2025 conference
+(https://dagstat2025.de/, Berlin, 24-28th of March) is available on [[https://github.com/bozenne/tutorial-DagStat2025-GPC][github]]:
+- the slides can be found in the folder doc (pdf or pptx format)
+- the R files contain the corresponding R code
 
 * Citation
 To cite this package in a publications please use:
@@ -130,6 +133,4 @@ toBibtex(citation("BuyseTest"))
 }
 #+end_example
 
-* Functionalities
-See the vignette "Overview of the package BuyseTest" in [[./vignettes/overview.pdf]]
 
