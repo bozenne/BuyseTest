@@ -93,8 +93,8 @@ made arbitrarily small by increasing the number of permutations
 'default' statistical inference method based on asymptotic
 U-statistic theory:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-eU.BT <- BuyseTest(group ~ cont(value), data = df,
-                  add.halfNeutral = TRUE)
+eU.BT <- suppressWarnings(BuyseTest(group ~ cont(value), data = df,
+                                    add.halfNeutral = TRUE))
 confint(eU.BT, statistic = "favorable")
 #+END_SRC
 

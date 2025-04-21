@@ -101,7 +101,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '3.1.0'
+: [1] ‘3.2.0’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -111,35 +111,41 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 4.2.0 (2022-04-22 ucrt)
-Platform: x86_64-w64-mingw32/x64 (64-bit)
-Running under: Windows 10 x64 (build 22621)
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 22.04.5 LTS
 
 Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.utf8  LC_CTYPE=Danish_Denmark.utf8   
-[3] LC_MONETARY=Danish_Denmark.utf8 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.utf8    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
+ [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/Copenhagen
+tzcode source: system (glibc)
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.15.4  BuyseTest_3.1.0    Rcpp_1.0.12        prodlim_2019.11.13
-[5] ggplot2_3.4.3      survival_3.3-1    
+[1] data.table_1.16.2  BuyseTest_3.2.0    Rcpp_1.0.13        prodlim_2024.06.25
+[5] ggplot2_3.5.1      survival_3.5-8    
 
 loaded via a namespace (and not attached):
- [1] pillar_1.9.0        compiler_4.2.0      tools_4.2.0         digest_0.6.33      
- [5] lifecycle_1.0.4     tibble_3.2.1        gtable_0.3.4        lattice_0.20-45    
- [9] pkgconfig_2.0.3     rlang_1.1.1         Matrix_1.5-1        cli_3.6.1          
-[13] parallel_4.2.0      SparseM_1.81        withr_3.0.0         dplyr_1.1.3        
-[17] MatrixModels_0.5-0  generics_0.1.3      vctrs_0.6.3         globals_0.16.2     
-[21] stats4_4.2.0        grid_4.2.0          tidyselect_1.2.0    glue_1.6.2         
-[25] listenv_0.9.0       R6_2.5.1            future.apply_1.10.0 fansi_1.0.4        
-[29] parallelly_1.34.0   lava_1.7.2.1        magrittr_2.0.3      scales_1.2.1       
-[33] codetools_0.2-18    splines_4.2.0       future_1.31.0       colorspace_2.1-0   
-[37] utf8_1.2.3          munsell_0.5.0
+ [1] Matrix_1.6-5        gtable_0.3.5        future.apply_1.11.2 dplyr_1.1.4        
+ [5] compiler_4.3.3      tidyselect_1.2.1    MatrixModels_0.5-3  parallel_4.3.3     
+ [9] globals_0.16.3      splines_4.3.3       scales_1.3.0        lattice_0.22-5     
+[13] R6_2.5.1            generics_0.1.3      future_1.34.0       tibble_3.2.1       
+[17] munsell_0.5.1       pillar_1.9.0        rlang_1.1.4         utf8_1.2.4         
+[21] cli_3.6.3           withr_3.0.1         magrittr_2.0.3      digest_0.6.37      
+[25] grid_4.3.3          lifecycle_1.0.4     lava_1.8.0          vctrs_0.6.5        
+[29] SparseM_1.81        glue_1.8.0          listenv_0.9.1       codetools_0.2-19   
+[33] stats4_4.3.3        parallelly_1.38.0   fansi_1.0.6         colorspace_2.1-1   
+[37] tools_4.3.3         pkgconfig_2.0.3
 #+end_example
 
 \clearpage
@@ -469,13 +475,14 @@ summary(BTstrata, type.display = keep.colStrata)
 The percentage of pairs in the
 total/favorable/unfavorable/neutral/uninf columns are relative to the
 overall number of pairs whereas the column =delta= presents the
-endpoint and strata-specific net treatment benefits (in the last 4 lines). The
-last column (=Delta=) displays the global net treatment benefit (i.e. pooled
-over strata). \newline \Warning With this weighting scheme the
-proportion of favorable pairs minus the proportion of unfavorable
-pairs (=36.06%-45.77%=9.71%=) does not equal the global net treatment benefit
-(=9.97%=). To retrieve the net treatment benefits, we first extract the number
-of pairs per strata using the method =nobs=:
+endpoint and strata-specific net treatment benefits (in the last 4
+lines). The last column (=Delta=) displays the global (i.e. pooled
+over strata), conditional, net treatment benefit. \newline \Warning
+With this weighting scheme the proportion of favorable pairs minus the
+proportion of unfavorable pairs (=36.06%-45.77%=9.71%=) does not equal
+the global net treatment benefit (=9.97%=). To retrieve the net
+treatment benefits, we first extract the number of pairs per strata
+using the method =nobs=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 strata.obs <- as.data.frame(nobs(BTstrata, strata = TRUE))
 strata.obs
@@ -537,7 +544,7 @@ list(estimate = sum(delta * weightCMH/sum(weightCMH)),
 \Warning One exception is for the win ratio and win odds where the
 ratio between the global proportions is taken, i.e., pooling is
 performed at the numerator and at the denominator instead of pooling
-fractions (see citep:dong2018stratified, equation 1).
+fractions - see cite:dong2018stratified, equation 1.
 
 
 \clearpage
@@ -603,6 +610,43 @@ confint(BTstrata, strata = TRUE)
 : time_t20.smallcell -0.1792181 0.1540933 -0.4567640 0.1301230    0 0.2551275
 : time_t20.adeno     -0.1033951 0.2465197 -0.5314450 0.3667172    0 0.6771002
 : time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
+
+\Warning The previous weighting scheme leads to the estimatation of a
+conditional net treatment benefit, which will generally differ from
+the marginal (i.e. non-adjusted) net treatment benefit. To retrieve a
+marginal effect while adjusting for covariate, one can use
+standardization:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BTstd <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "standardization")
+model.tables(BTstd)[,c("strata","total","delta","Delta","lower.ci","upper.ci","p.value")]
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+               strata      total       delta     Delta   lower.ci   upper.ci   p.value
+1              global 100.000000 -0.11874500 -0.118745 -0.3037001 0.07483473 0.2287434
+2            squamous   6.393862  0.21930736        NA         NA         NA        NA
+3  smallcell.squamous  12.787724  0.35699653        NA         NA         NA        NA
+4      adeno.squamous   3.836317  0.41018519        NA         NA         NA        NA
+5      large.squamous   6.393862  0.03622106        NA         NA         NA        NA
+6  squamous.smallcell   5.754476 -0.50654161        NA         NA         NA        NA
+7           smallcell  11.508951 -0.17921811        NA         NA         NA        NA
+8     adeno.smallcell   3.452685 -0.25308642        NA         NA         NA        NA
+9     large.smallcell   5.754476 -0.80740741        NA         NA         NA        NA
+10     squamous.adeno   5.754476 -0.41165224        NA         NA         NA        NA
+11    smallcell.adeno  11.508951 -0.02906379        NA         NA         NA        NA
+12              adeno   3.452685 -0.10339506        NA         NA         NA        NA
+13        large.adeno   5.754476 -0.76311728        NA         NA         NA        NA
+14     squamous.large   3.836317 -0.04494949        NA         NA         NA        NA
+15    smallcell.large   7.672634  0.25946502        NA         NA         NA        NA
+16        adeno.large   2.301790  0.21296296        NA         NA         NA        NA
+17              large   3.836317 -0.37222222        NA         NA         NA        NA
+#+end_example
+
+i.e. evaluate the net treatment benefit for every combination of
+strate between the control and active group (either identical or
+differen across the two groups) and pool the results. See chapter 9 of
+cite:buyse2025gpc for further explanations.
 
 \clearpage
 
@@ -1113,6 +1157,10 @@ all given thresholds. The difference can be visualized using the
 library(ggplot2)
 autoplot(BTse.ustat)
 #+END_SRC
+
+#+RESULTS:
+#+begin_src R
+#+end_src
 
 #+ATTR_LaTeX: :width 0.5\textwidth :placement [!h]
 [[./figures/gg-sensitivity1.pdf]]
@@ -1971,8 +2019,8 @@ s.correction <- model.tables(e.correction, column = c("favorable","unfavorable",
 #+END_SRC
 
 #+RESULTS:
-: Advarselsbesked:
-: I .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
+: Warning message:
+: In .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
 :   Some of the survival curves for endpoint(s) "timeC" are unknown beyond a survival of 0.25.
 : The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. 
 : This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown.

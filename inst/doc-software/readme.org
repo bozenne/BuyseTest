@@ -17,6 +17,9 @@ extractRchunk(file = "./BuyseTest/inst/doc-software/overview.org",
 #+END_SRC
 
 #+RESULTS:
+: Loading required package: devtools
+: Loading required package: usethis
+: butils.base version 1.3
 
 - move to directory containing the package, compress vignette pdf file, and copy to =doc= and =vignettes= directories
 #+BEGIN_SRC shell
