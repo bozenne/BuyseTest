@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: apr  3 2025 (12:34) 
+## Last-Updated: Apr 21 2025 (11:54) 
 ##           By: Brice Ozenne
-##     Update #: 413
+##     Update #: 414
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -76,15 +76,8 @@ setMethod(f = "coef",
               option <- BuyseTest.options()
               mycall <- match.call()
               dots <- list(...)
-
-              if(!is.null(strata) && ("standardize" %in% strata || "standardise" %in% strata)){
-                  ok.dots <- "data"
-              }else{
-                  ok.dots <- NULL
-              }
-              
-              if(length(setdiff(names(dots),ok.dots))>0){
-                  stop("Unknown argument(s) \'",paste(setdiff(names(dots),ok.dots),collapse="\' \'"),"\'. \n")
+              if(length(dots)>0){
+                  stop("Unknown argument(s) \'",paste(names(dots),collapse="\' \'"),"\'. \n")
               }
     
               ## *** statistic
@@ -142,7 +135,7 @@ setMethod(f = "coef",
               weightEndpoint <- slot(object, "weightEndpoint")
                   
               ## *** strata
-              level.strata <- object@level.strata
+                  level.strata <- object@level.strata
               n.strata <- length(level.strata)
               weightStrata <- object@weightStrata
               type.weightStrata <- attr(weightStrata,"type")
@@ -167,29 +160,11 @@ setMethod(f = "coef",
                                refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
                   strata <- level.strata[strata]
-              }else if("standardize" %in% strata || "standardise" %in% strata){
-                  if(length(strata)>1){
-                      stop("Argument \'strata\' should have length 1 when set to \"standardize\" or \"standardise\". \n")
-                  }
-
-                  out.std <- .standardisation(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative, method.inference = "none", resampling = resampling, ...)
-                  
-                  if(simplify){
-                      out.stdRed <- out.std[out.std[[1]]=="global" & out.std[[2]]=="global",]
-                      out <- stats::setNames(out.stdRed$estimate,out.stdRed$endpoint)                      
-                  }else{
-                      out.std$strata <- ifelse(out.std[[1]]==out.std[[2]], out.std[[1]], paste(out.std[[1]],out.std[[2]],sep="."))
-                      df.out <- stats::reshape(out.std[,c("strata","endpoint","estimate")], direction = "wide",
-                                               idvar = "strata", v.names = "estimate", timevar = "endpoint", varying = endpoint)
-                      out <- as.matrix(df.out[-1])
-                      rownames(out) <- df.out$strata
-                  }
-                  return(out)
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
                                  valid.length = NULL,
-                                 valid.values = c("global","standardize",level.strata),
+                                 valid.values = c("global",level.strata),
                                  refuse.NULL = FALSE,
                                  method = "coef[S4BuyseTest]")
               }

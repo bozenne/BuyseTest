@@ -706,7 +706,7 @@ calcSample <- function(envir, method.inference){
             index.resampling <- c(index.resampling,
                                   envir$outArgs$cumn.obsStrataResampling[iSR] + sample.int(envir$outArgs$n.obsStrataResampling[iSR], replace = attr(method.inference, "bootstrap")))
         }
-        
+
         ## ** reconstruct groups
         ## index: index of the new observations in the old dataset by treatment group
         ## pos: unique identifier for each observation
@@ -734,7 +734,7 @@ calcSample <- function(envir, method.inference){
                 index.C <- which(index.resampling %in% envir$outArgs$index.C)
                 index.T <- which(index.resampling %in% envir$outArgs$index.T)
             }
-            
+
             for(iStrata in 1:nlevel.strata){ ## iStrata <- 1  
                 ## index of the new observations in the old dataset by treatment group
                 if(grepl("permutation",method.inference)){
@@ -751,7 +751,7 @@ calcSample <- function(envir, method.inference){
                 ## check that each group has at least one observation
                 if(length(out$ls.indexC[[iStrata]])==0 || length(out$ls.indexT[[iStrata]])==0){return(NULL)} 
             }
-            
+
         }
 
         ## ** rebuild dataset
@@ -765,6 +765,17 @@ calcSample <- function(envir, method.inference){
                 out$data <- data.table::data.table(envir$outArgs$data[,.SD,.SDcols = c(envir$outArgs$treatment,"..strata..")],
                                                    envir$outArgs$M.endpoint,
                                                    envir$outArgs$M.status)[index.resampling]
+            }
+            ## re-create original strata variables                
+            if(nlevel.strata>1 && length(envir$outArgs$strata)==1 && envir$outArgs$strata %in% names(out$data) == FALSE){ 
+                out$data[[envir$outArgs$strata]] <- envir$outArgs$level.strata[out$data[["..strata.."]]]
+                if(is.factor(envir$outArgs$data[[envir$outArgs$strata]])){
+                    out$data[[envir$outArgs$strata]] <- factor(out$data[[envir$outArgs$strata]], levels = envir$outArgs$level.strata)
+                }
+            }else if(nlevel.strata>1 && length(envir$outArgs$strata)>1 && all(envir$outArgs$strata %in% names(out$data) == FALSE)){
+                grid.strata <- unique(envir$outArgs$data[,.SD,.SDcols = c("..strata..",envir$outArgs$strata)])
+
+                out$data <- cbind(out$data,grid.strata[match(out$data[["..strata.."]], grid.strata[["..strata.."]]),.SD,.SDcols = envir$outArgs$strata] )
             }
         }
 

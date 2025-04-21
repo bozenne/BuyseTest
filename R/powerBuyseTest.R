@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: apr  2 2025 (10:19) 
+## Last-Updated: Apr 21 2025 (11:47) 
 ##           By: Brice Ozenne
-##     Update #: 1325
+##     Update #: 1333
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -616,7 +616,7 @@ powerBuyseTest <- function(formula,
 
     ## when creating S4 object
     keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","paired","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
+                   "correction.uninf","method.inference","method.score","paired","strata","grid.strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
 
     ## ** Simulate data
     data <- data.table::as.data.table(envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax))

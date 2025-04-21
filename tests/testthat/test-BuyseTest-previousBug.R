@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: feb 12 2025 (13:01) 
+## Last-Updated: Apr 21 2025 (12:19) 
 ##           By: Brice Ozenne
-##     Update #: 246
+##     Update #: 251
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -298,11 +298,12 @@ df <- rbind(data.frame(score = rep(1,5),
             )
 
 test_that("BuyseTest without variability", {
-    e.BT_ustat <- BuyseTest(group ~ bin(tox) + cont(score), data = df,
-                            method.inference = "u-statistic", trace = 0)
-    e.BT_boot <- BuyseTest(group ~ bin(tox) + cont(score), data = df,
-                           method.inference = "studentized bootstrap",
-                           n.resampling = 10, trace = 0)
+    ## remove warning for uncertainty estimation (P-value/confidence intervals will not be valid with only one observation.)
+    e.BT_ustat <- suppressWarnings(BuyseTest(group ~ bin(tox) + cont(score), data = df,
+                                             method.inference = "u-statistic", trace = 0))
+    e.BT_boot <- suppressWarnings(BuyseTest(group ~ bin(tox) + cont(score), data = df,
+                                            method.inference = "studentized bootstrap",
+                                            n.resampling = 10, trace = 0))
 
     confintTempo <- confint(e.BT_ustat)
     expect_equal(unname(confintTempo[,"p.value"]),1:0)
@@ -756,8 +757,8 @@ test_that("Handling neutral pairs with win odds",{
 
     xxx <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.1) + cont(score, threshold = 3) + sss,
                      data = ddd, add.halfNeutral = TRUE, method.inference = "u-statistic")
-    summary(xxx, statistic = "winRatio")
-    summary(xxx, statistic = "netBenefit")
+    capture.output(summary(xxx, statistic = "winRatio"))
+    capture.output(summary(xxx, statistic = "netBenefit"))
 })
 
 ## * Schuurhuis, Stephen: 12 feb 2025 om 08:53 issue with the user interface

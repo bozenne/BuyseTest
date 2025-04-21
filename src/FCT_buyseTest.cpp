@@ -867,21 +867,21 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	  
 	  if(returnIID[0] > 0 || pool >=4){
 	    // iid (sum over all pairs)
-	    iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScoreW[0] * iWeightObsC * iStdWeight;
-	    iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScoreW[0] * iWeightObsT * iStdWeight;
+	    iidAverage_favorable(posStrataC[iter_C],iter_d) += iPairScoreW[0] * iWeightObsT * iStdWeight;
+	    iidAverage_favorable(posStrataT[iter_T],iter_d) += iPairScoreW[0] * iWeightObsC * iStdWeight;
 	  }
 
 	  // iid (nuisance) for the score
 	  if( (returnIID[1] > 0) && (iMethod >= 5) ){
-	    Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(0) * iCumWeight * iWeightObsC * iStdWeight;
-	    Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(0) * iCumWeight * iWeightObsT * iStdWeight;
+	    Dfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(0) * iCumWeight * iWeightObsT * iStdWeight;
+	    Dfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(0) * iCumWeight * iWeightObsC * iStdWeight;
 	  }
 	  // iid (nuisance) for the weight of the pair
 	  if( (returnIID[1] > 0) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
 	      if(iter_UTTE != iIndex_UTTE_d){
-		Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[0] * iWeightObsC * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[0] * iWeightObsT * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		Dfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[0] * iWeightObsT * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		Dfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[0] * iWeightObsC * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 	      }
 	    }
 	  }
@@ -897,22 +897,22 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 
 	  if(returnIID[0] > 0 || pool >= 4){
 	    // iid (sum over all pairs)
-	    iidAverage_unfavorable(posStrataC[iter_C],iter_d) += iPairScoreW[1] * iWeightObsC * iStdWeight;
-	    iidAverage_unfavorable(posStrataT[iter_T],iter_d) += iPairScoreW[1] * iWeightObsT * iStdWeight;
+	    iidAverage_unfavorable(posStrataC[iter_C],iter_d) += iPairScoreW[1] * iWeightObsT * iStdWeight;
+	    iidAverage_unfavorable(posStrataT[iter_T],iter_d) += iPairScoreW[1] * iWeightObsC * iStdWeight;
 	  }
       
 	  // iid (nuisance) for the score
 	  if( (returnIID[1] > 0) && (iMethod >= 5) ){
-	    Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(1) * iCumWeight * iWeightObsC * iStdWeight;
-	    Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(1) * iCumWeight * iWeightObsT * iStdWeight;
+	    Dunfavorable_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(1) * iCumWeight * iWeightObsT * iStdWeight;
+	    Dunfavorable_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(1) * iCumWeight * iWeightObsC * iStdWeight;
 	  }
 
 	  // iid (nuisance) for the weight of the pair
 	  if( (returnIID[1] > 0) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	    for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
 	      if(iter_UTTE != iIndex_UTTE_d){	      
-		Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[1] * iWeightObsC * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[1] * iWeightObsT * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		Dunfavorable_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[1] * iWeightObsT * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		Dunfavorable_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[1] * iWeightObsC * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 	      }
 	    }
 	  }
@@ -928,21 +928,21 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 			
 	    if(returnIID[0] > 0 || pool>=4){
 	    // iid (sum over all pairs)
-	      iidAverage_neutral(posStrataC[iter_C],iter_d) += iPairScoreW[2] * iWeightObsC * iStdWeight;
-	      iidAverage_neutral(posStrataT[iter_T],iter_d) += iPairScoreW[2] * iWeightObsT * iStdWeight;
+	      iidAverage_neutral(posStrataC[iter_C],iter_d) += iPairScoreW[2] * iWeightObsT * iStdWeight;
+	      iidAverage_neutral(posStrataT[iter_T],iter_d) += iPairScoreW[2] * iWeightObsC * iStdWeight;
 	    }
 
 	    // iid (nuisance) for the score
 	    if( (returnIID[1] > 0) && (iMethod >= 5) ){
-	      Dneutral_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(2) * iCumWeight * iWeightObsC * iStdWeight;
-	      Dneutral_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(2) * iCumWeight * iWeightObsT * iStdWeight;
+	      Dneutral_Dnuisance_strataC[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_C_calcOnePair[iter_d].col(2) * iCumWeight * iWeightObsT * iStdWeight;
+	      Dneutral_Dnuisance_strataT[iIndex_UTTE_d].col(iter_d) += iDscore_Dnuisance_T_calcOnePair[iter_d].col(2) * iCumWeight * iWeightObsC * iStdWeight;
 	    }
 	    // iid (nuisance) for the weight of the pair
 	    if( (returnIID[1] > 0) && (nUTTE_analyzedPeron_M1[iter_d] > 0) && hierarchical ){
 	      for(int iter_UTTE=0 ; iter_UTTE<nUTTE_analyzedPeron_M1[iter_d]; iter_UTTE++){
 		if(iter_UTTE != iIndex_UTTE_d){
-		  Dneutral_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[2] * iWeightObsC * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
-		  Dneutral_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[2] * iWeightObsT * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
+		  Dneutral_Dnuisance_strataC[iter_UTTE].col(iter_d) += (iPairScoreW[2] * iWeightObsT * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_C_UTTE[iter_UTTE] ;
+		  Dneutral_Dnuisance_strataT[iter_UTTE].col(iter_d) += (iPairScoreW[2] * iWeightObsC * iStdWeight / iWeight_UTTE[iter_UTTE]) * iDweight_Dnuisance_T_UTTE[iter_UTTE] ;
 		}
 	      }
 	    }

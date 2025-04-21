@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr 16 2025 (15:13) 
+## Last-Updated: Apr 21 2025 (11:59) 
 ##           By: Brice Ozenne
-##     Update #: 396
+##     Update #: 398
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -377,7 +377,7 @@ testArgs <- function(name.call,
         stop("Only bootstrap and permutation can be used to quantify uncertainty when weighting strata-specific effects by the inverse of the variance. \n")
     }
 
-    if(method.inference %in% c("none","permutation") == FALSE){
+    if(method.inference %in% c("none","permutation")){
         ## no minimal sample size
     }else if(is.null(strata) && any(table(data[[treatment]])<=5)){
         warning("P-value/confidence intervals may not be valid with few observations in a treatment group. \n")

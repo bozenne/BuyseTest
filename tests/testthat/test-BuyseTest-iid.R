@@ -3,12 +3,13 @@
 ## Author: Brice Ozenne
 ## Created: jan  8 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 21 2025 (09:46) 
+## Last-Updated: Apr 21 2025 (12:17) 
 ##           By: Brice Ozenne
-##     Update #: 223
+##     Update #: 225
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
+## suppressWarnings: remove warning for uncertainty estimation (P-value/confidence intervals will not be valid with only one observation.)
 ## 
 ### Change Log:
 ##----------------------------------------------------------------------
@@ -46,12 +47,12 @@ d <- data.table(id = 1:4, group = c("C","C","T","T"), toxicity = c(1,0,1,0))
 test_that("iid: binary and no strata (balanced groups)", {
     ## first order
     BuyseTest.options(order.Hprojection = 1)
-    e.BT <- BuyseTest(group ~ bin(toxicity),
-                      data = d, 
-                      method.inference = "u-statistic")
-    e2.BT <- BuyseTest(group ~ bin(toxicity),
-                       data = d, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
+    e.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                       data = d, 
+                                       method.inference = "u-statistic"))
+    e2.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                        data = d, keep.pairScore = TRUE,
+                                        method.inference = "u-statistic-bebu"))
 
     expect_equal(e.BT@covariance, e2.BT@covariance)
     expect_equal(as.double(e.BT@covariance), c(1/16,1/16,-1/16, 1/4, 4) )
@@ -61,15 +62,15 @@ test_that("iid: binary and no strata (balanced groups)", {
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
-    e.BT <- BuyseTest(group ~ bin(toxicity),
-                      data = d, keep.pairScore = FALSE,
-                      method.inference = "u-statistic")
-    e1.BT <- BuyseTest(group ~ bin(toxicity),
-                     data = d, keep.pairScore = TRUE,
-                      method.inference = "u-statistic")
-    e2.BT <- BuyseTest(group ~ bin(toxicity),
-                       data = d, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu")
+    e.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                       data = d, keep.pairScore = FALSE,
+                                       method.inference = "u-statistic"))
+    e1.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                        data = d, keep.pairScore = TRUE,
+                                        method.inference = "u-statistic"))
+    e2.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                        data = d, keep.pairScore = TRUE,
+                                        method.inference = "u-statistic-bebu"))
 
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance) 
@@ -82,10 +83,10 @@ d.bis <- data.table(id = 1:4, group = c("C","T","T","T"), toxicity = c(1,1,1,0))
 test_that("iid: binary and no strata (unbalanced groups)", {
     ## first order
     BuyseTest.options(order.Hprojection = 1)
-    suppressWarnings(e.BT <- BuyseTest(group ~ bin(toxicity),
+    e.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
                                        data = d.bis, 
                                        method.inference = "u-statistic"))
-    suppressWarnings(e2.BT <- BuyseTest(group ~ bin(toxicity),
+    e2.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
                        data = d.bis, keep.pairScore = TRUE,
                        method.inference = "u-statistic-bebu"))
     
@@ -97,15 +98,15 @@ test_that("iid: binary and no strata (unbalanced groups)", {
 
     ## second order
     BuyseTest.options(order.Hprojection = 2)
-    suppressWarnings(e.BT <- BuyseTest(group ~ bin(toxicity),
-                      data = d.bis, keep.pairScore = FALSE,
-                      method.inference = "u-statistic"))
-    suppressWarnings(e1.BT <- BuyseTest(group ~ bin(toxicity),
-                       data = d.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic"))
-    suppressWarnings(e2.BT <- BuyseTest(group ~ bin(toxicity),
-                       data = d.bis, keep.pairScore = TRUE,
-                       method.inference = "u-statistic-bebu"))
+    e.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                       data = d.bis, keep.pairScore = FALSE,
+                                       method.inference = "u-statistic"))
+    e1.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                            data = d.bis, keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
+    e2.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity),
+                                        data = d.bis, keep.pairScore = TRUE,
+                                        method.inference = "u-statistic-bebu"))
     
     expect_equal(e.BT@covariance, e1.BT@covariance) ## assumes vs. does not assumes binary score when computing second order terms
     expect_equal(e.BT@covariance, e2.BT@covariance) 
@@ -121,22 +122,22 @@ test_that("iid: binary with strata (balanced groups)", {
     for(iOrder in 1:2){ ## iOrder <- 2
         BuyseTest.options(order.Hprojection = iOrder)
 
-        e.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                          data = d2, keep.pairScore = FALSE,
-                          method.inference = "u-statistic")
-        e2.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                           data = d2, keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
-        ebebu.BT <- BuyseTest(group ~ bin(toxicity) + strata,
-                              data = d2, keep.pairScore = TRUE,
-                              method.inference = "u-statistic-bebu")
+        e.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity) + strata,
+                                           data = d2, keep.pairScore = FALSE,
+                                           method.inference = "u-statistic"))
+        e2.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity) + strata,
+                                            data = d2, keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
+        ebebu.BT <- suppressWarnings(BuyseTest(group ~ bin(toxicity) + strata,
+                                               data = d2, keep.pairScore = TRUE,
+                                               method.inference = "u-statistic-bebu"))
 
         expect_equal(e.BT@covariance,e2.BT@covariance)
         expect_equal(e.BT@covariance,ebebu.BT@covariance)
 
         ls.BT <- lapply(split(d2,d2$strata), function(iData){
-            BuyseTest(group ~ bin(toxicity), data = iData,
-                      method.inference = "u-statistic")
+            suppressWarnings(BuyseTest(group ~ bin(toxicity), data = iData,
+                                       method.inference = "u-statistic"))
         })
         
         M.estimate <- do.call(rbind,lapply(ls.BT, function(iBT){coef2(iBT)}))
@@ -231,16 +232,16 @@ dtS[S > 1, score2 := 1]
 test_that("Manual calculation of second order H projection (no strata)",{
 
     BuyseTest.options(order.Hprojection = 1)
-    e.BT_c1 <- BuyseTest(treatment ~ cont(score),
-                         data = dt, trace = 0, 
-                         method.inference = "u-statistic")
+    e.BT_c1 <- suppressWarnings(BuyseTest(treatment ~ cont(score),
+                                          data = dt, trace = 0, 
+                                          method.inference = "u-statistic"))
     BuyseTest.options(order.Hprojection = 2)
-    e.BT_c2 <- BuyseTest(treatment ~ cont(score),
-                         data = dt, trace = 0, 
-                         method.inference = "u-statistic")
-    e.BT_c3 <- BuyseTest(treatment ~ cont(score),
-                         data = dt, trace = 0, keep.pairScore = TRUE, 
-                         method.inference = "u-statistic")
+    e.BT_c2 <- suppressWarnings(BuyseTest(treatment ~ cont(score),
+                                          data = dt, trace = 0, 
+                                          method.inference = "u-statistic"))
+    e.BT_c3 <- suppressWarnings(BuyseTest(treatment ~ cont(score),
+                                          data = dt, trace = 0, keep.pairScore = TRUE, 
+                                          method.inference = "u-statistic"))
 
     ## manual calculation
     dt.pair <- getPairScore(e.BT_c3)[,.(index.C,index.T,favorable,unfavorable)]
@@ -274,16 +275,16 @@ test_that("Manual calculation of second order H projection (no strata)",{
 
 test_that("Manual calculation of second order H projection (strata)",{
     BuyseTest.options(order.Hprojection = 1)
-    e.BT_c1 <- BuyseTest(treatment ~ cont(score) + S,
-                         data = dtS, trace = 0, 
-                         method.inference = "u-statistic")
+    e.BT_c1 <- suppressWarnings(BuyseTest(treatment ~ cont(score) + S,
+                                          data = dtS, trace = 0, 
+                                          method.inference = "u-statistic"))
     BuyseTest.options(order.Hprojection = 2)
-    e.BT_c2 <- BuyseTest(treatment ~ cont(score) + S,
-                         data = dtS, trace = 0, 
-                         method.inference = "u-statistic")
-    e.BT_c3 <- BuyseTest(treatment ~ cont(score) + S,
-                         data = dtS, trace = 0, keep.pairScore = TRUE, 
-                         method.inference = "u-statistic")
+    e.BT_c2 <- suppressWarnings(BuyseTest(treatment ~ cont(score) + S,
+                                          data = dtS, trace = 0, 
+                                          method.inference = "u-statistic"))
+    e.BT_c3 <- suppressWarnings(BuyseTest(treatment ~ cont(score) + S,
+                                          data = dtS, trace = 0, keep.pairScore = TRUE, 
+                                          method.inference = "u-statistic"))
 
     ## manual calculation
     dt.pair <- getPairScore(e.BT_c3)[,.(strata,index.C,index.T,favorable,unfavorable)]
@@ -320,21 +321,21 @@ test_that("Manual calculation of second order H projection (strata)",{
 test_that("iid: TTE and no strata",{
     BuyseTest.options(order.Hprojection = 1)
 
-    e.BT_tte1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
-                           data = dt, trace = 0, 
-                           keep.pairScore = TRUE,
-                           scoring.rule = "Gehan",
-                           method.inference = "u-statistic")
-    e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
-                           data = dt, trace = 0, 
-                           keep.pairScore = TRUE,
-                           scoring.rule = "Gehan",
-                           method.inference = "u-statistic")
-    e.BT_tte3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
-                           data = dt, trace = 0,
-                           keep.pairScore = TRUE,
-                           scoring.rule = "Gehan",
-                           method.inference = "u-statistic")
+    e.BT_tte1 <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
+                                            data = dt, trace = 0, 
+                                            keep.pairScore = TRUE,
+                                            scoring.rule = "Gehan",
+                                            method.inference = "u-statistic"))
+    e.BT_tte2 <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
+                                            data = dt, trace = 0, 
+                                            keep.pairScore = TRUE,
+                                            scoring.rule = "Gehan",
+                                            method.inference = "u-statistic"))
+    e.BT_tte3 <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
+                                            data = dt, trace = 0,
+                                            keep.pairScore = TRUE,
+                                            scoring.rule = "Gehan",
+                                            method.inference = "u-statistic"))
 
     expect_equivalent(confint(e.BT_tte1)[1,],
                       confint(e.BT_tte2)[2,],
@@ -488,22 +489,22 @@ test_that("iid: two endpoints (strata)", {
     for(iOrder in 1:2){ ## iOrder <- 1
         BuyseTest.options(order.Hprojection = iOrder)
 
-        e.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                          data = dtS,
-                          method.inference = "u-statistic")
-        e2.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                           data = dtS, keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
-        ebebu.BT <- BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
-                           data = dtS, keep.pairScore = TRUE,
-                           method.inference = "u-statistic-bebu")
+        e.BT <- suppressWarnings(BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
+                                           data = dtS,
+                                           method.inference = "u-statistic"))
+        e2.BT <- suppressWarnings(BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
+                                            data = dtS, keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
+        ebebu.BT <- suppressWarnings(BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1) + S,
+                                               data = dtS, keep.pairScore = TRUE,
+                                               method.inference = "u-statistic-bebu"))
 
         expect_equal(e.BT@covariance,e2.BT@covariance)
         expect_equal(e.BT@covariance,ebebu.BT@covariance)
 
         ls.BT <- lapply(split(dtS,dtS$S), function(iData){
-            BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1), data = iData,
-                      method.inference = "u-statistic")
+            suppressWarnings(BuyseTest(treatment ~ cont(score1, threshold = 1) + cont(score2, threshold = 1), data = iData,
+                                       method.inference = "u-statistic"))
         })
         
         ls.estimate <- lapply(ls.BT, function(iBT){coef2(iBT)})
@@ -534,12 +535,12 @@ dtS <- rbind(cbind(S = 1, dt, id = 1:NROW(dt)), cbind(S = 2, dt, id = 1:NROW(dt)
 
 test_that("cluster option", {
     BuyseTest.options(order.Hprojection = 1)
-    e.BT <- BuyseTest(treatment ~ cont(score, threshold = 1) + bin(toxicity),
-                      data = dt,
-                      method.inference = "u-statistic")
-    e3.BT <- BuyseTest(treatment ~ cont(score, threshold = 1) + bin(toxicity) + S,
-                       data = dtS,
-                       method.inference = "u-statistic")
+    e.BT <- suppressWarnings(BuyseTest(treatment ~ cont(score, threshold = 1) + bin(toxicity),
+                                       data = dt,
+                                       method.inference = "u-statistic"))
+    e3.BT <- suppressWarnings(BuyseTest(treatment ~ cont(score, threshold = 1) + bin(toxicity) + S,
+                                        data = dtS,
+                                        method.inference = "u-statistic"))
 
     expect_equal(unname(getIid(e.BT)),unname(getIid(e3.BT, cluster = dtS$id)), tol = 1e-6)
     expect_equivalent(as.data.frame(confint(e.BT)),
@@ -565,37 +566,37 @@ dt$treatment2 <- as.numeric(dt$treatment=="C")
 test_that("iid with nuisance parameters: 1 TTE",{
     BuyseTest.options(order.Hprojection = 1)
 
-    e.BT_tte1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
-                           data = dt, trace = 0, 
-                           keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
-    e.BT_tte1.bis <- BuyseTest(treatment2 ~ tte(eventtime, status, threshold = 1),
-                               data = dt, trace = 0, 
-                               keep.pairScore = TRUE,
-                               method.inference = "u-statistic")       
-    e.BT_tte2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
-                           data = dt, trace = 0, 
-                           keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
+    e.BT_tte1 <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1),
+                                            data = dt, trace = 0, 
+                                            keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
+    e.BT_tte1.bis <- suppressWarnings(BuyseTest(treatment2 ~ tte(eventtime, status, threshold = 1),
+                                                data = dt, trace = 0, 
+                                                keep.pairScore = TRUE,
+                                                method.inference = "u-statistic"))
+    e.BT_tte2 <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1e5) + tte(eventtime, status, threshold = 1-1e-5),
+                                            data = dt, trace = 0, 
+                                            keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
 
-    e.BT_tte3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
-                           data = dt, trace = 0,
-                           keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
+    e.BT_tte3 <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + tte(eventtime, status, threshold = 1-1e-5),
+                                            data = dt, trace = 0,
+                                            keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
 
-    e.BT_tte4 <- BuyseTest(treatment ~ bin(X0) + tte(eventtime, status, threshold = 1),
-                           data = dt, trace = 0, 
-                           keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
+    e.BT_tte4 <- suppressWarnings(BuyseTest(treatment ~ bin(X0) + tte(eventtime, status, threshold = 1),
+                                            data = dt, trace = 0, 
+                                            keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
 
-    e.BT_tte5 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 2) + bin(X0) + tte(eventtime, status, threshold = 1),
-                           data = dt, trace = 0, 
-                           keep.pairScore = TRUE,
-                           method.inference = "u-statistic")
-    e.BT_tte5.bis <- BuyseTest(treatment2 ~ tte(eventtime, status, threshold = 2) + bin(X0) + tte(eventtime, status, threshold = 1),
-                               data = dt, trace = 0, 
-                               keep.pairScore = TRUE,
-                               method.inference = "u-statistic")
+    e.BT_tte5 <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 2) + bin(X0) + tte(eventtime, status, threshold = 1),
+                                            data = dt, trace = 0, 
+                                            keep.pairScore = TRUE,
+                                            method.inference = "u-statistic"))
+    e.BT_tte5.bis <- suppressWarnings(BuyseTest(treatment2 ~ tte(eventtime, status, threshold = 2) + bin(X0) + tte(eventtime, status, threshold = 1),
+                                                data = dt, trace = 0, 
+                                                keep.pairScore = TRUE,
+                                                method.inference = "u-statistic"))
 
     ## unchanged when switching around the groups
     expect_equal(e.BT_tte1@count.unfavorable,e.BT_tte1.bis@count.favorable)
@@ -640,10 +641,10 @@ dt <- simBuyseTest(n, argsTTE = list(scale.T = 2, scale.censoring.T = 1))
 test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     BuyseTest.options(order.Hprojection = 1)
 
-    e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
-                             data = dt, 
-                             keep.pairScore = TRUE,
-                             method.inference = "u-statistic")
+    e.BT_ttebin <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
+                                              data = dt, 
+                                              keep.pairScore = TRUE,
+                                              method.inference = "u-statistic"))
 
     test <- confint(e.BT_ttebin)
     GS <- matrix(c(-0.33333333, -0.13333333, 0.24130536, 0.36004622, -0.70573842, -0.69241599, 0.18339631, 0.52579681, 0, 0, 0.20172157, 0.7144262), 
@@ -657,11 +658,11 @@ test_that("iid with nuisance parameters: 1 TTE + 1 binary",{
     e.TTEM <- BuyseTTEM(Hist(eventtime,status)~treatment, treatment = "treatment", data = dt, iid=TRUE, iid.surv="prodlim")
     attr(e.TTEM, "iidNuisance") <- TRUE
     
-    e.BT_ttebin <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
-                             data = dt, 
-                             keep.pairScore = TRUE,
-                             model.tte = e.TTEM,
-                             method.inference = "u-statistic")
+    e.BT_ttebin <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime, status, threshold = 1) + bin(toxicity),
+                                              data = dt, 
+                                              keep.pairScore = TRUE,
+                                              model.tte = e.TTEM,
+                                              method.inference = "u-statistic"))
 
     test <- confint(e.BT_ttebin)
     GS <- matrix(c(-0.33333333, -0.13333333, 0.23587679, 0.35518499, -0.69967949, -0.68733243, 0.17180423, 0.51874253, 0, 0, 0.19153767, 0.71069249), 
@@ -747,14 +748,14 @@ test_that("iid with nuisance parameters: 2 TTE",{
 test_that("iid with nuisance parameters: 1 TTE + strata",{
     BuyseTest.options(order.Hprojection = 1)
 
-    e.BT_tteS <- BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + toxicity1,
+    e.BT_tteS <- suppressWarnings(BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1) + toxicity1,
                            data = dt.sim, 
-                           method.inference = "u-statistic")
+                           method.inference = "u-statistic"))
     ##  e.BT_tteS@covariance
 
     ls.BT_tteS <- lapply(split(dt.sim,dt.sim$toxicity1), function(iData){
-        BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1), data = iData,
-                  method.inference = "u-statistic")
+        suppressWarnings(BuyseTest(treatment ~ tte(eventtime1, status1, threshold = 1), data = iData,
+                                   method.inference = "u-statistic"))
     })
         
     M.estimate <- do.call(rbind,lapply(ls.BT_tteS, function(iBT){coef2(iBT)}))

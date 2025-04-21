@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jan  5 2023 (11:45) 
 ## Version: 
-## Last-Updated: jul 17 2023 (16:34) 
+## Last-Updated: Apr 21 2025 (12:23) 
 ##           By: Brice Ozenne
-##     Update #: 62
+##     Update #: 65
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -152,7 +152,7 @@ test_that("no strata (check coef)",{
                 expect_equal(coef(e.BT2, statistic = iStat, resampling = TRUE), test1, tol = 1e-5)
                 expect_equal(as.double(coef(e.BT2, statistic = iStat, resampling = TRUE)), as.double(test2), tol = 1e-5)
             }else if(iStat != "winRatio"){        
-                expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), .rowCumSum_cpp(test1), tol = 1e-5)
+                expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), BuyseTest:::.rowCumSum_cpp(test1), tol = 1e-5)
                 expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)), unname(cbind(test2[,"Y_1"], test2[,"Y_1"]+test2[,"Y_2"])), tol = 1e-5)
             }
         }
@@ -295,7 +295,7 @@ test_that("strata (check coef)",{
           if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf")){
               expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(test)), tol = 1e-5)
           }else if(iStat != "winRatio"){
-              expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(.colMultiply_cpp(test, e.BT2@weightStrata))), tol = 1e-5)
+              expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(BuyseTest:::.colMultiply_cpp(test, e.BT2@weightStrata))), tol = 1e-5)
           }
       }
 
@@ -311,9 +311,9 @@ test_that("strata (check coef)",{
       }else if(iStat %in% c("count.favorable","count.unfavorable")){
           expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(cumsum(colSums(test))), tol = 1e-5)
       }else if(iStat %in% c("neutral","uninf")){
-          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(.colMultiply_cpp(test, e.BT2@weightStrata))), tol = 1e-5)
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(colSums(BuyseTest:::.colMultiply_cpp(test, e.BT2@weightStrata))), tol = 1e-5)
       }else if(iStat != "winRatio"){
-          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(cumsum(colSums(.colMultiply_cpp(test, e.BT2@weightStrata)))), tol = 1e-5)
+          expect_equal(as.double(coef(e.BT2, statistic = iStat)), as.double(cumsum(colSums(BuyseTest:::.colMultiply_cpp(test, e.BT2@weightStrata)))), tol = 1e-5)
       }
 
       if(iStat %in% c("count.favorable","count.unfavorable","count.neutral","count.uninf") == FALSE){
@@ -332,7 +332,7 @@ test_that("strata (check coef)",{
                            unname(test), tol = 1e-5)
           }else if(iStat != "winRatio"){
               expect_equal(unname(coef(e.BT2, statistic = iStat, resampling = TRUE)),
-                           unname(.rowCumSum_cpp(test)), tol = 1e-5)
+                           unname(BuyseTest:::.rowCumSum_cpp(test)), tol = 1e-5)
           }
           test <- coef(e.BT2, statistic = iStat, strata = TRUE, cumulative = FALSE, resampling = TRUE)
           if(iStat %in% c("neutral","uninf")){

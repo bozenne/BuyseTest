@@ -14,6 +14,7 @@ library(mvtnorm)
 ## setwd("~/Documents/GitHub/BuyseTest/tests/")
 ## source("~/Documents/GitHub/BuyseTest/tests/testthat/test-BuyseTest-engine.R")
 test_check("BuyseTest")
+## test_check("BuyseTest")
 
 ## * memory check
 ## /data/gannet/ripley/R/packages/tests-clang-SAN/BuyseTest/src/FCT_buyseTest.cpp:894:20

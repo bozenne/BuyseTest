@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1252
+##     Update #: 1253
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -184,10 +184,6 @@ setMethod(f = "confint",
                                refuse.duplicates = TRUE,
                                method = "autoplot[S4BuyseTest]")
                   strata <- level.strata[strata]
-              }else if("standardize" %in% strata || "standardise" %in% strata){
-                  if(length(strata)>1){
-                      stop("Argument \'strata\' should have length 1 when set to \"standardize\" or \"standardise\". \n")
-                  }
               }else{
                   validCharacter(strata,
                                  name1 = "strata",
@@ -340,7 +336,7 @@ setMethod(f = "confint",
               ## ** extract estimate
               all.endpoint <- names(object@endpoint)
               DeltaW <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = FALSE, simplify = FALSE)
-              if(length(strata)==1 && all(strata %in% c("global","standardize","standardise"))){
+              if(length(strata)==1 && all(strata=="global")){
                   Delta <- stats::setNames(DeltaW["global",], endpoint)
               }else{
                   DeltaL <- stats::reshape(data.frame(strata = strata, DeltaW), direction = "long", varying = endpoint,
@@ -350,7 +346,7 @@ setMethod(f = "confint",
 
               if(((attr(method.inference,"permutation") && method.inference != "varexact permutation")) || attr(method.inference,"bootstrap")){
                   DeltaW.resampling <- coef(object, endpoint = endpoint, statistic = statistic, strata = strata, cumulative = cumulative, resampling = TRUE, simplify = FALSE)
-                  if(length(strata)==1 && all(strata %in% c("global","standardize","standardise"))){
+                  if(length(strata)==1 && all(strata=="global")){
                       Delta.resampling <- matrix(DeltaW.resampling[,"global",], ncol = length(endpoint), dimnames = list(NULL, endpoint))
                   }else{
                       Delta.resampling <- do.call(cbind,apply(DeltaW.resampling, MARGIN = 3 , FUN = base::identity, simplify = FALSE))

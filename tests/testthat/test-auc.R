@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:55) 
 ## Version: 
-## Last-Updated: Jan  4 2022 (10:25) 
+## Last-Updated: Apr 21 2025 (12:09) 
 ##           By: Brice Ozenne
-##     Update #: 60
+##     Update #: 62
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -24,6 +24,12 @@ if(FALSE){
 }
 
 context("Check auc calculation vs. cvAUC")
+
+## * Settings
+BuyseTest.options(check = TRUE,
+                  method.inference = "none",
+                  trace = 0)
+
 
 ## * Compare AUC and CI
 n <- 200
@@ -97,8 +103,9 @@ test_that("AUC after CV - BuyseTest vs cvAUC",{
     ## GS0 <- cvAUC::cvAUC(predictions = dt$X, labels = dt$Y, folds = dt$fold) ## gives wrong results as it ignores fold argument
     GS1 <- cvAUC::ci.cvAUC(predictions = dt$X, labels = dt$Y, folds = dt$fold)
 
-    test <- BuyseTest::auc(labels = dt$Y, prediction = dt$X,
-                           fold = dt$fold, observation = 1:NROW(dt), pooling = "mean")
+    ## remove warning for uncertainty estimation (P-value/confidence intervals will not be valid with only one observation.)
+    test <- suppressWarnings(BuyseTest::auc(labels = dt$Y, prediction = dt$X,
+                                            fold = dt$fold, observation = 1:NROW(dt), pooling = "mean"))
     
     expect_equal(test[test$fold=="global", "estimate"], GS1$cvAUC, tol = 1e-6)
     expect_equal(test[test$fold=="global", "estimate"], 0.703265, tol = 1e-6)

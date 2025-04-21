@@ -115,21 +115,7 @@ setMethod(f = "getIid",
               level.strata <- object@level.strata
               n.strata <- length(level.strata)
               weightStrata <- object@weightStrata
-              if(attr(weightStrata,"type")=="standardization"){
-                  grid.strata <- expand.grid(attr(level.strata,"original"),
-                                             attr(level.strata,"original"))
-                  rownames(grid.strata) <- ifelse(grid.strata[,1]==grid.strata[,2],
-                                                  grid.strata[,1],
-                                                  paste(grid.strata[,1],grid.strata[,2],sep="."))
-                  colnames(grid.strata) <- object@level.treatment
-                  grid.strata <- grid.strata[level.strata,,drop=FALSE]
-                  indexStrata <- lapply(1:NROW(grid.strata), function(iS){
-                      c(intersect(indexC,attr(level.strata,"index")[[grid.strata[iS,1]]]),
-                        intersect(indexT,attr(level.strata,"index")[[grid.strata[iS,2]]]))
-                  })
-              }else{
-                  indexStrata <- attr(level.strata,"index")
-              }
+              indexStrata <- attr(level.strata,"index")
               attr(level.strata,"index") <- NULL
               if(is.null(strata)){
                   if(length(level.strata)==1){
