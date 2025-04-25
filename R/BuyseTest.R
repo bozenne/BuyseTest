@@ -18,6 +18,7 @@
 #' \code{"Buyse"} to weight proportionally to the number of pairs in the strata,
 #' \code{"CMH"} to weight proportionally to the ratio between the number of pairs in the strata and the number of observations in the strata.
 #' \code{"equal"} to weight equally each strata,
+#' \code{"standardisation"} to recover a marginal comparison,
 #' or \code{"var-netBenefit"} to weight each strata proportionally to the precision of its estimated net benefit (similar syntax for the win ratio: \code{"var-winRatio"})
 #' @param correction.uninf [integer] should a correction be applied to remove the bias due to the presence of uninformative pairs?
 #' 0 indicates no correction, 1 impute the average score of the informative pairs, and 2 performs IPCW.

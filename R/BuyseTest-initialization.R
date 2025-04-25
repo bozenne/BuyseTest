@@ -301,7 +301,7 @@ initializeArgs <- function(status,
     attr(method.inference,"bootstrap") <- grepl("bootstrap",method.inference)
     attr(method.inference,"studentized") <- grepl("studentized",method.inference)
     attr(method.inference,"ustatistic") <- grepl("u statistic",method.inference)
-    if(is.na(strata.resampling) || length(strata.resampling)== 0){
+    if(all(is.na(strata.resampling)) || length(strata.resampling)== 0){
         attr(method.inference,"resampling-strata") <- as.character(NA)
     }else{
         attr(method.inference,"resampling-strata") <- strata.resampling
@@ -572,7 +572,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     ## ** number of observations per strata used when resampling
     index.C <- which(data[[treatment]] == 0)
     index.T <- which(data[[treatment]] == 1)
-    if(!is.na(attr(method.inference,"resampling-strata"))){
+    if(any(!is.na(attr(method.inference,"resampling-strata")))){
         n.obsStrataResampling <- table(data[,interaction(.SD), .SDcols = attr(method.inference,"resampling-strata")])
     }else{
         n.obsStrataResampling <- n.obs

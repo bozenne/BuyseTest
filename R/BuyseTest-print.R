@@ -164,7 +164,7 @@ printInference <- function(method.inference, paired, n.resampling, cpus, seed, .
         }else if(attr(method.inference,"permutation")){
             txt.type <- paste0("permutation test with ",n.resampling," permutations")
         }
-        if(!is.na(attr(method.inference,"resampling-strata"))){
+        if(any(!is.na(attr(method.inference,"resampling-strata")))){
             txt.type <- paste0(txt.type, " (stratified by \"",paste(attr(method.inference,"resampling-strata"),sep="\" \""),"\")")
         }
 

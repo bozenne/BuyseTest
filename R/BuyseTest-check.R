@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Apr 21 2025 (19:00) 
+## Last-Updated: apr 25 2025 (11:38) 
 ##           By: Brice Ozenne
-##     Update #: 400
+##     Update #: 402
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -384,10 +384,10 @@ testArgs <- function(name.call,
         ## any(table(data[[treatment]],data[[strata]])!=1): make sure that the design is not paired
         warning("P-value/confidence intervals may not be valid with few observations in a treatment and strata group. \n")
     }
-    if(!is.na(attr(method.inference,"resampling-strata")) && any(attr(method.inference,"resampling-strata") %in% names(data) == FALSE)){
+    if(any(!is.na(attr(method.inference,"resampling-strata"))) && any(attr(method.inference,"resampling-strata") %in% names(data) == FALSE)){
         stop("Incorrect value for argument \'strata.resampling\': must correspond to a column in argument \'data\'. \n")
     }
-    if(!is.na(attr(method.inference,"resampling-strata")) && attr(method.inference,"permutation") && any(attr(method.inference,"resampling-strata") == treatment)){
+    if(any(!is.na(attr(method.inference,"resampling-strata"))) && attr(method.inference,"permutation") && any(attr(method.inference,"resampling-strata") == treatment)){
         stop("Argument \'strata.resampling\' should not contain the variable used to form the treatment groups when using a permutation test. \n")
     }
     if(iid && correction.uninf > 0){
