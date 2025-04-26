@@ -710,9 +710,14 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
     posStrataT = posT[iter_strataT];
     nStrata_Control = indexStrataC.size();
     nStrata_Treatment = indexStrataT.size();
-    if(pool==3){ // standardization: weight iid differently across strata (w_standardization / w_marginalization)
+    if(pool==3){ // standardization: weight iid differently across strata
+      // estimate: \Delta = \sum_{s,s*) w(s,s*) \Delta(s,s^*)
+      // Hajek projection for individual i belonging to the control group with m observations
+      // h_1(i) = \sum_{s,s*) w(s,s*) h_1(i,s,s^*) = \sum_{s,s*) w(s,s*) (1/n_s* \sum_{j=1}^n 1[Y_j>X_i] 1[s_i=s,s_j=s*] - \Delta(s,s^*)) / m_s
+      //        = \sum_{s,s*) w(s,s*)/(n_s* m_s) \sum_{j=1}^n 1[Y_j>X_i] 1[s_i=s,s_j=s*] - \sum_{s,s*) w(s,s*) \Delta(s,s^*) / m_s
+      // here we export the first term, i.e., should weight with w(s,s*)/(n_s* m_s).      
       iStdWeight = nObs_strata(iter_strataC)*nObs_strata(iter_strataT)/pow(n_obs,2);
-      iStdRatio = iStdWeight/(vecn_control[iter_strata]*vecn_treatment[iter_strata]/n_pairs);
+      iStdRatio = iStdWeight/(vecn_control[iter_strata]*vecn_treatment[iter_strata]);
     }
 
     // prepare d(survival)/d(nuisance)

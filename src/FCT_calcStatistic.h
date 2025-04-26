@@ -60,7 +60,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     n_treatment2 = n_treatment2*(ntot_treatment-1) + 1;
     n_control2 = n_control2*(ntot_control-1) + 1;
   }
-  
+
   // ** proportion of favorable/unfavorable/neutral/uniformative pairs within each strata and priority 
   delta.slice(0) = Mcount_favorable;
   delta.slice(0).each_col() /= n_pairs;
@@ -89,16 +89,15 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
   if(returnIID[0]>0 || pool>=4){
 
     // *** scale to move from a sum to an expectation (E[s^{\gamma}_{l,j}|x_l])
-    for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
-      iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
-      iter_strataT = grid_strata(iter_strata,1); // 
-
-      iidAverage_favorable.rows(posC[iter_strataC]) /= n_treatment2[iter_strata];
-      iidAverage_favorable.rows(posT[iter_strataT]) /= n_control2[iter_strata];
-      iidAverage_unfavorable.rows(posC[iter_strataC]) /= n_treatment2[iter_strata];
-      iidAverage_unfavorable.rows(posT[iter_strataT]) /= n_control2[iter_strata];
-      iidAverage_neutral.rows(posC[iter_strataC]) /= n_treatment2[iter_strata];
-      iidAverage_neutral.rows(posT[iter_strataT]) /= n_control2[iter_strata];
+    if(pool!=3){
+      for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ // loop over strata
+	iidAverage_favorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
+	iidAverage_favorable.rows(posT[iter_strata]) /= n_control[iter_strata];
+	iidAverage_unfavorable.rows(posC[iter_strata]) /= n_treatment[iter_strata];
+	iidAverage_unfavorable.rows(posT[iter_strata]) /= n_control[iter_strata];
+	iidAverage_neutral.rows(posC[iter_strata]) /= n_treatment[iter_strata];
+	iidAverage_neutral.rows(posT[iter_strata]) /= n_control[iter_strata];
+      }
     }
     
     // *** center to obtain (endpoint specific) first order projection (h_1^{\gamma}(l) = E[s^{\gamma}_{l,j}|x_l]-U^{\gamma})
@@ -109,39 +108,45 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 
 	  for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
 	    if(pool==3){
-	      weightPool[iter_strata] = nObs_strata(grid_strata(iter_strata,0))*nObs_strata(grid_strata(iter_strata,1))/pow(ntot_control+ntot_treatment,2);
-	      iidAverage_favorable.col(iter_d) -= weightPool[iter_strata]*delta.slice(0)(iter_strata,iter_d);
-	      iidAverage_unfavorable.col(iter_d) -= weightPool[iter_strata]*delta.slice(1)(iter_strata,iter_d);
-	      iidAverage_neutral.col(iter_d) -= weightPool[iter_strata]*delta.slice(2)(iter_strata,iter_d);
-	    }else{
+	      // estimate: \Delta = \sum_{s,s*) w(s,s*) \Delta(s,s^*)
+	      // Hajek projection for individual i belonging to the control group with m observations
+	      // h_1(i) = \sum_{s,s*) w(s,s*) h_1(i,s,s^*) = \sum_{s,s*) w(s,s*) (1/n_s* \sum_{j=1}^n 1[Y_j>X_i] 1[s_i=s,s_j=s*] - \Delta(s,s^*)) / m_s
+	      //        = \sum_{s,s*) w(s,s*)/(n_s* m_s) \sum_{j=1}^n 1[Y_j>X_i] 1[s_i=s,s_j=s*] - \sum_{s,s*) w(s,s*) \Delta(s,s^*) / m_s
+	      // here we substract the second term, i.e., w(s,s*) \Delta(s,s^*) / m_s      
 	      iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
-	      iter_strataT = grid_strata(iter_strata,1); //
+	      iter_strataT = grid_strata(iter_strata,1); // 
 
-	      iidAverage_favorable(posC[iter_strataC],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];
-	      iidAverage_favorable(posT[iter_strataT],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      weightPool[iter_strata] = nObs_strata(grid_strata(iter_strata,0))*nObs_strata(grid_strata(iter_strata,1))/pow(ntot_control+ntot_treatment,2);
+
+	      iidAverage_favorable(posC[iter_strataC],ivecD) -= (weightPool[iter_strata]/n_control[iter_strata]) * delta.slice(0)(iter_strata,iter_d);
+	      iidAverage_favorable(posT[iter_strataT],ivecD) -= (weightPool[iter_strata]/n_treatment[iter_strata]) * delta.slice(0)(iter_strata,iter_d);
       
-	      iidAverage_unfavorable(posC[iter_strataC],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
-	      iidAverage_unfavorable(posT[iter_strataT],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_unfavorable(posC[iter_strataC],ivecD) -= (weightPool[iter_strata]/n_control[iter_strata]) * delta.slice(1)(iter_strata,iter_d);
+	      iidAverage_unfavorable(posT[iter_strataT],ivecD) -= (weightPool[iter_strata]/n_treatment[iter_strata]) * delta.slice(1)(iter_strata,iter_d);
 
-	      iidAverage_neutral(posC[iter_strataC],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
-	      iidAverage_neutral(posT[iter_strataT],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_neutral(posC[iter_strataC],ivecD) -= (weightPool[iter_strata]/n_control[iter_strata]) * delta.slice(2)(iter_strata,iter_d);
+	      iidAverage_neutral(posT[iter_strataT],ivecD) -= (weightPool[iter_strata]/n_treatment[iter_strata]) * delta.slice(2)(iter_strata,iter_d);
+	    }else{
+	      iidAverage_favorable(posC[iter_strata],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_favorable(posT[iter_strata],ivecD) -= delta.slice(0)(iter_strata,iter_d); // same as -= Mcount_favorable(iter_strata,iter_d)/n_pairs[iter_strata];      
+	      iidAverage_unfavorable(posC[iter_strata],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_unfavorable(posT[iter_strata],ivecD) -= delta.slice(1)(iter_strata,iter_d); // same as -= Mcount_unfavorable(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_neutral(posC[iter_strata],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
+	      iidAverage_neutral(posT[iter_strata],ivecD) -= delta.slice(2)(iter_strata,iter_d); // same as -= Mcount_neutral(iter_strata,iter_d)/n_pairs[iter_strata];
 	    }
 	  }
       }
   
-      // *** rescale such that the sum of squares of the projection equals the variance, i.e. obtain h_1^{\gamma}(l)/m
-      for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
-	iter_strataC = grid_strata(iter_strata,0); // index of the strata (may differ between treatment groups when using standardization)
-	iter_strataT = grid_strata(iter_strata,1); // 
-
-	iidAverage_favorable.rows(posC[iter_strataC]) /= n_control2[iter_strata];
-	iidAverage_favorable.rows(posT[iter_strataT]) /= n_treatment2[iter_strata];
-
-	iidAverage_unfavorable.rows(posC[iter_strataC]) /= n_control2[iter_strata];
-	iidAverage_unfavorable.rows(posT[iter_strataT]) /= n_treatment2[iter_strata];
-
-	iidAverage_neutral.rows(posC[iter_strataC]) /= n_control2[iter_strata];
-	iidAverage_neutral.rows(posT[iter_strataT]) /= n_treatment2[iter_strata];
+  // *** rescale such that the sum of squares of the projection equals the variance, i.e. obtain h_1^{\gamma}(l)/m
+      if(pool!=3){
+	for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){ 
+	  iidAverage_favorable.rows(posC[iter_strata]) /= n_control[iter_strata];
+	  iidAverage_favorable.rows(posT[iter_strata]) /= n_treatment[iter_strata];
+	  iidAverage_unfavorable.rows(posC[iter_strata]) /= n_control[iter_strata];
+	  iidAverage_unfavorable.rows(posT[iter_strata]) /= n_treatment[iter_strata];
+	  iidAverage_neutral.rows(posC[iter_strata]) /= n_control[iter_strata];
+	  iidAverage_neutral.rows(posT[iter_strata]) /= n_treatment[iter_strata];
+	}
       }
      
       // *** add the two source of uncertainty into a single iid

@@ -29,7 +29,7 @@ inferenceResampling <- function(envir){
     trace <- envir$outArgs$trace
 
     ## re-order dataset according to the strata used when resampling
-    if(!is.na(attr(method.inference,"resampling-strata"))){
+    if(any(!is.na(attr(method.inference,"resampling-strata")))){
         envir$outArgs$data[,c("..rowIndex..") := 1:.N]
         data.table::setkeyv(envir$outArgs$data, cols = attr(method.inference,"resampling-strata"))
 
