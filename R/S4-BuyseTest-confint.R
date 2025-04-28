@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1255
+##     Update #: 1264
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -191,6 +191,11 @@ setMethod(f = "confint",
                                  valid.values = c("global",level.strata),
                                  refuse.NULL = FALSE,
                                  method = "confint[S4BuyseTest]")
+              }
+              if(attr(object@weightStrata,"type")=="standardization" && attr(method.inference,"ustatistic") && any(strata %in% level.strata)){
+                  ## note: error message for studentized method is triggered later (end of method.ci checks)
+                  stop("Cannot output the strata-specific uncertainty based on the H-decomposition when using standardization. \n",
+                       "Consider using a resampling method by specifying the argument \'method.inference\' when calling the \"BuyseTest\" function. \n")
               }
               if(attr(slot(object,"scoring.rule"), "test.paired") && any(level.strata %in% strata)){
                   stop("Cannot output p-values or confidence intervals for stratified statistics with paired data. \n")

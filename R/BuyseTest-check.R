@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: apr 25 2025 (11:38) 
+## Last-Updated: Apr 26 2025 (14:33) 
 ##           By: Brice Ozenne
-##     Update #: 402
+##     Update #: 405
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -516,7 +516,7 @@ testArgs <- function(name.call,
                method = "BuyseTest")
 
     if (length(level.treatment) != 2) {
-        stop("BuyseTest: wrong specification of \'treatment\'. \n",
+        stop("BuyseTest: wrong specification of the group variable (\"",treatment,"\"). \n",
              "The corresponding column in \'data\' must have exactly 2 levels. \n",
              "Proposed levels : ",paste(level.treatment,collapse = " "),"\n")
     }
