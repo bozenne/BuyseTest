@@ -1,5 +1,9 @@
 # -*- mode: org -*-
 
+* Version 3.2.0.
+** User visible changes
+- NEW FEATURE: pool.strata = "standardization" to obtain a marginal Net Treatment Benefit after stratification.
+
 * Version 3.1.2
 ** User visible changes
 - NEW FEATURE: scoring.rule = "Efron": same formula as Peron scoring rule but the Kaplan Meier estimator is constrained to 0 at end of follow-up.

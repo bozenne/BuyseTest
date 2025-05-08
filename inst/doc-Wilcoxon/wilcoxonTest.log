@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  21 APR 2025 19:25
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  8 MAY 2025 10:29
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -1286,12 +1286,7 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <12> on input line 276.
- [2] [3]
-
-Package natbib Warning: Citation `anderson2023exact' on page 4 undefined on inp
-ut line 410.
-
-[4] [5
+ [2] [3] [4] [5
 
 ] (./wilcoxonTest.bbl)
 \Changes@OutFile=\write6
@@ -1301,33 +1296,16 @@ ut line 410.
 \openout7 = `wilcoxonTest.loc'.
 
 
-
-Package natbib Warning: There were undefined citations.
-
-[6] (./wilcoxonTest.aux
-
-Package natbib Warning: Citation(s) may have changed.
-(natbib)                Rerun to get citations correct.
-
-)
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-
-Package rerunfilecheck Warning: File `wilcoxonTest.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `wilcoxonTest.out':
-(rerunfilecheck)             Before: D41D8CD98F00B204E9800998ECF8427E;0
-(rerunfilecheck)             After:  A85AF2BAEFAB1BE5E88930FDCE1FA1C2;563.
+[6] (./wilcoxonTest.aux)
+Package rerunfilecheck Info: File `wilcoxonTest.out' has not changed.
+(rerunfilecheck)             Checksum: A85AF2BAEFAB1BE5E88930FDCE1FA1C2;563.
  ) 
 Here is how much of TeX's memory you used:
- 31165 strings out of 478287
- 567780 string characters out of 5849290
- 1462106 words of memory out of 5000000
- 48654 multiletter control sequences out of 15000+600000
- 536555 words of font info for 96 fonts, out of 8000000 for 9000
+ 31170 strings out of 478287
+ 567838 string characters out of 5849290
+ 1462346 words of memory out of 5000000
+ 48659 multiletter control sequences out of 15000+600000
+ 533557 words of font info for 95 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  114i,7n,117p,607b,1877s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dv
@@ -1337,10 +1315,10 @@ hare/texmf/fonts/type1/public/lm/lmbx6.pfb></usr/share/texmf/fonts/type1/public
 mf/fonts/type1/public/lm/lmri12.pfb></usr/share/texmf/fonts/type1/public/lm/lms
 y10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/share/texmf/fo
 nts/type1/public/lm/lmtt12.pfb>
-Output written on wilcoxonTest.pdf (6 pages, 193161 bytes).
+Output written on wilcoxonTest.pdf (6 pages, 193737 bytes).
 PDF statistics:
- 177 PDF objects out of 1000 (max. 8388607)
- 151 compressed objects within 2 object streams
+ 192 PDF objects out of 1000 (max. 8388607)
+ 166 compressed objects within 2 object streams
  87 named destinations out of 1000 (max. 500000)
- 13 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 45 words of extra memory for PDF output out of 10000 (max. 10000000)
 

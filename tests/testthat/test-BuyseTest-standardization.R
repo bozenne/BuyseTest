@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 11 2025 (15:42) 
 ## Version: 
-## Last-Updated: Apr 28 2025 (13:02) 
+## Last-Updated: May  8 2025 (10:27) 
 ##           By: Brice Ozenne
-##     Update #: 93
+##     Update #: 105
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -57,7 +57,7 @@ test_that("BuyseTest - standarization (first order, binary outcome)",{
     ## Y1 0.1811263 0.1220947 -0.06875553 0.4096230    0 0.1543344
 
     ## 2- standardized
-    BT.std         <- BuyseTest(data = df, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = F)
+    BT.std         <- BuyseTest(data = df, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = FALSE)
     expect_equal(mean(getIid(BT.std)),0, tol = 1e-6)
     expect_equivalent(confint(BT.std, transformation = FALSE),
                       data.frame("estimate" = c(0.23088881),"se" = c(0.10551968),"lower.ci" = c(0.02407403),"upper.ci" = c(0.43770359),"null" = c(0),"p.value" = c(0.02866149)),,
@@ -65,7 +65,7 @@ test_that("BuyseTest - standarization (first order, binary outcome)",{
     expect_equivalent(coef(BT.std, strata = TRUE), c("0" = 0.03658537, "1.0" = -0.30406504, "0.1" = 0.75, "1" = 0.49583333))
     expect_error(confint(BT.std, strata = TRUE)) ## cannot compute strata specific uncertainty since the same individual appear in sevearl strata
 
-    BT.std2         <- BuyseTest(data = df, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = TRUE,
+    BT.std2         <- BuyseTest(data = df, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = FALSE,
                                  method.inference = "bootstrap", strata.resampling = c("arm","X"), seed = 10)
     expect_equivalent(confint(BT.std2, method.ci = "gaussian", transformation = FALSE),
                       data.frame("estimate" = c(0.23088881),"se" = c(0.10915709),"lower.ci" = c(0.01694484),"upper.ci" = c(0.44483278),"null" = c(0),"p.value" = c(0.03441312)),
@@ -137,13 +137,13 @@ test_that("BuyseTest - standarization (first order, binary outcome)",{
 ## ** standardization (second order)
 BuyseTest.options(order.Hprojection = 2)
 
-test_that("BuyseTest - standarization (second order, binary outcome)",{
+test_that("BuyseTest - standarization (second order, binary outcome, balanced)",{
     ## with balanced dataset standardization equals marginal analysis
     dfB <- do.call(rbind,by(df, interaction(df$arm,df$X), function(iDF){iDF[1:min(table(df$arm,df$X)),,drop=FALSE]}))
     dfB$id <- 1:NROW(dfB)
     rownames(dfB) <- NULL
 
-    BTB.marginal         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau), trace = F)
+    BTB.marginal         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau), trace = FALSE)
     BTB.marginal2         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau), trace = F, keep.pairScore = TRUE)
     BTB.std         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = F, keep.pairScore = FALSE)
     BTB.std2         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = F, keep.pairScore = TRUE)
@@ -186,175 +186,48 @@ test_that("BuyseTest - standarization (second order, binary outcome)",{
     mytable[, m := length(attr(BTB.std2@level.treatment,"indexC"))]
     mytable[, n := length(attr(BTB.std2@level.treatment,"indexT"))]
     mytable[, Wfavorable := favorable * weightStrata/((m.X*n.X)/(n*m))]
+    ## mean(mytable$Wfavorable)
+    ## coef(BTB.std2, statistic = "favorable")
 
     Hproj_fav <- getIid(BTB.std2, statistic = "favorable", scale = FALSE)
     mytable[, hproj.0 := Hproj_fav[index.0]]
     mytable[, hproj.1 := Hproj_fav[index.1]]
+    mytable[, Tfavorable := coef(BTB.std2, statistic = "favorable")]
 
-    mytable[, sum((Wfavorable - hproj.0 - hproj.1 - est_fav)^2)/.N^2]
-    mytable[, sum((favorable - hproj.0 - hproj.1 - est_fav)^2)/.N^2]
-    expect_equal(term1, mytable[, sum((Wfavorable - hproj.0 - hproj.1 - est_fav)^2)/.N^2], tol = 1e-6)
-
-    BTB.std2@covariance[,"favorable"] - BTB.std0@covariance[,"favorable"]
-    BTB.std@covariance[,"favorable"] - BTB.std0@covariance[,"favorable"]
-    BTB.std2         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = F, keep.pairScore = TRUE)
+    expect_equal(term1, mytable[, sum((Wfavorable - hproj.0 - hproj.1 - Tfavorable)^2)/.N^2], tol = 1e-6)
+})    
     
-    
+test_that("BuyseTest - standarization (second order, binary outcome, unbalanced)",{
 
-    ## by hand (standardized - keep.pairScore = TRUE)
-    BTB.std@covariance - BTB.std0@covariance
-    BTB.std2@covariance - BTB.std0@covariance
+    ## 2- standardized
+    BTUB.std         <- BuyseTest(data = df, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = FALSE)
+    BTUB.std2         <- BuyseTest(data = df, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", keep.pairScore = TRUE, trace = FALSE)
 
-    BTB.marginal@covariance - BTB.marginal2@covariance
-    
-    
-    
-    ## by hand
-    dfB00 <- dfB[dfB$X==0,]
-    dfB10 <- rbind(dfB[dfB$X==0 & dfB$arm==1,],dfB[dfB$X==1 & dfB$arm==0,])
-    dfB01 <- rbind(dfB[dfB$X==0 & dfB$arm==0,],dfB[dfB$X==1 & dfB$arm==1,])
-    dfB11 <- dfB[dfB$X==1,]
+    expect_equivalent(confint(BTUB.std), confint(BTUB.std2), tol = 1e-6)
+    expect_equivalent(confint(BTUB.std), data.frame("estimate" = c(0.23088881),"se" = c(0.10675249),"lower.ci" = c(0.01411401),"upper.ci" = c(0.42693406),"null" = c(0),"p.value" = c(0.03705691)), tol = 1e-6)
 
-    BTB.strat00 <- BuyseTest(arm ~ cont(Y, threshold = tau), method.inference = "U-statistic", trace = F, data = dfB00)
-    BTB.strat10 <- BuyseTest(arm ~ cont(Y, threshold = tau), method.inference = "U-statistic", trace = F, data = dfB10)
-    BTB.strat01 <- BuyseTest(arm ~ cont(Y, threshold = tau), method.inference = "U-statistic", trace = F, data = dfB01)
-    BTB.strat11 <- BuyseTest(arm ~ cont(Y, threshold = tau), method.inference = "U-statistic", trace = F, data = dfB11)
-
-    grid.strataB <- expand.grid(X = sort(unique(dfB$X)), Xstar = sort(unique(dfB$X)))
-    grid.strataB$X.X <- paste(grid.strataB$X,grid.strataB$Xstar,sep=".")
-    dfB.extended <- do.call(rbind,apply(grid.strataB, MARGIN = 1, function(iRow){
-        cbind(rbind(dfB[dfB$arm == 0 & dfB$X == iRow[1],],
-                    dfB[dfB$arm == 1 & dfB$X == iRow[2],]),
-              X.X = paste(iRow[1],iRow[2],sep="."))
-    }))
-    grid.strataB$nC.X <- tapply(dfB.extended$arm==0,dfB.extended$X.X,sum)[grid.strataB$X.X]
-    grid.strataB$nE.Xstar <- tapply(dfB.extended$arm==1,dfB.extended$X.X,sum)[grid.strataB$X.X]
-    grid.strataB$n.X <- as.numeric(table(dfB$X)[as.character(grid.strataB$X)])
-    grid.strataB$n.Xstar <- as.numeric(table(dfB$X)[as.character(grid.strataB$Xstar)])
-    grid.strataB$w.unadjusted <- grid.strataB$nC.X * grid.strataB$nE.Xstar / prod(table(dfB$arm))
-    grid.strataB$w.standardize <- grid.strataB$n.X * grid.strataB$n.Xstar / NROW(dfB$arm)^2
-
-    ## direct
-    MyiidB <- matrix(0, nrow = NROW(dfB), ncol = 4, dimnames = list(NULL,unique(dfB.extended$X.X)))
-    MyiidB[dfB00$id,"0.0"] <- getIid(BTB.strat00)
-    MyiidB[dfB10$id,"1.0"] <- getIid(BTB.strat10)
-    MyiidB[dfB01$id,"0.1"] <- getIid(BTB.strat01)
-    MyiidB[dfB11$id,"1.1"] <- getIid(BTB.strat11)
-    MyWiidB <- sweep(MyiidB, FUN = "*", MARGIN = 2, STATS = grid.strataB$w.standardize)
-    mean(rowSums(MyWiidB))
-    crossprod(rowSums(MyWiidB))
-    
-    ## from the partial win/loss sums
-    MyiidB2 <- matrix(0, nrow = NROW(dfB), ncol = 4, dimnames = list(NULL,unique(dfB.extended$X.X)))
-    MyiidB2[dfB00$id,"0.0"] <- getIid(BTB.strat00, scale = FALSE, center = FALSE) * table(dfB00$arm)[as.character(1-dfB00$arm)]
-    MyiidB2[dfB10$id,"1.0"] <- getIid(BTB.strat10, scale = FALSE, center = FALSE) * table(dfB10$arm)[as.character(1-dfB10$arm)]
-    MyiidB2[dfB01$id,"0.1"] <- getIid(BTB.strat01, scale = FALSE, center = FALSE) * table(dfB01$arm)[as.character(1-dfB01$arm)]
-    MyiidB2[dfB11$id,"1.1"] <- getIid(BTB.strat11, scale = FALSE, center = FALSE) * table(dfB11$arm)[as.character(1-dfB11$arm)]
-
-    MyWiidB2 <- sweep(MyiidB2, FUN = "*", MARGIN = 2, STATS = grid.strataB$w.standardize)
-    MyWiidB2.norm <- matrix(0, nrow = NROW(dfB), ncol = 4, dimnames = list(NULL,unique(dfB.extended$X.X)))
-    MyWiidB2.norm[dfB00$id,"0.0"] <- ((MyWiidB2[dfB00$id,"0.0"] / table(dfB00$arm)[as.character(1-dfB00$arm)]) - coef(BTB.strat00)*BTB.std@weightStrata[1])/table(dfB00$arm)[as.character(dfB00$arm)]
-    MyWiidB2.norm[dfB10$id,"1.0"] <- ((MyWiidB2[dfB10$id,"1.0"] / table(dfB10$arm)[as.character(1-dfB10$arm)]) - coef(BTB.strat10)*BTB.std@weightStrata[2])/table(dfB10$arm)[as.character(dfB10$arm)]
-    MyWiidB2.norm[dfB01$id,"0.1"] <- ((MyWiidB2[dfB01$id,"0.1"] / table(dfB01$arm)[as.character(1-dfB01$arm)]) - coef(BTB.strat01)*BTB.std@weightStrata[3])/table(dfB01$arm)[as.character(dfB01$arm)]
-    MyWiidB2.norm[dfB11$id,"1.1"] <- ((MyWiidB2[dfB11$id,"1.1"] / table(dfB11$arm)[as.character(1-dfB11$arm)]) - coef(BTB.strat11)*BTB.std@weightStrata[4])/table(dfB11$arm)[as.character(dfB11$arm)]
-
-    mean(rowSums(MyWiidB2.norm))
-    crossprod(rowSums(MyWiidB2.norm))
-    BTB.std0@covariance
-    ##       favorable unfavorable   covariance netBenefit  winRatio
-    ## Y 0.004395034 0.004395034 -0.004395034 0.01758013 0.3712254
-
-    sigmaB_h1 <- tapply(rowSums(MyWiidB2.norm), dfB$arm, crossprod)
-    sigmaB_h1
-    ##         0           1 
-    ## 0.008925701 0.008654434 
-    sum(sigmaB_h1)
-    sum(sigmaB_h1) - sum(sigmaB_h1/rev(table(dfB$arm))) + (coef(BTB.std, statistic = "favorable") - coef(BTB.std, statistic = "favorable")^2)/prod(table(dfB$arm))
-
-    sum(sigmaB_h1/table(dfB$arm)) + coef(BTB.std,statistic = "favorable")/prod(table(dfB$arm)) - sum(sigmaB_h1/prod(table(dfB$arm)))
-
-    ## mean(rowSums(MyWiid))
-    expect_equivalent(crossprod(getIid(BTB.std)), crossprod(rowSums(MyWiidB)), tol = 1e-6)
-    ## mismatch with the marginal H-decomposition which is not centered within each strata
-    ## mean(getIid(BTB.marginal))
-    ## mean(getIid(BTB.marginal)[dfB00$id])
-
-    sigmaB_h1fav <- tapply(getIid(BTB.std, statistic = "favorable"), dfB$arm, crossprod)
-    term1 <- (coef(BTB.std, statistic = "favorable") - coef(BTB.std, statistic = "favorable")^2)/prod(table(dfB$arm)) - sum(sigmaB_h1fav/rev(table(dfB$arm)))
-    sigmaB_h1unfav <- tapply(getIid(BTB.std, statistic = "unfavorable"), dfB$arm, crossprod)
-    term2 <- (coef(BTB.std, statistic = "unfavorable") - coef(BTB.std, statistic = "unfavorable")^2)/prod(table(dfB$arm)) - sum(sigmaB_h1unfav/rev(table(dfB$arm)))
-    sigmaB_h1cross <- tapply(getIid(BTB.std, statistic = "favorable")*getIid(BTB.std, statistic = "unfavorable"), dfB$arm, sum)
-    term3 <- sum(sigmaB_h1cross/rev(table(dfB$arm))) + coef(BTB.std, statistic = "favorable")*coef(BTB.std, statistic = "unfavorable")/prod(table(dfB$arm))
-    term1+term2+2*term3
-
-
-    BTB.std2@covariance[,"netBenefit"] - crossprod(getIid(BTB.std2))
-    BTB.std@covariance[,"netBenefit"] - crossprod(getIid(BTB.std))
-
-    BTB.strat00@covariance[,"favorable"] - crossprod(getIid(BTB.strat00, statistic = "favorable"))
-
-
-    sigmaB_h1 <- tapply(getIid(BTB.strat00), dfB00$arm, crossprod)
-    sum(sigmaB_h1) - confint(BTB.strat00, order.Hprojection = 1)$se^2
-    
-sum(sigmaB_h1) - sum(sigmaB_h1fav/rev(table(dfB00$arm))) + (coef(BTB.strat00, statistic = "favorable") + coef(BTB.strat00, statistic = "unfavorable") - coef(BTB.strat00, statistic = "favorable")^2 - coef(BTB.strat00, statistic = "unfavorable")^2)/prod(table(dfB00$arm))
-    confint(BTB.strat00, order.Hprojection = 2)$se^2
-
-    sum(sigmaB_h1fav) - confint(BTB.strat00, statistic = "favorable", order.Hprojection = 1)$se^2
-    sum(sigmaB_h1fav) + term1
-    confint(BTB.strat00, statistic = "favorable", order.Hprojection = 2)$se^2 - confint(BTB.strat00, statistic = "favorable", order.Hprojection = 1)$se^2
-
-    sum(sigmaB_h1unfav) - confint(BTB.strat00, statistic = "unfavorable", order.Hprojection = 1)$se^2
-    term2
-    confint(BTB.strat00, statistic = "unfavorable", order.Hprojection = 2)$se^2 - confint(BTB.strat00, statistic = "unfavorable", order.Hprojection = 1)$se^2
-
-
-    confint(BTB.strat00, statistic = "netBenefit", order.Hprojection = 2)$se^2 - confint(BTB.strat00, statistic = "netBenefit", order.Hprojection = 1)$se^2
-    
-
-    sigmaB_h1fav <- tapply(getIid(BTB.strat00, statistic = "favorable"), dfB00$arm, crossprod)
-    term1 <- (coef(BTB.strat00, statistic = "favorable") - coef(BTB.strat00, statistic = "favorable")^2)/prod(table(dfB00$arm)) - sum(sigmaB_h1fav/rev(table(dfB00$arm)))
-    sigmaB_h1unfav <- tapply(getIid(BTB.strat00, statistic = "unfavorable"), dfB00$arm, crossprod)
-    term2 <- (coef(BTB.strat00, statistic = "unfavorable") - coef(BTB.strat00, statistic = "unfavorable")^2)/prod(table(dfB00$arm)) - sum(sigmaB_h1unfav/rev(table(dfB00$arm)))
-    sigmaB_h1cross <- tapply(getIid(BTB.strat00, statistic = "favorable")*getIid(BTB.strat00, statistic = "unfavorable"), dfB00$arm, sum)
-    term3 <- sum(sigmaB_h1cross/rev(table(dfB00$arm))) + coef(BTB.strat00, statistic = "favorable")*coef(BTB.strat00, statistic = "unfavorable")/prod(table(dfB00$arm))
-    term1+term2+2*term3
-
-
-    
-
-
-
-confint(BTB.strat00, order.Hprojection = 2)$se^2 - confint(BTB.strat00, order.Hprojection = 1)$se^2
-    4*(confint(BTB.strat00, statistic = "favorable", order.Hprojection = 2)$se^2 - confint(BTB.strat00, statistic = "favorable", order.Hprojection = 1)$se^2)
-
-    sum(sigmaB_h1fav*(rev(table(dfB$arm))-1)/prod(table(dfB$arm))) + (coef(BTB.strat00, statistic = "favorable") - coef(BTB.strat00, statistic = "favorable")^2)/prod(table(dfB$arm))
-
-    (coef(BTB.strat00, statistic = "favorable") - coef(BTB.strat00, statistic = "favorable")^2)/prod(table(dfB$arm)) - sum(tapply(getIid(BTB.strat00, statistic = "favorable"), dfB00$arm, crossprod)/rev(table(dfB$arm)))
-
-    BTB.strat00@covariance[,"favorable"] - crossprod(getIid(BTB.strat00, statistic = "favorable"))
-    coef(BTB.strat00, statistic = "favorable") * (1-coef(BTB.strat00, statistic = "favorable"))/BTB.strat00@n.pairs - crossprod(getIid(BTB.strat00, statistic = "favorable")/sqrt(table(dfB00$arm)[as.factor(dfB00$arm)]))
-
-
-    BTB.std2@covariance - BTB.std0@covariance
-    coef(BTB.std, statistic = "favorable") * (1-coef(BTB.std, statistic = "favorable"))/BTB.marginal@n.pairs - crossprod(getIid(BTB.std, statistic = "favorable")/sqrt(table(dfB$arm)[as.factor(dfB$arm)]))
-    
-    coef(BTB.strat00, statistic = "favorable") * (1-coef(BTB.strat00, statistic = "favorable"))/BTB.strat00@n.pairs - crossprod(getIid(BTB.strat00, statistic = "favorable")/sqrt(table(dfB00$arm)[as.factor(dfB00$arm)]))
-    coef(BTB.strat10, statistic = "favorable") * (1-coef(BTB.strat10, statistic = "favorable"))/BTB.strat10@n.pairs - crossprod(getIid(BTB.strat10, statistic = "favorable")/sqrt(table(dfB10$arm)[as.factor(dfB10$arm)]))
-    coef(BTB.strat01, statistic = "favorable") * (1-coef(BTB.strat01, statistic = "favorable"))/BTB.strat01@n.pairs - crossprod(getIid(BTB.strat01, statistic = "favorable")/sqrt(table(dfB01$arm)[as.factor(dfB01$arm)]))
-    coef(BTB.strat11, statistic = "favorable") * (1-coef(BTB.strat11, statistic = "favorable"))/BTB.strat11@n.pairs - crossprod(getIid(BTB.strat11, statistic = "favorable")/sqrt(table(dfB11$arm)[as.factor(dfB11$arm)]))
-    
-    ## Mvar.col(0) += strataDelta_favorable % (1-strataDelta_favorable) * pow(iWeightPool,2)/ iN_pairs;
-    ## iid2 = pow(iidTotal_favorable.rows(posC[iter_strataC]),2);
-    ## Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightC, 0) / iN_treatment );
-    ## iid2 = pow(iidTotal_favorable.rows(posT[iter_strataT]),2);
-    ## Mvar.col(0) -= arma::conv_to<arma::vec>::from( arma::sum(iid2.each_col() % strataWeightT, 0) / iN_control );
+    ## by hand (standardized)
+    mytableUB <- getPairScore(BTUB.std)
+    mytableUB[, weightStrata := stats::setNames(BTUB.std@weightStrata,BTUB.std@level.strata)[strata]]
+    mytableUB[, m.X := length(unique(index.0)), by = "strata"]
+    mytableUB[, n.X := length(unique(index.1)), by = "strata"]
+    mytableUB[, m := length(attr(BTUB.std@level.treatment,"indexC"))]
+    mytableUB[, n := length(attr(BTUB.std@level.treatment,"indexT"))]
+    mytableUB[, Wfavorable := favorable * weightStrata/((m.X*n.X)/(n*m))]
+    ## mean(mytableUB$Wfavorable)
+    ## coef(BTUB.std, statistic = "favorable")
+    Hproj_fav <- getIid(BTUB.std2, statistic = "favorable", scale = FALSE)
+    mytableUB[, hproj.0 := Hproj_fav[index.0]]
+    mytableUB[, hproj.1 := Hproj_fav[index.1]]
+    mytableUB[, Tfavorable := coef(BTUB.std2, statistic = "favorable")]
+ 
+    term1 <- confint(BTUB.std, statistic = "favorable", order.Hprojection = 2)$se^2 - confint(BTUB.std, statistic = "favorable", order.Hprojection = 1)$se^2
+    expect_equal(term1, mytableUB[, sum((Wfavorable - hproj.0 - hproj.1 - Tfavorable)^2)/.N^2], tol = 1e-6)
 
 })
 
 BuyseTest.options(order.Hprojection = 1)
-## BTB.std0         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = F, keep.pairScore = FALSE)
-    
+
 ## * check Peron scoring rule in a perfectly balanced dataset
 n <- 50
 
@@ -367,22 +240,30 @@ dtB.strata <- do.call(rbind,by(dt.strata, interaction(dt.strata$treatment,dt.str
 rownames(dtB.strata) <- NULL
 
 
-## test_that("BuyseTest - standarization (tte outcome)",{
-##     BTB.raw <- BuyseTest(treatment ~ tte(eventtime, status), trace = FALSE, data = dtB.strata,
-##                          model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
-##     ##             estimate        se   lower.ci  upper.ci null   p.value
-##     ## eventtime 0.02881503 0.1417496 -0.2441965 0.2975942    0 0.8390032
+test_that("BuyseTest - standarization (tte outcome)",{
+    BT.raw <- BuyseTest(treatment ~ tte(eventtime, status), trace = FALSE, data = dt.strata)
+    confint(BT.raw)
+    ##             estimate        se   lower.ci  upper.ci null   p.value
+    ## eventtime -0.008226969 0.1286523 -0.2546679 0.2392174    0 0.9490145
+    BT.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dt.strata,
+                        pool.strata = "standardization")
+    ##               estimate       se   lower.ci  upper.ci null   p.value
+    ## eventtime -0.009499187 0.127931 -0.2545409 0.2366887    0 0.9408131
+    expect_equivalent(confint(BT.std), data.frame("estimate" = c(-0.00949919),"se" = c(0.12793103),"lower.ci" = c(-0.25454086),"upper.ci" = c(0.23668869),"null" = c(0),"p.value" = c(0.9408131)), tol = 1e-5)
 
-##     BTB.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dtB.strata,
-##                          pool.strata = "standardization", 
-##                          model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
-##     expect_equal(as.double(confint(BTB.raw)), as.double(confint(BTB.std)), tol = 1e-5)
-##     expect_equal(as.double(confint(BTB.raw)), c(0.028815, 0.1417496, -0.2441965, 0.2975942, 0, 0.8390032), tol = 1e-5)
-## })
+    BTB.raw <- BuyseTest(treatment ~ tte(eventtime, status), trace = FALSE, data = dtB.strata,
+                         model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
+    confint(BTB.raw)
+    ##             estimate        se   lower.ci  upper.ci null   p.value
+    ## eventtime 0.02881503 0.1417496 -0.2441965 0.2975942    0 0.8390032
 
-
-## * debug
-
+    BTB.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dtB.strata,
+                         pool.strata = "standardization", 
+                         model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
+    ##             estimate        se   lower.ci  upper.ci null   p.value
+    ## eventtime 0.02881503 0.1325542 -0.2271614 0.2810671    0 0.8280037
+    expect_equivalent(confint(BTB.std), data.frame("estimate" = c(0.02881503),"se" = c(0.13255421),"lower.ci" = c(-0.22716139),"upper.ci" = c(0.28106715),"null" = c(0),"p.value" = c(0.82800367)), tol = 1e-5)
+})
 
 ##----------------------------------------------------------------------
 ### test-BuyseTest-standardization.R ends here

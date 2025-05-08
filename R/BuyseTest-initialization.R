@@ -502,16 +502,14 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         data[,c("..NA..") := -100]
     }
 
+
     ## ** TTE with status
     if(scoring.rule>0){
         test.status <- sapply(status.TTE, function(iC){any(data[[iC]]==0)})
         if(all(test.status==FALSE)){
             scoring.rule <- 0
             iidNuisance <- FALSE            
-        }else if(identical(attr(method.inference,"hprojection"),2)){
-            keep.pairScore <- TRUE ## need the detail of the score to perform the 2nd order projection
         }
-        
         ## distinct time to event endpoints
         endpoint.UTTE <- unique(endpoint.TTE[test.status])
         status.UTTE <- unique(status.TTE[test.status])
@@ -622,6 +620,28 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         }
     }
 
+    ## ** keep.pairScore
+    if(identical(attr(method.inference,"hprojection"),2) && scoring.rule>0){
+        ## need the detail of the score to perform the 2nd order projection
+        keep.pairScore <- TRUE 
+    }else if(identical(attr(method.inference,"hprojection"),2) && pool.strata == 3){
+        table2x2.nobs <- table(strata = data[["..strata.."]],data[[treatment]])
+        dfStrata2 <- expand.grid(strata0 = 1:length(level.strata),
+                                 strata1 = 1:length(level.strata))
+        dfStrata2$N <- NROW(data)
+        dfStrata2$m <- length(index.C)
+        dfStrata2$n <- length(index.T)
+        dfStrata2$m.X0 <- table2x2.nobs[dfStrata2$strata0,1]
+        dfStrata2$n.X1 <- table2x2.nobs[dfStrata2$strata1,2]
+        dfStrata2$X0 <- table(data[["..strata.."]])[dfStrata2$strata0]
+        dfStrata2$X1 <- table(data[["..strata.."]])[dfStrata2$strata1]
+        dfStrata2$weight <- (dfStrata2$X0*dfStrata2$X1/dfStrata2$N^2)/(dfStrata2$m.X0*dfStrata2$n.X1/(dfStrata2$m*dfStrata2$n))
+        if(any(dfStrata2$weight %% 1 != 0)){
+            ## if decimal weigths need the detail of the score to perform the 2nd order projection
+            keep.pairScore <- TRUE
+        }
+    }
+    
     ## ** export
     keep.cols <- union(union(c(treatment, strata, "..strata.."),
                              na.omit(attr(method.inference,"resampling-strata"))),

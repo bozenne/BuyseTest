@@ -132,8 +132,8 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.16.2  BuyseTest_3.2.0    Rcpp_1.0.13        prodlim_2024.06.25
-[5] ggplot2_3.5.1      survival_3.5-8    
+[1] data.table_1.16.2  prodlim_2024.06.25 ggplot2_3.5.1      BuyseTest_3.2.0   
+[5] Rcpp_1.0.13        survival_3.5-8    
 
 loaded via a namespace (and not attached):
  [1] Matrix_1.6-5        gtable_0.3.5        future.apply_1.11.2 dplyr_1.1.4        
@@ -142,10 +142,10 @@ loaded via a namespace (and not attached):
 [13] R6_2.5.1            generics_0.1.3      future_1.34.0       tibble_3.2.1       
 [17] munsell_0.5.1       pillar_1.9.0        rlang_1.1.4         utf8_1.2.4         
 [21] cli_3.6.3           withr_3.0.1         magrittr_2.0.3      digest_0.6.37      
-[25] grid_4.3.3          lifecycle_1.0.4     lava_1.8.0          vctrs_0.6.5        
-[29] SparseM_1.81        glue_1.8.0          listenv_0.9.1       codetools_0.2-19   
-[33] stats4_4.3.3        parallelly_1.38.0   fansi_1.0.6         colorspace_2.1-1   
-[37] tools_4.3.3         pkgconfig_2.0.3
+[25] grid_4.3.3          pbapply_1.7-2       lifecycle_1.0.4     lava_1.8.0         
+[29] vctrs_0.6.5         SparseM_1.81        glue_1.8.0          listenv_0.9.1      
+[33] codetools_0.2-19    stats4_4.3.3        parallelly_1.38.0   fansi_1.0.6        
+[37] colorspace_2.1-1    tools_4.3.3         pkgconfig_2.0.3
 #+end_example
 
 \clearpage
@@ -378,7 +378,7 @@ rbind(confint(BT, statistic = "favorable", null = 0.42),
 statistics: \hfill @@latex:\textcolor{orange}{- argument \texttt{add.halfNeutral}}@@
 - Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
 - win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
-has been recommended (e.g. cite:ajufo2023fallacies) and these summary
+have been recommended (e.g. cite:ajufo2023fallacies) and these summary
 statistics can be output by specifying the argument =add.halfNeutral=
 to =TRUE= when calling =BuyseTest=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -557,10 +557,10 @@ scale.
 
 \bigskip 
 
-Other weighting schemes can be used. \hfill @@latex:\textcolor{orange}{-
-argument \texttt{pool.strata}}@@. \newline For instance, if the effect is
-thought additive, one should instead weight proportionnaly to the
-number of pairs:
+Other weighting schemes can be used. \hfill
+@@latex:\textcolor{orange}{- argument
+\texttt{pool.strata}}@@. \newline When considering additive effect,
+one should instead weight proportionnaly to the number of pairs:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BTstrata2 <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "buyse")
 summary(BTstrata2, type.display = keep.colStrata)
@@ -586,11 +586,12 @@ summary(BTstrata2, type.display = keep.colStrata)
               large    15.23         4.30           9.97       0.96     0.00 -0.3722
 #+end_example
 
-The weighting scheme only affect the evaluation of the overall net
-treatment benefit, which now equals the difference between the overall
-proportion of favorable vs. unfavorable pairs (=36.06%-45.77%=). While
-extractors will by default output global estimates (i.e. after pooling
-the results over strata)
+The strata-specifc net treatment benefits are unchanged: the weighting
+scheme only affects the evaluation of the overall net treatment
+benefit. With this weighting scheme it now equals the difference
+between the overall proportion of favorable vs. unfavorable pairs
+(=36.06%-45.77%=). While extractors will by default output global
+estimates (i.e. after pooling the results over strata)
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 confint(BTstrata2)
 #+END_SRC
@@ -611,11 +612,21 @@ confint(BTstrata, strata = TRUE)
 : time_t20.adeno     -0.1033951 0.2465197 -0.5314450 0.3667172    0 0.6771002
 : time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 
-\Warning The previous weighting scheme leads to the estimatation of a
-conditional net treatment benefit, which will generally differ from
-the marginal (i.e. non-adjusted) net treatment benefit. To retrieve a
-marginal effect while adjusting for covariate, one can use
-standardization:
+\Warning The pooled estimator presented in this section have a
+conditional interpretation, as they summarize comparisons made between
+observations from the same strata. They will generally differ from the
+marginal (i.e. non-adjusted) net treatment benefit and tend to be more
+extreme (i.e. away from 0) in presence of group difference.
+
+** Standardization
+
+When the interest lies in a marginal effect but one wish to adjust on
+baseline covariates to obtain more precise estimate, one should not
+restrict the comparisons between pairs of observations from the same
+strata. Instead one should estimate a net treatment benefit for each
+possible combinations of strata and pool the results
+(cite:buyse2025gpc, chapter 9). This is what is being done when
+setting the argument =pool.strata= to ="standardization"=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BTstd <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "standardization")
 model.tables(BTstd)[,c("strata","total","delta","Delta","lower.ci","upper.ci","p.value")]
@@ -623,32 +634,60 @@ model.tables(BTstd)[,c("strata","total","delta","Delta","lower.ci","upper.ci","p
 
 #+RESULTS:
 #+begin_example
-               strata      total       delta     Delta   lower.ci   upper.ci   p.value
-1              global 100.000000 -0.11874500 -0.118745 -0.3037001 0.07483473 0.2287434
-2            squamous   6.393862  0.21930736        NA         NA         NA        NA
-3  smallcell.squamous  12.787724  0.35699653        NA         NA         NA        NA
-4      adeno.squamous   3.836317  0.41018519        NA         NA         NA        NA
-5      large.squamous   6.393862  0.03622106        NA         NA         NA        NA
-6  squamous.smallcell   5.754476 -0.50654161        NA         NA         NA        NA
-7           smallcell  11.508951 -0.17921811        NA         NA         NA        NA
-8     adeno.smallcell   3.452685 -0.25308642        NA         NA         NA        NA
-9     large.smallcell   5.754476 -0.80740741        NA         NA         NA        NA
-10     squamous.adeno   5.754476 -0.41165224        NA         NA         NA        NA
-11    smallcell.adeno  11.508951 -0.02906379        NA         NA         NA        NA
-12              adeno   3.452685 -0.10339506        NA         NA         NA        NA
-13        large.adeno   5.754476 -0.76311728        NA         NA         NA        NA
-14     squamous.large   3.836317 -0.04494949        NA         NA         NA        NA
-15    smallcell.large   7.672634  0.25946502        NA         NA         NA        NA
-16        adeno.large   2.301790  0.21296296        NA         NA         NA        NA
-17              large   3.836317 -0.37222222        NA         NA         NA        NA
+               strata      total       delta     Delta   lower.ci  upper.ci   p.value
+1              global 100.000000 -0.11874500 -0.118745 -0.2843405 0.0537305 0.1767059
+2            squamous   6.393862  0.21930736        NA         NA        NA        NA
+3  smallcell.squamous  12.787724  0.35699653        NA         NA        NA        NA
+4      adeno.squamous   3.836317  0.41018519        NA         NA        NA        NA
+5      large.squamous   6.393862  0.03622106        NA         NA        NA        NA
+6  squamous.smallcell   5.754476 -0.50654161        NA         NA        NA        NA
+7           smallcell  11.508951 -0.17921811        NA         NA        NA        NA
+8     adeno.smallcell   3.452685 -0.25308642        NA         NA        NA        NA
+9     large.smallcell   5.754476 -0.80740741        NA         NA        NA        NA
+10     squamous.adeno   5.754476 -0.41165224        NA         NA        NA        NA
+11    smallcell.adeno  11.508951 -0.02906379        NA         NA        NA        NA
+12              adeno   3.452685 -0.10339506        NA         NA        NA        NA
+13        large.adeno   5.754476 -0.76311728        NA         NA        NA        NA
+14     squamous.large   3.836317 -0.04494949        NA         NA        NA        NA
+15    smallcell.large   7.672634  0.25946502        NA         NA        NA        NA
+16        adeno.large   2.301790  0.21296296        NA         NA        NA        NA
+17              large   3.836317 -0.37222222        NA         NA        NA        NA
 #+end_example
 
-i.e. evaluate the net treatment benefit for every combination of
-strate between the control and active group (either identical or
-differen across the two groups) and pool the results. See chapter 9 of
-cite:buyse2025gpc for further explanations.
+Here =strata= equal to =squamous= means that the comparison betwen the
+active and control group was made using only patients whose lung
+cancer cell type were =squamous=. We retrive the same results as when
+setting =pool.strata= to ="buyse"= or ="CMH"=. However now additional
+strata have been added like ="smallcell.squamous"= where control
+patients whose lung cancer cell type were =smallcell= are being
+compared to active patients whose lung cancer cell type were
+=squamous=. Indeed:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+          data = rbind(veteran[veteran$celltype == "smallcell" & veteran$trt == "Pl",],
+                       veteran[veteran$celltype == "squamous" & veteran$trt == "Exp",]),
+          trace = 0)
+#+END_SRC
 
-\clearpage
+#+RESULTS:
+:  endpoint threshold Delta
+:      time        20 0.357
+
+leads, up to rounding, to the same result.
+
+\bigskip
+
+_Note:_ while it is possible to extract the strata-specific estimate
+(e.g. =coef(BTstd, strata = TRUE)=) the software does not keep track
+of the strata-specific uncertainty via the H-decomposition. It will
+output an error message when requesting it (e.g. =confint(BTstd,
+strata = TRUE)=). A resampling method should be used instead.
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+XXXX <- BuyseTest(ffstrata, data = veteran, pool.strata = "standardization", method.inference = "bootstrap",
+                  n.resampling = 100)
+confint(XXXX, strata = TRUE)
+#+END_SRC
 
 ** Using multiple endpoints
 

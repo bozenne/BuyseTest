@@ -1,4 +1,4 @@
-% Created 2025-04-21 Mon 19:46
+% Created 2025-05-08 Thu 11:15
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -335,8 +335,8 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.16.2  BuyseTest_3.2.0    Rcpp_1.0.13        prodlim_2024.06.25
-[5] ggplot2_3.5.1      survival_3.5-8    
+[1] data.table_1.16.2  prodlim_2024.06.25 ggplot2_3.5.1      BuyseTest_3.2.0   
+[5] Rcpp_1.0.13        survival_3.5-8    
 
 loaded via a namespace (and not attached):
  [1] Matrix_1.6-5        gtable_0.3.5        future.apply_1.11.2 dplyr_1.1.4        
@@ -345,16 +345,16 @@ loaded via a namespace (and not attached):
 [13] R6_2.5.1            generics_0.1.3      future_1.34.0       tibble_3.2.1       
 [17] munsell_0.5.1       pillar_1.9.0        rlang_1.1.4         utf8_1.2.4         
 [21] cli_3.6.3           withr_3.0.1         magrittr_2.0.3      digest_0.6.37      
-[25] grid_4.3.3          lifecycle_1.0.4     lava_1.8.0          vctrs_0.6.5        
-[29] SparseM_1.81        glue_1.8.0          listenv_0.9.1       codetools_0.2-19   
-[33] stats4_4.3.3        parallelly_1.38.0   fansi_1.0.6         colorspace_2.1-1   
-[37] tools_4.3.3         pkgconfig_2.0.3
+[25] grid_4.3.3          pbapply_1.7-2       lifecycle_1.0.4     lava_1.8.0         
+[29] vctrs_0.6.5         SparseM_1.81        glue_1.8.0          listenv_0.9.1      
+[33] codetools_0.2-19    stats4_4.3.3        parallelly_1.38.0   fansi_1.0.6        
+[37] colorspace_2.1-1    tools_4.3.3         pkgconfig_2.0.3
 \end{verbatim}
 
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC)}
-\label{sec:org6fe3710}
+\label{sec:org3d63f24}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -434,7 +434,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:org8ff92ea}
+\label{sec:orge776233}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -529,7 +529,7 @@ coef(BT)
 \bigskip
 
 \subsection{What about other summary statistics?}
-\label{sec:org93f7185}
+\label{sec:org3a227b4}
 
 Results for other summary statistics are also accessible: \hfill \textcolor{orange}{- argument \texttt{statistic}}
 \begin{itemize}
@@ -616,7 +616,7 @@ statistics: \hfill \textcolor{orange}{- argument \texttt{add.halfNeutral}}
 \item Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
 \item win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
 \end{itemize}
-has been recommended (e.g. \cite{ajufo2023fallacies}) and these summary
+have been recommended (e.g. \cite{ajufo2023fallacies}) and these summary
 statistics can be output by specifying the argument \texttt{add.halfNeutral}
 to \texttt{TRUE} when calling \texttt{BuyseTest}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -673,7 +673,7 @@ favorable   0.45617082 0.05010816  0.3639745 0.5516987  0.5   0.383
 \clearpage
 
 \subsection{Stratified GPC}
-\label{sec:orgce704d8}
+\label{sec:orga50b0b9}
 
 GPC can be performed for subgroups of a categorical variable \hfill
 \textcolor{orange}{- argument \texttt{strata}} \newline For
@@ -816,10 +816,10 @@ scale.
 
 \bigskip 
 
-Other weighting schemes can be used. \hfill \textcolor{orange}{-
-argument \texttt{pool.strata}}. \newline For instance, if the effect is
-thought additive, one should instead weight proportionnaly to the
-number of pairs:
+Other weighting schemes can be used. \hfill
+\textcolor{orange}{- argument
+\texttt{pool.strata}}. \newline When considering additive effect,
+one should instead weight proportionnaly to the number of pairs:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BTstrata2 <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "buyse")
@@ -845,11 +845,12 @@ summary(BTstrata2, type.display = keep.colStrata)
               large    15.23         4.30           9.97       0.96     0.00 -0.3722
 \end{verbatim}
 
-The weighting scheme only affect the evaluation of the overall net
-treatment benefit, which now equals the difference between the overall
-proportion of favorable vs. unfavorable pairs (\texttt{36.06\%-45.77\%}). While
-extractors will by default output global estimates (i.e. after pooling
-the results over strata)
+The strata-specifc net treatment benefits are unchanged: the weighting
+scheme only affects the evaluation of the overall net treatment
+benefit. With this weighting scheme it now equals the difference
+between the overall proportion of favorable vs. unfavorable pairs
+(\texttt{36.06\%-45.77\%}). While extractors will by default output global
+estimates (i.e. after pooling the results over strata)
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 confint(BTstrata2)
@@ -876,11 +877,22 @@ time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 \end{verbatim}
 
 
-\Warning The previous weighting scheme leads to the estimatation of a
-conditional net treatment benefit, which will generally differ from
-the marginal (i.e. non-adjusted) net treatment benefit. To retrieve a
-marginal effect while adjusting for covariate, one can use
-standardization:
+\Warning The pooled estimator presented in this section have a
+conditional interpretation, as they summarize comparisons made between
+observations from the same strata. They will generally differ from the
+marginal (i.e. non-adjusted) net treatment benefit and tend to be more
+extreme (i.e. away from 0) in presence of group difference.
+
+\subsection{Standardization}
+\label{sec:org585d42a}
+
+When the interest lies in a marginal effect but one wish to adjust on
+baseline covariates to obtain more precise estimate, one should not
+restrict the comparisons between pairs of observations from the same
+strata. Instead one should estimate a net treatment benefit for each
+possible combinations of strata and pool the results
+(\cite{buyse2025gpc}, chapter 9). This is what is being done when
+setting the argument \texttt{pool.strata} to \texttt{"standardization"}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BTstd <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "standardization")
@@ -888,35 +900,60 @@ model.tables(BTstd)[,c("strata","total","delta","Delta","lower.ci","upper.ci","p
 \end{lstlisting}
 
 \begin{verbatim}
-               strata      total       delta     Delta   lower.ci   upper.ci   p.value
-1              global 100.000000 -0.11874500 -0.118745 -0.3037001 0.07483473 0.2287434
-2            squamous   6.393862  0.21930736        NA         NA         NA        NA
-3  smallcell.squamous  12.787724  0.35699653        NA         NA         NA        NA
-4      adeno.squamous   3.836317  0.41018519        NA         NA         NA        NA
-5      large.squamous   6.393862  0.03622106        NA         NA         NA        NA
-6  squamous.smallcell   5.754476 -0.50654161        NA         NA         NA        NA
-7           smallcell  11.508951 -0.17921811        NA         NA         NA        NA
-8     adeno.smallcell   3.452685 -0.25308642        NA         NA         NA        NA
-9     large.smallcell   5.754476 -0.80740741        NA         NA         NA        NA
-10     squamous.adeno   5.754476 -0.41165224        NA         NA         NA        NA
-11    smallcell.adeno  11.508951 -0.02906379        NA         NA         NA        NA
-12              adeno   3.452685 -0.10339506        NA         NA         NA        NA
-13        large.adeno   5.754476 -0.76311728        NA         NA         NA        NA
-14     squamous.large   3.836317 -0.04494949        NA         NA         NA        NA
-15    smallcell.large   7.672634  0.25946502        NA         NA         NA        NA
-16        adeno.large   2.301790  0.21296296        NA         NA         NA        NA
-17              large   3.836317 -0.37222222        NA         NA         NA        NA
+               strata      total       delta     Delta   lower.ci  upper.ci   p.value
+1              global 100.000000 -0.11874500 -0.118745 -0.2843405 0.0537305 0.1767059
+2            squamous   6.393862  0.21930736        NA         NA        NA        NA
+3  smallcell.squamous  12.787724  0.35699653        NA         NA        NA        NA
+4      adeno.squamous   3.836317  0.41018519        NA         NA        NA        NA
+5      large.squamous   6.393862  0.03622106        NA         NA        NA        NA
+6  squamous.smallcell   5.754476 -0.50654161        NA         NA        NA        NA
+7           smallcell  11.508951 -0.17921811        NA         NA        NA        NA
+8     adeno.smallcell   3.452685 -0.25308642        NA         NA        NA        NA
+9     large.smallcell   5.754476 -0.80740741        NA         NA        NA        NA
+10     squamous.adeno   5.754476 -0.41165224        NA         NA        NA        NA
+11    smallcell.adeno  11.508951 -0.02906379        NA         NA        NA        NA
+12              adeno   3.452685 -0.10339506        NA         NA        NA        NA
+13        large.adeno   5.754476 -0.76311728        NA         NA        NA        NA
+14     squamous.large   3.836317 -0.04494949        NA         NA        NA        NA
+15    smallcell.large   7.672634  0.25946502        NA         NA        NA        NA
+16        adeno.large   2.301790  0.21296296        NA         NA        NA        NA
+17              large   3.836317 -0.37222222        NA         NA        NA        NA
 \end{verbatim}
 
-i.e. evaluate the net treatment benefit for every combination of
-strate between the control and active group (either identical or
-differen across the two groups) and pool the results. See chapter 9 of
-\cite{buyse2025gpc} for further explanations.
+Here \texttt{strata} equal to \texttt{squamous} means that the comparison betwen the
+active and control group was made using only patients whose lung
+cancer cell type were \texttt{squamous}. We retrive the same results as when
+setting \texttt{pool.strata} to \texttt{"buyse"} or \texttt{"CMH"}. However now additional
+strata have been added like \texttt{"smallcell.squamous"} where control
+patients whose lung cancer cell type were \texttt{smallcell} are being
+compared to active patients whose lung cancer cell type were
+\texttt{squamous}. Indeed:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+          data = rbind(veteran[veteran$celltype == "smallcell" & veteran$trt == "Pl",],
+                       veteran[veteran$celltype == "squamous" & veteran$trt == "Exp",]),
+          trace = 0)
+\end{lstlisting}
 
-\clearpage
+\begin{verbatim}
+endpoint threshold Delta
+    time        20 0.357
+\end{verbatim}
+
+
+leads, up to rounding, to the same result.
+
+\bigskip
+
+\uline{Note:} while it is possible to extract the strata-specific estimate
+(e.g. \texttt{coef(BTstd, strata = TRUE)}) the software does not keep track
+of the strata-specific uncertainty via the H-decomposition. It will
+output an error message when requesting it (e.g. \texttt{confint(BTstd,
+strata = TRUE)}). A resampling method should be used instead.
 
 \subsection{Using multiple endpoints}
-\label{sec:org64d15e7}
+\label{sec:org0147f4c}
 
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
@@ -1078,7 +1115,7 @@ karno    -0.07639267 0.09093303 -0.2546181 0.10183280    0 0.4008534
 \clearpage
 
 \subsection{Statistical inference}
-\label{sec:org9c2c2a6}
+\label{sec:org7786ef3}
 
 Uncertainty about the estimates can be quantified using: \hfill \textcolor{orange}{- argument \texttt{method.inference}}
 \begin{itemize}
@@ -1207,7 +1244,7 @@ standard errors and are more numerically intensive.
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:org3f9794d}
+\label{sec:orgf998282}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -1241,7 +1278,7 @@ score as usual and then switch them around if the operator equals
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org0dbc8af}
+\label{sec:org8c57186}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -1315,7 +1352,7 @@ So in this case no pair is analyzed at second priority.
 
 
 \subsection{Is multiple testing a concern with GPC?}
-\label{sec:org3e0e444}
+\label{sec:org474a226}
 
 Yes, as with any other statistical method. Having a pre-defined
 statistical plan (i.e. written before looking at the data) specifying
@@ -1535,7 +1572,7 @@ varied at the same time.
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org7243a09}
+\label{sec:org082bc6a}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -1544,7 +1581,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:org2a5112c}
+\label{sec:org96ce82a}
 The net treatment benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -1635,7 +1672,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:orga1e8820}
+\label{sec:org7d7f1e4}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} and
@@ -1680,7 +1717,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org35ef0e0}
+\label{sec:org7b722c0}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1798,7 +1835,7 @@ survivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:org7336731}
+\label{sec:orgcee3bf8}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1907,7 +1944,7 @@ outSurv$lastSurv
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:org763d7c3}
+\label{sec:orga529344}
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
@@ -2019,7 +2056,7 @@ correspond to make statistical assumptions, the former assumptions
 being more explicit than with the later solution.
 
 \subsection{Gehan's scoring rule}
-\label{sec:orgf9002db}
+\label{sec:org5374a72}
 In the example, Gehan's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -2040,7 +2077,7 @@ leads to many uninformative pairs (about 60\%) and an estimate much
 closer to 0 than the truth.
 
 \subsection{Peron's scoring rule}
-\label{sec:orge82fd83}
+\label{sec:org43d030f}
 In the example, Peron's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -2219,7 +2256,7 @@ defining an appropriate \texttt{BuyseTTEM} method. Looking at the code use
 for defining \texttt{BuyseTTEM.survreg} can be helpful.
 
 \subsection{Correction via re-weighting}
-\label{sec:org00db701}
+\label{sec:orgbc3bc68}
 
 The weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
@@ -2289,7 +2326,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsection{Correction at the pair level}
-\label{sec:org28d3aaf}
+\label{sec:org4e2667b}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -2351,7 +2388,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \end{verbatim}
 
 \subsection{Note on the use of the corrections}
-\label{sec:org642010c}
+\label{sec:org7fe13aa}
 
 As mentioned in \cite{peron2021correcting}, the corrections (at the pair
 level or IPCW) are assumes that uninformative pairs would on average
@@ -2426,7 +2463,7 @@ correction     55.25931    44.74069       0  0.00000 0.10518628
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orgcc30d44}
+\label{sec:orga223cc8}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -2488,7 +2525,7 @@ package.
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:org786855f}
+\label{sec:org7770f6b}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
@@ -2636,7 +2673,7 @@ summary(nW)
 \clearpage
 
 \section{Modifying default options}
-\label{sec:orga4fbd92}
+\label{sec:orgb12aa2f}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -2687,7 +2724,7 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 \section*{References}
-\label{sec:orgd41b459}
+\label{sec:orga65daf3}
 \begingroup
 \renewcommand{\section}[2]{}
 
