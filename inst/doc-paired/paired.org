@@ -1,0 +1,596 @@
+#+TITLE: Performing GPC in a paired design
+#+Author: Brice Ozenne
+#+BEGIN_SRC R :exports none :results quiet :session *R* :cache no
+options(width = 94)
+if(system("whoami",intern=TRUE)=="bozenne"){  
+  setwd("~/Documents/GitHub/BuyseTest/inst/doc-paired/")
+}else if(system("whoami",intern=TRUE)=="sund\\hpl802"){  
+  setwd("c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-paired/")
+}
+library(survival) ## avoid messages when loading the package later on
+library(ggplot2) ## avoid messages when loading the package later on
+library(prodlim) ## avoid messages when loading the package later on
+#+END_SRC
+
+This vignette describes how to use Generalized Pairwise comparisons
+(GPC) in a paired design. This for instance corresponds to the
+Diabetic Retinopathy Study (DRS) contained in the survival \Rlogo
+package where 197 patients had one of their eye randomized to laser
+treatment while the other did not receive any treatment:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+data(diabetic, package = "survival")
+head(diabetic)
+#+END_SRC
+
+#+RESULTS:
+:   id laser age   eye trt risk  time status
+: 1  5 argon  28  left   0    9 46.23      0
+: 2  5 argon  28 right   1    9 46.23      0
+: 3 14 xenon  12  left   1    8 42.50      0
+: 4 14 xenon  12 right   0    6 31.30      1
+: 5 16 xenon   9  left   1   11 42.27      0
+: 6 16 xenon   9 right   0   11 42.27      0
+
+The outcome was time to blindness (visual acuity drop below a certain
+threshold). In the real study =status= equal to 0 mixes death and
+censoring (due to drop-out or end of study) but this complication will
+be neglected here for simplicity.
+
+
+\bigskip
+
+We will replicate some of the analyzes presented in
+cite:matsouaka2022robust. In this paper they split the dataset into
+juvenile and adult patients:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+diabetic$juvenile <- diabetic$age <= 19
+library(LMMstar)
+summarize(age ~ juvenile, data = diabetic[!duplicated(diabetic$id),])
+#+END_SRC
+
+#+RESULTS:
+:   juvenile observed missing     mean        sd min q1 median    q3 max
+: 1    FALSE       83       0 35.30120 11.242054  20 25     34 45.00  58
+: 2     TRUE      114       0 10.21053  4.713892   1  7     10 13.75  19
+
+and we will focus on the juvenile patients:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+diabeticJ <- diabetic[diabetic$juvenile,]
+#+END_SRC
+
+#+RESULTS:
+
+
+\clearpage
+
+* Wald methods (Gehan scoring rule)
+
+To mimic the methodology underlying the results presented in Table 1
+of cite:matsouaka2022robust, we perform GPC stratified by patient
+using the Gehan scoring rule:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(BuyseTest)
+e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+                     data = diabeticJ, trace = FALSE,
+                     scoring.rule =  "Gehan")
+model.tables(e.BTjuv, percentage = FALSE)
+#+END_SRC
+
+#+RESULTS:
+:   endpoint total favorable unfavorable neutral uninf     Delta   lower.ci  upper.ci    p.value
+: 1     time   114        39          21       3    51 0.1578947 0.02591623 0.2844633 0.01922741
+
+Indeed this scoring rule does not involve any extra-modeling, only
+evaluating the patient specific net benefit and averaging them:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+mean(coef(e.BTjuv, strata = TRUE))
+#+END_SRC
+
+#+RESULTS:
+: [1] 0.1578947
+
+cite:matsouaka2022robust propose to estimate the standard error as:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+N <- nobs(e.BTjuv)["pairs"]
+pw <- coef(e.BTjuv, statistic = "favorable")
+pl <- coef(e.BTjuv, statistic = "unfavorable")
+sqrt((pw + pl - (pw - pl)^2)/N)
+#+END_SRC
+
+#+RESULTS:
+:      pairs 
+: 0.06631828
+
+which matches what =BuyseTest= output:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(e.BTjuv)
+#+END_SRC
+
+#+RESULTS:
+:       estimate         se   lower.ci  upper.ci null    p.value
+: time 0.1578947 0.06631828 0.02791329 0.2878762    0 0.01727214
+
+By default =confint= uses a hyperbolic tangent unless the argument
+=transform= is set to =FALSE=.
+
+\bigskip
+
+_Note:_ naively one may think to estimate the standard error as:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+sqrt(var(coef(e.BTjuv, strata = TRUE))/N)
+#+END_SRC
+
+#+RESULTS:
+:      pairs 
+: 0.06661108
+
+This is equivalent (in large samples to the previous formula). Indeed:
+#+BEGIN_EXPORT latex
+\begin{align*}
+&\Prob[X>Y] + \Prob[Y>X] - (\Prob[X>Y] - \Prob[Y>X])^2 \\
+=& \Prob[X>Y] + \Prob[Y>X] - \Prob[X>Y]^ - \Prob[Y>X]^2 + 2 \Prob[X>Y] \Prob[Y>X] \\
+=& \Prob[X>Y](1-\Prob[X>Y]) + \Prob[Y>X](1-\Prob[Y>X]) + 2 \Prob[X>Y] \Prob[Y>X] \\
+=& \Prob[X>Y](1-\Prob[X>Y]) + \Prob[Y>X](1-\Prob[Y>X]) \\
+ & - 2 (0 - \Prob[X>Y] \Prob[Y>X] - \Prob[X>Y] \Prob[Y>X] + \Prob[X>Y] \Prob[Y>X] \\
+=& \Var\left[\Ind[X>Y]\right] + \Var\left[\Ind[X<Y]\right] - 2 \Cov\left(\Ind[X>Y],\Ind[X<Y]\right) \\
+=& \Var\left[\Ind[X>Y]-\Ind[X<Y]\right] \\
+\end{align*}
+#+END_EXPORT
+
+There is only a factor =N/(N-1)= difference between the two:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
+#+END_SRC
+
+#+RESULTS:
+:      pairs 
+: 0.06631828
+
+\clearpage
+
+* MOVER method (Gehan scoring rule)
+
+In fact the results of table 1 were obtained using MOVER
+approach. Thye can be retrieved with a dedicated function processing
+the output of the =BuyseTest= function:
+
+#+ATTR_LATEX: :options basicstyle=\ttfamily\tiny
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+runMover <- function(object, level = 0.95, p.value = TRUE, type = "Wilson", tol = 1e-6){
+    
+    ## ** normalize user input
+    q.low <- qnorm((1-level)/2)
+    q.high <- qnorm(1-(1-level)/2)
+    type <- match.arg(type, c("Wilson","Agresti-Coull"))
+    
+    ## ** normalize user input
+    N <- nobs(object)["pairs"]
+    pi_w <- coef(object, statistic = "favorable")
+    pi_l <- coef(object, statistic = "unfavorable")
+
+    if(level == 1){
+        DeltaL <- -1
+        DeltaU <- 1
+    }else{
+        Ntilde <- N + q.high
+        pitilde_w <- (N*pi_w+0.5*q.high^2)/Ntilde
+        pitilde_l <- (N*pi_l+0.5*q.high^2)/Ntilde
+
+        if(any(c(pi_w,pi_l)<tol) || any(c(pi_w,pi_l)>1-tol)){
+            cor_wl <- 0
+        }else{
+            cor_wl <- - pi_w * pi_l / sqrt(pi_w * (1 - pi_w) * pi_l * (1 - pi_l))
+        }
+
+        ## Wilson
+        if(type == "Wilson"){
+            L_w <- pitilde_w + 0.5/Ntilde * q.low * sqrt(q.low^2 + 4*N*pi_w*(1-pi_w))
+            U_w <- pitilde_w + 0.5/Ntilde * q.high * sqrt(q.high^2 + 4*N*pi_w*(1-pi_w))
+            L_l <- pitilde_l + 0.5/Ntilde * q.low * sqrt(q.low^2 + 4*N*pi_l*(1-pi_l))
+            U_l <- pitilde_l + 0.5/Ntilde * q.high * sqrt(q.high^2 + 4*N*pi_l*(1-pi_l))
+        }else if(type == "Agresti-Coull"){
+            L_w <- pitilde_w + q.low * sqrt(pitilde_w*(1-pitilde_w)/Ntilde)
+            U_w <- pitilde_w + q.high * sqrt(pitilde_w*(1-pitilde_w)/Ntilde)
+            L_l <- pitilde_l + q.low * sqrt(pitilde_l*(1-pitilde_l)/Ntilde)
+            U_l <- pitilde_l + q.high * sqrt(pitilde_l*(1-pitilde_l)/Ntilde)
+        }
+
+        DeltaL <- (pi_w-pi_l) - sqrt((pi_w - L_w)^2 + (U_l - pi_l)^2 - 2 * cor_wl * (pi_w - L_w) * (U_l - pi_l))
+        DeltaU <- (pi_w-pi_l) + sqrt((U_w - pi_w)^2 + (pi_l - L_l)^2 - 2 * cor_wl * (U_w - pi_w) * (pi_l - L_l))
+    }
+
+    ## p-value
+    if(p.value){
+        if(abs(DeltaL)<tol | abs(DeltaU)<tol){ ## CI touch 0
+            p <- 1-level
+        }else if(DeltaL>0 && DeltaU>0){ ## CI do not overlap 0: p>level
+            res.search <- uniroot(f = function(mylevel){runMover(object, level = mylevel, p.value = FALSE)["lower"]},
+                                  lower = level, upper = 1)
+        }else if(DeltaL<0 && DeltaU<0){ ## CI do not overlap 0: p>level
+            res.search <- uniroot(f = function(mylevel){runMover(object, level = mylevel, p.value = FALSE)["upper"]},
+                                  lower = level, upper = 1)
+        }else if(DeltaL<0 && DeltaU>0){ ## CI overlaps 0: p<level
+            res.search <- uniroot(f = function(mylevel){
+                tempo <- runMover(object, level = mylevel, p.value = FALSE)[c("lower","upper")]
+                return(tempo[which.min(abs(tempo))])
+            }, lower = 0, upper = level)
+        }
+        p.value <- 1-res.search$root            
+    }else{
+        p.value <- NA
+    }
+
+    ## export
+    out <- c(estimate = pi_w-pi_l, lower = unname(DeltaL), upper = unname(DeltaU), pvalue = p.value)
+    return(out)
+}
+#+END_SRC
+
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+runMover(e.BTjuv, level = 0.95)
+#+END_SRC
+#+RESULTS:
+:   estimate      lower      upper     pvalue 
+: 0.15789474 0.02525513 0.28805176 0.02048651
+
+
+\clearpage
+
+* Wald methods (Peron scoring rule)
+
+To better account for censoring one could use the Peron scoring rule
+where the survival is estimated across all subjects within a treatment
+group. One has to specify the survival model, otherwise, the BuyseTest
+function will estimate a treatmnet and strata specific survival curve
+which is impossible to perform here. The =model.tte= argument can be
+used to specify such survival model:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+library(prodlim)
+e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+                      data = diabeticJ, trace = FALSE,
+                      model.tte = prodlim(Hist(time,status)~ trt, data = diabeticJ))
+model.tables(e.BTjuv2, percentage = FALSE)
+#+END_SRC
+
+#+RESULTS:
+:   endpoint total favorable unfavorable neutral    uninf    Delta   lower.ci  upper.ci     p.value
+: 1     time   114  47.36525    24.29552       3 39.33923 0.202366 0.05045454 0.3451254 0.009329589
+
+Ignoring the uncertainty of the survival model, the standard would be:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+c(sqrt(var(coef(e.BTjuv2, strata = TRUE))/N),
+  sqrt(var(coef(e.BTjuv2, strata = TRUE))/N) * sqrt((N-1)/N)
+  )
+#+END_SRC
+
+#+RESULTS:
+:      pairs      pairs 
+: 0.06595510 0.06566518
+
+depending on whether a small sample correction is used or not. This
+matches the output of =BuyseTest= when ignoring the uncertainty of the
+survival model:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+model.tte <- prodlim(Hist(time,status)~ trt, data = diabeticJ)
+attr(model.tte, "iidNuisance") <- FALSE
+confint(BuyseTest(trt ~ tte(time,status) + strata(id), 
+                  data = diabeticJ, trace = FALSE,
+                  model.tte = model.tte))
+#+END_SRC
+
+#+RESULTS:
+:      estimate         se   lower.ci  upper.ci null     p.value
+: time 0.202366 0.06566518 0.07088227 0.3269375    0 0.002726979
+
+\Warning Because the pairwise win and loss score are no more binary, the
+previous formula no more simplifies into the formula presented in
+cite:matsouaka2022robust:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+pw.peron <- coef(e.BTjuv2, statistic = "favorable")
+pl.peron <- coef(e.BTjuv2, statistic = "unfavorable")
+sqrt((pw.peron + pl.peron - (pw.peron - pl.peron)^2)/N)
+#+END_SRC
+
+#+RESULTS:
+:      pairs 
+: 0.07179718
+
+\clearpage 
+
+To account for the uncertainty of the survival model, =BuyseTest=
+outputs a slightly higher standard error:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+confint(e.BTjuv2)
+#+END_SRC
+
+#+RESULTS:
+:      estimate         se   lower.ci  upper.ci null     p.value
+: time 0.202366 0.07569815 0.05045454 0.3451254    0 0.009329589
+
+This is achieved by considering two sources of uncertainty:
+- average of a finite number of pairs:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+pw.peronS <- coef(e.BTjuv2, statistic = "favorable", strata = TRUE)
+pl.peronS <- coef(e.BTjuv2, statistic = "unfavorable", strata = TRUE)
+Hterm1 <- (pw.peronS - pl.peronS) - (pw.peron - pl.peron)
+#+END_SRC
+
+#+RESULTS:
+
+- propage the uncertainty of the survival model to the net
+  benefit. Because each pair appear twice (control and treatment) the
+  impact of removing a pair on the net benefit is stored in the
+  control and the treated is set to 0:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Hterm2.obs <- e.BTjuv2@iidNuisance$favorable - e.BTjuv2@iidNuisance$unfavorable
+Hterm2.pair <- Hterm2.obs[diabeticJ$trt==0]
+table(Hterm2.obs[diabeticJ$trt==1])
+#+END_SRC  
+
+#+RESULTS:
+: 
+:   0 
+: 114
+
+After rescaling the terms by a factor N (number of pairs, to account
+for the pooling) we retrieve the uncertainty output by =BuyseTest=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+c(average = sqrt(crossprod((Hterm1/N))),
+  nuisance = sqrt(crossprod((Hterm2.pair/N))),
+  all = sqrt(crossprod((Hterm1/N + Hterm2.pair/N))))
+#+END_SRC
+
+#+RESULTS:
+:    average   nuisance        all 
+: 0.06566518 0.02084622 0.07569815
+
+
+
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+
+#+BEGIN_EXPORT latex
+\begingroup
+\renewcommand{\section}[2]{}
+#+END_EXPORT
+
+bibliographystyle:apalike
+[[bibliography:bibliography.bib]]
+
+#+BEGIN_EXPORT latex
+\endgroup
+#+END_EXPORT
+
+* CONFIG                                                           :noexport:
+#+LANGUAGE:  en
+#+LaTeX_CLASS: org-article
+#+LaTeX_CLASS_OPTIONS: [12pt]
+#+OPTIONS:   title:t author:t toc:nil todo:nil
+#+OPTIONS:   H:3 num:t 
+#+OPTIONS:   TeX:t LaTeX:t
+** Display of the document
+# ## space between lines
+#+LATEX_HEADER: \RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+#+LaTeX_HEADER:\renewcommand{\baselinestretch}{1.1}
+# ## margins
+#+LaTeX_HEADER: \geometry{a4paper, left=10mm, right=10mm, top=10mm}
+# ## personalize the prefix in the name of the sections
+#+LaTeX_HEADER: \usepackage{titlesec}
+# ## fix bug in titlesec version
+# ##  https://tex.stackexchange.com/questions/299969/titlesec-loss-of-section-numbering-with-the-new-update-2016-03-15
+#+LaTeX_HEADER: \usepackage{etoolbox}
+#+LaTeX_HEADER: 
+#+LaTeX_HEADER: \makeatletter
+#+LaTeX_HEADER: \patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
+#+LaTeX_HEADER: \patchcmd{\ttlh@hang}{\noindent}{}{}{}
+#+LaTeX_HEADER: \makeatother
+** Color
+# ## define new colors
+#+LATEX_HEADER: \RequirePackage{colortbl} % arrayrulecolor to mix colors
+#+LaTeX_HEADER: \definecolor{myorange}{rgb}{1,0.2,0}
+#+LaTeX_HEADER: \definecolor{mypurple}{rgb}{0.7,0,8}
+#+LaTeX_HEADER: \definecolor{mycyan}{rgb}{0,0.6,0.6}
+#+LaTeX_HEADER: \newcommand{\lightblue}{blue!50!white}
+#+LaTeX_HEADER: \newcommand{\darkblue}{blue!80!black}
+#+LaTeX_HEADER: \newcommand{\darkgreen}{green!50!black}
+#+LaTeX_HEADER: \newcommand{\darkred}{red!50!black}
+#+LaTeX_HEADER: \definecolor{gray}{gray}{0.5}
+# ## change the color of the links
+#+LaTeX_HEADER: \hypersetup{
+#+LaTeX_HEADER:  citecolor=[rgb]{0,0.5,0},
+#+LaTeX_HEADER:  urlcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER:  linkcolor=[rgb]{0,0,0.5},
+#+LaTeX_HEADER: }
+** Font
+# https://tex.stackexchange.com/questions/25249/how-do-i-use-a-particular-font-for-a-small-section-of-text-in-my-document
+#+LaTeX_HEADER: \newenvironment{note}{\small \color{gray}\fontfamily{lmtt}\selectfont}{\par}
+#+LaTeX_HEADER: \newenvironment{activity}{\color{orange}\fontfamily{qzc}\selectfont}{\par}
+** Symbols
+# ## valid and cross symbols
+#+LaTeX_HEADER: \RequirePackage{pifont}
+#+LaTeX_HEADER: \RequirePackage{relsize}
+#+LaTeX_HEADER: \newcommand{\Cross}{{\raisebox{-0.5ex}%
+#+LaTeX_HEADER:		{\relsize{1.5}\ding{56}}}\hspace{1pt} }
+#+LaTeX_HEADER: \newcommand{\Valid}{{\raisebox{-0.5ex}%
+#+LaTeX_HEADER:		{\relsize{1.5}\ding{52}}}\hspace{1pt} }
+#+LaTeX_HEADER: \newcommand{\CrossR}{ \textcolor{red}{\Cross} }
+#+LaTeX_HEADER: \newcommand{\ValidV}{ \textcolor{green}{\Valid} }
+# ## warning symbol
+#+LaTeX_HEADER: \usepackage{stackengine}
+#+LaTeX_HEADER: \usepackage{scalerel}
+#+LaTeX_HEADER: \newcommand\Warning[1][3ex]{%
+#+LaTeX_HEADER:   \renewcommand\stacktype{L}%
+#+LaTeX_HEADER:   \scaleto{\stackon[1.3pt]{\color{red}$\triangle$}{\tiny\bfseries !}}{#1}%
+#+LaTeX_HEADER:   \xspace
+#+LaTeX_HEADER: }
+# # R Software
+# ## R logo
+#+LATEX_HEADER:\definecolor{grayR}{HTML}{8A8990}
+#+LATEX_HEADER:\definecolor{grayL}{HTML}{C4C7C9}
+#+LATEX_HEADER:\definecolor{blueM}{HTML}{1F63B5}
+#+LATEX_HEADER: \newcommand{\Rlogo}[1][0.07]{
+#+LATEX_HEADER: \begin{tikzpicture}[scale=#1]
+#+LATEX_HEADER: \shade [right color=grayR,left color=grayL,shading angle=60] 
+#+LATEX_HEADER: (-3.55,0.3) .. controls (-3.55,1.75) 
+#+LATEX_HEADER: and (-1.9,2.7) .. (0,2.7) .. controls (2.05,2.7)  
+#+LATEX_HEADER: and (3.5,1.6) .. (3.5,0.3) .. controls (3.5,-1.2) 
+#+LATEX_HEADER: and (1.55,-2) .. (0,-2) .. controls (-2.3,-2) 
+#+LATEX_HEADER: and (-3.55,-0.75) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \fill[white] 
+#+LATEX_HEADER: (-2.15,0.2) .. controls (-2.15,1.2) 
+#+LATEX_HEADER: and (-0.7,1.8) .. (0.5,1.8) .. controls (2.2,1.8) 
+#+LATEX_HEADER: and (3.1,1.2) .. (3.1,0.2) .. controls (3.1,-0.75) 
+#+LATEX_HEADER: and (2.4,-1.45) .. (0.5,-1.45) .. controls (-1.1,-1.45) 
+#+LATEX_HEADER: and (-2.15,-0.7) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \fill[blueM] 
+#+LATEX_HEADER: (1.75,1.25) -- (-0.65,1.25) -- (-0.65,-2.75) -- (0.55,-2.75) -- (0.55,-1.15) -- 
+#+LATEX_HEADER: (0.95,-1.15)  .. controls (1.15,-1.15) 
+#+LATEX_HEADER: and (1.5,-1.9) .. (1.9,-2.75) -- (3.25,-2.75)  .. controls (2.2,-1) 
+#+LATEX_HEADER: and (2.5,-1.2) .. (1.8,-0.95) .. controls (2.6,-0.9) 
+#+LATEX_HEADER: and (2.85,-0.35) .. (2.85,0.2) .. controls (2.85,0.7) 
+#+LATEX_HEADER: and (2.5,1.2) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \fill[white]  (1.4,0.4) -- (0.55,0.4) -- (0.55,-0.3) -- (1.4,-0.3).. controls (1.75,-0.3) 
+#+LATEX_HEADER: and (1.75,0.4) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \end{tikzpicture}
+#+LATEX_HEADER: }
+
+** Code
+:PROPERTIES:
+:ID:       2ec77c4b-f83d-4612-9a89-a96ba1b7bf70
+:END:
+# Documentation at https://org-babel.readthedocs.io/en/latest/header-args/#results
+# :tangle (yes/no/filename) extract source code with org-babel-tangle-file, see http://orgmode.org/manual/Extracting-source-code.html 
+# :cache (yes/no)
+# :eval (yes/no/never)
+# :results (value/output/silent/graphics/raw/latex)
+# :export (code/results/none/both)
+#+PROPERTY: header-args :session *R* :tangle yes :cache no ## extra argument need to be on the same line as :session *R*
+# Code display:
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+# ## change font size input (global change)
+# ## doc: https://ctan.math.illinois.edu/macros/latex/contrib/listings/listings.pdf
+# #+LATEX_HEADER: \newskip kipamount    kipamount =6pt plus 0pt minus 6pt
+# #+LATEX_HEADER: \lstdefinestyle{code-tiny}{basicstyle=\ttfamily\tiny, aboveskip =  kipamount, belowskip =  kipamount}
+# #+LATEX_HEADER: \lstset{style=code-tiny}
+# ## change font size input (local change, put just before BEGIN_SRC)
+# ## #+ATTR_LATEX: :options basicstyle=\ttfamily\scriptsize
+# ## change font size output (global change)
+# ## \RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\tiny,formatcom = {\color[rgb]{0.5,0,0}}}
+** Lists
+#+LATEX_HEADER: \RequirePackage{enumitem} % better than enumerate
+** Image and graphs
+#+LATEX_HEADER: \RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+#+LATEX_HEADER: \RequirePackage{capt-of} % 
+#+LATEX_HEADER: \RequirePackage{caption} % newlines in graphics
+#+LaTeX_HEADER: \RequirePackage{tikz-cd} % graph
+# ## https://tools.ietf.org/doc/texlive-doc/latex/tikz-cd/tikz-cd-doc.pdf
+** Table
+#+LATEX_HEADER: \RequirePackage{booktabs} % for nice lines in table (e.g. toprule, bottomrule, midrule, cmidrule)
+** Inline latex
+# @@latex:any arbitrary LaTeX code@@
+** Algorithm
+#+LATEX_HEADER: \RequirePackage{amsmath}
+#+LATEX_HEADER: \RequirePackage{algorithm}
+#+LATEX_HEADER: \RequirePackage[noend]{algpseudocode}
+** Math
+#+LATEX_HEADER: \RequirePackage{dsfont}
+#+LATEX_HEADER: \RequirePackage{amsmath,stmaryrd,graphicx}
+#+LATEX_HEADER: \RequirePackage{prodint} % product integral symbol (\PRODI)
+# ## lemma
+# #+LaTeX_HEADER: \RequirePackage{amsthm}
+# #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
+# #+LaTeX_HEADER: \newtheorem{lemma}[theorem]{Lemma}
+*** Template for shortcut
+#+LATEX_HEADER: \usepackage{ifthen}
+#+LATEX_HEADER: \usepackage{xifthen}
+#+LATEX_HEADER: \usepackage{xargs}
+#+LATEX_HEADER: \usepackage{xspace}
+#+LATEX_HEADER: \newcommand\defOperator[7]{%
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER:		\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+#+LATEX_HEADER:	}{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+#+LATEX_HEADER: \newcommand\defUOperator[5]{%
+#+LATEX_HEADER: \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:		#5\left#3 #2 \right#4
+#+LATEX_HEADER: }{
+#+LATEX_HEADER:	\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+#+LATEX_HEADER:		\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+#+LATEX_HEADER: \newcommand{\defBoldVar}[2]{	
+#+LATEX_HEADER:	\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+#+LATEX_HEADER: }
+**** Probability
+#+LATEX_HEADER: \newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+#+LATEX_HEADER: \newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\logLikelihood[2][1=,2=]{\defOperator{#1}{#2}{\ell}{}{(}{)}{}}
+#+LATEX_HEADER: \newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+**** Operators
+#+LATEX_HEADER: \newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+#+LATEX_HEADER: \newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+#+LATEX_HEADER: \newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+#+LATEX_HEADER: \newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+#+LATEX_HEADER: \newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+#+LATEX_HEADER: \newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+#+LATEX_HEADER: \newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+#+LATEX_HEADER: \newcommandx\Hypothesis[2][1=,2=]{
+#+LATEX_HEADER:         \ifthenelse{\isempty{#1}}{
+#+LATEX_HEADER:         \mathcal{H}
+#+LATEX_HEADER:         }{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#2}}{
+#+LATEX_HEADER: 		\mathcal{H}_{#1}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\mathcal{H}^{(#2)}_{#1}
+#+LATEX_HEADER:         }
+#+LATEX_HEADER:         }
+#+LATEX_HEADER: }
+#+LATEX_HEADER: \newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{#4 #1}{#4 #2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: }
+#+LATEX_HEADER: \newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+#+LATEX_HEADER: \newcommandx\ddpartial[3][1=,2=,3=]{
+#+LATEX_HEADER: 	\ifthenelse{\isempty{#3}}{
+#+LATEX_HEADER: 		\frac{\partial^{2} #1}{\partial #2^2}
+#+LATEX_HEADER: 	}{
+#+LATEX_HEADER: 	\frac{\partial^2 #1}{\partial #2\partial #3}
+#+LATEX_HEADER: }
+#+LATEX_HEADER: } 
+**** General math
+#+LATEX_HEADER: \newcommand\Real{\mathbb{R}}
+#+LATEX_HEADER: \newcommand\Rational{\mathbb{Q}}
+#+LATEX_HEADER: \newcommand\Natural{\mathbb{N}}
+#+LATEX_HEADER: \newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+#+LATEX_HEADER: \newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+#+LaTeX_HEADER: \newcommand\half{\frac{1}{2}}
+#+LaTeX_HEADER: \newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+#+LaTeX_HEADER: \newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+#+LATEX_HEADER: \newcommand\Veta{\boldsymbol{\eta}}
+#+LATEX_HEADER: \newcommand\VX{\mathbf{X}}
+** Notations
+
+
+

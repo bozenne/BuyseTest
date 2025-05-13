@@ -1,5 +1,9 @@
 # -*- mode: org -*-
 
+* Version 3.2.1
+** Internal change
+- fix standard error estimation in a paired design
+
 * Version 3.2.0.
 ** User visible changes
 - NEW FEATURE: pool.strata = "standardization" to obtain a marginal Net Treatment Benefit after stratification.

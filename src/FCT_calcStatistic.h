@@ -138,7 +138,36 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
 	iidAverage_neutral.rows(posT[iter_strata]) /= n_treatment[iter_strata];
       }
     }
-     
+
+    // *** modification for paired design
+    if(paired){ // sum within pair so the influence function is at the pair level
+      for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
+
+	// each strata contains a single C and a single T
+	// later division by n_strata: n_strata-1 = sqrt(1-1/n_strata)^2*n_strata
+	iidAverage_favorable.rows(posC[iter_strata]) = (delta.slice(0).row(iter_strata) - arma::mean(delta.slice(0), 0))/sqrt(1-1/n_strata);
+	iidAverage_favorable.rows(posT[iter_strata]).fill(0.0);
+
+	iidAverage_unfavorable.rows(posC[iter_strata]) = (delta.slice(1).row(iter_strata) - arma::mean(delta.slice(1), 0))/sqrt(1-1/n_strata);
+	iidAverage_unfavorable.rows(posT[iter_strata]).fill(0.0);
+
+	iidAverage_neutral.rows(posC[iter_strata]) = (delta.slice(2).row(iter_strata) - arma::mean(delta.slice(2), 0))/sqrt(1-1/n_strata);
+	iidAverage_neutral.rows(posT[iter_strata]).fill(0.0);
+	
+	  if(returnIID[1]>0){
+	    iidNuisance_favorable.rows(posC[iter_strata]) = iidNuisance_favorable.rows(posC[iter_strata]) + iidNuisance_favorable.rows(posT[iter_strata]);
+	    iidNuisance_favorable.rows(posT[iter_strata]).fill(0.0);
+	
+	    iidNuisance_unfavorable.rows(posC[iter_strata]) = iidNuisance_unfavorable.rows(posC[iter_strata]) + iidNuisance_unfavorable.rows(posT[iter_strata]);
+	    iidNuisance_unfavorable.rows(posT[iter_strata]).fill(0.0);
+
+	    iidNuisance_neutral.rows(posC[iter_strata]) = iidNuisance_neutral.rows(posC[iter_strata]) + iidNuisance_neutral.rows(posT[iter_strata]);
+	    iidNuisance_neutral.rows(posT[iter_strata]).fill(0.0);
+	  }
+      }
+    }
+
+    
     // *** add the two source of uncertainty into a single iid
     if(returnIID[1]>0){
       iidTotal_favorable = iidAverage_favorable + iidNuisance_favorable;
@@ -279,17 +308,6 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     Mvar.col(1) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
     iid2 = iidTotal_favorable % iidTotal_unfavorable;
     Mvar.col(2) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
-    
-    if(paired){
-      // var(data, norm_type, dim): norm_type=0 divides by n-1 whereas norm_type=1 divides by n
-      //                            dim = 0 finds the statistic for each column whereas dim = 1 finds the statistic for each row
-      Mvar.col(0) += arma::var(cumdelta_favorable, 0, 0).t()/n_strata;
-      Mvar.col(1) += arma::var(cumdelta_unfavorable, 0, 0).t()/n_strata;
-      // cov(X, Y, norm_type):
-      arma::mat SigmaCov = arma::cov(cumdelta_favorable, cumdelta_unfavorable, 0);
-      Mvar.col(2) += SigmaCov.diag()/n_strata;
-
-    }
 
     // *** second order variance
     if(hprojection==2){
