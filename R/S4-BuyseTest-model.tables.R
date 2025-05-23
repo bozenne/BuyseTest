@@ -83,7 +83,7 @@ setMethod(f = "model.tables",
               scoring.rule <- slot(x,"scoring.rule")
               strata.level <- x@level.strata
               if(is.null(strata)){
-                  if(length(strata.level)==1 || (attr(scoring.rule,"test.paired") && "strata" %in% names(mycall) == FALSE)){
+                  if(length(strata.level)==1 || (attr(scoring.rule,"test.match") && "strata" %in% names(mycall) == FALSE)){
                       strata <- "global"
                   }else{
                       strata <- c("global",strata.level)

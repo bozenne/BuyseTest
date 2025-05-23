@@ -6,7 +6,7 @@
 #' Can handle one or several binary, continuous and time-to-event endpoints.
 #' 
 #' @param formula [formula] a symbolic description of the GPC model,
-#' typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
+#' typically \code{type1(endpoint1) + type2(endpoint2, threshold2) ~ treatment + strata(gender)}.
 #' See Details, section "Specification of the GPC model".
 #' @param treatment,endpoint,type,threshold,status,operator,censoring,restriction,strata Alternative to \code{formula} for describing the GPC model.
 #' See Details, section "Specification of the GPC model".
@@ -38,7 +38,7 @@
 #' Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{formula} is defined.
 #' @param weightObs [character or numeric vector] weights or variable in the dataset containing the weight associated to each observation.
 #' These weights are only considered when performing GPC (but not when fitting surival models).
-#' @param neutral.as.uninf [logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
+#' @param neutral.as.uninf [logical vector] should pairs classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 #' See Details, section "Handling missing values".
 #' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
 #' @param keep.pairScore [logical] should the result of each pairwise comparison be kept?
@@ -53,9 +53,14 @@
 #' @details
 #'
 #' \bold{Specification of the GPC model} \cr
-#' There are two way to specify the GPC model in \code{BuyseTest}.
-#' A \emph{Formula interface} via the argument \code{formula} where the response variable should be a binary variable defining the treatment arms. 
-#' The rest of the formula should indicate the endpoints by order of priority and the strata variables (if any).
+#' There are two way to specify the GPC model in \code{BuyseTest}. 
+#' A \emph{Formula interface} via the argument \code{formula} with:
+#' \itemize{
+#' \item on one side of the \code{~} symbol the endpoints by order of priority, surrounded by parentheses and a character string indicating the type of variable (binary,continuous,timetoevent). Additional argument may be included in the parenthesis: threshold of clinical relevance (\code{threshold}), restriction time for time to event endpoints (\code{restriction}), ...
+#' \item in the other side a binary variable defining the two treatment arms.
+#' \item the right-hand side of the formula may also contain a strata variable(s) surrounded by parenthese and the character strata. The argument \code{match} should be set to \code{TRUE} when strata are independent but not observations (e.g. cross-over trial with strata as patients).
+#' }
+#'
 #' A \emph{Vector interface} using  the following arguments \itemize{
 #'   \item \code{treatment}: [character] name of the treatment variable identifying the control and the experimental group.
 #' Must have only two levels (e.g. \code{0} and \code{1}).
@@ -345,7 +350,7 @@ BuyseTest <- function(formula,
     ## WARNING when updating code: names in the c() must precisely match output of initializeData, in the same order
     out.name <- c("data","M.endpoint","M.status",
                   "index.C","index.T","weightObs","index.strata",
-                  "level.treatment","level.strata", "pool.strata", "method.score", "paired",
+                  "level.treatment","level.strata", "pool.strata", "method.score", 
                   "grid.strata","n.obs","n.obsStrata","n.obsStrataResampling","cumn.obsStrataResampling","skeletonPeron",
                   "scoring.rule", "iidNuisance", "nUTTE.analyzedPeron_M1", "endpoint.UTTE", "status.UTTE", "D.UTTE","index.UTTE","keep.pairScore")
 
@@ -505,7 +510,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling","paired")
+                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -540,7 +545,6 @@ BuyseTest <- function(formula,
         outSurv <- calcPeron(data = outSample$data,
                              model.tte = envir$outArgs$model.tte,                             
                              method.score = envir$outArgs$method.score,
-                             paired = envir$outArgs$paired,
                              treatment = envir$outArgs$treatment,
                              level.treatment = envir$outArgs$level.treatment,
                              endpoint = envir$outArgs$endpoint,
@@ -639,7 +643,7 @@ BuyseTest <- function(formula,
                                  addHalfNeutral = envir$outArgs$add.halfNeutral,
                                  keepScore = (pointEstimation && envir$outArgs$keep.pairScore),
                                  precompute = envir$outArgs$precompute,
-                                 paired = envir$outArgs$paired,
+                                 match = !is.null(envir$outArgs$strata) && attr(envir$outArgs$strata,"match"),
                                  returnIID = c(iid,envir$outArgs$iidNuisance),
                                  debug = envir$outArgs$debug
                                  ))

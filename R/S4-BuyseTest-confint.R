@@ -4,7 +4,7 @@
 ## Created: maj 19 2018 (23:37) 
 ## Version: 
 ##           By: Brice Ozenne
-##     Update #: 1264
+##     Update #: 1266
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -197,8 +197,8 @@ setMethod(f = "confint",
                   stop("Cannot output the strata-specific uncertainty based on the H-decomposition when using standardization. \n",
                        "Consider using a resampling method by specifying the argument \'method.inference\' when calling the \"BuyseTest\" function. \n")
               }
-              if(attr(slot(object,"scoring.rule"), "test.paired") && any(level.strata %in% strata)){
-                  stop("Cannot output p-values or confidence intervals for stratified statistics with paired data. \n")
+              if(attr(slot(object,"scoring.rule"), "test.match") && any(level.strata %in% strata)){
+                  stop("Cannot output p-values or confidence intervals for stratified statistics with matched data. \n")
               }
 
               ## method.ci

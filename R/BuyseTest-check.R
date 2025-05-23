@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: Apr 26 2025 (14:33) 
+## Last-Updated: maj 22 2025 (16:08) 
 ##           By: Brice Ozenne
-##     Update #: 405
+##     Update #: 424
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -90,13 +90,19 @@ testArgs <- function(name.call,
         indexC <- which(data[[treatment]] == level.treatment[1])
 
         if(any(strata %in% names(data) == FALSE)){
-            stop("Strata variable(s) \"",paste0(strata,collapse="\" \""),"\" not found in argument \'data\' \n")
+            stop("Strata variable(s) \"",paste0(setdiff(strata,names(data)),collapse="\" \""),"\" not found in argument \'data\' \n")
         }
         
         strataT <- interaction(data[indexT,strata,with=FALSE], drop = TRUE, lex.order=FALSE,sep=".") 
         strataC <- interaction(data[indexC,strata,with=FALSE], drop = TRUE, lex.order=FALSE,sep=".") 
         level.strata <- levels(strataT)
         n.strata <- length(level.strata)
+        if(is.null(attr(strata,"match"))){
+            stop("BuyseTest: undefined value for \'match\' . \n",
+                 "Contact the package maintainer. \n")
+        }else if(length(attr(strata,"match"))!=1 || attr(strata,"match") %in% 0:1 == FALSE){
+            stop("BuyseTest: \'match\' should be a binary variable. \n")
+        }
     }
 
     
@@ -152,8 +158,8 @@ testArgs <- function(name.call,
     }else{
         strata.tempo <- interaction(as.data.frame(data)[strata])
         if(is.factor(strata.tempo)){strata.tempo <- droplevels(strata.tempo)} ## otherwise the next tapply statement generates NA when there are empty levels which leads to an error
-        ## if non-paired data (i.e. more than 2 obs per strata)
-        if(any(table(strata.tempo)>2) && any(sapply(Ustatus.TTE, function(iS){tapply(data[[iS]], strata.tempo, function(iVec){sum(iVec!=0)})})==0)){
+        ## if non-matched data
+        if(!is.null(strata) && (attr(strata,"match")==FALSE) && any(sapply(Ustatus.TTE, function(iS){tapply(data[[iS]], strata.tempo, function(iVec){sum(iVec!=0)})})==0)){
             warning("BuyseTest: time to event variables with only censored events in at least one strata \n")
         }
     }
@@ -221,8 +227,8 @@ testArgs <- function(name.call,
         if(engine != "GPC2_cpp"){
             stop("BuyseTest: argument \'pool.strata\' set to \"standardization\" only available for engine = \"GPC2_cpp\". \n")
         }
-        if(!is.null(strata) && all(table(data[[treatment]],data[[strata]])==1)){
-            stop("BuyseTest: argument \'pool.strata\' set to \"standardization\" is not available for paired data. \n")
+        if(!is.null(strata) && attr(strata,"match")){
+            stop("BuyseTest: argument \'pool.strata\' set to \"standardization\" is not available for matched data. \n")
         }
     }
 
@@ -261,6 +267,10 @@ testArgs <- function(name.call,
     }
     
     ## ** data (endpoints)
+
+    if(any(endpoint %in% names(data) == FALSE)){
+        stop("Endpoint(s) \"",paste(setdiff(endpoint,names(data)), collapse = "\", \""),"\" could not be found in argument \'data\'.")
+    }
 
     ## *** binary endpoints
     index.Bin <- which(type=="bin")
@@ -380,9 +390,8 @@ testArgs <- function(name.call,
         ## no minimal sample size
     }else if(is.null(strata) && any(table(data[[treatment]])<=5)){
         warning("P-value/confidence intervals may not be valid with few observations in a treatment group. \n")
-    }else if(!is.null(strata) && any(table(data[[treatment]],strata.tempo)!=1)  && any(table(data[[treatment]],strata.tempo)<=5) ){
-        ## any(table(data[[treatment]],data[[strata]])!=1): make sure that the design is not paired
-        warning("P-value/confidence intervals may not be valid with few observations in a treatment and strata group. \n")
+    }else if(!is.null(strata) && !attr(strata,"match")  && any(table(data[[treatment]],strata.tempo)<=5) ){
+        warning("P-value/confidence intervals may not be valid with few observations in a treatment and strata group. \n") ## not triggered when matching
     }
     if(any(!is.na(attr(method.inference,"resampling-strata"))) && any(attr(method.inference,"resampling-strata") %in% names(data) == FALSE)){
         stop("Incorrect value for argument \'strata.resampling\': must correspond to a column in argument \'data\'. \n")

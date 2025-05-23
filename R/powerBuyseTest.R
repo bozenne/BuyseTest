@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: Apr 21 2025 (11:47) 
+## Last-Updated: maj 22 2025 (15:29) 
 ##           By: Brice Ozenne
-##     Update #: 1333
+##     Update #: 1336
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -466,9 +466,9 @@ powerBuyseTest <- function(formula,
         if(trace > 2){
             argsInit <- setdiff(names(as.list(args(initializeData))), c("","copy","data"))
             resInitData <- do.call(initializeData, args = c(outArgs[argsInit], list(copy = FALSE, data = dt.tempo)))
-            do.call(printGeneral, args = c(outArgs, list(M.status = resInitData$M.status, paired = resInitData$paired)))
+            do.call(printGeneral, args = c(outArgs, list(M.status = resInitData$M.status)))
             if(outArgs$method.inference!="none"){
-                do.call(printInference, args = c(outArgs, list(paired = resInitData$paired)))
+                do.call(printInference, args = outArgs)
             }
         }
         if(!missing(sample.size) && !is.null(sample.size)){
@@ -616,7 +616,7 @@ powerBuyseTest <- function(formula,
 
     ## when creating S4 object
     keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","paired","strata","grid.strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
+                   "correction.uninf","method.inference","method.score","strata","grid.strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
 
     ## ** Simulate data
     data <- data.table::as.data.table(envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax))

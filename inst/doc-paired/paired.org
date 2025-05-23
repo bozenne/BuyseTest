@@ -12,6 +12,8 @@ library(ggplot2) ## avoid messages when loading the package later on
 library(prodlim) ## avoid messages when loading the package later on
 #+END_SRC
 
+#+RESULTS:
+
 This vignette describes how to use Generalized Pairwise comparisons
 (GPC) in a paired design. This for instance corresponds to the
 Diabetic Retinopathy Study (DRS) contained in the survival \Rlogo
@@ -70,7 +72,7 @@ of cite:matsouaka2022robust, we perform GPC stratified by patient
 using the Gehan scoring rule:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(BuyseTest)
-e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                      data = diabeticJ, trace = FALSE,
                      scoring.rule =  "Gehan")
 model.tables(e.BTjuv, percentage = FALSE)
@@ -108,7 +110,7 @@ confint(e.BTjuv)
 
 #+RESULTS:
 :       estimate         se   lower.ci  upper.ci null    p.value
-: time 0.1578947 0.06631828 0.02791329 0.2878762    0 0.01727214
+: time 0.1578947 0.06631828 0.02591623 0.2844633    0 0.01922741
 
 By default =confint= uses a hyperbolic tangent unless the argument
 =transform= is set to =FALSE=.
@@ -247,7 +249,7 @@ which is impossible to perform here. The =model.tte= argument can be
 used to specify such survival model:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(prodlim)
-e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                       data = diabeticJ, trace = FALSE,
                       model.tte = prodlim(Hist(time,status)~ trt, data = diabeticJ))
 model.tables(e.BTjuv2, percentage = FALSE)
@@ -274,7 +276,7 @@ survival model:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 model.tte <- prodlim(Hist(time,status)~ trt, data = diabeticJ)
 attr(model.tte, "iidNuisance") <- FALSE
-confint(BuyseTest(trt ~ tte(time,status) + strata(id), 
+confint(BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                   data = diabeticJ, trace = FALSE,
                   model.tte = model.tte))
 #+END_SRC
@@ -329,7 +331,6 @@ table(Hterm2.obs[diabeticJ$trt==1])
 #+END_SRC  
 
 #+RESULTS:
-: 
 :   0 
 : 114
 

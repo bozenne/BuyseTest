@@ -172,7 +172,7 @@ setMethod(f = "summary",
               endpoint <- slot(object,"endpoint")
               n.endpoint <- length(endpoint)
               n.strata <- length(slot(object,"level.strata"))
-              if(attr(scoring.rule,"test.paired") && "strata" %in% names(mycall) == FALSE){
+              if(attr(scoring.rule,"test.match") && "strata" %in% names(mycall) == FALSE){
                   strata <- FALSE
               }
 
@@ -368,7 +368,7 @@ setMethod(f = "summary",
                           txt.method <- "bootstrap resampling"
                       }else if(attr(method.inference,"ustatistic")){
                           test.model.tte <- all(unlist(lapply(object@iidNuisance,dim))==0)
-                          if(attr(object@scoring.rule,"test.paired")){
+                          if(attr(object@scoring.rule,"test.match")){
                               txt.method <- paste0("variability of the estimate across strata")
                           }else{
                               txt.method <- paste0("H-projection of order ",attr(method.inference,"hprojection"))
@@ -417,12 +417,12 @@ setMethod(f = "summary",
 
               if(n.strata>1){
                   cat(" - strata weights  : ",paste(paste0(round(100*object@weightStrata, digit[1]),"%"), collapse = ", ")," \n", sep = "")
-              }else if(attr(scoring.rule,"test.paired") & length(object@weightStrata)>1){
+              }else if(attr(scoring.rule,"test.match") & length(object@weightStrata)>1){
                   table.weightStrata <- table(paste0(round(100*object@weightStrata, digit[1]),"%"))
                   cat(" - pair weights    : ",paste(names(table.weightStrata), collapse = ", ")," (K=",paste(table.weightStrata, collapse=","),")\n", sep = "")
               }else 
               if(any(object@type == "tte") && any(attr(scoring.rule,"test.censoring"))){
-                      
+
                   if(all(attr(scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){
                       txt.Peron <- "cif"
                   }else if(all(attr(scoring.rule,"method.score")[object@type=="tte"]=="SurvPeron")){

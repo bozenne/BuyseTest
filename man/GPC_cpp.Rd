@@ -44,7 +44,7 @@ GPC_cpp(
   addHalfNeutral,
   keepScore,
   precompute,
-  paired,
+  match,
   returnIID,
   debug
 )
@@ -88,7 +88,7 @@ GPC2_cpp(
   addHalfNeutral,
   keepScore,
   precompute,
-  paired,
+  match,
   returnIID,
   debug
 )
@@ -170,7 +170,7 @@ GPC2_cpp(
 
 \item{precompute}{Have the integrals relative to the survival be already computed and stored in list_survTimeC/list_survTimeT and list_survJumpC/list_survJumpT (derivatives)}
 
-\item{paired}{In case of paired data, the variance of the summary statistic across strata will be added to the variance of the pooled statistic.}
+\item{match}{In case of matched data, the variance is computed using the variance of the summary statistic across strata instead of the usual H-decomposition.}
 
 \item{returnIID}{Should the iid be computed? Second element: is there any nuisance parameter?}
 
