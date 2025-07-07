@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Jul  3 2023 (10:00) 
 ## Version: 
-## Last-Updated: apr  3 2025 (13:41) 
+## Last-Updated: Jul  7 2025 (12:05) 
 ##           By: Brice Ozenne
-##     Update #: 47
+##     Update #: 48
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,7 @@
 ## 
 ### Code:
 
-## * Documentation - print
+## * Documentation - nobs
 #' @docType methods
 #' @name S4BuyseTest-nobs
 #' @title Sample Size for Class "S4BuyseTest"

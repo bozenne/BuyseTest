@@ -199,18 +199,18 @@ for(method in c("Gehan","Peron")){ ## method <- "Gehan" ## method <- "Peron"
         BT.tte@call <- list()
         BT2@call <- list()
         expect_equal(BT.tte, BT2)
-        expect_equal(sum(coef(BT.tte, statistic = "count.favorable", cumulative = FALSE)),
-                     as.double(coef(BT.1tte, statistic = "count.favorable", cumulative = FALSE)))
-        expect_equal(sum(coef(BT.tte, statistic = "count.unfavorable", cumulative = FALSE)),
-                     as.double(coef(BT.1tte, statistic = "count.unfavorable", cumulative = FALSE)))
-        expect_equal(unname(coef(BT.tte, statistic = "count.neutral", cumulative = FALSE)[3]),
-                     coef(BT.1tte, statistic = "count.neutral", cumulative = FALSE))
-        expect_equal(unname(coef(BT.tte, statistic = "count.uninf", cumulative = FALSE)[3]),
-                     coef(BT.1tte, statistic = "count.uninf", cumulative = FALSE))
-        expect_equal(unname(coef(BT.tte, statistic = "netBenefit", cumulative = TRUE)[3]),
-                     coef(BT.1tte, statistic = "netBenefit", cumulative = TRUE))
-        expect_equal(unname(coef(BT.tte, statistic = "winRatio", cumulative = TRUE)[3]),
-                     coef(BT.1tte, statistic = "winRatio", cumulative = TRUE))
+        expect_equivalent(sum(coef(BT.tte, statistic = "count.favorable", cumulative = FALSE)),
+                          coef(BT.1tte, statistic = "count.favorable", cumulative = FALSE))
+        expect_equivalent(sum(coef(BT.tte, statistic = "count.unfavorable", cumulative = FALSE)),
+                          coef(BT.1tte, statistic = "count.unfavorable", cumulative = FALSE))
+        expect_equivalent(unname(coef(BT.tte, statistic = "count.neutral", cumulative = FALSE)[3]),
+                          coef(BT.1tte, statistic = "count.neutral", cumulative = FALSE))
+        expect_equivalent(unname(coef(BT.tte, statistic = "count.uninf", cumulative = FALSE)[3]),
+                          coef(BT.1tte, statistic = "count.uninf", cumulative = FALSE))
+        expect_equivalent(unname(coef(BT.tte, statistic = "netBenefit", cumulative = TRUE)[3]),
+                          coef(BT.1tte, statistic = "netBenefit", cumulative = TRUE))
+        expect_equivalent(unname(coef(BT.tte, statistic = "winRatio", cumulative = TRUE)[3]),
+                          coef(BT.1tte, statistic = "winRatio", cumulative = TRUE))
 
         ## *** test against fixed value
         test <- list(favorable = as.double(coef(BT.tte, statistic = "count.favorable", cumulative = FALSE)),

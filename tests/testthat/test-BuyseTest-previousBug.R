@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: Apr 21 2025 (12:19) 
+## Last-Updated: Jul  7 2025 (12:35) 
 ##           By: Brice Ozenne
-##     Update #: 251
+##     Update #: 253
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -648,22 +648,22 @@ test_that("Handling ties with Gehan's scoring rule",{
     test <- BuyseTest(treat ~ TTE(time, status = event), data = dat, trace = FALSE,
                       method.inference = "none", scoring.rule = "Gehan")
 
-    expect_equal(c(0,1,0,0),
-                 c(coef(test, statistic = "count.favorable"),
-                   coef(test, statistic = "count.unfavorable"),
-                   coef(test, statistic = "count.neutral"),
-                   coef(test, statistic = "count.uninf"))
-                 )
+    expect_equivalent(c(0,1,0,0),
+                      c(coef(test, statistic = "count.favorable"),
+                        coef(test, statistic = "count.unfavorable"),
+                        coef(test, statistic = "count.neutral"),
+                        coef(test, statistic = "count.uninf"))
+                      )
 
     testR <- BuyseTest(treat ~ TTE(time, status = event, restriction = 10), data = dat, trace = FALSE,
                        method.inference = "none", scoring.rule = "Gehan")
 
-    expect_equal(c(0,0,1,0),
-                 c(coef(testR, statistic = "count.favorable"),
-                   coef(testR, statistic = "count.unfavorable"),
-                   coef(testR, statistic = "count.neutral"),
-                   coef(testR, statistic = "count.uninf"))
-                 )
+    expect_equivalent(c(0,0,1,0),
+                      c(coef(testR, statistic = "count.favorable"),
+                        coef(testR, statistic = "count.unfavorable"),
+                        coef(testR, statistic = "count.neutral"),
+                        coef(testR, statistic = "count.uninf"))
+                      )
 
     dat <- data.frame(time = c(10, 10),
                       event = c(0, 1),
@@ -672,22 +672,22 @@ test_that("Handling ties with Gehan's scoring rule",{
     test <- BuyseTest(treat ~ TTE(time, status = event), data = dat, trace = FALSE,
                       method.inference = "none", scoring.rule = "Gehan")
 
-    expect_equal(c(1,0,0,0),
-                 c(coef(test, statistic = "count.favorable"),
-                   coef(test, statistic = "count.unfavorable"),
-                   coef(test, statistic = "count.neutral"),
-                   coef(test, statistic = "count.uninf"))
-                 )
+    expect_equivalent(c(1,0,0,0),
+                      c(coef(test, statistic = "count.favorable"),
+                        coef(test, statistic = "count.unfavorable"),
+                        coef(test, statistic = "count.neutral"),
+                        coef(test, statistic = "count.uninf"))
+                      )
 
     testR <- BuyseTest(treat ~ TTE(time, status = event, restriction = 10), data = dat, trace = FALSE,
                        method.inference = "none", scoring.rule = "Gehan")
 
-    expect_equal(c(0,0,1,0),
-                 c(coef(testR, statistic = "count.favorable"),
-                   coef(testR, statistic = "count.unfavorable"),
-                   coef(testR, statistic = "count.neutral"),
-                   coef(testR, statistic = "count.uninf"))
-                 )
+    expect_equivalent(c(0,0,1,0),
+                      c(coef(testR, statistic = "count.favorable"),
+                        coef(testR, statistic = "count.unfavorable"),
+                        coef(testR, statistic = "count.neutral"),
+                        coef(testR, statistic = "count.uninf"))
+                      )
 })
 
 ## * aghaynes: (issue #14 on Github): Mi-september 2024 Bug with win odds

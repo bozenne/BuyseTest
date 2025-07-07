@@ -1,4 +1,4 @@
-% Created 2025-05-13 ti 18:25
+% Created 2025-07-07 Mon 13:21
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -231,7 +231,7 @@ and (1.75,0.4) .. cycle;
  pdftitle={Performing GPC in a paired design},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 29.4 (Org mode 9.6.15)},
+ pdfcreator={Emacs 27.1 (Org mode 9.4.6)},
  pdflang={English}
  }
 \begin{document}
@@ -242,7 +242,8 @@ This vignette describes how to use Generalized Pairwise comparisons
 Diabetic Retinopathy Study (DRS) contained in the survival \Rlogo
 package where 197 patients had one of their eye randomized to laser
 treatment while the other did not receive any treatment:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 data(diabetic, package = "survival")
 head(diabetic)
 \end{lstlisting}
@@ -269,7 +270,8 @@ be neglected here for simplicity.
 We will replicate some of the analyzes presented in
 \cite{matsouaka2022robust}. In this paper they split the dataset into
 juvenile and adult patients:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 diabetic$juvenile <- diabetic$age <= 19
 library(LMMstar)
 summarize(age ~ juvenile, data = diabetic[!duplicated(diabetic$id),])
@@ -283,21 +285,23 @@ summarize(age ~ juvenile, data = diabetic[!duplicated(diabetic$id),])
 
 
 and we will focus on the juvenile patients:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 diabeticJ <- diabetic[diabetic$juvenile,]
 \end{lstlisting}
 
 \clearpage
 
 \section{Wald methods (Gehan scoring rule)}
-\label{sec:org8fd5760}
+\label{sec:orgcf5974d}
 
 To mimic the methodology underlying the results presented in Table 1
 of \cite{matsouaka2022robust}, we perform GPC stratified by patient
 using the Gehan scoring rule:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 library(BuyseTest)
-e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                      data = diabeticJ, trace = FALSE,
                      scoring.rule =  "Gehan")
 model.tables(e.BTjuv, percentage = FALSE)
@@ -311,7 +315,8 @@ model.tables(e.BTjuv, percentage = FALSE)
 
 Indeed this scoring rule does not involve any extra-modeling, only
 evaluating the patient specific net benefit and averaging them:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 mean(coef(e.BTjuv, strata = TRUE))
 \end{lstlisting}
 
@@ -321,7 +326,8 @@ mean(coef(e.BTjuv, strata = TRUE))
 
 
 \cite{matsouaka2022robust} propose to estimate the standard error as:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 N <- nobs(e.BTjuv)["pairs"]
 pw <- coef(e.BTjuv, statistic = "favorable")
 pl <- coef(e.BTjuv, statistic = "unfavorable")
@@ -329,14 +335,30 @@ sqrt((pw + pl - (pw - pl)^2)/N)
 \end{lstlisting}
 
 \begin{verbatim}
-     pairs 
+      time 
 0.06631828
 \end{verbatim}
 
 
 which matches what \texttt{BuyseTest} output:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 confint(e.BTjuv)
+\end{lstlisting}
+
+\begin{verbatim}
+      estimate         se   lower.ci  upper.ci null    p.value
+time 0.1578947 0.06631828 0.02591623 0.2844633    0 0.01922741
+\end{verbatim}
+
+
+By default \texttt{confint} uses a hyperbolic tangent to compute confidence
+intervals (CIs), which will then differ from the 'Wald' discussed in
+\cite{matsouaka2022robust}. These 'untransformed Wald' CIs can be
+retrieved by setting the argument \texttt{transform} to \texttt{FALSE}:
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+confint(e.BTjuv, transform = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
@@ -345,13 +367,11 @@ time 0.1578947 0.06631828 0.02791329 0.2878762    0 0.01727214
 \end{verbatim}
 
 
-By default \texttt{confint} uses a hyperbolic tangent unless the argument
-\texttt{transform} is set to \texttt{FALSE}.
-
-\bigskip
+\clearpage
 
 \uline{Note:} naively one may think to estimate the standard error as:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 sqrt(var(coef(e.BTjuv, strata = TRUE))/N)
 \end{lstlisting}
 
@@ -373,7 +393,8 @@ This is equivalent (in large samples to the previous formula). Indeed:
 \end{align*}
 
 There is only a factor \texttt{N/(N-1)} difference between the two:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
 \end{lstlisting}
 
@@ -383,101 +404,30 @@ sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
 \end{verbatim}
 
 
-\clearpage
-
 \section{MOVER method (Gehan scoring rule)}
-\label{sec:org1938659}
+\label{sec:org08560f3}
 
-In fact the results of table 1 were obtained using MOVER
-approach. Thye can be retrieved with a dedicated function processing
-the output of the \texttt{BuyseTest} function:
+The method recommended by \cite{matsouaka2022robust} is the MOVER
+approach, which has been developped for a binary scoring rule
+(e.g. Gehan). An experimental function with the same name has been
+implemented in the BuyseTest package:
 
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none,basicstyle=\ttfamily\tiny]
-runMover <- function(object, level = 0.95, p.value = TRUE, type = "Wilson", tol = 1e-6){
-    
-    ## ** normalize user input
-    q.low <- qnorm((1-level)/2)
-    q.high <- qnorm(1-(1-level)/2)
-    type <- match.arg(type, c("Wilson","Agresti-Coull"))
-    
-    ## ** normalize user input
-    N <- nobs(object)["pairs"]
-    pi_w <- coef(object, statistic = "favorable")
-    pi_l <- coef(object, statistic = "unfavorable")
-
-    if(level == 1){
-        DeltaL <- -1
-        DeltaU <- 1
-    }else{
-        Ntilde <- N + q.high
-        pitilde_w <- (N*pi_w+0.5*q.high^2)/Ntilde
-        pitilde_l <- (N*pi_l+0.5*q.high^2)/Ntilde
-
-        if(any(c(pi_w,pi_l)<tol) || any(c(pi_w,pi_l)>1-tol)){
-            cor_wl <- 0
-        }else{
-            cor_wl <- - pi_w * pi_l / sqrt(pi_w * (1 - pi_w) * pi_l * (1 - pi_l))
-        }
-
-        ## Wilson
-        if(type == "Wilson"){
-            L_w <- pitilde_w + 0.5/Ntilde * q.low * sqrt(q.low^2 + 4*N*pi_w*(1-pi_w))
-            U_w <- pitilde_w + 0.5/Ntilde * q.high * sqrt(q.high^2 + 4*N*pi_w*(1-pi_w))
-            L_l <- pitilde_l + 0.5/Ntilde * q.low * sqrt(q.low^2 + 4*N*pi_l*(1-pi_l))
-            U_l <- pitilde_l + 0.5/Ntilde * q.high * sqrt(q.high^2 + 4*N*pi_l*(1-pi_l))
-        }else if(type == "Agresti-Coull"){
-            L_w <- pitilde_w + q.low * sqrt(pitilde_w*(1-pitilde_w)/Ntilde)
-            U_w <- pitilde_w + q.high * sqrt(pitilde_w*(1-pitilde_w)/Ntilde)
-            L_l <- pitilde_l + q.low * sqrt(pitilde_l*(1-pitilde_l)/Ntilde)
-            U_l <- pitilde_l + q.high * sqrt(pitilde_l*(1-pitilde_l)/Ntilde)
-        }
-
-        DeltaL <- (pi_w-pi_l) - sqrt((pi_w - L_w)^2 + (U_l - pi_l)^2 - 2 * cor_wl * (pi_w - L_w) * (U_l - pi_l))
-        DeltaU <- (pi_w-pi_l) + sqrt((U_w - pi_w)^2 + (pi_l - L_l)^2 - 2 * cor_wl * (U_w - pi_w) * (pi_l - L_l))
-    }
-
-    ## p-value
-    if(p.value){
-        if(abs(DeltaL)<tol | abs(DeltaU)<tol){ ## CI touch 0
-            p <- 1-level
-        }else if(DeltaL>0 && DeltaU>0){ ## CI do not overlap 0: p>level
-            res.search <- uniroot(f = function(mylevel){runMover(object, level = mylevel, p.value = FALSE)["lower"]},
-                                  lower = level, upper = 1)
-        }else if(DeltaL<0 && DeltaU<0){ ## CI do not overlap 0: p>level
-            res.search <- uniroot(f = function(mylevel){runMover(object, level = mylevel, p.value = FALSE)["upper"]},
-                                  lower = level, upper = 1)
-        }else if(DeltaL<0 && DeltaU>0){ ## CI overlaps 0: p<level
-            res.search <- uniroot(f = function(mylevel){
-                tempo <- runMover(object, level = mylevel, p.value = FALSE)[c("lower","upper")]
-                return(tempo[which.min(abs(tempo))])
-            }, lower = 0, upper = level)
-        }
-        p.value <- 1-res.search$root            
-    }else{
-        p.value <- NA
-    }
-
-    ## export
-    out <- c(estimate = pi_w-pi_l, lower = unname(DeltaL), upper = unname(DeltaU), pvalue = p.value)
-    return(out)
-}
-\end{lstlisting}
-
-
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
-runMover(e.BTjuv, level = 0.95)
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+mover(e.BTjuv)
 \end{lstlisting}
 \begin{verbatim}
   estimate      lower      upper     pvalue 
-0.15789474 0.02525513 0.28805176 0.02048651
+0.15789474 0.02540421 0.28317729 0.01967878
 \end{verbatim}
 
 
+leading to the same results as those of the table 1 in the original article, up to rounding.
 
 \clearpage
 
 \section{Wald methods (Peron scoring rule)}
-\label{sec:org20ae582}
+\label{sec:orga4d0a94}
 
 To better account for censoring one could use the Peron scoring rule
 where the survival is estimated across all subjects within a treatment
@@ -485,9 +435,10 @@ group. One has to specify the survival model, otherwise, the BuyseTest
 function will estimate a treatmnet and strata specific survival curve
 which is impossible to perform here. The \texttt{model.tte} argument can be
 used to specify such survival model:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 library(prodlim)
-e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                       data = diabeticJ, trace = FALSE,
                       model.tte = prodlim(Hist(time,status)~ trt, data = diabeticJ))
 model.tables(e.BTjuv2, percentage = FALSE)
@@ -500,7 +451,8 @@ model.tables(e.BTjuv2, percentage = FALSE)
 
 
 Ignoring the uncertainty of the survival model, the standard would be:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 c(sqrt(var(coef(e.BTjuv2, strata = TRUE))/N),
   sqrt(var(coef(e.BTjuv2, strata = TRUE))/N) * sqrt((N-1)/N)
   )
@@ -515,10 +467,11 @@ c(sqrt(var(coef(e.BTjuv2, strata = TRUE))/N),
 depending on whether a small sample correction is used or not. This
 matches the output of \texttt{BuyseTest} when ignoring the uncertainty of the
 survival model:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 model.tte <- prodlim(Hist(time,status)~ trt, data = diabeticJ)
 attr(model.tte, "iidNuisance") <- FALSE
-confint(BuyseTest(trt ~ tte(time,status) + strata(id), 
+confint(BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                   data = diabeticJ, trace = FALSE,
                   model.tte = model.tte))
 \end{lstlisting}
@@ -532,14 +485,15 @@ time 0.202366 0.06566518 0.07088227 0.3269375    0 0.002726979
 \Warning Because the pairwise win and loss score are no more binary, the
 previous formula no more simplifies into the formula presented in
 \cite{matsouaka2022robust}:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 pw.peron <- coef(e.BTjuv2, statistic = "favorable")
 pl.peron <- coef(e.BTjuv2, statistic = "unfavorable")
 sqrt((pw.peron + pl.peron - (pw.peron - pl.peron)^2)/N)
 \end{lstlisting}
 
 \begin{verbatim}
-     pairs 
+      time 
 0.07179718
 \end{verbatim}
 
@@ -548,7 +502,8 @@ sqrt((pw.peron + pl.peron - (pw.peron - pl.peron)^2)/N)
 
 To account for the uncertainty of the survival model, \texttt{BuyseTest}
 outputs a slightly higher standard error:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 confint(e.BTjuv2)
 \end{lstlisting}
 
@@ -562,7 +517,8 @@ This is achieved by considering two sources of uncertainty:
 \begin{itemize}
 \item average of a finite number of pairs:
 \end{itemize}
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 pw.peronS <- coef(e.BTjuv2, statistic = "favorable", strata = TRUE)
 pl.peronS <- coef(e.BTjuv2, statistic = "unfavorable", strata = TRUE)
 Hterm1 <- (pw.peronS - pl.peronS) - (pw.peron - pl.peron)
@@ -574,7 +530,8 @@ benefit. Because each pair appear twice (control and treatment) the
 impact of removing a pair on the net benefit is stored in the
 control and the treated is set to 0:
 \end{itemize}
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 Hterm2.obs <- e.BTjuv2@iidNuisance$favorable - e.BTjuv2@iidNuisance$unfavorable
 Hterm2.pair <- Hterm2.obs[diabeticJ$trt==0]
 table(Hterm2.obs[diabeticJ$trt==1])
@@ -589,7 +546,8 @@ table(Hterm2.obs[diabeticJ$trt==1])
 
 After rescaling the terms by a factor N (number of pairs, to account
 for the pooling) we retrieve the uncertainty output by \texttt{BuyseTest}:
-\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
 c(average = sqrt(crossprod((Hterm1/N))),
   nuisance = sqrt(crossprod((Hterm2.pair/N))),
   all = sqrt(crossprod((Hterm1/N + Hterm2.pair/N))))
@@ -603,7 +561,7 @@ c(average = sqrt(crossprod((Hterm1/N))),
 
 
 \section*{References}
-\label{sec:org0211660}
+\label{sec:org1ce013e}
 \begingroup
 \renewcommand{\section}[2]{}
 

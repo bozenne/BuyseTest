@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 11 2025 (15:42) 
 ## Version: 
-## Last-Updated: Jul  7 2025 (10:42) 
+## Last-Updated: Jul  7 2025 (12:30) 
 ##           By: Brice Ozenne
-##     Update #: 106
+##     Update #: 109
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -148,7 +148,7 @@ test_that("BuyseTest - standarization (second order, binary outcome, balanced)",
     BTB.std         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = F, keep.pairScore = FALSE)
     BTB.std2         <- BuyseTest(data = dfB, arm ~ cont(Y, threshold = tau) + X, pool.strata = "standardization", trace = F, keep.pairScore = TRUE)
     expect_equal(coef(BTB.marginal), coef(BTB.std), tol = 1e-5)
-    expect_equal(coef(BTB.std), mean(coef(BTB.std, strata = TRUE)), tol = 1e-5)
+    expect_equivalent(coef(BTB.std), mean(coef(BTB.std, strata = TRUE)), tol = 1e-5)
 
     expect_true(confint(BTB.marginal)$se > confint(BTB.marginal, order.Hprojection = 1)$se) ## confint(BTB.marginal)$se^2 - confint(BTB.marginal, order.Hprojection = 1)$se^2
     expect_true(confint(BTB.std)$se > confint(BTB.std, order.Hprojection = 1)$se) ## confint(BTB.std)$se^2 - confint(BTB.std, order.Hprojection = 1)$se^2
@@ -161,14 +161,14 @@ test_that("BuyseTest - standarization (second order, binary outcome, balanced)",
     termM2 <- (coef(BTB.marginal, statistic = "unfavorable") - coef(BTB.marginal, statistic = "unfavorable")^2)/prod(table(dfB$arm)) - sum(sigmaMB_h1unfav/rev(table(dfB$arm)))
     sigmaMB_h1cross <- tapply(getIid(BTB.marginal, statistic = "favorable")*getIid(BTB.marginal, statistic = "unfavorable"), dfB$arm, sum)
     termM3 <- 0 - coef(BTB.marginal, statistic = "favorable")*coef(BTB.marginal, statistic = "unfavorable")/prod(table(dfB$arm)) - sum(sigmaMB_h1cross/rev(table(dfB$arm)))
-    expect_equal(termM1+termM2-2*termM3, confint(BTB.marginal, order.Hprojection = 2)$se^2 - confint(BTB.marginal, order.Hprojection = 1)$se^2, tol = 1e-6)
+    expect_equivalent(termM1+termM2-2*termM3, confint(BTB.marginal, order.Hprojection = 2)$se^2 - confint(BTB.marginal, order.Hprojection = 1)$se^2, tol = 1e-6)
 
     mytableM <- getPairScore(BTB.marginal2)
     HprojM_fav <- getIid(BTB.marginal2, statistic = "favorable", scale = FALSE)
     estM_fav <- coef(BTB.marginal2, statistic = "favorable")
     mytableM[, hproj.0 := HprojM_fav[index.0]]
     mytableM[, hproj.1 := HprojM_fav[index.1]]
-    expect_equal(termM1, mytableM[, sum((favorable - hproj.0 - hproj.1 - estM_fav)^2)/.N^2], tol = 1e-6)
+    expect_equivalent(termM1, mytableM[, sum((favorable - hproj.0 - hproj.1 - estM_fav)^2)/.N^2], tol = 1e-6)
 
     ## by hand (standardized)
     sigmaB_h1fav <- tapply(getIid(BTB.std, statistic = "favorable"), dfB$arm, crossprod)
@@ -177,7 +177,7 @@ test_that("BuyseTest - standarization (second order, binary outcome, balanced)",
     term2 <- (coef(BTB.std, statistic = "unfavorable") - coef(BTB.std, statistic = "unfavorable")^2)/prod(table(dfB$arm)) - sum(sigmaB_h1unfav/rev(table(dfB$arm)))
     sigmaB_h1cross <- tapply(getIid(BTB.std, statistic = "favorable")*getIid(BTB.std, statistic = "unfavorable"), dfB$arm, sum)
     term3 <- 0 - coef(BTB.std, statistic = "favorable")*coef(BTB.std, statistic = "unfavorable")/prod(table(dfB$arm)) - sum(sigmaB_h1cross/rev(table(dfB$arm)))
-    expect_equal(term1+term2-2*term3, confint(BTB.std, order.Hprojection = 2)$se^2 - confint(BTB.std, order.Hprojection = 1)$se^2, tol = 1e-6)
+    expect_equivalent(term1+term2-2*term3, confint(BTB.std, order.Hprojection = 2)$se^2 - confint(BTB.std, order.Hprojection = 1)$se^2, tol = 1e-6)
 
     mytable <- getPairScore(BTB.std2)
     mytable[, weightStrata := stats::setNames(BTB.std2@weightStrata,BTB.std2@level.strata)[strata]]
@@ -194,7 +194,7 @@ test_that("BuyseTest - standarization (second order, binary outcome, balanced)",
     mytable[, hproj.1 := Hproj_fav[index.1]]
     mytable[, Tfavorable := coef(BTB.std2, statistic = "favorable")]
 
-    expect_equal(term1, mytable[, sum((Wfavorable - hproj.0 - hproj.1 - Tfavorable)^2)/.N^2], tol = 1e-6)
+    expect_equivalent(term1, mytable[, sum((Wfavorable - hproj.0 - hproj.1 - Tfavorable)^2)/.N^2], tol = 1e-6)
 })    
     
 test_that("BuyseTest - standarization (second order, binary outcome, unbalanced)",{
@@ -256,6 +256,7 @@ test_that("BuyseTest - standarization (tte outcome)",{
     ## confint(BTB.raw)
     ##             estimate        se   lower.ci  upper.ci null   p.value
     ## eventtime 0.02881503 0.1417496 -0.2441965 0.2975942    0 0.8390032
+
     BTB.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dtB.strata,
                          pool.strata = "standardization", 
                          model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))

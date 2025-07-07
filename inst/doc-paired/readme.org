@@ -1,0 +1,35 @@
+Instructions to run to prepare the vignette (to run before installing the package)
+
+- export R code
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+## devtools::build_vignettes("BuyseTest", quiet = FALSE) ## generate the META & DOC folder
+library(butils.base)
+setwd(pathGitHub())
+extractRchunk(file = "./BuyseTest/inst/doc-paired/paired.org",
+              newfile = "./BuyseTest/vignettes/paired.pdf.asis",
+              header = c("%\\VignetteIndexEntry{BuyseTest: paired}",
+                         "%\\VignetteEngine{R.rsp::asis}",
+                         "%\\VignetteKeyword{PDF}",
+                         "%\\VignetteKeyword{vignette}",
+                         "%\\VignetteKeyword{package}",
+                         ""),
+              overwrite = TRUE)
+#+END_SRC
+
+#+RESULTS:
+: Loading required package: data.table
+: data.table 1.17.2 using 8 threads (see ?getDTthreads).  Latest news: r-datatable.com
+: Loading required package: devtools
+: Loading required package: usethis
+: butils.base version 1.3
+
+- move to directory containing the package, compress vignette pdf file, and copy to =doc= and =vignettes= directories
+#+BEGIN_SRC shell
+cd ~/Documents/GitHub/BuyseTest/inst/doc-paired/
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer -dNOPAUSE -dQUIET -dBATCH -sOutputFile=paired-compress.pdf paired.pdf
+cp paired-compress.pdf ../../vignettes/paired.pdf 
+cp paired.R ../../vignettes/paired.R 
+#+END_SRC
+
+#+RESULTS:
+

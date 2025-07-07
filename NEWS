@@ -4,6 +4,7 @@
 ** User visible change
 - the formula interface in BuyseTest can now take the outcome on the left hand side and the treatment and strata variables on the right-hand side
 - argument match added to the operator strata to handle paired design.
+- NEW FEATURE: add an update and vcov method for BuyseTest objects.
 
 ** Internal change
 - fix bug in standardization when evaluating the standard error with u-statistic
