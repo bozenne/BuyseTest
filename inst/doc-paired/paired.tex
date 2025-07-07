@@ -1,0 +1,614 @@
+% Created 2025-05-13 ti 18:25
+% Intended LaTeX compiler: pdflatex
+\documentclass[12pt]{article}
+
+%%%% settings when exporting code %%%% 
+
+\usepackage{listings}
+\lstdefinestyle{code-small}{
+backgroundcolor=\color{white}, % background color for the code block
+basicstyle=\ttfamily\small, % font used to display the code
+commentstyle=\color[rgb]{0.5,0,0.5}, % color used to display comments in the code
+keywordstyle=\color{black}, % color used to highlight certain words in the code
+numberstyle=\ttfamily\tiny\color{gray}, % color used to display the line numbers
+rulecolor=\color{black}, % color of the frame
+stringstyle=\color[rgb]{0,.5,0},  % color used to display strings in the code
+breakatwhitespace=false, % sets if automatic breaks should only happen at whitespace
+breaklines=true, % sets automatic line breaking
+columns=fullflexible,
+frame=single, % adds a frame around the code (non,leftline,topline,bottomline,lines,single,shadowbox)
+keepspaces=true, % % keeps spaces in text, useful for keeping indentation of code
+literate={~}{$\sim$}{1}, % symbol properly display via latex
+numbers=none, % where to put the line-numbers; possible values are (none, left, right)
+numbersep=10pt, % how far the line-numbers are from the code
+showspaces=false,
+showstringspaces=false,
+stepnumber=1, % the step between two line-numbers. If it's 1, each line will be numbered
+tabsize=1,
+xleftmargin=0cm,
+emph={anova,apply,class,coef,colnames,colNames,colSums,dim,dcast,for,ggplot,head,if,ifelse,is.na,lapply,list.files,library,logLik,melt,plot,require,rowSums,sapply,setcolorder,setkey,str,summary,tapply},
+aboveskip = \medskipamount, % define the space above displayed listings.
+belowskip = \medskipamount, % define the space above displayed listings.
+lineskip = 0pt} % specifies additional space between lines in listings
+\lstset{style=code-small}
+%%%% packages %%%%%
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{changes}
+\usepackage{pdflscape}
+\usepackage{geometry}
+\usepackage[normalem]{ulem}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{dsfont}
+\usepackage{array}
+\usepackage{ifthen}
+\usepackage{hyperref}
+\usepackage{natbib}
+\RequirePackage{setspace} % to modify the space between lines - incompatible with footnote in beamer
+\renewcommand{\baselinestretch}{1.1}
+\geometry{a4paper, left=10mm, right=10mm, top=10mm}
+\usepackage{titlesec}
+\usepackage{etoolbox}
+
+\makeatletter
+\patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
+\patchcmd{\ttlh@hang}{\noindent}{}{}{}
+\makeatother
+\RequirePackage{colortbl} % arrayrulecolor to mix colors
+\definecolor{myorange}{rgb}{1,0.2,0}
+\definecolor{mypurple}{rgb}{0.7,0,8}
+\definecolor{mycyan}{rgb}{0,0.6,0.6}
+\newcommand{\lightblue}{blue!50!white}
+\newcommand{\darkblue}{blue!80!black}
+\newcommand{\darkgreen}{green!50!black}
+\newcommand{\darkred}{red!50!black}
+\definecolor{gray}{gray}{0.5}
+\hypersetup{
+citecolor=[rgb]{0,0.5,0},
+urlcolor=[rgb]{0,0,0.5},
+linkcolor=[rgb]{0,0,0.5},
+}
+\newenvironment{note}{\small \color{gray}\fontfamily{lmtt}\selectfont}{\par}
+\newenvironment{activity}{\color{orange}\fontfamily{qzc}\selectfont}{\par}
+\RequirePackage{pifont}
+\RequirePackage{relsize}
+\newcommand{\Cross}{{\raisebox{-0.5ex}%
+{\relsize{1.5}\ding{56}}}\hspace{1pt} }
+\newcommand{\Valid}{{\raisebox{-0.5ex}%
+{\relsize{1.5}\ding{52}}}\hspace{1pt} }
+\newcommand{\CrossR}{ \textcolor{red}{\Cross} }
+\newcommand{\ValidV}{ \textcolor{green}{\Valid} }
+\usepackage{stackengine}
+\usepackage{scalerel}
+\newcommand\Warning[1][3ex]{%
+\renewcommand\stacktype{L}%
+\scaleto{\stackon[1.3pt]{\color{red}$\triangle$}{\tiny\bfseries !}}{#1}%
+\xspace
+}
+\definecolor{grayR}{HTML}{8A8990}
+\definecolor{grayL}{HTML}{C4C7C9}
+\definecolor{blueM}{HTML}{1F63B5}
+\newcommand{\Rlogo}[1][0.07]{
+\begin{tikzpicture}[scale=#1]
+\shade [right color=grayR,left color=grayL,shading angle=60]
+(-3.55,0.3) .. controls (-3.55,1.75)
+and (-1.9,2.7) .. (0,2.7) .. controls (2.05,2.7)
+and (3.5,1.6) .. (3.5,0.3) .. controls (3.5,-1.2)
+and (1.55,-2) .. (0,-2) .. controls (-2.3,-2)
+and (-3.55,-0.75) .. cycle;
+
+\fill[white]
+(-2.15,0.2) .. controls (-2.15,1.2)
+and (-0.7,1.8) .. (0.5,1.8) .. controls (2.2,1.8)
+and (3.1,1.2) .. (3.1,0.2) .. controls (3.1,-0.75)
+and (2.4,-1.45) .. (0.5,-1.45) .. controls (-1.1,-1.45)
+and (-2.15,-0.7) .. cycle;
+
+\fill[blueM]
+(1.75,1.25) -- (-0.65,1.25) -- (-0.65,-2.75) -- (0.55,-2.75) -- (0.55,-1.15) --
+(0.95,-1.15)  .. controls (1.15,-1.15)
+and (1.5,-1.9) .. (1.9,-2.75) -- (3.25,-2.75)  .. controls (2.2,-1)
+and (2.5,-1.2) .. (1.8,-0.95) .. controls (2.6,-0.9)
+and (2.85,-0.35) .. (2.85,0.2) .. controls (2.85,0.7)
+and (2.5,1.2) .. cycle;
+
+\fill[white]  (1.4,0.4) -- (0.55,0.4) -- (0.55,-0.3) -- (1.4,-0.3).. controls (1.75,-0.3)
+and (1.75,0.4) .. cycle;
+
+\end{tikzpicture}
+}
+\RequirePackage{fancyvrb}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\small,formatcom = {\color[rgb]{0.5,0,0}}}
+\RequirePackage{enumitem} % better than enumerate
+\RequirePackage{epstopdf} % to be able to convert .eps to .pdf image files
+\RequirePackage{capt-of} %
+\RequirePackage{caption} % newlines in graphics
+\RequirePackage{tikz-cd} % graph
+\RequirePackage{booktabs} % for nice lines in table (e.g. toprule, bottomrule, midrule, cmidrule)
+\RequirePackage{amsmath}
+\RequirePackage{algorithm}
+\RequirePackage[noend]{algpseudocode}
+\RequirePackage{dsfont}
+\RequirePackage{amsmath,stmaryrd,graphicx}
+\RequirePackage{prodint} % product integral symbol (\PRODI)
+\usepackage{ifthen}
+\usepackage{xifthen}
+\usepackage{xargs}
+\usepackage{xspace}
+\newcommand\defOperator[7]{%
+\ifthenelse{\isempty{#2}}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4}{#7{#3}#4 \left#5 #1 \right#6}
+}{
+\ifthenelse{\isempty{#1}}{#7{#3}#4_{#2}}{#7{#3}#4_{#1}\left#5 #2 \right#6}
+}
+}
+\newcommand\defUOperator[5]{%
+\ifthenelse{\isempty{#1}}{
+#5\left#3 #2 \right#4
+}{
+\ifthenelse{\isempty{#2}}{\underset{#1}{\operatornamewithlimits{#5}}}{
+\underset{#1}{\operatornamewithlimits{#5}}\left#3 #2 \right#4}
+}
+}
+\newcommand{\defBoldVar}[2]{
+\ifthenelse{\equal{#2}{T}}{\boldsymbol{#1}}{\mathbf{#1}}
+}
+\newcommandx\Esp[2][1=,2=]{\defOperator{#1}{#2}{E}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Prob[2][1=,2=]{\defOperator{#1}{#2}{P}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Qrob[2][1=,2=]{\defOperator{#1}{#2}{Q}{}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Var[2][1=,2=]{\defOperator{#1}{#2}{V}{ar}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Cov[2][1=,2=]{\defOperator{#1}{#2}{C}{ov}{\lbrack}{\rbrack}{\mathbb}}
+\newcommandx\Binom[2][1=,2=]{\defOperator{#1}{#2}{B}{}{(}{)}{\mathcal}}
+\newcommandx\Gaus[2][1=,2=]{\defOperator{#1}{#2}{N}{}{(}{)}{\mathcal}}
+\newcommandx\Wishart[2][1=,2=]{\defOperator{#1}{#2}{W}{ishart}{(}{)}{\mathcal}}
+\newcommandx\Likelihood[2][1=,2=]{\defOperator{#1}{#2}{L}{}{(}{)}{\mathcal}}
+\newcommandx\logLikelihood[2][1=,2=]{\defOperator{#1}{#2}{\ell}{}{(}{)}{}}
+\newcommandx\Information[2][1=,2=]{\defOperator{#1}{#2}{I}{}{(}{)}{\mathcal}}
+\newcommandx\Score[2][1=,2=]{\defOperator{#1}{#2}{S}{}{(}{)}{\mathcal}}
+\newcommandx\Vois[2][1=,2=]{\defOperator{#1}{#2}{V}{}{(}{)}{\mathcal}}
+\newcommandx\IF[2][1=,2=]{\defOperator{#1}{#2}{IF}{}{(}{)}{\mathcal}}
+\newcommandx\Ind[1][1=]{\defOperator{}{#1}{1}{}{(}{)}{\mathds}}
+\newcommandx\Max[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{min}}
+\newcommandx\Min[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{max}}
+\newcommandx\argMax[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmax}}
+\newcommandx\argMin[2][1=,2=]{\defUOperator{#1}{#2}{(}{)}{argmin}}
+\newcommandx\cvD[2][1=D,2=n \rightarrow \infty]{\xrightarrow[#2]{#1}}
+\newcommandx\Hypothesis[2][1=,2=]{
+\ifthenelse{\isempty{#1}}{
+\mathcal{H}
+}{
+\ifthenelse{\isempty{#2}}{
+\mathcal{H}_{#1}
+}{
+\mathcal{H}^{(#2)}_{#1}
+}
+}
+}
+\newcommandx\dpartial[4][1=,2=,3=,4=\partial]{
+\ifthenelse{\isempty{#3}}{
+\frac{#4 #1}{#4 #2}
+}{
+\left.\frac{#4 #1}{#4 #2}\right\rvert_{#3}
+}
+}
+\newcommandx\dTpartial[3][1=,2=,3=]{\dpartial[#1][#2][#3][d]}
+\newcommandx\ddpartial[3][1=,2=,3=]{
+\ifthenelse{\isempty{#3}}{
+\frac{\partial^{2} #1}{\partial #2^2}
+}{
+\frac{\partial^2 #1}{\partial #2\partial #3}
+}
+}
+\newcommand\Real{\mathbb{R}}
+\newcommand\Rational{\mathbb{Q}}
+\newcommand\Natural{\mathbb{N}}
+\newcommand\trans[1]{{#1}^\intercal}%\newcommand\trans[1]{{\vphantom{#1}}^\top{#1}}
+\newcommand{\independent}{\mathrel{\text{\scalebox{1.5}{$\perp\mkern-10mu\perp$}}}}
+\newcommand\half{\frac{1}{2}}
+\newcommand\normMax[1]{\left|\left|#1\right|\right|_{max}}
+\newcommand\normTwo[1]{\left|\left|#1\right|\right|_{2}}
+\newcommand\Veta{\boldsymbol{\eta}}
+\newcommand\VX{\mathbf{X}}
+\author{Brice Ozenne}
+\date{\today}
+\title{Performing GPC in a paired design}
+\hypersetup{
+ colorlinks=true,
+ pdfauthor={Brice Ozenne},
+ pdftitle={Performing GPC in a paired design},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.6.15)},
+ pdflang={English}
+ }
+\begin{document}
+
+\maketitle
+This vignette describes how to use Generalized Pairwise comparisons
+(GPC) in a paired design. This for instance corresponds to the
+Diabetic Retinopathy Study (DRS) contained in the survival \Rlogo
+package where 197 patients had one of their eye randomized to laser
+treatment while the other did not receive any treatment:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+data(diabetic, package = "survival")
+head(diabetic)
+\end{lstlisting}
+
+\begin{verbatim}
+  id laser age   eye trt risk  time status
+1  5 argon  28  left   0    9 46.23      0
+2  5 argon  28 right   1    9 46.23      0
+3 14 xenon  12  left   1    8 42.50      0
+4 14 xenon  12 right   0    6 31.30      1
+5 16 xenon   9  left   1   11 42.27      0
+6 16 xenon   9 right   0   11 42.27      0
+\end{verbatim}
+
+
+The outcome was time to blindness (visual acuity drop below a certain
+threshold). In the real study \texttt{status} equal to 0 mixes death and
+censoring (due to drop-out or end of study) but this complication will
+be neglected here for simplicity.
+
+
+\bigskip
+
+We will replicate some of the analyzes presented in
+\cite{matsouaka2022robust}. In this paper they split the dataset into
+juvenile and adult patients:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+diabetic$juvenile <- diabetic$age <= 19
+library(LMMstar)
+summarize(age ~ juvenile, data = diabetic[!duplicated(diabetic$id),])
+\end{lstlisting}
+
+\begin{verbatim}
+  juvenile observed missing     mean        sd min q1 median    q3 max
+1    FALSE       83       0 35.30120 11.242054  20 25     34 45.00  58
+2     TRUE      114       0 10.21053  4.713892   1  7     10 13.75  19
+\end{verbatim}
+
+
+and we will focus on the juvenile patients:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+diabeticJ <- diabetic[diabetic$juvenile,]
+\end{lstlisting}
+
+\clearpage
+
+\section{Wald methods (Gehan scoring rule)}
+\label{sec:org8fd5760}
+
+To mimic the methodology underlying the results presented in Table 1
+of \cite{matsouaka2022robust}, we perform GPC stratified by patient
+using the Gehan scoring rule:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+library(BuyseTest)
+e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+                     data = diabeticJ, trace = FALSE,
+                     scoring.rule =  "Gehan")
+model.tables(e.BTjuv, percentage = FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+  endpoint total favorable unfavorable neutral uninf     Delta   lower.ci  upper.ci    p.value
+1     time   114        39          21       3    51 0.1578947 0.02591623 0.2844633 0.01922741
+\end{verbatim}
+
+
+Indeed this scoring rule does not involve any extra-modeling, only
+evaluating the patient specific net benefit and averaging them:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+mean(coef(e.BTjuv, strata = TRUE))
+\end{lstlisting}
+
+\begin{verbatim}
+[1] 0.1578947
+\end{verbatim}
+
+
+\cite{matsouaka2022robust} propose to estimate the standard error as:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+N <- nobs(e.BTjuv)["pairs"]
+pw <- coef(e.BTjuv, statistic = "favorable")
+pl <- coef(e.BTjuv, statistic = "unfavorable")
+sqrt((pw + pl - (pw - pl)^2)/N)
+\end{lstlisting}
+
+\begin{verbatim}
+     pairs 
+0.06631828
+\end{verbatim}
+
+
+which matches what \texttt{BuyseTest} output:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+confint(e.BTjuv)
+\end{lstlisting}
+
+\begin{verbatim}
+      estimate         se   lower.ci  upper.ci null    p.value
+time 0.1578947 0.06631828 0.02791329 0.2878762    0 0.01727214
+\end{verbatim}
+
+
+By default \texttt{confint} uses a hyperbolic tangent unless the argument
+\texttt{transform} is set to \texttt{FALSE}.
+
+\bigskip
+
+\uline{Note:} naively one may think to estimate the standard error as:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+sqrt(var(coef(e.BTjuv, strata = TRUE))/N)
+\end{lstlisting}
+
+\begin{verbatim}
+     pairs 
+0.06661108
+\end{verbatim}
+
+
+This is equivalent (in large samples to the previous formula). Indeed:
+\begin{align*}
+&\Prob[X>Y] + \Prob[Y>X] - (\Prob[X>Y] - \Prob[Y>X])^2 \\
+=& \Prob[X>Y] + \Prob[Y>X] - \Prob[X>Y]^ - \Prob[Y>X]^2 + 2 \Prob[X>Y] \Prob[Y>X] \\
+=& \Prob[X>Y](1-\Prob[X>Y]) + \Prob[Y>X](1-\Prob[Y>X]) + 2 \Prob[X>Y] \Prob[Y>X] \\
+=& \Prob[X>Y](1-\Prob[X>Y]) + \Prob[Y>X](1-\Prob[Y>X]) \\
+ & - 2 (0 - \Prob[X>Y] \Prob[Y>X] - \Prob[X>Y] \Prob[Y>X] + \Prob[X>Y] \Prob[Y>X] \\
+=& \Var\left[\Ind[X>Y]\right] + \Var\left[\Ind[X<Y]\right] - 2 \Cov\left(\Ind[X>Y],\Ind[X<Y]\right) \\
+=& \Var\left[\Ind[X>Y]-\Ind[X<Y]\right] \\
+\end{align*}
+
+There is only a factor \texttt{N/(N-1)} difference between the two:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
+\end{lstlisting}
+
+\begin{verbatim}
+     pairs 
+0.06631828
+\end{verbatim}
+
+
+\clearpage
+
+\section{MOVER method (Gehan scoring rule)}
+\label{sec:org1938659}
+
+In fact the results of table 1 were obtained using MOVER
+approach. Thye can be retrieved with a dedicated function processing
+the output of the \texttt{BuyseTest} function:
+
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none,basicstyle=\ttfamily\tiny]
+runMover <- function(object, level = 0.95, p.value = TRUE, type = "Wilson", tol = 1e-6){
+    
+    ## ** normalize user input
+    q.low <- qnorm((1-level)/2)
+    q.high <- qnorm(1-(1-level)/2)
+    type <- match.arg(type, c("Wilson","Agresti-Coull"))
+    
+    ## ** normalize user input
+    N <- nobs(object)["pairs"]
+    pi_w <- coef(object, statistic = "favorable")
+    pi_l <- coef(object, statistic = "unfavorable")
+
+    if(level == 1){
+        DeltaL <- -1
+        DeltaU <- 1
+    }else{
+        Ntilde <- N + q.high
+        pitilde_w <- (N*pi_w+0.5*q.high^2)/Ntilde
+        pitilde_l <- (N*pi_l+0.5*q.high^2)/Ntilde
+
+        if(any(c(pi_w,pi_l)<tol) || any(c(pi_w,pi_l)>1-tol)){
+            cor_wl <- 0
+        }else{
+            cor_wl <- - pi_w * pi_l / sqrt(pi_w * (1 - pi_w) * pi_l * (1 - pi_l))
+        }
+
+        ## Wilson
+        if(type == "Wilson"){
+            L_w <- pitilde_w + 0.5/Ntilde * q.low * sqrt(q.low^2 + 4*N*pi_w*(1-pi_w))
+            U_w <- pitilde_w + 0.5/Ntilde * q.high * sqrt(q.high^2 + 4*N*pi_w*(1-pi_w))
+            L_l <- pitilde_l + 0.5/Ntilde * q.low * sqrt(q.low^2 + 4*N*pi_l*(1-pi_l))
+            U_l <- pitilde_l + 0.5/Ntilde * q.high * sqrt(q.high^2 + 4*N*pi_l*(1-pi_l))
+        }else if(type == "Agresti-Coull"){
+            L_w <- pitilde_w + q.low * sqrt(pitilde_w*(1-pitilde_w)/Ntilde)
+            U_w <- pitilde_w + q.high * sqrt(pitilde_w*(1-pitilde_w)/Ntilde)
+            L_l <- pitilde_l + q.low * sqrt(pitilde_l*(1-pitilde_l)/Ntilde)
+            U_l <- pitilde_l + q.high * sqrt(pitilde_l*(1-pitilde_l)/Ntilde)
+        }
+
+        DeltaL <- (pi_w-pi_l) - sqrt((pi_w - L_w)^2 + (U_l - pi_l)^2 - 2 * cor_wl * (pi_w - L_w) * (U_l - pi_l))
+        DeltaU <- (pi_w-pi_l) + sqrt((U_w - pi_w)^2 + (pi_l - L_l)^2 - 2 * cor_wl * (U_w - pi_w) * (pi_l - L_l))
+    }
+
+    ## p-value
+    if(p.value){
+        if(abs(DeltaL)<tol | abs(DeltaU)<tol){ ## CI touch 0
+            p <- 1-level
+        }else if(DeltaL>0 && DeltaU>0){ ## CI do not overlap 0: p>level
+            res.search <- uniroot(f = function(mylevel){runMover(object, level = mylevel, p.value = FALSE)["lower"]},
+                                  lower = level, upper = 1)
+        }else if(DeltaL<0 && DeltaU<0){ ## CI do not overlap 0: p>level
+            res.search <- uniroot(f = function(mylevel){runMover(object, level = mylevel, p.value = FALSE)["upper"]},
+                                  lower = level, upper = 1)
+        }else if(DeltaL<0 && DeltaU>0){ ## CI overlaps 0: p<level
+            res.search <- uniroot(f = function(mylevel){
+                tempo <- runMover(object, level = mylevel, p.value = FALSE)[c("lower","upper")]
+                return(tempo[which.min(abs(tempo))])
+            }, lower = 0, upper = level)
+        }
+        p.value <- 1-res.search$root            
+    }else{
+        p.value <- NA
+    }
+
+    ## export
+    out <- c(estimate = pi_w-pi_l, lower = unname(DeltaL), upper = unname(DeltaU), pvalue = p.value)
+    return(out)
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+runMover(e.BTjuv, level = 0.95)
+\end{lstlisting}
+\begin{verbatim}
+  estimate      lower      upper     pvalue 
+0.15789474 0.02525513 0.28805176 0.02048651
+\end{verbatim}
+
+
+
+\clearpage
+
+\section{Wald methods (Peron scoring rule)}
+\label{sec:org20ae582}
+
+To better account for censoring one could use the Peron scoring rule
+where the survival is estimated across all subjects within a treatment
+group. One has to specify the survival model, otherwise, the BuyseTest
+function will estimate a treatmnet and strata specific survival curve
+which is impossible to perform here. The \texttt{model.tte} argument can be
+used to specify such survival model:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+library(prodlim)
+e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id), 
+                      data = diabeticJ, trace = FALSE,
+                      model.tte = prodlim(Hist(time,status)~ trt, data = diabeticJ))
+model.tables(e.BTjuv2, percentage = FALSE)
+\end{lstlisting}
+
+\begin{verbatim}
+  endpoint total favorable unfavorable neutral    uninf    Delta   lower.ci  upper.ci     p.value
+1     time   114  47.36525    24.29552       3 39.33923 0.202366 0.05045454 0.3451254 0.009329589
+\end{verbatim}
+
+
+Ignoring the uncertainty of the survival model, the standard would be:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+c(sqrt(var(coef(e.BTjuv2, strata = TRUE))/N),
+  sqrt(var(coef(e.BTjuv2, strata = TRUE))/N) * sqrt((N-1)/N)
+  )
+\end{lstlisting}
+
+\begin{verbatim}
+     pairs      pairs 
+0.06595510 0.06566518
+\end{verbatim}
+
+
+depending on whether a small sample correction is used or not. This
+matches the output of \texttt{BuyseTest} when ignoring the uncertainty of the
+survival model:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+model.tte <- prodlim(Hist(time,status)~ trt, data = diabeticJ)
+attr(model.tte, "iidNuisance") <- FALSE
+confint(BuyseTest(trt ~ tte(time,status) + strata(id), 
+                  data = diabeticJ, trace = FALSE,
+                  model.tte = model.tte))
+\end{lstlisting}
+
+\begin{verbatim}
+     estimate         se   lower.ci  upper.ci null     p.value
+time 0.202366 0.06566518 0.07088227 0.3269375    0 0.002726979
+\end{verbatim}
+
+
+\Warning Because the pairwise win and loss score are no more binary, the
+previous formula no more simplifies into the formula presented in
+\cite{matsouaka2022robust}:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+pw.peron <- coef(e.BTjuv2, statistic = "favorable")
+pl.peron <- coef(e.BTjuv2, statistic = "unfavorable")
+sqrt((pw.peron + pl.peron - (pw.peron - pl.peron)^2)/N)
+\end{lstlisting}
+
+\begin{verbatim}
+     pairs 
+0.07179718
+\end{verbatim}
+
+
+\clearpage 
+
+To account for the uncertainty of the survival model, \texttt{BuyseTest}
+outputs a slightly higher standard error:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+confint(e.BTjuv2)
+\end{lstlisting}
+
+\begin{verbatim}
+     estimate         se   lower.ci  upper.ci null     p.value
+time 0.202366 0.07569815 0.05045454 0.3451254    0 0.009329589
+\end{verbatim}
+
+
+This is achieved by considering two sources of uncertainty:
+\begin{itemize}
+\item average of a finite number of pairs:
+\end{itemize}
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+pw.peronS <- coef(e.BTjuv2, statistic = "favorable", strata = TRUE)
+pl.peronS <- coef(e.BTjuv2, statistic = "unfavorable", strata = TRUE)
+Hterm1 <- (pw.peronS - pl.peronS) - (pw.peron - pl.peron)
+\end{lstlisting}
+
+\begin{itemize}
+\item propage the uncertainty of the survival model to the net
+benefit. Because each pair appear twice (control and treatment) the
+impact of removing a pair on the net benefit is stored in the
+control and the treated is set to 0:
+\end{itemize}
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+Hterm2.obs <- e.BTjuv2@iidNuisance$favorable - e.BTjuv2@iidNuisance$unfavorable
+Hterm2.pair <- Hterm2.obs[diabeticJ$trt==0]
+table(Hterm2.obs[diabeticJ$trt==1])
+\end{lstlisting}
+
+\begin{verbatim}
+
+  0 
+114
+\end{verbatim}
+
+
+After rescaling the terms by a factor N (number of pairs, to account
+for the pooling) we retrieve the uncertainty output by \texttt{BuyseTest}:
+\begin{lstlisting}[language=r,label= ,caption= ,captionpos=b,numbers=none]
+c(average = sqrt(crossprod((Hterm1/N))),
+  nuisance = sqrt(crossprod((Hterm2.pair/N))),
+  all = sqrt(crossprod((Hterm1/N + Hterm2.pair/N))))
+\end{lstlisting}
+
+\begin{verbatim}
+   average   nuisance        all 
+0.06566518 0.02084622 0.07569815
+\end{verbatim}
+
+
+
+\section*{References}
+\label{sec:org0211660}
+\begingroup
+\renewcommand{\section}[2]{}
+
+\bibliographystyle{apalike}
+\bibliography{bibliography}
+
+\endgroup
+\end{document}

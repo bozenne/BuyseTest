@@ -17,7 +17,7 @@ printGeneral <- function(status,
                          level.treatment,
                          scoring.rule,
                          M.status,
-                         method.score, paired,
+                         method.score, 
                          neutral.as.uninf,
                          correction.uninf,
                          operator,
@@ -95,7 +95,7 @@ printGeneral <- function(status,
     cat("   - 2 groups  ",if(D>1){" "},": Control = ",level.treatment[1]," and Treatment = ",level.treatment[2],"\n", sep = "")
     cat("   - ",D," endpoint",if(D>1){"s"},": \n", sep = "")
     print(df.endpoint, row.names = FALSE, quote = FALSE, right = FALSE)
-    if(paired){
+    if(!is.null(strata) && attr(strata,"match")){
         txt.variable <- switch(as.character(length(strata)),
                                "1" = "variable",
                                "variables")        
@@ -146,13 +146,13 @@ printGeneral <- function(status,
 }
 
 ## * Function printInference
-printInference <- function(method.inference, paired, n.resampling, cpus, seed, ...){
+printInference <- function(method.inference, strata, n.resampling, cpus, seed, ...){
 
     if(method.inference != "none"){
 
         ## method        
         if(attr(method.inference,"ustatistic")){
-            if(paired){
+            if(!is.null(strata) && attr(strata,"match")){
                 txt.type <- "variability of the estimate across strata"
             }else{
                 txt.type <- "moments of the U-statistic"

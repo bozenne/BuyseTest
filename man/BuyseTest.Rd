@@ -36,7 +36,7 @@ BuyseTest(
 }
 \arguments{
 \item{formula}{[formula] a symbolic description of the GPC model,
-typically \code{treatment ~ type1(endpoint1) + type2(endpoint2, threshold2) + strata}.
+typically \code{type1(endpoint1) + type2(endpoint2, threshold2) ~ treatment + strata(gender)}.
 See Details, section "Specification of the GPC model".}
 
 \item{data}{[data.frame] dataset.}
@@ -78,7 +78,7 @@ Only used when \code{hierarchical=FALSE}. Disregarded if the argument \code{form
 \item{weightObs}{[character or numeric vector] weights or variable in the dataset containing the weight associated to each observation.
 These weights are only considered when performing GPC (but not when fitting surival models).}
 
-\item{neutral.as.uninf}{[logical vector] should paired classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
+\item{neutral.as.uninf}{[logical vector] should pairs classified as neutral be re-analyzed using endpoints of lower priority (as it is done for uninformative pairs).
 See Details, section "Handling missing values".}
 
 \item{add.halfNeutral}{[logical] should half of the neutral score be added to the favorable and unfavorable scores?}
@@ -107,9 +107,14 @@ Can handle one or several binary, continuous and time-to-event endpoints.
 }
 \details{
 \bold{Specification of the GPC model} \cr
-There are two way to specify the GPC model in \code{BuyseTest}.
-A \emph{Formula interface} via the argument \code{formula} where the response variable should be a binary variable defining the treatment arms. 
-The rest of the formula should indicate the endpoints by order of priority and the strata variables (if any).
+There are two way to specify the GPC model in \code{BuyseTest}. 
+A \emph{Formula interface} via the argument \code{formula} with:
+\itemize{
+\item on one side of the \code{~} symbol the endpoints by order of priority, surrounded by parentheses and a character string indicating the type of variable (binary,continuous,timetoevent). Additional argument may be included in the parenthesis: threshold of clinical relevance (\code{threshold}), restriction time for time to event endpoints (\code{restriction}), ...
+\item in the other side a binary variable defining the two treatment arms.
+\item the right-hand side of the formula may also contain a strata variable(s) surrounded by parenthese and the character strata. The argument \code{match} should be set to \code{TRUE} when strata are independent but not observations (e.g. cross-over trial with strata as patients).
+}
+
 A \emph{Vector interface} using  the following arguments \itemize{
   \item \code{treatment}: [character] name of the treatment variable identifying the control and the experimental group.
 Must have only two levels (e.g. \code{0} and \code{1}).

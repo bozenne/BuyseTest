@@ -1,5 +1,14 @@
 # -*- mode: org -*-
 
+* Version 3.3.0
+** User visible change
+- the formula interface in BuyseTest can now take the outcome on the left hand side and the treatment and strata variables on the right-hand side
+- argument match added to the operator strata to handle paired design.
+
+* Version 3.2.1
+** Internal change
+- fix standard error estimation in a paired design
+
 * Version 3.2.0.
 ** User visible changes
 - NEW FEATURE: pool.strata = "standardization" to obtain a marginal Net Treatment Benefit after stratification.

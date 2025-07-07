@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: apr  8 2025 (10:53) 
+## Last-Updated: maj 22 2025 (15:16) 
 ##           By: Brice Ozenne
-##     Update #: 670
+##     Update #: 671
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -19,7 +19,7 @@
 #' @noRd
 calcPeron <- function(data,
                       model.tte, fitter, args,
-                      method.score, paired,
+                      method.score, 
                       treatment,
                       level.treatment,
                       endpoint,
@@ -57,7 +57,7 @@ calcPeron <- function(data,
                              "prodlim" = "prodlim::Hist",
                              "survreg" = "survival::Surv",
                              NA)
-        if(paired){
+        if(!is.null(strata) && attr(strata,"match")){
             txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment)        
         }else{
             txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")        

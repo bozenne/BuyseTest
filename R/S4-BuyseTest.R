@@ -87,7 +87,7 @@ methods::setMethod(
                                    endpoint,
                                    level.strata,
                                    level.treatment,
-                                   scoring.rule, paired,
+                                   scoring.rule, 
                                    hierarchical,
                                    neutral.as.uninf,
                                    add.halfNeutral,
@@ -113,7 +113,7 @@ methods::setMethod(
 
                  name.endpoint <- paste0(endpoint,ifelse(!is.na(restriction),paste0("_r",restriction),""),ifelse(threshold>1e-12,paste0("_t",threshold),""))
                  level.strata2 <- rownames(grid.strata)
-                 
+
                  ## ** call
                  call <- call[-1]
 
@@ -197,8 +197,7 @@ methods::setMethod(
                  attr(method.score, "test.censoring") <- NULL
                  attr(scoring.rule,"test.CR") <- attr(method.score, "test.CR")
                  attr(method.score, "test.CR") <- NULL
-                 attr(scoring.rule,"test.paired") <- paired
-                 attr(method.score, "test.paired") <- NULL
+                 attr(scoring.rule,"test.match") <- !is.null(strata) && attr(strata,"match")
                  attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
                  attr(scoring.rule,"efron") <- efron
 

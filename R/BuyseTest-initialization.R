@@ -111,6 +111,9 @@ initializeArgs <- function(status,
         censoring <- resFormula$censoring
         restriction <- resFormula$restriction
         strata <- resFormula$strata
+        if(!is.null(strata)){
+            attr(strata,"match") <- resFormula$match
+        }
     }else{
         formula <- NULL
     }
@@ -142,7 +145,7 @@ initializeArgs <- function(status,
     if(is.null(formula)){
         if(is.null(threshold)){
             threshold <- rep(10^{-12},D)  # if no treshold is proposed all threshold are by default set to 10^{-12}
-            attr(threshold, "original") <- ifelse(type=="bin",NA,0)
+            attr(threshold, "original") <- ifelse(type=="bin",as.numeric(NA),0)
         }else{
             attr(threshold, "original") <- threshold
         }
@@ -224,6 +227,11 @@ initializeArgs <- function(status,
         }
     }
 
+    ## ** strata
+    if(!is.null(strata) && is.null(attr(strata,"match"))){
+        attr(strata,"match") <- FALSE
+    }
+    
     ## ** pool.strata
     if(is.null(strata)){
         pool.strata <- 0
@@ -551,7 +559,6 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     })
     attr(method.score,"test.censoring") <- test.censoring
     attr(method.score,"test.CR") <- test.CR
-    paired <- all(n.obsStrata==2)
     
     ## ** previously analyzed distinct TTE endpoints
     if(scoring.rule>0 && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
@@ -610,13 +617,13 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
     
     ## ** pool.strata
-    ## set default pool.strata to Buyse for paired data
+    ## set default pool.strata to Buyse for match data
     ## otherwise pooling will do something strange
-    if(paired && pool.strata !=0){
+    if(!is.null(strata) && attr(strata,"match") && pool.strata !=0){
         if(is.na(attr(pool.strata,"original"))){
             pool.strata[] <- 0
         }else{
-            warning("Weights from the \"buyse\" pooling scheme (argument \'pool.strata\') are recommended for paired data. \n")
+            warning("Weights from the \"buyse\" pooling scheme (argument \'pool.strata\') are recommended for matched data. \n")
         }
     }
 
@@ -656,7 +663,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
                 index.strata = tapply(data[["..rowIndex.."]], data[["..strata.."]], list),
                 level.treatment = level.treatment,
                 level.strata = level.strata, pool.strata = pool.strata, ## distinct strata levels (e.g. M, F)
-                method.score = method.score, paired = paired,
+                method.score = method.score, 
                 grid.strata = grid.strata, ## strata (e.g. M, F, M.F, F.M) - different from level.strata when using standardisation
                 n.obs = n.obs,
                 n.obsStrata = n.obsStrata,
@@ -678,250 +685,335 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 ## * initializeFormula
 initializeFormula <- function(x, hierarchical, envir){
 
+    ## ** check format
     validClass(x, valid.class = "formula")
-    
-    ## ** extract treatment
-    treatment <- setdiff(all.vars(x), all.vars(stats::delete.response(stats::terms(x))))
-    if(length(treatment)!=1){
-        stop("initFormula: there must be exactly one response variable in formula\n",
-             "number of response variables founded: ",length(treatment),"\n")
-    }
-  
     if(length(as.character(x))!=3){
-        stop("initFormula: formula with unexpected length, as.character(x) should have length 3\n",
-             "length founded: ",length(as.character(x)),"\n")
+        stop("Argument \'formula\' has unexpected length, as.character(x) should have length 3\n",
+             "  length founded: ",length(as.character(x)),"\n")
     }
-  
-    ## ** restrict to the right side of the formula
-    x.rhs <- as.character(x)[3]
-  
-    ## remove all blanks
-    x.rhs <- gsub("[[:blank:]]|\n", "", x.rhs)
 
-    ## find endpoints
-    ## https://stackoverflow.com/questions/35347537/using-strsplit-in-r-ignoring-anything-in-parentheses/35347645
-    ## (*SKIP)(*FAIL): ignore
-    ## \\( \\): inside brackets
-    ## [^()]*: anything but ()
-    magic.formula <- "\\([^()]*\\)(*SKIP)(*FAIL)|\\h*\\+\\h*"
-    vec.x.rhs <- unlist(strsplit(x.rhs, split = magic.formula, perl = TRUE))
-    ## find all element in the vector corresponding to endpoints (i.e. ...(...) )
-    ## \\w* any letter/number
-    ## [[:print:]]* any letter/number/punctuation/space
-    index.endpoint <- grep("\\w*\\([[:print:]]*\\)$", vec.x.rhs)
-    index.strata <- setdiff(1:length(vec.x.rhs), index.endpoint)
+    ## ** categorize elements in the formula
+    x.var <- all.vars(x)
+    x.rhs <- stats::delete.response(terms(x))
+    x.lhs <- terms(stats::as.formula(paste("~", deparse(x[[2]]))))
 
-    ## ** strata variables
-    if(length(index.strata)==0){
-        strata <- NULL
+    config.rhs <- data.frame(label = attr(x.rhs,"term.labels"), var = as.character(NA), operator = as.character(NA), arguments = as.character(NA))
+    config.rhs[config.rhs$label %in% x.var,"var"] <- config.rhs$label[config.rhs$label %in% x.var]
+    split.rhs <- strsplit(config.rhs[config.rhs$label %in% x.var == FALSE,"label"], split = "(", fixed = TRUE)
+    config.rhs[config.rhs$label %in% x.var == FALSE,"operator"] <- tolower(sapply(split.rhs,"[",1))
+    config.rhs[config.rhs$label %in% x.var == FALSE,"arguments"] <- gsub(pattern = "\\)$", replacement = "", sapply(split.rhs,"[",2))
+    
+    config.lhs <- data.frame(label = attr(x.lhs,"term.labels"), var = as.character(NA), operator = as.character(NA), arguments = as.character(NA))
+    config.lhs[config.lhs$label %in% x.var,"var"] <- config.lhs$label[config.lhs$label %in% x.var]
+    split.lhs <- strsplit(config.lhs[config.lhs$label %in% x.var == FALSE,"label"], split = "(", fixed = TRUE)
+    config.lhs[config.lhs$label %in% x.var == FALSE,"operator"] <- tolower(sapply(split.lhs,"[",1))
+    config.lhs[config.lhs$label %in% x.var == FALSE,"arguments"] <- gsub(pattern = "\\)$", replacement = "", sapply(split.lhs,"[",2))
+
+    ## normalize operator
+    config.rhs$operator[config.rhs$operator %in% c("b","bin","binary")] <- "binary"
+    config.rhs$operator[config.rhs$operator %in% c("c","cont","continuous")] <- "continuous"
+    config.rhs$operator[config.rhs$operator %in% c("t","tte","time","timetoevent")] <- "timetoevent"
+    config.rhs$operator[config.rhs$operator %in% c("g","gaus","gaussian")] <- "gaussian"
+    config.rhs$operator[config.rhs$operator %in% c("s","strat","strata")] <- "strata"
+    
+    config.lhs$operator[config.lhs$operator %in% c("b","bin","binary")] <- "binary"
+    config.lhs$operator[config.lhs$operator %in% c("c","cont","continuous")] <- "continuous"
+    config.lhs$operator[config.lhs$operator %in% c("t","tte","time","timetoevent")] <- "timetoevent"
+    config.lhs$operator[config.lhs$operator %in% c("g","gaus","gaussian")] <- "gaussian"
+    config.lhs$operator[config.lhs$operator %in% c("s","strat","strata")] <- "strata"
+
+    valid.operator <- c("binary","continuous","timetoevent","gaussian","strata")
+    if(any(stats::na.omit(config.lhs$operator) %in% valid.operator == FALSE)){
+        pb.lhs <- config.lhs[!is.na(config.lhs$operator) & config.lhs$operator %in% valid.operator == FALSE,]
+        stop("Unknown operator \"",paste(pb.lhs$operator, collapse="\", \""),"\" on the right hand side of the \'formula\' argument.\n",
+             "  It is part of the element(s) \"",paste(pb.lhs$label,collapse="\", \""),"\" \n", sep = "")
+    }else if(any(stats::na.omit(config.rhs$operator) %in% valid.operator == FALSE)){
+        pb.rhs <- config.rhs[!is.na(config.rhs$operator) & config.rhs$operator %in% valid.operator == FALSE,]
+        stop("Unknown operator \"",paste(pb.rhs$operator, collapse="\", \""),"\" on the right hand side of the \'formula\' argument.\n",
+             "  It is part of the element(s) \"",paste(pb.rhs$label,collapse="\", \""),"\" \n", sep = "")
+    }
+
+    ## ** extract number of endpoint variables
+    endpoint.operator <- valid.operator[1:4]
+    if(any(config.lhs$operator %in% endpoint.operator) && any(config.rhs$operator %in% endpoint.operator)){
+        stop("Endpoint variables should not appear on both sides of argument \'formula\': \n",
+             "  Detected endpoints (left): \"",paste(config.lhs[config.lhs$operator %in% endpoint.operator,"label"], collapse = "\", \""),"\". \n",
+             "  Detected endpoints (right): \"",paste(config.rhs[config.rhs$operator %in% endpoint.operator,"label"], collapse = "\", \""),"\". \n"
+             )
+    }else if(all(config.lhs$operator %in% endpoint.operator == FALSE) && all(config.rhs$operator %in% endpoint.operator == FALSE)){
+        stop("No endpoint detected in argument \'formula\'. \n",
+             "  The formula should contain terms of the form \'type(endpoint,threshold)\' where type is one of \"",paste(endpoint.operator, collapse ="\", \""),"\". \n")
+    }else if(config.lhs$operator %in% endpoint.operator){
+        config.endpoint <- config.lhs ## may contain strata
+        config.treatment <- config.rhs ## may contain strata
+
+        label.endpoint <- config.lhs[config.lhs$operator %in% endpoint.operator,"label"]
+        operator.endpoint <- config.lhs[config.lhs$operator %in% endpoint.operator,"operator"]
+        arg.endpoint <- config.lhs[config.lhs$operator %in% endpoint.operator,"arguments"]
     }else{
-        strata <- vec.x.rhs[index.strata]
+        config.endpoint <- config.rhs ## may contain strata
+        config.treatment <- config.lhs ## may contain strata
+
+        label.endpoint <- config.rhs[config.rhs$operator %in% endpoint.operator,"label"]
+        operator.endpoint <- config.rhs[config.rhs$operator %in% endpoint.operator,"operator"]
+        arg.endpoint <- config.rhs[config.rhs$operator %in% endpoint.operator,"arguments"]
     }
 
-    ## ** number of endpoint variables    
-    vec.x.endpoint <- vec.x.rhs[index.endpoint]
-    n.endpoint <- length(vec.x.endpoint)
-    if(n.endpoint==0){
-        stop("initFormula: x must contain endpoints \n",
-             "nothing of the form type(endpoint,threshold,status) found in the formula \n")
-    }
-
-    ## ** extract endpoints and additional arguments 
-    threshold <- NULL
-    status <- NULL
-    endpoint <- NULL
-    operator <- NULL
-    censoring <- NULL
-    restriction <- NULL
-    weightEndpoint <- NULL
-    type <- NULL
-    validArgs <- c("endpoint","mean",
-                   "status", "std",
-                   "iid",
-                   "threshold","operator","weight","censoring","restriction")
-
-    ## split around parentheses
-    ls.x.endpoint <- strsplit(vec.x.endpoint, split = "(", fixed = TRUE)
-
-    for(iE in 1:n.endpoint){
-
-        ## extract type
-        candidate <- tolower(ls.x.endpoint[[iE]][1])
-        if(candidate %in% c("b","bin","binary")){
-            type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,c("status","threshold","mean","std","iid","restriction"))
-            default.censoring <- "right"
-        }else if(candidate %in% c("c","cont","continuous")){
-            type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,c("status","mean","std","iid"))
-            default.censoring <- "right"
-        }else if(candidate %in% c("t","tte","time","timetoevent")){
-            type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs,c("mean","std","iid"))
-            default.censoring <- "right"
-        }else if(candidate %in% c("g","gaus","gaussian")){
-            type <- c(type, candidate)
-            iValidArgs <- setdiff(validArgs, c("endpoint","status","censoring","restriction"))
-            default.censoring <- as.character(NA)
-        }else if(candidate %in% c("s","strat","strata")){
-            strata <- c(strata, gsub(")", replacement = "",ls.x.endpoint[[iE]][2]))
-            next
+    ## ** extract treatment variable
+    if(all(is.na(config.treatment$var))){
+        if(config.lhs$operator %in% endpoint.operator){
+            stop("No treatment variable detected on the right hande side of argument \'formula\'. \n",
+                 "  Should be something like: ",paste(deparse(x[[2]]),"~ treatment")," \n")
         }else{
-            stop("initFormula: cannot convert the element ",paste(ls.x.endpoint[[iE]],collapse="(")," in the formula to a useful information.\n")
+            stop("No treatment variable detected on the left hande side of argument \'formula\'. \n",
+                 "  Should be something like: ",paste("treatment ~", deparse(x[[3]]))," \n")
+        }
+    }
+
+    treatment <- config.treatment[is.na(config.treatment$operator),"var"]
+    if(length(treatment)>1){
+        if(config.lhs$operator %in% endpoint.operator){
+            stop("There should be exactly one treatment variable on right hand side of argument \'formula\'. \n",
+                 "  Detected treatment variables: \"",paste(treatment, collapse = "\", \""),"\". \n")
+        }else{
+            stop("There should be exactly one treatment variable on left hand side of argument \'formula\'. \n",
+                 "  Detected treatment variables: \"",paste(treatment, collapse = "\", \""),"\". \n")
+        }
+    }
+  
+    ## ** extract strata terms
+    if(any(config.treatment$operator %in% "strata") && (any(config.endpoint$operator %in% "strata") || any(is.na(config.endpoint$operator))) ){
+        if(config.lhs$operator %in% endpoint.operator){
+            stop("Strata variables should not appear on both sides of argument \'formula\': \n",
+                 "  Detected strata (left): \"",paste(config.endpoint[config.endpoint$operator %in% "strata" | is.na(config.endpoint$operator),"label"], collapse = "\", \""),"\". \n",
+                 "  Detected strata (right): \"",paste(config.treatment[config.treatment$operator %in% "strata","label"], collapse = "\", \""),"\". \n"
+                 )
+        }else{
+            stop("Strata variables should not appear on both sides of argument \'formula\': \n",
+                 "  Detected strata (left): \"",paste(config.treatment[config.treatment$operator %in% "strata","label"], collapse = "\", \""),"\". \n",
+                 "  Detected strata (right): \"",paste(config.endpoint[config.endpoint$operator %in% "strata" | is.na(config.endpoint$operator),"label"], collapse = "\", \""),"\". \n"
+                 )
+        }
+    }else  if(any(is.na(config.endpoint$operator))){
+
+        if(any(config.endpoint$operator %in% "strata")){ ## two ways to encode the strata variable
+            config.strata <- config.endpoint[(is.na(config.endpoint$operator) | config.endpoint$operator %in% "strata"),,drop=FALSE]
+            config.strata$label.fix <- config.strata$label
+            config.strata[is.na(config.strata$operator),"label.fix"] <- paste0("strata(",config.strata[is.na(config.strata$operator),"label.fix"],")")
+            stop("Using ",paste(config.strata$label,collapse ="+")," in argument \'formula\' is confusing \n",
+                 "                           as it does not make consistent use of the strata operator. \n",
+                 "  Consider using ", paste(config.strata$label.fix,collapse =" + "), " instead. \n",sep="")
+        }
+
+        strata <- config.endpoint[is.na(config.endpoint$operator),"var"]
+        match <- FALSE
+    }else if(any(config.treatment$operator %in% "strata") || any(config.endpoint$operator %in% "strata")){
+
+        if(any(config.treatment$operator %in% "strata")){
+            config.strata <- config.treatment[config.treatment$operator %in% "strata",,drop=FALSE]
+        }else if(any(config.endpoint$operator %in% "strata")){
+            config.strata <- config.endpoint[config.endpoint$operator %in% "strata",,drop=FALSE]
         }
 
         ## get each argument
-        iVec.args <- strsplit(gsub(")", replacement = "",ls.x.endpoint[[iE]][2]),
-                              split = ",", fixed = TRUE)[[1]]
-        n.args <- length(iVec.args)
+        lsStrata.args <- strsplit(config.strata$arguments, split = ",", fixed = TRUE)
         
-        ## check size
-        if(n.args==0){
-            stop("initFormula: invalid formula \n",
-                 vec.x.rhs[iE]," must contain the name of the endpoint between the parentheses \n"
-                 )
-        }        
-        if(n.args>4){
-            stop("initFormula: invalid formula \n",
-                 x[iE]," has too many arguments (maximum 4: endpoint, threshold, status variable, operator) \n")
+        ## identify each argument
+        dfStrata.args <- do.call(rbind,lapply(1:NROW(config.strata), function(iS){
+            catchArgument(lsStrata.args[[iS]], valid.arguments = c("variable","match"),
+                          label = config.strata$label, name.operator = "strata", keep.all = TRUE)
+        }))
+        strata <- dfStrata.args$variable
+        if(any(is.na(strata))){
+            stop("Missing argument \'variable\' for strata operator in argument \'formula\'. \n",
+                 "Detected in: ",paste(config.strata[is.na(strata),"label"], collapse = ", "),"\n")
         }
-
-        ## extract name of each argument
-        iIndex.name <- grep("=",iVec.args)
-        iArg <- gsub("^[[:print:]]*=", replacement = "", iVec.args)        
-        iName <- rep(as.character(NA),n.args)
-        
-        ## use existing names
-        if(length(iIndex.name)>0){
-            iiName <- gsub("=[[:print:]]*$","",iVec.args[iIndex.name])
-            iName[iIndex.name] <- iiName
-            if(any(iiName %in% iValidArgs == FALSE)){
-                stop("initFormula: invalid formula \n",
-                     vec.x.rhs[iE]," contains arguments that are not \"",paste0(iValidArgs,sep = "\" \""),"\" \n")
-            }
-            if( any(duplicated(iiName)) ){
-                stop("initFormula: invalid formula \n",
-                     vec.x.rhs[iE]," contains arguments with the same name \n")
-            }
+        if(all(is.na(dfStrata.args$match))){
+            match <- FALSE
         }else{
-            iiName <- NULL
+            test <- try(match <- eval(expr = parse(text = unique(dfStrata.args$match))), silent = TRUE)
+            if(inherits(test,"try-error")){
+                stop(test,
+                     "(occurred when evaluating argument match of ",paste(config.strata$label, collapse = "+")," in argument \'formula\') \n")
+            }
+            if(length(match)>1){
+                stop("Argument \'match\' for strata operator should take the same value for all strata in argument \'formula\'. \n",
+                     "Detected values: ",paste(match, collapse = ", "),"\n")
+            }
         }
-        
-        ## add missing names
-        n.missingNames <- n.args - length(iiName) 
-        if(n.missingNames>0){
-            iName[setdiff(1:n.args,iIndex.name)] <- setdiff(iValidArgs,iiName)[1:n.missingNames]
-        }
+    }else{
+        strata <- NULL
+        match <- FALSE
+    }
 
-        ## rename
-        if("mean" %in% iName){
-            iName[iName=="mean"] <- "endpoint"
-        }
-        if("std" %in% iName){
-            iName[iName=="std"] <- "status"
-        }
-        if("iid" %in% iName){
-            iName[iName=="iid"] <- "censoring"
-        }
-        
-        ## extract arguments
-        endpoint <- c(endpoint,  gsub("\"","",iArg[iName=="endpoint"]))
-        if("threshold" %in% iName){
-            thresholdTempo <- try(eval(expr = parse(text = iArg[iName=="threshold"])), silent = TRUE)
-            if(inherits(thresholdTempo,"try-error")){
-                thresholdTempo <- try(eval(expr = parse(text = iArg[iName=="threshold"]), envir = envir), silent = TRUE)
 
-                if(inherits(thresholdTempo,"try-error")){
-                    stop(iArg[iName=="threshold"]," does not refer to a valid threshold \n",
-                         "Should be numeric or the name of a variable in the global workspace \n")
+    ## ** extract endpoints and additional arguments
+    n.endpoint <- length(label.endpoint)
+    validArgs <- list(binary = c("endpoint","operator","weight"),
+                      continuous = c("endpoint","threshold","restriction","operator","weight"),
+                      timetoevent = c("endpoint","status","threshold","restriction","censoring","operator","weight"),
+                      gaussian = c("mean","std","iid","threshold","restriction","operator","weight"))
+    default.censoring <- c(binary = NA, continuous = NA, timetoevent = "right", gaussian = NA)
+    df.args <- data.frame(type = operator.endpoint,
+                          endpoint = rep(as.numeric(NA), n.endpoint),
+                          status = rep("..NA..", n.endpoint),
+                          threshold = rep(as.numeric(NA), n.endpoint),
+                          censoring = default.censoring[operator.endpoint],
+                          restriction = rep(as.numeric(NA), n.endpoint),
+                          operator = rep(">0", n.endpoint),
+                          weight = rep(ifelse(hierarchical,1,NA), n.endpoint))
+    rownames(df.args) <- label.endpoint
+
+    split.endpoint2args <- strsplit(arg.endpoint, split = ",", fixed = TRUE)
+    
+    for(iE in 1:n.endpoint){ ## iE <- 1
+
+        ## identify each argument
+        iArgs <- catchArgument(split.endpoint2args[[iE]], valid.arguments = validArgs[[operator.endpoint[iE]]],
+                               label = label.endpoint[iE], name.operator = operator.endpoint[iE], keep.all = FALSE)
+    
+        ## trick to normalize argument names of Gaussian operator
+        if("mean" %in% names(iArgs)){
+            names(iArgs)[names(iArgs)=="mean"] <- "endpoint"
+        }
+        if("std" %in% names(iArgs)){
+            names(iArgs)[names(iArgs)=="std"] <- "status"
+        }
+        if("iid" %in% names(iArgs)){
+            names(iArgs)[names(iArgs)=="iid"] <- "censoring"
+        }
+        iArgs_save <- iArgs ## useful when errors are triggered
+
+        ## process each argument
+        if("endpoint" %in% names(iArgs)){
+            iArgs[["endpoint"]] <- gsub("\"","",iArgs[["endpoint"]])
+        }
+        if("status" %in% names(iArgs)){
+            iArgs[["status"]] <- gsub("\"","",iArgs[["status"]])
+        }
+        for(iName in intersect(c("threshold","restriction","weight"), names(iArgs))){
+            ## handle the case where the numeric value is not defined directly but via a variable
+
+            iTest <- try(iArgs[[iName]] <- eval(expr = parse(text = iArgs[[iName]])), silent = TRUE)
+
+            if(inherits(iTest,"try-error") || (!is.numeric(iTest) && !is.logical(iTest) && !is.integer(iTest))){
+                iTest <- try(iArgs[[iName]] <- eval(expr = parse(text = iArgs_save[[iName]]), envir = envir), silent = TRUE)
+                if(inherits(iTest,"try-error")){
+                    stop(iTest,
+                         "(occurred when evaluating argument \'",iName,"\' of ",label.endpoint[iE]," in argument \'formula\') \n")
                 }
             }
-                
-            if(inherits(thresholdTempo, "function")){
-                packageTempo <- environmentName(environment(thresholdTempo))
-                if(nchar(packageTempo)>0){
-                    txt <- paste0("(package ",packageTempo,")")
-                }else{
-                    txt <- ""
-                }
-                stop(iArg[iName=="threshold"]," is already defined as a function ",txt,"\n",
-                     "cannot be used to specify the threshold \n")
+
+            if(inherits(iArgs[[iName]], "function")){
+                packageTempo <- environmentName(environment(iArgs[[iName]]))
+                txt <- ifelse(nchar(packageTempo)>0,paste0(" (package ",packageTempo,")"),"")
+                stop("Argument \'",iName,"\' of ",label.endpoint[iE]," in argument \'formula\' is a function. \n",
+                     "  Function ",iArgs_save[[iName]],txt," \n",
+                     "  It should refer to a numeric value or a variable defining a numeric value instead. \n")
             }
             
-            threshold <- c(threshold, as.numeric(thresholdTempo))
-        }else{
-            threshold <- c(threshold, NA)
         }
-        if("status" %in% iName){
-            status <- c(status, gsub("\"","",iArg[iName=="status"]))
-        }else{
-            status <- c(status, "..NA..")
-        }
-        if("operator" %in% iName){
-            operator <- c(operator, gsub("\"","",iArg[iName=="operator"]))
-        }else{
-            operator <- c(operator, ">0")
-        }
-        if("weight" %in% iName){
-            weightEndpoint <- c(weightEndpoint, as.numeric(eval(expr = parse(text = iArg[iName=="weight"]))))
-        }else if(hierarchical){
-            weightEndpoint <- c(weightEndpoint, 1)
-        }else{
-            weightEndpoint <- c(weightEndpoint, as.numeric(NA))
-        }
-        if("censoring" %in% iName){
-            censoring <- c(censoring, gsub("\"","",iArg[iName=="censoring"]))
-        }else{
-            censoring <- c(censoring, default.censoring)
-        }
-        if("restriction" %in% iName){
-            restrictionTempo <- try(eval(expr = parse(text = iArg[iName=="restriction"])), silent = TRUE)
-            if(inherits(restrictionTempo,"try-error")){
-                restrictionTempo <- try(eval(expr = parse(text = iArg[iName=="restriction"]), envir = envir), silent = TRUE)
 
-                if(inherits(restrictionTempo,"try-error")){
-                    stop(iArg[iName=="restriction"]," does not refer to a valid restriction \n",
-                         "Should be numeric or the name of a variable in the global workspace \n")
-                }
-            }
-                
-            if(inherits(restrictionTempo, "function")){
-                packageTempo <- environmentName(environment(restrictionTempo))
-                if(nchar(packageTempo)>0){
-                    txt <- paste0("(package ",packageTempo,")")
-                }else{
-                    txt <- ""
-                }
-                stop(iArg[iName=="restriction"]," is already defined as a function ",txt,"\n",
-                     "cannot be used to specify the restriction \n")
-            }
-            
-            restriction <- c(restriction, as.numeric(restrictionTempo))
-        }else{
-            restriction <- c(restriction, as.numeric(NA))
+        if("censoring" %in% names(iArgs)){
+            iArgs["censoring"] <- gsub("\"","",iArgs["censoring"])
         }
+        if("operator" %in% names(iArgs)){
+            iArgs["operator"] <- gsub("\"","",iArgs["operator"])
+        }
+
+        ## store
+        df.args[iE,names(iArgs)] <- iArgs
+        
     }
 
     ## ** export
-    if(all(is.na(weightEndpoint))){
-        weightEndpoint <- rep(1/length(weightEndpoint), length(weightEndpoint))
-    }else if(sum(weightEndpoint, na.rm = TRUE)<1){
-        weightEndpoint[!is.na(weightEndpoint)] <- (1-sum(weightEndpoint, na.rm = TRUE))/sum(is.na(weightEndpoint))
+    if(all(is.na(df.args$weight))){
+        df.args$weight <- rep(1/n.endpoint, n.endpoint)
+    }else if(sum(df.args$weight, na.rm = TRUE)<1){
+        df.args$weight[!is.na(df.args$weight)] <- (1-sum(df.args$weight, na.rm = TRUE))/sum(is.na(df.args$weight))
     }
 
     out <- list(treatment = treatment,
-                type = type,
-                endpoint = endpoint,
-                threshold = threshold,
-                status = status,
-                operator = operator,
-                weightEndpoint = weightEndpoint,
-                censoring = censoring,
-                restriction = restriction,
-                strata = strata)
+                type = df.args$type,
+                endpoint = df.args$endpoint,
+                threshold = df.args$threshold,
+                status = df.args$status,
+                operator = df.args$operator,
+                weightEndpoint = df.args$weight,
+                censoring = df.args$censoring,
+                restriction = df.args$restriction,
+                strata = strata,
+                match = match)
     return(out)
 }
 
+## * catchArgument
+##' @title Associate input to argument
+##' @noRd
+##' @examples
+##' ## check error
+##' ## catchArgument(c("time","event","restriction=5=5"), valid.argument = c("endpoint","status","threshold","restriction"), name.operator = "tte")
+##' ## catchArgument(c("time","event","restriction=5","restriction=5"), valid.argument = c("endpoint","status","threshold","restriction"), name.operator = "tte")
+##' ## catchArgument(c("time","event","x","y","restriction=5"), valid.argument = c("endpoint","status","threshold","restriction"), name.operator = "tte")
+##' ## catchArgument("", valid.argument = c("endpoint","status","threshold","restriction"), name.operator = "tte")
+##'
+##' ## normal
+##' catchArgument(c("time","event","restriction=5"), valid.argument = c("endpoint","status","threshold","restriction"), name.operator = "tte")
+catchArgument <- function(object, valid.arguments, label = NULL, name.operator = NULL, keep.all = FALSE){
+
+    nvalid.arguments <- length(valid.arguments)
+
+    ## prepare output
+    out <- stats::setNames(rep(as.character(NA), nvalid.arguments), valid.arguments)
+    keep.out <- stats::setNames(rep(FALSE, nvalid.arguments), valid.arguments)
+
+    ## identify equal signs
+    if(all(sapply(object,nchar)==0)){
+        stop(name.operator," operator in argument \'formula\' must contain a name of variable between the parentheses \n",
+             "This is not the case in: ",label,"\"\n")
+    }
+    object.split <- lapply(strsplit(trimws(object, which = "both"), split = "=", fixed = TRUE), trimws, which = "both")
+    if(length(object.split)>nvalid.arguments){
+        stop("Too many arguments for ",name.operator," operator in argument \'formula\'. \n",
+             "  It can handle at most ",nvalid.arguments," arguments (\"",paste(valid.arguments, collapse="\", \""),"\") \n",
+             "  ",length(object.split)," arguments detected in ",label,". \n")
+    }
+    object.length <- lengths(object.split)
+    if(any(object.length>2)){
+        stop(name.operator," operator in argument \'formula\' should not contain elements with multiple equal signs. \n",
+             "  Multiple equal signs detected (\"",object[object.length>2][1],"\") in ",label,". \n",sep="")
+    }
+
+    ## match arguments
+    if(any(object.length==2)){ ## named by the users
+        object2.arg <- sapply(object.split[object.length==2],"[",1)
+        object2.value <- sapply(object.split[object.length==2],"[",2)
+        if(any(duplicated(object2.arg))){
+            stop("Each argument can only appear once for each ",name.operator," operator in argument \'formula\'. \n",
+                 "  Argument(s) \"",paste(unique(object2.arg[duplicated(object2.arg)]), collapse = "\", \""),"\" are duplicated in ",label,". \n")
+        }
+        if(any(object2.arg %in% valid.arguments == FALSE)){
+            stop(name.operator," operator in argument \'formula\' only recognize arguments \"",paste(valid.arguments, collapse = "\", \""),"\". \n",
+                 "Invalid arguments: \"",paste(setdiff(object2.arg, valid.arguments), collapse = "\", \""),"\" in ",label," \n",
+                 sep="")
+        }
+        keep.out[object2.arg] <- TRUE
+        out[object2.arg] <- object2.value
+    }
+
+    if(any(object.length==1)){ ## unname
+        remain.arguments <- valid.arguments[is.na(out)]
+        keep.out[remain.arguments[1:sum(object.length==1)]] <- TRUE
+        out[remain.arguments[1:sum(object.length==1)]] <- sapply(object.split[object.length==1],"[",1)
+    }    
+    ## export
+    if(keep.all){
+        return(as.data.frame(as.list(out)))
+    }else{
+        return(as.data.frame(as.list(out[keep.out])))
+    }
+    
+}
 
 
 
