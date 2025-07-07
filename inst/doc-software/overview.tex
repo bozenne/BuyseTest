@@ -1,4 +1,4 @@
-% Created 2025-05-08 Thu 11:15
+% Created 2025-07-07 Mon 11:20
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -302,7 +302,7 @@ utils::packageVersion("BuyseTest")
 \end{lstlisting}
 
 \begin{verbatim}
-[1] ‘3.2.0’
+[1] ‘3.3.1’
 \end{verbatim}
 
 
@@ -335,26 +335,26 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.16.2  prodlim_2024.06.25 ggplot2_3.5.1      BuyseTest_3.2.0   
-[5] Rcpp_1.0.13        survival_3.5-8    
+[1] data.table_1.17.2  BuyseTest_3.3.1    Rcpp_1.0.14        prodlim_2025.04.28
+[5] ggplot2_3.5.2      survival_3.5-8    
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.6-5        gtable_0.3.5        future.apply_1.11.2 dplyr_1.1.4        
+ [1] Matrix_1.6-5        gtable_0.3.6        future.apply_1.11.3 dplyr_1.1.4        
  [5] compiler_4.3.3      tidyselect_1.2.1    MatrixModels_0.5-3  parallel_4.3.3     
- [9] globals_0.16.3      splines_4.3.3       scales_1.3.0        lattice_0.22-5     
-[13] R6_2.5.1            generics_0.1.3      future_1.34.0       tibble_3.2.1       
-[17] munsell_0.5.1       pillar_1.9.0        rlang_1.1.4         utf8_1.2.4         
-[21] cli_3.6.3           withr_3.0.1         magrittr_2.0.3      digest_0.6.37      
-[25] grid_4.3.3          pbapply_1.7-2       lifecycle_1.0.4     lava_1.8.0         
-[29] vctrs_0.6.5         SparseM_1.81        glue_1.8.0          listenv_0.9.1      
-[33] codetools_0.2-19    stats4_4.3.3        parallelly_1.38.0   fansi_1.0.6        
-[37] colorspace_2.1-1    tools_4.3.3         pkgconfig_2.0.3
+ [9] globals_0.18.0      splines_4.3.3       scales_1.4.0        lattice_0.22-5     
+[13] R6_2.6.1            generics_0.1.3      future_1.49.0       tibble_3.2.1       
+[17] pillar_1.10.2       RColorBrewer_1.1-3  rlang_1.1.6         cli_3.6.5          
+[21] withr_3.0.2         magrittr_2.0.3      digest_0.6.37       grid_4.3.3         
+[25] lifecycle_1.0.4     lava_1.8.1          vctrs_0.6.5         SparseM_1.81       
+[29] glue_1.8.0          farver_2.1.2        listenv_0.9.1       codetools_0.2-19   
+[33] stats4_4.3.3        colorspace_2.1-1    parallelly_1.44.0   tools_4.3.3        
+[37] pkgconfig_2.0.3
 \end{verbatim}
 
 \clearpage
 
 \section{Performing generalized pairwise comparisons (GPC)}
-\label{sec:org3d63f24}
+\label{sec:org4706972}
 
 To perform generalized pairwise comparisons, the \texttt{BuyseTest} function needs:
 \begin{itemize}
@@ -409,24 +409,25 @@ Gather the results in a S4BuyseTest object
 \clearpage
 
 \begin{itemize}
-\item or via a formula interface. In the formula interface endpoint are
-wrapped by parentheses. The parentheses must be preceded by their
-type: 
+\item or via a formula interface. In the formula interface, endpoints are
+wrapped by parentheses, preceded by a character string indicated
+their type:
 \begin{itemize}[label={-}]
 \item binary (\texttt{b}, \texttt{bin}, or \texttt{binary})
 \item continuous (\texttt{c}, \texttt{cont}, or  \texttt{continuous})
 \item time to event (\texttt{t}, \texttt{tte}, or \texttt{timetoevent})
 \end{itemize}
 \end{itemize}
-Here we also set the argument \texttt{trace} to \texttt{FALSE} to execute silently
-the function:
+
+For instance:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                   data = veteran, trace = FALSE)
 \end{lstlisting}
 
-We can check that the two approaches are equivalent:
+where we also set the argument \texttt{trace} to \texttt{FALSE} to execute silently
+the function. We can check that the two approaches are equivalent:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.f@call <- list(); BT@call <- list();
@@ -434,7 +435,7 @@ testthat::expect_equal(BT.f,BT)
 \end{lstlisting}
 
 \subsection{Displaying the results}
-\label{sec:orge776233}
+\label{sec:org1cdee32}
 
 The results of the GPC can be displayed using the \texttt{summary} method:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -461,14 +462,17 @@ summary(BT)
 
 It displays information about each endpoint, percentage of pairs
 classified as favorable, unfavorable, neutral, and uninformative, as
-well as the estimated net treatment benefit (column \texttt{Delta}), its confidence
-interval, and the corresponding p-value testing the absence of a group
-difference. Other To display the number of pairs instead of the
+well as the estimated net treatment benefit (column \texttt{Delta}), its
+confidence interval, and the corresponding p-value testing the absence
+of a group difference. To display the number of pairs instead of the
 percentage of pairs that are
-favorable/unfavorable/neutral/uniformative, set the argument
+favorable/unfavorable/neutral/uniformative, one can set the argument
 \texttt{percentage} to \texttt{FALSE}. See \texttt{help(S4BuyseTest-summary)} for more
-details about the \texttt{summary} method, its input and output. For a more
-concise display of the results, consider using the \texttt{print} method:
+details about the \texttt{summary} method, its input and output.
+
+\clearpage
+
+The \texttt{print} method provides a more concise display of the results:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 print(BT, percentage = FALSE)
@@ -522,14 +526,15 @@ coef(BT)
 \end{lstlisting}
 
 \begin{verbatim}
-[1] -0.08765836
+   time_t20 
+-0.08765836
 \end{verbatim}
 
 
 \bigskip
 
 \subsection{What about other summary statistics?}
-\label{sec:org3a227b4}
+\label{sec:org3785c70}
 
 Results for other summary statistics are also accessible: \hfill \textcolor{orange}{- argument \texttt{statistic}}
 \begin{itemize}
@@ -563,8 +568,9 @@ summary(BT, statistic = "winRatio")
 
 \Warning In presence of ties, the null distribution of the proportion
 in favor of treatment or control depends on the data generative
-mechanism and the threshold of clinical relevance. This is why the
-\texttt{confint} method will not produce any \texttt{p.value}:
+mechanism and the threshold of clinical relevance. This is why, unless
+the argument \texttt{null} is provided by the user, the \texttt{confint} method will
+not produce any \texttt{p.value}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 confint(BT, statistic = "favorable")
@@ -576,8 +582,8 @@ time_t20 0.3777905 0.04902199 0.2874747 0.477467   NA      NA
 \end{verbatim}
 
 
-unless the argument \texttt{null} is provided by the user. A permutation test
-may be used to empirically estimate a value for the null hypothesis:
+A permutation test may be used to empirically estimate a value for the
+null hypothesis:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
@@ -616,9 +622,9 @@ statistics: \hfill \textcolor{orange}{- argument \texttt{add.halfNeutral}}
 \item Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
 \item win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
 \end{itemize}
-have been recommended (e.g. \cite{ajufo2023fallacies}) and these summary
-statistics can be output by specifying the argument \texttt{add.halfNeutral}
-to \texttt{TRUE} when calling \texttt{BuyseTest}:
+have been recommended (e.g. \cite{ajufo2023fallacies}) over the win
+ratio. These summary statistics can be output by specifying the
+argument \texttt{add.halfNeutral} to \texttt{TRUE} when calling \texttt{BuyseTest}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 BT.half <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
@@ -673,25 +679,25 @@ favorable   0.45617082 0.05010816  0.3639745 0.5516987  0.5   0.383
 \clearpage
 
 \subsection{Stratified GPC}
-\label{sec:orga50b0b9}
+\label{sec:org7db1385}
 
 GPC can be performed for subgroups of a categorical variable \hfill
 \textcolor{orange}{- argument \texttt{strata}} \newline For
 instance, the celltype may have huge influence on the survival time
 and the investigator would like to only compare patients that have the
-same celltype. In the formula interface this is achieved by adding a
-single variable in the right hand side of the formula:
+same celltype. In the formula interface this is achieved by adding this
+variable wrapped by parenthesis and preceded by the character string
+strata in the formula:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
-ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
+ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + strata(celltype)
 BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
 \end{lstlisting}
 
-Not being wrapped by \texttt{bin}, \texttt{cont} or \texttt{tte} differentiates it from
-endpoint variables. When doing a stratified analysis, the summary method
-displays strata-specific and global results\footnote{the strata-specific
-results can be removed by setting the argument \texttt{strata} to \texttt{"global"}
-when calling \texttt{summary}.}:
+When doing a stratified analysis, the summary method displays
+strata-specific and global results\footnote{the strata-specific results can
+be removed by setting the argument \texttt{strata} to \texttt{"global"} when calling
+\texttt{summary}.}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 keep.colStrata <- c("endpoint","strata", "total",
@@ -725,11 +731,12 @@ overall number of pairs whereas the column \texttt{delta} presents the
 endpoint and strata-specific net treatment benefits (in the last 4
 lines). The last column (\texttt{Delta}) displays the global (i.e. pooled
 over strata), conditional, net treatment benefit. \newline \Warning
-With this weighting scheme the proportion of favorable pairs minus the
-proportion of unfavorable pairs (\texttt{36.06\%-45.77\%=9.71\%}) does not equal
-the global net treatment benefit (\texttt{9.97\%}). To retrieve the net
-treatment benefits, we first extract the number of pairs per strata
-using the method \texttt{nobs}:
+With the default way of pooling results across strata, the proportion
+of favorable pairs minus the proportion of unfavorable pairs
+(\texttt{36.06\%-45.77\%=9.71\%}) does not equal the global net treatment
+benefit (\texttt{9.97\%}). To retrieve this value of the Net Treatment
+Benefit, one should first extract the number of pairs per strata using
+the method \texttt{nobs}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 strata.obs <- as.data.frame(nobs(BTstrata, strata = TRUE))
@@ -800,10 +807,11 @@ $weight
 \end{verbatim}
 
 
-\Warning One exception is for the win ratio and win odds where the
-ratio between the global proportions is taken, i.e., pooling is
-performed at the numerator and at the denominator instead of pooling
-fractions - see \cite{dong2018stratified}, equation 1.
+\Warning The approach is true for the probabilistic index but not for
+the win ratio/odds: the ratio between the global proportions is taken,
+i.e., pooling is performed at the numerator and at the denominator
+instead of pooling fractions - see \cite{dong2018stratified},
+equation 1.
 
 
 \clearpage
@@ -877,19 +885,19 @@ time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 \end{verbatim}
 
 
-\Warning The pooled estimator presented in this section have a
+\Warning The pooled estimator presented in this section has a
 conditional interpretation, as they summarize comparisons made between
 observations from the same strata. They will generally differ from the
-marginal (i.e. non-adjusted) net treatment benefit and tend to be more
+marginal (i.e. non-adjusted) Net Treatment Benefit and tend to be more
 extreme (i.e. away from 0) in presence of group difference.
 
 \subsection{Standardization}
-\label{sec:org585d42a}
+\label{sec:orgfe25805}
 
 When the interest lies in a marginal effect but one wish to adjust on
-baseline covariates to obtain more precise estimate, one should not
+baseline covariates to obtain more precise estimate, one should \emph{not}
 restrict the comparisons between pairs of observations from the same
-strata. Instead one should estimate a net treatment benefit for each
+strata. Instead one should estimate a Net Treatment Nenefit for each
 possible combinations of strata and pool the results
 (\cite{buyse2025gpc}, chapter 9). This is what is being done when
 setting the argument \texttt{pool.strata} to \texttt{"standardization"}:
@@ -901,7 +909,7 @@ model.tables(BTstd)[,c("strata","total","delta","Delta","lower.ci","upper.ci","p
 
 \begin{verbatim}
                strata      total       delta     Delta   lower.ci  upper.ci   p.value
-1              global 100.000000 -0.11874500 -0.118745 -0.2843405 0.0537305 0.1767059
+1              global 100.000000 -0.11874500 -0.118745 -0.2857534 0.0552638 0.1805479
 2            squamous   6.393862  0.21930736        NA         NA        NA        NA
 3  smallcell.squamous  12.787724  0.35699653        NA         NA        NA        NA
 4      adeno.squamous   3.836317  0.41018519        NA         NA        NA        NA
@@ -944,16 +952,42 @@ endpoint threshold Delta
 
 leads, up to rounding, to the same result.
 
-\bigskip
+\clearpage
 
-\uline{Note:} while it is possible to extract the strata-specific estimate
-(e.g. \texttt{coef(BTstd, strata = TRUE)}) the software does not keep track
-of the strata-specific uncertainty via the H-decomposition. It will
-output an error message when requesting it (e.g. \texttt{confint(BTstd,
-strata = TRUE)}). A resampling method should be used instead.
+\uline{Note:} it is possible to extract the strata-specific estimate
+(e.g. \texttt{coef(BTstd, strata = TRUE)}) but the software does not keep
+track of the strata-specific uncertainty via the H-decomposition and
+thus not able to output confidence intervals. A resampling method
+could be used if those are of interest: \newline
+
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+BTstd.boot <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "standardization",
+                        method.inference = "bootstrap", n.resampling = 100)
+confint(BTstd.boot, strata = TRUE)[1:6,]
+\end{lstlisting}
+
+\begin{verbatim}
+Estimated p-value of 1 - consider increasing the number of boostrap samples 
+
+                               estimate        se    lower.ci    upper.ci null    p.value
+time_t20.squamous            0.21930736 0.1928818 -0.23620851  0.52173313    0 0.26000000
+time_t20.smallcell.squamous  0.35699653 0.1672720 -0.00620671  0.62983611    0 0.05000000
+time_t20.adeno.squamous      0.41018519 0.1853448  0.02059982  0.72023944    0 0.04000000
+time_t20.large.squamous      0.03622106 0.2231223 -0.41553367  0.46671491    0 0.88000000
+time_t20.squamous.smallcell -0.50654161 0.1655352 -0.79085529 -0.19423414    0 0.00990099
+time_t20.smallcell          -0.17921811 0.1535131 -0.47130077  0.09038033    0 0.25000000
+\end{verbatim}
+
+
+Here \texttt{n.resampling} was set to a low value only to save computation
+time but this may lead to unreliable confidence intervals/p-values:
+larger values are recommended (e.g. \texttt{10000}).
+
+
 
 \subsection{Using multiple endpoints}
-\label{sec:org0147f4c}
+\label{sec:org106021b}
 
 More than one endpoint can be considered by indicating a vector of
 endpoints, types, and thresholds. In the formula interface, the
@@ -1115,7 +1149,7 @@ karno    -0.07639267 0.09093303 -0.2546181 0.10183280    0 0.4008534
 \clearpage
 
 \subsection{Statistical inference}
-\label{sec:org7786ef3}
+\label{sec:orgdec68e7}
 
 Uncertainty about the estimates can be quantified using: \hfill \textcolor{orange}{- argument \texttt{method.inference}}
 \begin{itemize}
@@ -1244,7 +1278,7 @@ standard errors and are more numerically intensive.
 \clearpage
 
 \subsection{What if smaller is better?}
-\label{sec:orgf998282}
+\label{sec:org9b15fff}
 By default \texttt{BuyseTest} will always assume that higher values of an
 endpoint are favorable. This behavior can be changed by specifying \texttt{operator = "<0"}
 for an endpoint:
@@ -1278,7 +1312,7 @@ score as usual and then switch them around if the operator equals
 \clearpage
 
 \subsection{Stopping comparison for neutral pairs}
-\label{sec:org8c57186}
+\label{sec:org2bef6d0}
 In presence of neutral pairs, \texttt{BuyseTest} will, by default, continue
 the comparison on the endpoints with lower priority. For instance let
 consider a dataset with one observation in each treatment arm:
@@ -1352,7 +1386,7 @@ So in this case no pair is analyzed at second priority.
 
 
 \subsection{Is multiple testing a concern with GPC?}
-\label{sec:org474a226}
+\label{sec:org10e76a0}
 
 Yes, as with any other statistical method. Having a pre-defined
 statistical plan (i.e. written before looking at the data) specifying
@@ -1572,7 +1606,7 @@ varied at the same time.
 \clearpage
 
 \section{Getting additional inside: looking at the pair level}
-\label{sec:org082bc6a}
+\label{sec:org4294372}
 
 So far we have looked at the overall score and probabilities. But it
 is also possible to extract the score relative to each pair, as well
@@ -1581,7 +1615,7 @@ what the software is actually doing and what is the contribution of
 each individual on the evaluation of the treatment.
 
 \subsection{Extracting the contribution of each pair to the statistic}
-\label{sec:org96ce82a}
+\label{sec:org4dc5c5d}
 The net treatment benefit or the win ratio statistics can be expressed as a sum
 of a score over all pairs of patients. The argument \texttt{keep.pairScore}
 enables to export the score relative to each pair in the output of
@@ -1672,7 +1706,7 @@ More examples and explanation can be found in the documentation of
 the method \texttt{getPairScore}.
 
 \subsection{Extracting the survival probabilities}
-\label{sec:org7d7f1e4}
+\label{sec:org155bfc2}
 When using \texttt{scoring.rule} equals \texttt{"Peron"}, survival probabilities at
 event time, and event times +/- threshold in the control and treatment
 arms are used to score the pair. Setting \texttt{keep.survival} to \texttt{TRUE} and
@@ -1717,7 +1751,7 @@ List of 5
 \end{verbatim}
 
 \subsubsection{Computation of the score with only one censored event}
-\label{sec:org7b722c0}
+\label{sec:org128a361}
 
 Let's look at pair 91:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -1835,7 +1869,7 @@ survivalC+threshold
 \end{verbatim}
 
 \subsubsection{Computation of the score with two censored events}
-\label{sec:orgcee3bf8}
+\label{sec:orgfc2c525}
 
 When both observations are censored, the formula for computing the
 probability in favor of treatment or control involves an
@@ -1944,7 +1978,7 @@ outSurv$lastSurv
 \clearpage
 
 \section{Dealing with missing values or/and right censoring}
-\label{sec:orga529344}
+\label{sec:org3b883a0}
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
@@ -2056,7 +2090,7 @@ correspond to make statistical assumptions, the former assumptions
 being more explicit than with the later solution.
 
 \subsection{Gehan's scoring rule}
-\label{sec:org5374a72}
+\label{sec:org8689e64}
 In the example, Gehan's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -2077,7 +2111,7 @@ leads to many uninformative pairs (about 60\%) and an estimate much
 closer to 0 than the truth.
 
 \subsection{Peron's scoring rule}
-\label{sec:org43d030f}
+\label{sec:orgecc0c56}
 In the example, Peron's scoring rule:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
@@ -2256,7 +2290,7 @@ defining an appropriate \texttt{BuyseTTEM} method. Looking at the code use
 for defining \texttt{BuyseTTEM.survreg} can be helpful.
 
 \subsection{Correction via re-weighting}
-\label{sec:orgbc3bc68}
+\label{sec:org623d860}
 
 The weights of the non-informative pairs is redistributed
 to the informative pairs. This is only a good strategy when there are
@@ -2326,7 +2360,7 @@ iScore[,1/mean(favorable + unfavorable + neutral)]
 i.e. the inverse probability of being informative. 
 
 \subsection{Correction at the pair level}
-\label{sec:org4e2667b}
+\label{sec:org6bfea98}
 
 Another possible correction is to distribute the non-informative
 weight of a pair to the average favorable/unfavorable/neutral
@@ -2388,7 +2422,7 @@ iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf),
 \end{verbatim}
 
 \subsection{Note on the use of the corrections}
-\label{sec:org7fe13aa}
+\label{sec:orga31c004}
 
 As mentioned in \cite{peron2021correcting}, the corrections (at the pair
 level or IPCW) are assumes that uninformative pairs would on average
@@ -2463,7 +2497,7 @@ correction     55.25931    44.74069       0  0.00000 0.10518628
 \clearpage
 
 \section{Simulating data using \texttt{simBuyseTest}}
-\label{sec:orga223cc8}
+\label{sec:orgac68ddf}
 You can simulate data with the \texttt{simBuyseTest} function. For instance
 the following code simulates data for 5 individuals in the treatment
 arm and 5 individuals in the control arm:
@@ -2525,7 +2559,7 @@ package.
 \clearpage
 
 \section{Power calculation using \texttt{powerBuyseTest}}
-\label{sec:org7770f6b}
+\label{sec:orgc2909ab}
 
 The function \texttt{powerBuyseTest} can be used to perform power
 calculation, i.e., estimate the probability of rejecting a null
@@ -2673,7 +2707,7 @@ summary(nW)
 \clearpage
 
 \section{Modifying default options}
-\label{sec:orgb12aa2f}
+\label{sec:org72674d8}
 The \texttt{BuyseTest.options} method enable to get and set the default
 options of the \texttt{BuyseTest} function. For instance, the default option
 for trace is:
@@ -2724,7 +2758,7 @@ BuyseTest.options(reinitialise = TRUE)
 \clearpage
 
 \section*{References}
-\label{sec:orga65daf3}
+\label{sec:org0fbaab9}
 \begingroup
 \renewcommand{\section}[2]{}
 

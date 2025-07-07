@@ -1563,6 +1563,7 @@ INPUT /usr/share/texmf/fonts/tfm/public/lm/ec-lmbx12.tfm
 INPUT /usr/share/texmf/fonts/tfm/public/lm/ec-lmr6.tfm
 INPUT /usr/share/texmf/fonts/tfm/public/lm/ec-lmbx6.tfm
 INPUT /usr/share/texmf/fonts/tfm/public/lm/ec-lmtt10.tfm
+INPUT /usr/share/texmf/fonts/tfm/public/lm/ec-lmri12.tfm
 INPUT ./figures/plot-BuyseTest.pdf
 INPUT ./figures/plot-BuyseTest.pdf
 INPUT ./figures/plot-BuyseTest.pdf
@@ -1588,15 +1589,14 @@ INPUT ./overview.bbl
 INPUT overview.bbl
 INPUT ./overview.bbl
 INPUT overview.bbl
-INPUT /usr/share/texmf/fonts/tfm/public/lm/ec-lmri12.tfm
 OUTPUT overview.soc
 OUTPUT overview.loc
 INPUT overview.aux
 INPUT ./overview.out
 INPUT ./overview.out
-INPUT /usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc
 INPUT /usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc
 INPUT /usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc
+INPUT /usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc
 INPUT /usr/share/texmf/fonts/enc/dvips/lm/lm-mathex.enc
 INPUT /usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc
 INPUT /usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc

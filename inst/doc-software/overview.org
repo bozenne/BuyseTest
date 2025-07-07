@@ -101,7 +101,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘3.2.0’
+: [1] ‘3.3.1’
 
 For completness, the details of the R session used to generate this
 document are:
@@ -132,20 +132,20 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.16.2  prodlim_2024.06.25 ggplot2_3.5.1      BuyseTest_3.2.0   
-[5] Rcpp_1.0.13        survival_3.5-8    
+[1] data.table_1.17.2  BuyseTest_3.3.1    Rcpp_1.0.14        prodlim_2025.04.28
+[5] ggplot2_3.5.2      survival_3.5-8    
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.6-5        gtable_0.3.5        future.apply_1.11.2 dplyr_1.1.4        
+ [1] Matrix_1.6-5        gtable_0.3.6        future.apply_1.11.3 dplyr_1.1.4        
  [5] compiler_4.3.3      tidyselect_1.2.1    MatrixModels_0.5-3  parallel_4.3.3     
- [9] globals_0.16.3      splines_4.3.3       scales_1.3.0        lattice_0.22-5     
-[13] R6_2.5.1            generics_0.1.3      future_1.34.0       tibble_3.2.1       
-[17] munsell_0.5.1       pillar_1.9.0        rlang_1.1.4         utf8_1.2.4         
-[21] cli_3.6.3           withr_3.0.1         magrittr_2.0.3      digest_0.6.37      
-[25] grid_4.3.3          pbapply_1.7-2       lifecycle_1.0.4     lava_1.8.0         
-[29] vctrs_0.6.5         SparseM_1.81        glue_1.8.0          listenv_0.9.1      
-[33] codetools_0.2-19    stats4_4.3.3        parallelly_1.38.0   fansi_1.0.6        
-[37] colorspace_2.1-1    tools_4.3.3         pkgconfig_2.0.3
+ [9] globals_0.18.0      splines_4.3.3       scales_1.4.0        lattice_0.22-5     
+[13] R6_2.6.1            generics_0.1.3      future_1.49.0       tibble_3.2.1       
+[17] pillar_1.10.2       RColorBrewer_1.1-3  rlang_1.1.6         cli_3.6.5          
+[21] withr_3.0.2         magrittr_2.0.3      digest_0.6.37       grid_4.3.3         
+[25] lifecycle_1.0.4     lava_1.8.1          vctrs_0.6.5         SparseM_1.81       
+[29] glue_1.8.0          farver_2.1.2        listenv_0.9.1       codetools_0.2-19   
+[33] stats4_4.3.3        colorspace_2.1-1    parallelly_1.44.0   tools_4.3.3        
+[37] pkgconfig_2.0.3
 #+end_example
 
 \clearpage
@@ -198,15 +198,15 @@ Gather the results in a S4BuyseTest object
 
 \clearpage
 
-- or via a formula interface. In the formula interface endpoint are
-  wrapped by parentheses. The parentheses must be preceded by their
-  type: 
+- or via a formula interface. In the formula interface, endpoints are
+  wrapped by parentheses, preceded by a character string indicated
+  their type:
     #+ATTR_LATEX: :environment itemize :options [label={-}]
     + binary (=b=, =bin=, or =binary=)
     + continuous (=c=, =cont=, or  =continuous=)
     + time to event (=t=, =tte=, or =timetoevent=)
-Here we also set the argument =trace= to =FALSE= to execute silently
-the function:
+
+For instance:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                   data = veteran, trace = FALSE)
@@ -214,7 +214,8 @@ BT.f <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
 
 #+RESULTS:
 
-We can check that the two approaches are equivalent:
+where we also set the argument =trace= to =FALSE= to execute silently
+the function. We can check that the two approaches are equivalent:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.f@call <- list(); BT@call <- list();
 testthat::expect_equal(BT.f,BT)
@@ -249,14 +250,17 @@ summary(BT)
 
 It displays information about each endpoint, percentage of pairs
 classified as favorable, unfavorable, neutral, and uninformative, as
-well as the estimated net treatment benefit (column =Delta=), its confidence
-interval, and the corresponding p-value testing the absence of a group
-difference. Other To display the number of pairs instead of the
+well as the estimated net treatment benefit (column =Delta=), its
+confidence interval, and the corresponding p-value testing the absence
+of a group difference. To display the number of pairs instead of the
 percentage of pairs that are
-favorable/unfavorable/neutral/uniformative, set the argument
+favorable/unfavorable/neutral/uniformative, one can set the argument
 =percentage= to =FALSE=. See =help(S4BuyseTest-summary)= for more
-details about the =summary= method, its input and output. For a more
-concise display of the results, consider using the =print= method:
+details about the =summary= method, its input and output.
+
+\clearpage
+
+The =print= method provides a more concise display of the results:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 print(BT, percentage = FALSE)
 #+END_SRC
@@ -300,7 +304,8 @@ coef(BT)
 #+END_SRC
 
 #+RESULTS:
-: [1] -0.08765836
+:    time_t20 
+: -0.08765836
 
 \bigskip
 
@@ -336,8 +341,9 @@ summary(BT, statistic = "winRatio")
 
 \Warning In presence of ties, the null distribution of the proportion
 in favor of treatment or control depends on the data generative
-mechanism and the threshold of clinical relevance. This is why the
-=confint= method will not produce any =p.value=:
+mechanism and the threshold of clinical relevance. This is why, unless
+the argument =null= is provided by the user, the =confint= method will
+not produce any =p.value=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 confint(BT, statistic = "favorable")
 #+END_SRC
@@ -346,8 +352,8 @@ confint(BT, statistic = "favorable")
 :           estimate         se  lower.ci upper.ci null p.value
 : time_t20 0.3777905 0.04902199 0.2874747 0.477467   NA      NA
 
-unless the argument =null= is provided by the user. A permutation test
-may be used to empirically estimate a value for the null hypothesis:
+A permutation test may be used to empirically estimate a value for the
+null hypothesis:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.perm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                      data = veteran, trace = FALSE,
@@ -378,9 +384,9 @@ rbind(confint(BT, statistic = "favorable", null = 0.42),
 statistics: \hfill @@latex:\textcolor{orange}{- argument \texttt{add.halfNeutral}}@@
 - Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
 - win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
-have been recommended (e.g. cite:ajufo2023fallacies) and these summary
-statistics can be output by specifying the argument =add.halfNeutral=
-to =TRUE= when calling =BuyseTest=:
+have been recommended (e.g. cite:ajufo2023fallacies) over the win
+ratio. These summary statistics can be output by specifying the
+argument =add.halfNeutral= to =TRUE= when calling =BuyseTest=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 BT.half <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                      data = veteran, trace = FALSE, add.halfNeutral = TRUE)
@@ -431,20 +437,20 @@ GPC can be performed for subgroups of a categorical variable \hfill
 @@latex:\textcolor{orange}{- argument \texttt{strata}}@@ \newline For
 instance, the celltype may have huge influence on the survival time
 and the investigator would like to only compare patients that have the
-same celltype. In the formula interface this is achieved by adding a
-single variable in the right hand side of the formula:
+same celltype. In the formula interface this is achieved by adding this
+variable wrapped by parenthesis and preceded by the character string
+strata in the formula:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
+ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + strata(celltype)
 BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
 #+END_SRC
 
 #+RESULTS:
 
-Not being wrapped by =bin=, =cont= or =tte= differentiates it from
-endpoint variables. When doing a stratified analysis, the summary method
-displays strata-specific and global results[fn::the strata-specific
-results can be removed by setting the argument =strata= to ="global"=
-when calling =summary=.]:
+When doing a stratified analysis, the summary method displays
+strata-specific and global results[fn::the strata-specific results can
+be removed by setting the argument =strata= to ="global"= when calling
+=summary=.]:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 keep.colStrata <- c("endpoint","strata", "total",
                     "favorable","unfavorable","neutral","uninf","delta","Delta")
@@ -478,11 +484,12 @@ overall number of pairs whereas the column =delta= presents the
 endpoint and strata-specific net treatment benefits (in the last 4
 lines). The last column (=Delta=) displays the global (i.e. pooled
 over strata), conditional, net treatment benefit. \newline \Warning
-With this weighting scheme the proportion of favorable pairs minus the
-proportion of unfavorable pairs (=36.06%-45.77%=9.71%=) does not equal
-the global net treatment benefit (=9.97%=). To retrieve the net
-treatment benefits, we first extract the number of pairs per strata
-using the method =nobs=:
+With the default way of pooling results across strata, the proportion
+of favorable pairs minus the proportion of unfavorable pairs
+(=36.06%-45.77%=9.71%=) does not equal the global net treatment
+benefit (=9.97%=). To retrieve this value of the Net Treatment
+Benefit, one should first extract the number of pairs per strata using
+the method =nobs=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 strata.obs <- as.data.frame(nobs(BTstrata, strata = TRUE))
 strata.obs
@@ -541,10 +548,11 @@ list(estimate = sum(delta * weightCMH/sum(weightCMH)),
 : $weight
 : [1] 26.38329 34.62807 18.46830 20.52034
 
-\Warning One exception is for the win ratio and win odds where the
-ratio between the global proportions is taken, i.e., pooling is
-performed at the numerator and at the denominator instead of pooling
-fractions - see cite:dong2018stratified, equation 1.
+\Warning The approach is true for the probabilistic index but not for
+the win ratio/odds: the ratio between the global proportions is taken,
+i.e., pooling is performed at the numerator and at the denominator
+instead of pooling fractions - see cite:dong2018stratified,
+equation 1.
 
 
 \clearpage
@@ -612,18 +620,18 @@ confint(BTstrata, strata = TRUE)
 : time_t20.adeno     -0.1033951 0.2465197 -0.5314450 0.3667172    0 0.6771002
 : time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 
-\Warning The pooled estimator presented in this section have a
+\Warning The pooled estimator presented in this section has a
 conditional interpretation, as they summarize comparisons made between
 observations from the same strata. They will generally differ from the
-marginal (i.e. non-adjusted) net treatment benefit and tend to be more
+marginal (i.e. non-adjusted) Net Treatment Benefit and tend to be more
 extreme (i.e. away from 0) in presence of group difference.
 
 ** Standardization
 
 When the interest lies in a marginal effect but one wish to adjust on
-baseline covariates to obtain more precise estimate, one should not
+baseline covariates to obtain more precise estimate, one should /not/
 restrict the comparisons between pairs of observations from the same
-strata. Instead one should estimate a net treatment benefit for each
+strata. Instead one should estimate a Net Treatment Nenefit for each
 possible combinations of strata and pool the results
 (cite:buyse2025gpc, chapter 9). This is what is being done when
 setting the argument =pool.strata= to ="standardization"=:
@@ -635,7 +643,7 @@ model.tables(BTstd)[,c("strata","total","delta","Delta","lower.ci","upper.ci","p
 #+RESULTS:
 #+begin_example
                strata      total       delta     Delta   lower.ci  upper.ci   p.value
-1              global 100.000000 -0.11874500 -0.118745 -0.2843405 0.0537305 0.1767059
+1              global 100.000000 -0.11874500 -0.118745 -0.2857534 0.0552638 0.1805479
 2            squamous   6.393862  0.21930736        NA         NA        NA        NA
 3  smallcell.squamous  12.787724  0.35699653        NA         NA        NA        NA
 4      adeno.squamous   3.836317  0.41018519        NA         NA        NA        NA
@@ -675,19 +683,36 @@ BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
 
 leads, up to rounding, to the same result.
 
-\bigskip
+\clearpage
 
-_Note:_ while it is possible to extract the strata-specific estimate
-(e.g. =coef(BTstd, strata = TRUE)=) the software does not keep track
-of the strata-specific uncertainty via the H-decomposition. It will
-output an error message when requesting it (e.g. =confint(BTstd,
-strata = TRUE)=). A resampling method should be used instead.
+_Note:_ it is possible to extract the strata-specific estimate
+(e.g. =coef(BTstd, strata = TRUE)=) but the software does not keep
+track of the strata-specific uncertainty via the H-decomposition and
+thus not able to output confidence intervals. A resampling method
+could be used if those are of interest: \newline
 
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
-XXXX <- BuyseTest(ffstrata, data = veteran, pool.strata = "standardization", method.inference = "bootstrap",
-                  n.resampling = 100)
-confint(XXXX, strata = TRUE)
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BTstd.boot <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "standardization",
+                        method.inference = "bootstrap", n.resampling = 100)
+confint(BTstd.boot, strata = TRUE)[1:6,]
 #+END_SRC
+
+#+RESULTS:
+: Estimated p-value of 1 - consider increasing the number of boostrap samples 
+: 
+:                                estimate        se    lower.ci    upper.ci null    p.value
+: time_t20.squamous            0.21930736 0.1928818 -0.23620851  0.52173313    0 0.26000000
+: time_t20.smallcell.squamous  0.35699653 0.1672720 -0.00620671  0.62983611    0 0.05000000
+: time_t20.adeno.squamous      0.41018519 0.1853448  0.02059982  0.72023944    0 0.04000000
+: time_t20.large.squamous      0.03622106 0.2231223 -0.41553367  0.46671491    0 0.88000000
+: time_t20.squamous.smallcell -0.50654161 0.1655352 -0.79085529 -0.19423414    0 0.00990099
+: time_t20.smallcell          -0.17921811 0.1535131 -0.47130077  0.09038033    0 0.25000000
+
+Here =n.resampling= was set to a low value only to save computation
+time but this may lead to unreliable confidence intervals/p-values:
+larger values are recommended (e.g. =10000=).
+
+
 
 ** Using multiple endpoints
 

@@ -93,7 +93,7 @@ Mstat
 ## ** Stratified GPC
 
 ## chunk 21
-ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + celltype
+ffstrata <- trt ~ tte(time, threshold = 20, status = "status") + strata(celltype)
 BTstrata <- BuyseTest(ffstrata, data = veteran, trace = 0)
 
 ## chunk 22
@@ -142,6 +142,11 @@ BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
           data = rbind(veteran[veteran$celltype == "smallcell" & veteran$trt == "Pl",],
                        veteran[veteran$celltype == "squamous" & veteran$trt == "Exp",]),
           trace = 0)
+
+## chunk 32
+BTstd.boot <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "standardization",
+                        method.inference = "bootstrap", n.resampling = 100)
+confint(BTstd.boot, strata = TRUE)[1:6,]
 
 ## ** Using multiple endpoints
 

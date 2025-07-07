@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 11 2025 (15:42) 
 ## Version: 
-## Last-Updated: May  8 2025 (10:27) 
+## Last-Updated: Jul  7 2025 (10:42) 
 ##           By: Brice Ozenne
-##     Update #: 105
+##     Update #: 106
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -242,21 +242,20 @@ rownames(dtB.strata) <- NULL
 
 test_that("BuyseTest - standarization (tte outcome)",{
     BT.raw <- BuyseTest(treatment ~ tte(eventtime, status), trace = FALSE, data = dt.strata)
-    confint(BT.raw)
+    ## confint(BT.raw)
     ##             estimate        se   lower.ci  upper.ci null   p.value
     ## eventtime -0.008226969 0.1286523 -0.2546679 0.2392174    0 0.9490145
     BT.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dt.strata,
                         pool.strata = "standardization")
-    ##               estimate       se   lower.ci  upper.ci null   p.value
-    ## eventtime -0.009499187 0.127931 -0.2545409 0.2366887    0 0.9408131
-    expect_equivalent(confint(BT.std), data.frame("estimate" = c(-0.00949919),"se" = c(0.12793103),"lower.ci" = c(-0.25454086),"upper.ci" = c(0.23668869),"null" = c(0),"p.value" = c(0.9408131)), tol = 1e-5)
+    ##               estimate        se   lower.ci  upper.ci null   p.value
+    ## eventtime -0.009499187 0.1207078 -0.2412526 0.2232793    0 0.9372784
+    expect_equivalent(confint(BT.std), data.frame("estimate" = c(-0.00949919),"se" = c(0.12070778),"lower.ci" = c(-0.24125263),"upper.ci" = c(0.22327925),"null" = c(0),"p.value" = c(0.9372784)), tol = 1e-5)
 
     BTB.raw <- BuyseTest(treatment ~ tte(eventtime, status), trace = FALSE, data = dtB.strata,
                          model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))
-    confint(BTB.raw)
+    ## confint(BTB.raw)
     ##             estimate        se   lower.ci  upper.ci null   p.value
     ## eventtime 0.02881503 0.1417496 -0.2441965 0.2975942    0 0.8390032
-
     BTB.std <- BuyseTest(treatment ~ tte(eventtime, status) + stratum, trace = FALSE, data = dtB.strata,
                          pool.strata = "standardization", 
                          model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dtB.strata))

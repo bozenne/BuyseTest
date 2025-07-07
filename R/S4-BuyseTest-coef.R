@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Apr 21 2025 (11:54) 
+## Last-Updated: Jul  7 2025 (11:04) 
 ##           By: Brice Ozenne
-##     Update #: 414
+##     Update #: 417
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -317,8 +317,14 @@ setMethod(f = "coef",
 
                   if(cumulative==TRUE){
                       out <- Delta[strata,endpoint,drop=simplify]
+                      if(length(strata)==1 && is.null(names(out))){
+                          names(out) <- endpoint
+                      }
                   }else if(cumulative == FALSE){
                       out <- delta[strata,endpoint,drop=simplify]
+                      if(length(strata)==1 && is.null(names(out))){
+                          names(out) <- endpoint
+                      }
                   }
                   
               }else if(resampling){

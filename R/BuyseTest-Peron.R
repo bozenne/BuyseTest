@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: maj 22 2025 (15:16) 
+## Last-Updated: Jul  7 2025 (10:12) 
 ##           By: Brice Ozenne
-##     Update #: 671
+##     Update #: 695
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -71,7 +71,6 @@ calcPeron <- function(data,
         tofit <- FALSE
     }
 
-    
     ## fit survival model and prepare for extracting survival
     for(iUTTE in 1:D.UTTE){ ## iUTTE <- 1
         ls.indexAssociatedEndpoint[[iUTTE]] <-  which(endpoint == endpoint.UTTE[iUTTE])
@@ -194,7 +193,7 @@ calcPeron <- function(data,
                         if(iidNuisance){
                             out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- cbind(lava::iid(model.tte[[iUTTE]], treatment = iTreat, strata = iStrata.model[[iTreat]], cause = 1),
                                                                                lava::iid(model.tte[[iUTTE]], treatment = iTreat, strata = iStrata.model[[iTreat]], cause = 2))
-                            out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata.num[iTreat]]])
+                            out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
                         }
 
                         ## *** CIF at observation time (+/- threshold)
@@ -233,8 +232,8 @@ calcPeron <- function(data,
                         }
                         if(iidNuisance){
                             out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- lava::iid(model.tte[[iUTTE]], strata = iStrata.model[[iTreat]], treatment = iTreat)
-                            out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata.num[iTreat]]])
-                            if(any(is.na(out$iid[[iStoreJump]][[iUTTE]][[iStrata.num[iTreat]]]))){ stop("NA in the iid decomposition of the survival model. \n") }
+                            out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
+                            if(any(is.na(out$iid[[iStoreJump]][[iUTTE]][[iStrata]]))){ stop("NA in the iid decomposition of the survival model. \n") }
                         }
 
                         if(length(iSubset.restriction)==0){

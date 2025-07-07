@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  8 MAY 2025 11:15
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  7 JUL 2025 11:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1296,7 +1296,9 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <10.95> on input line 425.
  [5
 
-] [6] [7] [8
+] [6
+
+] [7] [8
 
 ] [9
 
@@ -1304,81 +1306,88 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 [10] [11
 
 ] [12]
-<./figures/plot-BuyseTest.pdf, id=303, 433.62pt x 433.62pt>
-File: ./figures/plot-BuyseTest.pdf Graphic file (type pdf)
-<use ./figures/plot-BuyseTest.pdf>
-Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 1012.
+Underfull \hbox (badness 10000) in paragraph at lines 957--962
 
-(pdftex.def)             Requested size: 378.42001pt x 378.43733pt.
- [13] [14 <./figures/plot-BuyseTest.pdf>] [15] [16
+ []
 
-] [17] [18
+[13
 
 ]
-[19
+<./figures/plot-BuyseTest.pdf, id=317, 433.62pt x 433.62pt>
+File: ./figures/plot-BuyseTest.pdf Graphic file (type pdf)
+<use ./figures/plot-BuyseTest.pdf>
+Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 1046.
+
+(pdftex.def)             Requested size: 378.42001pt x 378.43733pt.
+ [14 <./figures/plot-BuyseTest.pdf>] [15] [16] [17
+
+] [18] [19
 
 ] [20
 
-] [21]
-<./figures/gg-sensitivity1.pdf, id=427, 361.35pt x 216.81pt>
+] [21
+
+]
+[22]
+<./figures/gg-sensitivity1.pdf, id=436, 361.35pt x 216.81pt>
 File: ./figures/gg-sensitivity1.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity1.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1497
+Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1531
 .
 (pdftex.def)             Requested size: 270.3012pt x 162.18033pt.
- [22 <./figures/gg-sensitivity1.pdf>]
-<./figures/gg-sensitivity2.pdf, id=455, 505.89pt x 216.81pt>
+ [23 <./figures/gg-sensitivity1.pdf>]
+<./figures/gg-sensitivity2.pdf, id=464, 505.89pt x 216.81pt>
 File: ./figures/gg-sensitivity2.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity2.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1567
+Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1601
 .
 (pdftex.def)             Requested size: 540.60239pt x 231.68996pt.
- [23 <./figures/gg-sensitivity2.pdf>] [24
+ [24 <./figures/gg-sensitivity2.pdf>]
+[25
 
-] [25] [26] [27] [28] [29
-
-] [30
+] [26] [27] [28] [29] [30
 
 ] [31
 
-] [32] [33] [34] [35]
-<./figures/plot-crossingSurv.pdf, id=678, 722.7pt x 505.89pt>
+] [32
+
+] [33] [34] [35] [36]
+<./figures/plot-crossingSurv.pdf, id=687, 722.7pt x 505.89pt>
 File: ./figures/plot-crossingSurv.pdf Graphic file (type pdf)
 <use ./figures/plot-crossingSurv.pdf>
 Package pdftex.def Info: ./figures/plot-crossingSurv.pdf  used on input line 24
-10.
+44.
 (pdftex.def)             Requested size: 432.48355pt x 302.74124pt.
- [36]
-[37 <./figures/plot-crossingSurv.pdf>] [38]
+ [37] [38 <./figures/plot-crossingSurv.pdf>] [39]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <17.28> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 2465.
- [39
-
-] [40
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 2499.
+ [40
 
 ] [41
 
-] [42] [43
+] [42
 
-]
-(./overview.bbl)
+] [43] [44
+
+] (./overview.bbl)
 \Changes@OutFile=\write6
 \openout6 = `overview.soc'.
 
 \tf@loc=\write7
 \openout7 = `overview.loc'.
 
- [44
+
+[45
 
 ] (./overview.aux)
 Package rerunfilecheck Info: File `overview.out' has not changed.
 (rerunfilecheck)             Checksum: FD42F793BBB3D573ACAFAF104740A0E7;5633.
  ) 
 Here is how much of TeX's memory you used:
- 32055 strings out of 478287
- 580807 string characters out of 5849290
- 1346290 words of memory out of 5000000
- 49110 multiletter control sequences out of 15000+600000
+ 32062 strings out of 478287
+ 580906 string characters out of 5849290
+ 1346291 words of memory out of 5000000
+ 49112 multiletter control sequences out of 15000+600000
  550858 words of font info for 109 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  114i,8n,117p,662b,1886s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1397,8 +1406,8 @@ pdfTeX warning (dest): name{Hfootnote.2} has been referenced but does not exist
 pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exist
 , replaced by a fixed one
 
-{/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dvip
-s/lm/lm-mathsy.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}{/usr/share/t
+{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/share/texmf/fonts/enc/
+dvips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/t
 exmf/fonts/enc/dvips/lm/lm-mathex.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-m
 athit.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-ts1.enc}</usr/share/texmf/fon
 ts/type1/public/lm/lmbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmbx6.pfb
@@ -1415,10 +1424,10 @@ are/texmf/fonts/type1/public/lm/lmsy8.pfb></usr/share/texmf/fonts/type1/public/
 lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/share/te
 xmf/fonts/type1/public/lm/lmtt12.pfb></usr/share/texlive/texmf-dist/fonts/type1
 /public/amsfonts/symbols/msbm10.pfb>
-Output written on overview.pdf (44 pages, 539517 bytes).
+Output written on overview.pdf (45 pages, 540944 bytes).
 PDF statistics:
- 1021 PDF objects out of 1200 (max. 8388607)
- 911 compressed objects within 10 object streams
- 502 named destinations out of 1000 (max. 500000)
+ 1031 PDF objects out of 1200 (max. 8388607)
+ 920 compressed objects within 10 object streams
+ 507 named destinations out of 1000 (max. 500000)
  225 words of extra memory for PDF output out of 10000 (max. 10000000)
 
