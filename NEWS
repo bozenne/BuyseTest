@@ -1,6 +1,12 @@
 # -*- mode: org -*-
 
-* Version 3.3.0
+* Version 3.3.2
+** Internal change
+- fig bug when using u-statistic to evaluate uncertainty with
+  BuyseTest(. ~ . + strata(., match = TRUE)) when having multiple
+  replicate of each treatment within strata.
+
+* Version 3.3.1
 ** User visible change
 - the formula interface in BuyseTest can now take the outcome on the left hand side and the treatment and strata variables on the right-hand side
 - argument match added to the operator strata to handle paired design.

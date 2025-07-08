@@ -140,34 +140,46 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     }
 
     // *** modification for paired design
-    if(paired){ // sum within pair so the influence function is at the pair level
+    if(paired){ // sum within pair so the influence function is at the cluster level
+
+      iidAverage_favorable.fill(0.0);
+      iidAverage_unfavorable.fill(0.0);
+      iidAverage_neutral.fill(0.0);
+      double iidNuisance_tempo;
+	  
       for(int iter_strata=0 ; iter_strata < n_strata ; iter_strata ++){
 
 	// each strata contains a single C and a single T
-	// later division by n_strata: n_strata-1 = sqrt(1-1/n_strata)^2*n_strata
-	iidAverage_favorable.rows(posC[iter_strata]) = (delta.slice(0).row(iter_strata) - arma::mean(delta.slice(0), 0))/sqrt(1-1/n_strata);
-	iidAverage_favorable.rows(posT[iter_strata]).fill(0.0);
+	// later division by n_strata: n_strata-1 = sqrt(1-1/n_strata)^2*n_strata	
+	if(hprojection==2){
+	  iidAverage_favorable.row(posC[iter_strata][0]) = (delta.slice(0).row(iter_strata) - arma::mean(delta.slice(0), 0))/sqrt(1.0-1.0/n_strata);
+	  iidAverage_unfavorable.row(posC[iter_strata][0]) = (delta.slice(1).row(iter_strata) - arma::mean(delta.slice(1), 0))/sqrt(1.0-1.0/n_strata);
+	  iidAverage_neutral.row(posC[iter_strata][0]) = (delta.slice(2).row(iter_strata) - arma::mean(delta.slice(2), 0))/sqrt(1.0-1.0/n_strata);
+	}else{
+	  iidAverage_favorable.row(posC[iter_strata][0]) = (delta.slice(0).row(iter_strata) - arma::mean(delta.slice(0), 0));
+	  iidAverage_unfavorable.row(posC[iter_strata][0]) = (delta.slice(1).row(iter_strata) - arma::mean(delta.slice(1), 0));
+	  iidAverage_neutral.row(posC[iter_strata][0]) = (delta.slice(2).row(iter_strata) - arma::mean(delta.slice(2), 0));
+	}
 
-	iidAverage_unfavorable.rows(posC[iter_strata]) = (delta.slice(1).row(iter_strata) - arma::mean(delta.slice(1), 0))/sqrt(1-1/n_strata);
-	iidAverage_unfavorable.rows(posT[iter_strata]).fill(0.0);
+	if(returnIID[1]>0){
+	  iidNuisance_tempo = accu(iidNuisance_favorable.rows(posC[iter_strata])) + accu(iidNuisance_favorable.rows(posT[iter_strata]));
+	  iidNuisance_favorable.rows(posC[iter_strata]).fill(0.0);
+	  iidNuisance_favorable.rows(posT[iter_strata]).fill(0.0);
+	  iidNuisance_favorable.row(posC[iter_strata][0]) = iidNuisance_tempo;
+	    
+	  iidNuisance_tempo = accu(iidNuisance_unfavorable.rows(posC[iter_strata])) + accu(iidNuisance_unfavorable.rows(posT[iter_strata]));
+	  iidNuisance_unfavorable.rows(posC[iter_strata]).fill(0.0);
+	  iidNuisance_unfavorable.rows(posT[iter_strata]).fill(0.0);
+	  iidNuisance_unfavorable.row(posC[iter_strata][0]) = iidNuisance_tempo;
 
-	iidAverage_neutral.rows(posC[iter_strata]) = (delta.slice(2).row(iter_strata) - arma::mean(delta.slice(2), 0))/sqrt(1-1/n_strata);
-	iidAverage_neutral.rows(posT[iter_strata]).fill(0.0);
-	
-	  if(returnIID[1]>0){
-	    iidNuisance_favorable.rows(posC[iter_strata]) = iidNuisance_favorable.rows(posC[iter_strata]) + iidNuisance_favorable.rows(posT[iter_strata]);
-	    iidNuisance_favorable.rows(posT[iter_strata]).fill(0.0);
-	
-	    iidNuisance_unfavorable.rows(posC[iter_strata]) = iidNuisance_unfavorable.rows(posC[iter_strata]) + iidNuisance_unfavorable.rows(posT[iter_strata]);
-	    iidNuisance_unfavorable.rows(posT[iter_strata]).fill(0.0);
-
-	    iidNuisance_neutral.rows(posC[iter_strata]) = iidNuisance_neutral.rows(posC[iter_strata]) + iidNuisance_neutral.rows(posT[iter_strata]);
-	    iidNuisance_neutral.rows(posT[iter_strata]).fill(0.0);
-	  }
+	  iidNuisance_tempo = accu(iidNuisance_neutral.rows(posC[iter_strata])) + accu(iidNuisance_neutral.rows(posT[iter_strata]));
+	  iidNuisance_neutral.rows(posC[iter_strata]).fill(0.0);
+	  iidNuisance_neutral.rows(posT[iter_strata]).fill(0.0);
+	  iidNuisance_neutral.row(posC[iter_strata][0]) = iidNuisance_tempo;
+	}
       }
     }
 
-    
     // *** add the two source of uncertainty into a single iid
     if(returnIID[1]>0){
       iidTotal_favorable = iidAverage_favorable + iidNuisance_favorable;
@@ -233,7 +245,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     }
   }
   weightPool /= sum(weightPool); // normalize weights to sum up to 1
-  
+
   // ** Summary statistics (probabilistic index, net benefit, and win ratio)
 
   // *** strata-weighted cumulative endpoint estimate
@@ -310,7 +322,7 @@ void calcStatistic(arma::cube& delta, arma::mat& Delta,
     Mvar.col(2) = arma::trans(arma::sum(iid2.each_col() % weightObs, 0));
 
     // *** second order variance
-    if(hprojection==2){
+    if(hprojection==2 && (paired==false)){
       if(keepScore){
 
 	// **** retrive h1

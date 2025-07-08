@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: jul 17 2023 (17:29) 
+## Last-Updated: jul  8 2025 (15:34) 
 ##           By: Brice Ozenne
-##     Update #: 294
+##     Update #: 335
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -211,9 +211,7 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
         type <- "none"
     }
 
-    ## weights
-
-    ## ** extract iid and coefficients
+    ## ** extract coefficients
     if(test.list){
         if(is.null(name.object)){
             iName <- endpoint
@@ -229,7 +227,36 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
         }
         ls.beta <- lapply(1:n.object, function(iO){coef(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative, strata = "global")})
         vec.beta <- stats::setNames(unlist(ls.beta), iName)
+    }else{
+        iName <- endpoint
+        vec.beta <- stats::setNames(coef(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative, strata = "global"), iName)
+    }
+    n.beta <- length(vec.beta)
+    vec.name <- names(vec.beta)
 
+    ## ** create and apply linfct matrix
+    if(is.null(linfct)){
+        linfct <- diag(1, nrow = n.beta, ncol = n.beta)
+        dimnames(linfct) = list(vec.name,vec.name)
+    }else if(length(linfct)==1 && is.character(linfct) && (linfct=="mean")){
+        linfct <- matrix(1/n.beta, nrow = 1, ncol = n.beta)
+        dimnames(linfct) = list("mean",vec.name)
+    }else{
+        if(NCOL(linfct) != n.beta){
+            stop("Incorrect argument \'linfct\': should have ",n.beta," columns. \n")
+        }
+        if(is.null(colnames(linfct))){
+            colnames(linfct) <- names(vec.beta)
+        }else{
+            if(any(vec.name %in% colnames(linfct) == FALSE)){
+                stop("Missing column \"",paste0(vec.name[vec.name %in% colnames(linfct)==FALSE],collapse="\" \""),"\" in argument \'linfct\'. \n")
+            }
+            linfct <- linfct[,vec.name,drop=FALSE]
+        }
+    }
+
+    ## ** extract iid and coefficients
+    if(test.list){
         ls.iid <- lapply(1:n.object, function(iO){ ## iO <- 1
             iIID <- getIid(object[[iO]], endpoint = endpoint[iO], statistic = statistic, cumulative = cumulative, strata = "global", simplify = FALSE)[["global"]]
             colnames(iIID) <- iName[iO]
@@ -287,43 +314,36 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
                          "Problematic object(s): ",paste(iName[indexPb], collapse = ","),"\n")
                 }
             }
+            
             ## find unique clusters
             Ucluster <- unique(unlist(cluster))
             cluster.factor <- lapply(cluster, factor, level = Ucluster)
             n.id <- length(Ucluster)
-            ## store iid according to the clusters
             M.iid <- matrix(0, nrow = n.id, ncol = n.object, dimnames = list(Ucluster, iName))
-            for(iObject in 1:n.object){ ## iObject <- 1
-                M.iid[,iName[iObject]] <- tapply(ls.iid[[iObject]],cluster.factor[[iObject]],sum, default = 0)
+            ## store iid
+            if(all(unlist(lapply(cluster, duplicated))==FALSE)){ ## Standard: The H-decomposition of each BuyseTest object contain zero or once each cluster
+                for(iObject in 1:n.object){ ## iObject <- 1
+                    M.iid[cluster.factor[[iObject]],iName[iObject]] <- ls.iid[[iObject]]
+                }
+            }else if(all(lengths(lapply(cluster, unique))==1) && all(duplicated(sapply(cluster, unique))==FALSE)){ ## Cross-over: each BuyseTest object correspond to a different cluster
+                for(iObject in 1:n.object){ ## iObject <- 1
+                    if(option$order.Hprojection==1){
+                        M.iid[iObject,iObject] <- ls.beta[[iObject]] - t(linfct %*% vec.beta)
+                    }else if(option$order.Hprojection==2){
+                        M.iid[iObject,iObject] <- (ls.beta[[iObject]] - t(linfct %*% vec.beta))/sqrt(1-1/n.id)
+                    }
+                }
+            }else{
+                stop("Do not know how to combine iid across BuyseTest objects. \n",
+                     "The H-decomposition of each BuyseTest object should contain either distinct cluster or only one cluster. \n")
             }
         }
     }else{
-        iName <- endpoint
-        vec.beta <- stats::setNames(coef(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative, strata = "global"), iName)
         M.iid <- getIid(object, endpoint = endpoint, statistic = statistic, cumulative = cumulative, strata = "global")
         colnames(M.iid) <- iName
     }
 
-    n.beta <- length(vec.beta)
-    vec.name <- names(vec.beta)
-
-    ## ** create and apply linfct matrix
-    if(is.null(linfct)){
-        linfct <- diag(1, nrow = n.beta, ncol = n.beta)
-        dimnames(linfct) = list(vec.name,vec.name)
-    }else{
-        if(NCOL(linfct) != n.beta){
-            stop("Incorrect argument \'linfct\': should have ",n.beta," columns. \n")
-        }
-        if(is.null(colnames(linfct))){
-            colnames(linfct) <- names(vec.beta)
-        }else{
-            if(any(vec.name %in% colnames(linfct) == FALSE)){
-                stop("Missing column \"",paste0(vec.name[vec.name %in% colnames(linfct)==FALSE],collapse="\" \""),"\" in argument \'linfct\'. \n")
-            }
-            linfct <- linfct[,vec.name,drop=FALSE]
-        }
-    }
+    ## ** apply contrast
     vec.Cbeta <- t(linfct %*% vec.beta)
     M.Ciid <- M.iid  %*% t(linfct)
     n.C <- NROW(linfct)
@@ -415,7 +435,10 @@ BuyseMultComp <- function(object, cluster = NULL, linfct = NULL, rhs = NULL, end
                                     lower.ci = as.double(iBand$lower), upper.ci = as.double(iBand$upper), null = rhs, p.value = as.double(iBand$p.value),
                                     lower.band = NA, upper.band = NA, adj.p.value = NA)
     }
-    rownames(out$table.uni) <- iName
+    
+    if(!is.null(rownames(linfct)) && NROW(linfct) == NROW(out$table.uni)){
+        rownames(out$table.uni) <- rownames(linfct)
+    }
     class(out) <- append("BuyseMultComp",class(out))
     return(out)
 }
