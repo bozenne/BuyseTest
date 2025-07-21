@@ -99,7 +99,7 @@ printGeneral <- function(status,
         txt.variable <- switch(as.character(length(strata)),
                                "1" = "variable",
                                "variables")        
-        cat("   - ", n.strata, " pairs (",txt.variable,": ",paste(strata, collapse = " "),") \n", sep = "")
+        cat("   - ", n.strata, " clusters (",txt.variable,": ",paste(strata, collapse = " "),") \n", sep = "")
     }else if(n.strata>1){
         txt.variable <- switch(as.character(length(strata)),
                                "1" = "variable",

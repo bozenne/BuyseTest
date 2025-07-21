@@ -5,3 +5,6 @@
 /src/FCT_buyseTest.o
 /src/BuyseTest.dll
 /src/RcppExports.o
+/src/FCT_precompute.o
+/src/utils-from-riskRegression.o
+

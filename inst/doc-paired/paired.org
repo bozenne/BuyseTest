@@ -166,7 +166,7 @@ approach, which has been developped for a binary scoring rule
 implemented in the BuyseTest package:
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-mover(e.BTjuv)
+BuyseTest:::mover(e.BTjuv)
 #+END_SRC
 #+RESULTS:
 :   estimate      lower      upper     pvalue 

@@ -5,8 +5,7 @@
 
 ** Internal change
 - fix bug when using the sensitivity method "Error in (function (formula, data, scoring.rule = NULL, pool.strata = NULL, unused argument (match = FALSE)"
-- fix bug when bug when using strata(..., match=TRUE) with multiple observation per subject.
-
+- fig bug when using u-statistic to evaluate uncertainty with  BuyseTest(. ~ . + strata(., match = TRUE)) when having multiple replicate of each treatment within strata.
 
 * Version 3.3.1
 ** User visible change
