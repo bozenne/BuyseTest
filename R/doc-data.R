@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 13 2025 (11:30) 
 ## Version: 
-## Last-Updated: jul 21 2025 (18:06) 
+## Last-Updated: jul 21 2025 (18:26) 
 ##           By: Brice Ozenne
-##     Update #: 47
+##     Update #: 56
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -70,7 +70,7 @@
 #'
 #' @description Data from the Profil trial, a multiple crossover study where 38 patients had repeat blocks of 3 weeks: placebo, sildenafil 40mg, or sildenafil 80mg.
 #' The principal outcome were Raynaud Condition Score (RCS) and the frequency and cumulative duration of attacks over 24 hours.
-#' Retrieved from \url{https://datadryad.org/dataset/doi:10.5061/dryad.c670tq2}.
+#' 
 #'
 #' \itemize{
 #' \item \code{id}: study participant.
@@ -84,7 +84,8 @@
 #' \item \code{duration}: cumulative daily duration of attacks in minutes, between 0 and 755 minutes.
 #' }
 #'
-#' @author Brice Ozenne
+#' @author Brice Ozenne took a subset of the columns from the original dataset (available at \url{https://datadryad.org/dataset/doi:10.5061/dryad.c670tq2})
+#' and translated their names into english.
 #' @docType data
 #' @usage data(profil, package = "BuyseTest")
 #' @references Matthieu Roustit, Joris Giai, Olivier Gaget, et al. On-Demand Sildenafil as a Treatment for Raynaud Phenomenon: A Series of n-of-1 Trials. Ann Intern Med.2018;169:694-703. [Epub 30 October 2018]. doi:10.7326/M18-0517
