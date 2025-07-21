@@ -6,4 +6,10 @@ Anderson, W.~N. and Verbeeck, J. (2023).
   comparisons statistics.
 \newblock {\em Mathematics}, 11(6):1502.
 
+\bibitem[Thangavelu and Brunner, 2007]{thangavelu2007wilcoxon}
+Thangavelu, K. and Brunner, E. (2007).
+\newblock Wilcoxon--mann--whitney test for stratified samples and efron's
+  paradox dice.
+\newblock {\em Journal of Statistical Planning and Inference}, 137(3):720--737.
+
 \end{thebibliography}

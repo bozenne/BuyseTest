@@ -157,7 +157,6 @@ sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
 :      pairs 
 : 0.06631828
 
-
 * MOVER method (Gehan scoring rule)
 
 The method recommended by cite:matsouaka2022robust is the MOVER
@@ -193,8 +192,10 @@ model.tables(e.BTjuv2, percentage = FALSE)
 #+END_SRC
 
 #+RESULTS:
-:   endpoint total favorable unfavorable neutral    uninf    Delta   lower.ci  upper.ci     p.value
-: 1     time   114  47.36525    24.29552       3 39.33923 0.202366 0.05045454 0.3451254 0.009329589
+:   endpoint total favorable unfavorable neutral    uninf    Delta   lower.ci  upper.ci
+: 1     time   114  47.36525    24.29552       3 39.33923 0.202366 0.05045454 0.3451254
+:       p.value
+: 1 0.009329589
 
 Ignoring the uncertainty of the survival model, the standard would be:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no

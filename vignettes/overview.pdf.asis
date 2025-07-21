@@ -145,7 +145,7 @@ BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
 
 ## chunk 32
 BTstd.boot <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "standardization",
-                        method.inference = "bootstrap", n.resampling = 100)
+                        method.inference = "bootstrap", n.resampling = 100, seed = 10)
 confint(BTstd.boot, strata = TRUE)[1:6,]
 
 ## ** Using multiple endpoints

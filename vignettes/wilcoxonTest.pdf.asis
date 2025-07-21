@@ -26,8 +26,8 @@ eperm.BT <- BuyseTest(group ~ cont(value), data = df, add.halfNeutral = TRUE,
 confint(eperm.BT, statistic = "favorable")
 
 ## chunk 6
-eU.BT <- BuyseTest(group ~ cont(value), data = df,
-                  add.halfNeutral = TRUE)
+eU.BT <- suppressWarnings(BuyseTest(group ~ cont(value), data = df,
+                                    add.halfNeutral = TRUE))
 confint(eU.BT, statistic = "favorable")
 
 ## chunk 7
@@ -71,7 +71,7 @@ set.seed(35)
 dt <- simBuyseTest(n.T=25, n.strata = 5)
 dt$id <- paste0("id",1:NROW(dt))
 dt$strata <- as.character(dt$strata) 
-head(dt)
+print(head(dt), class = FALSE)
 
 ## chunk 15
 BuyseTest.options(order.Hprojection=1);BuyseTest.options(trace=0)

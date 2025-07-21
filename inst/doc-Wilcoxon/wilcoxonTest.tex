@@ -1,4 +1,4 @@
-% Created 2025-05-08 Thu 10:29
+% Created 2025-07-21 Mon 11:27
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -213,10 +213,10 @@ the wilcoxon-test.
 
 
 \section{Single Wilcoxon test}
-\label{sec:orgf8ceca9}
+\label{sec:orgcdc2b7c}
 
 \subsection{Exact test}
-\label{sec:org840fd30}
+\label{sec:orgc2b643b}
 
 Consider the first 'two sample test' example from the help page section of \texttt{stats::wilcox.test}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -326,7 +326,7 @@ value      0.3 0.1334166       NA       NA  0.5 0.1916808
 \end{verbatim}
 
 \subsection{Approximate test}
-\label{sec:orgcf3b0c0}
+\label{sec:org6255424}
 
 Consider now a bigger (artificial) dataset:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -444,7 +444,7 @@ value    0.613 0.05814569       NA       NA  0.5 0.05118099
 \clearpage
 
 \section{Multiple Wilcoxon tests}
-\label{sec:org76e1660}
+\label{sec:org5bd74ec}
 
 Consider now the case where we would like to compare one reference
 group (here strata \texttt{a}) to multiple treatment groups (here strata
@@ -455,18 +455,17 @@ set.seed(35)
 dt <- simBuyseTest(n.T=25, n.strata = 5)
 dt$id <- paste0("id",1:NROW(dt))
 dt$strata <- as.character(dt$strata) 
-head(dt)
+print(head(dt), class = FALSE)
 \end{lstlisting}
 
 \begin{verbatim}
-       id treatment  eventtime status toxicity      score strata
-   <char>    <fctr>      <num>  <num>   <fctr>      <num> <char>
-1:    id1         C 0.03384999      1      yes  0.4777913      b
-2:    id2         C 0.65039474      0       no -1.1048190      d
-3:    id3         C 1.00647502      1       no -0.1407630      b
-4:    id4         C 0.01129603      1      yes -0.5512507      a
-5:    id5         C 0.22249748      1       no  1.0465250      d
-6:    id6         C 0.07400412      0       no -2.0053855      d
+    id treatment  eventtime status toxicity      score strata
+1: id1         C 0.03384999      1      yes  0.4777913      b
+2: id2         C 0.65039474      0       no -1.1048190      d
+3: id3         C 1.00647502      1       no -0.1407630      b
+4: id4         C 0.01129603      1      yes -0.5512507      a
+5: id5         C 0.22249748      1       no  1.0465250      d
+6: id6         C 0.07400412      0       no -2.0053855      d
 \end{verbatim}
 
 
@@ -504,9 +503,9 @@ e-a=0 0.3333333 0.1360828 0.1308601 0.6241219  0.5 0.25767454   1.0000000
 
 
 Because we compare the treatment groups to the same reference, the
-test statistics are correlated and a Bonferroni adjustment would not
-be optimal. A better (but still not optimal adjustment) is the
-max-test adjustment which can be obtained via the \texttt{BuyseMultComp} function:
+test statistics are correlated and a Bonferroni adjustment does not
+provide optimal power. The max-test adjustment provides better power
+and can be obtained via the \texttt{BuyseMultComp} function:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
 \begin{lstlisting}
 e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id", global = TRUE)
@@ -544,8 +543,11 @@ e-a=0 0.7520401 0.5439927 0.5051815 1.0000000
 \end{verbatim}
 
 
+\Warning This testing procedure does not guarantee transitive results \citep{thangavelu2007wilcoxon}
+
+
 \section*{References}
-\label{sec:org8a09eeb}
+\label{sec:org4dfee00}
 \begingroup
 \renewcommand{\section}[2]{}
 

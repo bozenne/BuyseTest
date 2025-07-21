@@ -233,18 +233,17 @@ set.seed(35)
 dt <- simBuyseTest(n.T=25, n.strata = 5)
 dt$id <- paste0("id",1:NROW(dt))
 dt$strata <- as.character(dt$strata) 
-head(dt)
+print(head(dt), class = FALSE)
 #+END_SRC
 
 #+RESULTS:
-:        id treatment  eventtime status toxicity      score strata
-:    <char>    <fctr>      <num>  <num>   <fctr>      <num> <char>
-: 1:    id1         C 0.03384999      1      yes  0.4777913      b
-: 2:    id2         C 0.65039474      0       no -1.1048190      d
-: 3:    id3         C 1.00647502      1       no -0.1407630      b
-: 4:    id4         C 0.01129603      1      yes -0.5512507      a
-: 5:    id5         C 0.22249748      1       no  1.0465250      d
-: 6:    id6         C 0.07400412      0       no -2.0053855      d
+:     id treatment  eventtime status toxicity      score strata
+: 1: id1         C 0.03384999      1      yes  0.4777913      b
+: 2: id2         C 0.65039474      0       no -1.1048190      d
+: 3: id3         C 1.00647502      1       no -0.1407630      b
+: 4: id4         C 0.01129603      1      yes -0.5512507      a
+: 5: id5         C 0.22249748      1       no  1.0465250      d
+: 6: id6         C 0.07400412      0       no -2.0053855      d
 
 We can apply the GPC procedure to each pair of group:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -277,9 +276,9 @@ cbind(M.confint,adj.p.value = p.adjust(M.confint[,"p.value"], method = "bonferro
 
 
 Because we compare the treatment groups to the same reference, the
-test statistics are correlated and a Bonferroni adjustment would not
-be optimal. A better (but still not optimal adjustment) is the
-max-test adjustment which can be obtained via the =BuyseMultComp= function:
+test statistics are correlated and a Bonferroni adjustment does not
+provide optimal power. The max-test adjustment provides better power
+and can be obtained via the =BuyseMultComp= function:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id", global = TRUE)
 print(e.mc, cols = c("estimate","se","p.value","adj.p.value"))
@@ -310,6 +309,8 @@ M.cor
 : c-a=0 0.6519486 1.0000000 0.4240003 0.5439927
 : d-a=0 0.5601058 0.4240003 1.0000000 0.5051815
 : e-a=0 0.7520401 0.5439927 0.5051815 1.0000000
+
+\Warning This testing procedure does not guarantee transitive results citep:thangavelu2007wilcoxon
 
 
 * References
