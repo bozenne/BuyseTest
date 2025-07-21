@@ -1,10 +1,17 @@
-# -*- mode: org -*-
+* Version 3.3.2
 
-* Version 3.3.0
+** User visible change
+- NEW FEATURE: add an update and vcov method for BuyseTest objects.
+
+** Internal change
+- fix bug when using the sensitivity method "Error in (function (formula, data, scoring.rule = NULL, pool.strata = NULL, unused argument (match = FALSE)"
+- fix bug when bug when using strata(..., match=TRUE) with multiple observation per subject.
+
+
+* Version 3.3.1
 ** User visible change
 - the formula interface in BuyseTest can now take the outcome on the left hand side and the treatment and strata variables on the right-hand side
 - argument match added to the operator strata to handle paired design.
-- NEW FEATURE: add an update and vcov method for BuyseTest objects.
 
 ** Internal change
 - fix bug in standardization when evaluating the standard error with u-statistic

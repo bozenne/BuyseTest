@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: feb 13 2025 (16:30) 
+## Last-Updated: Jul 21 2025 (09:30) 
 ##           By: Brice Ozenne
-##     Update #: 352
+##     Update #: 360
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -188,7 +188,11 @@ setMethod(f = "sensitivity",
                   ls.args$formula <- NULL
 
                   args.tempo <- initializeFormula(object@call$formula, hierarchical = object@hierarchical)
-                  ls.args[names(args.tempo)] <- args.tempo
+                  ls.args[setdiff(names(args.tempo),"match")] <- args.tempo[setdiff(names(args.tempo),"match")]
+                  if(!is.null(ls.args$strata)){
+                      attr(ls.args$strata,"match") <- args.tempo$match
+                  }
+                  
 
               }
               ls.args$trace <- 0
@@ -326,28 +330,38 @@ setMethod(f = "sensitivity",
                   if("n.sim" %in% names(dots) == FALSE){
                       dots$n.sim <- 10^4
                   }
-                  iBand <- do.call(riskRegression::transformCIBP,
-                                   args = c(list(estimate = rbind(df.confint$estimate[df.confint$se>0]),
-                                                 se = rbind(df.confint$se[df.confint$se>0]),
-                                                 iid = A.iid[,df.confint$se>0,,drop=FALSE],
-                                                 null = null,
-                                                 conf.level = conf.level,
-                                                 alternative = alternative,
-                                                 ci = TRUE, type = type, min.value = min.value, max.value = max.value,
-                                                 band = TRUE, p.value = adj.p.value),
-                                            dots))
-                  if(band){
-                      attr(df.confint,"quantileBand") <- iBand$quantile
-                      df.confint$lower.band <- rep(0,length(df.confint$se))
-                      df.confint$lower.band[df.confint$se>0] <- iBand$lowerBand[1,]
-                      df.confint$upper.band <- rep(0,length(df.confint$se))
-                      df.confint$upper.band[df.confint$se>0] <- iBand$upperBand[1,]
+                  if(any(df.confint$se>0)){
+                      iBand <- do.call(riskRegression::transformCIBP,
+                                       args = c(list(estimate = rbind(df.confint$estimate[df.confint$se>0]),
+                                                     se = rbind(df.confint$se[df.confint$se>0]),
+                                                     iid = A.iid[,df.confint$se>0,,drop=FALSE],
+                                                     null = null,
+                                                     conf.level = conf.level,
+                                                     alternative = alternative,
+                                                     ci = TRUE, type = type, min.value = min.value, max.value = max.value,
+                                                     band = TRUE, p.value = adj.p.value),
+                                                dots))
+                      if(band){
+                          attr(df.confint,"quantileBand") <- iBand$quantile
+                          df.confint$lower.band <- rep(0,length(df.confint$se))
+                          df.confint$lower.band[df.confint$se>0] <- iBand$lowerBand[1,]
+                          df.confint$upper.band <- rep(0,length(df.confint$se))
+                          df.confint$upper.band[df.confint$se>0] <- iBand$upperBand[1,]
+                      }
+                      if(adj.p.value==TRUE){
+                          df.confint$adj.p.value <- rep(1,length(df.confint$se))
+                          df.confint$adj.p.value[df.confint$se>0] <- iBand$adj.p.value[1,]
+                      }
+                  }else{
+                      if(band && adj.p.value){
+                          txt.warning <- "adjusted p-values/confidence bands"
+                      }else if(band){
+                          txt.warning <- "confidence bands"
+                      }else if(band){
+                          txt.warning <- "adjusted p-values"
+                      }
+                      warning("Could not evaluate txt.warning as all standard were estimated to be 0. \n")
                   }
-                  if(adj.p.value==TRUE){
-                      df.confint$adj.p.value <- rep(1,length(df.confint$se))
-                      df.confint$adj.p.value[df.confint$se>0] <- iBand$adj.p.value[1,]
-                  }
-         
 
               }
 
