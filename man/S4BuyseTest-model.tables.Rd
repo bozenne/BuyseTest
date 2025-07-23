@@ -21,11 +21,8 @@
 
 \item{percentage}{[logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.}
 
-\item{statistic}{[character] the statistic summarizing the pairwise comparison:
-\code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
-\code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-\code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
-\code{"unfavorable"} displays the proportion in favor of the control.
+\item{statistic}{[character] the statistic summarizing the pairwise comparison: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+See the documentation of the \code{coef} method for further details.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{conf.level}{[numeric] confidence level for the confidence intervals.

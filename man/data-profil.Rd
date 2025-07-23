@@ -11,19 +11,19 @@ An object of class \code{data.frame} with 2306 rows and 9 columns.
 data(profil, package = "BuyseTest")
 }
 \description{
-Data from the Profil trial, a multiple crossover study where 38 patients had repeat blocks of 3 weeks: placebo, sildenafil 40mg, or sildenafil 80mg.
+Data from the Profil trial, a multiple crossover study where 38 patients had repeat blocks.
+Each block lasted 3 weeks and corresponded to a sequence of all three treatments (placebo, sildenafil 40mg, or sildenafil 80mg), each treatment being allocated during 1 week.
 The principal outcome were Raynaud Condition Score (RCS) and the frequency and cumulative duration of attacks over 24 hours.
-
 
 \itemize{
 \item \code{id}: study participant.
 \item \code{age}: age in years, between 18 and 74 years.
-\item \code{male}: indicator of whether the participant was a male. From 1 to 105.
+\item \code{male}: indicator of whether the participant was a male. 
 \item \code{period}: number of the block for a given patient. From 1 to 5.
 \item \code{time}: number of days since inclusion.
 \item \code{treatment}: treatment allocated during the period (placebo, lowDose, highDose)
 \item \code{rcs}: RCS score, ranging from 0 to 10.
-\item \code{crisis}: daily number of attack, ranging from 0 to 9.
+\item \code{number}: daily number of attack, ranging from 0 to 9.
 \item \code{duration}: cumulative daily duration of attacks in minutes, between 0 and 755 minutes.
 }
 }

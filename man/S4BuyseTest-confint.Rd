@@ -28,11 +28,8 @@
 \item{endpoint}{[character] for which endpoint(s) the confidence intervals should be output?
 If \code{NULL} returns the confidence intervals for all endpoints.}
 
-\item{statistic}{[character] the statistic summarizing the pairwise comparison:
-\code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
-\code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-\code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
-\code{"unfavorable"} displays the proportion in favor of the control.
+\item{statistic}{[character] the statistic summarizing the pairwise comparison: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+See the documentation of the \code{coef} method for further details.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{strata}{[character] the strata relative to which the statistic should be output.
@@ -76,15 +73,6 @@ When using resampling methods:
 Extract confidence intervals for summary statistics (net benefit, win ratio, ...) estimated by GPC.
 }
 \details{
-\bold{statistic}: when considering a single endpoint and denoting
-\eqn{Y} the endpoint in the treatment group,
-\eqn{X} the endpoint in the control group,
-and \eqn{\tau} the threshold of clinical relevance,
-the net benefit is \eqn{P[Y \ge X + \tau] - P[X \ge Y + \tau]},
-the win ratio is \eqn{\frac{P[Y \ge X + \tau]}{P[X \ge Y + \tau]}},
-the proportion in favor of treatment is \eqn{P[Y \ge X + \tau]},
-the proportion in favor of control is \eqn{P[X \ge Y + \tau]}.
-
 \bold{method.ci.resampling}: when using bootstrap/permutation, p-values and confidence intervals are computing as follow: \itemize{
 \item \code{percentile} (bootstrap): compute the confidence interval using the quantiles of the bootstrap estimates.
 Compute the p-value by finding the confidence level at which a bound of the confidence interval equals the null hypothesis.
@@ -111,11 +99,6 @@ Compute the p-value as the relative frequency at which the studentized estimate 
 
 \bold{WARNING}: when using a permutation test, the uncertainty associated with the estimator is computed under the null hypothesis.
 Thus the confidence interval may not be valid if the null hypothesis is false. \cr
-}
-\references{
-On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
-On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \cr
 }
 \seealso{
 \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 22 2023 (15:15) 
 ## Version: 
-## Last-Updated: jun 19 2024 (12:23) 
+## Last-Updated: jul 23 2025 (17:09) 
 ##           By: Brice Ozenne
-##     Update #: 114
+##     Update #: 184
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,9 +23,11 @@
 ##' @param formula [formula] a symbolic description of the GPC model, see the \code{BuyseTest} function
 ##' @param data [data.frame] dataset.
 ##' @param type [character] Type of estimator: can be \code{"unweighted"} or \code{"weighted"}.
-##' @param add.halfNeutral [logical] should half of the neutral score be added to the favorable and unfavorable scores?
+##' @param statistic [character] the statistic summarizing the pairwise comparison: \code{"netBenefit"} (Net Treatment Benefit) or \code{"favorable"} (Mann-Withney parameter).
+##' Default value read from \code{BuyseTest.options()}. 
 ##' @param method.inference [character] method used to compute confidence intervals and p-values.
-##' Can be \code{"none"}, \code{"u-statistic"}, or \code{"rank"}.
+##' Can be \code{"none"}, \code{"u-statistic"}, or \code{"rank"}. 
+##' Default value read from \code{BuyseTest.options()}.
 ##' @param method.multcomp [character] method used to adjust for multiple comparisons.
 ##' Can be any element of ‘p.adjust.methods’ (e.g. "holm"), "maxT-integration", or "maxT-simulation".
 ##' @param conf.level [numeric] confidence level for the confidence intervals.
@@ -35,8 +37,9 @@
 ##' @param transformation [logical]  should the CI be computed on the inverse hyperbolic tangent scale / log scale for the net benefit / win ratio and backtransformed.
 ##' Otherwise they are computed without any transformation.
 ##' Default value read from \code{BuyseTest.options()}. Not relevant when using permutations or percentile bootstrap.
-#' @param seed [integer, >0] Random number generator (RNG) state used when adjusting for multiple comparisons.
-#' If \code{NULL} no state is set.
+##' @param seed [integer, >0] Random number generator (RNG) state used when adjusting for multiple comparisons.
+##' If \code{NULL} no state is set.
+##' @param ... arguments passed to \code{\link{BuyseTest}}
 ##' 
 ##' @details Require to have installed the package riskRegression and BuyseTest
 ##'
@@ -54,7 +57,7 @@
 ##'
 ##' #### simulate data ####
 ##' set.seed(11)
-##' n <- 4
+##' n <- 10
 ##' dt <- rbind(data.table(score = rnorm(n), group = "A"),
 ##'             data.table(score = rnorm(2*n), group = "B"),
 ##'             data.table(score = rnorm(3*n), group = "C"))
@@ -64,19 +67,20 @@
 ##' score.casino <- dt$score
 ##'
 ##' ## naive casino (by hand)
-##' M.score <- outer(dt[group=="A",score],score.casino,function(x,y){x>y+0.5*(x==y)})
-##' mean(M.score)
+##' M.score <- outer(dt[group=="A",score],score.casino,function(x,y){(x>y)+0.5*(x==y)})
+##' mean(M.score) ## 0.4766667
 ##'
 ##' ## naive casino (via BuyseTest)
-##' CasinoTest(group ~ cont(score), data = dt, type = "weighted")
+##' CasinoTest(group ~ cont(score), data = dt, type = "weighted", statistic = "favorable")
+##' CasinoTest(group ~ cont(score), data = dt, type = "weighted", statistic = "netBenefit")
 ##' 
 ##' ## harmonic casino (by hand)
 ##' hweight <- unlist(tapply(dt$group, dt$group, function(x){rep(1/length(x),length(x))}))
 ##' M.scoreW <- sweep(M.score, MARGIN = 2, FUN = "*", STATS = NROW(dt)*hweight/3)
-##' mean(M.scoreW)
+##' mean(M.scoreW) ## 0.3680556
 ##' 
 ##' ## harmonic casino (via BuyseTest)
-##' CasinoTest(group ~ cont(score), data = dt, type = "unweighted")
+##' CasinoTest(group ~ cont(score), data = dt, type = "unweighted", statistic = "favorable")
 ##'
 ##' #### Relative liver weights data (Brunner 2018, table 4.1, page 183) ####
 ##' liverW <- rbind(
@@ -94,29 +98,50 @@
 ##' liverW$valueU <- liverW$value + (1:NROW(liverW))/1e6
 ##'
 ##' ## same as table 4.1, page 183 in Brunner et al (2018)
-##' CasinoTest(group ~ cont(value), data = liverW, type = "weighted", add.halfNeutral = TRUE)
-##' CasinoTest(group ~ cont(valueU), data = liverW, type = "unweighted", add.halfNeutral = TRUE)
+##' CasinoTest(group ~ cont(value), data = liverW, type = "weighted", statistic = "favorable")
+##' CasinoTest(group ~ cont(valueU), data = liverW, type = "unweighted", statistic = "favorable")
 
 ## * CasinoTest (code)
 ##' @export
-CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NULL,
-                       method.inference = "u-statistic",
+CasinoTest <- function(formula, data, statistic = NULL, method.inference = NULL, type = "unweighted", 
                        conf.level = NULL, transformation = NULL, alternative = NULL, method.multcomp = "none",
-                       seed = NA){
+                       seed = NA, ...){
 
     requireNamespace("riskRegression") ## for confidence bands
 
     ## ** normalize arguments
     option <- BuyseTest.options()
+
+    ## *** statistic
+    if(is.null(statistic)){
+        statistic <- option$statistic
+    }
+    statistic <- match.arg(statistic, c("favorable","netBenefit"))
+    
+    ## *** method.inference
+    if(is.null(method.inference)){
+        method.inference <- option$method.inference
+    }
+    method.inference <- match.arg(gsub("-"," ",tolower(method.inference), fixed = TRUE), c("none","u statistic","rank"))
+    if(method.inference=="rank"){
+        method.inference <- "u statistic"
+        ssc <- TRUE
+    }else{
+        ssc <- FALSE
+    }
+    ## *** conf.level
     if(is.null(conf.level)){
         conf.level <- option$conf.level
     }
+    ## *** transformation
     if(is.null(transformation)){
         transformation <- option$transformation
     }
+    ## *** alternative
     if(is.null(alternative)){
         alternative <- option$alternative
     }
+    ## *** type
     if(tolower(type)=="un-weighted"){
         type <- "unweighted"
     }
@@ -127,28 +152,24 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     if("XXweightXX" %in% names(data)){
         stop("Argument \'data\' should not contain a column named \"XXweightXX\" as this name is used internally by the CasinoTest function. \n")
     }
+
+    ## *** data
     data <- as.data.frame(data)
     data$XXindexXX <- 1:NROW(data)
-    method.inference <- match.arg(gsub("-"," ",tolower(method.inference), fixed = TRUE), c("none","u statistic","rank"))
-    if(method.inference=="rank"){
-        method.inference <- "u statistic"
-        ssc <- TRUE
-    }else{
-        ssc <- FALSE
-    }
-
+    
     ## ** read formula
     details.formula <- initializeFormula(formula, hierarchical = TRUE, envir = environment())
     name.treatment <- details.formula$treatment
     name.endpoint <- details.formula$endpoint
+    n.endpoint <- length(name.endpoint)
     if(!is.factor(data[[name.treatment]])){
         data[[name.treatment]] <- as.factor(data[[name.treatment]])
     }else{
         data[[name.treatment]] <- droplevels(data[[name.treatment]])
     }
     level.treatment <- levels(data[[name.treatment]])
-    elevel.treatement <- paste(level.treatment,collapse=".")
     n.treatment <- length(level.treatment)
+    elevel.treatement <- paste(level.treatment,collapse=".")
     n.obs <- NROW(data)
     ## prepare normalization
     n.group <- table(data[[name.treatment]])
@@ -163,111 +184,138 @@ CasinoTest <- function(formula, data, type = "unweighted", add.halfNeutral = NUL
     })
     data2 <- do.call(rbind,ls.data2)
 
-    ## ** pairwise comparisons
+    ## ** prepare grid and storage
     ## grid
     grid <- .unorderedPairs(level.treatment)
     n.grid <- NCOL(grid)
     grid.BT <- vector(length = n.grid, mode = "list")
 
-    ## prepare to store output
-    M.estimate <- matrix(NA, nrow = n.treatment, ncol = n.treatment,
-                         dimnames = list(level.treatment, level.treatment))
-    if(method.inference == "u statistic"){
-        M.iid <- array(0, dim = c(n.obs,n.treatment,n.treatment),
-                       dimnames = list(NULL, level.treatment, level.treatment))
+    ## storage
+    M.estimate <- array(NA, dim = c(n.treatment, n.treatment, n.endpoint),
+                        dimnames = list(level.treatment, level.treatment, name.endpoint))
+    M.null <- array(NA, dim = c(n.treatment, n.treatment, n.endpoint),
+                    dimnames = list(level.treatment, level.treatment, name.endpoint))
+    if(method.inference!="none"){
+        M.iid <- array(0, dim = c(n.obs,n.endpoint, n.treatment, n.treatment),
+                       dimnames = list(NULL, name.endpoint, level.treatment, level.treatment))
     }else{
         M.iid <- NULL
     }
-    M.null <- matrix(NA, nrow = n.treatment, ncol = n.treatment,
-                     dimnames = list(level.treatment, level.treatment))
 
-    ## loop
-    for(iGrid in 1:n.grid){ ## iGrid <- 1
+    ## ** Generalized Pairwise Comparisons
+    for(iGrid in 1:n.grid){ ## iGrid <- 2
         iTreat1 <- grid[1,iGrid]
         iTreat2 <- grid[2,iGrid]
         iData <- rbind(ls.data[[iTreat1]],ls.data2[[iTreat2]])
         iData[[name.treatment]] <- droplevels(stats::relevel(iData[[name.treatment]], iTreat1))
 
         ## GPC
-        grid.BT[[iGrid]] <- BuyseTest(formula, data = iData, method.inference = method.inference, add.halfNeutral = add.halfNeutral, trace = FALSE)
+        grid.BT[[iGrid]] <- BuyseTest(formula, data = iData, method.inference = method.inference, ..., add.halfNeutral = (statistic=="favorable"), trace = FALSE)
+        if(attr(grid.BT[[1]]@scoring.rule,"test.match")){
+            stop("CasinoTest does not currently handle matching. \n")
+        }
+        if(attr(grid.BT[[1]]@weightStrata,"type") %in%  c("standarisation","standarization")){
+            stop("CasinoTest does not currently handle standarisation. \n")
+        }
 
         ## store estimate
-        iInference <- confint(grid.BT[[iGrid]], statistic = "favorable")
-        M.estimate[iTreat1,iTreat2] <- iInference$estimate
-        M.null[iTreat1,iTreat2] <- iInference$null
+        iInference <- confint(grid.BT[[iGrid]], statistic = statistic)
+        M.estimate[iTreat1,iTreat2,] <- iInference$estimate
+        M.null[iTreat1,iTreat2,] <- iInference$null
         if(iTreat1!=iTreat2){
-            M.estimate[iTreat2,iTreat1] <- coef(grid.BT[[iGrid]], statistic = "unfavorable")
-            M.null[iTreat2,iTreat1] <- iInference$null
+            if(statistic=="favorable"){
+                M.estimate[iTreat2,iTreat1,] <- coef(grid.BT[[iGrid]], statistic = "unfavorable")
+            }else if(statistic=="netBenefit"){
+                M.estimate[iTreat2,iTreat1,] <- -iInference$estimate
+            }
+            M.null[iTreat2,iTreat1,] <- iInference$null
         }
 
         ## store iid
-        if(method.inference == "u statistic"){
+        if(method.inference!="none"){
             if(iTreat1==iTreat2){
                 iIndex <- unique(sort(iData$XXindexXX))
-                M.iid[iIndex,iTreat1,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = "favorable", scale = FALSE, center = TRUE, cluster = iData$XXindexXX)/n.group[iTreat1]
+                M.iid[iIndex,,iTreat1,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = statistic, scale = FALSE, center = TRUE, cluster = iData$XXindexXX)/n.group[iTreat1]
             }else{
                 iIndex <- iData$XXindexXX
-                M.iid[iIndex,iTreat1,iTreat2] <- getIid(grid.BT[[iGrid]], statistic = "favorable", scale = TRUE, center = TRUE)
-                M.iid[iIndex,iTreat2,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = "unfavorable", scale = TRUE, center = TRUE)
+                M.iid[iIndex,,iTreat1,iTreat2] <- getIid(grid.BT[[iGrid]], statistic = statistic, scale = TRUE, center = TRUE)
+                if(statistic=="favorable"){
+                    M.iid[iIndex,,iTreat2,iTreat1] <- getIid(grid.BT[[iGrid]], statistic = "unfavorable", scale = TRUE, center = TRUE)
+                }else if(statistic=="netBenefit"){
+                    M.iid[iIndex,,iTreat2,iTreat1] <- -getIid(grid.BT[[iGrid]], statistic = "netBenefit", scale = TRUE, center = TRUE)
+                }
             }
         }
     }
 
     ## ** collect results averaged over all treatments
-    out.estimate <- as.data.frame(matrix(NA, nrow = n.treatment, ncol = 6,
-                                         dimnames = list(level.treatment, c("estimate","se","lower.ci","upper.ci","null","p.value"))))
+    grid.treatmentXendpoint <- expand.grid(level.treatment,name.endpoint)
+    out.estimate <- as.data.frame(matrix(NA, nrow = n.treatment*n.endpoint, ncol = 8,
+                                         dimnames = list(interaction(grid.treatmentXendpoint, sep = ": "), c("endpoint",name.treatment,"estimate","se","lower.ci","upper.ci","null","p.value"))))
+    out.estimate[[name.treatment]] <- grid.treatmentXendpoint[,1]
+    out.estimate$endpoint <- grid.treatmentXendpoint[,2]
+
+    if(method.inference!="none"){
+        out.iid <- array(NA, dim = c(n.obs, n.treatment, n.endpoint),
+                         dimnames = list(NULL, level.treatment, name.endpoint))
+    }else{
+        out.iid <- NULL
+    }
+
     if(type=="weighted"){
         weight.GPC <- n.group/n.obs
     }else if(type=="unweighted"){
         weight.GPC <- rep(1/n.treatment, n.treatment)
     }
-    out.estimate$estimate <- colSums(.colMultiply_cpp(M.estimate, weight.GPC))
-    out.estimate$null <- colSums(.colMultiply_cpp(M.null, weight.GPC))
+    for(iE in 1:n.endpoint){ ## iE <- 1
+        out.estimate[out.estimate$endpoint == name.endpoint[iE],"estimate"] <- colSums(.colMultiply_cpp(M.estimate[,,iE], weight.GPC))
+        out.estimate[out.estimate$endpoint == name.endpoint[iE],"null"] <- colSums(.colMultiply_cpp(M.null[,,iE], weight.GPC))
 
-    if(method.inference!="none"){
-        out.iid <- matrix(NA, nrow = n.obs, ncol = n.treatment,
-                          dimnames = list(NULL, level.treatment))
-
-        for(iT in 1:n.treatment){ ## iT <- 1
-            out.iid[,iT] <- rowSums(.rowMultiply_cpp(M.iid[,,iT], weight.GPC))
-            if(ssc){
-                out.iid[,iT] <- out.iid[,iT]*sqrt(n.group/(n.group-1))[data[[name.treatment]]]
+        if(method.inference!="none"){
+            for(iT in 1:n.treatment){ ## iT <- 1
+                out.iid[,iT,iE] <- rowSums(.rowMultiply_cpp(M.iid[,iE,,iT], weight.GPC))
+                if(ssc){
+                    out.iid[,iT,iE] <- out.iid[,iT,iE]*sqrt(n.group/(n.group-1))[data[[name.treatment]]]
+                }
+                out.estimate[out.estimate$endpoint == name.endpoint[iE] & out.estimate[[name.treatment]] == level.treatment[iT],"se"] <- sqrt(sum(out.iid[,iT,iE]^2))
             }
         }
-        ## print(tapply(out.iid[,1]^2,data[[name.treatment]],sum))
+    }
 
-        ## ** statistical inference
+    ## ** statistical inference
+    if(method.inference!="none"){
         if(transformation){
-            type.trans <- "atanh2"
+            type.transformation <- switch(statistic,
+                                          favorable = "atanh2",
+                                          netBenefit = "atanh")
         }else{
-            type.trans <- "none"
+            type.transformation <- "none"
         }
-        out.estimate$se <- sqrt(colSums(out.iid^2))
-        out.estimate$lower.ci <- NA
-        out.estimate$upper.ci <- NA
-        out.estimate$p.value <- NA
-
-        e.Band <- riskRegression::transformCIBP(estimate = rbind(out.estimate$estimate),
-                                                se = rbind(out.estimate$se),
-                                                iid = array(out.iid, dim = c(n.obs,n.treatment,1)),
-                                                null = out.estimate$null,
+        e.Band <- riskRegression::transformCIBP(estimate = matrix(out.estimate$estimate, nrow = n.treatment, ncol = n.endpoint, byrow = FALSE,
+                                                                  dimnames = list(level.treatment, name.endpoint)),
+                                                se = matrix(out.estimate$se, nrow = n.treatment, ncol = n.endpoint, byrow = FALSE,
+                                                            dimnames = list(level.treatment, name.endpoint)),
+                                                iid = out.iid,
+                                                null = matrix(out.estimate$null, nrow = n.treatment, ncol = n.endpoint, byrow = FALSE,
+                                                              dimnames = list(level.treatment, name.endpoint)),
                                                 conf.level = conf.level,
                                                 alternative = alternative,
-                                                ci = TRUE, type = type.trans, min.value = 0, max.value = 1,
+                                                ci = TRUE, type = type.transformation, min.value = 0, max.value = 1,
                                                 p.value = TRUE, band = method.multcomp!="none", 
                                                 method.band = method.multcomp,
                                                 seed = seed)
 
-        out.estimate$lower.ci <- e.Band$lower[1,]
-        out.estimate$upper.ci <- e.Band$upper[1,]
-        out.estimate$p.value <- e.Band$p.value[1,]
+        out.estimate$lower.ci <- as.vector(e.Band$lower)
+        out.estimate$upper.ci <- as.vector(e.Band$upper)
+        out.estimate$p.value <- as.vector(e.Band$p.value)
         if(method.multcomp!="none"){
-            out.estimate$lower.band <- e.Band$lowerBand[1,]
-            out.estimate$upper.band <- e.Band$upperBand[1,]
-            out.estimate$adj.p.value <- e.Band$adj.p.value[1,]
+            out.estimate$lower.band <- as.vector(e.Band$lowerBand)
+            out.estimate$upper.band <- as.vector(e.Band$upperBand)
+            out.estimate$adj.p.value <- as.vector(e.Band$adj.p.value)
         }
         attr(out.estimate,"iid") <- out.iid
     }
+
     ## ** export
     class(out.estimate) <- append("CasinoTest",class(out.estimate))
     return(out.estimate)

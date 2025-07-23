@@ -621,9 +621,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     ## otherwise pooling will do something strange
     if(!is.null(strata) && attr(strata,"match") && pool.strata !=0){
         if(is.na(attr(pool.strata,"original"))){
-            pool.strata[] <- 0
-        }else{
-            warning("Weights from the \"buyse\" pooling scheme (argument \'pool.strata\') are recommended for matched data. \n")
+            pool.strata[] <- 2
         }
     }
 

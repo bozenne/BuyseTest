@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt  4 2021 (16:17) 
 ## Version: 
-## Last-Updated: jul  8 2025 (15:34) 
+## Last-Updated: jul 23 2025 (16:52) 
 ##           By: Brice Ozenne
-##     Update #: 335
+##     Update #: 336
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,12 +27,9 @@
 ##' @param linfct [numeric matrix] a contrast matrix of size the number of endpoints times the number of BuyseTest models.
 ##' @param rhs [numeric vector] the values for which the test statistic should be tested against. Should have the same number of rows as \code{linfct}.
 ##' @param endpoint [character or numeric vector] the endpoint(s) to be considered.
-##' @param statistic [character] the statistic summarizing the pairwise comparison:
-##' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
-##' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-##' \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
-##' \code{"unfavorable"} displays the proportion in favor of the control.
-##' Default value read from \code{BuyseTest.options()}.
+#' @param statistic [character] the statistic summarizing the pairwise comparison: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+#' See the documentation of the \code{coef} method for further details.
+#' Default value read from \code{BuyseTest.options()}. 
 #' @param cumulative [logical] should the summary statistic be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
 #' @param conf.level [numeric] confidence level for the confidence intervals.
