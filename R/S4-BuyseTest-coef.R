@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Jul  7 2025 (11:04) 
+## Last-Updated: jul 23 2025 (17:16) 
 ##           By: Brice Ozenne
-##     Update #: 417
+##     Update #: 426
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,19 @@
 #' @description Extract summary statistics (net benefit, win ratio, ...) from GPC.
 #' 
 #' @param object a \code{S4BuyseTest} object, output of \code{\link{BuyseTest}}.
-#' @param statistic [character] the type of summary statistic. See the detail section.
+#' @param statistic [character] the statistic summarizing the pairwise comparison: \itemize{
+#' \item \code{"netBenefit"}: displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
+#' \item \code{"winRatio"}: win ratio or win odds.
+#' \item \code{"favorable"}: proportion strictly in favor of the treatment or Mann-Whitney parameter.
+#' \item \code{"unfavorable"}: proportion in favor of the control.
+#' \item \code{"neutral"}: proportion of neutral pairs.
+#' \item \code{"uninf"}: proportion of uninformative pairs.
+#' \item \code{"count.favorable"}: number of pairs in favor of the treatment.
+#' \item \code{"count.unfavorable"}: number of pairs in favor of the control.
+#' \item \code{"count.neutral"}: number of neutral pairs.
+#' \item \code{"count.uninf"}: number of uninformative pairs.
+#' }
+#' Default value read from \code{BuyseTest.options()}.
 #' @param endpoint [character] for which endpoint(s) the summary statistic should be output?
 #' If \code{NULL} returns the summary statistic for all endpoints.
 #' @param strata [character vector] the strata relative to which the statistic should be output.
@@ -38,19 +50,19 @@
 #' @param ... ignored.
 #'
 #' @details
-#' One of the following statistic can be specified:
-#' \itemize{
-#' \item \code{"netBenefit"}: returns the net benefit.
-#' \item \code{"winRatio"}: returns the win ratio.
-#' \item \code{"favorable"}: returns the proportion in favor of the treatment (also called Mann-Whitney parameter).
-#' \item \code{"unfavorable"}: returns the proportion in favor of the control.
-#' \item \code{"unfavorable"}: returns the proportion of neutral pairs.
-#' \item \code{"unfavorable"}: returns the proportion of uninformative pairs.
-#' \item \code{"count.favorable"}: returns the number of pairs in favor of the treatment.
-#' \item \code{"count.unfavorable"}: returns the number of pairs in favor of the control.
-#' \item \code{"count.neutral"}: returns the number of neutral pairs.
-#' \item \code{"count.uninf"}: returns the number of uninformative pairs.
+#' \bold{statistic}: with a single endpoint denoted \eqn{Y} and \eqn{X} in the treatment and control group and a threshold of clinical relevance \eqn{\tau}: \itemize{
+#' \item \code{"netBenefit"}: \eqn{P[Y \ge X + \tau] - P[X \ge Y + \tau]}. See Buyse (2010).
+#' \item \code{"winRatio"}: the win ratio \eqn{\frac{P[Y \ge X + \tau]}{P[X \ge Y + \tau]}} or the win odds \eqn{\frac{P[Y \ge X + \tau]+0.5P[|Y - X|<\tau]}{P[X \ge Y + \tau]+0.5P[|Y - X|<\tau]}}. see Wang (2016) and Dong (2019).
+#' \item \code{"favorable"}: \eqn{P[Y \ge X + \tau]} or the Mann-Whitney parameter \eqn{P[Y \ge X + \tau]+0.5P[|Y - X|<\tau]}. See Fay (2018).
+#' \item \code{"unfavorable"}: \eqn{P[Y \le X + \tau]} or \eqn{P[Y \le X + \tau]+0.5P[|Y - X|<\tau]}.
 #' }
+#' The value of the argument \code{add.halfNeutral} used when running \code{\link{BuyseTest}} decides whether \eqn{0.5P[|Y - X|<\tau]} is considered, e.g. whether the win ratio or win odds is output.
+#' 
+#' @references 
+#' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
+#' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937 \cr
+#' On the win odds: Dong, G., Hoaglin, D. C., Qiu, J., Matsouaka, R. A., Chang, Y. W., Wang, J., & Vandemeulebroecke, M. (2019). \bold{The Win Ratio: On Interpretation and Handling of Ties}. \emph{Statistics in Biopharmaceutical Research}, 12(1), 99–106. https://doi.org/10.1080/19466315.2019.1575279 \cr
+#' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245
 #' 
 #' @return When \code{resampling=FALSE} and \code{simplify=FALSE}, a matrix (strata, endpoint).
 #' When \code{resampling=FALSE} and \code{simplify=FALSE}, an array (sample, strata, endpoint).

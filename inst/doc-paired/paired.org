@@ -285,6 +285,268 @@ c(average = sqrt(crossprod((Hterm1/N))),
 :    average   nuisance        all 
 : 0.06566518 0.02084622 0.07569815
 
+\clearpage
+
+* More general cross-over designs
+# Can be compared to https://onlinelibrary.wiley.com/doi/10.1002/sim.9648
+
+Another type of paired design is a cross-over design where each
+patient may repeteadly experience each treatment. As an example, we
+will consider the PROFIL trial whose dataset is available in the
+BuyseTest package:
+#+BEGIN_SRC R :exports code :results none :session *R* :cache no
+data(profil, package = "BuyseTest")
+profil <- profil[order(profil$id),]
+profil[profil$id==1 & profil$period==1,]
+#+END_SRC
+
+#+BEGIN_SRC R :exports results :results output :session *R* :cache no
+profil[profil$id==1 & profil$period==1,]
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+   id age male period time treatment rcs number duration
+1   1  23    0      1    1  highDose 1.8      2       16
+2   1  23    0      1    2  highDose 2.3      2       26
+3   1  23    0      1    3  highDose 0.0      0        0
+4   1  23    0      1    4  highDose 0.0      0        0
+5   1  23    0      1    5  highDose 2.7      1       16
+6   1  23    0      1    6  highDose 1.9      1       10
+7   1  23    0      1    7  highDose 0.0      0        0
+8   1  23    0      1    8   placebo 1.5      1       11
+9   1  23    0      1    9   placebo 2.9      2       39
+10  1  23    0      1   10   placebo 2.3      1       22
+11  1  23    0      1   11   placebo 0.0      0        0
+12  1  23    0      1   12   placebo 0.0      0        0
+13  1  23    0      1   13   placebo 2.4      1       20
+14  1  23    0      1   14   placebo 1.9      1        8
+15  1  23    0      1   15   lowDose 3.1      1       13
+16  1  23    0      1   16   lowDose 3.0      2      161
+17  1  23    0      1   17   lowDose 0.0      0        0
+18  1  23    0      1   18   lowDose 0.0      0        0
+19  1  23    0      1   19   lowDose 2.4      1       35
+20  1  23    0      1   20   lowDose 0.0      0        0
+21  1  23    0      1   21   lowDose 0.0      0        0
+#+end_example
+
+The software output displays the information of the first patient
+relative to the first period (out of 4) during which the patient is
+sequentially assigned one of three treatments and her outcomes (=rcs=,
+=number=, and =duration=) are monitored daily. To obtain a graphical
+display of the outcomes over time we first reshape the data:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+profil.L <- reshape(profil, direction = "long", idvar = c("id","time"),
+                    varying = c("rcs","number","duration"), v.names = "value",
+                    timevar = "outcome", times = c("rcs","number","duration"))
+#+END_SRC
+
+#+RESULTS:
+and make a spaghetti plot for the first 5 patients:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+ggRCS <- ggplot(profil.L[profil.L$id %in% 1:5,],
+                aes(x = time, group = id, color = treatment, y = value))
+ggRCS <- ggRCS + geom_point() + geom_line() 
+ggRCS <- ggRCS + facet_grid(outcome~id, labeller = label_both, scales = "free_y")
+ggRCS <- ggRCS + labs(y="")
+ggRCS
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+ggsave(ggRCS + theme(text = element_text(size=15), 
+                     axis.line = element_line(linewidth = 1.25),
+                     axis.ticks = element_line(linewidth = 2),
+                     axis.ticks.length=unit(.25, "cm"),
+                     legend.key.size = unit(2,"line"),
+                     legend.position="bottom",
+                     legend.direction = "horizontal"),
+       filename = file.path("inst","doc-paired","figures","spaghetti-Nof1.pdf"),
+       width = 12, height = 7)
+#+END_SRC
+
+#+RESULTS:
+
+#+ATTR_LaTeX: :width 1\textwidth :options trim={0 0 0 0} :placement [!h]
+[[./figures/spaghetti-Nof1.pdf]]
+
+** With 2 treatment groups
+
+\noindent Since =BuyseTest= can only handle two treatment group, we restrict the
+dataset to placebo and low dose:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+lowProfil <- profil[profil$treatment %in% c("placebo","lowDose"),]
+lowProfil$treatment <- droplevels(lowProfil$treatment)
+#+END_SRC
+
+#+RESULTS:
+
+# From Joris paper on patient preferences and multiple treatments into consideration for individualized Net Benefit 
+# Thresholds were taken from either latest meta-analysis or large trial in RP on the daily number of attacks, their duration and the RCS VAS[23,24].
+# They were set to 0.35 attacks per day, 3 minutes, and 1.45 points respectively.
+We will use the following hierarchy and threshold of clinical
+relevance:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+fff <- treatment ~ cont(rcs, threshold = 1.45, operator = "<0") + cont(number, threshold = 0.35, operator = "<0") + cont(duration, threshold = 3, operator = "<0")
+#+END_SRC
+
+#+RESULTS:
+
+
+
+\noindent One could either run a separate GPC for each patient:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+ls.lowGPC <- by(lowProfil, lowProfil$id, BuyseTest, formula = fff, trace = FALSE)
+df.lowGPC <- data.frame(do.call(rbind,lapply(ls.lowGPC, coef)),
+                        do.call(rbind,lapply(ls.lowGPC, nobs)),
+                        Buyse = as.numeric(NA), CMH = as.numeric(NA))
+df.lowGPC$Buyse <- with(df.lowGPC, pairs/sum(pairs))
+df.lowGPC$CMH <- with(df.lowGPC, (pairs/(placebo+lowDose))/sum(pairs/(placebo+lowDose)))
+head(df.lowGPC)
+#+END_SRC
+
+#+RESULTS:
+:      rcs_t1.45 number_t0.35  duration_t3 placebo lowDose pairs      Buyse       CMH
+: 1 -0.016581633 -0.015306122 -0.021683673      28      28   784 0.04694049 0.0364368
+: 2  0.000000000  0.153061224  0.183673469      28      28   784 0.04694049 0.0364368
+: 3 -0.001632653  0.003265306 -0.008979592      35      35  1225 0.07334451 0.0455460
+: 4  0.117346939  0.225765306  0.154336735      28      28   784 0.04694049 0.0364368
+: 5 -0.043083900 -0.047619048 -0.029478458      21      21   441 0.02640402 0.0273276
+: 6  0.102040816  0.092970522  0.077097506      21      21   441 0.02640402 0.0273276
+
+\noindent and pool the patient-specific Net Treatment
+Benefits. Different weighting scheme are possible, e.g. same weight
+for all patients, weight dependent on the number of blocks experienced
+by the patient:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+rbind(average = colMeans(df.lowGPC[,1:3]),
+      Buyse = apply(df.lowGPC[,1:3], 2, weighted.mean, w = df.lowGPC$Buyse),
+      CMH = apply(df.lowGPC[,1:3], 2, weighted.mean, w = df.lowGPC$CMH))
+#+END_SRC
+
+#+RESULTS:
+:          rcs_t1.45 number_t0.35 duration_t3
+: average 0.02741742   0.02755903  0.03397497
+: Buyse   0.01628547   0.03730092  0.04215064
+: CMH     0.02145018   0.03266743  0.03869945
+
+This can be replicated using a single call to =BuyseTest= specifying a
+strata in the formula:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+lowGPC <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                    data = lowProfil, trace = FALSE)
+confint(lowGPC)
+#+END_SRC
+
+#+RESULTS:
+: estimate         se    lower.ci   upper.ci null   p.value
+: rcs_t1.45    0.02741742 0.02047690 -0.01273920 0.06748574    0 0.1808076
+: number_t0.35 0.02755903 0.03139999 -0.03401048 0.08892015    0 0.3803606
+: duration_t3  0.03397497 0.02801978 -0.02099009 0.08873527    0 0.2256649
+
+By default, equal weights are given to each patient but other
+weighting schemes can be used by specifying the =pool.strata= argument:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+lowGPC_Buyse <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                          data = lowProfil, pool.strata = "Buyse", trace = FALSE)
+confint(lowGPC_Buyse)
+#+END_SRC
+
+#+RESULTS:
+: estimate         se     lower.ci   upper.ci null    p.value
+: rcs_t1.45    0.01628547 0.01771680 -0.018444486 0.05097618    0 0.35807018
+: number_t0.35 0.03730092 0.02668638 -0.015057839 0.08945568    0 0.16257765
+: duration_t3  0.04215064 0.02400508 -0.004957166 0.08907178    0 0.07946061
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+lowGPC_CMH <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                        data = lowProfil, pool.strata = "CMH", trace = FALSE)
+confint(lowGPC_CMH)
+#+END_SRC
+
+#+RESULTS:
+: estimate         se    lower.ci   upper.ci null   p.value
+: rcs_t1.45    0.02145018 0.01855984 -0.01493878 0.05778241    0 0.2479363
+: number_t0.35 0.03266743 0.02784903 -0.02195881 0.08709921    0 0.2411232
+: duration_t3  0.03869945 0.02491698 -0.01019050 0.08740482    0 0.1207617
+
+- \Warning :: in all approaches, all pairwise comparisons are performed within each patient, not only within-block comparisons.
+
+In term of uncertainty quantification, it is important to specify
+=match=TRUE= when using a single call so =BuyseTest= does not treat
+each line of the dataset as an independent replicate. An intuitive way
+to evaluate the standard error of the pooled estimator is to use the
+across subject variability:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+sqrt(apply(df.lowGPC[,1:3],2,var)/NROW(df.lowGPC))
+#+END_SRC
+
+#+RESULTS:
+:    rcs_t1.45 number_t0.35  duration_t3 
+:   0.02075177   0.03182148   0.02839590
+
+\noindent This is, up to a factor =N/(N-1)= exactly what the single call
+approach returns. Actually we can retrieve this value by modifying the default options:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+BuyseTest.options(order.Hprojection = 2)
+lowGPC2 <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                     data = lowProfil, trace = FALSE)
+confint(lowGPC2)
+#+END_SRC
+
+#+RESULTS:
+: estimate         se    lower.ci   upper.ci null   p.value
+: rcs_t1.45    0.02741742 0.02075177 -0.01327825 0.06802241    0 0.1866527
+: number_t0.35 0.02755903 0.03182148 -0.03483625 0.08974030    0 0.3867027
+: duration_t3  0.03397497 0.02839590 -0.02172779 0.08946745    0 0.2318709
+
+\noindent  Similarly when using other weighting scheme. For instance we can
+retrieve the results of the Buyse pooling scheme doing:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+df.lowGPC_center <- sweep(df.lowGPC[,1:3], MARGIN = 2, FUN = "-", STATS = coef(lowGPC_Buyse))
+df.lowGPC_Wcenter <- sweep(df.lowGPC_center, MARGIN = 1, FUN = "*", STATS = df.lowGPC$Buyse)
+sqrt(colSums(df.lowGPC_Wcenter^2))
+#+END_SRC
+
+#+RESULTS:
+: rcs_t1.45 number_t0.35  duration_t3 
+:   0.01771680   0.02668638   0.02400508
+
+\clearpage
+
+** With 3 or more treatment groups (WORK IN PROGRESS!)
+
+Handling more than two treatment groups is still an area of
+development for the BuyseTest package. Several approaches have been
+proposed in the litterature and here we focus on one that aim at
+handling the non-transitivity issues that comes with Wilcoxon-like
+tests citep:lumley2016characterising. This approach compare the
+treatment-specific distribution to a pooled distribution over all
+treatment groups citep:thangavelu2007wilcoxon:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+CasinoTest(update(fff, . ~ . + strata(id)), data = profil,
+           method.inference = "none", type = "unweighted")
+## do not trust inference since it would require accounting for matching
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+                   endpoint treatment     estimate se lower.ci upper.ci null p.value
+placebo: rcs            rcs   placebo -0.012193158 NA       NA       NA   NA      NA
+lowDose: rcs            rcs   lowDose  0.008015351 NA       NA       NA   NA      NA
+highDose: rcs           rcs  highDose  0.004177807 NA       NA       NA   NA      NA
+placebo: number      number   placebo -0.020434169 NA       NA       NA   NA      NA
+lowDose: number      number   lowDose  0.011566310 NA       NA       NA   NA      NA
+highDose: number     number  highDose  0.008867860 NA       NA       NA   NA      NA
+placebo: duration  duration   placebo -0.024148505 NA       NA       NA   NA      NA
+lowDose: duration  duration   lowDose  0.013113939 NA       NA       NA   NA      NA
+highDose: duration duration  highDose  0.011034566 NA       NA       NA   NA      NA
+#+end_example
+
+Its main drawback is that the assessment of say =placebo=
+vs. =lowDose= is now influenced by =highDose=.
 
 
 * References

@@ -1,8 +1,19 @@
 \begin{thebibliography}{}
 
+\bibitem[Lumley and Gillen, 2016]{lumley2016characterising}
+Lumley, T. and Gillen, D.~L. (2016).
+\newblock Characterising transitive two-sample tests.
+\newblock {\em Statistics \& Probability Letters}, 109:118--123.
+
 \bibitem[Matsouaka, 2022]{matsouaka2022robust}
 Matsouaka, R.~A. (2022).
 \newblock Robust statistical inference for matched win statistics.
 \newblock {\em Statistical Methods in Medical Research}, 31(8):1423--1438.
+
+\bibitem[Thangavelu and Brunner, 2007]{thangavelu2007wilcoxon}
+Thangavelu, K. and Brunner, E. (2007).
+\newblock Wilcoxon--mann--whitney test for stratified samples and efron's
+  paradox dice.
+\newblock {\em Journal of Statistical Planning and Inference}, 137(3):720--737.
 
 \end{thebibliography}

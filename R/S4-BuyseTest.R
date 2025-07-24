@@ -194,9 +194,9 @@ methods::setMethod(
                  efron <- (scoring.rule==2)
                  scoring.rule <- c("Gehan","Peron")[(scoring.rule>0)+1]
                  attr(scoring.rule,"test.censoring") <- attr(method.score, "test.censoring")
-                 attr(method.score, "test.censoring") <- NULL
+                 attr(method.score,"test.censoring") <- NULL
                  attr(scoring.rule,"test.CR") <- attr(method.score, "test.CR")
-                 attr(method.score, "test.CR") <- NULL
+                 attr(method.score,"test.CR") <- NULL
                  attr(scoring.rule,"test.match") <- !is.null(strata) && attr(strata,"match")
                  attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
                  attr(scoring.rule,"efron") <- efron

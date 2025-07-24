@@ -1,4 +1,4 @@
-% Created 2025-07-07 Mon 13:21
+% Created 2025-07-23 on 17:42
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -231,7 +231,7 @@ and (1.75,0.4) .. cycle;
  pdftitle={Performing GPC in a paired design},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.1 (Org mode 9.4.6)},
+ pdfcreator={Emacs 30.1 (Org mode 9.7.11)},
  pdflang={English}
  }
 \begin{document}
@@ -242,12 +242,13 @@ This vignette describes how to use Generalized Pairwise comparisons
 Diabetic Retinopathy Study (DRS) contained in the survival \Rlogo
 package where 197 patients had one of their eye randomized to laser
 treatment while the other did not receive any treatment:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 data(diabetic, package = "survival")
 head(diabetic)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
   id laser age   eye trt risk  time status
 1  5 argon  28  left   0    9 46.23      0
@@ -270,13 +271,14 @@ be neglected here for simplicity.
 We will replicate some of the analyzes presented in
 \cite{matsouaka2022robust}. In this paper they split the dataset into
 juvenile and adult patients:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 diabetic$juvenile <- diabetic$age <= 19
 library(LMMstar)
 summarize(age ~ juvenile, data = diabetic[!duplicated(diabetic$id),])
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
   juvenile observed missing     mean        sd min q1 median    q3 max
 1    FALSE       83       0 35.30120 11.242054  20 25     34 45.00  58
@@ -285,21 +287,18 @@ summarize(age ~ juvenile, data = diabetic[!duplicated(diabetic$id),])
 
 
 and we will focus on the juvenile patients:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 diabeticJ <- diabetic[diabetic$juvenile,]
 \end{lstlisting}
 
 \clearpage
-
 \section{Wald methods (Gehan scoring rule)}
-\label{sec:orgcf5974d}
+\label{sec:org35a98d4}
 
 To mimic the methodology underlying the results presented in Table 1
 of \cite{matsouaka2022robust}, we perform GPC stratified by patient
 using the Gehan scoring rule:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 library(BuyseTest)
 e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                      data = diabeticJ, trace = FALSE,
@@ -307,6 +306,8 @@ e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE),
 model.tables(e.BTjuv, percentage = FALSE)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
   endpoint total favorable unfavorable neutral uninf     Delta   lower.ci  upper.ci    p.value
 1     time   114        39          21       3    51 0.1578947 0.02591623 0.2844633 0.01922741
@@ -315,25 +316,27 @@ model.tables(e.BTjuv, percentage = FALSE)
 
 Indeed this scoring rule does not involve any extra-modeling, only
 evaluating the patient specific net benefit and averaging them:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 mean(coef(e.BTjuv, strata = TRUE))
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 [1] 0.1578947
 \end{verbatim}
 
 
 \cite{matsouaka2022robust} propose to estimate the standard error as:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 N <- nobs(e.BTjuv)["pairs"]
 pw <- coef(e.BTjuv, statistic = "favorable")
 pl <- coef(e.BTjuv, statistic = "unfavorable")
 sqrt((pw + pl - (pw - pl)^2)/N)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       time 
 0.06631828
@@ -341,11 +344,12 @@ sqrt((pw + pl - (pw - pl)^2)/N)
 
 
 which matches what \texttt{BuyseTest} output:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 confint(e.BTjuv)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       estimate         se   lower.ci  upper.ci null    p.value
 time 0.1578947 0.06631828 0.02591623 0.2844633    0 0.01922741
@@ -356,11 +360,12 @@ By default \texttt{confint} uses a hyperbolic tangent to compute confidence
 intervals (CIs), which will then differ from the 'Wald' discussed in
 \cite{matsouaka2022robust}. These 'untransformed Wald' CIs can be
 retrieved by setting the argument \texttt{transform} to \texttt{FALSE}:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 confint(e.BTjuv, transform = FALSE)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       estimate         se   lower.ci  upper.ci null    p.value
 time 0.1578947 0.06631828 0.02791329 0.2878762    0 0.01727214
@@ -370,11 +375,12 @@ time 0.1578947 0.06631828 0.02791329 0.2878762    0 0.01727214
 \clearpage
 
 \uline{Note:} naively one may think to estimate the standard error as:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 sqrt(var(coef(e.BTjuv, strata = TRUE))/N)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
      pairs 
 0.06661108
@@ -393,29 +399,29 @@ This is equivalent (in large samples to the previous formula). Indeed:
 \end{align*}
 
 There is only a factor \texttt{N/(N-1)} difference between the two:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
      pairs 
 0.06631828
 \end{verbatim}
-
-
 \section{MOVER method (Gehan scoring rule)}
-\label{sec:org08560f3}
+\label{sec:org121445d}
 
 The method recommended by \cite{matsouaka2022robust} is the MOVER
 approach, which has been developped for a binary scoring rule
 (e.g. Gehan). An experimental function with the same name has been
 implemented in the BuyseTest package:
 
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
-mover(e.BTjuv)
+\begin{lstlisting}[language=r,numbers=none]
+BuyseTest:::mover(e.BTjuv)
 \end{lstlisting}
+\phantomsection
+\label{}
 \begin{verbatim}
   estimate      lower      upper     pvalue 
 0.15789474 0.02540421 0.28317729 0.01967878
@@ -425,9 +431,8 @@ mover(e.BTjuv)
 leading to the same results as those of the table 1 in the original article, up to rounding.
 
 \clearpage
-
 \section{Wald methods (Peron scoring rule)}
-\label{sec:orga4d0a94}
+\label{sec:org94f1d11}
 
 To better account for censoring one could use the Peron scoring rule
 where the survival is estimated across all subjects within a treatment
@@ -435,8 +440,7 @@ group. One has to specify the survival model, otherwise, the BuyseTest
 function will estimate a treatmnet and strata specific survival curve
 which is impossible to perform here. The \texttt{model.tte} argument can be
 used to specify such survival model:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 library(prodlim)
 e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
                       data = diabeticJ, trace = FALSE,
@@ -444,20 +448,25 @@ e.BTjuv2 <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE),
 model.tables(e.BTjuv2, percentage = FALSE)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
-  endpoint total favorable unfavorable neutral    uninf    Delta   lower.ci  upper.ci     p.value
-1     time   114  47.36525    24.29552       3 39.33923 0.202366 0.05045454 0.3451254 0.009329589
+  endpoint total favorable unfavorable neutral    uninf    Delta   lower.ci  upper.ci
+1     time   114  47.36525    24.29552       3 39.33923 0.202366 0.05045454 0.3451254
+      p.value
+1 0.009329589
 \end{verbatim}
 
 
 Ignoring the uncertainty of the survival model, the standard would be:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 c(sqrt(var(coef(e.BTjuv2, strata = TRUE))/N),
   sqrt(var(coef(e.BTjuv2, strata = TRUE))/N) * sqrt((N-1)/N)
   )
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
      pairs      pairs 
 0.06595510 0.06566518
@@ -467,8 +476,7 @@ c(sqrt(var(coef(e.BTjuv2, strata = TRUE))/N),
 depending on whether a small sample correction is used or not. This
 matches the output of \texttt{BuyseTest} when ignoring the uncertainty of the
 survival model:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 model.tte <- prodlim(Hist(time,status)~ trt, data = diabeticJ)
 attr(model.tte, "iidNuisance") <- FALSE
 confint(BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
@@ -476,6 +484,8 @@ confint(BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE),
                   model.tte = model.tte))
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
      estimate         se   lower.ci  upper.ci null     p.value
 time 0.202366 0.06566518 0.07088227 0.3269375    0 0.002726979
@@ -485,13 +495,14 @@ time 0.202366 0.06566518 0.07088227 0.3269375    0 0.002726979
 \Warning Because the pairwise win and loss score are no more binary, the
 previous formula no more simplifies into the formula presented in
 \cite{matsouaka2022robust}:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 pw.peron <- coef(e.BTjuv2, statistic = "favorable")
 pl.peron <- coef(e.BTjuv2, statistic = "unfavorable")
 sqrt((pw.peron + pl.peron - (pw.peron - pl.peron)^2)/N)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       time 
 0.07179718
@@ -502,11 +513,12 @@ sqrt((pw.peron + pl.peron - (pw.peron - pl.peron)^2)/N)
 
 To account for the uncertainty of the survival model, \texttt{BuyseTest}
 outputs a slightly higher standard error:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 confint(e.BTjuv2)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
      estimate         se   lower.ci  upper.ci null     p.value
 time 0.202366 0.07569815 0.05045454 0.3451254    0 0.009329589
@@ -517,8 +529,7 @@ This is achieved by considering two sources of uncertainty:
 \begin{itemize}
 \item average of a finite number of pairs:
 \end{itemize}
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 pw.peronS <- coef(e.BTjuv2, statistic = "favorable", strata = TRUE)
 pl.peronS <- coef(e.BTjuv2, statistic = "unfavorable", strata = TRUE)
 Hterm1 <- (pw.peronS - pl.peronS) - (pw.peron - pl.peron)
@@ -530,13 +541,14 @@ benefit. Because each pair appear twice (control and treatment) the
 impact of removing a pair on the net benefit is stored in the
 control and the treated is set to 0:
 \end{itemize}
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 Hterm2.obs <- e.BTjuv2@iidNuisance$favorable - e.BTjuv2@iidNuisance$unfavorable
 Hterm2.pair <- Hterm2.obs[diabeticJ$trt==0]
 table(Hterm2.obs[diabeticJ$trt==1])
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 
   0 
@@ -546,22 +558,289 @@ table(Hterm2.obs[diabeticJ$trt==1])
 
 After rescaling the terms by a factor N (number of pairs, to account
 for the pooling) we retrieve the uncertainty output by \texttt{BuyseTest}:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 c(average = sqrt(crossprod((Hterm1/N))),
   nuisance = sqrt(crossprod((Hterm2.pair/N))),
   all = sqrt(crossprod((Hterm1/N + Hterm2.pair/N))))
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
    average   nuisance        all 
 0.06566518 0.02084622 0.07569815
 \end{verbatim}
 
 
+\clearpage
+\section{More general cross-over designs}
+\label{sec:org3c84a54}
+Another type of paired design is a cross-over design where each
+patient may repeteadly experience each treatment. As an example, we
+will consider the PROFIL trial whose dataset is available in the
+BuyseTest package:
+\begin{lstlisting}[language=r,numbers=none]
+data(profil, package = "BuyseTest")
+profil <- profil[order(profil$id),]
+profil[profil$id==1 & profil$period==1,]
+\end{lstlisting}
 
+\phantomsection
+\label{}
+\begin{verbatim}
+   id age male period time treatment rcs number duration
+1   1  23    0      1    1  highDose 1.8      2       16
+2   1  23    0      1    2  highDose 2.3      2       26
+3   1  23    0      1    3  highDose 0.0      0        0
+4   1  23    0      1    4  highDose 0.0      0        0
+5   1  23    0      1    5  highDose 2.7      1       16
+6   1  23    0      1    6  highDose 1.9      1       10
+7   1  23    0      1    7  highDose 0.0      0        0
+8   1  23    0      1    8   placebo 1.5      1       11
+9   1  23    0      1    9   placebo 2.9      2       39
+10  1  23    0      1   10   placebo 2.3      1       22
+11  1  23    0      1   11   placebo 0.0      0        0
+12  1  23    0      1   12   placebo 0.0      0        0
+13  1  23    0      1   13   placebo 2.4      1       20
+14  1  23    0      1   14   placebo 1.9      1        8
+15  1  23    0      1   15   lowDose 3.1      1       13
+16  1  23    0      1   16   lowDose 3.0      2      161
+17  1  23    0      1   17   lowDose 0.0      0        0
+18  1  23    0      1   18   lowDose 0.0      0        0
+19  1  23    0      1   19   lowDose 2.4      1       35
+20  1  23    0      1   20   lowDose 0.0      0        0
+21  1  23    0      1   21   lowDose 0.0      0        0
+\end{verbatim}
+
+The software output displays the information of the first patient
+relative to the first period (out of 4) during which the patient is
+sequentially assigned one of three treatments and her outcomes (\texttt{rcs},
+\texttt{number}, and \texttt{duration}) are monitored daily. To obtain a graphical
+display of the outcomes over time we first reshape the data:
+\begin{lstlisting}[language=r,numbers=none]
+profil.L <- reshape(profil, direction = "long", idvar = c("id","time"),
+                    varying = c("rcs","number","duration"), v.names = "value",
+                    timevar = "outcome", times = c("rcs","number","duration"))
+\end{lstlisting}
+
+and make a spaghetti plot for the first 5 patients:
+\begin{lstlisting}[language=r,numbers=none]
+ggRCS <- ggplot(profil.L[profil.L$id %in% 1:5,],
+                aes(x = time, group = id, color = treatment, y = value))
+ggRCS <- ggRCS + geom_point() + geom_line() 
+ggRCS <- ggRCS + facet_grid(outcome~id, labeller = label_both, scales = "free_y")
+ggRCS <- ggRCS + labs(y="")
+ggRCS
+\end{lstlisting}
+
+\begin{center}
+\includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/spaghetti-Nof1.pdf}
+\end{center}
+\subsection{With 2 treatment groups}
+\label{sec:orgd7505e1}
+
+\noindent Since \texttt{BuyseTest} can only handle two treatment group, we restrict the
+dataset to placebo and low dose:
+\begin{lstlisting}[language=r,numbers=none]
+lowProfil <- profil[profil$treatment %in% c("placebo","lowDose"),]
+lowProfil$treatment <- droplevels(lowProfil$treatment)
+\end{lstlisting}
+
+We will use the following hierarchy and threshold of clinical
+relevance:
+\begin{lstlisting}[language=r,numbers=none]
+fff <- treatment ~ cont(rcs, threshold = 1.45, operator = "<0") + cont(number, threshold = 0.35, operator = "<0") + cont(duration, threshold = 3, operator = "<0")
+\end{lstlisting}
+
+\noindent One could either run a separate GPC for each patient:
+\begin{lstlisting}[language=r,numbers=none]
+ls.lowGPC <- by(lowProfil, lowProfil$id, BuyseTest, formula = fff, trace = FALSE)
+df.lowGPC <- data.frame(do.call(rbind,lapply(ls.lowGPC, coef)),
+                        do.call(rbind,lapply(ls.lowGPC, nobs)),
+                        Buyse = as.numeric(NA), CMH = as.numeric(NA))
+df.lowGPC$Buyse <- with(df.lowGPC, pairs/sum(pairs))
+df.lowGPC$CMH <- with(df.lowGPC, (pairs/(placebo+lowDose))/sum(pairs/(placebo+lowDose)))
+head(df.lowGPC)
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+     rcs_t1.45 number_t0.35  duration_t3 placebo lowDose pairs      Buyse       CMH
+1 -0.016581633 -0.015306122 -0.021683673      28      28   784 0.04694049 0.0364368
+2  0.000000000  0.153061224  0.183673469      28      28   784 0.04694049 0.0364368
+3 -0.001632653  0.003265306 -0.008979592      35      35  1225 0.07334451 0.0455460
+4  0.117346939  0.225765306  0.154336735      28      28   784 0.04694049 0.0364368
+5 -0.043083900 -0.047619048 -0.029478458      21      21   441 0.02640402 0.0273276
+6  0.102040816  0.092970522  0.077097506      21      21   441 0.02640402 0.0273276
+\end{verbatim}
+
+
+\noindent and pool the patient-specific Net Treatment
+Benefits. Different weighting scheme are possible, e.g. same weight
+for all patients, weight dependent on the number of blocks experienced
+by the patient:
+\begin{lstlisting}[language=r,numbers=none]
+rbind(average = colMeans(df.lowGPC[,1:3]),
+      Buyse = apply(df.lowGPC[,1:3], 2, weighted.mean, w = df.lowGPC$Buyse),
+      CMH = apply(df.lowGPC[,1:3], 2, weighted.mean, w = df.lowGPC$CMH))
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+         rcs_t1.45 number_t0.35 duration_t3
+average 0.02741742   0.02755903  0.03397497
+Buyse   0.01628547   0.03730092  0.04215064
+CMH     0.02145018   0.03266743  0.03869945
+\end{verbatim}
+
+
+This can be replicated using a single call to \texttt{BuyseTest} specifying a
+strata in the formula:
+\begin{lstlisting}[language=r,numbers=none]
+lowGPC <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                    data = lowProfil, trace = FALSE)
+confint(lowGPC)
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+estimate         se    lower.ci   upper.ci null   p.value
+rcs_t1.45    0.02741742 0.02047690 -0.01273920 0.06748574    0 0.1808076
+number_t0.35 0.02755903 0.03139999 -0.03401048 0.08892015    0 0.3803606
+duration_t3  0.03397497 0.02801978 -0.02099009 0.08873527    0 0.2256649
+\end{verbatim}
+
+
+By default, equal weights are given to each patient but other
+weighting schemes can be used by specifying the \texttt{pool.strata} argument:
+\begin{lstlisting}[language=r,numbers=none]
+lowGPC_Buyse <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                          data = lowProfil, pool.strata = "Buyse", trace = FALSE)
+confint(lowGPC_Buyse)
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+estimate         se     lower.ci   upper.ci null    p.value
+rcs_t1.45    0.01628547 0.01771680 -0.018444486 0.05097618    0 0.35807018
+number_t0.35 0.03730092 0.02668638 -0.015057839 0.08945568    0 0.16257765
+duration_t3  0.04215064 0.02400508 -0.004957166 0.08907178    0 0.07946061
+\end{verbatim}
+
+
+\begin{lstlisting}[language=r,numbers=none]
+lowGPC_CMH <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                        data = lowProfil, pool.strata = "CMH", trace = FALSE)
+confint(lowGPC_CMH)
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+estimate         se    lower.ci   upper.ci null   p.value
+rcs_t1.45    0.02145018 0.01855984 -0.01493878 0.05778241    0 0.2479363
+number_t0.35 0.03266743 0.02784903 -0.02195881 0.08709921    0 0.2411232
+duration_t3  0.03869945 0.02491698 -0.01019050 0.08740482    0 0.1207617
+\end{verbatim}
+
+
+\begin{description}
+\item[{\Warning}] in all approaches, all pairwise comparisons are performed within each patient, not only within-block comparisons.
+\end{description}
+
+In term of uncertainty quantification, it is important to specify
+\texttt{match=TRUE} when using a single call so \texttt{BuyseTest} does not treat
+each line of the dataset as an independent replicate. An intuitive way
+to evaluate the standard error of the pooled estimator is to use the
+across subject variability:
+\begin{lstlisting}[language=r,numbers=none]
+sqrt(apply(df.lowGPC[,1:3],2,var)/NROW(df.lowGPC))
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+ rcs_t1.45 number_t0.35  duration_t3 
+0.02075177   0.03182148   0.02839590
+\end{verbatim}
+
+
+\noindent This is, up to a factor \texttt{N/(N-1)} exactly what the single call
+approach returns. Actually we can retrieve this value by modifying the default options:
+\begin{lstlisting}[language=r,numbers=none]
+BuyseTest.options(order.Hprojection = 2)
+lowGPC2 <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
+                     data = lowProfil, trace = FALSE)
+confint(lowGPC2)
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+estimate         se    lower.ci   upper.ci null   p.value
+rcs_t1.45    0.02741742 0.02075177 -0.01327825 0.06802241    0 0.1866527
+number_t0.35 0.02755903 0.03182148 -0.03483625 0.08974030    0 0.3867027
+duration_t3  0.03397497 0.02839590 -0.02172779 0.08946745    0 0.2318709
+\end{verbatim}
+
+
+\noindent  Similarly when using other weighting scheme. For instance we can
+retrieve the results of the Buyse pooling scheme doing:
+\begin{lstlisting}[language=r,numbers=none]
+df.lowGPC_center <- sweep(df.lowGPC[,1:3], MARGIN = 2, FUN = "-", STATS = coef(lowGPC_Buyse))
+df.lowGPC_Wcenter <- sweep(df.lowGPC_center, MARGIN = 1, FUN = "*", STATS = df.lowGPC$Buyse)
+sqrt(colSums(df.lowGPC_Wcenter^2))
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+rcs_t1.45 number_t0.35  duration_t3 
+  0.01771680   0.02668638   0.02400508
+\end{verbatim}
+
+
+\clearpage
+\subsection{With 3 or more treatment groups (WORK IN PROGRESS!)}
+\label{sec:org6db1537}
+
+Handling more than two treatment groups is still an area of
+development for the BuyseTest package. Several approaches have been
+proposed in the litterature and here we focus on one that aim at
+handling the non-transitivity issues that comes with Wilcoxon-like
+tests \citep{lumley2016characterising}. This approach compare the
+treatment-specific distribution to a pooled distribution over all
+treatment groups \citep{thangavelu2007wilcoxon}:
+
+\begin{lstlisting}[language=r,numbers=none]
+CasinoTest(update(fff, . ~ . + strata(id)), data = profil,
+           method.inference = "none", type = "unweighted")
+## do not trust inference since it would require accounting for matching
+\end{lstlisting}
+
+\phantomsection
+\label{}
+\begin{verbatim}
+                   endpoint treatment     estimate se lower.ci upper.ci null p.value
+placebo: rcs            rcs   placebo -0.012193158 NA       NA       NA   NA      NA
+lowDose: rcs            rcs   lowDose  0.008015351 NA       NA       NA   NA      NA
+highDose: rcs           rcs  highDose  0.004177807 NA       NA       NA   NA      NA
+placebo: number      number   placebo -0.020434169 NA       NA       NA   NA      NA
+lowDose: number      number   lowDose  0.011566310 NA       NA       NA   NA      NA
+highDose: number     number  highDose  0.008867860 NA       NA       NA   NA      NA
+placebo: duration  duration   placebo -0.024148505 NA       NA       NA   NA      NA
+lowDose: duration  duration   lowDose  0.013113939 NA       NA       NA   NA      NA
+highDose: duration duration  highDose  0.011034566 NA       NA       NA   NA      NA
+\end{verbatim}
+
+Its main drawback is that the assessment of say \texttt{placebo}
+vs. \texttt{lowDose} is now influenced by \texttt{highDose}.
 \section*{References}
-\label{sec:org1ce013e}
+\label{sec:orgc4ca38e}
 \begingroup
 \renewcommand{\section}[2]{}
 

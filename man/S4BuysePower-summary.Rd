@@ -22,10 +22,8 @@
 \arguments{
 \item{object}{output of \code{\link{powerBuyseTest}}}
 
-\item{statistic}{[character] statistic relative to which the power should be computed:
-\code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
-\code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-\code{"mannWhitney"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
+\item{statistic}{[character] the statistic summarizing the pairwise comparison: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+See the documentation of the \code{coef} method for further details.
 Default value read from \code{BuyseTest.options()}.}
 
 \item{endpoint}{[character vector] the endpoints to be displayed: must be the name of the endpoint followed by an underscore and then by the threshold.}

@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: mar 31 2021 (14:07) 
 ## Version: 
-## Last-Updated: Jul 21 2025 (09:30) 
+## Last-Updated: jul 23 2025 (16:54) 
 ##           By: Brice Ozenne
-##     Update #: 360
+##     Update #: 361
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -26,12 +26,9 @@
 #' 
 #' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param threshold [list] a list containing for each endpoint the thresholds to be considered.
-#' @param statistic [character] the statistic summarizing the pairwise comparison:
-#' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
-#' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-#' \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
-#' \code{"unfavorable"} displays the proportion in favor of the control.
-#' Default value read from \code{BuyseTest.options()}.
+#' @param statistic [character] the statistic summarizing the pairwise comparison: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+#' See the documentation of the \code{coef} method for further details.
+#' Default value read from \code{BuyseTest.options()}. 
 #' @param null [numeric] right hand side of the null hypothesis (used for the computation of the p-value).
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.

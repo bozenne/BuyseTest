@@ -11,8 +11,9 @@
 \arguments{
 \item{object}{an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}}
 
-\item{statistic}{[character] the type of statistic relative to which the pseudovalues should be computed.
-Can be \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, or \code{"unfavorable"}.}
+\item{statistic}{[character] the statistic relative to which the pseudovalues should be computed: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+See the documentation of the \code{coef} method for further details.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{endpoint}{[character] for which endpoint(s) the pseudovalues should be output?
 If \code{NULL} returns the sum of the H-decomposition over all endpoints.}

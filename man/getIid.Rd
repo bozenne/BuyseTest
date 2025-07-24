@@ -25,7 +25,9 @@
 \item{endpoint}{[character] for which endpoint(s) the H-decomposition should be output?
 If \code{NULL} returns the sum of the H-decomposition over all endpoints.}
 
-\item{statistic}{[character] statistic relative to which the H-decomposition should be output.}
+\item{statistic}{[character] the statistic relative to which the H-decomposition should be output: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+See the documentation of the \code{coef} method for further details.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{strata}{[character vector] the strata relative to which the H-decomposition of the statistic should be output.
 Can also be \code{"global"} or \code{FALSE} to output the H-decompositon of the pooled statistic.

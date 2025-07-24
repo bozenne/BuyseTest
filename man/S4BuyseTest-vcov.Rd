@@ -21,7 +21,9 @@
 \item{endpoint}{[character] for which endpoint(s) the variance-covariance matrix should be output?
 If \code{NULL} consider all endpoints.}
 
-\item{statistic}{[character] the type of summary statistic. See the detail section.}
+\item{statistic}{[character] the statistic summarizing the pairwise comparison relative to which the variance is to be output: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+See the documentation of the \code{coef} method for further details.
+Default value read from \code{BuyseTest.options()}.}
 
 \item{strata}{[character vector] the strata relative to which the variance-covariance matrix should be output.
 Can also be \code{"global"} or \code{FALSE} to output the statistic pooled over all strata.}

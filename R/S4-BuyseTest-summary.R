@@ -10,12 +10,9 @@
 #' @param object output of \code{\link{BuyseTest}}
 #' @param print [logical] Should the results be displayed in the console?
 #' @param percentage [logical] Should the percentage of pairs of each type be displayed ? Otherwise the number of pairs is displayed.
-#' @param statistic [character] the statistic summarizing the pairwise comparison:
-#' \code{"netBenefit"} displays the net benefit, as described in Buyse (2010) and Peron et al. (2016)),
-#' \code{"winRatio"} displays the win ratio, as described in Wang et al. (2016),
-#' \code{"favorable"} displays the proportion in favor of the treatment (also called Mann-Whitney parameter), as described in Fay et al. (2018).
-#' \code{"unfavorable"} displays the proportion in favor of the control.
-#' Default value read from \code{BuyseTest.options()}.
+#' @param statistic [character] the statistic summarizing the pairwise comparison: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+#' See the documentation of the \code{coef} method for further details.
+#' Default value read from \code{BuyseTest.options()}. 
 #' @param conf.level [numeric] confidence level for the confidence intervals.
 #' Default value read from \code{BuyseTest.options()}.
 #' @param strata [logical] should the strata-specific results be displayed or the results pooled across strata?
@@ -107,11 +104,6 @@
 #'  summary(BT, percentage = FALSE)
 #'  summary(BT, statistic = "winRatio")
 #'
-#' @references 
-#' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
-#' On the win ratio: D. Wang, S. Pocock (2016). \bold{A win ratio approach to comparing continuous non-normal outcomes in clinical trials}. \emph{Pharmaceutical Statistics} 15:238-245 \cr
-#' On the Mann-Whitney parameter: Fay, Michael P. et al (2018). \bold{Causal estimands and confidence intervals asscoaited with Wilcoxon-Mann-Whitney tests in randomized experiments}. \emph{Statistics in Medicine} 37:2923-2937.
-#' 
 #' @keywords print
 #' @author Brice Ozenne
 
@@ -415,8 +407,11 @@ setMethod(f = "summary",
                   
               cat(" - treatment groups: ",object@level.treatment[2]," (treatment) vs. ",object@level.treatment[1]," (control) \n", sep = "")
 
-              if(n.strata>1){
-                  cat(" - strata weights  : ",paste(paste0(round(100*object@weightStrata, digit[1]),"%"), collapse = ", ")," \n", sep = "")
+                  if(n.strata>1){
+                      txt.strataPC <- paste0(round(100*object@weightStrata, digit[1]),"%")
+                      table.strataPC <- table(txt.strataPC)
+                      shorttxt.strataPC <- ifelse(table.strataPC>1,paste0(names(table.strataPC), " (x",table.strataPC,")"),names(table.strataPC))
+                      cat(" - strata weights  : ",paste(shorttxt.strataPC, collapse = ", ")," \n", sep = "")
               }else if(attr(scoring.rule,"test.match") & length(object@weightStrata)>1){
                   table.weightStrata <- table(paste0(round(100*object@weightStrata, digit[1]),"%"))
                   cat(" - pair weights    : ",paste(names(table.weightStrata), collapse = ", ")," (K=",paste(table.weightStrata, collapse=","),")\n", sep = "")

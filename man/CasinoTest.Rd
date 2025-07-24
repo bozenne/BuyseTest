@@ -7,14 +7,15 @@
 CasinoTest(
   formula,
   data,
+  statistic = NULL,
+  method.inference = NULL,
   type = "unweighted",
-  add.halfNeutral = NULL,
-  method.inference = "u-statistic",
   conf.level = NULL,
   transformation = NULL,
   alternative = NULL,
   method.multcomp = "none",
-  seed = NA
+  seed = NA,
+  ...
 )
 }
 \arguments{
@@ -22,12 +23,14 @@ CasinoTest(
 
 \item{data}{[data.frame] dataset.}
 
-\item{type}{[character] Type of estimator: can be \code{"unweighted"} or \code{"weighted"}.}
-
-\item{add.halfNeutral}{[logical] should half of the neutral score be added to the favorable and unfavorable scores?}
+\item{statistic}{[character] the statistic summarizing the pairwise comparison: \code{"netBenefit"} (Net Treatment Benefit) or \code{"favorable"} (Mann-Withney parameter).
+Default value read from \code{BuyseTest.options()}.}
 
 \item{method.inference}{[character] method used to compute confidence intervals and p-values.
-Can be \code{"none"}, \code{"u-statistic"}, or \code{"rank"}.}
+Can be \code{"none"}, \code{"u-statistic"}, or \code{"rank"}. 
+Default value read from \code{BuyseTest.options()}.}
+
+\item{type}{[character] Type of estimator: can be \code{"unweighted"} or \code{"weighted"}.}
 
 \item{conf.level}{[numeric] confidence level for the confidence intervals.
 Default value read from \code{BuyseTest.options()}.}
@@ -44,6 +47,8 @@ Can be any element of ‘p.adjust.methods’ (e.g. "holm"), "maxT-integration", 
 
 \item{seed}{[integer, >0] Random number generator (RNG) state used when adjusting for multiple comparisons.
 If \code{NULL} no state is set.}
+
+\item{...}{arguments passed to \code{\link{BuyseTest}}}
 }
 \value{
 An S3 object of class \code{CasinoTest} that inherits from data.frame.
@@ -63,7 +68,7 @@ library(BuyseTest)
 
 #### simulate data ####
 set.seed(11)
-n <- 4
+n <- 10
 dt <- rbind(data.table(score = rnorm(n), group = "A"),
             data.table(score = rnorm(2*n), group = "B"),
             data.table(score = rnorm(3*n), group = "C"))
@@ -73,19 +78,20 @@ dt$index <- 1:NROW(dt)
 score.casino <- dt$score
 
 ## naive casino (by hand)
-M.score <- outer(dt[group=="A",score],score.casino,function(x,y){x>y+0.5*(x==y)})
-mean(M.score)
+M.score <- outer(dt[group=="A",score],score.casino,function(x,y){(x>y)+0.5*(x==y)})
+mean(M.score) ## 0.4766667
 
 ## naive casino (via BuyseTest)
-CasinoTest(group ~ cont(score), data = dt, type = "weighted")
+CasinoTest(group ~ cont(score), data = dt, type = "weighted", statistic = "favorable")
+CasinoTest(group ~ cont(score), data = dt, type = "weighted", statistic = "netBenefit")
 
 ## harmonic casino (by hand)
 hweight <- unlist(tapply(dt$group, dt$group, function(x){rep(1/length(x),length(x))}))
 M.scoreW <- sweep(M.score, MARGIN = 2, FUN = "*", STATS = NROW(dt)*hweight/3)
-mean(M.scoreW)
+mean(M.scoreW) ## 0.3680556
 
 ## harmonic casino (via BuyseTest)
-CasinoTest(group ~ cont(score), data = dt, type = "unweighted")
+CasinoTest(group ~ cont(score), data = dt, type = "unweighted", statistic = "favorable")
 
 #### Relative liver weights data (Brunner 2018, table 4.1, page 183) ####
 liverW <- rbind(
@@ -103,8 +109,8 @@ liverW <- rbind(
 liverW$valueU <- liverW$value + (1:NROW(liverW))/1e6
 
 ## same as table 4.1, page 183 in Brunner et al (2018)
-CasinoTest(group ~ cont(value), data = liverW, type = "weighted", add.halfNeutral = TRUE)
-CasinoTest(group ~ cont(valueU), data = liverW, type = "unweighted", add.halfNeutral = TRUE)
+CasinoTest(group ~ cont(value), data = liverW, type = "weighted", statistic = "favorable")
+CasinoTest(group ~ cont(valueU), data = liverW, type = "unweighted", statistic = "favorable")
 }
 \references{
 Edgar Brunner, Arne C Bathke, and Frank Konietschke (2018). \bold{Rank and pseudo-rank procedures for independent observations in factorial designs}. Springer.

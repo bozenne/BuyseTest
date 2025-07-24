@@ -62,7 +62,9 @@ setMethod(f = "getCount",
 #' @param center [logical] if \code{TRUE} the H-decomposition is centered around 0 (estimated statistic is substracted).
 #' @param scale [logical] if \code{TRUE} the H-decomposition is rescaled (by the sample size in the corresponding arm) such that its sums of squares approximate the variance of the estimator.
 #' @param cluster [numeric vector] return the H-decomposition aggregated by cluster.
-#' @param statistic [character] statistic relative to which the H-decomposition should be output.
+#' @param statistic [character] the statistic relative to which the H-decomposition should be output: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+#' See the documentation of the \code{coef} method for further details.
+#' Default value read from \code{BuyseTest.options()}. 
 #' @param cumulative [logical] should the H-decomposition be cumulated over endpoints?
 #' Otherwise display the contribution of each endpoint.
 #' @param strata [character vector] the strata relative to which the H-decomposition of the statistic should be output.
@@ -623,8 +625,9 @@ setMethod(f = "getPairScore",
 #' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
 #' @param endpoint [character] for which endpoint(s) the pseudovalues should be output?
 #' If \code{NULL} returns the sum of the H-decomposition over all endpoints.
-#' @param statistic [character] the type of statistic relative to which the pseudovalues should be computed.
-#' Can be \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, or \code{"unfavorable"}.
+#' @param statistic [character] the statistic relative to which the pseudovalues should be computed: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+#' See the documentation of the \code{coef} method for further details.
+#' Default value read from \code{BuyseTest.options()}. 
 #' @seealso 
 #' \code{\link{BuyseTest}} for performing a generalized pairwise comparison. \cr
 #' \code{\link{S4BuyseTest-summary}} for a more detailed presentation of the \code{S4BuyseTest} object.

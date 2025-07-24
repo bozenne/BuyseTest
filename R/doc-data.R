@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 13 2025 (11:30) 
 ## Version: 
-## Last-Updated: Feb 16 2025 (18:05) 
+## Last-Updated: jul 22 2025 (09:44) 
 ##           By: Brice Ozenne
-##     Update #: 34
+##     Update #: 62
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -14,32 +14,6 @@
 ##----------------------------------------------------------------------
 ## 
 ### Code:
-
-## * PRODIGE
-#' @title RCT In Metastatic Pancreatic Cancer Comparing Two Chemoterapy. 
-#' @name prodige
-#' @rdname data-prodige
-#'
-#' @description Simulated data inspired from the PRODIGE trial comparing the survival of patients with metastatic pancreatic cancer
-#' treated with FOLFIRINOX or gemcitabine . 
-#'
-#' \itemize{
-#' \item \code{id}: study participant.
-#' \item \code{treatment}: treatment arm: FOLFIRINOX (T) or gemcitabine (C).
-#' \item \code{OS}: time from inclusion (say diagnosis) to end of follow-up.
-#' \item \code{statusOS}: event triggering the end of follow-up: death (1), drop-out (0).
-#' \item \code{PFS}: time from inclusion (say diagnosis) to progression of the disease or end of follow-up.
-#' \item \code{statusPFS}: progression (1) or end of follow-up (0).
-#' \item \code{toxicity}: most serious side effect observed during the follow-up (1 mild, 6 severe).
-#' \item \code{sex}: male (M) or female (F)
-#' }
-#'
-#' @author Brice Ozenne
-#' @docType data
-#' @usage data(prodige, package = "BuyseTest")
-#' @references Conroy, Thierry, et al. "FOLFIRINOX versus gemcitabine for metastatic pancreatic cancer" New England Journal of Medicine (2011) 364(19):1817-25. doi: 10.1056/NEJMoa1011923.
-#' @keywords datasets
-"prodige"
 
 ## * CHARM
 #' @title RCT In Chronic Heart Failure Assessing an Inhibitor of the Renin-Angiotensin System. 
@@ -88,6 +62,62 @@
 #' @references Wally et al. "Diacerein orphan drug development for epidermolysis bullosa simplex: A phase 2/3 randomized, placebo-controlled, double-blind clinical trial". Journal of American Academy of Dermatology (2018) 78(5):892-901. https://doi.org/10.1016/j.jaad.2018.01.019.
 #' @keywords datasets
 "EB"
+
+## * Profil
+#' @title N-of-1 trials with On-demand Sildenafil as a Treatment for Raynaud Phenomenon
+#' @name profil
+#' @rdname data-profil
+#'
+#' @description Data from the Profil trial, a multiple crossover study where 38 patients had repeat blocks.
+#' Each block lasted 3 weeks and corresponded to a sequence of all three treatments (placebo, sildenafil 40mg, or sildenafil 80mg), each treatment being allocated during 1 week.
+#' The principal outcome were Raynaud Condition Score (RCS) and the frequency and cumulative duration of attacks over 24 hours.
+#'
+#' \itemize{
+#' \item \code{id}: study participant.
+#' \item \code{age}: age in years, between 18 and 74 years.
+#' \item \code{male}: indicator of whether the participant was a male. 
+#' \item \code{period}: number of the block for a given patient. From 1 to 5.
+#' \item \code{time}: number of days since inclusion.
+#' \item \code{treatment}: treatment allocated during the period (placebo, lowDose, highDose)
+#' \item \code{rcs}: RCS score, ranging from 0 to 10.
+#' \item \code{number}: daily number of attack, ranging from 0 to 9.
+#' \item \code{duration}: cumulative daily duration of attacks in minutes, between 0 and 755 minutes.
+#' }
+#'
+#' @author Brice Ozenne took a subset of the columns from the original dataset (available at \url{https://datadryad.org/dataset/doi:10.5061/dryad.c670tq2})
+#' and translated their names into english.
+#' @docType data
+#' @usage data(profil, package = "BuyseTest")
+#' @references Matthieu Roustit, Joris Giai, Olivier Gaget, et al. On-Demand Sildenafil as a Treatment for Raynaud Phenomenon: A Series of n-of-1 Trials. Ann Intern Med.2018;169:694-703. [Epub 30 October 2018]. doi:10.7326/M18-0517
+#' @keywords datasets
+"profil"
+
+## * PRODIGE
+#' @title RCT In Metastatic Pancreatic Cancer Comparing Two Chemoterapy. 
+#' @name prodige
+#' @rdname data-prodige
+#'
+#' @description Simulated data inspired from the PRODIGE trial comparing the survival of patients with metastatic pancreatic cancer
+#' treated with FOLFIRINOX or gemcitabine . 
+#'
+#' \itemize{
+#' \item \code{id}: study participant.
+#' \item \code{treatment}: treatment arm: FOLFIRINOX (T) or gemcitabine (C).
+#' \item \code{OS}: time from inclusion (say diagnosis) to end of follow-up.
+#' \item \code{statusOS}: event triggering the end of follow-up: death (1), drop-out (0).
+#' \item \code{PFS}: time from inclusion (say diagnosis) to progression of the disease or end of follow-up.
+#' \item \code{statusPFS}: progression (1) or end of follow-up (0).
+#' \item \code{toxicity}: most serious side effect observed during the follow-up (1 mild, 6 severe).
+#' \item \code{sex}: male (M) or female (F)
+#' }
+#'
+#' @author Brice Ozenne
+#' @docType data
+#' @usage data(prodige, package = "BuyseTest")
+#' @references Conroy, Thierry, et al. "FOLFIRINOX versus gemcitabine for metastatic pancreatic cancer" New England Journal of Medicine (2011) 364(19):1817-25. doi: 10.1056/NEJMoa1011923.
+#' @keywords datasets
+"prodige"
+
 
 ##----------------------------------------------------------------------
 ### doc-data.R ends here

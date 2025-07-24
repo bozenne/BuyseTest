@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: Jul  7 2025 (12:17) 
+## Last-Updated: jul 23 2025 (16:54) 
 ##           By: Brice Ozenne
-##     Update #: 447
+##     Update #: 448
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -25,7 +25,9 @@
 #' @description Extract uncertainty about the summary statistics (net benefit, win ratio, ...) from GPC.
 #' 
 #' @param object a \code{S4BuyseTest} object, output of \code{\link{BuyseTest}}.
-#' @param statistic [character] the type of summary statistic. See the detail section.
+#' @param statistic [character] the statistic summarizing the pairwise comparison relative to which the variance is to be output: \code{"netBenefit"}, \code{"winRatio"}, \code{"favorable"}, \code{"unfavorable"}.
+#' See the documentation of the \code{coef} method for further details.
+#' Default value read from \code{BuyseTest.options()}. 
 #' @param endpoint [character] for which endpoint(s) the variance-covariance matrix should be output?
 #' If \code{NULL} consider all endpoints.
 #' @param strata [character vector] the strata relative to which the variance-covariance matrix should be output.
