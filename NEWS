@@ -1,3 +1,9 @@
+* Version 3.3.4
+
+** Internal change
+- fix bug with Peron+bootstrap+restriction
+- fix warning: 'is_finite<double>' is deprecated: change arma::is_finite(val) to std::isfinite(val) in FCT_precompute.cpp
+
 * Version 3.3.2
 
 ** User visible change

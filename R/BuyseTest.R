@@ -542,7 +542,6 @@ BuyseTest <- function(formula,
     if(envir$outArgs$scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$skeletonPeron
     }else{ ## Peron
-
         outSurv <- calcPeron(data = outSample$data,
                              model.tte = envir$outArgs$model.tte,                             
                              method.score = envir$outArgs$method.score,
@@ -581,6 +580,8 @@ BuyseTest <- function(formula,
     }
 
     ## ** Restriction
+    M.endpoint <- envir$outArgs$M.endpoint
+    M.status <- envir$outArgs$M.status
     if(any(!is.na(envir$outArgs$restriction))){
         ## index restricted endpoint
         index.rendpoint <- setdiff(which(!is.na(envir$outArgs$restriction)), ## non-NA value
@@ -590,24 +591,24 @@ BuyseTest <- function(formula,
             iStatus <- envir$outArgs$index.status[iE]+1
             if(envir$outArgs$operator[iE]==1){ ## ">0"
                 if(envir$outArgs$method.score[iE] %in% c("TTEgehan","SurvPeron","CRPeron")){ ## right censoring
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]>iRestriction,iStatus] <- 1/2
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]==iRestriction & envir$outArgs$M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
+                    M.status[M.endpoint[,iE]>iRestriction,iStatus] <- 1/2
+                    M.status[M.endpoint[,iE]==iRestriction & M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
                 }
-                envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]>iRestriction,iE] <- iRestriction
+                M.endpoint[M.endpoint[,iE]>iRestriction,iE] <- iRestriction
             }else if(envir$outArgs$operator[iE]==-1){ ## "<0"
                 if(envir$outArgs$method.score[iE] %in% c("TTEgehan2")){ ## left censoring
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]<iRestriction,iStatus] <- 1/2
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]==iRestriction & envir$outArgs$M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
+                    M.status[M.endpoint[,iE]<iRestriction,iStatus] <- 1/2
+                    M.status[M.endpoint[,iE]==iRestriction & M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
                 }
-                envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]<iRestriction,iE] <- iRestriction
+                M.endpoint[M.endpoint[,iE]<iRestriction,iE] <- iRestriction
             }
         }
     }
 
     ## ** Perform GPC
     resBT <- do.call(envir$outArgs$engine,
-                     args = list(endpoint = envir$outArgs$M.endpoint,
-                                 status = envir$outArgs$M.status,
+                     args = list(endpoint = M.endpoint,
+                                 status = M.status,
                                  indexC = outSample$ls.indexC,
                                  posC = outSample$ls.posC,
                                  indexT = outSample$ls.indexT,                     

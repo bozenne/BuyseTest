@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: Jul  7 2025 (12:35) 
+## Last-Updated: sep 23 2025 (14:44) 
 ##           By: Brice Ozenne
-##     Update #: 253
+##     Update #: 254
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -404,7 +404,7 @@ test_that("simBuyseTest - rate vs. scale", {
 
 args <- list(scale.T = c((3:5) / 10), scale.censoring.T = rep(1, 3))
 simFCT <- function(n.C, n.T) {
-  simBuyseTest(100, argsBin = NULL, argsCont = NULL, argsTTE = args)
+    simBuyseTest(100, argsBin = NULL, argsCont = NULL, argsTTE = args)
 }
 
 test_that("powerBuyseTest - status vs. censoring", {
@@ -789,3 +789,35 @@ test_that("Old user interface",{
     expect_equal(model.tables(BT.GS2)[2,"p.value"], model.tables(BT.GS)[1,"p.value"], tol = 1e-6)
 
 })
+
+## * yumi-youmeihan: 21 sep 2025 issue with bootstrap+restriction+peron
+test_that("restriction with bootstrap",{
+
+
+    set.seed(921)
+sim_data <- simBuyseTest(
+  n.T = 130, 
+  n.C = 130,
+  argsTTE = list(
+    name = "survival", 
+    scale.T = 10, 
+    scale.C = 10,
+    scale.censoring.T = 2,
+    scale.censoring.C = 2
+  )
+)
+
+
+result <- BuyseTest(
+  treatment ~ tte(survival, status, restriction=1) ,
+  data = sim_data,
+  scoring.rule="Peron",
+  method.inference = "bootstrap",
+  seed = 1, n.resampling = 20
+)
+
+expect_equivalent(confint(result),
+                  data.frame("estimate" = c(0.08514377),"se" = c(0.04325346),"lower.ci" = c(-0.00564149),"upper.ci" = c(0.14294564),"null" = c(0),"p.value" = c(0.1)),
+                  tol = 1e-3)
+})
+
