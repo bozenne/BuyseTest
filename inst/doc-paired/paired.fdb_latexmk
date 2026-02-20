@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex paired"] 1753285327.94554 "paired.aux" "paired.bbl" "paired" 1753285336.16195 0
+["bibtex paired"] 1771591424.93014 "paired.aux" "paired.bbl" "paired" 1771591427.86804 0
   "./bibliography.bib" 1753285192 922 03a57ad374a2f4cf05f4fdae2730e5f7 ""
   "C:/Users/hpl802/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/apalike.bst" 1291972791 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "paired.aux" 1753285334 3806 0bbcb18eb2f8a7fdcd910d8af5031384 "pdflatex"
+  "paired.aux" 1771591426 3806 34d763fa8edeba4225ca3b8625bb75c7 "pdflatex"
   (generated)
   "paired.bbl"
   "paired.blg"
   (rewritten before read)
-["pdflatex"] 1753285328.57231 "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-paired/paired.tex" "paired.pdf" "paired" 1753285336.16269 0
-  "C:/Users/hpl802/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1753196115 96541 dbf34edecf6fa61cd249cac83fecff24 ""
+["pdflatex"] 1771591425.22137 "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-paired/paired.tex" "paired.pdf" "paired" 1771591427.87018 0
+  "C:/Users/hpl802/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1768558914 96918 b44e951870e976cb5314ff35e4f298cd ""
   "C:/Users/hpl802/AppData/Local/MiKTeX/fonts/tfm/public/stmaryrd/stmary10.tfm" 1752479638 848 f478e0761563bbc369eca609a1741348 ""
   "C:/Users/hpl802/AppData/Local/MiKTeX/fonts/tfm/public/stmaryrd/stmary6.tfm" 1752479641 848 068dd119e13b75777e62821af7d4f2a6 ""
   "C:/Users/hpl802/AppData/Local/MiKTeX/fonts/tfm/public/stmaryrd/stmary7.tfm" 1752479639 848 26631fcb3e4cb6757598b9cda7967b63 ""
@@ -264,12 +264,12 @@
   "C:/Users/hpl802/AppData/Local/Programs/MiKTeX/tex/latex/xifthen/xifthen.sty" 1448274436 5689 1bfa68243e89a54479e7d0580773c57e ""
   "C:/Users/hpl802/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
   "C:/Users/hpl802/AppData/Local/Programs/MiKTeX/tex/latex/xstring/xstring.sty" 1693735632 123 a302f2c651a95033260db60e51527ae8 ""
-  "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-paired/paired.tex" 1753285323 31628 b06e457cdf0238acc98982e6c940f978 ""
+  "c:/Users/hpl802/Documents/Github/BuyseTest/inst/doc-paired/paired.tex" 1771591422 31686 a182b9543042ec263d8863b2074f99d7 ""
   "figures/spaghetti-Nof1.pdf" 1753264923 79510 9bc2baf7a20b179232307a221037124e ""
-  "paired.aux" 1753285334 3806 0bbcb18eb2f8a7fdcd910d8af5031384 "pdflatex"
-  "paired.bbl" 1753285328 773 e8ba36c48537ee92f9456f24658c3762 "bibtex paired"
-  "paired.out" 1753285334 1408 12000c61ac76fcb395c267df69e112b6 "pdflatex"
-  "paired.tex" 1753285323 31628 b06e457cdf0238acc98982e6c940f978 ""
+  "paired.aux" 1771591426 3806 34d763fa8edeba4225ca3b8625bb75c7 "pdflatex"
+  "paired.bbl" 1771591425 773 e8ba36c48537ee92f9456f24658c3762 "bibtex paired"
+  "paired.out" 1771591426 1408 12000c61ac76fcb395c267df69e112b6 "pdflatex"
+  "paired.tex" 1771591422 31686 a182b9543042ec263d8863b2074f99d7 ""
   (generated)
   "paired.aux"
   "paired.loc"

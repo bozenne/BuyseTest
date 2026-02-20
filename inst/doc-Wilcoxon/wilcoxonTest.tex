@@ -1,4 +1,4 @@
-% Created 2025-07-21 Mon 11:27
+% Created 2026-02-20 fr 13:41
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -200,7 +200,7 @@ linkcolor=[rgb]{0,0,0.5},
  pdftitle={Wilcoxon test via GPC},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 27.1 (Org mode 9.4.6)},
+ pdfcreator={Emacs 30.1 (Org mode 9.7.11)},
  pdflang={English}
  }
 \begin{document}
@@ -210,17 +210,14 @@ Generalized Pairwise comparisons (GPC) include the Wilcoxon rank sum
 test as a specific case. This vignette explores the connections
 between the \texttt{BuyseTest} output and the more standard implementation of
 the wilcoxon-test.
-
-
 \section{Single Wilcoxon test}
-\label{sec:orgcdc2b7c}
+\label{sec:org0fa539d}
 
 \subsection{Exact test}
-\label{sec:orgc2b643b}
+\label{sec:org4f0b7e7}
 
 Consider the first 'two sample test' example from the help page section of \texttt{stats::wilcox.test}:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 x <- c(0.80, 0.83, 1.89, 1.04, 1.45, 1.38, 1.91, 1.64, 0.73, 1.46)
 y <- c(1.15, 0.88, 0.90, 0.74, 1.21)
 df <- rbind(data.frame(value = x, group="x"),
@@ -229,11 +226,12 @@ df <- rbind(data.frame(value = x, group="x"),
 
 \noindent We can perform a Wilcoxon test using the \texttt{wilcox.test} function:
 
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 wilcox.test(value ~ group, data = df)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 
 	Wilcoxon rank sum exact test
@@ -249,11 +247,12 @@ consider all possible permutation of the group variable. It
 unfortunately does not ouput any effect size (just the test statistic
 and corresponding p-value). The package \emph{asht} contains an alternative
 implementation:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 asht::wmwTest(value ~ group, data = df, method = "exact.ce")
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 
 	exact Wilcoxon-Man-Whitney test (confidence interval requires proportional odds
@@ -275,14 +274,15 @@ chosen observation from the other group, which is refered to as
 Mann-Whitney parameter or probabilistic index. To match those results
 with GPC we can use a permutation test: \newline \Warning the argument
 \texttt{add.halfNeutral} should be set to \texttt{TRUE} to adequatly handle ties
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 eperm.BT <- BuyseTest(group ~ cont(value), data = df, add.halfNeutral = TRUE,
                       method.inference = "permutation", n.resampling = 1e4,
                       trace = FALSE, cpus = 5, seed = 10)
 confint(eperm.BT, statistic = "favorable")
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       estimate        se lower.ci upper.ci null   p.value
 value      0.3 0.1632342       NA       NA  0.5 0.2566743
@@ -294,13 +294,14 @@ made arbitrarily small by increasing the number of permutations
 (argument \texttt{n.resampling}), the resuls are identical. Note that the
 'default' statistical inference method based on asymptotic
 U-statistic theory:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 eU.BT <- suppressWarnings(BuyseTest(group ~ cont(value), data = df,
                                     add.halfNeutral = TRUE))
 confint(eU.BT, statistic = "favorable")
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       estimate        se  lower.ci  upper.ci null  p.value
 value      0.3 0.1334166 0.1098282 0.5981833  0.5 0.182315
@@ -312,42 +313,44 @@ is being tested here: probabilistic index equal 0.5 instead of
 equality in distribution. This p-value corresponds, up to some small
 sample approximation and the Monte Carlo error, to the one obtain with
 a studentized permutation:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 etperm.BT <- BuyseTest(group ~ cont(value), data = df, add.halfNeutral = TRUE,
                       method.inference = "studentized permutation", n.resampling = 1e4,
                       trace = FALSE, seed = 10)
 confint(etperm.BT, statistic = "favorable")
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       estimate        se lower.ci upper.ci null   p.value
 value      0.3 0.1334166       NA       NA  0.5 0.1916808
 \end{verbatim}
-
 \subsection{Approximate test}
-\label{sec:org6255424}
+\label{sec:org12b85bb}
 
 Consider now a bigger (artificial) dataset:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 set.seed(10)
 df2 <- rbind(data.frame(value = round(rnorm(50),2), group="x"),
              data.frame(value = round(rnorm(50),2), group="y"))
 any(duplicated(df2$value)) ## test whether there are any ties
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 [1] TRUE
 \end{verbatim}
 
 
 We can again perform a Wilcoxon test using the \texttt{wilcox.test} function:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 wilcox.test(value ~ group, data = df2)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 
 	Wilcoxon rank sum test with continuity correction
@@ -359,11 +362,12 @@ alternative hypothesis: true location shift is not equal to 0
 
 
 or, equivalenty, with the \texttt{wmwTest} function:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 wmwTest(value ~ group, data = df2)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 
 	Wilcoxon-Mann-Whitney test with continuity correction (confidence
@@ -384,11 +388,12 @@ and an approximate test is performed instead, which assumes a normaly
 distributed test statistic. The BuyseTest package will not be able to
 match these results due to the continuity correction. Without
 continuity correction, e.g.:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 wmwTest(value ~ group, data = df2, correct = FALSE)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
 
 	Wilcoxon-Mann-Whitney test (confidence interval requires proportional odds
@@ -413,28 +418,30 @@ been ported to the package with minimal change. It is therefore meant
 to be used in the context of the original publication and not in the
 more general setting covered by the package (strata, right-censoring,
 \ldots)
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 eperm.BT2 <- BuyseTest(group ~ cont(value), data = df2, add.halfNeutral = TRUE,
                        method.inference = "varexact-permutation")
 confint(eperm.BT2, statistic = "favorable")
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       estimate         se lower.ci upper.ci null    p.value
 value    0.613 0.05802219       NA       NA  0.5 0.05147115
 \end{verbatim}
 
 
-or, more generally, using a resampling method:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+For a more generally applicable inference method resampling can be used:
+\begin{lstlisting}[language=r,numbers=none]
 eperm.BT2 <- BuyseTest(group ~ cont(value), data = df2, add.halfNeutral = TRUE,
                        method.inference = "permutation", n.resampling = 1e4,
                        trace = FALSE, cpus = 5, seed = 10)
 confint(eperm.BT2, statistic = "favorable", method.ci.resampling = "gaussian")
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
       estimate         se lower.ci upper.ci null    p.value
 value    0.613 0.05814569       NA       NA  0.5 0.05118099
@@ -442,15 +449,13 @@ value    0.613 0.05814569       NA       NA  0.5 0.05118099
 
 
 \clearpage
-
 \section{Multiple Wilcoxon tests}
-\label{sec:org5bd74ec}
+\label{sec:orgb462518}
 
 Consider now the case where we would like to compare one reference
 group (here strata \texttt{a}) to multiple treatment groups (here strata
 \texttt{b,c,d,e}). We will consider the following dataset:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 set.seed(35)
 dt <- simBuyseTest(n.T=25, n.strata = 5)
 dt$id <- paste0("id",1:NROW(dt))
@@ -458,6 +463,8 @@ dt$strata <- as.character(dt$strata)
 print(head(dt), class = FALSE)
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
     id treatment  eventtime status toxicity      score strata
 1: id1         C 0.03384999      1      yes  0.4777913      b
@@ -470,8 +477,7 @@ print(head(dt), class = FALSE)
 
 
 We can apply the GPC procedure to each pair of group:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 BuyseTest.options(order.Hprojection=1);BuyseTest.options(trace=0)
 
 ls.BT <- list("b-a=0" = BuyseTest(strata ~ cont(score), add.halfNeutral = TRUE,
@@ -492,6 +498,8 @@ M.confint <- do.call(rbind,lapply(ls.BT,confint, statistic = "favorable"))
 cbind(M.confint,adj.p.value = p.adjust(M.confint[,"p.value"], method = "bonferroni"))
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
        estimate        se  lower.ci  upper.ci null    p.value adj.p.value
 b-a=0 0.4090909 0.1542200 0.1654639 0.7073759  0.5 0.56434599   1.0000000
@@ -506,12 +514,13 @@ Because we compare the treatment groups to the same reference, the
 test statistics are correlated and a Bonferroni adjustment does not
 provide optimal power. The max-test adjustment provides better power
 and can be obtained via the \texttt{BuyseMultComp} function:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id", global = TRUE)
 print(e.mc, cols = c("estimate","se","p.value","adj.p.value"))
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
   - Multivariate test: p.value = 0.2645493 (df = 4)
   - Univariate tests:
@@ -527,13 +536,14 @@ e-a=0 0.3333333 0.1360828 0.25767454   0.5831344
 Here the smallest p-value has been multiplied by a factor 2.64 instead
 of 4. This is thanks to the rather strong correlation between the test
 statistics:
-\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
-\begin{lstlisting}
+\begin{lstlisting}[language=r,numbers=none]
 M.cor <- cor(lava::iid(e.mc))
 dimnames(M.cor) <- list(names(ls.BT),names(ls.BT))
 M.cor
 \end{lstlisting}
 
+\phantomsection
+\label{}
 \begin{verbatim}
           b-a=0     c-a=0     d-a=0     e-a=0
 b-a=0 1.0000000 0.6519486 0.5601058 0.7520401
@@ -544,10 +554,8 @@ e-a=0 0.7520401 0.5439927 0.5051815 1.0000000
 
 
 \Warning This testing procedure does not guarantee transitive results \citep{thangavelu2007wilcoxon}
-
-
 \section*{References}
-\label{sec:org4dfee00}
+\label{sec:orga9f21f8}
 \begingroup
 \renewcommand{\section}[2]{}
 

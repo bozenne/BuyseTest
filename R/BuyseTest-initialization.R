@@ -79,7 +79,7 @@ initializeArgs <- function(status,
     engine <- option$engine
     alternative <- option$alternative
     precompute <- option$precompute
-        
+    
     ## ** convert formula into separate arguments
     if(!missing(formula)){
         ## the missing is for BuysePower where the arguments are not necessarily specified
@@ -296,11 +296,12 @@ initializeArgs <- function(status,
     }
     
     ## ** threshold
+    operator.star <- grepl("*",operator, fixed=TRUE) ## neutral threshold is 1 instead of 0 when multiplicative instead of additive threshold
     if(any(is.na(threshold))){
-        threshold[which(is.na(threshold))] <- 10^{-12}
+        threshold[which(is.na(threshold))] <- operator.star[which(is.na(threshold))] + 10^(-12)
     }
-    if(any(abs(threshold)<10^{-12})){
-        threshold[which(abs(threshold)<10^{-12})] <- 10^{-12}
+    if(sum(threshold < (operator.star + 10^(-12)), na.rm = TRUE)>0){ ## use sum(, na.rm=TRUE) as threshold may be NA
+        threshold[which(threshold < (operator.star + 10^(-12)))] <- operator.star[which(threshold < (operator.star + 10^(-12)))] + 10^(-12)
     }
 
     ## ** method.inference
@@ -334,7 +335,7 @@ initializeArgs <- function(status,
         if((!is.null(model.tte))){
             if((length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
                 attr.save <- attr(model.tte,"iidNuisance")
-            
+                
                 model.tte <- list(model.tte)
                 names(model.tte) <- unique(endpoint.TTE)
                 attr(model.tte,"iidNuisance") <- attr.save
@@ -393,7 +394,28 @@ initializeArgs <- function(status,
 
     ## ** operator
     if(!is.numeric(operator)){
-        operator <- sapply(operator, switch, ">0"=1, "<0"=-1, NA)
+        multiplicative.threshold <- sapply(operator, switch,
+                                           ">0"=FALSE,
+                                           "+"=FALSE,
+                                           "+>0"=FALSE,
+                                           "<0"=FALSE,
+                                           "+<0"=FALSE,
+                                           "*>0"=TRUE,
+                                           "*"=TRUE,
+                                           "*<0"=TRUE,
+                                           NA)
+        operator <- sapply(operator, switch,
+                           ">0"=1,
+                           "+"=1,
+                           "*"=1,
+                           "+>0"=1,
+                           "*>0"=1,
+                           "<0"=-1,
+                           "+<0"=-1,
+                           "*<0"=-1,
+                           NA)
+    }else{
+        multiplicative.threshold <- rep(FALSE, length(operator))
     }
 
     ## ** export
@@ -433,6 +455,7 @@ initializeArgs <- function(status,
         seed = seed,
         strata = strata,
         threshold = threshold,
+        multiplicative.threshold = multiplicative.threshold,
         trace = trace,
         treatment = treatment,
         type = type,

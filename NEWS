@@ -1,3 +1,7 @@
+* Version 3.3.5
+** User visible change
+- enable the use of a multiplicative threshold in BuyseTest via the argument operator (set to "*"). Some of the output now show +threshold or *threshold instead of just threshold.
+
 * Version 3.3.4
 
 ** Internal change

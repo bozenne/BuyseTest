@@ -1,6 +1,6 @@
 #+TITLE: Overview of the package BuyseTest
 #+Author: Brice Ozenne
-#+BEGIN_SRC R :exports none :results quiet :session *R* :cache no
+#+BEGIN_SRC R :exports none :results silent :session *R* :cache no
 options(width = 94)
 if(system("whoami",intern=TRUE)=="bozenne"){  
   setwd("~/Documents/GitHub/BuyseTest/inst/doc-software/")
@@ -65,9 +65,8 @@ Y| < \tau] }{\Prob[X \geq Y + \tau] + 0.5\Prob[ |X - Y| < \tau]}\).
   default values used in the *BuyseTest* package. The function can
   also change the default values to better match the user needs.
 
-Another vignette, "Wilcoxon test via GPC", details connexions between
-GPC and the Wilcoxon rank sum test. Before going further we need to
-load the *BuyseTest* package in the R session:
+Before going further we need to load the *BuyseTest* package in the \Rlogo
+session:
 #+BEGIN_SRC R  :results silent   :exports code  :session *R* :cache no
 library(BuyseTest)
 library(data.table)
@@ -103,9 +102,9 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] ‘3.3.2’
+: [1] '3.3.5'
 
-For completness, the details of the R session used to generate this
+For completness, the details of the \Rlogo session used to generate this
 document are:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 sessionInfo()
@@ -113,62 +112,39 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 4.3.3 (2024-02-29)
-Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 22.04.5 LTS
+R version 4.5.1 (2025-06-13 ucrt)
+Platform: x86_64-w64-mingw32/x64
+Running under: Windows 11 x64 (build 26200)
 
 Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0 
-LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0
+  LAPACK version 3.12.1
 
 locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
- [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
-[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+[1] LC_COLLATE=Danish_Denmark.utf8  LC_CTYPE=Danish_Denmark.utf8   
+[3] LC_MONETARY=Danish_Denmark.utf8 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.utf8    
 
 time zone: Europe/Copenhagen
-tzcode source: system (glibc)
+tzcode source: internal
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] butils.base_1.3           devtools_2.4.5            usethis_2.2.3            
- [4] data.table_1.17.2         riskRegression_2025.05.20 pbapply_1.7-2            
- [7] asht_1.0.1                coin_1.4-3                bpcp_1.4.2               
-[10] exact2x2_1.6.9            exactci_1.4-4             testthat_3.2.1           
-[13] ssanv_1.1                 LMMstar_1.1.0             prodlim_2025.04.28       
-[16] ggplot2_3.5.2             survival_3.5-8            BuyseTest_3.3.2          
-[19] Rcpp_1.0.14              
+[1] data.table_1.17.8  BuyseTest_3.3.5    Rcpp_1.1.0         prodlim_2025.04.28
+[5] ggplot2_4.0.0      survival_3.8-3    
 
 loaded via a namespace (and not attached):
-  [1] gridExtra_2.3       remotes_2.5.0       sandwich_3.1-1      rlang_1.1.6        
-  [5] magrittr_2.0.3      multcomp_1.4-28     matrixStats_1.3.0   polspline_1.1.24   
-  [9] compiler_4.3.3      vctrs_0.6.5         profvis_0.3.8       quantreg_5.97      
- [13] stringr_1.5.1       pkgconfig_2.0.3     shape_1.4.6.1       fastmap_1.1.1      
- [17] backports_1.4.1     ellipsis_0.3.2      promises_1.2.1      rmarkdown_2.26     
- [21] sessioninfo_1.2.2   MatrixModels_0.5-3  purrr_1.0.2         xfun_0.43          
- [25] glmnet_4.1-8        modeltools_0.2-23   cachem_1.0.8        perm_1.0-0.4       
- [29] later_1.3.2         timereg_2.0.6       parallel_4.3.3      cluster_2.1.6      
- [33] R6_2.6.1            stringi_1.8.3       RColorBrewer_1.1-3  pkgload_1.4.0      
- [37] parallelly_1.44.0   rpart_4.1.23        brio_1.1.4          numDeriv_2016.8-1.1
- [41] iterators_1.0.14    knitr_1.45          future.apply_1.11.3 zoo_1.8-14         
- [45] snow_0.4-4          base64enc_0.1-3     httpuv_1.6.15       Matrix_1.6-5       
- [49] splines_4.3.3       nnet_7.3-19         tidyselect_1.2.1    rstudioapi_0.16.0  
- [53] codetools_0.2-19    miniUI_0.1.1.1      pkgbuild_1.4.4      listenv_0.9.1      
- [57] lattice_0.22-5      tibble_3.2.1        shiny_1.8.1.1       withr_3.0.2        
- [61] evaluate_0.23       foreign_0.8-86      future_1.49.0       urlchecker_1.0.1   
- [65] pillar_1.10.2       checkmate_2.3.1     foreach_1.5.2       stats4_4.3.3       
- [69] generics_0.1.3      scales_1.4.0        globals_0.18.0      xtable_1.8-4       
- [73] glue_1.8.0          rms_6.8-0           Hmisc_5.1-2         tools_4.3.3        
- [77] SparseM_1.81        fs_1.6.3            mvtnorm_1.3-3       grid_4.3.3         
- [81] libcoin_1.0-10      colorspace_2.1-1    nlme_3.1-163        htmlTable_2.4.2    
- [85] Formula_1.2-5       cli_3.6.5           lava_1.8.1          mets_1.3.6         
- [89] dplyr_1.1.4         doSNOW_1.0.20       gtable_0.3.6        digest_0.6.37      
- [93] TH.data_1.1-3       htmlwidgets_1.6.4   farver_2.1.2        memoise_2.0.1      
- [97] htmltools_0.5.8.1   cmprsk_2.2-12       lifecycle_1.0.4     mime_0.12          
-[101] MASS_7.3-60.0.1
+ [1] Matrix_1.7-3        gtable_0.3.6        future.apply_1.20.0 dplyr_1.1.4        
+ [5] compiler_4.5.1      tidyselect_1.2.1    MatrixModels_0.5-4  parallel_4.5.1     
+ [9] globals_0.18.0      splines_4.5.1       scales_1.4.0        lattice_0.22-7     
+[13] R6_2.6.1            generics_0.1.4      future_1.67.0       tibble_3.3.0       
+[17] pillar_1.11.1       RColorBrewer_1.1-3  rlang_1.1.6         S7_0.2.0           
+[21] cli_3.6.5           withr_3.0.2         magrittr_2.0.4      digest_0.6.37      
+[25] grid_4.5.1          lifecycle_1.0.4     lava_1.8.1          vctrs_0.6.5        
+[29] SparseM_1.84-2      glue_1.8.0          farver_2.1.2        listenv_0.9.1      
+[33] codetools_0.2-20    stats4_4.5.1        colorspace_2.1-2    parallelly_1.45.1  
+[37] tools_4.5.1         pkgconfig_2.0.3
 #+end_example
 
 \clearpage
@@ -200,6 +176,24 @@ BT <- BuyseTest(data = veteran,
 #+END_SRC
 
 #+RESULTS:
+#+begin_example
+
+         Generalized Pairwise Comparisons
+
+Settings 
+   - 2 groups  : Control = Pl and Treatment = Exp
+   - 1 endpoint: 
+       priority endpoint type           operator             threshold event       
+       1        time     time to event  higher is favorable  +20       status (0 1)
+   - right-censored pairs: probabilistic score based on the survival curves 
+
+Point estimation and calculation of the iid decomposition
+
+Estimation of the estimator's distribution 
+   - method: moments of the U-statistic
+
+Gather the results in a S4BuyseTest object
+#+end_example
 
 \clearpage
 
@@ -247,7 +241,7 @@ summary(BT)
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-     time        20      100        37.78          46.54      15.68        0 -0.0877
+     time       +20      100        37.78          46.54      15.68        0 -0.0877
  CI [2.5% ; 97.5%] p.value 
   [-0.2735;0.1045] 0.37162
 #+end_example
@@ -272,7 +266,7 @@ print(BT, percentage = FALSE)
 
 #+RESULTS:
 :  endpoint threshold total favorable unfavorable neutral uninf   Delta CI [2.5% ; 97.5%]
-:      time        20  4692   1772.59     2183.89  735.52     0 -0.0877  [-0.2735;0.1045]
+:      time       +20  4692   1772.59     2183.89  735.52     0 -0.0877  [-0.2735;0.1045]
 :  p.value
 :  0.37162
 
@@ -339,7 +333,7 @@ summary(BT, statistic = "winRatio")
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-     time        20      100        37.78          46.54      15.68        0 0.8117
+     time       +20      100        37.78          46.54      15.68        0 0.8117
  CI [2.5% ; 97.5%] p.value 
    [0.5134;1.2833] 0.37195
 #+end_example
@@ -387,8 +381,8 @@ rbind(confint(BT, statistic = "favorable", null = 0.42),
 
 \noindent Considering the proportion of neutral pairs in the summary
 statistics: \hfill @@latex:\textcolor{orange}{- argument \texttt{add.halfNeutral}}@@
-- Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]\).
-- win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob[|Y- X| < \tau]}{\Prob[X\geq Y + \tau] + 0.5 \Prob[|Y- X| < \tau]}\).
+- Wilcoxon-Mann-Whitney parameter or probabilistic index: \(\Prob[Y\geq X + \tau] + 0.5 \; \Prob\left[|Y- X| < \tau\right]\).
+- win odds: \(\frac{\Prob[Y\geq X + \tau] + 0.5 \Prob\left[|Y- X| < \tau\right]}{\Prob[X\geq Y + \tau] + 0.5 \Prob\left[|Y- X| < \tau\right]}\).
 have been recommended (e.g. cite:ajufo2023fallacies) over the win
 ratio. These summary statistics can be output by specifying the
 argument =add.halfNeutral= to =TRUE= when calling =BuyseTest=:
@@ -415,7 +409,7 @@ Testing a net treatment benefit of 0, a win odds of 1, or a
  hypothesis and therefore the same p-value should be obtained. The
  (small) discrepancy in p-values observed in this example (0.371617
  vs. 0.3716211 vs. 0.3716632) are due to small sample
- approximation. Such discrepancies will not arise when using
+ approximations. Such discrepancies will not arise when using
  non-parametric bootstrap or permutation tests using quantiles of the
  bootstrap or permutation distribution, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -464,14 +458,14 @@ summary(BTstrata, type.display = keep.colStrata)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint and 4 strata
+            Generalized pairwise comparisons with 1 endpoint and 4 strata
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: Exp (treatment) vs. Pl (control) 
- - strata weights  : 26.38%, 34.63%, 18.47%, 20.52% 
+ - strata weights  : 18.47%, 20.52%, 26.38%, 34.63% 
  - uninformative pairs: no contribution
  - results
  endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
@@ -581,14 +575,14 @@ summary(BTstrata2, type.display = keep.colStrata)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint and 4 strata
+                Generalized pairwise comparisons with 1 endpoint and 4 strata
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: Exp (treatment) vs. Pl (control) 
- - strata weights  : 25.38%, 45.69%, 13.71%, 15.23% 
+ - strata weights  : 13.71%, 15.23%, 25.38%, 45.69% 
  - uninformative pairs: no contribution
  - results
  endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
@@ -626,7 +620,7 @@ confint(BTstrata, strata = TRUE)
 : time_t20.large     -0.3722222 0.2190018 -0.7110335 0.1068610    0 0.1240457
 
 \Warning The pooled estimator presented in this section has a
-conditional interpretation, as they summarize comparisons made between
+conditional interpretation, as it summarizes comparisons made between
 observations from the same strata. They will generally differ from the
 marginal (i.e. non-adjusted) Net Treatment Benefit and tend to be more
 extreme (i.e. away from 0) in presence of group difference.
@@ -684,7 +678,7 @@ BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
 
 #+RESULTS:
 :  endpoint threshold Delta
-:      time        20 0.357
+:      time       +20 0.357
 
 leads, up to rounding, to the same result.
 
@@ -733,7 +727,7 @@ summary(BT.H)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 2 prioritized endpoints
+                 Generalized pairwise comparisons with 2 prioritized endpoints
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -744,7 +738,7 @@ summary(BT.H)
  - neutral pairs   : re-analyzed using lower priority endpoints
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
-     time        20   100.00        37.78          46.54      15.68        0 -0.0877 -0.0877
+     time       +20   100.00        37.78          46.54      15.68        0 -0.0877 -0.0877
     karno              15.68         5.78           7.11       2.78        0 -0.0133 -0.1009
  CI [2.5% ; 97.5%] p.value 
   [-0.2735;0.1045] 0.37162 
@@ -806,7 +800,7 @@ summary(BT.nH)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 2 endpoints
+                 Generalized pairwise comparisons with 2 endpoints
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -816,7 +810,7 @@ summary(BT.nH)
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold weight total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta
-     time        20    0.5      100        37.78          46.54      15.68        0 -0.0877
+     time       +20    0.5      100        37.78          46.54      15.68        0 -0.0877
     karno              0.5      100        41.82          44.95      13.24        0 -0.0313
    Delta CI [2.5% ; 97.5%] p.value 
  -0.0438  [-0.1388;0.0519] 0.36977 
@@ -867,7 +861,7 @@ confint(BT.nHw, cumulative = FALSE)
 
 \bigskip
 
-Note: the apparent discrepency in p-value between the hierarchical and
+Note: the apparent discrepancy in p-value between the hierarchical and
 non-hierarchical GPC at the first priority (0.3762 vs 0.3698 vs
 0-3707) is due to the use of a transformation that makes the p-value
 dependent on the estimate. Otherwise the p-value would be the same at
@@ -899,7 +893,7 @@ summary(BT.perm)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint
+                  Generalized pairwise comparisons with 1 endpoint
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -910,7 +904,7 @@ summary(BT.perm)
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta p.value 
-     time        20      100        37.78          46.54      15.68        0 -0.0877 0.35265
+     time       +20      100        37.78          46.54      15.68        0 -0.0877 0.35265
 #+end_example
 
 - *bootstrap resampling* (="bootstrap"=). In large enough samples, this approach gives valid
@@ -925,7 +919,7 @@ summary(BT.boot)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint
+                  Generalized pairwise comparisons with 1 endpoint
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -936,7 +930,7 @@ summary(BT.boot)
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-     time        20      100        37.78          46.54      15.68        0 -0.0877
+     time       +20      100        37.78          46.54      15.68        0 -0.0877
  CI [2.5% ; 97.5%] p.value 
   [-0.2721;0.1034]   0.383
 #+end_example
@@ -953,7 +947,7 @@ summary(BT.ustat)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint
+                 Generalized pairwise comparisons with 1 endpoint
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -963,7 +957,7 @@ summary(BT.ustat)
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-     time        20      100        37.78          46.54      15.68        0 -0.0877
+     time       +20      100        37.78          46.54      15.68        0 -0.0877
  CI [2.5% ; 97.5%] p.value 
   [-0.2735;0.1045] 0.37162
 #+end_example
@@ -981,7 +975,7 @@ sapply(1:10, function(i){mean(rbinom(1e4, size = 1, prob = 0.05))})
 #+END_SRC
 
 #+RESULTS:
-:  [1] 0.0511 0.0491 0.0489 0.0454 0.0516 0.0522 0.0468 0.0483 0.0491 0.0508
+: [1] 0.0511 0.0491 0.0489 0.0454 0.0516 0.0522 0.0468 0.0483 0.0491 0.0508
 Indeed, here we get a reasonnable approximation of =0.05= (if we round
 and only keep 2 digits). Note that to get 3 digits precision we would
 need more samples. The last method does not rely on resampling but on
@@ -1015,7 +1009,7 @@ summary(BTinv)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint
+                  Generalized pairwise comparisons with 1 endpoint
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -1025,14 +1019,61 @@ summary(BTinv)
  - censored pairs  : probabilistic score based on the survival curves
  - results
  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)  Delta
-     time        20      100        46.54          37.78      15.68        0 0.0877
+     time       +20      100        46.54          37.78      15.68        0 0.0877
  CI [2.5% ; 97.5%] p.value 
   [-0.1045;0.2735] 0.37162
 #+end_example
 
 Internally =BuyseTest= will compute the favorable and unfavorable
 score as usual and then switch them around if the operator equals
-="<0"=.
+="<0"=, e.g.:
+
+** What about a multiplicative instead of additive threshold?
+
+If the interest lies in \(\Prob[Y \geq \tau X ]-\Prob[X \geq \tau Y
+]\) instead of \(\Prob[Y \geq X + \tau]-\Prob[X \geq Y + \tau]\) one
+should specify a =*= in the operator:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+ffstar <- trt ~ tte(time, status = "status", threshold = 20, operator = "*")
+BTstar <- BuyseTest(ffstar, data = veteran, trace = 0)
+print(BTstar)
+#+END_SRC
+
+#+RESULTS:
+: endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
+:      time       *20      100          5.3           6.13      88.57        0 -0.0083
+:  CI [2.5% ; 97.5%] p.value
+:    [-0.068;0.0515] 0.78637
+
+To have a multiplicative threshold when smaller values are favorable use =*<0=.
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+BuyseTest(trt ~ tte(time, status = "status", threshold = 20, operator = "*<0"), data = veteran)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+
+         Generalized Pairwise Comparisons
+
+Settings 
+   - 2 groups  : Control = Pl and Treatment = Exp
+   - 1 endpoint: 
+       priority endpoint type           operator            threshold event       
+       1        time     time to event  lower is favorable  *20       status (0 1)
+   - right-censored pairs: probabilistic score based on the survival curves 
+
+Point estimation and calculation of the iid decomposition
+
+Estimation of the estimator's distribution 
+   - method: moments of the U-statistic
+
+Gather the results in a S4BuyseTest object 
+
+ endpoint threshold  Delta
+     time       *20 0.0083
+#+end_example
 
 \clearpage
 
@@ -1226,9 +1267,6 @@ library(ggplot2)
 autoplot(BTse.ustat)
 #+END_SRC
 
-#+RESULTS:
-#+begin_src R
-#+end_src
 
 #+ATTR_LaTeX: :width 0.5\textwidth :placement [!h]
 [[./figures/gg-sensitivity1.pdf]]
@@ -1395,7 +1433,7 @@ BT.keep
 
 #+RESULTS:
 :  endpoint threshold   delta   Delta
-:      time        20 -0.0877 -0.0877
+:      time       +20 -0.0877 -0.0877
 :     karno           -0.0133 -0.1009
 
 More examples and explanation can be found in the documentation of
@@ -1688,7 +1726,7 @@ BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
 
 #+RESULTS:
 :             endpoint threshold  Delta
-:  eventtimeUncensored       0.5 -0.271
+:  eventtimeUncensored      +0.5 -0.271
 
 using the censored survival times.
 
@@ -1870,7 +1908,7 @@ e.P3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
 model.tables(e.P3)
 #+END_SRC
 #+RESULTS:
-:    endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
+: endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
 : 1 eventtime       0.5   100  11.65444    34.18937 54.14472 0.01147085 -0.2253494 -0.3476693
 :      upper.ci      p.value
 : 1 -0.09548719 0.0007624659
@@ -1923,7 +1961,7 @@ summary(BT)
 #+END_SRC
 
 #+RESULTS:
-:        Generalized pairwise comparisons with 1 endpoint
+:                   Generalized pairwise comparisons with 1 endpoint
 : 
 :  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
 :  - treatment groups: T (treatment) vs. C (control) 
@@ -1931,7 +1969,7 @@ summary(BT)
 :  - uninformative pairs: no contribution, their weight is passed to the informative pairs using IPCW
 :  - results
 :   endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-:  eventtime       0.5      100        11.82          36.43      51.75        0 -0.2461
+:  eventtime      +0.5      100        11.82          36.43      51.75        0 -0.2461
 
 
 We can also see that no pair is finally classified as non
@@ -1982,7 +2020,7 @@ summary(BT)
 #+END_SRC
 
 #+RESULTS:
-:        Generalized pairwise comparisons with 1 endpoint
+:                   Generalized pairwise comparisons with 1 endpoint
 : 
 :  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
 :  - treatment groups: T (treatment) vs. C (control) 
@@ -1990,7 +2028,7 @@ summary(BT)
 :  - uninformative pairs: score equals the averaged score of all informative pairs
 :  - results
 :   endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
-:  eventtime       0.5      100        11.82          36.43      51.75        0 -0.2461
+:  eventtime      +0.5      100        11.82          36.43      51.75        0 -0.2461
 
 
 Looking at the scores of the pairs:
@@ -2077,8 +2115,8 @@ s.correction <- model.tables(e.correction, column = c("favorable","unfavorable",
 #+END_SRC
 
 #+RESULTS:
-: Warning message:
-: In .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
+: Advarselsbesked:
+: I .BuyseTest(envir = envirBT, iid = outArgs$iid, method.inference = "none",  :
 :   Some of the survival curves for endpoint(s) "timeC" are unknown beyond a survival of 0.25.
 : The correction of uninformative pairs assume that uninformative pairs would on average behave like informative pairs. 
 : This can be a strong assumption and have substantial impact when the tail of the survival curve is unknown.
@@ -2431,7 +2469,40 @@ bibliographystyle:apalike
 #+LaTeX_HEADER:   \xspace
 #+LaTeX_HEADER: }
 # # R Software
-#+LATEX_HEADER: \newcommand\Rlogo{\textbf{\textsf{R}}\xspace} % 
+# ## R logo
+#+LATEX_HEADER:\definecolor{grayR}{HTML}{8A8990}
+#+LATEX_HEADER:\definecolor{grayL}{HTML}{C4C7C9}
+#+LATEX_HEADER:\definecolor{blueM}{HTML}{1F63B5}
+#+LATEX_HEADER: \newcommand{\Rlogo}[1][0.07]{
+#+LATEX_HEADER: \begin{tikzpicture}[scale=#1]
+#+LATEX_HEADER: \shade [right color=grayR,left color=grayL,shading angle=60] 
+#+LATEX_HEADER: (-3.55,0.3) .. controls (-3.55,1.75) 
+#+LATEX_HEADER: and (-1.9,2.7) .. (0,2.7) .. controls (2.05,2.7)  
+#+LATEX_HEADER: and (3.5,1.6) .. (3.5,0.3) .. controls (3.5,-1.2) 
+#+LATEX_HEADER: and (1.55,-2) .. (0,-2) .. controls (-2.3,-2) 
+#+LATEX_HEADER: and (-3.55,-0.75) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \fill[white] 
+#+LATEX_HEADER: (-2.15,0.2) .. controls (-2.15,1.2) 
+#+LATEX_HEADER: and (-0.7,1.8) .. (0.5,1.8) .. controls (2.2,1.8) 
+#+LATEX_HEADER: and (3.1,1.2) .. (3.1,0.2) .. controls (3.1,-0.75) 
+#+LATEX_HEADER: and (2.4,-1.45) .. (0.5,-1.45) .. controls (-1.1,-1.45) 
+#+LATEX_HEADER: and (-2.15,-0.7) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \fill[blueM] 
+#+LATEX_HEADER: (1.75,1.25) -- (-0.65,1.25) -- (-0.65,-2.75) -- (0.55,-2.75) -- (0.55,-1.15) -- 
+#+LATEX_HEADER: (0.95,-1.15)  .. controls (1.15,-1.15) 
+#+LATEX_HEADER: and (1.5,-1.9) .. (1.9,-2.75) -- (3.25,-2.75)  .. controls (2.2,-1) 
+#+LATEX_HEADER: and (2.5,-1.2) .. (1.8,-0.95) .. controls (2.6,-0.9) 
+#+LATEX_HEADER: and (2.85,-0.35) .. (2.85,0.2) .. controls (2.85,0.7) 
+#+LATEX_HEADER: and (2.5,1.2) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \fill[white]  (1.4,0.4) -- (0.55,0.4) -- (0.55,-0.3) -- (1.4,-0.3).. controls (1.75,-0.3) 
+#+LATEX_HEADER: and (1.75,0.4) .. cycle;
+#+LATEX_HEADER: 
+#+LATEX_HEADER: \end{tikzpicture}
+#+LATEX_HEADER: }
+
 ** Code
 :PROPERTIES:
 :ID:       2ec77c4b-f83d-4612-9a89-a96ba1b7bf70

@@ -70,8 +70,10 @@
 #' There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
 #'   \item \code{status}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
 #' Must value \code{NA} when the endpoint is not a time to event.
-#'   \item \code{operator}: [character vector] the sign defining a favorable endpoint.
-#' \code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
+#'   \item \code{operator}: [character vector] the sign defining a favorable endpoint and type of threshold
+#' \code{">0"} indicates that higher values are favorable while \code{"<0"} indicates that lower values are favorable.
+#' \code{"+"} indicates an additive threshold while \code{"*"} a multiplicative threshold.
+#' Can be combined as \code{"*<0"} to use a multiplicative threshold and lower values as favorable.
 #'   \item \code{type}: [character vector] indicates whether it is
 #' a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 #' a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
@@ -511,7 +513,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","multiplicative.threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -556,6 +558,7 @@ BuyseTest <- function(formula,
                              D.TTE = envir$outArgs$D.TTE,
                              D.UTTE = envir$outArgs$D.UTTE,
                              threshold = envir$outArgs$threshold,
+                             multiplicative.threshold = envir$outArgs$multiplicative.threshold,
                              restriction = envir$outArgs$restriction,
                              level.strata = envir$outArgs$level.strata,
                              grid.strata = envir$outArgs$grid.strata,
@@ -615,6 +618,7 @@ BuyseTest <- function(formula,
                                  posT = outSample$ls.posT,                     
                                  threshold = envir$outArgs$threshold,
                                  threshold0 = attr(envir$outArgs$threshold,"original")==0,
+                                 multiplicativeThreshold = envir$outArgs$multiplicative.threshold,
                                  restriction = envir$outArgs$restriction,
                                  weightEndpoint = envir$outArgs$weightEndpoint,
                                  weightObs = envir$outArgs$weightObs,

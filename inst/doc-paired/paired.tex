@@ -1,4 +1,4 @@
-% Created 2025-07-23 on 17:42
+% Created 2026-02-20 fr 13:43
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -293,7 +293,7 @@ diabeticJ <- diabetic[diabetic$juvenile,]
 
 \clearpage
 \section{Wald methods (Gehan scoring rule)}
-\label{sec:org35a98d4}
+\label{sec:orgfd4a1bd}
 
 To mimic the methodology underlying the results presented in Table 1
 of \cite{matsouaka2022robust}, we perform GPC stratified by patient
@@ -410,7 +410,7 @@ sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
 0.06631828
 \end{verbatim}
 \section{MOVER method (Gehan scoring rule)}
-\label{sec:org121445d}
+\label{sec:org08a39a2}
 
 The method recommended by \cite{matsouaka2022robust} is the MOVER
 approach, which has been developped for a binary scoring rule
@@ -432,7 +432,7 @@ leading to the same results as those of the table 1 in the original article, up 
 
 \clearpage
 \section{Wald methods (Peron scoring rule)}
-\label{sec:org94f1d11}
+\label{sec:org1e8647f}
 
 To better account for censoring one could use the Peron scoring rule
 where the survival is estimated across all subjects within a treatment
@@ -574,7 +574,7 @@ c(average = sqrt(crossprod((Hterm1/N))),
 
 \clearpage
 \section{More general cross-over designs}
-\label{sec:org3c84a54}
+\label{sec:org00519dd}
 Another type of paired design is a cross-over design where each
 patient may repeteadly experience each treatment. As an example, we
 will consider the PROFIL trial whose dataset is available in the
@@ -637,7 +637,7 @@ ggRCS
 \includegraphics[trim={0 0 0 0},width=1\textwidth]{./figures/spaghetti-Nof1.pdf}
 \end{center}
 \subsection{With 2 treatment groups}
-\label{sec:orgd7505e1}
+\label{sec:orga75a133}
 
 \noindent Since \texttt{BuyseTest} can only handle two treatment group, we restrict the
 dataset to placebo and low dose:
@@ -707,7 +707,7 @@ confint(lowGPC)
 \phantomsection
 \label{}
 \begin{verbatim}
-estimate         se    lower.ci   upper.ci null   p.value
+               estimate         se    lower.ci   upper.ci null   p.value
 rcs_t1.45    0.02741742 0.02047690 -0.01273920 0.06748574    0 0.1808076
 number_t0.35 0.02755903 0.03139999 -0.03401048 0.08892015    0 0.3803606
 duration_t3  0.03397497 0.02801978 -0.02099009 0.08873527    0 0.2256649
@@ -725,7 +725,7 @@ confint(lowGPC_Buyse)
 \phantomsection
 \label{}
 \begin{verbatim}
-estimate         se     lower.ci   upper.ci null    p.value
+               estimate         se     lower.ci   upper.ci null    p.value
 rcs_t1.45    0.01628547 0.01771680 -0.018444486 0.05097618    0 0.35807018
 number_t0.35 0.03730092 0.02668638 -0.015057839 0.08945568    0 0.16257765
 duration_t3  0.04215064 0.02400508 -0.004957166 0.08907178    0 0.07946061
@@ -741,7 +741,7 @@ confint(lowGPC_CMH)
 \phantomsection
 \label{}
 \begin{verbatim}
-estimate         se    lower.ci   upper.ci null   p.value
+               estimate         se    lower.ci   upper.ci null   p.value
 rcs_t1.45    0.02145018 0.01855984 -0.01493878 0.05778241    0 0.2479363
 number_t0.35 0.03266743 0.02784903 -0.02195881 0.08709921    0 0.2411232
 duration_t3  0.03869945 0.02491698 -0.01019050 0.08740482    0 0.1207617
@@ -781,7 +781,7 @@ confint(lowGPC2)
 \phantomsection
 \label{}
 \begin{verbatim}
-estimate         se    lower.ci   upper.ci null   p.value
+               estimate         se    lower.ci   upper.ci null   p.value
 rcs_t1.45    0.02741742 0.02075177 -0.01327825 0.06802241    0 0.1866527
 number_t0.35 0.02755903 0.03182148 -0.03483625 0.08974030    0 0.3867027
 duration_t3  0.03397497 0.02839590 -0.02172779 0.08946745    0 0.2318709
@@ -800,13 +800,13 @@ sqrt(colSums(df.lowGPC_Wcenter^2))
 \label{}
 \begin{verbatim}
 rcs_t1.45 number_t0.35  duration_t3 
-  0.01771680   0.02668638   0.02400508
+0.01771680   0.02668638   0.02400508
 \end{verbatim}
 
 
 \clearpage
 \subsection{With 3 or more treatment groups (WORK IN PROGRESS!)}
-\label{sec:org6db1537}
+\label{sec:org1f125d6}
 
 Handling more than two treatment groups is still an area of
 development for the BuyseTest package. Several approaches have been
@@ -827,20 +827,20 @@ CasinoTest(update(fff, . ~ . + strata(id)), data = profil,
 \begin{verbatim}
                    endpoint treatment     estimate se lower.ci upper.ci null p.value
 placebo: rcs            rcs   placebo -0.012193158 NA       NA       NA   NA      NA
-lowDose: rcs            rcs   lowDose  0.008015351 NA       NA       NA   NA      NA
-highDose: rcs           rcs  highDose  0.004177807 NA       NA       NA   NA      NA
+lowDose: rcs            rcs   lowDose  0.008046335 NA       NA       NA   NA      NA
+highDose: rcs           rcs  highDose  0.004146823 NA       NA       NA   NA      NA
 placebo: number      number   placebo -0.020434169 NA       NA       NA   NA      NA
-lowDose: number      number   lowDose  0.011566310 NA       NA       NA   NA      NA
-highDose: number     number  highDose  0.008867860 NA       NA       NA   NA      NA
+lowDose: number      number   lowDose  0.011597293 NA       NA       NA   NA      NA
+highDose: number     number  highDose  0.008836876 NA       NA       NA   NA      NA
 placebo: duration  duration   placebo -0.024148505 NA       NA       NA   NA      NA
-lowDose: duration  duration   lowDose  0.013113939 NA       NA       NA   NA      NA
-highDose: duration duration  highDose  0.011034566 NA       NA       NA   NA      NA
+lowDose: duration  duration   lowDose  0.013175906 NA       NA       NA   NA      NA
+highDose: duration duration  highDose  0.010972598 NA       NA       NA   NA      NA
 \end{verbatim}
 
 Its main drawback is that the assessment of say \texttt{placebo}
 vs. \texttt{lowDose} is now influenced by \texttt{highDose}.
 \section*{References}
-\label{sec:orgc4ca38e}
+\label{sec:org8bd767f}
 \begingroup
 \renewcommand{\section}[2]{}
 

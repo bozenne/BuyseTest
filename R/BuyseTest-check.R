@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: maj 22 2025 (16:08) 
+## Last-Updated: feb 20 2026 (11:21) 
 ##           By: Brice Ozenne
-##     Update #: 424
+##     Update #: 433
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,6 +47,7 @@ testArgs <- function(name.call,
                      seed,
                      strata,
                      threshold,
+                     multiplicative.threshold,
                      trace,
                      treatment,
                      type,
@@ -437,7 +438,8 @@ testArgs <- function(name.call,
     ## ** operator
     if(any(is.na(operator))){
         stop("BuyseTest: wrong specification of \'operator\'. \n",
-             "Should be either \"<0\" (lower is better) or \">0\" (higher is better)")
+             "Can be \"<0\" (lower is better), \">0\" (higher is better), \"+\" additive threshold, \"*\" multiplicative threshold \n",
+             "or a combination of the previous such as \"*<0\" (lower is better with multiplicative threshold). \n")
     }
 
     ## ** restriction
@@ -482,6 +484,10 @@ testArgs <- function(name.call,
                  min = 0,
                  refuse.NA = TRUE,
                  method = "BuyseTest")
+    if(any(multiplicative.threshold) && any(threshold[multiplicative.threshold]<=1)){
+        stop("BuyseTest: wrong specification of \'threshold\'. \n",
+             "\'threshold\' must be at least 1 + 1e-12 when considering multiplicative threshold. \n")
+    }
 
     ## check threshold at 1/2 for binary endpoints
     if(any(threshold[type=="bin"]>1e-12)){

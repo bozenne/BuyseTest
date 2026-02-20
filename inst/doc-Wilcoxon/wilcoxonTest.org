@@ -209,7 +209,7 @@ confint(eperm.BT2, statistic = "favorable")
 :       estimate         se lower.ci upper.ci null    p.value
 : value    0.613 0.05802219       NA       NA  0.5 0.05147115
 
-or, more generally, using a resampling method:
+For a more generally applicable inference method resampling can be used:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eperm.BT2 <- BuyseTest(group ~ cont(value), data = df2, add.halfNeutral = TRUE,
                        method.inference = "permutation", n.resampling = 1e4,

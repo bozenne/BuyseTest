@@ -97,6 +97,7 @@ methods::setMethod(
                                    seed,
                                    strata,
                                    threshold,
+                                   multiplicative.threshold,
                                    restriction,
                                    weightObs,
                                    weightEndpoint,
@@ -222,7 +223,8 @@ methods::setMethod(
 
                  ## ** threshold
                  names(threshold) <- name.endpoint
-                 
+                 attr(threshold,"multiplicative") <- multiplicative.threshold
+
                  ## ** weightEndpoint
                  names(weightEndpoint) <- name.endpoint
 

@@ -24,6 +24,7 @@ printGeneral <- function(status,
                          restriction,
                          strata,
                          threshold,
+                         multiplicative.threshold,
                          trace,
                          treatment,
                          type,
@@ -70,10 +71,10 @@ printGeneral <- function(status,
     df.endpoint$endpoint <- paste0(df.endpoint$endpoint," ")
     df.endpoint$type <- paste0(df.endpoint$type," ")
     df.endpoint$operator <- paste0(df.endpoint$operator," ")
-    if(all(threshold <= 1e-12)){
-        df.endpoint$threshold <- NULL
+    if(all(threshold <= (multiplicative.threshold + 1e-12))){
+        df.endpoint$threshold <- ifelse(multiplicative.threshold,"multiplicative","additive")
     }else{
-        df.endpoint$threshold <- ifelse(df.endpoint$threshold<=1e-12,NA,paste0(df.endpoint$threshold," "))
+        df.endpoint$threshold <- ifelse(df.endpoint$threshold<= (multiplicative.threshold + 1e-12),NA,paste0(ifelse(multiplicative.threshold,"*","+"),df.endpoint$threshold," "))
     }
     if(all(is.na(restriction))){
         df.endpoint$restriction <- NULL

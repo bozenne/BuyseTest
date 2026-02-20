@@ -440,7 +440,7 @@ confint(lowGPC)
 #+END_SRC
 
 #+RESULTS:
-: estimate         se    lower.ci   upper.ci null   p.value
+:                estimate         se    lower.ci   upper.ci null   p.value
 : rcs_t1.45    0.02741742 0.02047690 -0.01273920 0.06748574    0 0.1808076
 : number_t0.35 0.02755903 0.03139999 -0.03401048 0.08892015    0 0.3803606
 : duration_t3  0.03397497 0.02801978 -0.02099009 0.08873527    0 0.2256649
@@ -454,7 +454,7 @@ confint(lowGPC_Buyse)
 #+END_SRC
 
 #+RESULTS:
-: estimate         se     lower.ci   upper.ci null    p.value
+:                estimate         se     lower.ci   upper.ci null    p.value
 : rcs_t1.45    0.01628547 0.01771680 -0.018444486 0.05097618    0 0.35807018
 : number_t0.35 0.03730092 0.02668638 -0.015057839 0.08945568    0 0.16257765
 : duration_t3  0.04215064 0.02400508 -0.004957166 0.08907178    0 0.07946061
@@ -466,7 +466,7 @@ confint(lowGPC_CMH)
 #+END_SRC
 
 #+RESULTS:
-: estimate         se    lower.ci   upper.ci null   p.value
+:                estimate         se    lower.ci   upper.ci null   p.value
 : rcs_t1.45    0.02145018 0.01855984 -0.01493878 0.05778241    0 0.2479363
 : number_t0.35 0.03266743 0.02784903 -0.02195881 0.08709921    0 0.2411232
 : duration_t3  0.03869945 0.02491698 -0.01019050 0.08740482    0 0.1207617
@@ -496,7 +496,7 @@ confint(lowGPC2)
 #+END_SRC
 
 #+RESULTS:
-: estimate         se    lower.ci   upper.ci null   p.value
+:                estimate         se    lower.ci   upper.ci null   p.value
 : rcs_t1.45    0.02741742 0.02075177 -0.01327825 0.06802241    0 0.1866527
 : number_t0.35 0.02755903 0.03182148 -0.03483625 0.08974030    0 0.3867027
 : duration_t3  0.03397497 0.02839590 -0.02172779 0.08946745    0 0.2318709
@@ -510,7 +510,7 @@ sqrt(colSums(df.lowGPC_Wcenter^2))
 #+END_SRC
 
 #+RESULTS:
-: rcs_t1.45 number_t0.35  duration_t3 
+:   rcs_t1.45 number_t0.35  duration_t3 
 :   0.01771680   0.02668638   0.02400508
 
 \clearpage
@@ -535,14 +535,14 @@ CasinoTest(update(fff, . ~ . + strata(id)), data = profil,
 #+begin_example
                    endpoint treatment     estimate se lower.ci upper.ci null p.value
 placebo: rcs            rcs   placebo -0.012193158 NA       NA       NA   NA      NA
-lowDose: rcs            rcs   lowDose  0.008015351 NA       NA       NA   NA      NA
-highDose: rcs           rcs  highDose  0.004177807 NA       NA       NA   NA      NA
+lowDose: rcs            rcs   lowDose  0.008046335 NA       NA       NA   NA      NA
+highDose: rcs           rcs  highDose  0.004146823 NA       NA       NA   NA      NA
 placebo: number      number   placebo -0.020434169 NA       NA       NA   NA      NA
-lowDose: number      number   lowDose  0.011566310 NA       NA       NA   NA      NA
-highDose: number     number  highDose  0.008867860 NA       NA       NA   NA      NA
+lowDose: number      number   lowDose  0.011597293 NA       NA       NA   NA      NA
+highDose: number     number  highDose  0.008836876 NA       NA       NA   NA      NA
 placebo: duration  duration   placebo -0.024148505 NA       NA       NA   NA      NA
-lowDose: duration  duration   lowDose  0.013113939 NA       NA       NA   NA      NA
-highDose: duration duration  highDose  0.011034566 NA       NA       NA   NA      NA
+lowDose: duration  duration   lowDose  0.013175906 NA       NA       NA   NA      NA
+highDose: duration duration  highDose  0.010972598 NA       NA       NA   NA      NA
 #+end_example
 
 Its main drawback is that the assessment of say =placebo=

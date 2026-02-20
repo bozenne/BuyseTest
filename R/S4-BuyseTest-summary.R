@@ -268,7 +268,10 @@ setMethod(f = "summary",
               
               ## *** convert NA to ""
               if("threshold" %in% name.print){
-                  table.print$threshold[table.print$threshold<=1e-12] <- ""
+                  threshold.operator <- ifelse(attr(slot(object,"threshold"),"multiplicative"),"*","+")
+                  threshold.rm <- which(table.print$threshold<=1e-12)
+                  table.print$threshold <- paste0(threshold.operator,table.print$threshold)
+                  table.print$threshold[threshold.rm] <- ""                  
               }
               if("restriction" %in% name.print){
                   table.print[is.na(table.print$restriction), "restriction"] <- ""

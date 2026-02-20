@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.7.9)  23 JUL 2025 17:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.7.9)  20 FEB 2026 13:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1486,7 +1486,7 @@ Package rerunfilecheck Info: File `paired.out' has not changed.
 Here is how much of TeX's memory you used:
  31503 strings out of 468221
  574633 string characters out of 5432408
- 1366756 words of memory out of 5000000
+ 1366760 words of memory out of 5000000
  59233 multiletter control sequences out of 15000+600000
  694880 words of font info for 113 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1506,7 +1506,7 @@ lic/lm/lmsy8.pfb><C:/Users/hpl802/AppData/Local/Programs/MiKTeX/fonts/type1/pub
 lic/lm/lmtt10.pfb><C:/Users/hpl802/AppData/Local/Programs/MiKTeX/fonts/type1/pu
 blic/lm/lmtt12.pfb><C:/Users/hpl802/AppData/Local/Programs/MiKTeX/fonts/type1/p
 ublic/amsfonts/symbols/msbm10.pfb>
-Output written on paired.pdf (10 pages, 377851 bytes).
+Output written on paired.pdf (10 pages, 377734 bytes).
 PDF statistics:
  372 PDF objects out of 1000 (max. 8388607)
  172 named destinations out of 1000 (max. 500000)

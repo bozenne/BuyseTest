@@ -1,7 +1,9 @@
-This is BibTeX, Version 0.99d (TeX Live 2022/dev/Debian)
+This is BibTeX, Version 0.99d
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: wilcoxonTest.aux
+Reallocating 'name_of_file' (item size: 1) to 8 items.
 The style file: apalike.bst
+Reallocating 'name_of_file' (item size: 1) to 13 items.
 Database file #1: bibliography.bib
 You've used 2 entries,
             1935 wiz_defined-function locations,

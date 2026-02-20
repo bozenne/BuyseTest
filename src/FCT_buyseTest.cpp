@@ -106,6 +106,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 		   std::vector< arma::uvec > posT,
 		   std::vector< double > threshold,
 		   std::vector< bool > threshold0,
+		   std::vector< bool > multiplicativeThreshold,
 		   std::vector< double > restriction,
 		   arma::vec weightEndpoint,
 		   arma::vec weightObs, // not used just for compatibility
@@ -287,7 +288,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
       }
 
       iPairScore = calcAllPairs(endpoint.submat(indexC[iter_strataC],iUvec_endpoint), endpoint.submat(indexT[iter_strataT],iUvec_endpoint),
-				threshold[iter_d], threshold0[iter_d], restriction[iter_d],
+				threshold[iter_d], threshold0[iter_d], multiplicativeThreshold[iter_d], restriction[iter_d],
 				status.submat(indexC[iter_strataC],iUvec_status), status.submat(indexT[iter_strataT],iUvec_status),
 				list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 				iLastSurv,
@@ -316,7 +317,7 @@ Rcpp::List GPC_cpp(arma::mat endpoint,
 
 	// note the values in endpoint, status, survTime, survJump, lastSurv are not used (only their dimensions)
 	arma::mat iPairScore_M1 = calcAllPairs(endpoint.submat(indexC[iter_strataC],iUvec_endpoint), endpoint.submat(indexT[iter_strataT],iUvec_endpoint),
-					       threshold[iter_d], threshold0[iter_d], restriction[iter_d],
+					       threshold[iter_d], threshold0[iter_d], multiplicativeThreshold[iter_d], restriction[iter_d],
 					       status.submat(indexC[iter_strataC],iUvec_status), status.submat(indexT[iter_strataT],iUvec_status),
 					       list_survTimeC[iter_d][iter_strata], list_survTimeT[iter_d][iter_strata], list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 					       iLastSurv, 
@@ -504,6 +505,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 		    std::vector< arma::uvec > posT,
 		    std::vector< double > threshold,
 		    std::vector< bool > threshold0,
+		    std::vector< bool > multiplicativeThreshold,
 		    std::vector< double > restriction,
 		    arma::vec weightEndpoint,
 		    arma::vec weightObs,
@@ -779,8 +781,9 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 	  // **** compute score
 	  if(debug>3){Rcpp::Rcout << "s";}
 	  if(iMethod == 1){ // continuous or binary endpoint
-	    iPairScore = calcOnePair_Continuous(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
-						threshold[iter_d]);
+	    iPairScore = calcOnePair_Continuous(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+						endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
+						threshold[iter_d], multiplicativeThreshold[iter_d]);
 	  }else if(iMethod == 2){ // gaussian endpoint
 	    if(list_survTimeC[iter_d][iter_strata].n_rows>0){
 	      iMatRho = arma::cor(list_survTimeC[iter_d][iter_strata].col(iter_C), list_survTimeT[iter_d][iter_strata].col(iter_T),0);
@@ -796,15 +799,17 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 					      iRho,
 					      threshold[iter_d]);		    
 	  }else if(iMethod == 3){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
-	    iPairScore = calcOnePair_TTEgehan(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+	    iPairScore = calcOnePair_TTEgehan(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+					      endpoint(indexStrataT[iter_T], index_endpoint[iter_d]), 
 					      status(indexStrataC[iter_C], index_status[iter_d]),
 					      status(indexStrataT[iter_T], index_status[iter_d]),
-					      threshold[iter_d], threshold0[iter_d]);
+					      threshold[iter_d], threshold0[iter_d], multiplicativeThreshold[iter_d]);
 	  }else if(iMethod == 4){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
-	    iPairScore = calcOnePair_TTEgehan2(endpoint(indexStrataT[iter_T], index_endpoint[iter_d]) - endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+	    iPairScore = calcOnePair_TTEgehan2(endpoint(indexStrataC[iter_C], index_endpoint[iter_d]),
+					       endpoint(indexStrataT[iter_T], index_endpoint[iter_d]), 
 					       status(indexStrataC[iter_C], index_status[iter_d]),
 					       status(indexStrataT[iter_T], index_status[iter_d]),
-					       threshold[iter_d], threshold0[iter_d]);
+					       threshold[iter_d], threshold0[iter_d], multiplicativeThreshold[iter_d]);
 	  }else if(iMethod == 5){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
 	    
 	    // note: iDscore_Dnuisance_C, iDscore_Dnuisance_T are initalized to 0 in calcOnePair_SurvPeron
@@ -812,7 +817,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 					       endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
 					       status(indexStrataC[iter_C], index_status[iter_d]),
 					       status(indexStrataT[iter_T], index_status[iter_d]),
-					       threshold[iter_d], restriction[iter_d],
+					       threshold[iter_d], multiplicativeThreshold[iter_d], restriction[iter_d], 
 					       list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T),
 					       list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],
 					       list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1),
@@ -824,7 +829,7 @@ Rcpp::List GPC2_cpp(arma::mat endpoint,
 					     endpoint(indexStrataT[iter_T], index_endpoint[iter_d]),
 					     status(indexStrataC[iter_C], index_status[iter_d]),
 					     status(indexStrataT[iter_T], index_status[iter_d]),
-					     threshold[iter_d],
+					     threshold[iter_d], multiplicativeThreshold[iter_d], restriction[iter_d], 
 					     list_survTimeC[iter_d][iter_strata].row(iter_C), list_survTimeT[iter_d][iter_strata].row(iter_T),
 					     list_survJumpC[iter_d][iter_strata], list_survJumpT[iter_d][iter_strata],					     
 					     list_lastSurv[iter_d](iter_strata,0), list_lastSurv[iter_d](iter_strata,1), list_lastSurv[iter_d](iter_strata,2), list_lastSurv[iter_d](iter_strata,3),

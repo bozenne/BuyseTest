@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: Jul  7 2025 (10:12) 
+## Last-Updated: feb 20 2026 (11:58) 
 ##           By: Brice Ozenne
-##     Update #: 695
+##     Update #: 712
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,6 +34,7 @@ calcPeron <- function(data,
                       grid.strata,
                       strata,
                       threshold,
+                      multiplicative.threshold,
                       restriction,
                       precompute,
                       iidNuisance,
@@ -105,7 +106,7 @@ calcPeron <- function(data,
                                         level.strata = list(NULL,level.strata)[[tofit+1]], ## only pass the original strata level when the model is fit internally
                                         iid = iidNuisance)
         model.tte[[iUTTE]]$efron <- efron & (fitter[iUTTE]=="prodlim")
-                
+        
     }
 
     ## ** estimate quantities for scoring pairs
@@ -171,25 +172,56 @@ calcPeron <- function(data,
 
                 for(iEndpoint in ls.indexAssociatedEndpoint[[iUTTE]]){
                     iThreshold <- threshold[iEndpoint]
+                    if(multiplicative.threshold[iEndpoint]){
+                        iTime.jump_PLUS_threshold <- iTime.jump * iThreshold
+                        iTime.jump_MINUS_threshold <- iTime.jump / iThreshold
+                        iTime_PLUS_threshold <- iTime * iThreshold
+                        iTime_MINUS_threshold <- iTime / iThreshold
+                    }else{
+                        iTime.jump_PLUS_threshold <- iTime.jump + iThreshold
+                        iTime.jump_MINUS_threshold <- iTime.jump - iThreshold
+                        iTime_PLUS_threshold <- iTime + iThreshold
+                        iTime_MINUS_threshold <- iTime - iThreshold
+                    }
 
+                    ## remove jumps that are such that jump+threshold are after restriction
+                    if(!is.na(iRestriction)){ 
+                        iSubset.restriction <- which(iTime.jump_PLUS_threshold <= iRestriction)
+                    }else{
+                        iSubset.restriction <- 1:length(iTime.jump_PLUS_threshold)
+                    }
+                    
                     ## last estimate of the survival/cif
                     out$lastSurv[[iEndpoint]][iStrata,seq(from=iTreat.num+1, by = 2, length=iN.CR)] <- iLastEstimate
+                    
+                    ## competing risk vs. survival case
                     if(test.CR[iUTTE]){
 
                         ## *** CIF at jump times
-                        iPred1.iOther.beforeTau <- predict(model.tte[[iUTTE]], time = iTime.jump - iThreshold,
-                                                           treatment = setdiff(level.treatment,iTreat), strata = iStrata.model[[setdiff(level.treatment,iTreat)]])
-                        iPred1.iOther.afterTau <- predict(model.tte[[iUTTE]], time = iTime.jump + iThreshold,
-                                                          treatment = setdiff(level.treatment,iTreat), strata = iStrata.model[[setdiff(level.treatment,iTreat)]])
-                        out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime.jump,
-                                                                           "CIF1-threshold" = iPred1.iOther.beforeTau$cif,
-                                                                           "CIF1+threshold" = iPred1.iOther.afterTau$cif,
-                                                                           "dCIF" = iPred1.iTreat.afterJump$cif - iPred1.iTreat.beforeJump$cif,
-                                                                           "index.CIF1-threshold" = iPred1.iOther.beforeTau$index,
-                                                                           "index.CIF1+threshold" = iPred1.iOther.afterTau$index,
-                                                                           "index.dCIF11" = iPred1.iTreat.beforeJump$index,
-                                                                           "index.dCIF12" = iPred1.iTreat.afterJump$index)
-
+                        if(length(iSubset.restriction)==0){
+                            out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind("time" = 0,
+                                                                               "CIF1-threshold" = 0, 
+                                                                               "CIF1+threshold" = 0,
+                                                                               "dCIF" = 0,
+                                                                               "index.CIF1-threshold" = NA,
+                                                                               "index.CIF1+threshold" = NA,
+                                                                               "index.dCIF11" = NA,
+                                                                               "index.dCIF12" = NA)
+                        }else{
+                            iPred1.iOther.beforeTau <- predict(model.tte[[iUTTE]], time = iTime.jump_MINUS_threshold[iSubset.restriction],
+                                                               treatment = setdiff(level.treatment,iTreat), strata = iStrata.model[[setdiff(level.treatment,iTreat)]])
+                            iPred1.iOther.afterTau <- predict(model.tte[[iUTTE]], time = iTime.jump_PLUS_threshold[iSubset.restriction],
+                                                              treatment = setdiff(level.treatment,iTreat), strata = iStrata.model[[setdiff(level.treatment,iTreat)]])
+                            out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime.jump[iSubset.restriction],
+                                                                               "CIF1-threshold" = iPred1.iOther.beforeTau$cif,
+                                                                               "CIF1+threshold" = iPred1.iOther.afterTau$cif,
+                                                                               "dCIF" = iPred1.iTreat.afterJump$cif[iSubset.restriction] - iPred1.iTreat.beforeJump$cif[iSubset.restriction],
+                                                                               "index.CIF1-threshold" = iPred1.iOther.beforeTau$index,
+                                                                               "index.CIF1+threshold" = iPred1.iOther.afterTau$index,
+                                                                               "index.dCIF11" = iPred1.iTreat.beforeJump$index[iSubset.restriction],
+                                                                               "index.dCIF12" = iPred1.iTreat.afterJump$index[iSubset.restriction])
+                        }
+                        
                         if(iidNuisance){
                             out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- cbind(lava::iid(model.tte[[iUTTE]], treatment = iTreat, strata = iStrata.model[[iTreat]], cause = 1),
                                                                                lava::iid(model.tte[[iUTTE]], treatment = iTreat, strata = iStrata.model[[iTreat]], cause = 2))
@@ -197,13 +229,13 @@ calcPeron <- function(data,
                         }
 
                         ## *** CIF at observation time (+/- threshold)
-                        iPred1.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold,
+                        iPred1.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime_MINUS_threshold,
                                                       treatment = level.treatment[1], strata = iStrata.model[[level.treatment[1]]])
-                        iPred1.C.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold,
+                        iPred1.C.afterTau <- predict(model.tte[[iUTTE]], time = iTime_PLUS_threshold,
                                                      treatment = level.treatment[1], strata = iStrata.model[[level.treatment[1]]])
-                        iPred1.T.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold,
+                        iPred1.T.beforeTau <- predict(model.tte[[iUTTE]], time = iTime_MINUS_threshold,
                                                       treatment = level.treatment[2], strata = iStrata.model[[level.treatment[2]]])
-                        iPred1.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold,
+                        iPred1.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime_PLUS_threshold,
                                                      treatment = level.treatment[2], strata = iStrata.model[[level.treatment[2]]])
 
                         out[[iStoreTime]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime, ## 0
@@ -224,12 +256,6 @@ calcPeron <- function(data,
                     }else{
 
                         ## *** survival at jump time
-                        iTimeTau.jump <- iTime.jump + iThreshold
-                        if(!is.na(iRestriction)){ ## remove jump that are such that jump+threshold are after restriction
-                            iSubset.restriction <- which(iTimeTau.jump<=iRestriction)
-                        }else{
-                            iSubset.restriction <- 1:length(iTimeTau.jump)
-                        }
                         if(iidNuisance){
                             out$iid[[iStoreJump]][[iUTTE]][[iStrata]] <- lava::iid(model.tte[[iUTTE]], strata = iStrata.model[[iTreat]], treatment = iTreat)
                             out[[iStoreP]][iStrata, iEndpoint] <- NCOL(out$iid[[iStoreJump]][[iUTTE]][[iStrata]])
@@ -244,7 +270,7 @@ calcPeron <- function(data,
                                                                                index.dsurvival1 = NA, ## index of the survival parameter before the jump
                                                                                index.dsurvival2 = NA) ## index of the survival parameter after the jump
                         }else{
-                            iSurvTau.jump <- predict(model.tte[[iUTTE]], time = iTimeTau.jump[iSubset.restriction], treatment = setdiff(level.treatment, iTreat),
+                            iSurvTau.jump <- predict(model.tte[[iUTTE]], time = iTime.jump_PLUS_threshold[iSubset.restriction], treatment = setdiff(level.treatment, iTreat),
                                                      strata = iStrata.model[[setdiff(level.treatment, iTreat)]])
                             out[[iStoreJump]][[iEndpoint]][[iStrata]] <- cbind(time = iTime.jump[iSubset.restriction], ## jump time
                                                                                survival = iSurvTau.jump$survival, 
@@ -255,11 +281,11 @@ calcPeron <- function(data,
                         }
 
                         ## *** survival at observation time (+/- threshold)
-                        iPred.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold, treatment = level.treatment[1], strata = iStrata.model[[level.treatment[1]]])
-                        iPred.C.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold, treatment = level.treatment[1], strata = iStrata.model[[level.treatment[1]]])
+                        iPred.C.beforeTau <- predict(model.tte[[iUTTE]], time = iTime_MINUS_threshold, treatment = level.treatment[1], strata = iStrata.model[[level.treatment[1]]])
+                        iPred.C.afterTau <- predict(model.tte[[iUTTE]], time = iTime_PLUS_threshold, treatment = level.treatment[1], strata = iStrata.model[[level.treatment[1]]])
 
-                        iPred.T.beforeTau <- predict(model.tte[[iUTTE]], time = iTime - iThreshold, treatment = level.treatment[2], strata = iStrata.model[[level.treatment[2]]])
-                        iPred.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime + iThreshold, treatment = level.treatment[2], strata = iStrata.model[[level.treatment[2]]])
+                        iPred.T.beforeTau <- predict(model.tte[[iUTTE]], time = iTime_MINUS_threshold, treatment = level.treatment[2], strata = iStrata.model[[level.treatment[2]]])
+                        iPred.T.afterTau <- predict(model.tte[[iUTTE]], time = iTime_PLUS_threshold, treatment = level.treatment[2], strata = iStrata.model[[level.treatment[2]]])
 
                         out[[iStoreTime]][[iEndpoint]][[iStrata]] <- cbind("time" = iTime,
                                                                            "survivalC-threshold" = iPred.C.beforeTau$survival,
@@ -285,7 +311,7 @@ calcPeron <- function(data,
     for(iEndpoint in 1:length(endpoint)){ ## iEndpoint <- 1
 
         if(!precompute || method.score[iEndpoint] %in% c("continuous","gaussian")){next} ## only relevant for survival/ competing risk with Peron
-    
+        
         for(iStrata in 1:n.strata){  ## iStrata <- 1
             
             if(method.score[iEndpoint]=="SurvPeron"){
@@ -314,12 +340,20 @@ calcPeron <- function(data,
 
                 ## evaluate compute integral just before the observation time (possibly shifted by tau)
                 ## e.g. jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4) should give c(1,2,2,3,4,4)
+                if(multiplicative.threshold[iEndpoint]){
+                    survTimeC_MINUS_threshold <- out$survTimeC[[iEndpoint]][[iStrata]][,"time"] / threshold[iEndpoint]
+                    survTimeT_MINUS_threshold <- out$survTimeT[[iEndpoint]][[iStrata]][,"time"] / threshold[iEndpoint]
+                }else{
+                    survTimeC_MINUS_threshold <- out$survTimeC[[iEndpoint]][[iStrata]][,"time"] - threshold[iEndpoint]
+                    survTimeT_MINUS_threshold <- out$survTimeT[[iEndpoint]][[iStrata]][,"time"] - threshold[iEndpoint]
+                }
+                
                 index.dSurvivalT.tau <- prodlim::sindex(jump.times = ls.intT$time,
-                                                        eval.times = out$survTimeC[[iEndpoint]][[iStrata]][,"time"] - threshold[iEndpoint]) + 1
+                                                        eval.times = survTimeC_MINUS_threshold) + 1
                 index.dSurvivalC.0 <- prodlim::sindex(jump.times = ls.intC$time,
                                                       eval.times = out$survTimeC[[iEndpoint]][[iStrata]][,"time"]) + 1
                 index.dSurvivalC.tau <- prodlim::sindex(jump.times = ls.intC$time,
-                                                        eval.times = out$survTimeT[[iEndpoint]][[iStrata]][,"time"] - threshold[iEndpoint]) + 1
+                                                        eval.times = survTimeT_MINUS_threshold) + 1
                 index.dSurvivalT.0 <- prodlim::sindex(jump.times = ls.intT$time,
                                                       eval.times = out$survTimeT[[iEndpoint]][[iStrata]][,"time"]) + 1
 
@@ -352,7 +386,7 @@ calcPeron <- function(data,
                                                                    "indexMax.int.dSurvivalT-threshold" = NROW(ls.intT$intSurv_deriv)-1,
                                                                    "index.int.dSurvivalC_0" = index.dSurvivalC.0-1,
                                                                    "indexMax.int.dSurvivalC_0" = NROW(ls.intC$intSurv_deriv)-1)
-                
+                    
                     out$survTimeT[[iEndpoint]][[iStrata]] <- cbind(out$survTimeT[[iEndpoint]][[iStrata]],
                                                                    "index.int.dSurvivalC-threshold" = index.dSurvivalC.tau-1,
                                                                    "indexMax.int.dSurvivalC-threshold" = NROW(ls.intC$intSurv_deriv)-1,
