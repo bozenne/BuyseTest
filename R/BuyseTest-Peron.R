@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: feb 20 2026 (11:58) 
+## Last-Updated: feb 20 2026 (15:27) 
 ##           By: Brice Ozenne
-##     Update #: 712
+##     Update #: 720
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -162,8 +162,8 @@ calcPeron <- function(data,
                 iPred1.iTreat.beforeJump <- predict(model.tte[[iUTTE]], time = iTime.jump-zeroPlus, treatment = iTreat,  strata = iStrata.model[[iTreat]])
                 iPred1.iTreat.afterJump <- predict(model.tte[[iUTTE]], time = iTime.jump+zeroPlus, treatment = iTreat, strata = iStrata.model[[iTreat]]) ## technically already computed in the previous lines
 
-                iLastEstimate <- sapply(1:iN.CR, function(iCause){
-                    if(is.na(iRestriction) || model.tte[[iUTTE]]$peron$last.time[iStrata.num[iTreat],iTreat]<=iRestriction){ 
+                iLastEstimate <- sapply(1:iN.CR, function(iCause){ ## iCause <-  1
+                    if(is.na(iRestriction) || model.tte[[iUTTE]]$peron$last.time[iStrata.num[iTreat],iTreat]<=iRestriction || (iN.CR>1)){ 
                         return(predict(model.tte[[iUTTE]], time = "last", strata = iStrata.model[[iTreat]], treatment = iTreat, cause = iCause))
                     }else{ ## no remainder term if end of the survival curve after restriction (i.e. fully known survival up to the restriction)
                         return(0)
@@ -190,7 +190,7 @@ calcPeron <- function(data,
                     }else{
                         iSubset.restriction <- 1:length(iTime.jump_PLUS_threshold)
                     }
-                    
+
                     ## last estimate of the survival/cif
                     out$lastSurv[[iEndpoint]][iStrata,seq(from=iTreat.num+1, by = 2, length=iN.CR)] <- iLastEstimate
                     
@@ -401,7 +401,7 @@ calcPeron <- function(data,
             }
         }
     }
-    
+
     ## ** export
     return(out)
     
