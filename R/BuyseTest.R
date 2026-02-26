@@ -592,19 +592,19 @@ BuyseTest <- function(formula,
         for(iE in index.rendpoint){ ## iE <- 1
             iRestriction <- envir$outArgs$restriction[iE]
             iStatus <- envir$outArgs$index.status[iE]+1
-            if(envir$outArgs$operator[iE]==1){ ## ">0"
+            ## if(envir$outArgs$operator[iE]==1){ ## ">0"
                 if(envir$outArgs$method.score[iE] %in% c("TTEgehan","SurvPeron","CRPeron")){ ## right censoring
                     M.status[M.endpoint[,iE]>iRestriction,iStatus] <- 1/2
                     M.status[M.endpoint[,iE]==iRestriction & M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
                 }
                 M.endpoint[M.endpoint[,iE]>iRestriction,iE] <- iRestriction
-            }else if(envir$outArgs$operator[iE]==-1){ ## "<0"
-                if(envir$outArgs$method.score[iE] %in% c("TTEgehan2")){ ## left censoring
-                    M.status[M.endpoint[,iE]<iRestriction,iStatus] <- 1/2
-                    M.status[M.endpoint[,iE]==iRestriction & M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
-                }
-                M.endpoint[M.endpoint[,iE]<iRestriction,iE] <- iRestriction
-            }
+            ## }else if(envir$outArgs$operator[iE]==-1){ ## "<0"
+            ##     if(envir$outArgs$method.score[iE] %in% c("TTEgehan2")){ ## left censoring
+            ##         M.status[M.endpoint[,iE]<iRestriction,iStatus] <- 1/2
+            ##         M.status[M.endpoint[,iE]==iRestriction & M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
+            ##     }
+            ##     M.endpoint[M.endpoint[,iE]<iRestriction,iE] <- iRestriction
+            ## }
         }
     }
 

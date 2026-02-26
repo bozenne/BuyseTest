@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: sep 23 2025 (14:44) 
+## Last-Updated: feb 26 2026 (18:42) 
 ##           By: Brice Ozenne
-##     Update #: 254
+##     Update #: 256
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -821,3 +821,11 @@ expect_equivalent(confint(result),
                   tol = 1e-3)
 })
 
+## * Jean-Christophe Chiem: 26/02/26 issue with restriction and operator<0
+test_that("restriction + operator",{
+    set.seed(1)
+    df <- simBuyseTest(100)
+    eP.BT <- BuyseTest(treatment ~ cont(score, restriction = 5), data = df)
+    eN.BT <- BuyseTest(treatment ~ cont(score, restriction = 5, operator = "<0"), data = df)
+    expect_true(all(abs(model.tables(eP.BT)[c("favorable","unfavorable")] - rev(model.tables(eN.BT)[c("favorable","unfavorable")]))<1e-10))
+})
