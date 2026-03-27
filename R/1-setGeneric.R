@@ -13,10 +13,18 @@ setGeneric(name = "getCount",
            def = function(object, type){standardGeneric("getCount")}
 )
 
+## * Selector getMatrixScore (for S4BuyseTest)
+setGeneric(name = "getMatrixScore",
+           def = function(object, endpoint = NULL, statistic = NULL, strata = NULL, cumulative = TRUE,
+                          within = FALSE, unlist = TRUE){
+               standardGeneric("getMatrixScore")
+           }
+           )
+
 ## * Selector getPairScore (for S4BuyseTest)
 setGeneric(name = "getPairScore",
            def = function(object, endpoint = NULL, strata = NULL, cumulative = FALSE,
-                          rm.withinStrata = TRUE, rm.strata = is.na(object@strata),
+                          rm.withinStrata = TRUE, rm.strata = all(is.na(object@strata)),
                           rm.indexPair = TRUE, rm.weight = FALSE, rm.corrected = (object@correction.uninf==0),
                           unlist = TRUE, trace = 1){
                standardGeneric("getPairScore")

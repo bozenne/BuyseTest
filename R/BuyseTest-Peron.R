@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: feb 20 2026 (15:27) 
+## Last-Updated: mar 27 2026 (13:58) 
 ##           By: Brice Ozenne
-##     Update #: 720
+##     Update #: 751
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -43,70 +43,19 @@ calcPeron <- function(data,
 
     zeroPlus <- 1e-12
 
-    ## ** fit model for the cumulative incidence function (survival case or competing risk case)
+    ## ** prepare
+    ## fit model for the cumulative incidence function (survival case or competing risk case)
+     model.tte <- fitTTEM(model.tte, data = data, BuyseTTEM = TRUE,
+                         strata = strata, level.strata = level.strata, treatment = treatment, level.treatment = level.treatment,
+                         endpoint.UTTE = endpoint.UTTE, status.UTTE = status.UTTE, D.UTTE = D.UTTE,
+                         fitter = fitter, efron = efron, iidNuisance = iidNuisance, args = args)
+
+    ## endpoint with competing risk
     ls.indexAssociatedEndpoint <- setNames(vector(mode = "list", length = D.UTTE), endpoint.UTTE)
     test.CR <- setNames(vector(mode = "logical", length = D.UTTE), endpoint.UTTE)
-
-    ## prepare formula
-    if(is.null(model.tte)){
-        model.tte <- vector(length = D.UTTE, mode = "list")
-        names(model.tte) <- endpoint.UTTE
-        tofit <- TRUE
-        if(length(args)==0){args <- NULL}
-
-        txt.fitter <- sapply(fitter, switch,
-                             "prodlim" = "prodlim::Hist",
-                             "survreg" = "survival::Surv",
-                             NA)
-        if(!is.null(strata) && attr(strata,"match")){
-            txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment)        
-        }else{
-            txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")        
-        }
-        if(all(fitter!="prodlim")){
-            stop("Can only use the Efron scoring rule with the Kaplan-Meier estimator. \n",
-                 "Consider using the function \'efronlim\' to specify the survival model(s). \n")
-        }
-        
-    }else{
-        tofit <- FALSE
-    }
-
-    ## fit survival model and prepare for extracting survival
     for(iUTTE in 1:D.UTTE){ ## iUTTE <- 1
         ls.indexAssociatedEndpoint[[iUTTE]] <-  which(endpoint == endpoint.UTTE[iUTTE])
         test.CR[iUTTE] <- any(method.score[ls.indexAssociatedEndpoint[[iUTTE]]]=="CRPeron")
-
-        if(fitter[iUTTE]=="prodlim"){
-
-            if(tofit){
-                if(efron){
-                    model.tte[[iUTTE]] <- do.call(efronlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
-                }else{
-                    model.tte[[iUTTE]] <- do.call(prodlim::prodlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
-                }
-                
-            }else{
-                if(efron && is.null(model.tte[[iUTTE]]$efron)){
-                    stop("Use function \'efronlim\' instead of \'prodlim\' when providing the survival model with argument scoring.rule=\"Efron\". \n")
-                }else if(!efron && !is.null(model.tte[[iUTTE]]$efron)){
-                    stop("Use function \'prodlim\' instead of \'efronlim\' when providing the survival model with argument scoring.rule=\"Peron\". \n")
-                }
-            }
-
-        }else if(fitter[iUTTE]=="survreg"){
-
-            if(tofit){
-                model.tte[[iUTTE]] <- do.call(survival::survreg, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data), args))
-            }
-            
-        }
-        model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment,
-                                        level.treatment = level.treatment,
-                                        level.strata = list(NULL,level.strata)[[tofit+1]], ## only pass the original strata level when the model is fit internally
-                                        iid = iidNuisance)
-        model.tte[[iUTTE]]$efron <- efron & (fitter[iUTTE]=="prodlim")
-        
     }
 
     ## ** estimate quantities for scoring pairs
@@ -408,14 +357,79 @@ calcPeron <- function(data,
 }
 
 
-## ## * .sindex2
-## ## e.g. jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4) should give c(1,2,2,3,4,4)
-## ##'  .sindex2(jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4))
-## ##'  prodlim::sindex(jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4))+1
-## ##'  3 - prodlim::sindex(jump.times = 1:3, eval.times = c(0,1,1.1,2,3,4), strict = TRUE, comp = "greater") + 1     
-## .sindex2 <- function(jump.times, eval.times){
-##     return(length(jump.times)-prodlim::sindex(jump.times = jump.times, eval.times = eval.times, strict = TRUE, comp = "greater")+1)
-## }
+## * modelUTTE
+fitTTEM <- function(model.tte, data, BuyseTTEM,
+                    strata, level.strata, treatment, level.treatment, endpoint.UTTE, status.UTTE, D.UTTE,
+                    fitter, efron, iidNuisance, args){
+
+    ## ** prepare formula
+    if(is.null(model.tte)){
+        model.tte <- vector(length = D.UTTE, mode = "list")
+        names(model.tte) <- endpoint.UTTE
+        tofit <- TRUE
+        if(length(args)==0){args <- NULL}
+
+        txt.fitter <- sapply(fitter, switch,
+                             "prodlim" = "prodlim::Hist",
+                             "survreg" = "survival::Surv",
+                             NA)
+        if(!is.null(strata) && attr(strata,"match")){
+            txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment)        
+        }else{
+            txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ ",treatment," + ..strata..")        
+        }
+        if(all(fitter!="prodlim")){
+            stop("Can only use the Efron scoring rule with the Kaplan-Meier estimator. \n",
+                 "Consider using the function \'efronlim\' to specify the survival model(s). \n")
+        }
         
+    }else{
+        tofit <- FALSE
+    }
+
+    ## ** fit survival model and prepare for extracting survival
+    for(iUTTE in 1:D.UTTE){ ## iUTTE <- 1
+
+        if(fitter[iUTTE]=="prodlim"){
+
+            if(tofit){
+                if(efron){
+                    model.tte[[iUTTE]] <- do.call(efronlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
+                }else{
+                    model.tte[[iUTTE]] <- do.call(prodlim::prodlim, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data, discrete.level = 1e5), args))
+                }
+                
+            }else{
+                if(efron && is.null(model.tte[[iUTTE]]$efron)){
+                    stop("Use function \'efronlim\' instead of \'prodlim\' when providing the survival model with argument scoring.rule=\"Efron\". \n")
+                }else if(!efron && !is.null(model.tte[[iUTTE]]$efron)){
+                    stop("Use function \'prodlim\' instead of \'efronlim\' when providing the survival model with argument scoring.rule=\"Peron\". \n")
+                }
+            }
+
+        }else if(fitter[iUTTE]=="survreg"){
+
+            if(tofit){
+                model.tte[[iUTTE]] <- do.call(survival::survreg, args = c(list(as.formula(txt.modelUTTE[iUTTE]), data = data), args))
+            }
+            
+        }
+
+        if(BuyseTTEM){
+            model.tte[[iUTTE]] <- BuyseTTEM(model.tte[[iUTTE]], treatment = treatment,
+                                            level.treatment = level.treatment,
+                                            level.strata = list(NULL,level.strata)[[tofit+1]], ## only pass the original strata level when the model is fit internally
+                                            iid = iidNuisance)
+            model.tte[[iUTTE]]$efron <- efron & (fitter[iUTTE]=="prodlim")
+        }
+        
+    }
+
+
+    ## ** export
+    return(model.tte)
+
+}
+
 ######################################################################
 ### BuyseTest-Peron.R ends here

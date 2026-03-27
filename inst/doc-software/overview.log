@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.7.9)  20 FEB 2026 14:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.7.9)  25 MAR 2026 10:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1819,7 +1819,7 @@ Package rerunfilecheck Info: File `overview.out' has not changed.
 Here is how much of TeX's memory you used:
  32229 strings out of 468221
  584831 string characters out of 5432408
- 1498364 words of memory out of 5000000
+ 1498361 words of memory out of 5000000
  59520 multiletter control sequences out of 15000+600000
  708424 words of font info for 121 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1866,7 +1866,7 @@ pfb><C:/Users/hpl802/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt10
 .pfb><C:/Users/hpl802/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmtt1
 2.pfb><C:/Users/hpl802/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfont
 s/symbols/msbm10.pfb>
-Output written on overview.pdf (45 pages, 653833 bytes).
+Output written on overview.pdf (45 pages, 653824 bytes).
 PDF statistics:
  1144 PDF objects out of 1200 (max. 8388607)
  607 named destinations out of 1000 (max. 500000)

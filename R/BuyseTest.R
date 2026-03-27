@@ -513,7 +513,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","multiplicative.threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","multiplicative.threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling","fitter.model.tte","args.model.tte")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value

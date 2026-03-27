@@ -102,7 +102,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '3.3.5'
+: [1] '3.3.6'
 
 For completness, the details of the \Rlogo session used to generate this
 document are:
@@ -711,8 +711,6 @@ Here =n.resampling= was set to a low value only to save computation
 time but this may lead to unreliable confidence intervals/p-values:
 larger values are recommended (e.g. =10000=).
 
-
-
 ** Using multiple endpoints
 
 More than one endpoint can be considered by indicating a vector of
@@ -1138,7 +1136,6 @@ summary(BT.pair2)
 So in this case no pair is analyzed at second priority.
 
 \clearpage
-
 
 ** Is multiple testing a concern with GPC?
 
@@ -1679,6 +1676,25 @@ outSurv$lastSurv
 : [1] 0 0
 
 \clearpage
+
+** Extracting the score matrix
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+veteran.ext <- rbind(cbind(XXgroupXX = "A", XXindexXX = 1:NROW(veteran), veteran), 
+                     cbind(XXgroupXX = "B", XXindexXX = 1:NROW(veteran), veteran))
+
+GPC.ext <- BuyseTest(XXgroupXX ~ tte(time,status, threshold = 20), data = veteran.ext, 
+                     method.inference = "none", keep.pairScore = TRUE, trace = FALSE)
+endpoint.ext <- GPC.ext@endpoint
+dfScore.ext <- getPairScore(GPC.ext, endpoint = 1:length(endpoint.ext), cumulative = TRUE, unlist = FALSE)        
+
+
+#+END_SRC
+
+#+RESULTS:
+
+\clearpage
+
 
 * Dealing with missing values or/and right censoring 
 
