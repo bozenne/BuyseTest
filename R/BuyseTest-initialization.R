@@ -331,7 +331,7 @@ initializeArgs <- function(status,
     }
     
     ## ** model.tte
-    if(scoring.rule>0){
+    if(!is.na(scoring.rule) && scoring.rule>0){
         if((!is.null(model.tte))){
             if((length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
                 attr.save <- attr(model.tte,"iidNuisance")
@@ -360,7 +360,7 @@ initializeArgs <- function(status,
     }else{
         attr(method.inference,"hprojection") <- NA
     }
-    if(iid && scoring.rule>0){ ## Peron/Efron scoring rule
+    if(iid && !is.na(scoring.rule) && scoring.rule>0){ ## Peron/Efron scoring rule
         if(is.null(model.tte)){
             iidNuisance <- TRUE
         }else if(!is.null(attr(model.tte,"iidNuisance"))){
