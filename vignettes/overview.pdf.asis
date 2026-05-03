@@ -82,12 +82,12 @@ confint(BT.half, statistic = "favorable")
 confint(BT.half, statistic = "winRatio")
 
 ## chunk 20
-BT.halfperm <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+BT.halfboot <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
                          data = veteran, trace = FALSE, add.halfNeutral = TRUE,
                          method.inference = "bootstrap", seed = 10)
-Mstat <- rbind(netBenefit = confint(BT.halfperm, statistic = "netBenefit"),
-               winRatio = confint(BT.halfperm, statistic = "winRatio"),
-               favorable = confint(BT.halfperm, statistic = "favorable"))
+Mstat <- rbind(netBenefit = confint(BT.halfboot, statistic = "netBenefit"),
+               winRatio = confint(BT.halfboot, statistic = "winRatio"),
+               favorable = confint(BT.halfboot, statistic = "favorable"))
 Mstat
 
 ## ** Stratified GPC

@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  21 JUL 2025 11:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  24 JUL 2025 10:27
 entering extended mode
- restricted \write18 enabled.
+ \write18 enabled.
  %&-line parsing enabled.
-**/home/bozenne/Documents/GitHub/BuyseTest/inst/doc-Wilcoxon/wilcoxonTest.tex
-(/home/bozenne/Documents/GitHub/BuyseTest/inst/doc-Wilcoxon/wilcoxonTest.tex
+**wilcoxonTest.tex
+(./wilcoxonTest.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-01-21>
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -1301,13 +1301,13 @@ Package rerunfilecheck Info: File `wilcoxonTest.out' has not changed.
 (rerunfilecheck)             Checksum: A85AF2BAEFAB1BE5E88930FDCE1FA1C2;563.
  ) 
 Here is how much of TeX's memory you used:
- 31175 strings out of 478287
- 568130 string characters out of 5849290
- 1492390 words of memory out of 5000000
+ 31174 strings out of 478287
+ 567955 string characters out of 5849290
+ 1492389 words of memory out of 5000000
  48662 multiletter control sequences out of 15000+600000
  533557 words of font info for 95 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 114i,7n,117p,666b,1877s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 114i,7n,117p,607b,1877s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dv
 ips/lm/lm-mathsy.enc}</usr/share/texmf/fonts/type1/public/lm/lmbx12.pfb></usr/s
 hare/texmf/fonts/type1/public/lm/lmbx6.pfb></usr/share/texmf/fonts/type1/public

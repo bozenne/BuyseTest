@@ -1,4 +1,4 @@
-#+TITLE: Performing GPC in a paired design
+#+TITLE: Performing GPC with repeated measurements
 #+Author: Brice Ozenne
 #+BEGIN_SRC R :exports none :results quiet :session *R* :cache no
 options(width = 95)
@@ -15,10 +15,19 @@ library(prodlim) ## avoid messages when loading the package later on
 #+RESULTS:
 
 This vignette describes how to use Generalized Pairwise comparisons
-(GPC) in a paired design. This for instance corresponds to the
-Diabetic Retinopathy Study (DRS) contained in the survival \Rlogo
-package where 197 patients had one of their eye randomized to laser
-treatment while the other did not receive any treatment:
+(GPC) in a design where each subject undergo several
+measurements. Traditional GPC assumes independent observations which
+is likely not the case in such design since observations from the same
+subject are typically correlated. This is an area of development for
+the BuyseTest package so the content of this vignette may change in
+newer versions.
+
+* Paired design
+
+The Diabetic Retinopathy Study (DRS), which data is available from
+ \Rlogo package survival, included 197 patients who had one of their
+ eye randomized to laser treatment while the other did not receive any
+ treatment:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 data(diabetic, package = "survival")
 head(diabetic)
@@ -62,10 +71,7 @@ diabeticJ <- diabetic[diabetic$juvenile,]
 
 #+RESULTS:
 
-
-\clearpage
-
-* Wald methods (Gehan scoring rule)
+** Wald methods (Gehan scoring rule)
 
 To mimic the methodology underlying the results presented in Table 1
 of cite:matsouaka2022robust, we perform GPC stratified by patient
@@ -157,7 +163,7 @@ sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
 :      pairs 
 : 0.06631828
 
-* MOVER method (Gehan scoring rule)
+** MOVER method (Gehan scoring rule)
 
 The method recommended by cite:matsouaka2022robust is the MOVER
 approach, which has been developped for a binary scoring rule
@@ -175,7 +181,7 @@ leading to the same results as those of the table 1 in the original article, up 
 
 \clearpage
 
-* Wald methods (Peron scoring rule)
+** Wald methods (Peron scoring rule)
 
 To better account for censoring one could use the Peron scoring rule
 where the survival is estimated across all subjects within a treatment
@@ -287,20 +293,15 @@ c(average = sqrt(crossprod((Hterm1/N))),
 
 \clearpage
 
-* More general cross-over designs
+* Multiple cross-over design
 # Can be compared to https://onlinelibrary.wiley.com/doi/10.1002/sim.9648
 
-Another type of paired design is a cross-over design where each
-patient may repeteadly experience each treatment. As an example, we
-will consider the PROFIL trial whose dataset is available in the
-BuyseTest package:
-#+BEGIN_SRC R :exports code :results none :session *R* :cache no
+A more complex design is a cross-over where each patient may
+repeteadly experience each treatment. As an example, we will consider
+the PROFIL trial whose dataset is available in the BuyseTest package:
+#+BEGIN_SRC R :exports both :results none :session *R* :cache no
 data(profil, package = "BuyseTest")
 profil <- profil[order(profil$id),]
-profil[profil$id==1 & profil$period==1,]
-#+END_SRC
-
-#+BEGIN_SRC R :exports results :results output :session *R* :cache no
 profil[profil$id==1 & profil$period==1,]
 #+END_SRC
 
@@ -440,7 +441,7 @@ confint(lowGPC)
 #+END_SRC
 
 #+RESULTS:
-: estimate         se    lower.ci   upper.ci null   p.value
+:                estimate         se    lower.ci   upper.ci null   p.value
 : rcs_t1.45    0.02741742 0.02047690 -0.01273920 0.06748574    0 0.1808076
 : number_t0.35 0.02755903 0.03139999 -0.03401048 0.08892015    0 0.3803606
 : duration_t3  0.03397497 0.02801978 -0.02099009 0.08873527    0 0.2256649
@@ -454,7 +455,7 @@ confint(lowGPC_Buyse)
 #+END_SRC
 
 #+RESULTS:
-: estimate         se     lower.ci   upper.ci null    p.value
+:                estimate         se     lower.ci   upper.ci null    p.value
 : rcs_t1.45    0.01628547 0.01771680 -0.018444486 0.05097618    0 0.35807018
 : number_t0.35 0.03730092 0.02668638 -0.015057839 0.08945568    0 0.16257765
 : duration_t3  0.04215064 0.02400508 -0.004957166 0.08907178    0 0.07946061
@@ -466,12 +467,12 @@ confint(lowGPC_CMH)
 #+END_SRC
 
 #+RESULTS:
-: estimate         se    lower.ci   upper.ci null   p.value
+:                estimate         se    lower.ci   upper.ci null   p.value
 : rcs_t1.45    0.02145018 0.01855984 -0.01493878 0.05778241    0 0.2479363
 : number_t0.35 0.03266743 0.02784903 -0.02195881 0.08709921    0 0.2411232
 : duration_t3  0.03869945 0.02491698 -0.01019050 0.08740482    0 0.1207617
 
-- \Warning :: in all approaches, all pairwise comparisons are performed within each patient, not only within-block comparisons.
+\clearpage
 
 In term of uncertainty quantification, it is important to specify
 =match=TRUE= when using a single call so =BuyseTest= does not treat
@@ -515,7 +516,74 @@ sqrt(colSums(df.lowGPC_Wcenter^2))
 
 \clearpage
 
-** With 3 or more treatment groups (WORK IN PROGRESS!)
+** Accounting for time (WORK IN PROGRESS!)
+
+In previous approaches, all pairwise comparisons are performed within
+each patient, not only within-block comparisons. As of version
+3.3.3. it is not yet possible to match at the patient-level and only
+perform comparisons within the same period. One would have to perform
+a separate GPC for each patient, with period as a strata variable:
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+ls.lowGPC_period <- by(lowProfil, lowProfil$id, BuyseTest,
+                       formula = update(fff,.~.+strata(period)), trace = FALSE)
+#+END_SRC
+
+#+RESULTS:
+
+We can check that fewer pairs were made thanks to stratification:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+rbind(noStrata = nobs(ls.lowGPC[[1]]),
+      PeriodStrata = nobs(ls.lowGPC_period[[1]]))
+#+END_SRC
+
+#+RESULTS:
+:              placebo lowDose pairs
+: noStrata          28      28   784
+: PeriodStrata      28      28   196
+
+In particular 49 pairs where made in each period:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+nobs(ls.lowGPC_period[[1]],strata=TRUE)
+#+END_SRC
+
+#+RESULTS:
+:   placebo lowDose pairs
+: 1       7       7    49
+: 2       7       7    49
+: 3       7       7    49
+: 4       7       7    49
+
+One would then combine the results in a single data.frame:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+df.lowGPC_period <- data.frame(do.call(rbind,lapply(ls.lowGPC_period, coef)),
+                               do.call(rbind,lapply(ls.lowGPC_period, nobs)),
+                               Buyse = as.numeric(NA), CMH = as.numeric(NA))
+df.lowGPC_period$Buyse <- with(df.lowGPC_period, pairs/sum(pairs))
+df.lowGPC_period$CMH <- with(df.lowGPC_period, (pairs/(placebo+lowDose))/sum(pairs/(placebo+lowDose)))
+#+END_SRC
+
+#+RESULTS:
+
+and decide on a weighting scheme to pool the results:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+rbind(average = colMeans(df.lowGPC_period[,1:3]),
+      Buyse = apply(df.lowGPC_period[,1:3], 2, weighted.mean, w = df.lowGPC_period$Buyse),
+      CMH = apply(df.lowGPC_period[,1:3], 2, weighted.mean, w = df.lowGPC_period$CMH))
+#+END_SRC
+
+#+RESULTS:
+:          rcs_t1.45 number_t0.35 duration_t3
+: average 0.02338177   0.03351172  0.04072124
+: Buyse   0.01731834   0.04085114  0.04858818
+: CMH     0.02333549   0.03361112  0.04077570
+
+Resampling methods like a non-parametric bootstrap can then be used to
+quantify uncertainty and obtain confidence intervals and p-values.
+
+\clearpage
+
+** With 3 or more treatment groups (WORK IN PROGRESS!) 
 
 Handling more than two treatment groups is still an area of
 development for the BuyseTest package. Several approaches have been

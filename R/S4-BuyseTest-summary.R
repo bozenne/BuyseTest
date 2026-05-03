@@ -410,13 +410,17 @@ setMethod(f = "summary",
                   if(n.strata>1){
                       txt.strataPC <- paste0(round(100*object@weightStrata, digit[1]),"%")
                       table.strataPC <- table(txt.strataPC)
-                      shorttxt.strataPC <- ifelse(table.strataPC>1,paste0(names(table.strataPC), " (x",table.strataPC,")"),names(table.strataPC))
+                      if(any(table.strataPC>1)){
+                          shorttxt.strataPC <- ifelse(table.strataPC>1,paste0(names(table.strataPC), " (x",table.strataPC,")"),names(table.strataPC))
+                      }else{
+                          shorttxt.strataPC <- txt.strataPC
+                      }
                       cat(" - strata weights  : ",paste(shorttxt.strataPC, collapse = ", ")," \n", sep = "")
-              }else if(attr(scoring.rule,"test.match") & length(object@weightStrata)>1){
-                  table.weightStrata <- table(paste0(round(100*object@weightStrata, digit[1]),"%"))
-                  cat(" - pair weights    : ",paste(names(table.weightStrata), collapse = ", ")," (K=",paste(table.weightStrata, collapse=","),")\n", sep = "")
-              }else 
-              if(any(object@type == "tte") && any(attr(scoring.rule,"test.censoring"))){
+                  }else if(attr(scoring.rule,"test.match") & length(object@weightStrata)>1){
+                      table.weightStrata <- table(paste0(round(100*object@weightStrata, digit[1]),"%"))
+                      cat(" - pair weights    : ",paste(names(table.weightStrata), collapse = ", ")," (K=",paste(table.weightStrata, collapse=","),")\n", sep = "")
+                  }else 
+                      if(any(object@type == "tte") && any(attr(scoring.rule,"test.censoring"))){
 
                   if(all(attr(scoring.rule,"method.score")[object@type=="tte"]=="CRPeron")){
                       txt.Peron <- "cif"

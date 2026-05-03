@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  21 JUL 2025 11:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.4.4)  24 JUL 2025 10:48
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -1293,7 +1293,7 @@ File: lstlang3.sty 2020/03/24 1.8d listings language file
 
 ]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 427.
+(Font)              <10.95> on input line 425.
  [5
 
 ] [6
@@ -1306,7 +1306,7 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 [10] [11
 
 ] [12]
-Underfull \hbox (badness 10000) in paragraph at lines 959--964
+Underfull \hbox (badness 10000) in paragraph at lines 957--962
 
  []
 
@@ -1316,7 +1316,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 959--964
 <./figures/plot-BuyseTest.pdf, id=317, 433.62pt x 433.62pt>
 File: ./figures/plot-BuyseTest.pdf Graphic file (type pdf)
 <use ./figures/plot-BuyseTest.pdf>
-Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 1048.
+Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 1046.
 
 (pdftex.def)             Requested size: 378.42001pt x 378.43733pt.
  [14 <./figures/plot-BuyseTest.pdf>] [15] [16] [17
@@ -1332,14 +1332,14 @@ Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 1048.
 <./figures/gg-sensitivity1.pdf, id=436, 361.35pt x 216.81pt>
 File: ./figures/gg-sensitivity1.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity1.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1532
+Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1530
 .
 (pdftex.def)             Requested size: 270.3012pt x 162.18033pt.
  [23 <./figures/gg-sensitivity1.pdf>]
 <./figures/gg-sensitivity2.pdf, id=464, 505.89pt x 216.81pt>
 File: ./figures/gg-sensitivity2.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity2.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1602
+Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1600
 .
 (pdftex.def)             Requested size: 540.60239pt x 231.68996pt.
  [24 <./figures/gg-sensitivity2.pdf>]
@@ -1356,11 +1356,11 @@ Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1602
 File: ./figures/plot-crossingSurv.pdf Graphic file (type pdf)
 <use ./figures/plot-crossingSurv.pdf>
 Package pdftex.def Info: ./figures/plot-crossingSurv.pdf  used on input line 24
-35.
+33.
 (pdftex.def)             Requested size: 432.48355pt x 302.74124pt.
  [37] [38 <./figures/plot-crossingSurv.pdf>] [39]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <17.28> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 2490.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 2488.
  [40
 
 ] [41
@@ -1424,7 +1424,7 @@ are/texmf/fonts/type1/public/lm/lmsy8.pfb></usr/share/texmf/fonts/type1/public/
 lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/share/te
 xmf/fonts/type1/public/lm/lmtt12.pfb></usr/share/texlive/texmf-dist/fonts/type1
 /public/amsfonts/symbols/msbm10.pfb>
-Output written on overview.pdf (45 pages, 540891 bytes).
+Output written on overview.pdf (45 pages, 540475 bytes).
 PDF statistics:
  1031 PDF objects out of 1200 (max. 8388607)
  920 compressed objects within 10 object streams

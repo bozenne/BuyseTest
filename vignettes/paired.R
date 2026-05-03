@@ -15,7 +15,7 @@ diabeticJ <- diabetic[diabetic$juvenile,]
 ## chunk 5
 library(BuyseTest)
 e.BTjuv <- BuyseTest(trt ~ tte(time,status) + strata(id, match = TRUE), 
-                     data = diabeticJ, trace = FALSE,
+                     data = diabeticJ[diabeticJ$id>1,], trace = FALSE,
                      scoring.rule =  "Gehan")
 model.tables(e.BTjuv, percentage = FALSE)
 
