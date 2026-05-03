@@ -10,7 +10,7 @@
 
 // :cppFile:{FCT_buyseTest.cpp}:end:
 
-arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold, bool threshold0, double restriction,
+arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold, bool threshold0, double multiplicative, double restriction,
 					   arma::colvec statusC, arma::colvec statusT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 					   arma::rowvec lastSurv, 					   
@@ -64,7 +64,7 @@ void add4vec(std::vector<int>& Vrow,
 //         RP_Dscore_Dnuisance_C, RP_Dscore_Dnuisance_T
 //         matPairScore
 // author Brice Ozenne
-arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold, bool threshold0, double restriction,
+arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double threshold, bool threshold0, double multiplicative, double restriction,
 					   arma::colvec statusC, arma::colvec statusT,					   
 					   arma::mat survTimeC, arma::mat survTimeT, arma::mat survJumpC, arma::mat survJumpT,
 					   arma::rowvec lastSurv,
@@ -196,7 +196,7 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
 	}
       }
     }else if(method == 1){ // continuous or binary endpoint
-      iPairScore = calcOnePair_Continuous(endpointT[iter_T] - endpointC[iter_C], threshold);
+      iPairScore = calcOnePair_Continuous(endpointC[iter_C], endpointT[iter_T], threshold, multiplicative);
     }else if(method == 2){
       if(survTimeC.n_rows>0){
 	iMatRho = arma::cor(survTimeC.col(iter_C), survTimeT.col(iter_T), 0);
@@ -204,20 +204,20 @@ arma::mat calcAllPairs(arma::colvec endpointC, arma::colvec endpointT, double th
       }else{
 	iRho = 0;
       }
-      iPairScore = calcOnePair_Gaussian(endpointT[iter_C], endpointC[iter_T], statusC[iter_C], statusT[iter_T], iRho, threshold);
+      iPairScore = calcOnePair_Gaussian(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], iRho, threshold);
     }else if(method == 3){ // time to event endpoint with Gehan's scoring rule (right-censored, survival or competing risks)
-      iPairScore = calcOnePair_TTEgehan(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold, threshold0);
+      iPairScore = calcOnePair_TTEgehan(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold, threshold0, multiplicative);
     }else if(method == 4){ // time to event endpoint with Gehan's scoring rule (left-censored, survival or competing risks)
-      iPairScore = calcOnePair_TTEgehan2(endpointT[iter_T] - endpointC[iter_C], statusC[iter_C], statusT[iter_T], threshold, threshold0);
+      iPairScore = calcOnePair_TTEgehan2(endpointC[iter_C],  endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold, threshold0, multiplicative);
     }else if(method == 5){  // time to event endpoint with Peron's scoring rule (right-censored, survival)
-      iPairScore = calcOnePair_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold, restriction,
+      iPairScore = calcOnePair_SurvPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold, multiplicative, restriction,
 					 survTimeC.row(iter_C), survTimeT.row(iter_T),
 					 survJumpC, survJumpT, lastSurv(0), lastSurv(1),
 					 iDscore_Dnuisance_C, iDscore_Dnuisance_T,
 					 p_C, p_T, precompute, returnIID);
 
     }else if(method == 6){  // time to event endpoint with Peron's scoring rule (right-censored, competing risks)
-      iPairScore = calcOnePair_CRPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold,
+      iPairScore = calcOnePair_CRPeron(endpointC[iter_C], endpointT[iter_T], statusC[iter_C], statusT[iter_T], threshold, multiplicative, restriction,
 				       survTimeC.row(iter_C), survTimeT.row(iter_T),
 				       survJumpC, survJumpT, lastSurv(0), lastSurv(1), lastSurv(2), lastSurv(3),
 				       iDscore_Dnuisance_C, iDscore_Dnuisance_T,

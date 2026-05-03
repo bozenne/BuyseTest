@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 12 2019 (10:45) 
 ## Version: 
-## Last-Updated: jul 23 2025 (17:16) 
+## Last-Updated: mar 25 2026 (11:25) 
 ##           By: Brice Ozenne
-##     Update #: 426
+##     Update #: 427
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -101,8 +101,6 @@ setMethod(f = "coef",
               statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
                                   "netbenefit" = "netBenefit",
                                   "winratio" = "winRatio",
-                                  "favorable" = "favorable",
-                                  "unfavorable" = "unfavorable",
                                   "uninformative" = "uninf",
                                   statistic)
               

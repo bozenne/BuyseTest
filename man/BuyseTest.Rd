@@ -124,8 +124,10 @@ A pair will be classified as neutral if the difference in endpoint is strictly b
 There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
   \item \code{status}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
 Must value \code{NA} when the endpoint is not a time to event.
-  \item \code{operator}: [character vector] the sign defining a favorable endpoint.
-\code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
+  \item \code{operator}: [character vector] the sign defining a favorable endpoint and type of threshold
+\code{">0"} indicates that higher values are favorable while \code{"<0"} indicates that lower values are favorable.
+\code{"+"} indicates an additive threshold while \code{"*"} a multiplicative threshold.
+Can be combined as \code{"*<0"} to use a multiplicative threshold and lower values as favorable.
   \item \code{type}: [character vector] indicates whether it is
 a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),

@@ -12,7 +12,7 @@
   strata = NULL,
   cumulative = FALSE,
   rm.withinStrata = TRUE,
-  rm.strata = is.na(object@strata),
+  rm.strata = all(is.na(object@strata)),
   rm.indexPair = TRUE,
   rm.weight = FALSE,
   rm.corrected = (object@correction.uninf == 0),
@@ -45,10 +45,7 @@ within each treatment group be removed?}
 \item{trace}{[logical] should a message be printed to explain what happened
 when the function returned \code{NULL}?}
 }
-\description{
-Extract the score of each pair.
-}
-\details{
+\value{
 The maximal output (i.e. with all columns) contains for each endpoint, a data.table with:
 \itemize{
 \item \code{"strata"}: the name of the strata to which the pair belongs.
@@ -70,6 +67,9 @@ Note that the \code{.T} and \code{.C} may change since they correspond of the la
 The first weighting consists in multiplying the probability by the residual weight of the pair
 (i.e. the weight of the pair that was not informative at the previous endpoint). This is always performed.
 For time to event endpoint an additional weighting may be performed to avoid a possible bias in presence of censoring.
+}
+\description{
+Extract the score of each pair.
 }
 \examples{
 library(data.table)

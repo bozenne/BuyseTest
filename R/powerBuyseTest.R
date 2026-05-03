@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: maj 22 2025 (15:29) 
+## Last-Updated: mar 27 2026 (14:46) 
 ##           By: Brice Ozenne
-##     Update #: 1336
+##     Update #: 1354
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -177,6 +177,7 @@ powerBuyseTest <- function(formula,
     outArgs <- initializeArgs(formula = formula, cpus = cpus, option = option, call = mycall, 
                               data = NULL, model.tte = NULL, ...)
     outArgs$call <- setNames(as.list(mycall),names(mycall))
+    outArgs$args.model.tte <- list() ## for compatibility with BuyseTest() but does not contain the actual argument values
 
     ## power
     if(!is.null(power) && (!missing(sample.size) && !is.null(sample.size))){
@@ -615,8 +616,8 @@ powerBuyseTest <- function(formula,
     rerun <- (envir$n.sample.size>1)
 
     ## when creating S4 object
-    keep.args <- c("index.C", "index.T", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","grid.strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","n.resampling","call")
+    keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
+                   "correction.uninf","method.inference","method.score","strata","threshold","multiplicative.threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling","fitter.model.tte","args.model.tte","call")
 
     ## ** Simulate data
     data <- data.table::as.data.table(envir$sim(n.T = envir$sample.sizeTmax, n.C = envir$sample.sizeCmax))

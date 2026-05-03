@@ -80,6 +80,8 @@ methods::setMethod(
                                    covariance, ## from cpp object
                                    tableScore, ## from cpp object
                                    tableSurvival = NULL, ## added to the cpp object by .BuyseTest when requested by the user
+                                   fitter.model.tte,
+                                   args.model.tte, 
                                    index.C,
                                    index.T,
                                    index.strata,
@@ -97,6 +99,7 @@ methods::setMethod(
                                    seed,
                                    strata,
                                    threshold,
+                                   multiplicative.threshold,
                                    restriction,
                                    weightObs,
                                    weightEndpoint,
@@ -199,7 +202,11 @@ methods::setMethod(
                  attr(method.score,"test.CR") <- NULL
                  attr(scoring.rule,"test.match") <- !is.null(strata) && attr(strata,"match")
                  attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
-                 attr(scoring.rule,"efron") <- efron
+                 if(scoring.rule=="Peron"){ ## used to compute the score matrix in getMatrixScore
+                     attr(scoring.rule,"efron") <- efron
+                     attr(scoring.rule, "fitter") <- fitter.model.tte
+                     attr(scoring.rule, "args") <- args.model.tte
+                 }
 
                  ## ** hierarchical
                  
@@ -222,7 +229,8 @@ methods::setMethod(
 
                  ## ** threshold
                  names(threshold) <- name.endpoint
-                 
+                 attr(threshold,"multiplicative") <- multiplicative.threshold
+
                  ## ** weightEndpoint
                  names(weightEndpoint) <- name.endpoint
 
@@ -293,8 +301,7 @@ methods::setMethod(
                      .Object@weightStrataResampling <- weightStrataResampling
                      .Object@covarianceResampling <- covarianceResampling
                  }
-
-                 ## survival
+                 ## survival                 
                  if(!is.null(tableSurvival)){
                      .Object@tableSurvival <- tableSurvival
                  }

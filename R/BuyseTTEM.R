@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: apr  8 2025 (11:07) 
+## Last-Updated: mar 27 2026 (14:02) 
 ##           By: Brice Ozenne
-##     Update #: 836
+##     Update #: 837
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -597,10 +597,10 @@ BuyseTTEM.BuyseTTEM <- function(object, ...){
     }else{
 
         ## check name of the strata variables
-        if(any(strata.var == "..strata..")){
-            stop("Incorrect strata variable \n",
-                 "Cannot use \"..strata..\" as it will be used internally \n.")
-        }
+        ## if(any(strata.var == "..strata..")){
+        ##     stop("Incorrect strata variable \n",
+        ##          "Cannot use \"..strata..\" as it will be used internally \n.")
+        ## }
         attr(strata.var,"original") <- strata.var
         
         ## update the design matrix with the right ordering of the factors

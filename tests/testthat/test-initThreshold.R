@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec 22 2017 (18:37) 
 ## Version: 
-## Last-Updated: apr  6 2020 (11:50) 
+## Last-Updated: feb 20 2026 (14:39) 
 ##           By: Brice Ozenne
-##     Update #: 29
+##     Update #: 31
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -79,6 +79,18 @@ test_that("convert 0 to 1e-12 - threshold",{
     expect_equal(as.double(test@threshold), c(1,1e-12))    
 })
 
+## * multiplicative threshold as log additive threshold
+data(profil, package = "BuyseTest")
+profil$duration_log <- log(profil$duration)
+log_2 <- log(2)
+profilR <- profil[profil$treatment %in% c("placebo","lowDose"),]
+profilR$treatment <- droplevels(profilR$treatment)
 
+test_that("multiplicative threshold as log additive threshold",{
+    eMult <- BuyseTest(treatment ~ cont(duration, threshold = 2, operator = "*"), data = profilR, trace = 0, method.inference = "U-statistic")
+    eLog <- BuyseTest(treatment ~ cont(duration_log, threshold = log_2), data = profilR, trace = 0, method.inference = "U-statistic")
+
+    expect_equal(as.double(confint(eMult)-confint(eLog)),rep(0,6), tol =  1e-3)
+})
 ##----------------------------------------------------------------------
 ### test-initThreshold.R ends here

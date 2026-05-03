@@ -70,7 +70,7 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
       throw std::runtime_error("Incorrect nJump value (negative or too large)");
     }else if(nJump==0){ // should never be used as by default the time 0 is included so nJump is at least 1
       intSurv_upper[0] = - lastSurv * lastdSurv;
-    }else if((survival[nJump-1]>=0) && arma::is_finite(survival[nJump-1])){ // <0 and is_finite test whether it is a missing value (NA in R)
+    }else if((survival[nJump-1]>=0) && std::isfinite(survival[nJump-1])){ // <0 and is_finite test whether it is a missing value (NA in R)
       intSurv_upper[nJump] = - survival[nJump-1] * lastdSurv;
     }else{
       intSurv_upper[nJump] = - lastSurv * lastdSurv;
@@ -83,7 +83,7 @@ Rcpp::List calcIntegralSurv2_cpp(const std::vector<double>& time,
       intSurv_lower[iJump] = intSurv_lower[iJump+1];
       intSurv_upper[iJump] = intSurv_upper[iJump+1];
         
-      if(survival[iJump]>=0 && arma::is_finite(survival[iJump])){ // <0 and is_finite test whether it is a missing value (NA in R)
+      if(survival[iJump]>=0 && std::isfinite(survival[iJump])){ // <0 and is_finite test whether it is a missing value (NA in R)
 		intSurv_lower[iJump] += survival[iJump] * dSurvival[iJump];
 		intSurv_upper[iJump] += survival[iJump] * dSurvival[iJump];
 

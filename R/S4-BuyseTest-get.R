@@ -381,6 +381,265 @@ setMethod(f = "getIid",
               
           })
 
+## * getMatrixScore (documentation)
+#' @docType methods
+#' @name getMatrixScore
+#' @title Extract the Score Matrix 
+#' @aliases getMatrixScore,S4BuyseTest-method
+#' @include S4-BuyseTest.R
+#'
+#' @description Extract all pairwise comparisons in a matrix format.
+#'
+#' @param object an \R object of class \code{\linkS4class{S4BuyseTest}}, i.e., output of \code{\link{BuyseTest}}
+#' @param endpoint [integer/character vector] the endpoint for which the scores should be output.
+#' @param statistic [character] the statistic summarizing the pairwise comparison: \code{"netBenefit"}, \code{"favorable"}, \code{"unfavorable"}, \code{"neutral"}, \code{"uninf"}.
+#' @param strata [character vector] the strata relative to which the score should be output.
+#' @param cumulative [logical] should the scores be cumulated over endpoints?
+#' @param within [logical] should within group pairwise comparisons be exported?
+#' This requires to re-run GPC which can be time and memory consuming.
+#' @param unlist [logical] should the structure of the output be simplified when possible?
+#'
+#' @keywords get S4BuyseTest-method
+#' @author Brice Ozenne
+#' @examples
+#' library(data.table)
+#' library(prodlim)
+#' library(survival) ## import veteran
+#'
+#' #### Gehan scoring rule ####
+#' ## non stratified GPC
+#' e.Gehan <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+#'                      data = veteran, scoring.rule = "Gehan", keep.pairScore = TRUE)
+#' Mscore.Gehan <- getMatrixScore(e.Gehan)
+#' mean(Mscore.Gehan) - coef(e.Gehan) ## same
+#' m <- NROW(Mscore.Gehan)
+#' n <- NCOL(Mscore.Gehan)
+#'
+#' var1.Gehan <- sum((colSums(Mscore.Gehan)/m - mean(Mscore.Gehan))^2)
+#' var2.Gehan <- sum((rowSums(Mscore.Gehan)/n - mean(Mscore.Gehan))^2)
+#' var1.Gehan/n^2 + var2.Gehan/m^2 - confint(e.Gehan)[,"se"]^2 ## same
+#'
+#' MscoreFull.Gehan <- getMatrixScore(e.Gehan, within = TRUE)
+#' table(MscoreFull.Gehan[1:m,m+(1:n)] - Mscore.Gehan) ## same
+#' all(MscoreFull.Gehan[1:m,m+(1:n)] + t(MscoreFull.Gehan[m+(1:n),1:m])==0)
+#' 
+#' ## stratified GPC
+#' e.GehanS <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + celltype,
+#'                      data = veteran, scoring.rule = "Gehan", keep.pairScore = TRUE)
+#' Mscore.GehanS <- getMatrixScore(e.GehanS)
+#' Mscore.GehanS
+#'
+#' Mscore.GehanS1 <- getMatrixScore(e.GehanS, strata = "adeno")
+#' Mscore.GehanS1
+#' 
+#' MscoreFull.GehanS <- getMatrixScore(e.GehanS, within = TRUE)
+#' 
+#' #### Peron scoring rule ####
+#' ## non stratified GPC
+#' e.Peron <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status"),
+#'                      data = veteran[veteran$celltype == "adeno",], keep.pairScore = TRUE)
+#' Mscore.Peron <- getMatrixScore(e.Peron)
+#' mean(Mscore.Peron) - coef(e.Peron) ## same
+#' m <- NROW(Mscore.Peron)
+#' n <- NCOL(Mscore.Peron)
+#'
+#' var1.Peron <- sum((colSums(Mscore.Peron)/m - mean(Mscore.Peron))^2)
+#' var2.Peron <- sum((rowSums(Mscore.Peron)/n - mean(Mscore.Peron))^2)
+#' var1.Peron/n^2 + var2.Peron/m^2 - confint(e.Peron)[,"se"]^2 ## too low
+#' ## as ignore the uncertainty about the survival model
+#'
+#' MscoreFull.Peron <- getMatrixScore(e.Peron, within = TRUE)
+#' table(MscoreFull.Peron[1:m,m+(1:n)] - Mscore.Peron) ## same
+#' all(MscoreFull.Peron[1:m,m+(1:n)] + t(MscoreFull.Peron[m+(1:n),1:m])==0)
+#'
+#' MscoreFull.Peron[2,m+(1:n)]
+#' Mscore.Peron[2,]
+#' 
+#' ## stratified GPC
+#' e.PeronS <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + celltype,
+#'                      data = veteran, keep.pairScore = TRUE)
+#' Mscore.PeronS <- getMatrixScore(e.PeronS)
+#' Mscore.PeronS
+#'
+#' Mscore.PeronS1 <- getMatrixScore(e.PeronS, strata = "adeno")
+#' Mscore.PeronS1
+#'
+#' MscoreFull.PeronS <- getMatrixScore(e.PeronS, within = TRUE)
+
+
+## * getMatrixScore (code)
+#' @rdname getMatrixScore
+#' @exportMethod getMatrixScore
+setMethod(f = "getMatrixScore",
+          signature = "S4BuyseTest",
+          definition = function(object, endpoint, statistic, strata, cumulative, within, unlist){
+
+              ## ** extract information
+              option <- BuyseTest.options()
+              
+              if(is.null(endpoint)){
+                  endpoint <- names(object@endpoint)
+              }
+              if(is.null(statistic)){
+                  statistic <- option$statistic
+              }
+              statistic <- switch(gsub("[[:blank:]]", "", tolower(statistic)),
+                                  "netbenefit" = "netBenefit",
+                                  "uninformative" = "uninf",
+                                  statistic)
+              validCharacter(statistic,
+                             name1 = "statistic",
+                             valid.values = c("netBenefit","favorable","unfavorable","neutral","uninf"),
+                             valid.length = 1,
+                             method = "getMatrixScore[S4BuyseTest]")
+
+              ## ** prepare basic information
+              level.treatment <- object@level.treatment
+              index.treatment <- paste("index",level.treatment,sep=".")
+              if(!is.null(strata) & is.numeric(strata)){
+                  strata <- object@level.strata[strata]
+              }
+   
+              ## ** between-group pairwise comparisons
+              ## extract
+              scoreB <- getPairScore(object, strata = strata, endpoint = endpoint, cumulative = cumulative, unlist = FALSE)
+              
+              ## move from data.frame (one line per pair) to matrix format
+              m.strata <- length(unique(scoreB[[1]][[index.treatment[1]]]))
+              n.strata <- length(unique(scoreB[[1]][[index.treatment[2]]]))
+              out <- stats::setNames(lapply(1:length(endpoint), function(iE){matrix(NA, nrow = m.strata, ncol = n.strata)}), endpoint) ## P[Y>X+\tau]
+              if(within & statistic %in% c("favorable","unfavorable")){
+                  out2 <- stats::setNames(lapply(1:length(endpoint), function(iE){matrix(NA, nrow = m.strata, ncol = n.strata)}), endpoint) ## P[X>Y+\tau]
+              }
+
+              for(iEndpoint in endpoint){
+
+                  scoreB[[iEndpoint]]$pos.A <- as.numeric(as.factor(scoreB[[iEndpoint]][[index.treatment[[1]]]]))
+                  scoreB[[iEndpoint]]$pos.B <- as.numeric(as.factor(scoreB[[iEndpoint]][[index.treatment[[2]]]]))
+
+                  if(within & statistic == "favorable"){
+                      iScore <- scoreB[[iEndpoint]]$favorable
+                      iScore2 <- scoreB[[iEndpoint]]$unfavorable
+                  }else if(within & statistic == "unfavorable"){
+                      iScore <- scoreB[[iEndpoint]]$unfavorable
+                      iScore2 <- scoreB[[iEndpoint]]$favorable
+                  }else if(statistic %in% c("favorable","unfavorable","neutral","uninf")){
+                      iScore <- scoreB[[iEndpoint]][[statistic]]
+                  }else if(statistic == "netBenefit"){
+                      iScore <- scoreB[[iEndpoint]]$favorable - scoreB[[iEndpoint]]$unfavorable
+                  } 
+                  
+                  out[[iEndpoint]][(scoreB[[iEndpoint]]$pos.B-1)*m.strata + scoreB[[iEndpoint]]$pos.A] <- iScore                                            
+                  if(within & statistic %in% c("favorable","unfavorable")){
+                      out2[[iEndpoint]][(scoreB[[iEndpoint]]$pos.B-1)*m.strata + scoreB[[iEndpoint]]$pos.A] <- iScore2                                            
+                  }
+                  
+              }
+
+              ## ** perform within-group pairwise comparisons
+              if(within){                  
+                  
+                  ## *** extract data data
+                  data <- object@call$data                  
+                  if(inherits(data,"data.frame")==FALSE){
+                      stop("Could not retrieve \'data\' from the function call. \n",
+                           "Consider setting argument \'within\' to FALSE. \n")
+                  }
+                  if("XXgroupXX" %in% names(data)){
+                      stop("The dataset should not have a column \"XXgroupXX\" as this name is used internally. \n")
+                  }
+                  if("XXindexXX" %in% names(data)){
+                      stop("The dataset should not have a column \"XXindexXX\" as this name is used internally. \n")
+                  }
+                  
+                  ## *** re-run GPC to obtain within treatment group comparisons
+                  ls.args <- object@call
+                  ls.args$data <- rbind(cbind(XXgroupXX = "A", XXindexXX = 1:NROW(data), data), 
+                                        cbind(XXgroupXX = "B", XXindexXX = 1:NROW(data), data))
+                  ls.args$method.inference <- "none"
+                  ls.args$keep.pairScore <- TRUE
+                  ls.args$trace <- FALSE
+                  ls.args$treatment <- "XXgroupXX"
+
+                  ## move from formula interface to single argument interface
+                  ## (easier to 'adjust' than a formula)
+                  if(!is.null(ls.args$formula)){
+                      init.formula <- initializeFormula(object@call$formula, hierarchical = object@hierarchical)
+                      object@call$treatment <- init.formula$treatment
+                      ls.args$formula <- NULL
+
+                      ls.args$endpoint <- unname(object@endpoint)
+                      ls.args$type <- unname(object@type)
+                      ls.args$threshold <- unname(object@threshold)
+                      if(any(!is.na(init.formula$status))){
+                          ls.args$status <- init.formula$status
+                      }
+                      if(any(!is.na(init.formula$operator))){
+                          ls.args$operator <- init.formula$operator
+                      }
+                      if(any(!is.na(init.formula$censoring))){
+                          ls.args$censoring <- init.formula$censoring
+                      }
+                      if(any(!is.na(object@restriction))){
+                          ls.args$restriction <- unname(object@restriction)
+                      }
+                      if(any(!is.na(object@strata))){
+                          ls.args$strata <- object@strata
+                      }
+                  }
+
+                  ## stratify on treatment to only compute within pairs
+                  ls.args$strata <- union(object@call$treatment, ls.args$strata)
+                  ## run GPC 
+                  objectW <- do.call(BuyseTest, ls.args)
+                  ## extract scores
+                  if(!is.null(strata)){ ## add treatment to the strata label since the new GPC is also stratified on treatment
+                      strata2 <- unlist(lapply(paste0(strata,"$"), function(x){grep(x, objectW@level.strata, value = TRUE)}))
+                  }else{
+                      strata2 <- NULL
+                  }
+                  scoreW <- getPairScore(objectW, endpoint = endpoint, strata = strata2, cumulative = cumulative, unlist = FALSE)
+
+                  ## *** store within-group pairwise comparisons
+                  outB <- out ## save between comparisons
+                  out <- stats::setNames(lapply(1:length(endpoint), function(iE){matrix(NA, nrow = m.strata + n.strata, ncol = m.strata + n.strata)}), endpoint)
+                  
+                  for(iEndpoint in endpoint){
+
+                      out[[iEndpoint]][1:m.strata,m.strata + (1:n.strata)] <- outB[[iEndpoint]]
+
+                      if(statistic %in% c("favorable","unfavorable")){
+                          out[[iEndpoint]][m.strata + (1:n.strata),1:m.strata] <- t(out2[[iEndpoint]])
+                          iScore <- scoreW[[iEndpoint]][[statistic]]                      
+                      }else if(statistic %in% c("neutral","uninf")){
+                          out[[iEndpoint]][m.strata + (1:n.strata),1:m.strata] <- t(out[[iEndpoint]])
+                          iScore <- scoreW[[iEndpoint]][[statistic]]                      
+                      }else if(statistic == "netBenefit"){
+                          out[[iEndpoint]][m.strata + (1:n.strata),1:m.strata] <- - t(outB[[iEndpoint]])
+                          iScore <- scoreW[[iEndpoint]]$favorable - scoreW[[iEndpoint]]$unfavorable
+                      } 
+
+                      ## location in the original dataset
+                      scoreW[[iEndpoint]][[index.treatment[[1]]]] <- ls.args$data$XXindexXX[scoreW[[iEndpoint]]$index.A] 
+                      scoreW[[iEndpoint]][[index.treatment[[2]]]] <- ls.args$data$XXindexXX[scoreW[[iEndpoint]]$index.B] 
+                      ## location in the matrix (which is a subset of the dataset when not all strata are exported)
+                      index2pos <- rbind(cbind(scoreB[[iEndpoint]]$pos.A,scoreB[[iEndpoint]][[index.treatment[[1]]]])[!duplicated(scoreB[[iEndpoint]][[index.treatment[[1]]]]),,drop=FALSE],
+                                         cbind(m.strata + scoreB[[iEndpoint]]$pos.B,scoreB[[iEndpoint]][[index.treatment[[2]]]])[!duplicated(scoreB[[iEndpoint]][[index.treatment[[2]]]]),,drop=FALSE])
+                      scoreW[[iEndpoint]]$pos.A <- index2pos[match(scoreW[[iEndpoint]][[index.treatment[[1]]]], index2pos[,2]),1]
+                      scoreW[[iEndpoint]]$pos.B <- index2pos[match(scoreW[[iEndpoint]][[index.treatment[[2]]]], index2pos[,2]),1]
+                      
+                      out[[iEndpoint]][(scoreW[[iEndpoint]]$pos.B-1)*(m.strata + n.strata) + scoreW[[iEndpoint]]$pos.A] <- iScore
+                  }
+              }
+              
+              ## ** export
+              if(unlist && length(endpoint)==1){
+                  return(out[[1]])
+              }else{
+                  return(out)
+              }
+})
+
 ## * getPairScore (documentation)
 #' @docType methods
 #' @name getPairScore
@@ -404,7 +663,7 @@ setMethod(f = "getIid",
 #' @param trace [logical] should a message be printed to explain what happened
 #' when the function returned \code{NULL}?
 #'
-#' @details The maximal output (i.e. with all columns) contains for each endpoint, a data.table with:
+#' @return The maximal output (i.e. with all columns) contains for each endpoint, a data.table with:
 #' \itemize{
 #' \item \code{"strata"}: the name of the strata to which the pair belongs.
 #' \item \code{"index.T"}: the index of the treatment observation in the pair relative to the original dataset.
@@ -497,7 +756,7 @@ setMethod(f = "getPairScore",
               }else{
                   out <- data.table::copy(object@tablePairScore)
 
-                  endpoint.names <- object@endpoint
+                  endpoint.names <- names(object@endpoint)
                   strata.names <- object@level.strata
                   
                   if(!is.null(endpoint)){
@@ -582,6 +841,7 @@ setMethod(f = "getPairScore",
                   }
  
                   for(iEndpoint in 1:length(out)){ ## iEndpoint <- 2
+
                       if(rm.withinStrata){
                           out[[iEndpoint]][,c("indexWithinStrata.T","indexWithinStrata.C") := NULL]
                           data.table::setnames(out[[iEndpoint]], old = old.names[1:2], new = new.names[1:2])
@@ -590,7 +850,7 @@ setMethod(f = "getPairScore",
                       }
                       if(rm.indexPair){
                           out[[iEndpoint]][,c("index.pair") := NULL]
-                      }
+                      }                      
                       if(rm.strata){
                           out[[iEndpoint]][,c("strata") := NULL]
                       }

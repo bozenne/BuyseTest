@@ -10,22 +10,26 @@
 
 // :cppFile:{FCT_buyseTest.cpp}:end:
 
-inline std::vector< double > calcOnePair_Continuous(double diff, double threshold);
+inline std::vector< double > calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold, bool multiplicative);
  
 double normalCDF(double mu, double sigma, double x);
 inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, double std_C, double std_T, double rho, double threshold);
 
-inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, double status_T, double threshold, bool threshold0);
+inline std::vector< double > calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						  double threshold, bool threshold0, bool multiplicative);
 
-inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C, double status_T, double threshold, bool threshold0);
+inline std::vector< double > calcOnePair_TTEgehan2(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						   double threshold, bool threshold0, bool multiplicative);
  
-inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold, double restriction,
+inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						   double threshold, bool multiplicative, double restriction,
 						   arma::rowvec survTimeC, arma::rowvec survTimeT,
 						   const arma::mat& survJumpC, const arma::mat& survJumpT, double lastSurvC, double lastSurvT,
 						   arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
 						   int p_C, int p_T, bool precompute, int returnIID);
 
-inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold,
+inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						 double threshold,
 						 arma::rowvec cifTimeC_vec,  arma::rowvec cifTimeT_vec, const arma::mat& cifJumpC, const arma::mat& cifJumpT,
 						 double lastCif1C, double lastCif1T, double lastCif2C, double lastCif2T,
 						 arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
@@ -39,18 +43,26 @@ double calcIntegralCif_cpp(const arma::mat& cifJump, double start_val, double st
 
 // * calcOnePair_Continuous
 // author Brice Ozenne
-inline std::vector< double > calcOnePair_Continuous(double diff, double threshold){
+inline std::vector< double > calcOnePair_Continuous(double endpoint_C, double endpoint_T, double threshold, bool multiplicative){
 
   // ** initialize
   std::vector< double > score(4,0.0);
+  bool aboveThreshold, belowThreshold;
+  if(multiplicative){
+    aboveThreshold = endpoint_T >= (endpoint_C * threshold);
+    belowThreshold = endpoint_T <= (endpoint_C / threshold);
+  }else{
+    aboveThreshold = endpoint_T >= (endpoint_C + threshold);
+    belowThreshold = endpoint_T <= (endpoint_C - threshold);
+  }
 
   // ** score
-  if(R_IsNA(diff)){ // missing data: uninformative
+  if(R_IsNA(endpoint_C) | R_IsNA(endpoint_T)){ // missing data: uninformative
     score[3] = 1.0;
-  }else{       
-    if(diff >= threshold){ // favorable
+  }else{
+    if(aboveThreshold){ // favorable
       score[0] = 1.0;
-    }else if(diff <= -threshold){ // unfavorable
+    }else if(belowThreshold){ // unfavorable
       score[1] = 1.0;
     }else{ // neutral
       score[2] = 1.0;
@@ -95,10 +107,19 @@ inline std::vector< double > calcOnePair_Gaussian(double mean_C, double mean_T, 
 
 // * calcOnePair_TTEgehan
 // author Brice Ozenne
-inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, double status_T, double threshold, bool threshold0){
+inline std::vector< double > calcOnePair_TTEgehan(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						  double threshold, bool threshold0, bool multiplicative){
   
-  // ** initialize
+  // ** initialize  
   std::vector< double > score(4,0.0);
+  bool aboveThreshold, belowThreshold;
+  if(multiplicative){
+    aboveThreshold = endpoint_T >= (endpoint_C * threshold);
+    belowThreshold = endpoint_T <= (endpoint_C / threshold);
+  }else{
+    aboveThreshold = endpoint_T >= (endpoint_C + threshold);
+    belowThreshold = endpoint_T <= (endpoint_C - threshold);      
+  }
   // Rcpp::Rcout << diff << " " << status_T << " " << status_C << " " << threshold << std::endl;
 
   // ** score
@@ -110,17 +131,17 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
     
     if(status_C==1 || status_C==0.5){ // (treatment event/restricted, control event/restricted)
       
-      if(diff >= threshold){         // >= tau    : favorable
-        score[0] = 1.0;
-      }else if(diff <= -threshold){ // <= -tau    : unfavorable
+      if(aboveThreshold){ // favorable
+	score[0] = 1.0;
+      }else if(belowThreshold){ // unfavorable
 	score[1] = 1.0;
-      }else{                        // ]-tau;tau[ : neutral
+      }else{ // neutral
 	score[2] = 1.0;
       }
       
     }else if(status_C==0){ // (treatment event, control right-censored)
 	
-      if(diff <= -threshold || (threshold0 && status_T==1 && diff==0)){ // <= -tau   : unfavorable
+      if(belowThreshold || (threshold0 && status_T==1 && (endpoint_T == endpoint_C))){ // <= -tau   : unfavorable
 	// also unfavorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[1] = 1.0;
       }else{ // otheriwise : uninformative
@@ -141,7 +162,7 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
     
     if(status_C==1 || status_C==0.5){ // (treatment right-censored, control event/restricted)
     
-      if(diff >= threshold ||  (threshold0 && status_C==1 && diff==0)){ // >= tau    : favorable
+      if(aboveThreshold ||  (threshold0 && status_C==1 && (endpoint_T == endpoint_C))){ // >= tau    : favorable
 	// also favorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[0] = 1.0;
       }else{ // otherwise: uninformative
@@ -171,11 +192,20 @@ inline std::vector< double > calcOnePair_TTEgehan(double diff, double status_C, 
 
 // * calcOnePair_TTEgehan2
 // author Brice Ozenne
-inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C, double status_T, double threshold, bool threshold0){
+inline std::vector< double > calcOnePair_TTEgehan2(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						   double threshold, bool threshold0, bool multiplicative){
   
   // ** initialize
   std::vector< double > score(4,0.0);
-  // Rcpp::Rcout << diff << " " << status_T << " " << status_C << " " << threshold << std::endl;
+  bool aboveThreshold, belowThreshold;
+  if(multiplicative){
+    aboveThreshold = endpoint_T >= (endpoint_C * threshold);
+    belowThreshold = endpoint_T <= (endpoint_C / threshold);
+  }else{
+    aboveThreshold = endpoint_T >= (endpoint_C + threshold);
+    belowThreshold = endpoint_T <= (endpoint_C - threshold);      
+  }
+// Rcpp::Rcout << diff << " " << status_T << " " << status_C << " " << threshold << std::endl;
 
   // ** score
   if(status_T==0.5 && status_C==0.5){
@@ -186,17 +216,17 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
     
     if(status_C==1 || status_C==0.5){ // (treatment event/restricted, control event/restricted)
       
-      if(diff >= threshold){         // >= tau    : favorable
-        score[0] = 1.0;
-      }else if(diff <= -threshold){ // <= -tau    : unfavorable
+      if(aboveThreshold){ // favorable
+	score[0] = 1.0;
+      }else if(belowThreshold){ // unfavorable
 	score[1] = 1.0;
-      }else{                        // ]-tau;tau[ : neutral
+      }else{ // neutral
 	score[2] = 1.0;
       }
       
     }else if(status_C==0){ // (treatment event, control left-censored)
 	
-      if(diff >= threshold || (threshold0 && status_T==1 && diff==0)){ // >= tau   : favorable
+      if(aboveThreshold || (threshold0 && status_T==1 && (endpoint_T == endpoint_C))){ // >= tau   : favorable
 	// also favorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[0] = 1.0;
       }else{ // otheriwise : uninformative
@@ -217,7 +247,7 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
     
     if(status_C==1 || status_C==0.5){ // (treatment left-censored, control event/restricted)
     
-      if(diff <= -threshold ||  (threshold0 && status_C==1 && diff==0)){ // <= tau    : unfavorable
+      if(belowThreshold ||  (threshold0 && status_C==1 && (endpoint_T == endpoint_C))){ // <= tau    : unfavorable
 	// also unfavorable when 0-difference, infinitesimal threshold and observation is censored and the other is observed since event must happen after censoring
 	score[1] = 1.0;
       }else{ // otherwise: uninformative
@@ -248,7 +278,8 @@ inline std::vector< double > calcOnePair_TTEgehan2(double diff, double status_C,
 
 // * calcOneScore_SurvPeron
 // author Brice Ozenne
-inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold, double restriction,
+inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						   double threshold, bool multiplicative, double restriction,
 						   arma::rowvec survTimeC, arma::rowvec survTimeT,
 						   const arma::mat& survJumpC, const arma::mat& survJumpT, double lastSurvC, double lastSurvT,
 						   arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
@@ -265,13 +296,21 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
   //        [2]  d(survival) estimated at time (control arm and treatment arm)
     
   // ** initialize
-  double diff = endpoint_T-endpoint_C;
   std::vector< double > score(4,0.0); // [0] favorable, [1] unfavorable, [2] test neutral [3] test uniformative
+  bool aboveThreshold, belowThreshold, testNoRestrictionC, testNoRestrictionT;
+  if(multiplicative){
+    aboveThreshold = endpoint_T >= (endpoint_C * threshold);
+    belowThreshold = endpoint_T <= (endpoint_C / threshold);
+    testNoRestrictionC = R_IsNA(restriction) || ((endpoint_C * threshold) < restriction);
+    testNoRestrictionT = R_IsNA(restriction) || ((endpoint_T * threshold) < restriction);
+  }else{
+    aboveThreshold = endpoint_T >= endpoint_C + threshold;
+    belowThreshold = endpoint_T <= endpoint_C - threshold;      
+    testNoRestrictionC = R_IsNA(restriction) || ((endpoint_C+threshold) < restriction);
+    testNoRestrictionT = R_IsNA(restriction) || ((endpoint_T+threshold) < restriction);
+  }
   double upperFavorable = 0.0;
   double upperUnfavorable = 0.0;
-  bool testNoRestrictionC = (R_IsNA(restriction) || endpoint_C+threshold < restriction);
-  bool testNoRestrictionT = (R_IsNA(restriction) || endpoint_T+threshold < restriction);
-  
   if(returnIID > 1){
     Dscore_Dnuisance_C.fill(0.0); // initialized to 0
     Dscore_Dnuisance_T.fill(0.0); // initialized to 0
@@ -296,12 +335,12 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 
   }else if(status_T==1 || status_T==0.5){
     if(status_C==1 || status_C==0.5){
-     // Rcpp::Rcout << "(1) ";
+      // Rcpp::Rcout << "(1) ";
       
-      if(diff >= threshold){ 
+      if(aboveThreshold){ 
 	score[0] = 1.0; // favorable
 	// score[1] = 0.0; // unfavorable        
-      }else if(diff <= -threshold){ 
+      }else if(belowThreshold){ 
 	// score[0] = 0.0; // favorable
 	score[1] = 1.0; // unfavorable 
       }else{ 
@@ -315,7 +354,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
     }else{ // status_C==0 
 
       // favorable
-      if(diff >= threshold && testNoRestrictionC){
+      if(aboveThreshold && testNoRestrictionC){
 	// Rcpp::Rcout << "(2+a) ";
 	if(R_IsNA(survTimeT(1))==false){
 	  score[0] = 1.0 - survTimeT(1)/survTimeC(2); // 1-[Sc(x_i-tau)/Sc(y_j)]
@@ -338,7 +377,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 
       // unfavorable
       if(status_T==1){
-	if(diff <= -threshold){ 
+	if(belowThreshold){ 
 	  score[1] = 1.0;
 	  upperUnfavorable = score[1];
 	}else if(testNoRestrictionT){
@@ -374,7 +413,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
       
       // favorable
       if(status_C==1){
-	if(diff >= threshold){ // 
+	if(aboveThreshold){ // 
 	  score[0] = 1.0;
 	  upperFavorable = score[0];
 	}else if(testNoRestrictionC){
@@ -398,11 +437,11 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	  // score[0] = upperFavorable = 0.0;
 	}
       }else{ // cannot be favorable when pair in the control group restricted
-	  // score[0] = upperFavorable = 0.0;
+	// score[0] = upperFavorable = 0.0;
       }
 
       // unfavorable
-      if(diff <= -threshold && testNoRestrictionT){
+      if(belowThreshold && testNoRestrictionT){
 	// Rcpp::Rcout << "(3-a) ";
 	if(R_IsNA(survTimeC(4))==false){
 	  score[1] = 1.0 - survTimeC(4)/survTimeT(5); // 1-[St(y_j-tau)/St(x_i)]
@@ -423,7 +462,7 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 	// score[1] = upperUnfavorable = 0.0;
       }
       
-     }else{ // status_T==0 && status_C==0
+    }else{ // status_T==0 && status_C==0
 
       double denom = survTimeT(5)*survTimeC(2);
       std::vector< double > intFavorable(2); 
@@ -436,12 +475,15 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
       }
 	  
       // favorable
-      if(diff >= threshold){
+      if(aboveThreshold){
 	// Rcpp::Rcout << "(4+a) ";
 
 	if(precompute){
 	  intFavorable[0] = survTimeT(13);
 	  intFavorable[1] = survTimeT(14);	  
+	}else if(multiplicative){
+	  intFavorable = calcIntegralSurv_cpp(survJumpC, endpoint_T/threshold, lastSurvT, lastSurvC,
+					      (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
 	}else{
 	  intFavorable = calcIntegralSurv_cpp(survJumpC, endpoint_T-threshold, lastSurvT, lastSurvC,
 					      (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
@@ -511,12 +553,15 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
       }
       
       // unfavorable
-      if(diff <= -threshold){	
+      if(belowThreshold){	
 	// Rcpp::Rcout << "(4-a) ";
 
 	if(precompute){
 	  intUnfavorable[0] = survTimeC(13);
 	  intUnfavorable[1] = survTimeC(14);
+	}else if(multiplicative){
+	  intUnfavorable = calcIntegralSurv_cpp(survJumpT, endpoint_C/threshold, lastSurvC, lastSurvT,
+						(returnIID > 1), intDscore_Dnuisance_C, intDscore_Dnuisance_T); // -intUnfavorable is already the lower bound
 	}else{
 	  intUnfavorable = calcIntegralSurv_cpp(survJumpT, endpoint_C-threshold, lastSurvC, lastSurvT,
 						(returnIID > 1), intDscore_Dnuisance_C, intDscore_Dnuisance_T); // -intUnfavorable is already the lower bound
@@ -625,7 +670,8 @@ inline std::vector< double > calcOnePair_SurvPeron(double endpoint_C, double end
 
 // * calcOnePair_CRPeron
 // author Eva Cantagallo
-inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpoint_T, double status_C, double status_T, double threshold,
+inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpoint_T, double status_C, double status_T,
+						 double threshold, bool multiplicative, double restriction,
 						 arma::rowvec cifTimeC_vec,  arma::rowvec cifTimeT_vec, const arma::mat& cifJumpC, const arma::mat& cifJumpT,
 						 double lastCif1C, double lastCif1T, double lastCif2C, double lastCif2T,
 						 arma::mat& Dscore_Dnuisance_C, arma::mat& Dscore_Dnuisance_T,
@@ -643,8 +689,26 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
   //        [2-3]  cif of the treatment group at times-threshold and times+threshold
   //        [4]  d(cif) of control group estimated at time
 
-  double diff = endpoint_T - endpoint_C;
+  // ** initialize
   std::vector< double > score(4, 0.0); // [0] favorable, [1] unfavorable, [2] neutral, [3] uninformative
+  double endpointPLUSthreshold_T, endpointMINUSthreshold_T;
+  bool aboveThreshold, belowThreshold;
+  // bool testNoRestrictionC, testNoRestrictionT;
+  if(multiplicative){
+    aboveThreshold = endpoint_T >= (endpoint_C * threshold);
+    belowThreshold = endpoint_T <= (endpoint_C / threshold);
+    endpointPLUSthreshold_T = endpoint_T * threshold;
+    endpointMINUSthreshold_T = endpoint_T / threshold;
+    // testNoRestrictionC = R_IsNA(restriction) || ((endpoint_C * threshold) < restriction);
+    // testNoRestrictionT = R_IsNA(restriction) || ((endpoint_T * threshold) < restriction);
+  }else{
+    aboveThreshold = endpoint_T >= endpoint_C + threshold;
+    belowThreshold = endpoint_T <= endpoint_C - threshold;      
+    endpointPLUSthreshold_T = endpoint_T + threshold;
+    endpointMINUSthreshold_T = endpoint_T - threshold;
+    // testNoRestrictionC = R_IsNA(restriction) || ((endpoint_C+threshold) < restriction);
+    // testNoRestrictionT = R_IsNA(restriction) || ((endpoint_T+threshold) < restriction);
+  }
   // Rcpp::Rcout << diff << " " << status_T << " " << status_C << " " << threshold << std::endl;
   double denomC = 1 - cifTimeC_vec(2) - cifTimeC_vec(7);
   double denomT = 1 - cifTimeT_vec(5) - cifTimeT_vec(7);
@@ -679,15 +743,15 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
     if(status_C == 2){ // (1,2)
       score[1] = 1.0; // systematically defavorable
     } else if(status_C == 1){ // (1,1)
-      if(diff >= threshold) {
+      if(aboveThreshold) {
         score[0] = 1.0;
-      } else if(diff <= -threshold) {
+      } else if(belowThreshold) {
         score[1] = 1.0;
       } else { // |diff| < threshold
         score[2] = 1.0;
       }
     } else if(status_C == 0) { // (1,0)
-      if(diff >= threshold) {
+      if(aboveThreshold) {
         if(R_IsNA(cifTimeT_vec(1)) == false) {
           score[0] = (cifTimeT_vec(1) - cifTimeC_vec(2))/denomC;
 	  if(returnIID>1){
@@ -740,7 +804,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
         } else {
           score[2] = 0.0;
         }
-      } else if(diff <= -threshold) {
+      } else if(belowThreshold) {
         score[1] = 1.0;
       } else { // |diff| < threshold
         if(R_IsNA(cifTimeT_vec(3)) == false) {
@@ -790,9 +854,9 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	Dscore_Dnuisance_T(cifTimeT_vec(14),2) += -1/denomT + score[2]/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
       }
     } else if(status_C == 1) { // (0,1)
-      if(diff >= threshold) {
+      if(aboveThreshold) {
         score[0] = 1.0;
-      } else if(diff <= -threshold) {
+      } else if(belowThreshold) {
         if(R_IsNA(cifTimeC_vec(6)) == false) {
           score[0] = (lastCif1T - cifTimeC_vec(6) + lastCif2T - cifTimeT_vec(7))/denomT;
 	  if(returnIID>1){
@@ -888,7 +952,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	intDscore_Dnuisance_T.resize(p_T); // initialized in calcIntegralCif_cpp
       }
 
-      if(diff >= threshold) {
+      if(aboveThreshold) {
 	// favorable
 	if (R_IsNA(cifTimeT_vec(1)) == false) {
 		  
@@ -923,7 +987,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  }
 	}
 
-	intFav = calcIntegralCif_cpp(cifJumpC, endpoint_T - threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 1, // cifTimeT_vec(5);
+	intFav = calcIntegralCif_cpp(cifJumpC, endpointMINUSthreshold_T, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 1, // cifTimeT_vec(5);
 				     (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
 	score[0] += intFav/(denomT*denomC) + prob21;
 	if(returnIID>1){
@@ -948,7 +1012,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	}
 
 	// unfavorable
-	intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_T + threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
+	intDefav = calcIntegralCif_cpp(cifJumpC, endpointPLUSthreshold_T, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 2,
 				       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
 	score[1] = intDefav/(denomT*denomC) + prob12;
 	if(returnIID>1){
@@ -973,7 +1037,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	}
 
 	// neutral
-	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_T - threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 3,
+	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpointMINUSthreshold_T, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 3,
 					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
 	score[2] = prob22 += intNeutralEvent1/(denomT*denomC);
 	if(returnIID>1){
@@ -996,8 +1060,8 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
 	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	}
-
-        intNeutralEvent2 = calcIntegralCif_cpp(cifJumpC, endpoint_T + threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
+	
+        intNeutralEvent2 = calcIntegralCif_cpp(cifJumpC, endpointPLUSthreshold_T, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 4,
 					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[2] += intNeutralEvent2/(denomT*denomC);
 	if(returnIID>1){
@@ -1010,8 +1074,8 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  Dscore_Dnuisance_T(cifTimeT_vec(12),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_1^T(Tt) (i.e. cifTimeT_vec(5))
 	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent2/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	}
-      } else if(diff <= -threshold) {
-        intFav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 1,
+      } else if(belowThreshold) {
+        intFav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 1,
 				     (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[0] = intFav/(denomT*denomC) + prob21;
 	if(returnIID>1){
@@ -1035,7 +1099,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	}
 		
-	intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
+	intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 2,
 				       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[1] = intDefav/(denomT*denomC) + prob12;
 	if(returnIID>1){
@@ -1059,7 +1123,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	}
 
-	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
+	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 4,
 					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[2] = prob22 + intNeutralEvent1/(denomT*denomC);
 	if(returnIID>1){
@@ -1084,7 +1148,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	}
 		
       } else { // |diff| < threshold
-        intFav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 1,
+        intFav = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 1,
 				     (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[0] = intFav/(denomT*denomC) + prob21;
 	if(returnIID>1){
@@ -1108,7 +1172,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  Dscore_Dnuisance_T(cifTimeT_vec(14),0) += prob21/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	}
 		
-        intDefav = calcIntegralCif_cpp(cifJumpC, endpoint_T+threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 2,
+        intDefav = calcIntegralCif_cpp(cifJumpC, endpointPLUSthreshold_T, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 2,
 				       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
         score[1] = intDefav/(denomT*denomC) + prob12;
 	if(returnIID>1){
@@ -1132,7 +1196,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  Dscore_Dnuisance_T(cifTimeT_vec(14),1) += prob12/denomT; // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	}
 		
-	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 3,
+	intNeutralEvent1 = calcIntegralCif_cpp(cifJumpC, endpoint_C, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 3,
 					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
 	score[2] = prob22 + intNeutralEvent1/(denomT*denomC);
 	if(returnIID>1){
@@ -1156,7 +1220,7 @@ inline std::vector< double > calcOnePair_CRPeron(double endpoint_C, double endpo
 	  Dscore_Dnuisance_T(cifTimeT_vec(14),2) += intNeutralEvent1/(denomC*pow(denomT,2)); // derivative regarding F_2^T(Tt) (i.e. cifTimeT_vec(7))
 	}
 		
-	intNeutralEvent2 = calcIntegralCif_cpp(cifJumpC, endpoint_T+threshold, endpoint_T + threshold, cifTimeT_vec, lastCif1T, 4,
+	intNeutralEvent2 = calcIntegralCif_cpp(cifJumpC, endpointPLUSthreshold_T, endpointPLUSthreshold_T, cifTimeT_vec, lastCif1T, 4,
 					       (returnIID > 1), intDscore_Dnuisance_T, intDscore_Dnuisance_C);
 	score[2] += intNeutralEvent2/(denomT*denomC);
 	if(returnIID>1){

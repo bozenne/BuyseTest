@@ -70,8 +70,10 @@
 #' There must be one threshold for each endpoint variable; it must be \code{NA} for binary endpoints and positive for continuous or time to event endpoints. 
 #'   \item \code{status}: [character vector] the name of the binary variable(s) indicating whether the endpoint was observed or censored.
 #' Must value \code{NA} when the endpoint is not a time to event.
-#'   \item \code{operator}: [character vector] the sign defining a favorable endpoint.
-#' \code{">0"} indicates that higher values are favorable while "<0" indicates the opposite.
+#'   \item \code{operator}: [character vector] the sign defining a favorable endpoint and type of threshold
+#' \code{">0"} indicates that higher values are favorable while \code{"<0"} indicates that lower values are favorable.
+#' \code{"+"} indicates an additive threshold while \code{"*"} a multiplicative threshold.
+#' Can be combined as \code{"*<0"} to use a multiplicative threshold and lower values as favorable.
 #'   \item \code{type}: [character vector] indicates whether it is
 #' a binary outcome  (\code{"b"}, \code{"bin"}, or \code{"binary"}),
 #' a continuous outcome  (\code{"c"}, \code{"cont"}, or \code{"continuous"}),
@@ -511,7 +513,7 @@ BuyseTest <- function(formula,
         cat("Gather the results in a S4BuyseTest object \n")
     }
     keep.args <- c("index.T", "index.C", "index.strata", "type","endpoint","level.strata","level.treatment","scoring.rule","hierarchical","neutral.as.uninf","add.halfNeutral",
-                   "correction.uninf","method.inference","method.score","strata","threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling")
+                   "correction.uninf","method.inference","method.score","strata","threshold","multiplicative.threshold","restriction","weightObs","weightEndpoint","pool.strata","grid.strata","n.resampling","fitter.model.tte","args.model.tte")
     mycall2 <- setNames(as.list(mycall),names(mycall))
     if(!missing(formula)){
         mycall2$formula <- formula ## change name of the variable into actual value
@@ -542,7 +544,6 @@ BuyseTest <- function(formula,
     if(envir$outArgs$scoring.rule == 0){ ## Gehan
         outSurv <- envir$outArgs$skeletonPeron
     }else{ ## Peron
-
         outSurv <- calcPeron(data = outSample$data,
                              model.tte = envir$outArgs$model.tte,                             
                              method.score = envir$outArgs$method.score,
@@ -557,6 +558,7 @@ BuyseTest <- function(formula,
                              D.TTE = envir$outArgs$D.TTE,
                              D.UTTE = envir$outArgs$D.UTTE,
                              threshold = envir$outArgs$threshold,
+                             multiplicative.threshold = envir$outArgs$multiplicative.threshold,
                              restriction = envir$outArgs$restriction,
                              level.strata = envir$outArgs$level.strata,
                              grid.strata = envir$outArgs$grid.strata,
@@ -581,6 +583,8 @@ BuyseTest <- function(formula,
     }
 
     ## ** Restriction
+    M.endpoint <- envir$outArgs$M.endpoint
+    M.status <- envir$outArgs$M.status
     if(any(!is.na(envir$outArgs$restriction))){
         ## index restricted endpoint
         index.rendpoint <- setdiff(which(!is.na(envir$outArgs$restriction)), ## non-NA value
@@ -588,32 +592,33 @@ BuyseTest <- function(formula,
         for(iE in index.rendpoint){ ## iE <- 1
             iRestriction <- envir$outArgs$restriction[iE]
             iStatus <- envir$outArgs$index.status[iE]+1
-            if(envir$outArgs$operator[iE]==1){ ## ">0"
+            ## if(envir$outArgs$operator[iE]==1){ ## ">0"
                 if(envir$outArgs$method.score[iE] %in% c("TTEgehan","SurvPeron","CRPeron")){ ## right censoring
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]>iRestriction,iStatus] <- 1/2
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]==iRestriction & envir$outArgs$M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
+                    M.status[M.endpoint[,iE]>iRestriction,iStatus] <- 1/2
+                    M.status[M.endpoint[,iE]==iRestriction & M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
                 }
-                envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]>iRestriction,iE] <- iRestriction
-            }else if(envir$outArgs$operator[iE]==-1){ ## "<0"
-                if(envir$outArgs$method.score[iE] %in% c("TTEgehan2")){ ## left censoring
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]<iRestriction,iStatus] <- 1/2
-                    envir$outArgs$M.status[envir$outArgs$M.endpoint[,iE]==iRestriction & envir$outArgs$M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
-                }
-                envir$outArgs$M.endpoint[envir$outArgs$M.endpoint[,iE]<iRestriction,iE] <- iRestriction
-            }
+                M.endpoint[M.endpoint[,iE]>iRestriction,iE] <- iRestriction
+            ## }else if(envir$outArgs$operator[iE]==-1){ ## "<0"
+            ##     if(envir$outArgs$method.score[iE] %in% c("TTEgehan2")){ ## left censoring
+            ##         M.status[M.endpoint[,iE]<iRestriction,iStatus] <- 1/2
+            ##         M.status[M.endpoint[,iE]==iRestriction & M.status[,iStatus]==0,iStatus] <- 1/2 ## rm censoring when restriction at the censoring time
+            ##     }
+            ##     M.endpoint[M.endpoint[,iE]<iRestriction,iE] <- iRestriction
+            ## }
         }
     }
 
     ## ** Perform GPC
     resBT <- do.call(envir$outArgs$engine,
-                     args = list(endpoint = envir$outArgs$M.endpoint,
-                                 status = envir$outArgs$M.status,
+                     args = list(endpoint = M.endpoint,
+                                 status = M.status,
                                  indexC = outSample$ls.indexC,
                                  posC = outSample$ls.posC,
                                  indexT = outSample$ls.indexT,                     
                                  posT = outSample$ls.posT,                     
                                  threshold = envir$outArgs$threshold,
                                  threshold0 = attr(envir$outArgs$threshold,"original")==0,
+                                 multiplicativeThreshold = envir$outArgs$multiplicative.threshold,
                                  restriction = envir$outArgs$restriction,
                                  weightEndpoint = envir$outArgs$weightEndpoint,
                                  weightObs = envir$outArgs$weightObs,
