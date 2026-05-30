@@ -94,6 +94,7 @@ M.confint <- do.call(rbind,lapply(ls.BT,confint, statistic = "favorable"))
 cbind(M.confint,adj.p.value = p.adjust(M.confint[,"p.value"], method = "bonferroni"))
 
 ## chunk 16
+set.seed(1)
 e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id", global = TRUE)
 print(e.mc, cols = c("estimate","se","p.value","adj.p.value"))
 

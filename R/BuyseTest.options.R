@@ -45,11 +45,11 @@ BuyseTest.options <- function(..., reinitialise = FALSE){
                    cpus = 1, ## cpus used to performance inference via resampling in BuyseTest()
                    debug = -1, ## hidden argument in BuyseTest to display progress of the C++ code
                    engine = "GPC2_cpp", ## C++ function used to perform GPC calculation for BuyseTest()
-                   fitter.model.tte = "prodlim", ## survival model in BuyseTest() --> calcPeron
                    hierarchical = TRUE, ## default value of argument hierarchical in BuyseTest()
                    keep.pairScore = FALSE, ## default value of argument keep.pairScore in BuyseTest()
                    keep.survival = FALSE, ## hidden argument to export survival values for the Peron Scoring rule in BuyseTest()
                    method.inference = "u-statistic", ## default value of argument method.inference in BuyseTest()
+                   n.grid = 1000, ## default value of argument n.grid in BuyseTTEM.survreg() when discretising parametric survival curves into piecewise constant curves
                    n.resampling = 1000, ## default value of argument n.resampling in BuyseTest()
                    neutral.as.uninf = TRUE, ## default value of argument neutral.as.uninf in BuyseTest()
                    order.Hprojection = 1, ## hidden argument in BuyseTest() to control the type of H-projection when using method.inference="u-statistic". Can be 1 or 2

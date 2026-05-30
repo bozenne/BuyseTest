@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr  2 2019 (11:54) 
 ## Version: 
-## Last-Updated: feb 21 2025 (09:50) 
+## Last-Updated: May 29 2026 (10:17) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 49
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -184,14 +184,14 @@ test_that("no strata, competing risks", {
     for(iCause in 1:2){
         ## Treatment
         test <- predict(e.bb, time = seqTau, treatment  = "T", iid = TRUE, cause = iCause)
-        GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+        GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
         expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
         expect_equal(test$cif.iid,GS$absRisk.iid[,,1], tol = 1e-6)
 
         ## Control
         test <- predict(e.bb, time = seqTau, treatment  = "C", iid = TRUE, cause = iCause)
-        GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+        GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
         expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
         if(packageVersion("riskRegression")>='2024.9.10'){
@@ -206,7 +206,7 @@ test_that("no strata, competing risks", {
     for(iCause in 1:2){
         ## Treatment
         test <- predict(e.b, time = seqTau, treatment  = "T", iid = TRUE, cause = iCause)
-        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T",.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
         expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
         if(packageVersion("riskRegression")>='2024.9.10'){
@@ -215,7 +215,7 @@ test_that("no strata, competing risks", {
 
         ## Control
         test <- predict(e.b, time = seqTau, treatment  = "C", iid = TRUE, cause = iCause)
-        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+        GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C",.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
         expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
         if(packageVersion("riskRegression")>='2024.9.10'){
@@ -235,7 +235,7 @@ test_that("with strata, competing risks", {
         for(iStrata in c("yes","no")){
             ## Treatment
             test <- predict(e.bb, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE, cause = iCause)
-            GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+            GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
             expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
             if(packageVersion("riskRegression")>='2024.9.10'){
@@ -244,7 +244,7 @@ test_that("with strata, competing risks", {
 
             ## Control
             test <- predict(e.bb, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE, cause = iCause)
-            GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+            GS <- predict(e.rr, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
             expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
             if(packageVersion("riskRegression")>='2024.9.10'){
@@ -261,7 +261,7 @@ test_that("with strata, competing risks", {
         for(iStrata in c("yes","no")){
             ## Treatment
             test <- predict(e.b, time = seqTau, treatment  = "T", strata = iStrata, iid = TRUE, cause = iCause)
-            GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+            GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="T" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
             expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
             if(packageVersion("riskRegression")>='2024.9.10'){
@@ -270,7 +270,7 @@ test_that("with strata, competing risks", {
 
             ## Control
             test <- predict(e.b, time = seqTau, treatment  = "C", strata = iStrata, iid = TRUE, cause = iCause)
-            GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, prodlim = TRUE, cause = iCause)
+            GS <- predict(e.r, time = seqTau, newdata  = dt[treatment=="C" & toxicity == iStrata,.SD[1]], iid = TRUE, product.limit = TRUE, cause = iCause)
 
             expect_equal(test$cif,GS$absRisk[1,], tol = 1e-6)
             if(packageVersion("riskRegression")>='2024.9.10'){

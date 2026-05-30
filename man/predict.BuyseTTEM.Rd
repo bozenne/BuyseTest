@@ -4,7 +4,17 @@
 \alias{predict.BuyseTTEM}
 \title{Prediction with Time to Event Model}
 \usage{
-\method{predict}{BuyseTTEM}(object, time, treatment, strata, cause = 1, iid = FALSE, ...)
+\method{predict}{BuyseTTEM}(
+  object,
+  time,
+  treatment,
+  strata,
+  cause = 1,
+  type = NULL,
+  se = NULL,
+  iid = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{time to event model.}
@@ -16,6 +26,14 @@
 \item{strata}{[character/integer] Strata or index of the strata.}
 
 \item{cause}{[integer] The cause relative to which the cif will be evaluated.}
+
+\item{type}{[character] by default (\code{NULL}), output the cif (competing risks) or survival (no competing risks) at the timepoints specified by argument times.
+Otherwise, when argument times is missing, output the discretisation times for the survival (\code{"jump"}),
+or the survival at the last observation time (\code{"last"}),
+or the last observation time (\code{"last.time"}),
+or the change in cif or survival between discretisation times (\code{"change"}).}
+
+\item{se}{[logical] Should the standard errors associated with the cif/survival be output?}
 
 \item{iid}{[logical] Should the influence function associated with the cif/survival be output?}
 

@@ -11,6 +11,8 @@ options(datatable.print.class = FALSE)
 library(survival) ## avoid messages when loading the package later on
 library(ggplot2) ## avoid messages when loading the package later on
 library(prodlim) ## avoid messages when loading the package later on
+library(BuyseTest)
+BuyseTest.options(order.Hprojection = 1)
 #+END_SRC
 
 
@@ -31,16 +33,17 @@ restriction time. When considering a single endpoint, the GPC
 procedure can be summarized as follow. Denote the endpoint by \(Y\) in
 the treatment group and by \(X\) in the control group. Given a
 threshold of clinical relevance \(\tau\), the aim of GPC is to
-estimate the proportion in favor of treatment[fn::in absence of ties
-this equals the Wilcoxon-Mann-Whitney parameter] \(\Prob[Y \geq X +
+estimate the proportion in favor of treatment \(\Prob[Y \geq X +
 \tau]\) and the proportion in favor of control \(\Prob[X \geq Y +
 \tau]\). Their difference \(\Prob[Y \geq X + \tau]-\Prob[X \geq Y +
-\tau]\) leads to the net treatment benefit and their ratio
-\(\frac{\Prob[Y \geq X + \tau]}{\Prob[X \geq Y + \tau]}\) to the win
-ratio. The software also evaluate the proportion of neutral pairs
-\(\Prob[ |X - Y| < \tau]\) and which can be included to obtain the
-probabilistic index \(\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X - Y| <
-\tau]\) or win odds \(\frac{\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X -
+\tau]\) leads to the net treatment benefit[fn::in absence of ties and
+for an infinitesimal \(\tau\) the testing whether the net treatment
+benefit is 0 is equivalent the Wilcoxon-Mann-Whitney parameter] and
+their ratio \(\frac{\Prob[Y \geq X + \tau]}{\Prob[X \geq Y + \tau]}\)
+to the win ratio. The software also evaluate the proportion of neutral
+pairs \(\Prob[ |X - Y| < \tau]\) and which can be included to obtain
+the probabilistic index \(\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X - Y|
+< \tau]\) or win odds \(\frac{\Prob[Y \geq X + \tau] + 0.5 \Prob[ |X -
 Y| < \tau] }{\Prob[X \geq Y + \tau] + 0.5\Prob[ |X - Y| < \tau]}\).
 - the function =BuyseTest= performs the GPC procedure and is the main
   function of the package. The user can interact with its output via
@@ -49,12 +52,16 @@ Y| < \tau] }{\Prob[X \geq Y + \tau] + 0.5\Prob[ |X - Y| < \tau]}\).
       estimated net treatment benefit. The result table at the end of
       the output can be directly access using =model.tables=.
     + =coef= to extract the estimates.
-    + =confint= or =model.tables= to extract estimates, confidence intervals, and p.values.
-    + =plot= for a graphical display of the scoring of the pair per endpoint.
-    + =sensitivity= to perform a sensitivity analysis on the choice of the threshold(s).
+    + =confint= to extract estimates, confidence intervals, and
+      p.values.
+    + =plot= for a graphical display of the scoring of the pair per
+      endpoint.
+    + =sensitivity= to perform a sensitivity analysis on the choice of
+      the threshold(s).
     + =nobs= to extract the number of observations and pairs.
     + =getIid= to extract the iid decomposition of the estimator.
-    + =getPairScore= to extract the contribution of each pair to the net treatment benefit.
+    + =getPairScore= to extract the contribution of each pair in a data.frame format (long format).
+    + =getMatrixScore= to extractthe contribution of each pair in a matrix format (squared format).
     + =getSurvival= to extract the estimates of the survival used for right-censored endpoints.
     + =BuyseMultComp= to adjust p-values and confidence intervals for multiple comparisons.
 - the =powerBuyseTest= function performs simulation studies, e.g. to
@@ -72,8 +79,8 @@ library(BuyseTest)
 library(data.table)
 #+END_SRC
 
-To illustrate the functionalities of the package, we will used the
-=veteran= dataset from the *survival* package:
+To illustrate the functionalities of the package, we use the =veteran=
+dataset from the *survival* package:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 data(cancer, package = "survival")
 veteran <- cbind(id = 1:NROW(veteran), veteran)
@@ -102,7 +109,7 @@ utils::packageVersion("BuyseTest")
 #+END_SRC
 
 #+RESULTS:
-: [1] '3.3.6'
+: [1] ‘3.3.8’
 
 For completness, the details of the \Rlogo session used to generate this
 document are:
@@ -112,39 +119,64 @@ sessionInfo()
 
 #+RESULTS:
 #+begin_example
-R version 4.5.1 (2025-06-13 ucrt)
-Platform: x86_64-w64-mingw32/x64
-Running under: Windows 11 x64 (build 26200)
+R version 4.5.3 (2026-03-11)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 22.04.5 LTS
 
 Matrix products: default
-  LAPACK version 3.12.1
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0  LAPACK version 3.10.0
 
 locale:
-[1] LC_COLLATE=Danish_Denmark.utf8  LC_CTYPE=Danish_Denmark.utf8   
-[3] LC_MONETARY=Danish_Denmark.utf8 LC_NUMERIC=C                   
-[5] LC_TIME=Danish_Denmark.utf8    
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
+ [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 time zone: Europe/Copenhagen
-tzcode source: internal
+tzcode source: system (glibc)
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] data.table_1.17.8  BuyseTest_3.3.5    Rcpp_1.1.0         prodlim_2025.04.28
-[5] ggplot2_4.0.0      survival_3.8-3    
+[1] prodlim_2026.03.11  ggplot2_4.0.2       survival_3.5-8      BuyseTest_3.3.8    
+[5] butils.base_1.3     Rcpp_1.1.1-1        devtools_2.5.1      usethis_3.2.1      
+[9] data.table_1.18.2.1
 
 loaded via a namespace (and not attached):
- [1] Matrix_1.7-3        gtable_0.3.6        future.apply_1.20.0 dplyr_1.1.4        
- [5] compiler_4.5.1      tidyselect_1.2.1    MatrixModels_0.5-4  parallel_4.5.1     
- [9] globals_0.18.0      splines_4.5.1       scales_1.4.0        lattice_0.22-7     
-[13] R6_2.6.1            generics_0.1.4      future_1.67.0       tibble_3.3.0       
-[17] pillar_1.11.1       RColorBrewer_1.1-3  rlang_1.1.6         S7_0.2.0           
-[21] cli_3.6.5           withr_3.0.2         magrittr_2.0.4      digest_0.6.37      
-[25] grid_4.5.1          lifecycle_1.0.4     lava_1.8.1          vctrs_0.6.5        
-[29] SparseM_1.84-2      glue_1.8.0          farver_2.1.2        listenv_0.9.1      
-[33] codetools_0.2-20    stats4_4.5.1        colorspace_2.1-2    parallelly_1.45.1  
-[37] tools_4.5.1         pkgconfig_2.0.3
+ [1] tidyselect_1.2.1          dplyr_1.2.1               farver_2.1.2             
+ [4] S7_0.2.1-1                fastmap_1.2.0             TH.data_1.1-5            
+ [7] digest_0.6.39             rpart_4.1.23              lifecycle_1.0.5          
+[10] cluster_2.1.6             ellipsis_0.3.3            magrittr_2.0.5           
+[13] compiler_4.5.3            rlang_1.2.0               Hmisc_5.2-5              
+[16] doSNOW_1.0.20             tools_4.5.3               knitr_1.51               
+[19] htmlwidgets_1.6.4         timereg_2.0.7             pkgbuild_1.4.8           
+[22] xml2_1.5.2                RColorBrewer_1.1-3        multcomp_1.4-30          
+[25] pkgload_1.5.1             polspline_1.1.25          withr_3.0.2              
+[28] foreign_0.8-86            purrr_1.2.2               numDeriv_2016.8-1.1      
+[31] desc_1.4.3                nnet_7.3-19               grid_4.5.3               
+[34] stats4_4.5.3              roxygen2_7.3.3            mets_1.3.9               
+[37] colorspace_2.1-2          future_1.70.0             riskRegression_2026.04.22
+[40] MASS_7.3-60.0.1           globals_0.19.1            scales_1.4.0             
+[43] iterators_1.0.14          cli_3.6.6                 mvtnorm_1.3-7            
+[46] rmarkdown_2.31            rms_8.1-1                 generics_0.1.4           
+[49] otel_0.2.0                rstudioapi_0.18.0         future.apply_1.20.2      
+[52] RcppArmadillo_15.2.4-1    sessioninfo_1.2.3         cachem_1.1.0             
+[55] stringr_1.6.0             splines_4.5.3             parallel_4.5.3           
+[58] base64enc_0.1-6           vctrs_0.7.3               sandwich_3.1-1           
+[61] glmnet_4.1-10             Matrix_1.6-5              SparseM_1.84-2           
+[64] Formula_1.2-5             htmlTable_2.4.3           listenv_0.10.1           
+[67] testthat_3.3.2            foreach_1.5.2             cmprsk_2.2-12            
+[70] snow_0.4-4                glue_1.8.1                parallelly_1.47.0        
+[73] codetools_0.2-19          stringi_1.8.7             shape_1.4.6.1            
+[76] gtable_0.3.6              tibble_3.3.1              pillar_1.11.1            
+[79] brio_1.1.5                quantreg_6.1              htmltools_0.5.9          
+[82] lava_1.9.0                R6_2.6.1                  rprojroot_2.1.1          
+[85] evaluate_1.0.5            lattice_0.22-5            backports_1.5.1          
+[88] memoise_2.0.1             MatrixModels_0.5-4        nlme_3.1-163             
+[91] gridExtra_2.3             checkmate_2.3.4           xfun_0.57                
+[94] zoo_1.8-15                fs_2.1.0                  pkgconfig_2.0.3
 #+end_example
 
 \clearpage
@@ -272,9 +304,8 @@ print(BT, percentage = FALSE)
 
 \bigskip
 
-To access these values, we recommand using the =model.tables= method
-that outputs the information from the previous table in a =data.frame=
-format:
+The =model.tables= method outputs the information from the previous
+table in a =data.frame= format:
 
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 model.tables(BT, percentage = FALSE)
@@ -364,9 +395,12 @@ confint(BT.perm, statistic = "favorable")
 :           estimate         se lower.ci upper.ci      null   p.value
 : time_t20 0.3777905 0.04770182       NA       NA 0.4205855 0.3636364
 
-which, in this example, is around 0.42. It worth noting that testing
-an inadequate null hypothesis can have dramatic consequences on the
-p-value:
+which, in this example, is around 0.42.
+
+\bigskip
+
+\Warning Testing an inadequate
+null hypothesis can have dramatic consequences on the p-value:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 rbind(confint(BT, statistic = "favorable", null = 0.42),
       confint(BT, statistic = "favorable", null = 0.5))
@@ -458,14 +492,14 @@ summary(BTstrata, type.display = keep.colStrata)
 
 #+RESULTS:
 #+begin_example
-            Generalized pairwise comparisons with 1 endpoint and 4 strata
+       Generalized pairwise comparisons with 1 endpoint and 4 strata
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: Exp (treatment) vs. Pl (control) 
- - strata weights  : 18.47%, 20.52%, 26.38%, 34.63% 
+ - strata weights  : 26.38%, 34.63%, 18.47%, 20.52% 
  - uninformative pairs: no contribution
  - results
  endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
@@ -575,14 +609,14 @@ summary(BTstrata2, type.display = keep.colStrata)
 
 #+RESULTS:
 #+begin_example
-                Generalized pairwise comparisons with 1 endpoint and 4 strata
+       Generalized pairwise comparisons with 1 endpoint and 4 strata
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: Exp (treatment) vs. Pl (control) 
- - strata weights  : 13.71%, 15.23%, 25.38%, 45.69% 
+ - strata weights  : 25.38%, 45.69%, 13.71%, 15.23% 
  - uninformative pairs: no contribution
  - results
  endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
@@ -725,7 +759,7 @@ summary(BT.H)
 
 #+RESULTS:
 #+begin_example
-                 Generalized pairwise comparisons with 2 prioritized endpoints
+       Generalized pairwise comparisons with 2 prioritized endpoints
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -798,7 +832,7 @@ summary(BT.nH)
 
 #+RESULTS:
 #+begin_example
-                 Generalized pairwise comparisons with 2 endpoints
+       Generalized pairwise comparisons with 2 endpoints
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -1007,7 +1041,7 @@ summary(BTinv)
 
 #+RESULTS:
 #+begin_example
-                  Generalized pairwise comparisons with 1 endpoint
+       Generalized pairwise comparisons with 1 endpoint
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -1039,7 +1073,7 @@ print(BTstar)
 #+END_SRC
 
 #+RESULTS:
-: endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
+:  endpoint threshold total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   Delta
 :      time       *20      100          5.3           6.13      88.57        0 -0.0083
 :  CI [2.5% ; 97.5%] p.value
 :    [-0.068;0.0515] 0.78637
@@ -1370,8 +1404,8 @@ BT.keep <- BuyseTest(form,
 #+RESULTS:
 
 The method =getPairScore= can then be used to extract the contribution
-of each pair. For instance the following code extracts the
-contribution for the first endpoint:
+of each pair in a data.frame format (one row = one pair). For instance
+the following code extracts the contribution for the first endpoint:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 getPairScore(BT.keep, endpoint = 1)
 #+END_SRC
@@ -1433,8 +1467,75 @@ BT.keep
 :      time       +20 -0.0877 -0.0877
 :     karno           -0.0133 -0.1009
 
-More examples and explanation can be found in the documentation of
-the method =getPairScore=.
+It is also possible to extract the results of the comparisons in a matrix format:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+Mscore <- getMatrixScore(BT.keep, endpoint = 1)
+dim(Mscore)
+Mscore[1:4,1:4]
+#+END_SRC
+
+#+RESULTS:
+: [1] 69 68
+:      [,1] [,2]    [,3] [,4]
+: [1,]    1    1  0.9600  1.0
+: [2,]    1   -1 -0.6304 -0.2
+: [3,]    1   -1 -0.0802  0.9
+: [4,]    1    0  0.4700  1.0
+
+where the rows correspond to the 'placebo' observations and the colums
+to the 'experimental' observations. To obtain all possible pairwise
+comparisons, including within group, one can set the argument =within=
+to =TRUE=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+MscoreAll <- getMatrixScore(BT.keep, endpoint = 1, within = TRUE)
+dim(MscoreAll)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[1] 137 137
+     [,1] [,2]    [,3] [,4]    [,5]    [,6]    [,7]    [,8]
+[1,]    0    1  1.0000  1.0 -1.0000 -1.0000 -1.0000 -1.0000
+[2,]   -1    0 -1.0000 -1.0 -1.0000  1.0000  1.0000  0.0000
+[3,]   -1    1  0.0000 -1.0 -0.9600  0.6304  0.0802 -0.4700
+[4,]   -1    1  1.0000  0.0 -1.0000  0.2000 -0.9000 -1.0000
+[5,]    1    1  0.9600  1.0  0.0000 -1.0000 -0.9076 -0.8000
+[6,]    1   -1 -0.6304 -0.2  1.0000  0.0000  0.6740  1.0000
+[7,]    1   -1 -0.0802  0.9  0.9076 -0.6740  0.0000  0.5338
+[8,]    1    0  0.4700  1.0  0.8000 -1.0000 -0.5338  0.0000
+#+end_example
+
+We then obtain a squared matrix with as many row and columns as
+observations (Placebo and Experimental) that can be divided in 3 blocks:
+
+\medskip
+
+#+LaTeX: \begin{minipage}{0.7\linewidth} 
+- A: within 'placebo' comparisons (0 on the diagonal)
+- B: across group comparisons 
+- C: within 'experimental'' comparisons (0 on the diagonal), \newline identical to
+  when the argument =within= was =FALSE= (default value)
+#+LaTeX: \end{minipage}
+#+LaTeX: \begin{minipage}{0.27\linewidth} 
+#+BEGIN_EXPORT latex
+\begin{align*}
+\begin{bmatrix}
+A & B \\ \trans{B} & C
+\end{bmatrix}
+\end{align*}
+#+END_EXPORT
+#+LaTeX: \end{minipage}
+
+\bigskip
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+rbind(cbind(MscoreAll[1:4,1:4],MscoreAll[70:73,1:4]),
+      cbind(MscoreAll[1:4,70:73],MscoreAll[70:73,70:73]))
+#+END_SRC
+\bigskip
+
+More examples and explanation can be found in the documentation of the
+method =getPairScore= and =getMatrixScore=.
 
 ** Extracting the survival probabilities
 When using =scoring.rule= equals ="Peron"=, survival probabilities at
@@ -1646,8 +1747,6 @@ calcInt <- function(...){ ## no need for the functionnal derivative of the score
 
 #+RESULTS:
 
-\clearpage
-
 and then call it to compute the probabilities:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 denom <- as.double(outSurv$survTimeT[3,"survivalT_0"] * outSurv$survTimeC[10,"survivalC_0"])
@@ -1677,34 +1776,13 @@ outSurv$lastSurv
 
 \clearpage
 
-** Extracting the score matrix
-
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-veteran.ext <- rbind(cbind(XXgroupXX = "A", XXindexXX = 1:NROW(veteran), veteran), 
-                     cbind(XXgroupXX = "B", XXindexXX = 1:NROW(veteran), veteran))
-
-GPC.ext <- BuyseTest(XXgroupXX ~ tte(time,status, threshold = 20), data = veteran.ext, 
-                     method.inference = "none", keep.pairScore = TRUE, trace = FALSE)
-endpoint.ext <- GPC.ext@endpoint
-dfScore.ext <- getPairScore(GPC.ext, endpoint = 1:length(endpoint.ext), cumulative = TRUE, unlist = FALSE)        
-
-
-#+END_SRC
-
-#+RESULTS:
-
-\clearpage
-
-
 * Dealing with missing values or/and right censoring 
 
 In presence of censoring or missing values, it is often not be
  possible to classify all pairs without a model for the censoring
  mechanism. The unclassified pairs, called uninformative, have a score
- of 0 which will typically bias the estimate of the net net treatment benefit
- towards 0 [fn::While the power is typically reduced, the type 1 error
- will still be controled if censoring is at random]. Consider the
- following dataset:
+ of 0, unless re-analyzed at a lower priority endpoint. Consider the following
+ dataset:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 set.seed(10)
 dt <- simBuyseTest(1e2, latent = TRUE, argsCont = NULL,
@@ -1733,23 +1811,20 @@ times (=eventtime=). The percentage of censored observations is:
 #+RESULTS:
 : [1] 44
 
-We would like to be able to recover the net treatment benefit estimated with the uncensored event times:
+\noindent We would like to be able to recover the net treatment benefit estimated with the uncensored event times:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
-          data = dt,
-          scoring.rule = "Gehan", method.inference = "none", trace = 0)
+eGS <- BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
+                 data = dt,
+                 scoring.rule = "Gehan", method.inference = "none", trace = 0)
+coef(eGS)
 #+END_SRC
 
 #+RESULTS:
-:             endpoint threshold  Delta
-:  eventtimeUncensored      +0.5 -0.271
+: eventtimeUncensored_t0.5 
+:                   -0.271
 
-using the censored survival times.
-
-\clearpage
-
- The =BuyseTest= function handles missing values via two arguments:
-- =scoring.rule= indicates how pairs involving missing data are compared. 
+using the censored survival times. The =scoring.rule= argument
+indicates how pairs involving missing data are compared:
     + *the Gehan's scoring rule* compares the observed values. If it is
       not possible to decide whether one observation has a better
       endpoint than the other (e.g. because both are right-censoring)
@@ -1757,46 +1832,54 @@ using the censored survival times.
     + *the Peron's scoring rule* compares the probabilty of one
       observation having a better endpoint than the other given the
       observed values. This require a model for the censoring
-      distribution. If the full survival curve can be identified then
-      all pairs can be fully classified otherwise some of the pair
-      will be partially uninformative.
+      distribution which, by default, will be a Kaplan Meier estimator
+      stratified on treatment and GPC =strata= variable (if any).
     + *the Efron's scoring rule* same as the Peron's scoring rule
       except that the survival curve is extrapolated to 0 when its
-      tail is unknown. Only relevant when using a (stratified)
+      tail is unknown. Only possible when using a (stratified)
       Kaplan-Meier estimator and no competing risks.
-- =correction.uninf= indicates what to do with the uninformative
-  scores. For instance setting this argument to =TRUE= will
-  re-distribute this score to favorable/unfavorable/neutral scores.
+    + *the Latta's scoring rule* same as the Peron's scoring rule
+      except that the survival curve is assumed to be the same across
+      treatment groups. Only possible when using a Kaplan-Meier
+      estimator and no competing risks.
+    + *Parametric scoring rule* same as the Peron's scoring rule
+      except that the survival curve is assumed to follow a parametric
+      distribution (e.g. Exponential or Weibull).
 
-The Peron's scoring rule is the default (and recommanded) approach. It
-uses a Kaplan Meier estimator stratified on treatment and GPC =strata=
-variable (if any) as survival model. When the last observation is
-censored, then part of the survival curve is unknown which can be
-necessary to score some of the pairs (especially in presence of a
-threshold of clinical relevance). One can:
-- use a restriction time within the time interval where the survival
+Uninformative score will typicall arise with the Gehan's scoring rule
+  and, in presence of administrative censoring, with
+  Peron's/Efron's/Latta's scoring rule as the survival curve is not
+  entirely identified. Without lower-priority endpoint this will
+  typically bias the estimates (e.g. of the Net Treatment Benefit)
+  towards 0 [fn::While the power is typically reduced, the type 1
+  error will typically still be controled under independent between
+  the censoring and event of interest process, conditionally on strata
+  variables (if any)]. As a remedie one can:
+- use a *restriction time* within the time interval where the survival
   curve can be estimated for each group.
-- still use the default Peron's scoring rule: this will lead to
-  uninformative pairs which can be re-classified based on a lower
-  priority endpoint.
+- use a lower priority endpoint.
 - use the Peron's scoring rule with another survival model, using
   parametric assumptions to inform about the unknown part of the
   survival curve. This can be achieved via the =model.tte= argument or
   using the Efron's scoring rule.
-- use an add-hoc correction for the uninformative pairs
-  (=correction.uninf=)
+- use a proportional hazard assumption to *impute the uninformative
+  scores*. This can be achieved via the =correction.uninf= argument
+  =1=.
 
 The first two solutions lead to a change of estimand, the first being
-much more clearly defined than the second. The last two solutions
-correspond to make statistical assumptions, the former assumptions
-being more explicit than with the later solution.
+clearly defined while the definition of the second depends of the
+censoring distribution. The last two solutions correspond make instead
+statistical assumptions, the former assumptions being more explicit
+than with the later solution. The following subsection exemplify some
+of the previous possibility on the illustrative dataset.
 
 ** Gehan's scoring rule
+
 In the example, Gehan's scoring rule:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.G <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-          data = dt, scoring.rule = "Gehan", trace = 0)
-model.tables(e.G)
+e.Gehan <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Gehan", trace = 0)
+model.tables(e.Gehan)
 #+END_SRC
 
 #+RESULTS:
@@ -1808,12 +1891,66 @@ model.tables(e.G)
 leads to many uninformative pairs (about 60%) and an estimate much
 closer to 0 than the truth.
 
+** Latta's scoring rule
+
+The Latta's scoring rule:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.Latta <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Latta", trace = 0)
+model.tables(e.Latta)
+#+END_SRC
+
+#+RESULTS:
+:    endpoint threshold total favorable unfavorable  neutral uninf      Delta  lower.ci
+: 1 eventtime       0.5   100  17.52701    36.13826 46.33473     0 -0.1861125 -0.286479
+:      upper.ci      p.value
+: 1 -0.08170553 0.0005240922
+
+leads to an estimate closer to the truth, but still attenuated
+towards 0. This is not surprinsing as under the alternative we
+'impute' the censored pairs under the null. In this specific example
+there are no uninformative pairs as the observation with the largest
+event time was an event:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt[,.SD[which.max(eventtime)]]
+#+END_SRC
+
+#+RESULTS:
+:    id treatment eventtimeUncensored eventtime status toxicity eta_toxicity status1
+: 1: 72         C            2.668629  2.668629      1      yes    -1.925644       1
+
+In other cases, and in presence of administrative censoring, they will
+  be uniformative pairs.
+
+\noindent _Note:_ this scoring rule can be 'manually' implemented by
+first fitting a non-parametric survival model common to both treatment
+groups via =prodlim=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.prodlimLatta <- prodlim(Hist(eventtime, status) ~ 1, data = dt)
+attr(e.prodlimLatta,"iidNuisance") <- TRUE
+#+END_SRC
+
+#+RESULTS:
+
+Then passing the survival model to =BuyseTest= via the =model.tte= argument:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.LattaManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                           model.tte = e.prodlimLatta,
+                           data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.LattaManual)
+#+END_SRC
+
+#+RESULTS:
+:                  estimate         se  lower.ci    upper.ci null      p.value
+: eventtime_t0.5 -0.1861125 0.05241572 -0.286479 -0.08170553    0 0.0005240922
+
 ** Peron's scoring rule
+
 In the example, Peron's scoring rule:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.P <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-          data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P)
+e.Peron <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Peron", trace = 0)
+model.tables(e.Peron)
 #+END_SRC
 
 #+RESULTS:
@@ -1822,8 +1959,9 @@ model.tables(e.P)
 :     upper.ci      p.value
 : 1 -0.1699543 5.385074e-05
 
-leads to no uninformative pairs. Indeed the last observation in each
-group is an (uncensored) event:
+leads to an estimate quite close to the truth, despite still having
+some uninformative pairs (about 1.37%). Indeed the last observation in
+one group is a drop-out:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt[,.SD[which.max(eventtime)],by="treatment"]
 #+END_SRC
@@ -1832,99 +1970,179 @@ dt[,.SD[which.max(eventtime)],by="treatment"]
 :    treatment  id eventtimeUncensored eventtime status toxicity eta_toxicity status1
 : 1:         C  72            2.668629  2.668629      1      yes   -1.9256436       1
 : 2:         T 154            1.674053  1.588657      0      yes   -0.8647272       1
-so the full survival curve could be identified. As a result the estimate is very close to the
-truth. 
+so the full survival curve could not be identified.
 
 \bigskip
 
-\noindent _Note 1:_ the censoring model can be specified by first fitting a
-survival model (=prodlim= or =survreg=) for the survival time:
+\noindent _Note:_ this scoring rule can be 'manually' implemented by
+first fitting a non-parametric survival model specific to each
+treatment group via =prodlim=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(prodlim)
-e.prodlim <- prodlim(Hist(eventtime, status) ~ treatment, data = dt)
+e.prodlimPeron <- prodlim(Hist(eventtime, status) ~ treatment, data = dt)
 #+END_SRC
 
 #+RESULTS:
 
-Then passing the model to the =BuyseTest= via the =model.tte= argument:
+Then passing the survival model to =BuyseTest= via the =model.tte= argument:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.P1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.prodlim,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P1)
+e.PeronManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                           model.tte = e.prodlimPeron,
+                           data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.PeronManual)
 #+END_SRC
 
 #+RESULTS:
-:    endpoint threshold total favorable unfavorable  neutral    uninf      Delta   lower.ci
-: 1 eventtime       0.5   100   11.1737    43.33707 44.12373 1.365504 -0.3216337 -0.4584262
-:     upper.ci      p.value
-: 1 -0.1699543 5.385074e-05
+:                  estimate         se   lower.ci   upper.ci null      p.value
+: eventtime_t0.5 -0.3216337 0.07403487 -0.4584262 -0.1699543    0 5.385074e-05
 
 When the dataset used to fit the survival model match the one used to
 run the GPC procedure, the overall uncertainty will be
 computed. Otherwise:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 dt2 <- dt[order(dt$eventtime)]
-e.P2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dt2),
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P2)
+e.PeronManual2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                            model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dt2),
+                            data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.PeronManual2)
 #+END_SRC
 
 #+RESULTS:
 : Uncertainty related to the estimation of the survival probabilities is ignored. 
 : Consider adding an attribute "iidNuisance" to the argument 'model.tte' taking value TRUE to change this default behavior.
-:    endpoint threshold total favorable unfavorable  neutral    uninf      Delta   lower.ci
-: 1 eventtime       0.5   100   11.1737    43.33707 44.12373 1.365504 -0.3216337 -0.4187087
-:     upper.ci      p.value
-: 1 -0.2172912 6.570106e-09
+:                  estimate         se   lower.ci   upper.ci null      p.value
+: eventtime_t0.5 -0.3216337 0.05153296 -0.4187087 -0.2172912    0 6.570106e-09
 
 the survival probabilities will assumed to be known with infinite
 precision and only the uncertainty of the GPC procedure will be
-considered. Add-hoc modification of the data can be used to obtain
-'conservative' estimates when considering a single endpoint, e.g.:
+considered.
+
+** Efron's scoring rule
+
+The Efron's scoring rule:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-dt2[, last := (max(eventtime)==eventtime), by = "treatment"]
-## survival stays constant after end of follow-up
-dt2[treatment=="C" & last == TRUE, c("eventtime","status") := .(max(dt2$eventtime)+1,1)]
-## survival drop to 0 after end of follow-up
-dt2[treatment=="T" & last == TRUE, status := 1]
-## modified Kaplan Meier estimator
-e.prodlim2 <- prodlim(Hist(eventtime, status) ~ treatment, data = dt2)
-attr(e.prodlim2, "iidNuisance") <- TRUE
-## run GPC
-e.P3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.prodlim2,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P3) ## even more unfavorable to treatment
+e.Efron <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Efron", trace = 0)
+model.tables(e.Efron)
 #+END_SRC
 
 #+RESULTS:
-:    endpoint threshold total favorable unfavorable  neutral uninf      Delta   lower.ci
-: 1 eventtime       0.5   100   11.1737    43.97856 44.84774     0 -0.3280486 -0.4378751
-:     upper.ci     p.value
-: 1 -0.2085751 2.25273e-07
+:    endpoint threshold total favorable unfavorable  neutral uninf      Delta  lower.ci
+: 1 eventtime       0.5   100   11.1737    43.97856 44.84774     0 -0.3280486 -0.466052
+:     upper.ci      p.value
+: 1 -0.1744621 4.871577e-05
 
-\bigskip
+leads to no uniformative pairs as the survival is set to 0 after the
+last observation. 
 
-_Note 2:_ it is possible to use a parametric model via the =survreg= function:
+_Note:_ an add-hoc modification of the data can be used to 'manually'
+implement this scoring rule. Recalling that the tail of the survival
+curve is unknown only in the treatment group:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dt[,.SD[which.max(eventtime)],by="treatment"]
+#+END_SRC
+
+#+RESULTS:
+:    treatment  id eventtimeUncensored eventtime status toxicity eta_toxicity status1
+: 1:         C  72            2.668629  2.668629      1      yes   -1.9256436       1
+: 2:         T 154            1.674053  1.588657      0      yes   -0.8647272       1
+
+We can set the last censored observation(s) in that group to have the
+event shortly after the censoring time:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+dtEfron <- copy(dt)
+dtEfron[treatment=="T" & id == 154, c("eventtime","status") := .(eventtime+1e-10,1)]
+## dt2[treatment=="T" & eventtime > 1.58865, status := 1]
+#+END_SRC
+
+#+RESULTS:
+
+Estimate the corresponding non-parametric survival model via =prodlim=:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.prodlimEfron <- prodlim(Hist(eventtime, status) ~ treatment, data = dtEfron)
+attr(e.prodlimEfron,"iidNuisance") <- TRUE
+#+END_SRC
+
+#+RESULTS:
+
+and run the GPC with this survival model:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.Efron <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     model.tte = e.prodlimEfron,
+                     data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.Efron)
+#+END_SRC
+
+#+RESULTS:
+:                  estimate         se  lower.ci   upper.ci null      p.value
+: eventtime_t0.5 -0.3280486 0.07484093 -0.466052 -0.1744621    0 4.871577e-05
+
+
+** Scoring rule based on a parametric survival model
+
+Parametric survival distribution specified in the =survreg= function of the survival package:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+names(survreg.distributions)
+#+END_SRC
+
+#+RESULTS:
+:  [1] "extreme"     "logistic"    "gaussian"    "weibull"     "exponential" "rayleigh"   
+:  [7] "loggaussian" "lognormal"   "loglogistic" "t"
+
+can be used to model the group-specific survival and plugged in the
+Peron-scoring rule formula:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.Weibull <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+          data = dt, scoring.rule = "Weibull", trace = 0)
+model.tables(e.Weibull)
+#+END_SRC
+
+#+RESULTS:
+:    endpoint threshold total favorable unfavorable  neutral       uninf      Delta   lower.ci
+: 1 eventtime       0.5   100  13.54196    41.34855 45.10801 0.001482627 -0.2780659 -0.4192085
+:     upper.ci      p.value
+: 1 -0.1237996 0.0005138051
+
+which is very close to the true value. This is not surprising since we
+used a parametric survival model compatible with the data generating
+mechanism (exponential distribution). In theory there should be no
+uninformative pairs. However =BuyseTest= discretise the (continuous)
+survival distribution into a piecewise constant distribution and the
+uniformative pairs corresponds to the density beyond the last
+discretisation point.
+
+#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+e.Weibull <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+          data = dt, scoring.rule = "Weibull 10000", trace = 0)
+model.tables(e.Weibull)
+#+END_SRC
+
+#+RESULTS:
+:    endpoint threshold total favorable unfavorable  neutral        uninf
+: 1 eventtime       0.5   100  13.52321    41.34697 45.12977 4.310969e-05
+:        Delta   lower.ci   upper.ci      p.value
+: 1 -0.2782376 -0.4193279 -0.1240234 0.0005078037
+
+\noindent _Note:_ this scoring rule can be 'manually' implemented by
+first fitting a parametric survival model specific to each treatment
+group via =survreg=, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 library(survival)
-e.survreg <- survreg(Surv(eventtime, status) ~ treatment, data = dt, 
-                     dist = "weibull")
+e.survregWeibull <- survreg(Surv(eventtime, status) ~ treatment, data = dt, 
+                            dist = "weibull")
 #+END_SRC
 
 #+RESULTS:
 
 Then passing the model to the =BuyseTest= via the =model.tte= argument:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.P3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.survreg,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P3)
+e.WeibullManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                             model.tte = e.survregWeibull,
+                             data = dt, scoring.rule = "Peron", trace = 0)
+model.tables(e.WeibullManual)
 #+END_SRC
 #+RESULTS:
-: endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
+:    endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
 : 1 eventtime       0.5   100  11.65444    34.18937 54.14472 0.01147085 -0.2253494 -0.3476693
 :      upper.ci      p.value
 : 1 -0.09548719 0.0007624659
@@ -1935,8 +2153,8 @@ non-0 but small percentage of uninformative pairs). This is performed
 internally by applying the =BuyseTTEM= method. Another discretisation
 can be obtained by calling =BuyseTTEM= with another value for the =n.grid= argument:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.TTEM <- BuyseTTEM(e.survreg, treatment = "treatment", iid = TRUE, n.grid = 2500)
-str(e.TTEM$peron$jumpSurvHaz[[1]][[1]])
+e.fineregWeibull <- BuyseTTEM(e.survregWeibull, treatment = "treatment", iid = TRUE, n.grid = 2500)
+str(e.fineregWeibull$peron$jumpSurvHaz[[1]][[1]])
 #+END_SRC
 
 #+RESULTS:
@@ -1947,10 +2165,10 @@ str(e.TTEM$peron$jumpSurvHaz[[1]][[1]])
 
 and then passing to =BuyseTest=:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
-e.P4 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.TTEM,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P4)
+e.WeibullFine <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                           model.tte = e.fineregWeibull,
+                           data = dt, scoring.rule = "Peron", trace = 0)
+model.tables(e.WeibullFine)
 #+END_SRC
 
 #+RESULTS:
@@ -1959,7 +2177,7 @@ model.tables(e.P4)
 :      upper.ci      p.value
 : 1 -0.09551899 0.0007609754
 
-It is therefore possible to extend the approach to other model by
+It is therefore possible to extend the approach to other models by
 defining an appropriate =BuyseTTEM= method. Looking at the code use
 for defining =BuyseTTEM.survreg= can be helpful.
 

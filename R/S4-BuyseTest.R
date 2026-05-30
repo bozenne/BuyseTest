@@ -80,7 +80,6 @@ methods::setMethod(
                                    covariance, ## from cpp object
                                    tableScore, ## from cpp object
                                    tableSurvival = NULL, ## added to the cpp object by .BuyseTest when requested by the user
-                                   fitter.model.tte,
                                    args.model.tte, 
                                    index.C,
                                    index.T,
@@ -194,17 +193,14 @@ methods::setMethod(
                  attr(level.treatment,"indexT") <- index.T
 
                  ## ** scoring.rule
-                 efron <- (scoring.rule==2)
-                 scoring.rule <- c("Gehan","Peron")[(scoring.rule>0)+1]
+                 scoring.rule <- scoring.rule
                  attr(scoring.rule,"test.censoring") <- attr(method.score, "test.censoring")
                  attr(method.score,"test.censoring") <- NULL
                  attr(scoring.rule,"test.CR") <- attr(method.score, "test.CR")
                  attr(method.score,"test.CR") <- NULL
                  attr(scoring.rule,"test.match") <- !is.null(strata) && attr(strata,"match")
                  attr(scoring.rule,"method.score") <- stats::setNames(method.score, name.endpoint)
-                 if(scoring.rule=="Peron"){ ## used to compute the score matrix in getMatrixScore
-                     attr(scoring.rule,"efron") <- efron
-                     attr(scoring.rule, "fitter") <- fitter.model.tte
+                 if(any(lengths(args.model.tte)>0)){ ## used to compute the score matrix in getMatrixScore
                      attr(scoring.rule, "args") <- args.model.tte
                  }
 

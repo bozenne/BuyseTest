@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 27 2018 (23:32) 
 ## Version: 
-## Last-Updated: May  3 2026 (13:34) 
+## Last-Updated: May 27 2026 (15:28) 
 ##           By: Brice Ozenne
-##     Update #: 434
+##     Update #: 444
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -208,18 +208,16 @@ testArgs <- function(name.call,
 
     ## ** scoring.rule
     ## must be before time to event endpoints
-    if(is.na(scoring.rule)){
+    valid.rule <- c("gehan","peron","efron","latta",names(survival::survreg.distributions))
+    if(is.na(scoring.rule) || scoring.rule %in% valid.rule == FALSE){
         stop("BuyseTest: wrong specification of \'scoring.rule\'. \n",
-             "valid values: \"Gehan\", \"Peron\", or \"Efron\". \n")
+             "valid values: \"Gehan\" (no survival model)\n",
+             "            : \"Peron\", \"Efron\", \"Latta\" (non-parametric survival model)\n",
+             "            : \"Exponential\", \"Weibull\", ... (parametric survival model, see argument dist in survival::survreg). \n")
     }
-    if(any(!is.na(censoring)) && any(stats::na.omit(censoring)=="left")){
-        if(scoring.rule==1){
-            warning("The Peron scoring rule does not support left-censored endpoints \n",
-                    "For those endpoints, the Gehan's scoring rule will be used instead.")
-        }else if(scoring.rule==2){
-            warning("The Efron scoring rule does not support left-censored endpoints \n",
-                    "For those endpoints, the Gehan's scoring rule will be used instead.")
-        }
+    if(any(!is.na(censoring)) && any(stats::na.omit(censoring)=="left") && scoring.rule!="gehan"){
+        warning("The ",scoring.rule," scoring rule does not support left-censored endpoints \n",
+                "For those endpoints, the Gehan's scoring rule will be used instead.", sep = "")
     }
 
     ## ** pool.strata

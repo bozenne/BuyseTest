@@ -235,7 +235,7 @@ setMethod(f = "getIid",
                                      )
               }
 
-              if(type %in% c("all","nuisance") && (object@scoring.rule=="Peron")){
+              if(type %in% c("all","nuisance") && (tolower(object@scoring.rule)!="gehan")){
                   if(length(object@iidNuisance$favorable)>0){
                       object.iid$favorable <- object.iid$favorable + object@iidNuisance$favorable
                   } ## otherwise model.tte has been passed as argument and there is no uncertainty regarding nuisance
@@ -1037,7 +1037,7 @@ setMethod(f = "getSurvival",
                   if(trace>0){
                       if(all(tolower(object@type)!="timetoevent")){
                           add.txt <- "No endpoint of type time to event \n"
-                      }else if(tolower(object@scoring.rule)!="peron"){
+                      }else if(tolower(object@scoring.rule)=="gehan"){
                           add.txt <- "Consider setting the argument \'scoring.rule\' to \"Peron\" when calling BuyseTest \n"
                       }else{
                           add.txt <- "Consider setting the argument \'keep.survival\' to TRUE in BuyseTest.options \n"

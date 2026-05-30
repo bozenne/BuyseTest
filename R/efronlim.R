@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: feb 20 2025 (10:53) 
 ## Version: 
-## Last-Updated: feb 20 2025 (13:10) 
+## Last-Updated: May  3 2026 (15:43) 
 ##           By: Brice Ozenne
-##     Update #: 27
+##     Update #: 32
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -58,7 +58,7 @@
 ##' @export
 efronlim <- function(formula, data, ...){
 
-    zeroPlus <- 1e-12
+    zeroPlus <- 1e-10
 
     ## ** check arguments
     if(!inherits(data,"data.frame")){
@@ -92,9 +92,9 @@ efronlim <- function(formula, data, ...){
         levelStrata <- interaction(lapply(regressors, function(iR){as.numeric(as.factor(data[[iR]]))}))
         ls.indexStrata <- tapply(1:NROW(data), INDEX = levelStrata, FUN = identity, simplify = FALSE)
     }
-    indexLastStrata <- sapply(ls.indexStrata, FUN = function(iIndex){
-        iIndex[max(which(data[[outcomeTime]][iIndex] == max(data[[outcomeTime]][iIndex])))]
-    })
+    indexLastStrata <- unlist(lapply(ls.indexStrata, FUN = function(iIndex){ ## iIndex <- ls.indexStrata[[1]]
+        iIndex[which(data[[outcomeTime]][iIndex] == max(data[[outcomeTime]][iIndex]))]
+    }))
     statusLastStrata  <- data[[outcomeStatus]][indexLastStrata]
     if(any(statusLastStrata==0)){
         data.prodlim <- as.data.frame(data)

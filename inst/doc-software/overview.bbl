@@ -1,0 +1,65 @@
+\begin{thebibliography}{}
+
+\bibitem[Ajufo et~al., 2023]{ajufo2023fallacies}
+Ajufo, E., Nayak, A., and Mehra, M.~R. (2023).
+\newblock Fallacies of using the win ratio in cardiovascular trials: challenges
+  and solutions.
+\newblock {\em Basic to Translational Science}, 8(6):720--727.
+
+\bibitem[Brunner et~al., 2018]{brunner2018rank}
+Brunner, E., Bathke, A.~C., and Konietschke, F. (2018).
+\newblock {\em Rank and pseudo-rank procedures for independent observations in
+  factorial designs}.
+\newblock Springer.
+
+\bibitem[Buyse, 2010]{buyse2010generalized}
+Buyse, M. (2010).
+\newblock Generalized pairwise comparisons of prioritized outcomes in the
+  two-sample problem.
+\newblock {\em Statistics in medicine}, 29(30):3245--3257.
+
+\bibitem[Buyse et~al., 2025]{buyse2025gpc}
+Buyse, M., Verbeeck, J., Saad, E.~S., De~Backer, M., Deltuvaite-Thomas, V., and
+  Molenberghs, G. (2025).
+\newblock {\em Handbook of Generalized Pairwise Comparisons Methods for
+  Patient-Centric Analysis}.
+\newblock Chapman \& Hall.
+
+\bibitem[Dong et~al., 2018]{dong2018stratified}
+Dong, G., Qiu, J., Wang, D., and Vandemeulebroecke, M. (2018).
+\newblock The stratified win ratio.
+\newblock {\em Journal of biopharmaceutical statistics}, 28(4):778--796.
+
+\bibitem[Ozenne et~al., 2021]{ozenne2021asymptotic}
+Ozenne, B., Budtz-J{\o}rgensen, E., and P{\'e}ron, J. (2021).
+\newblock The asymptotic distribution of the net benefit estimator in presence
+  of right-censoring.
+\newblock {\em Statistical methods in medical research}, 30(11):2399--2412.
+
+\bibitem[P{\'e}ron et~al., 2018]{peron2018extension}
+P{\'e}ron, J., Buyse, M., Ozenne, B., Roche, L., and Roy, P. (2018).
+\newblock An extension of generalized pairwise comparisons for prioritized
+  outcomes in the presence of censoring.
+\newblock {\em Statistical methods in medical research}, 27(4):1230--1239.
+
+\bibitem[P{\'e}ron et~al., 2021]{peron2021correcting}
+P{\'e}ron, J., Idlhaj, M., Maucort-Boulch, D., Giai, J., Roy, P., Collette, L.,
+  Buyse, M., and Ozenne, B. (2021).
+\newblock Correcting the bias of the net benefit estimator due to
+  right-censored observations.
+\newblock {\em Biometrical Journal}, 63(4):893--906.
+
+\bibitem[Piffoux et~al., 2024]{piffoux2024restricted}
+Piffoux, M., Ozenne, B., De~Backer, M., Buyse, M., Chiem, J.-C., and P{\'e}ron,
+  J. (2024).
+\newblock Restricted net treatment benefit in oncology.
+\newblock {\em Journal of Clinical Epidemiology}, 170:111340.
+
+\bibitem[Verbeeck et~al., 2019]{verbeeck2019generalized}
+Verbeeck, J., Spitzer, E., de~Vries, T., van Es, G., Anderson, W., Van~Mieghem,
+  N., Leon, M., Molenberghs, G., and Tijssen, J. (2019).
+\newblock Generalized pairwise comparison methods to analyze (non) prioritized
+  composite endpoints.
+\newblock {\em Statistics in medicine}.
+
+\end{thebibliography}

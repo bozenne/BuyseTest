@@ -42,7 +42,7 @@ See Details, section "Specification of the GPC model".}
 \item{data}{[data.frame] dataset.}
 
 \item{scoring.rule}{[character] method used to compare the observations of a pair in presence of right censoring (i.e. \code{"timeToEvent"} endpoints).
-Can be \code{"Gehan"}, \code{"Peron"}, or \code{"Efron"}.
+Can be \code{"Gehan"}, \code{"Peron"}, \code{"Efron"}, or \code{"Latta"}.
 See Details, section "Handling missing values".}
 
 \item{pool.strata}{[character] weights used to combine estimates across strata. Can be
@@ -137,7 +137,7 @@ or a time to event outcome  (\code{"t"}, \code{"tte"}, \code{"time"}, or \code{"
   \item \code{strata}: [character vector] if not \code{NULL}, the GPC will be applied within each group of patient defined by the strata variable(s).
 }
 The formula interface can be more concise, especially when considering few outcomes, but may be more difficult to apprehend for new users.
-Note that arguments \code{endpoint}, \code{threshold}, \code{status}, \code{operator},  \code{type}, and \code{censoring} must have the same length. \cr \cr \cr
+Note that arguments \code{endpoint}, \code{threshold}, \code{status}, \code{operator},  \code{type}, and \code{censoring} must have the same length. \cr \cr
 
 
 \bold{GPC procedure} \cr
@@ -149,23 +149,20 @@ The GPC procedure form all pairs of observations, one belonging to the experimen
 }
 With complete data, pairs can be decidely classified as favorable/unfavorable/neutral.
 In presence of missing values, the GPC procedure uses the scoring rule (argument \code{scoring.rule}) and the correction for uninformative pairs (argument \code{correction.uninf}) to classify the pairs.
-The classification may not be 0,1, e.g. the probability that the pair is favorable/unfavorable/neutral with the Peron's/Efron's scoring rule.
-To export the classification of each pair set the argument \code{keep.pairScore} to \code{TRUE} and call the function \code{getPairScore} on the result of the \code{BuyseTest} function. \cr \cr \cr
+The classification may not be 0,1, e.g. the probability that the pair is favorable/unfavorable/neutral with the Peron's/Efron's/Latta's scoring rule.
+To export the classification of each pair set the argument \code{keep.pairScore} to \code{TRUE} and call the function \code{getPairScore} on the result of the \code{BuyseTest} function. \cr \cr
 
-
-\bold{Handling missing values}: the recommended default approach is to use the Peron's scoring rule with a restriction time if a non-neglectable part of the survival is unknown and otherwise analyse uniformative pairs using the following endpoint(s) if any. 
-\itemize{
-  \item \code{scoring.rule}: indicates how to handle right-censoring in time to event endpoints using information from the survival curves. \describe{
-   \item{\code{scoring.rule="Gehan"}}{When no observations is censored or only the pair with the largest timepoint is censored, the pair is decidedly classified as favorable, unfavorable, or neutral. Otherwise pairs are classified as uninformative.}
-   \item{\code{scoring.rule="Peron"}}{Score pairs involving censored observations using the (group-specific) survival curves. It may still lead to uninformative pairs when the survival curve is only partially known.}
-   \item{\code{scoring.rule="Efron"}}{Same as the Peron's scoring rule except that the survival curve is extrapolated to 0 when its tail is unknown. Only relevant when using a (stratified) Kaplan-Meier estimator and no competing risks.}
+\bold{Handling of right-censoring}: the recommended default approach to handle administrative censoring is to use a restriction time. Alternatively one can use the argument \code{correction.uninf} to 1 or 2 to re-classify the uninformative score obtained by the scoring rule at given endpoint: \itemize{
+   \item \code{correction.uninf=0}: if there is any lower priority endpoint and the argument \code{neutral.as.uninf} is \code{TRUE}, the uninformative score is re-analyzed using the lower priority endpoint. Otherwise it counts as 0, i.e. neither favorable nor unfavorable. The former makes the estimand dependent on the censoring distribution while the later typically bias estimates toward the null.
+   \item \code{correction.uninf=1}: update the favorable, unfavorable, and neutral score of each pair with uninformative score by redistributing this uninformative score in favorable, unfavorable, and neutral score according to the average score among the informative pairs. This can be seen as imputing the uninformative into an informative score under a proportional hazard assumption and as an extension of Harrell's scoring rule compatible with multiple endpoints.
+   \item \code{correction.uninf=2}: This is equivalent to Harrell's scoring rule in that it re-weight informative pairs to represent uninformative pairs, essentially disregarding the uninformative pairs. Can also be seen as handling the uniformative under a proportional hazard assumption but is not compatible with lower priority endpoints as the neutral score will be re-analysed only based on the informative pairs with neutral score (which may not be representative of the uninformative one for lower priority endpoints).
 }
 
-  \item \code{correction.uninf}: indicates how to handle pairs that were classified as uninformative by the scoring rule.  \describe{
-   \item{\code{correction.uninf=0}}{ treat them as uninformative: this is an equivalent to complete case analysis when \code{neutral.as.uninf=FALSE}, while when \code{neutral.as.uninf=TRUE}, uninformative pairs are treated as neutral, i.e., analyzed at the following endpoint (if any). This approach will (generally) lead to biased estimates for the proportion of favorable, unfavorable, or neutral pairs.}
-   \item{\code{correction.uninf=1}}{ imputes to the uninformative pairs the average score of the informative pairs, i.e. assumes that uninformative pairs would on average behave like informative pairs. This is therefore the recommanded approach when this assumption is resonnable, typically when the the tail of the survival function estimated by the Kaplan–Meier method is close to 0.}
-   \item{\code{correction.uninf=2}}{ up-weight informative pairs to represent uninformative pairs. It also assumes that uninformative pairs would on average behave like informative pairs and is only recommanded when the analysis is stopped after the first endpoint with uninformative pairs.}
-}
+Several scoring rules are available to handle drop-out via the argument \code{scoring.rule}, the recommended one being the Peron's scoring rule: \itemize{
+   \item \code{scoring.rule="Gehan"}: When no observations is censored or only the pair with the largest timepoint is censored, the pair is decidedly classified as favorable, unfavorable, or neutral. Otherwise pairs are classified as uninformative.
+   \item \code{scoring.rule="Peron"} score pairs involving censored observations using Kaplan Meier survival curves stratified on treatment (and strata variables if any). It may still lead to uninformative pairs when the survival curve is only partially known.
+   \item \code{scoring.rule="Efron"}: same as the Peron's scoring rule except that the survival curve is extrapolated to 0 when its tail is unknown. Only relevant when using a (stratified) Kaplan-Meier estimator and no competing risks.
+   \item \code{scoring.rule="Latta"}: same as the Peron's scoring rule except that Kaplan Meier survival curves are common for both treatment groups (but are still stratified on strata variable if any).
 }
 
 
@@ -173,15 +170,15 @@ To export the classification of each pair set the argument \code{keep.pairScore}
 The argument \code{method.inference} defines how to approximate the distribution of the GPC estimators and so how standard errors, confidence intervals, and p-values are computed.
 Available methods are:
 \itemize{
-  \item argument \code{method.inference="none"}: only the point estimate is computed which makes the execution of the \code{BuyseTest} faster than with the other methods.
-  \item argument \code{method.inference="u-statistic"}: compute the variance of the estimate using a H-projection of order 1 (default option) or 2 (see \code{BuyseTest.options}). The first order is downward biased but consistent. When considering the Gehan scoring rule, no transformation nor correction, the second order is unbiased and equivalent to the variance of the (stratified) bootstrap distribution. P-values and confidence intervals are then evaluated assuming that the estimates follow a Gaussian distribution. In presence of strata, the weights used to combine estimates across strata are assumed known. This is the case the type of weights used is pre-defined and the covariate distribution is fixed by design as in a blocked randomized trial.
+  \item \code{method.inference="none"}: only the point estimate is computed which makes the execution of the \code{BuyseTest} faster than with the other methods.
+  \item \code{method.inference="u-statistic"}: H-projection of order 1 or 2 to compute the variance (1 is the default ,see \code{BuyseTest.options}). The first order is downward biased but consistent. When considering the Gehan scoring rule, no transformation nor correction, the second order is unbiased and equivalent to the variance of the (stratified) bootstrap distribution. P-values and confidence intervals are then evaluated assuming that the estimates follow a Gaussian distribution. In presence of strata, the weights used to combine estimates across strata are assumed known. This is the case the type of weights used is pre-defined and the covariate distribution is fixed by design as in a blocked randomized trial.
 \bold{WARNING}: the current implementation of the H-projection is not valid when using corrections for uninformative pairs (\code{correction.uninf=1}, or \code{correction.uninf=2}).
-  \item argument \code{method.inference="permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio).
-  \item argument \code{method.inference="studentized permutation"}: perform a permutation test, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimate.
-  \item argument \code{method.inference="varExact permutation"}: compute the variance of the permutation distribution using a closed-form formula (Anderson and Verbeeck 2023). P-values and confidence intervals are then evaluated assuming that the estimates follow a Gaussian distribution.
+  \item \code{method.inference="permutation"}: permutation test, estimating in each sample the summary statistics (e.g. net treatment benefit).
+  \item \code{method.inference="studentized permutation"}: permutation test, estimating in each sample the summary statistics (e.g. net treatment benefit) and the variance-covariance matrix of the estimate.
+  \item \code{method.inference="varExact permutation"}: closed-form variance formula under the permutation distribution (Anderson and Verbeeck 2023). P-values and confidence intervals are then evaluated assuming that the estimates follow a Gaussian distribution.
 \bold{WARNING}: the current implementation of the variance estimator for the permutation distribution is not valid when using the Peron scoring rule or corrections for uninformative pairs.
-  \item argument \code{method.inference="bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio).
-  \item argument \code{method.inference="studentized bootstrap"}: perform a non-parametric boostrap, estimating in each sample the summary statistics (net benefit, win ratio) and the variance-covariance matrix of the estimator.
+  \item \code{method.inference="bootstrap"}: non-parametric boostrap, estimating in each sample the summary statistics (e.g. net treatment benefit).
+  \item \code{method.inference="studentized bootstrap"}: non-parametric boostrap, estimating in each sample the summary statistics (e.g. net treatment benefit) and the variance-covariance matrix of the estimator.
 }
 Additional arguments for permutation and bootstrap resampling:
 \itemize{
@@ -191,7 +188,7 @@ Otherwise, the permutation/non-parametric boostrap will be performed separately 
 A large number of permutations (e.g. \code{n.resampling=10000}) are needed to obtain accurate CI and p.value. See (Buyse et al., 2010) for more details.
    \item \code{seed}: the seed is used to generate one seed per sample. These seeds are the same whether one or several CPUs are used.
    \item \code{cpus} indicates whether the resampling procedure can be splitted on several cpus to save time. Can be set to \code{"all"} to use all available cpus.
-The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. \cr \cr
+The detection of the number of cpus relies on the \code{detectCores} function from the \emph{parallel} package. 
 }
 
 \bold{Pooling results across strata} \cr Consider \eqn{K} strata and denote by \eqn{m_k} and \eqn{n_k} the sample size in the control and active arm (respectively) for strata \eqn{k}. Let \eqn{\sigma_k} be the standard error of the strata-specific summary statistic (e.g. net benefit). The strata specific weights, \eqn{w_k}, are given by:
@@ -319,7 +316,7 @@ On closed-form formula for permutation variance:  W.N. Anderson and J. Verbeeck 
 \code{\link{sensitivity}} for performing a sensitivity analysis on the choice of the threshold(s). \cr
 \code{\link{S4BuyseTest-plot}} for graphical display of the pairs across endpoints. \cr
 \code{\link{getIid}} for exporting the first order H-decomposition. \cr
-\code{\link{getPairScore}} for exporting the scoring of each pair.
+\code{\link{getPairScore}} and \code{\link{getMatrixScore}} for exporting the score of each pair in a data.table or matrix format.
 }
 \author{
 Brice Ozenne

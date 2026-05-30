@@ -105,14 +105,11 @@ profil <- profil[order(profil$id),]
 profil[profil$id==1 & profil$period==1,]
 
 ## chunk 22
-profil[profil$id==1 & profil$period==1,]
-
-## chunk 23
 profil.L <- reshape(profil, direction = "long", idvar = c("id","time"),
                     varying = c("rcs","number","duration"), v.names = "value",
                     timevar = "outcome", times = c("rcs","number","duration"))
 
-## chunk 24
+## chunk 23
 ggRCS <- ggplot(profil.L[profil.L$id %in% 1:5,],
                 aes(x = time, group = id, color = treatment, y = value))
 ggRCS <- ggRCS + geom_point() + geom_line() 
@@ -122,14 +119,14 @@ ggRCS
 
 ## ** With 2 treatment groups
 
-## chunk 26
+## chunk 25
 lowProfil <- profil[profil$treatment %in% c("placebo","lowDose"),]
 lowProfil$treatment <- droplevels(lowProfil$treatment)
 
-## chunk 27
+## chunk 26
 fff <- treatment ~ cont(rcs, threshold = 1.45, operator = "<0") + cont(number, threshold = 0.35, operator = "<0") + cont(duration, threshold = 3, operator = "<0")
 
-## chunk 28
+## chunk 27
 ls.lowGPC <- by(lowProfil, lowProfil$id, BuyseTest, formula = fff, trace = FALSE)
 df.lowGPC <- data.frame(do.call(rbind,lapply(ls.lowGPC, coef)),
                         do.call(rbind,lapply(ls.lowGPC, nobs)),
@@ -138,68 +135,68 @@ df.lowGPC$Buyse <- with(df.lowGPC, pairs/sum(pairs))
 df.lowGPC$CMH <- with(df.lowGPC, (pairs/(placebo+lowDose))/sum(pairs/(placebo+lowDose)))
 head(df.lowGPC)
 
-## chunk 29
+## chunk 28
 rbind(average = colMeans(df.lowGPC[,1:3]),
       Buyse = apply(df.lowGPC[,1:3], 2, weighted.mean, w = df.lowGPC$Buyse),
       CMH = apply(df.lowGPC[,1:3], 2, weighted.mean, w = df.lowGPC$CMH))
 
-## chunk 30
+## chunk 29
 lowGPC <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
                     data = lowProfil, trace = FALSE)
 confint(lowGPC)
 
-## chunk 31
+## chunk 30
 lowGPC_Buyse <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
                           data = lowProfil, pool.strata = "Buyse", trace = FALSE)
 confint(lowGPC_Buyse)
 
-## chunk 32
+## chunk 31
 lowGPC_CMH <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
                         data = lowProfil, pool.strata = "CMH", trace = FALSE)
 confint(lowGPC_CMH)
 
-## chunk 33
+## chunk 32
 sqrt(apply(df.lowGPC[,1:3],2,var)/NROW(df.lowGPC))
 
-## chunk 34
+## chunk 33
 BuyseTest.options(order.Hprojection = 2)
 lowGPC2 <- BuyseTest(update(fff, . ~ . + strata(id, match = TRUE)),
                      data = lowProfil, trace = FALSE)
 confint(lowGPC2)
 
-## chunk 35
+## chunk 34
 df.lowGPC_center <- sweep(df.lowGPC[,1:3], MARGIN = 2, FUN = "-", STATS = coef(lowGPC_Buyse))
 df.lowGPC_Wcenter <- sweep(df.lowGPC_center, MARGIN = 1, FUN = "*", STATS = df.lowGPC$Buyse)
 sqrt(colSums(df.lowGPC_Wcenter^2))
 
 ## ** Accounting for time (WORK IN PROGRESS!)
 
-## chunk 36
+## chunk 35
 ls.lowGPC_period <- by(lowProfil, lowProfil$id, BuyseTest,
                        formula = update(fff,.~.+strata(period)), trace = FALSE)
 
-## chunk 37
+## chunk 36
 rbind(noStrata = nobs(ls.lowGPC[[1]]),
       PeriodStrata = nobs(ls.lowGPC_period[[1]]))
 
-## chunk 38
+## chunk 37
 nobs(ls.lowGPC_period[[1]],strata=TRUE)
 
-## chunk 39
+## chunk 38
 df.lowGPC_period <- data.frame(do.call(rbind,lapply(ls.lowGPC_period, coef)),
                                do.call(rbind,lapply(ls.lowGPC_period, nobs)),
                                Buyse = as.numeric(NA), CMH = as.numeric(NA))
 df.lowGPC_period$Buyse <- with(df.lowGPC_period, pairs/sum(pairs))
 df.lowGPC_period$CMH <- with(df.lowGPC_period, (pairs/(placebo+lowDose))/sum(pairs/(placebo+lowDose)))
 
-## chunk 40
+## chunk 39
 rbind(average = colMeans(df.lowGPC_period[,1:3]),
       Buyse = apply(df.lowGPC_period[,1:3], 2, weighted.mean, w = df.lowGPC_period$Buyse),
       CMH = apply(df.lowGPC_period[,1:3], 2, weighted.mean, w = df.lowGPC_period$CMH))
 
 ## ** With 3 or more treatment groups (WORK IN PROGRESS!) 
 
-## chunk 41
+## chunk 40
 CasinoTest(update(fff, . ~ . + strata(id)), data = profil,
            method.inference = "none", type = "unweighted")
 ## do not trust inference since it would require accounting for matching

@@ -25,12 +25,12 @@ setClass(
       cpus = "numeric",
       debug = "numeric",
       engine = "character",
-      fitter.model.tte = "character",
       hierarchical = "logical",
       keep.pairScore = "logical",
       keep.survival = "logical",      
       method.inference = "character",
       scoring.rule = "character",
+      n.grid = "numeric",
       n.resampling = "numeric",
       strata.resampling = "character",
       neutral.as.uninf = "logical",
@@ -88,11 +88,6 @@ setClass(
                      valid.values = c("GPC_cpp","GPC2_cpp"),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
-      validCharacter(object@fitter.model.tte,
-                     name1 = "@fitter.model.tte",
-                     valid.values = c("prodlim", "survreg"),
-                     valid.length = 1,
-                     method = "Class BuyseTest.options")
       validLogical(object@hierarchical,
                    name1 = "@hierarchical",
                    valid.length = 1,
@@ -115,9 +110,14 @@ setClass(
                      method = "Class BuyseTest.options")
       validCharacter(object@scoring.rule,
                      name1 = "@scoring.rule",
-                     valid.values = c("Gehan","Peron"),
+                     valid.values = c("Gehan","Peron","Efron","Latta",names(survival::survreg.distributions)),
                      valid.length = 1,
                      method = "Class BuyseTest.options")
+      validInteger(object@n.grid,
+                   name1 = "@n.grid",
+                   min = 0,
+                   valid.length = 1,
+                   method = "Class BuyseTest.options")
       validInteger(object@n.resampling,
                    name1 = "@n.resampling",
                    min = 0,

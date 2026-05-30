@@ -186,7 +186,7 @@ leading to the same results as those of the table 1 in the original article, up 
 To better account for censoring one could use the Peron scoring rule
 where the survival is estimated across all subjects within a treatment
 group. One has to specify the survival model, otherwise, the BuyseTest
-function will estimate a treatmnet and strata specific survival curve
+function will estimate a treatment and strata specific survival curve
 which is impossible to perform here. The =model.tte= argument can be
 used to specify such survival model:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
@@ -511,7 +511,7 @@ sqrt(colSums(df.lowGPC_Wcenter^2))
 #+END_SRC
 
 #+RESULTS:
-:   rcs_t1.45 number_t0.35  duration_t3 
+:    rcs_t1.45 number_t0.35  duration_t3 
 :   0.01771680   0.02668638   0.02400508
 
 \clearpage

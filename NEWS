@@ -1,7 +1,15 @@
-* Version 3.3.7
+* Version 3.3.9
 ** User visible change
+- NEW FEATURE: add Weibull, exponential, ... scoring rules instead of having to specify the survreg survival model via model.tte.
+
+** Internal change
+- fix bug when using parametric survival models.
+
+* Version 3.3.8
+** User visible change
+- NEW FEATURE: add Latta scoring rule
 - NEW FEATURE: method getMatrixScore for extracting the score matrix with all pairwise comparisons.
-- enable the use of a multiplicative threshold in BuyseTest via the argument operator (set to "*"). Some of the output now show +threshold or *threshold instead of just threshold.
+- NEW FEATURE: enable the use of a multiplicative threshold in BuyseTest via the argument operator (set to "*"). Some of the output now show +threshold or *threshold instead of just threshold.
 
 ** Internal change
 - the argument restriction has now the same behavior with operator "<0" and  operator ">0" 

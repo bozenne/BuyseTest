@@ -75,7 +75,6 @@ initializeArgs <- function(status,
     if(is.null(neutral.as.uninf)){ neutral.as.uninf <- option$neutral.as.uninf }
     if(is.null(add.halfNeutral)){ add.halfNeutral <- option$add.halfNeutral }
     if(is.null(trace)){ trace <- option$trace }
-    fitter.model.tte <- option$fitter.model.tte
     engine <- option$engine
     alternative <- option$alternative
     precompute <- option$precompute
@@ -211,19 +210,26 @@ initializeArgs <- function(status,
     ## ** scoring.rule
     ## WARNING: choices must be lower cases
     ##          remember to update check scoring.rule (in BuyseTest-check.R)
+    args.model.tte <- option$args.model.tte
     if(is.character(scoring.rule)){
-        scoring.rule <- switch(tolower(scoring.rule),
-                               "gehan" = 0,
-                               "peron" = 1,
-                               "efron" = 2,
-                               NA
-                               )
+        scoring.rule <- tolower(scoring.rule)
+
+        valid.rule <- c("gehan","peron","efron","latta",names(survival::survreg.distributions))
+        if(scoring.rule %in% valid.rule == FALSE){
+            n.grid <- regmatches(scoring.rule, regexpr("[0-9]+", scoring.rule))
+            scoring.rule <- regmatches(scoring.rule, regexpr("[a-z]+", scoring.rule))
+            if(scoring.rule %in% names(survival::survreg.distributions)){
+                args.model.tte$n.grid <- try(as.numeric(n.grid))
+            }
+        }
     }
 
     if (D.TTE == 0) {
-        scoring.rule <- 0
-        if ("scoring.rule" %in% name.call && trace > 0) {
-            message("NOTE : there is no survival endpoint, \'scoring.rule\' argument is ignored \n")
+        if(scoring.rule != "gehan"){
+            scoring.rule <- "gehan"
+            if (trace > 0) {
+                message("NOTE : there is no survival endpoint, \'scoring.rule\' argument is ignored \n")
+            }        
         }
     }
 
@@ -331,7 +337,7 @@ initializeArgs <- function(status,
     }
     
     ## ** model.tte
-    if(!is.na(scoring.rule) && scoring.rule>0){
+    if(!is.na(scoring.rule) && scoring.rule!="gehan"){
         if((!is.null(model.tte))){
             if((length(unique(endpoint.TTE)) == 1) && !inherits(model.tte, "list")){
                 attr.save <- attr(model.tte,"iidNuisance")
@@ -347,11 +353,6 @@ initializeArgs <- function(status,
     }else{
         model.tte <- NULL
     }
-    if(!is.null(model.tte)){
-        fitter.model.tte <- unlist(lapply(model.tte, class))
-    }else{
-        fitter.model.tte <- setNames(rep(fitter.model.tte, length(Uendpoint.TTE)), Uendpoint.TTE)
-    }
 
     ## ** iid
     iid <- attr(method.inference,"studentized") || (method.inference == "u statistic")
@@ -360,7 +361,7 @@ initializeArgs <- function(status,
     }else{
         attr(method.inference,"hprojection") <- NA
     }
-    if(iid && !is.na(scoring.rule) && scoring.rule>0){ ## Peron/Efron scoring rule
+    if(iid && !is.na(scoring.rule) && scoring.rule!="gehan"){ ## Peron/Efron scoring rule
         if(is.null(model.tte)){
             iidNuisance <- TRUE
         }else if(!is.null(attr(model.tte,"iidNuisance"))){
@@ -431,7 +432,6 @@ initializeArgs <- function(status,
         endpoint = endpoint,
         endpoint.TTE = endpoint.TTE,
         engine = engine,
-        fitter.model.tte = fitter.model.tte,
         formula = formula,
         iid = iid,
         iidNuisance = iidNuisance,
@@ -442,6 +442,7 @@ initializeArgs <- function(status,
         scoring.rule = scoring.rule,
         pool.strata = pool.strata,
         model.tte = model.tte,
+        args.model.tte = args.model.tte,
         method.inference = method.inference,
         n.resampling = n.resampling,
         hierarchical = hierarchical,
@@ -535,10 +536,10 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 
 
     ## ** TTE with status
-    if(scoring.rule>0){
+    if(scoring.rule!="gehan"){
         test.status <- sapply(status.TTE, function(iC){any(data[[iC]]==0)})
         if(all(test.status==FALSE)){
-            scoring.rule <- 0
+            scoring.rule <- "gehan"
             iidNuisance <- FALSE            
         }
         ## distinct time to event endpoints
@@ -569,11 +570,11 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         }else if(type[iE] == "tte"){
             if(test.censoring[iE]==FALSE && test.CR[iE]==FALSE){
                 return("continuous")
-            }else if(scoring.rule == 0){ ## 3/4 Gehan (right/left censoring)
+            }else if(scoring.rule == "gehan"){ ## 3/4 Gehan (right/left censoring)
                 return(switch(censoring[iE],
                               "left" = "TTEgehan2",
                               "right" = "TTEgehan"))
-            }else if(scoring.rule>0){
+            }else if(scoring.rule != "gehan"){
                 return(switch(as.character(test.CR[iE]),
                               "FALSE" = "SurvPeron",
                               "TRUE" = "CRPeron"))
@@ -584,7 +585,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     attr(method.score,"test.CR") <- test.CR
     
     ## ** previously analyzed distinct TTE endpoints
-    if(scoring.rule>0 && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
+    if(scoring.rule != "gehan" && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
         ## number of distinct, previously analyzed, TTE endpoints
         nUTTE.analyzedPeron_M1 <- sapply(1:D, function(iE){
             if(iE>1){
@@ -649,7 +650,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
 
     ## ** keep.pairScore
-    if(identical(attr(method.inference,"hprojection"),2) && scoring.rule>0){
+    if(identical(attr(method.inference,"hprojection"),2) && scoring.rule != "gehan"){
         ## need the detail of the score to perform the 2nd order projection
         keep.pairScore <- TRUE 
     }else if(identical(attr(method.inference,"hprojection"),2) && pool.strata == 3){

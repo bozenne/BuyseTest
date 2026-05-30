@@ -14,7 +14,7 @@ BuyseTTEM(object, ...)
 
 \method{BuyseTTEM}{prodlim}(object, treatment, iid, iid.surv = "exp", ...)
 
-\method{BuyseTTEM}{survreg}(object, treatment, n.grid = 1000, iid, ...)
+\method{BuyseTTEM}{survreg}(object, treatment, n.grid = NULL, iid, ...)
 
 \method{BuyseTTEM}{BuyseTTEM}(object, ...)
 }
@@ -42,38 +42,107 @@ Only does something for prodlim objects.
 }
 \examples{
 library(prodlim)
+library(survival)
 library(data.table)
 
 tau <- seq(0,3,length.out=10)
 
+#######################
 #### survival case ####
+#######################
+
 set.seed(10)
 df.data <- simBuyseTest(1e2, n.strata = 2)
+df.Ta <- data.frame(treatment = "T", strata = "a")
+df.Ca <- data.frame(treatment = "C", strata = "a")
 
-e.prodlim <- prodlim(Hist(eventtime,status)~treatment+strata, data = df.data)
-## plot(e.prodlim)
+#### Non-parametric model (stratified Kapan-Meier) ####
 
-e.prodlim2 <- BuyseTTEM(e.prodlim, treatment = "treatment", iid = TRUE)
+## estimate
+eKM.prodlim <- prodlim(Hist(eventtime,status)~treatment+strata, data = df.data)
+## plot(eKM.prodlim)
 
-predict(e.prodlim2, time = tau, treatment = "T", strata = "a")
-predict(e.prodlim, times = tau, newdata = data.frame(treatment = "T", strata = "a"))
+## convert to TTEM object
+eKM.TTEM <- BuyseTTEM(eKM.prodlim, treatment = "treatment", iid = TRUE)
 
-predict(e.prodlim2, time = tau, treatment = "C", strata = "a")
-predict(e.prodlim, times = tau, newdata = data.frame(treatment = "C", strata = "a"))
+## extract jump times
+jumpKM.Ta <- predict(eKM.TTEM, type = "jump", treatment = "T", strata = "a")
+jumpKM.Ta
+## extract last observation time
+last.timeKM.Ta <- predict(eKM.TTEM, type = "last.time", treatment = "T", strata = "a")
+last.timeKM.Ta
+## extract survival at last observation time
+last.survKM.Ta <- predict(eKM.TTEM, type = "last", treatment = "T", strata = "a")
+last.survKM.Ta
+## extract jump size
+changeKM.Ta <- predict(eKM.TTEM, type = "change", treatment = "T", strata = "a")
+last.survKM.Ta-sum(changeKM.Ta$survival) ## sum to 1
+## prediction
+predict(eKM.TTEM, time = tau, treatment = "T", strata = "a")
+## same as prodlim: predict(eKM.prodlim, times = tau, newdata = df.Ta)
+predict(eKM.TTEM, time = tau, treatment = "C", strata = "a")
+## fix bug in prodlim: predict(eKM.prodlim, times = tau, newdata = df.Ca)
+## survival should be 0 if the last observation is an event
+
+#### Parametric model ####
+dist <- "lognormal"
+
+## estimate
+eWei.survreg <- survreg(Surv(eventtime,status)~treatment+strata, data = df.data,
+                        dist = dist)
+## gridCDF <- seq(.01,.99,by=.01)
+## plot(x = predict(eWei.survreg, newdata = df.Ta, type = "quantile", p = gridCDF,
+##                  y = rev(gridCDF), col = "red", type = "l")
+## points(x = predict(eWei.survreg, newdata = df.Ca, type = "quantile", p = gridCDF,
+##                  y = rev(gridCDF), col = "blue", type = "l")
+
+## conver to TTEM object
+eWei.TTEM <- BuyseTTEM(eWei.survreg, treatment = "treatment", iid = TRUE, n.grid = 1e3)
+
+## extract jump times
+jumpWei.Ta <- predict(eWei.TTEM, type = "jump", treatment = "T", strata = "a")
+jumpWei.Ta
+## extract last observation time
+last.timeWei.Ta <- predict(eWei.TTEM, type = "last.time", treatment = "T", strata = "a")
+last.timeWei.Ta
+## extract survival at last observation time
+last.survWei.Ta <- predict(eWei.TTEM, type = "last", treatment = "T", strata = "a")
+last.survWei.Ta
+## extract jump size
+changeWei.Ta <- predict(eWei.TTEM, type = "change", treatment = "T", strata = "a")
+last.survWei.Ta-sum(changeWei.Ta$survival) ## sum to 1
+## prediction
+predWei.Ta <- predict(eWei.TTEM, time = tau, treatment = "T", strata = "a")
+predWei.Ta
+## survreg: predict(eWei.survreg, newdata = df.Ta, type = "quantile", p = 1-predWei.Ta$survival)-tau
+## approximate retrieve tau, up to the grid resolution
 
 #### competing risk case ####
 df.dataCR <- copy(df.data)
 df.dataCR$status <- rbinom(NROW(df.dataCR), prob = 0.5, size = 2)
 
-e.prodlimCR <- prodlim(Hist(eventtime,status)~treatment+strata, data = df.dataCR)
-## plot(e.prodlimCR)
+eAJ.prodlim <- prodlim(Hist(eventtime,status)~treatment+strata, data = df.dataCR)
+## plot(eAJ.prodlim)
 
-e.prodlimCR2 <- BuyseTTEM(e.prodlimCR, treatment = "treatment", iid = TRUE)
+eAJ.TTEM <- BuyseTTEM(eAJ.prodlim, treatment = "treatment", iid = TRUE)
 
-predict(e.prodlimCR2, time = tau, treatment = "T", strata = "a")
-predict(e.prodlimCR, times = tau, newdata = data.frame(treatment = "T", strata = "a"), cause = 1)
+## extract jump times
+jumpAJ.Ta <- predict(eAJ.TTEM, type = "jump", treatment = "T", strata = "a")
+jumpAJ.Ta
+## extract last observation time
+last.timeAJ.Ta <- predict(eAJ.TTEM, type = "last.time", treatment = "T", strata = "a")
+last.timeAJ.Ta
+## extract survival at last observation time
+last.cifAJ.Ta <- predict(eAJ.TTEM, type = "last", treatment = "T", strata = "a")
+last.cifAJ.Ta
+## extract jump size
+changeAJ.Ta <- predict(eAJ.TTEM, type = "change", treatment = "T", strata = "a")
+last.cifAJ.Ta-sum(changeAJ.Ta$cif) ## sum to 0
+## prediction
+predict(eAJ.TTEM, time = tau, treatment = "T", strata = "a")
+## same as prodlim: predict(eAJ.prodlim, times = tau, newdata = df.Ta, cause = 1)
 
-predict(e.prodlimCR2, time = tau, treatment = "C", strata = "a")
-predict(e.prodlimCR, times = tau, newdata = data.frame(treatment = "C", strata = "a"), cause = 1)
+predict(eAJ.TTEM, time = tau, treatment = "C", strata = "a")
+## same as prodlim: predict(eAJ.prodlim, times = tau, newdata = df.Ca, cause = 1)
 }
 \keyword{models}

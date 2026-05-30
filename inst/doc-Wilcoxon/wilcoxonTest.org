@@ -57,8 +57,8 @@ asht::wmwTest(value ~ group, data = df, method = "exact.ce")
 #+RESULTS:
 #+begin_example
 
-	exact Wilcoxon-Man-Whitney test (confidence interval requires proportional odds
-	assumption, but test does not)
+	exact Wilcoxon-Man-Whitney test (confidence interval requires
+	proportional odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.3, p-value = 0.2544
@@ -166,7 +166,7 @@ Mann-Whitney estimate
 #+end_example
 
 In either case, an exact test would be too computationally demanding
-and an approximate test is performed instead, which assumes a normaly
+and an approximate test is performed instead, which assumes a normally
 distributed test statistic. The BuyseTest package will not be able to
 match these results due to the continuity correction. Without
 continuity correction, e.g.:
@@ -177,8 +177,8 @@ wmwTest(value ~ group, data = df2, correct = FALSE)
 #+RESULTS:
 #+begin_example
 
-	Wilcoxon-Mann-Whitney test (confidence interval requires proportional odds
-	assumption, but test does not)
+	Wilcoxon-Mann-Whitney test (confidence interval requires proportional
+	odds assumption, but test does not)
 
 data:  value by group
 Mann-Whitney estimate = 0.613, tie factor = 0.99995, p-value = 0.05147
@@ -280,6 +280,7 @@ test statistics are correlated and a Bonferroni adjustment does not
 provide optimal power. The max-test adjustment provides better power
 and can be obtained via the =BuyseMultComp= function:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
+set.seed(1)
 e.mc <- BuyseMultComp(ls.BT, statistic = "favorable", cluster = "id", global = TRUE)
 print(e.mc, cols = c("estimate","se","p.value","adj.p.value"))
 #+END_SRC
@@ -288,10 +289,10 @@ print(e.mc, cols = c("estimate","se","p.value","adj.p.value"))
 :   - Multivariate test: p.value = 0.2645493 (df = 4)
 :   - Univariate tests:
 :        estimate        se    p.value adj.p.value
-: b-a=0 0.4090909 0.1542200 0.56434599   0.9289219
-: c-a=0 0.4375000 0.1465755 0.67306460   0.9752151
-: d-a=0 0.2500000 0.1010153 0.04143057   0.1223430
-: e-a=0 0.3333333 0.1360828 0.25767454   0.5831344
+: b-a=0 0.4090909 0.1542200 0.56434599   0.9289217
+: c-a=0 0.4375000 0.1465755 0.67306460   0.9752168
+: d-a=0 0.2500000 0.1010153 0.04143057   0.1227273
+: e-a=0 0.3333333 0.1360828 0.25767454   0.5831857
 
 
 Here the smallest p-value has been multiplied by a factor 2.64 instead

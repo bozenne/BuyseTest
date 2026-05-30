@@ -363,8 +363,9 @@ inferenceVarPermutation <- function(data, treatment, level.treatment, weightStra
                                     grid.strata[,1],
                                     paste(grid.strata[,1],grid.strata[,2],sep="."))
 
-    if(any("Peron" %in% eBT.all@scoring.rule)){
-        warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using the Peron scoring rule. \n")
+    if("Peron" %in% eBT.all@scoring.rule){
+        name.rule <- ifelse(attr(eBT.all@scoring.rule,"efron"),"Efron",ifelse(attr(eBT.all@scoring.rule,"latta"),"Latta","Peron"))
+        warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using the ",name.rule," scoring rule. \n")
     }else if(any(eBT.all@correction.uninf>0)){
         warning("BuyseTest: the current implementation of the exact variance of the permutation distribution will not provide type 1 error control when using a correction for uninformative pairs. \n")
     }else if(length(eBT.all@weightStrata)>1 && attr(eBT.all@weightStrata,"type")=="standardization"){
