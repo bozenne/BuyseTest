@@ -271,6 +271,7 @@ setMethod(f = "model.tables",
               attr(table,"n.resampling") <- attr(outConfint,"n.resampling")
               attr(table,"method.ci.resampling") <- attr(outConfint,"method.ci.resampling")
               attr(table,"warning") <- attr(outConfint,"warning")
+              rownames(table) <- NULL
               return(table)
           }
 )

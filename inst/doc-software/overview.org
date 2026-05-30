@@ -128,13 +128,12 @@ BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0
 LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0  LAPACK version 3.10.0
 
 locale:
- [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8       
- [4] LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
- [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
-[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+[1] LC_COLLATE=Danish_Denmark.utf8  LC_CTYPE=Danish_Denmark.utf8   
+[3] LC_MONETARY=Danish_Denmark.utf8 LC_NUMERIC=C                   
+[5] LC_TIME=Danish_Denmark.utf8    
 
 time zone: Europe/Copenhagen
-tzcode source: system (glibc)
+tzcode source: internal
 
 attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
@@ -492,14 +491,14 @@ summary(BTstrata, type.display = keep.colStrata)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint and 4 strata
+            Generalized pairwise comparisons with 1 endpoint and 4 strata
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: Exp (treatment) vs. Pl (control) 
- - strata weights  : 26.38%, 34.63%, 18.47%, 20.52% 
+ - strata weights  : 18.47%, 20.52%, 26.38%, 34.63% 
  - uninformative pairs: no contribution
  - results
  endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
@@ -609,14 +608,14 @@ summary(BTstrata2, type.display = keep.colStrata)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint and 4 strata
+                Generalized pairwise comparisons with 1 endpoint and 4 strata
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
  - confidence level: 0.95 
  - inference       : H-projection of order 1 after atanh transformation 
  - treatment groups: Exp (treatment) vs. Pl (control) 
- - strata weights  : 25.38%, 45.69%, 13.71%, 15.23% 
+ - strata weights  : 13.71%, 15.23%, 25.38%, 45.69% 
  - uninformative pairs: no contribution
  - results
  endpoint    strata total(%) favorable(%) unfavorable(%) neutral(%) uninf(%)   delta   Delta
@@ -759,7 +758,7 @@ summary(BT.H)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 2 prioritized endpoints
+                 Generalized pairwise comparisons with 2 prioritized endpoints
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -832,7 +831,7 @@ summary(BT.nH)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 2 endpoints
+                 Generalized pairwise comparisons with 2 endpoints
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -1041,7 +1040,7 @@ summary(BTinv)
 
 #+RESULTS:
 #+begin_example
-       Generalized pairwise comparisons with 1 endpoint
+                  Generalized pairwise comparisons with 1 endpoint
 
  - statistic       : net treatment benefit  (delta: endpoint specific, Delta: global) 
  - null hypothesis : Delta == 0 
@@ -1776,6 +1775,25 @@ outSurv$lastSurv
 
 \clearpage
 
+** Extracting the score matrix
+
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+veteran.ext <- rbind(cbind(XXgroupXX = "A", XXindexXX = 1:NROW(veteran), veteran), 
+                     cbind(XXgroupXX = "B", XXindexXX = 1:NROW(veteran), veteran))
+
+GPC.ext <- BuyseTest(XXgroupXX ~ tte(time,status, threshold = 20), data = veteran.ext, 
+                     method.inference = "none", keep.pairScore = TRUE, trace = FALSE)
+endpoint.ext <- GPC.ext@endpoint
+dfScore.ext <- getPairScore(GPC.ext, endpoint = 1:length(endpoint.ext), cumulative = TRUE, unlist = FALSE)        
+
+
+#+END_SRC
+
+#+RESULTS:
+
+\clearpage
+
+
 * Dealing with missing values or/and right censoring 
 
 In presence of censoring or missing values, it is often not be
@@ -2142,7 +2160,7 @@ e.WeibullManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5)
 model.tables(e.WeibullManual)
 #+END_SRC
 #+RESULTS:
-:    endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
+: endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
 : 1 eventtime       0.5   100  11.65444    34.18937 54.14472 0.01147085 -0.2253494 -0.3476693
 :      upper.ci      p.value
 : 1 -0.09548719 0.0007624659

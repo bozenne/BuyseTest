@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: May 31 2026 (00:27) 
+## Last-Updated: May 31 2026 (00:52) 
 ##           By: Brice Ozenne
-##     Update #: 821
+##     Update #: 827
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -407,6 +407,7 @@ fitTTEM <- function(model.tte, data, BuyseTTEM,
                              "prodlim" = "prodlim::Hist",
                              "survreg" = "survival::Surv",
                              NA)
+
         if(is.null(strata) || attr(strata,"match")){
             if(latta){
                 txt.modelUTTE <- paste0(txt.fitter,"(",endpoint.UTTE,",",status.UTTE,") ~ 1")        
