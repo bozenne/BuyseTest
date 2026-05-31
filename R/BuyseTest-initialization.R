@@ -66,6 +66,7 @@ initializeArgs <- function(status,
     ## ** apply default options
     if(is.null(cpus)){ cpus <- option$cpus }
     if(is.null(keep.pairScore)){ keep.pairScore <- option$keep.pairScore }
+    original.scoring.rule <- scoring.rule
     if(is.null(scoring.rule)){ scoring.rule <- option$scoring.rule }
     if(is.null(hierarchical)){ hierarchical <- option$hierarchical }
     if(is.null(correction.uninf)){ correction.uninf <- option$correction.uninf }
@@ -224,12 +225,10 @@ initializeArgs <- function(status,
         }
     }
 
-    if (D.TTE == 0) {
-        if(scoring.rule != "gehan"){
-            scoring.rule <- "gehan"
-            if (trace > 0) {
-                message("NOTE : there is no survival endpoint, \'scoring.rule\' argument is ignored \n")
-            }        
+    if (D.TTE == 0){
+        scoring.rule <- "gehan"
+        if(trace > 0 && !is.null(original.scoring.rule) && scoring.rule != "gehan") {
+            message("NOTE : there is no survival endpoint, \'scoring.rule\' argument is ignored \n")
         }
     }
 
@@ -533,7 +532,6 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     if(any(status == "..NA..")){
         data[,c("..NA..") := -100]
     }
-
 
     ## ** TTE with status
     if(scoring.rule!="gehan"){

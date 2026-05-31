@@ -1,4 +1,4 @@
-% Created 2026-05-31 Sun 00:57
+% Created 2026-05-31 Sun 22:46
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -213,10 +213,10 @@ the wilcoxon-test.
 
 
 \section{Single Wilcoxon test}
-\label{sec:orgab41905}
+\label{sec:org031a3ea}
 
 \subsection{Exact test}
-\label{sec:orgd5cd813}
+\label{sec:org54c347f}
 
 Consider the first 'two sample test' example from the help page section of \texttt{stats::wilcox.test}:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -279,7 +279,7 @@ with GPC we can use a permutation test: \newline \Warning the argument
 \begin{lstlisting}
 eperm.BT <- BuyseTest(group ~ cont(value), data = df, add.halfNeutral = TRUE,
                       method.inference = "permutation", n.resampling = 1e4,
-                      trace = FALSE, cpus = 5, seed = 10)
+                      trace = FALSE, cpus = 10, seed = 10)
 confint(eperm.BT, statistic = "favorable")
 \end{lstlisting}
 
@@ -326,7 +326,7 @@ value      0.3 0.1334166       NA       NA  0.5 0.1916808
 \end{verbatim}
 
 \subsection{Approximate test}
-\label{sec:orgd941162}
+\label{sec:org0650600}
 
 Consider now a bigger (artificial) dataset:
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -431,7 +431,7 @@ For a more generally applicable inference method resampling can be used:
 \begin{lstlisting}
 eperm.BT2 <- BuyseTest(group ~ cont(value), data = df2, add.halfNeutral = TRUE,
                        method.inference = "permutation", n.resampling = 1e4,
-                       trace = FALSE, cpus = 5, seed = 10)
+                       trace = FALSE, cpus = 10, seed = 10)
 confint(eperm.BT2, statistic = "favorable", method.ci.resampling = "gaussian")
 \end{lstlisting}
 
@@ -444,7 +444,7 @@ value    0.613 0.05814569       NA       NA  0.5 0.05118099
 \clearpage
 
 \section{Multiple Wilcoxon tests}
-\label{sec:orgae07091}
+\label{sec:orgef4cd29}
 
 Consider now the case where we would like to compare one reference
 group (here strata \texttt{a}) to multiple treatment groups (here strata
@@ -548,7 +548,7 @@ e-a=0 0.7520401 0.5439927 0.5051815 1.0000000
 
 
 \section*{References}
-\label{sec:orge2deb1c}
+\label{sec:org267c177}
 \begingroup
 \renewcommand{\section}[2]{}
 

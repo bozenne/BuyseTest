@@ -1,4 +1,4 @@
-% Created 2026-05-31 Sun 00:58
+% Created 2026-05-31 Sun 22:44
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt]{article}
 
@@ -246,7 +246,7 @@ the BuyseTest package so the content of this vignette may change in
 newer versions.
 
 \section{Paired design}
-\label{sec:orgf41e79b}
+\label{sec:org734d92c}
 
 The Diabetic Retinopathy Study (DRS), which data is available from
  \Rlogo package survival, included 197 patients who had one of their
@@ -301,7 +301,7 @@ diabeticJ <- diabetic[diabetic$juvenile,]
 \end{lstlisting}
 
 \subsection{Wald methods (Gehan scoring rule)}
-\label{sec:orgbecddac}
+\label{sec:org90604f4}
 
 To mimic the methodology underlying the results presented in Table 1
 of \cite{matsouaka2022robust}, we perform GPC stratified by patient
@@ -412,7 +412,7 @@ sqrt(var(coef(e.BTjuv, strata = TRUE))/N) * sqrt((N-1)/N)
 \end{verbatim}
 
 \subsection{MOVER method (Gehan scoring rule)}
-\label{sec:org0ca7606}
+\label{sec:org69716c4}
 
 The method recommended by \cite{matsouaka2022robust} is the MOVER
 approach, which has been developped for a binary scoring rule
@@ -434,7 +434,7 @@ leading to the same results as those of the table 1 in the original article, up 
 \clearpage
 
 \subsection{Wald methods (Peron scoring rule)}
-\label{sec:orgfe7cf5a}
+\label{sec:orgaae0c41}
 
 To better account for censoring one could use the Peron scoring rule
 where the survival is estimated across all subjects within a treatment
@@ -571,7 +571,7 @@ c(average = sqrt(crossprod((Hterm1/N))),
 \clearpage
 
 \section{Multiple cross-over design}
-\label{sec:orgc9fbbb5}
+\label{sec:org96d7aaf}
 A more complex design is a cross-over where each patient may
 repeteadly experience each treatment. As an example, we will consider
 the PROFIL trial whose dataset is available in the BuyseTest package:
@@ -635,7 +635,7 @@ ggRCS
 \end{center}
 
 \subsection{With 2 treatment groups}
-\label{sec:orgb6744d0}
+\label{sec:org91c3baa}
 
 \noindent Since \texttt{BuyseTest} can only handle two treatment group, we restrict the
 dataset to placebo and low dose:
@@ -797,7 +797,7 @@ sqrt(colSums(df.lowGPC_Wcenter^2))
 \clearpage
 
 \subsection{Accounting for time (WORK IN PROGRESS!)}
-\label{sec:org1beb7ac}
+\label{sec:orgbebbb17}
 
 In previous approaches, all pairwise comparisons are performed within
 each patient, not only within-block comparisons. As of version
@@ -872,7 +872,7 @@ quantify uncertainty and obtain confidence intervals and p-values.
 \clearpage
 
 \subsection{With 3 or more treatment groups (WORK IN PROGRESS!)}
-\label{sec:org977f5bf}
+\label{sec:org6937095}
 
 Handling more than two treatment groups is still an area of
 development for the BuyseTest package. Several approaches have been
@@ -907,7 +907,7 @@ vs. \texttt{lowDose} is now influenced by \texttt{highDose}.
 
 
 \section*{References}
-\label{sec:orgaf51651}
+\label{sec:org1f40a45}
 \begingroup
 \renewcommand{\section}[2]{}
 

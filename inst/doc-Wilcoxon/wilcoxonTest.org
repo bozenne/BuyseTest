@@ -79,7 +79,7 @@ with GPC we can use a permutation test: \newline \Warning the argument
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eperm.BT <- BuyseTest(group ~ cont(value), data = df, add.halfNeutral = TRUE,
                       method.inference = "permutation", n.resampling = 1e4,
-                      trace = FALSE, cpus = 5, seed = 10)
+                      trace = FALSE, cpus = 10, seed = 10)
 confint(eperm.BT, statistic = "favorable")
 #+END_SRC
 
@@ -213,7 +213,7 @@ For a more generally applicable inference method resampling can be used:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 eperm.BT2 <- BuyseTest(group ~ cont(value), data = df2, add.halfNeutral = TRUE,
                        method.inference = "permutation", n.resampling = 1e4,
-                       trace = FALSE, cpus = 5, seed = 10)
+                       trace = FALSE, cpus = 10, seed = 10)
 confint(eperm.BT2, statistic = "favorable", method.ci.resampling = "gaussian")
 #+END_SRC
 

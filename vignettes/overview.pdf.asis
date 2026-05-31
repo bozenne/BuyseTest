@@ -148,7 +148,7 @@ BTstd.boot <- BuyseTest(ffstrata, data = veteran, trace = 0, pool.strata = "stan
                         method.inference = "bootstrap", n.resampling = 100, seed = 10)
 confint(BTstd.boot, strata = TRUE)[1:6,]
 
-## ** Using multiple endpoints
+## ** Using multiple endpoints (hierarchical)
 
 ## chunk 33
 ff2 <- trt ~ tte(time, threshold = 20, status = "status") + cont(karno, threshold = 0)
@@ -157,8 +157,11 @@ summary(BT.H)
 
 ## chunk 34
 plot(BT.H, type = "hist")
-plot(BT.H, type = "pie")
 plot(BT.H, type = "racetrack")
+plot(BT.H, type = "pie")
+
+
+## ** Using multiple endpoints (non-hierarchical)
 
 ## chunk 36
 BT.nH <- BuyseTest(ff2, hierarchical = FALSE, data = veteran, trace = 0)
@@ -209,144 +212,167 @@ ffop <- trt ~ tte(time, status = "status", threshold = 20, operator = "<0")
 BTinv <- BuyseTest(ffop, data = veteran, trace = 0)
 summary(BTinv)
 
-## ** Stopping comparison for neutral pairs
+## ** What about a multiplicative instead of additive threshold?
 
 ## chunk 46
+ffstar <- trt ~ tte(time, status = "status", threshold = 20, operator = "*")
+BTstar <- BuyseTest(ffstar, data = veteran, trace = 0)
+print(BTstar)
+
+## ** Stopping comparison for neutral pairs
+
+## chunk 48
 dt.sim <- data.table(Id = 1:2,
                      treatment = c("Yes","No"),
                      tumor = c("Yes","Yes"),
                      size = c(15,20))
 dt.sim
 
-## chunk 47
+## chunk 49
 BT.pair <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
                      trace = 0, method.inference = "none")
 summary(BT.pair)
 
-## chunk 48
+## chunk 50
 BT.pair2 <- BuyseTest(treatment ~ bin(tumor) + cont(size, operator = "<0"), data = dt.sim,
                      trace = 0, method.inference = "none", neutral.as.uninf = FALSE)
 summary(BT.pair2)
 
 ## ** Is multiple testing a concern with GPC?
 
-## chunk 49
+## chunk 51
 BTse <- sensitivity(BT.ustat, threshold = seq(0,500, length.out=10),
                           trace = FALSE)
 BTse
 
-## chunk 50
+## chunk 52
 BuyseMultComp(BT.H, endpoint = 1:2)
 
-## chunk 51
+## chunk 53
 BuyseMultComp(BT.nH, cumulative = FALSE, endpoint = 1:2)
 
-## chunk 52
+## chunk 54
 BuyseMultComp(list(hierarchical = BT.H, Obrien = BT.nH), cluster = "id")
 
-## chunk 53
+## chunk 55
 BTse.ustat <- sensitivity(BT.ustat, threshold = seq(0,500, length.out=10),
                           band = TRUE, adj.p.value = TRUE, seed = 10, trace = FALSE)
 BTse.ustat[,c("time","estimate",
               "lower.ci","upper.ci","p.value",
               "lower.band","upper.band","adj.p.value")]
 
-## chunk 54
+## chunk 56
 library(ggplot2)
 autoplot(BTse.ustat)
 
-## chunk 56
+## chunk 58
 BTse.cor <- cor(lava::iid(BTse.ustat))
 range(BTse.cor[lower.tri(BTse.cor)])
 
-## chunk 57
+## chunk 59
 BTse.H <- sensitivity(BT.H, trace = FALSE,
                       threshold = list(time = seq(0,500,length = 10), karno = c(0,40,80)))
 head(BTse.H)
 
-## chunk 58
+## chunk 60
 grid <- expand.grid(list("time_t20" = seq(0,500,length = 10), "karno" = c(0,40,80)))
 cbind(head(grid)," " = "  ...   ",tail(grid))
-BTse.H2 <-sensitivity(BT.H, threshold = grid, trace = FALSE)
+BTse.H2 <- sensitivity(BT.H, threshold = grid, trace = FALSE)
 range(BTse.H-BTse.H2)
 
-## chunk 59
+## chunk 61
 autoplot(BTse.H, col = NA)
 ##  alternative display:
 ## autoplot(BTse.H, position  = position_dodge(width = 15))
 
 ## * Getting additional inside: looking at the pair level
-## ** Extracting the contribution of each pair to the statistic
+## ** Extracting the contribution of each pair to the statistic (long format)
 
-## chunk 61
+## chunk 63
 form <- trt ~ tte(time, threshold = 20, status = "status") + cont(karno)
 BT.keep <- BuyseTest(form,
                      data = veteran, keep.pairScore = TRUE, 
                      trace = 0, method.inference = "none")
 
-## chunk 62
+## chunk 64
 getPairScore(BT.keep, endpoint = 1)
 
-## chunk 63
+## chunk 65
 veteran[c(70,1),]
 
-## chunk 64
+## chunk 66
 getPairScore(BT.keep, endpoint = 1)[, mean(favorable) - mean(unfavorable)]
 
-## chunk 65
+## chunk 67
 BT.keep
+
+## ** Extracting the contribution of each pair to the statistic (matrix format)
+
+## chunk 68
+Mscore <- getMatrixScore(BT.keep, endpoint = 1)
+dim(Mscore)
+Mscore[1:4,1:4]
+
+## chunk 69
+MscoreAll <- getMatrixScore(BT.keep, endpoint = 1, within = TRUE)
+dim(MscoreAll)
+
+## chunk 70
+rbind(cbind(MscoreAll[1:4,1:4],NA,MscoreAll[70:73,1:4]),
+      NA,
+      cbind(MscoreAll[1:4,70:73],NA,MscoreAll[70:73,70:73]))
 
 ## ** Extracting the survival probabilities
 
-## chunk 66
+## chunk 71
 BuyseTest.options(keep.survival = TRUE, precompute = FALSE)
 BT.keep2 <- BuyseTest(trt ~ tte(time, threshold = 20, status = "status") + cont(karno),
                       data = veteran, keep.pairScore = TRUE, scoring.rule = "Peron",
                       trace = 0, method.inference = "none")
 
-## chunk 67
+## chunk 72
 outSurv <- getSurvival(BT.keep2, endpoint = 1, strata = 1)
 str(outSurv)
 
 ## *** Computation of the score with only one censored event
 
-## chunk 68
+## chunk 73
 getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[91]
 
-## chunk 69
+## chunk 74
 veteran[c(22,71),]
 
-## chunk 70
+## chunk 75
 iSurv <- outSurv$survTimeC[22,] 
 iSurv
 
-## chunk 71
+## chunk 76
 Sc97 <- iSurv["survivalC_0"] 
 Sc97
 
-## chunk 72
+## chunk 77
 iSurv <- outSurv$survTimeT[2,] ## survival at time 112+20
 iSurv
 
-## chunk 73
+## chunk 78
 Sc132 <- iSurv["survivalC+threshold"] 
 Sc132
 
-## chunk 74
+## chunk 79
 Sc132/Sc97
 
 ## *** Computation of the score with two censored events
 
-## chunk 75
+## chunk 80
 head(outSurv$survJumpT)
 
-## chunk 76
+## chunk 81
 getPairScore(BT.keep2, endpoint = 1, rm.withinStrata = FALSE)[148]
 
-## chunk 77
+## chunk 82
 veteran[c(10,72),]
 
-## chunk 78
+## chunk 83
 calcInt <- function(...){ ## no need for the functionnal derivative of the score 
     BuyseTest:::.calcIntegralSurv_cpp(..., 
                                       returnDeriv = FALSE, 
@@ -354,7 +380,7 @@ calcInt <- function(...){ ## no need for the functionnal derivative of the score
                                       derivSurvD = matrix(0))
 }
 
-## chunk 79
+## chunk 84
 denom <- as.double(outSurv$survTimeT[3,"survivalT_0"] * outSurv$survTimeC[10,"survivalC_0"])
 M <- cbind("favorable" = -calcInt(outSurv$survJumpC, start = 100, 
                                   lastSurv = outSurv$lastSurv[2],
@@ -365,12 +391,12 @@ M <- cbind("favorable" = -calcInt(outSurv$survJumpC, start = 100,
 rownames(M) <- c("lowerBound","upperBound")
 M
 
-## chunk 80
+## chunk 85
 outSurv$lastSurv
 
 ## * Dealing with missing values or/and right censoring 
 
-## chunk 81
+## chunk 86
 set.seed(10)
 dt <- simBuyseTest(1e2, latent = TRUE, argsCont = NULL,
                    argsTTE = list(scale.T = 1/2, scale.C = 1,
@@ -379,125 +405,160 @@ dt[, eventtimeCensoring := NULL]
 dt[, status1 := 1]
 head(dt)
 
-## chunk 82
+## chunk 87
 100*dt[,mean(status==0)]
 
-## chunk 83
-BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
-          data = dt,
-          scoring.rule = "Gehan", method.inference = "none", trace = 0)
+## chunk 88
+eGS <- BuyseTest(treatment ~ tte(eventtimeUncensored, status1, threshold = 0.5),
+                 data = dt,
+                 scoring.rule = "Gehan", method.inference = "none", trace = 0)
+coef(eGS)
+
+## chunk 89
+names(survival::survreg.distributions)
 
 ## ** Gehan's scoring rule
 
-## chunk 84
-e.G <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-          data = dt, scoring.rule = "Gehan", trace = 0)
-model.tables(e.G)
+## chunk 90
+e.Gehan <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Gehan", trace = 0)
+model.tables(e.Gehan)
+
+## ** Latta's scoring rule
+
+## chunk 91
+e.Latta <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Latta", trace = 0)
+model.tables(e.Latta)
+
+## chunk 92
+dt[,.SD[which.max(eventtime)]]
+
+## chunk 93
+e.prodlimLatta <- prodlim(Hist(eventtime, status) ~ 1, data = dt)
+attr(e.prodlimLatta,"iidNuisance") <- TRUE
+
+## chunk 94
+e.LattaManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                           model.tte = e.prodlimLatta,
+                           data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.LattaManual)
 
 ## ** Peron's scoring rule
 
-## chunk 85
-e.P <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-          data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P)
-
-## chunk 86
-dt[,.SD[which.max(eventtime)],by="treatment"]
-
-## chunk 87
-library(prodlim)
-e.prodlim <- prodlim(Hist(eventtime, status) ~ treatment, data = dt)
-
-## chunk 88
-e.P1 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.prodlim,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P1)
-
-## chunk 89
-dt2 <- dt[order(dt$eventtime)]
-e.P2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dt2),
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P2)
-
-## chunk 90
-dt2[, last := (max(eventtime)==eventtime), by = "treatment"]
-## survival stays constant after end of follow-up
-dt2[treatment=="C" & last == TRUE, c("eventtime","status") := .(max(dt2$eventtime)+1,1)]
-## survival drop to 0 after end of follow-up
-dt2[treatment=="T" & last == TRUE, status := 1]
-## modified Kaplan Meier estimator
-e.prodlim2 <- prodlim(Hist(eventtime, status) ~ treatment, data = dt2)
-attr(e.prodlim2, "iidNuisance") <- TRUE
-## run GPC
-e.P3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.prodlim2,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P3) ## even more unfavorable to treatment
-
-## chunk 91
-library(survival)
-e.survreg <- survreg(Surv(eventtime, status) ~ treatment, data = dt, 
-                     dist = "weibull")
-
-## chunk 92
-e.P3 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.survreg,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P3)
-
-## chunk 93
-e.TTEM <- BuyseTTEM(e.survreg, treatment = "treatment", iid = TRUE, n.grid = 2500)
-str(e.TTEM$peron$jumpSurvHaz[[1]][[1]])
-
-## chunk 94
-e.P4 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                  model.tte = e.TTEM,
-                  data = dt, scoring.rule = "Peron", trace = 0)
-model.tables(e.P4)
-
-## ** Correction via re-weighting
-
 ## chunk 95
-BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                data = dt, keep.pairScore = TRUE, trace = 0,
-                scoring.rule = "Gehan", method.inference = "none", correction.uninf = 2)
-summary(BT)
+e.Peron <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Peron", trace = 0)
+model.tables(e.Peron)
 
 ## chunk 96
-iScore <- getPairScore(BT, endpoint = 1)
+dt[,.SD[which.max(eventtime)],by="treatment"]
 
 ## chunk 97
-iScore[,.SD[1], 
-       .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
-       by = c("favorable","unfavorable","neutral","uninf")]
+library(prodlim)
+e.prodlimPeron <- prodlim(Hist(eventtime, status) ~ treatment, data = dt)
 
 ## chunk 98
-iScore[,1/mean(favorable + unfavorable + neutral)]
-
-## ** Correction at the pair level
+e.PeronManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                           model.tte = e.prodlimPeron,
+                           data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.PeronManual)
 
 ## chunk 99
-BT <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                data = dt, keep.pairScore = TRUE, trace = 0,
-                scoring.rule = "Gehan", method.inference = "none", correction.uninf = TRUE)
-summary(BT)
+dt2 <- dt[order(dt$eventtime)]
+e.PeronManual2 <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                            model.tte = prodlim(Hist(eventtime, status) ~ treatment, data = dt2),
+                            data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.PeronManual2)
+
+## ** Efron's scoring rule
 
 ## chunk 100
-iScore <- getPairScore(BT, endpoint = 1)
+e.Efron <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     data = dt, scoring.rule = "Efron", trace = 0)
+model.tables(e.Efron)
+
+## chunk 101
+dt[,.SD[which.max(eventtime)],by="treatment"]
+
+## chunk 102
+dtEfron <- copy(dt)
+dtEfron[treatment=="T" & id == 154, c("eventtime","status") := .(eventtime+1e-10,1)]
+## dt2[treatment=="T" & eventtime > 1.58865, status := 1]
+
+## chunk 103
+e.prodlimEfron <- prodlim(Hist(eventtime, status) ~ treatment, data = dtEfron)
+attr(e.prodlimEfron,"iidNuisance") <- TRUE
+
+## chunk 104
+e.Efron <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                     model.tte = e.prodlimEfron,
+                     data = dt, scoring.rule = "Peron", trace = 0)
+confint(e.Efron)
+
+## ** Scoring rule based on a parametric survival model
+
+## chunk 105
+names(survreg.distributions)
+
+## chunk 106
+e.Weibull <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+          data = dt, scoring.rule = "Weibull", trace = 0)
+model.tables(e.Weibull)
+
+## chunk 108
+library(survival)
+e.survregWeibull <- survreg(Surv(eventtime, status) ~ treatment, data = dt, 
+                            dist = "weibull")
+
+## chunk 109
+e.WeibullManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                             model.tte = e.survregWeibull,
+                             data = dt, scoring.rule = "Peron", trace = 0)
+model.tables(e.WeibullManual)
+
+## ** Correction via re-weighting citep:peron2021correcting
+## *** At the trial level
+
+## chunk 110
+BT.trialW <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                data = dt, keep.pairScore = TRUE, trace = 0,
+                scoring.rule = "Gehan", method.inference = "none", correction.uninf = 2)
+summary(BT.trialW)
+
+## chunk 111
+iScore <- getPairScore(BT.trialW, endpoint = 1)
+
+## chunk 112
 iScore[,.SD[1], 
        .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
        by = c("favorable","unfavorable","neutral","uninf")]
 
-## chunk 101
-iScore[, .(favorable = weighted.mean(favorable, w = 1-uninf), 
-           unfavorable = weighted.mean(unfavorable, w = 1-uninf), 
-           neutral = weighted.mean(neutral, w = 1-uninf))]
+## chunk 113
+iScore[,1/mean(favorable + unfavorable + neutral)]
 
-## ** Note on the use of the corrections
+## *** At the pair level
 
-## chunk 102
+## chunk 114
+BT.pairI <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+                data = dt, keep.pairScore = TRUE, trace = 0,
+                scoring.rule = "Gehan", method.inference = "none", correction.uninf = TRUE)
+summary(BT.pairI)
+
+## chunk 115
+iScore <- getPairScore(BT.pairI, endpoint = 1)
+iScore[,.SD[1], 
+       .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
+       by = c("favorable","unfavorable","neutral","uninf")]
+
+## chunk 116
+c(favorable = unname(coef(BT.pairI, statistic = "favorable")),
+  unfavorable = unname(coef(BT.pairI, statistic = "unfavorable")),
+  neutral = unname(coef(BT.pairI, statistic = "neutral")))
+
+## *** Note on the use of the corrections
+
+## chunk 117
 set.seed(10);n <- 250; 
 df <- rbind(data.frame(group = "T1", time = rweibull(n, shape = 1, scale = 2), status = 1),
             data.frame(group = "T2", time = rweibull(n, shape = 2, scale = 1.8), status = 1))
@@ -507,17 +568,19 @@ df$statusC <- as.numeric(df$time<=df$censoring)
 plot(prodlim(Hist(time,status)~group, data = df)); title("complete data");
 plot(prodlim(Hist(timeC,statusC)~group, data = df)); title("right-censored data");
 
-## chunk 104
-BuyseTest.options(method.inference = "none")
-e.ref <- BuyseTest(group ~ tte(time,status), data = df, trace = FALSE)
+## chunk 119
+e.ref <- BuyseTest(group ~ tte(time,status), data = df, method.inference = "none",
+                   trace = FALSE)
 s.ref <- model.tables(e.ref, column = c("favorable","unfavorable","neutral","uninf","Delta"))
 s.ref
 
-## chunk 105
-e.correction <- BuyseTest(group ~ tte(timeC,statusC), data = df, trace = FALSE, correction.uninf = TRUE)
-s.correction <- model.tables(e.correction, column = c("favorable","unfavorable","neutral","uninf","Delta"))
+## chunk 120
+e.correction <- BuyseTest(group ~ tte(timeC,statusC), data = df, method.inference = "none",
+                          trace = FALSE, correction.uninf = 1)
+s.correction <- model.tables(e.correction,
+                             column = c("favorable","unfavorable","neutral","uninf","Delta"))
 
-## chunk 106
+## chunk 121
 e.Peron <- BuyseTest(group ~ tte(timeC,statusC), data = df, trace = FALSE)
 s.Peron <- model.tables(e.Peron, column = c("favorable","unfavorable","neutral","uninf","Delta"))
 rbind("reference" = s.ref,
@@ -526,11 +589,11 @@ rbind("reference" = s.ref,
 
 ## * Simulating data using =simBuyseTest=
 
-## chunk 107
+## chunk 122
 set.seed(10)
 simBuyseTest(n.T = 5, n.C = 5)
 
-## chunk 108
+## chunk 123
 set.seed(10)
 argsCont <- list(mu.T = c(5,5), mu.C = c(10,10), 
                  sigma.T = c(1,1), sigma.C = c(1,1),
@@ -541,7 +604,7 @@ dt
 
 ## * Power calculation using =powerBuyseTest=
 
-## chunk 109
+## chunk 124
 simFCT <- function(n.C, n.T){
      out <- rbind(cbind(Y=stats::rt(n.C, df = 5), group=0),
                   cbind(Y=stats::rt(n.T, df = 5) + 1/2, group=1))
@@ -550,40 +613,40 @@ simFCT <- function(n.C, n.T){
 set.seed(10)
 simFCT(101,101)
 
-## chunk 110
+## chunk 125
 null <- c("netBenefit" = 0)
 
-## chunk 111
+## chunk 126
 powerW <- powerBuyseTest(sim = simFCT, method.inference = "u-statistic", null = null,
                          sample.size = c(5,10,20,30,50,100),                         
                          formula = group ~ cont(Y), 
-                         n.rep = 1000, seed = 10, cpus = 6, trace = 0)
+                         n.rep = 1000, seed = 10, cpus = 10, trace = 0)
 
-## chunk 112
+## chunk 127
 summary(powerW)
 
-## chunk 113
+## chunk 128
 nW <- powerBuyseTest(sim = simFCT, method.inference = "u-statistic", 
                      power = 0.8, max.sample.size = 1000,                     
                      formula = group ~ cont(Y), null = c("netBenefit" = 0),
                      n.rep = c(1000,10), seed = 10, cpus = 5, trace = 0)
 
-## chunk 114
+## chunk 129
 summary(nW)
 
 ## * Modifying default options
 
-## chunk 115
+## chunk 130
 BuyseTest.options("trace")
 
-## chunk 116
+## chunk 131
 BuyseTest.options(trace = 0)
 
-## chunk 117
+## chunk 132
 BuyseTest.options(summary.display = list(c("endpoint","threshold","delta","Delta","information(%)")))
 summary(BT)
 
-## chunk 118
+## chunk 133
 BuyseTest.options(reinitialise = TRUE)
 
 ## * References
