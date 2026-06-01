@@ -8,7 +8,10 @@ init:
         Import-Module '..\appveyor-tool.ps1'
 
 install:
-  ps: Bootstrap
+  - ps: Bootstrap
+  - cmd: Rscript -e "install.packages('BiocManager')"
+  - cmd: Rscript -e "BiocManager::install(version = Sys.getenv('BIOC_VERSION'))"
+  - cmd: Rscript -e "options(repos = BiocManager::repositories())"
 
 cache:
   - C:\RLibrary
