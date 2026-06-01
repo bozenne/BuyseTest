@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex overview"] 1780257841 "overview.aux" "overview.bbl" "overview" 1780257841
+["bibtex overview"] 1780310517 "overview.aux" "overview.bbl" "overview" 1780310520
   "/usr/share/texlive/texmf-dist/bibtex/bst/base/apalike.bst" 1292289607 24635 604dafcc79f521a11ea73e506e1fbd98 ""
-  "bibliography.bib" 1780256504 4146 1aee3d263476ea3a06c92269870123bd ""
-  "overview.aux" 1780257841 9347 e743503e9ab758cb48d07bc0d75e495f "pdflatex"
+  "bibliography.bib" 1780310299 3720 6eabe705143b0c2655aef8864a6dab81 ""
+  "overview.aux" 1780310519 9347 07c9f34fa3e5bffa4eb1bf88510745be "pdflatex"
   (generated)
   "overview.bbl"
   "overview.blg"
-["pdflatex"] 1780257839 "/home/bozenne/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" "overview.pdf" "overview" 1780257839
+["pdflatex"] 1780310517 "/home/bozenne/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" "overview.pdf" "overview" 1780310520
   "/etc/texmf/web2c/texmf.cnf" 1712233310 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/bozenne/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" 1780257837 125807 fea2049dda81a26f1b501f6ac272d700 ""
+  "/home/bozenne/Documents/GitHub/BuyseTest/inst/doc-software/overview.tex" 1780310514 126288 06989e0fece1224a22695c87a4883b19 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/symbol/psyr.tfm" 1136768653 1408 5937f58aa508ea2cea4901c07d10f5fe ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1136768653 1528 f853c4d1b4e0550255e02831fdc8496f ""
@@ -290,10 +290,10 @@
   "figures/gg-sensitivity2.pdf" 1640171953 8104 68a59133784e25f4515d1b82c3f7edc7 ""
   "figures/plot-BuyseTest.pdf" 1688031186 15034 d814ac7a496256feb03f85d6b836fe26 ""
   "figures/plot-crossingSurv.pdf" 1640172058 30518 82768025a1bc84e6ff158cead7fb4389 ""
-  "overview.aux" 1780257802 9347 73d32c16a23fcbceb3d08021e872da02 "pdflatex"
-  "overview.bbl" 1780257803 2984 a98d403384f575b21ae8cf1f5553176d "bibtex overview"
-  "overview.out" 1780257802 7801 050affd6c22adfaec192c4d3d8b44ad5 "pdflatex"
-  "overview.tex" 1780257837 125807 fea2049dda81a26f1b501f6ac272d700 ""
+  "overview.aux" 1780310519 9347 07c9f34fa3e5bffa4eb1bf88510745be "pdflatex"
+  "overview.bbl" 1780310517 2984 a98d403384f575b21ae8cf1f5553176d "bibtex overview"
+  "overview.out" 1780310519 7801 050affd6c22adfaec192c4d3d8b44ad5 "pdflatex"
+  "overview.tex" 1780310514 126288 06989e0fece1224a22695c87a4883b19 ""
   (generated)
   "overview.aux"
   "overview.loc"

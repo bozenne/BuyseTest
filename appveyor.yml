@@ -10,8 +10,6 @@ init:
 install:
   - ps: Bootstrap
   - cmd: Rscript -e "install.packages('BiocManager', repos='https://cloud.r-project.org')"
-  - cmd: Rscript -e "options(repos = BiocManager::repositories())"
-
 
 cache:
   - C:\RLibrary

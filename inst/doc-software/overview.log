@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.1.30)  31 MAY 2026 22:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.1.30)  1 JUN 2026 12:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1319,7 +1319,9 @@ File: ./figures/plot-BuyseTest.pdf Graphic file (type pdf)
 Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 1106.
 
 (pdftex.def)             Requested size: 378.42001pt x 378.43733pt.
- [14 <./figures/plot-BuyseTest.pdf>] [15] [16] [17
+ [14 <./figures/plot-BuyseTest.pdf>] [15] [16
+
+] [17
 
 ] [18] [19
 
@@ -1332,73 +1334,77 @@ Package pdftex.def Info: ./figures/plot-BuyseTest.pdf  used on input line 1106.
 <./figures/gg-sensitivity1.pdf, id=475, 361.35pt x 216.81pt>
 File: ./figures/gg-sensitivity1.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity1.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1630
+Package pdftex.def Info: ./figures/gg-sensitivity1.pdf  used on input line 1634
 .
 (pdftex.def)             Requested size: 270.3012pt x 162.18033pt.
  [23 <./figures/gg-sensitivity1.pdf>]
 <./figures/gg-sensitivity2.pdf, id=503, 505.89pt x 216.81pt>
 File: ./figures/gg-sensitivity2.pdf Graphic file (type pdf)
 <use ./figures/gg-sensitivity2.pdf>
-Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1700
+Package pdftex.def Info: ./figures/gg-sensitivity2.pdf  used on input line 1704
 .
 (pdftex.def)             Requested size: 540.60239pt x 231.68996pt.
  [24 <./figures/gg-sensitivity2.pdf>]
 [25
 
 ]
-Overfull \hbox (4.01846pt too wide) in paragraph at lines 1847--1862
+Overfull \hbox (4.01846pt too wide) in paragraph at lines 1851--1866
 []$[]$ $[]$ 
  []
 
 [26] [27] [28] [29] [30] [31] [32
 
-] [33] [34] [35] [36]
+] [33] [34] [35] [36] [37]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\begingroup' on input line 2585.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\let' on input line 2585.
+(hyperref)                removing `\begingroup' on input line 2617.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\<let>-command' on input line 2585.
+(hyperref)                removing `\let' on input line 2617.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\NAT@ctype' on input line 2585.
+(hyperref)                removing `\<let>-command' on input line 2617.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\z@' on input line 2585.
+(hyperref)                removing `\NAT@ctype' on input line 2617.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\let' on input line 2585.
+(hyperref)                removing `\z@' on input line 2617.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\new@ifnextchar' on input line 2585.
+(hyperref)                removing `\let' on input line 2617.
 
-[37] [38] [39]
-<./figures/plot-crossingSurv.pdf, id=785, 722.7pt x 505.89pt>
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\new@ifnextchar' on input line 2617.
+
+[38
+
+] [39]
+<./figures/plot-crossingSurv.pdf, id=786, 722.7pt x 505.89pt>
 File: ./figures/plot-crossingSurv.pdf Graphic file (type pdf)
 <use ./figures/plot-crossingSurv.pdf>
 Package pdftex.def Info: ./figures/plot-crossingSurv.pdf  used on input line 27
-50.
+75.
 (pdftex.def)             Requested size: 432.48355pt x 302.74124pt.
- [40 <./figures/plot-crossingSurv.pdf>] [41]
+ [40 <./figures/plot-crossingSurv.pdf>] [41
+
+]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <17.28> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 2807.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 2836.
  [42
 
 ] [43
 
 ] [44
 
-]
-[45] [46
+] [45]
+[46
 
 ] (./overview.bbl)
 \Changes@OutFile=\write6
@@ -1410,17 +1416,14 @@ LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <17.28> not available
  [47
 
 ] (./overview.aux)
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package rerunfilecheck Info: File `overview.out' has not changed.
 (rerunfilecheck)             Checksum: 050AFFD6C22ADFAEC192C4D3D8B44AD5;7801.
  ) 
 Here is how much of TeX's memory you used:
- 32252 strings out of 478287
- 584627 string characters out of 5849289
- 1254959 words of memory out of 5000000
- 49256 multiletter control sequences out of 15000+600000
+ 32230 strings out of 478287
+ 584270 string characters out of 5849289
+ 1255959 words of memory out of 5000000
+ 49228 multiletter control sequences out of 15000+600000
  550858 words of font info for 109 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  114i,17n,117p,662b,1886s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1458,10 +1461,10 @@ lm/lmtk10.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb></usr/share/te
 xmf/fonts/type1/public/lm/lmtt12.pfb></usr/share/texlive/texmf-dist/fonts/type1
 /public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/
 public/amsfonts/symbols/msbm10.pfb>
-Output written on overview.pdf (47 pages, 564852 bytes).
+Output written on overview.pdf (47 pages, 565363 bytes).
 PDF statistics:
- 1129 PDF objects out of 1200 (max. 8388607)
- 1012 compressed objects within 11 object streams
- 553 named destinations out of 1000 (max. 500000)
+ 1136 PDF objects out of 1200 (max. 8388607)
+ 1019 compressed objects within 11 object streams
+ 559 named destinations out of 1000 (max. 500000)
  287 words of extra memory for PDF output out of 10000 (max. 10000000)
 

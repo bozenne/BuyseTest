@@ -889,9 +889,13 @@ model.tables(BT.nHw)
 : 2 -0.07639267 -0.2503756 0.10237001 0.4026905
 
 This has been refered as the O’Brien test in the litterature
-(cite:verbeeck2019generalized, section 3.2). Alternatively, one may be
-interested in the endpoint specific results. This can be performed
-by applying the =BuyseTest= function separately to each endpoint, e.g.:
+(cite:verbeeck2019generalized, section 3.2).
+
+\clearpage
+
+Alternatively, one may be interested in the endpoint
+specific results. This can be performed by applying the =BuyseTest=
+function separately to each endpoint, e.g.:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 confint(BuyseTest(trt ~ cont(karno, threshold = 0), data = veteran, trace = 0))
 #+END_SRC
@@ -2157,7 +2161,7 @@ discretisation point. Internally the survival curve is discretized
 using 1000 points starting from survival = 1 to survival = 0.001. A
 greater resolution can be specified with a number following the
 distribution name:
-#+BEGIN_SRC R :exports none :results output :session *R* :cache no
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.Weibull <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
           data = dt, scoring.rule = "Weibull 10000", trace = 0)
 model.tables(e.Weibull)
@@ -2180,21 +2184,34 @@ e.survregWeibull <- survreg(Surv(eventtime, status) ~ treatment, data = dt,
 
 #+RESULTS:
 
-Then passing the model to the =BuyseTest= via the =model.tte= argument:
+The method =BuyseTTEM= can be used to obtain a discrete time version
+of the parametric survival model:
+#+BEGIN_SRC R :exports both :results output :session *R* :cache no
+e.TTEMWeibull <- BuyseTTEM(e.survregWeibull, treatment = "treatment",
+                           n.grid = 10000, iid = TRUE)
+
+#+END_SRC
+
+Here the argument =n.grid= controls how many points are used to
+discretise the survival curve.
+
+
+\clearpage
+
+Then we can pass the model to the =BuyseTest= via the =model.tte=
+argument:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.WeibullManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                             model.tte = e.survregWeibull,
+                             model.tte = e.TTEMWeibull,
                              data = dt, scoring.rule = "Peron", trace = 0)
 model.tables(e.WeibullManual)
 #+END_SRC
 #+RESULTS:
-: endpoint threshold total favorable unfavorable  neutral      uninf      Delta   lower.ci
-: 1 eventtime       0.5   100  11.65444    34.18937 54.14472 0.01147085 -0.2253494 -0.3476693
-:      upper.ci      p.value
-: 1 -0.09548719 0.0007624659
+:    endpoint threshold total favorable unfavorable  neutral        uninf      Delta   lower.ci
+: 1 eventtime       0.5   100  13.52321    41.34697 45.12977 4.310969e-05 -0.2782376 -0.4193279
+:     upper.ci      p.value
+: 1 -0.1240234 0.0005078037
 
-The argument =n.grid= controls how many points are used to discretise
-the survival curve.
 
 ** Correction via re-weighting citep:peron2021correcting
 
@@ -2238,15 +2255,7 @@ the results of this analysis. To get some inside about the correction
 we can look at the scores of the pairs:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 iScore <- getPairScore(BT.trialW, endpoint = 1)
-#+END_SRC
-
-#+RESULTS:
-
-To get a synthetic view, we only look at the unique
-favorable/unfavorable/neutral/uniformative results:
-#+BEGIN_SRC R :exports both :results output :session *R* :cache no
-iScore[,.SD[1], 
-       .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
+iScore[,.SD[1], .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
        by = c("favorable","unfavorable","neutral","uninf")]
 #+END_SRC
 
@@ -2357,8 +2366,10 @@ dev.off()
 : null device 
 :           1
 
+\clearpage
 
-Here the net treatment benefit that we would have estimated with complete data:
+We first evaluate the 'oracle' net treatment benefit, i.e. the one we
+would have estimated with complete data:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.ref <- BuyseTest(group ~ tte(time,status), data = df, method.inference = "none",
                    trace = FALSE)
@@ -2390,7 +2401,8 @@ s.correction <- model.tables(e.correction,
 than without:
 #+BEGIN_SRC R :exports both :results output :session *R* :cache no
 e.Peron <- BuyseTest(group ~ tte(timeC,statusC), data = df, trace = FALSE)
-s.Peron <- model.tables(e.Peron, column = c("favorable","unfavorable","neutral","uninf","Delta"))
+s.Peron <- model.tables(e.Peron,
+                        column = c("favorable","unfavorable","neutral","uninf","Delta"))
 rbind("reference" = s.ref,
       "no correction" = s.Peron,
       "correction" = s.correction)

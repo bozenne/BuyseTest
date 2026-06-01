@@ -506,32 +506,39 @@ e.Weibull <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
           data = dt, scoring.rule = "Weibull", trace = 0)
 model.tables(e.Weibull)
 
+## chunk 107
+e.Weibull <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
+          data = dt, scoring.rule = "Weibull 10000", trace = 0)
+model.tables(e.Weibull)
+
 ## chunk 108
 library(survival)
 e.survregWeibull <- survreg(Surv(eventtime, status) ~ treatment, data = dt, 
                             dist = "weibull")
 
 ## chunk 109
+e.TTEMWeibull <- BuyseTTEM(e.survregWeibull, treatment = "treatment",
+                           n.grid = 10000, iid = TRUE)
+
+
+## chunk 110
 e.WeibullManual <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
-                             model.tte = e.survregWeibull,
+                             model.tte = e.TTEMWeibull,
                              data = dt, scoring.rule = "Peron", trace = 0)
 model.tables(e.WeibullManual)
 
 ## ** Correction via re-weighting citep:peron2021correcting
 ## *** At the trial level
 
-## chunk 110
+## chunk 111
 BT.trialW <- BuyseTest(treatment ~ tte(eventtime, status, threshold = 0.5),
                 data = dt, keep.pairScore = TRUE, trace = 0,
                 scoring.rule = "Gehan", method.inference = "none", correction.uninf = 2)
 summary(BT.trialW)
 
-## chunk 111
-iScore <- getPairScore(BT.trialW, endpoint = 1)
-
 ## chunk 112
-iScore[,.SD[1], 
-       .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
+iScore <- getPairScore(BT.trialW, endpoint = 1)
+iScore[,.SD[1], .SDcols = c("favorableC","unfavorableC","neutralC","uninfC"),
        by = c("favorable","unfavorable","neutral","uninf")]
 
 ## chunk 113
@@ -582,7 +589,8 @@ s.correction <- model.tables(e.correction,
 
 ## chunk 121
 e.Peron <- BuyseTest(group ~ tte(timeC,statusC), data = df, trace = FALSE)
-s.Peron <- model.tables(e.Peron, column = c("favorable","unfavorable","neutral","uninf","Delta"))
+s.Peron <- model.tables(e.Peron,
+                        column = c("favorable","unfavorable","neutral","uninf","Delta"))
 rbind("reference" = s.ref,
       "no correction" = s.Peron,
       "correction" = s.correction)

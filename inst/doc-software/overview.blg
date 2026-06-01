@@ -3,10 +3,6 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: overview.aux
 The style file: apalike.bst
 Database file #1: bibliography.bib
-Repeated entry---line 99 of file bibliography.bib
- : @article{peron2021correcting
- :                             ,
-I'm skipping whatever remains of this entry
 You've used 11 entries,
             1935 wiz_defined-function locations,
             544 strings with 6113 characters,
@@ -48,4 +44,3 @@ warning$ -- 0
 while$ -- 36
 width$ -- 0
 write$ -- 142
-(There was 1 error message)
