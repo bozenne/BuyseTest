@@ -468,7 +468,7 @@ initializeArgs <- function(status,
 }
 
 ## * initializeData
-initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, censoring, strata, pool.strata, treatment, hierarchical, copy,
+initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, status, Ustatus, method.inference, censoring, restriction, strata, pool.strata, treatment, hierarchical, copy,
                            keep.pairScore, endpoint.TTE, status.TTE, iidNuisance, weightEndpoint, weightObs){
 
     if (!data.table::is.data.table(data)) {
@@ -495,7 +495,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
 
     ## ** strata
     if(!is.null(strata)){  
-    
+        
         data[ , c("..strata..") := interaction(.SD, drop = TRUE, lex.order = FALSE, sep = "."), .SDcols = strata]
         level.strata <- levels(data[["..strata.."]])        
         data[ , c("..strata..") := as.numeric(.SD[["..strata.."]])] # convert to numeric
@@ -534,15 +534,32 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     }
 
     ## ** TTE with status
+    ## Use Gehan scoring rule when not censoring within restriction time
+    test.censoring <- rep(FALSE,D)
     if(scoring.rule!="gehan"){
-        test.status <- sapply(status.TTE, function(iC){any(data[[iC]]==0)})
-        if(all(test.status==FALSE)){
+        test.censoring <- sapply(1:D, function(iE){ ## iE <- 2
+            if(type[iE]=="tte"){
+                if(is.na(restriction[iE])){
+                    ## data[data[[status[iE]]]==0 & data[[endpoint[iE]]]<max(data[[endpoint[iE]]]),]
+                    return(any(data[[status[iE]]]==0 & data[[endpoint[iE]]]<max(data[[endpoint[iE]]])))
+                }else{
+                    return(any(data[[status[iE]]]==0 & data[[endpoint[iE]]]<restriction[iE]))
+                }                
+            }else{
+                return(FALSE)
+            }
+            
+        })
+        if(all(test.censoring == FALSE)){
             scoring.rule <- "gehan"
             iidNuisance <- FALSE            
         }
+    }
+
+    if(scoring.rule!="gehan"){
         ## distinct time to event endpoints
-        endpoint.UTTE <- unique(endpoint.TTE[test.status])
-        status.UTTE <- unique(status.TTE[test.status])
+        endpoint.UTTE <- unique(endpoint[test.censoring]) ## unique(endpoint[type=="tte"])
+        status.UTTE <- unique(status[test.censoring])     ## unique(status[type=="tte"])
         D.UTTE <- length(endpoint.UTTE)
 
         ## correspondance endpoint, TTE endpoint (non TTEe endpoint are set to -100)
@@ -558,7 +575,6 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     ## check if status
     n.CR <- sapply(status, function(iC){max(data[[iC]])})
     test.CR <- n.CR[status]>1
-    test.censoring <- sapply(Ustatus, function(iC){any(data[[iC]]==0)})[status]
 
     method.score <- sapply(1:D, function(iE){ ## iE <- 1
         if(type[iE] %in% c("bin","cont")){
@@ -566,13 +582,11 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
         }else if(type[iE] == "gaus"){
             return("gaussian")
         }else if(type[iE] == "tte"){
-            if(test.censoring[iE]==FALSE && test.CR[iE]==FALSE){
-                return("continuous")
-            }else if(scoring.rule == "gehan"){ ## 3/4 Gehan (right/left censoring)
+            if(test.censoring[iE]==FALSE || scoring.rule == "gehan"){
                 return(switch(censoring[iE],
                               "left" = "TTEgehan2",
                               "right" = "TTEgehan"))
-            }else if(scoring.rule != "gehan"){
+            }else{
                 return(switch(as.character(test.CR[iE]),
                               "FALSE" = "SurvPeron",
                               "TRUE" = "CRPeron"))
@@ -581,7 +595,7 @@ initializeData <- function(data, type, endpoint, Uendpoint, D, scoring.rule, sta
     })
     attr(method.score,"test.censoring") <- test.censoring
     attr(method.score,"test.CR") <- test.CR
-    
+
     ## ** previously analyzed distinct TTE endpoints
     if(scoring.rule != "gehan" && hierarchical){ ## only relevant when using Peron scoring rule with hierarchical GPC
         ## number of distinct, previously analyzed, TTE endpoints

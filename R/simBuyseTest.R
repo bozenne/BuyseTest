@@ -31,21 +31,17 @@
 #' 
 #' Arguments in the list \code{argsBin}:
 #' \itemize{
-#'     \item\code{p.T} list of probabilities for the values taken by each endpoint (categorical endpoint, treatment group). 
-#'     \item\code{p.C} same as \code{p.T} but for the control group. 
-#'     \item\code{rho.T} value of the regression coefficient between the underlying latent variable and the survival time.
+#'     \item\code{p.T}, \code{p.C}: list of probabilities for the values taken by each endpoint (categorical endpoint) in, respectively, the treatment and control group.
+#'     \item\code{rho.T}, \code{rho.C}: value of the regression coefficient between the underlying latent variable and the survival time in, respectively, the treatment and control group.
 #'     Only implemented for weibull distributed survival times.
-#'     \item\code{rho.C} same as \code{rho.T} but for the control group. 
-#'     \item\code{name} names of the binary variables.
+#'     \item\code{name}: names of the binary variables.
 #' }
 #' 
 #' Arguments in the list \code{argsCont}:
 #'     \itemize{
-#'     \item\code{mu.T} expected value of each endpoint (continuous endpoint, treatment group). 
-#'     \item\code{mu.C} same as \code{mu.C} but for the control group. 
-#'     \item\code{sigma.T} standard deviation of the values of each endpoint (continuous endpoint, treatment group). 
-#'     \item\code{sigma.C} same as \code{sigma.T} but for the control group. 
-#'     \item\code{name} names of the continuous variables.
+#'     \item\code{mu.T}, \code{mu.C}: expected value of each endpoint (continuous endpoint) in, respectively, the treatment and control group.
+#'     \item\code{sigma.T}, \code{sigma.C}: standard deviation of the values of each endpoint (continuous endpoint) in, respectively, the treatment and control group.
+#'     \item\code{name}: names of the continuous variables.
 #'     }
 #' 
 #' Arguments in the list \code{argsTTE}:
@@ -56,24 +52,26 @@
 #'      the event of interest in the control group,
 #'      the competing event in both groups,
 #'      the censoring mechanism in the treatment group,
-#'      the censoring mechanism in the control group
+#'      the censoring mechanism in the control group.
+#'      For uniform distributions 'scale' encodes the support (min) of the distribution.
+#'      For piecewise exponetial distributions, 'scale' should be a list containing a numeric vector (see examples).
 #'     \item\code{shape.T,shape.C,shape.CR,shape.censoring.T,shape.censoring.C} shape parameter of the Weibull distribution for, respectively,
 #'      the event of interest in the treatment group,
 #'      the event of interest in the control group,
 #'      the competing event in both groups,
 #'      the censoring mechanism in the treatment group,
-#'      the censoring mechanism in the control group
+#'      the censoring mechanism in the control group.
+#'      For uniform distributions 'shape' encodes the support (max) of the distribution.
+#'      For piecewise exponetial distributions, 'shape' should be a list containing a numeric vector (see examples) containg the break times.
 #'     \item\code{dist.T,dist.C,dist.CR,dist.censoring.T,dist.censoring.C} type of distribution (\code{"weibull"}, \code{"uniform"}, \code{"piecewiseExp"}) for, respectively,
 #'      the event of interest in the treatment group,
 #'      the event of interest in the control group,
 #'      the competing event in both groups,
 #'      the censoring mechanism in the treatment group,
 #'      the censoring mechanism in the control group.
-#'      For uniform distirbutions the (scale,shape) parameters becomes the support (min, max) of the censoring distribution.
-#'      For piecewise exponential distributions the (scale,shape) should be lists of numeric (see example)
-#'      and the shape parameters becomes the time parameters (first element should be 0).
+#'     \item\code{frailty.T,frailty.C} mean of the Gamma distributed fraily creating some dependency between the group-specific time to events.
 #'     \item\code{name} names of the time to event variables. 
-#'     \item\code{name.censoring} names of the event type indicators. #'      
+#'     \item\code{name.censoring} names of the event type indicators.       
 #'     }
 #'     
 #' @examples
@@ -81,7 +79,9 @@
 #' 
 #' n <- 1e2
 #'
+#' ####################
 #' #### by default ####
+#' ####################
 #' simBuyseTest(n)
 #'
 #' ## with a strata variable having 5 levels
@@ -90,8 +90,10 @@
 #' simBuyseTest(n, n.strata = 5, names.strata = "grade")
 #' ## several strata variables
 #' simBuyseTest(1e3, n.strata = c(2,4), names.strata = c("Gender","AgeCategory"))
-#' 
+#'
+#' ####################################
 #' #### only categorical endpoints ####
+#' ####################################
 #' args <- list(p.T = list(c(low=0.1,moderate=0.5,high=0.4)))
 #' dt.bin <- simBuyseTest(n, argsBin = args, argsCont = NULL, argsTTE = NULL)
 #' table(dt.bin$toxicity)/NROW(dt.bin)
@@ -101,14 +103,19 @@
 #' table(dt.bin$toxicity1)/NROW(dt.bin)
 #' table(dt.bin$toxicity2)/NROW(dt.bin)
 #' 
+#' ###################################
 #' #### only continuous endpoints ####
+#' ###################################
 #' args <- list(mu.T = c(3:5/10), sigma.T = rep(1,3))
 #' dt.cont <- simBuyseTest(n, argsBin = NULL, argsCont = args, argsTTE = NULL)
 #' c(mean(dt.cont$score1), mean(dt.cont$score2), mean(dt.cont$score3))
 #' c(sd(dt.cont$score1), sd(dt.cont$score2), sd(dt.cont$score3))
-#' 
+#'
+#' ############################
 #' #### only TTE endpoints ####
-#' ## weibull distributed
+#' ############################
+#' 
+#' #### weibull distributed
 #' args <- list(scale.T = c(3:5/10), scale.censoring.T = rep(1,3))
 #' dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 #' 1/c(sum(dt.tte$eventtime1)/sum(dt.tte$status1),
@@ -121,7 +128,13 @@
 #'
 #' hist(dt.tte$eventtime1)
 #' 
-#' ## uniform distributed
+#' #### use a frailty to add correlation
+#' dt.tteCor <- simBuyseTest(n, argsBin = NULL, argsCont = NULL,
+#'                           argsTTE = list(scale.T = c(1,1),
+#'                                          frailty.T = 2, frailty.C = 0.0001))
+#' dt.tteCor[, cor(eventtime1,eventtime2), by = "treatment"]
+#' 
+#' #### uniform distributed
 #' args <- list(scale.T = 0, shape.T = 1, dist.T = "uniform", scale.censoring.T = 1e5,
 #'              scale.C = 0, shape.C = 2, dist.C = "uniform", scale.censoring.C = 1e5)
 #' dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
@@ -130,7 +143,7 @@
 #' hist(dt.tte$eventtime[dt.tte$treatment=="C"])
 #' hist(dt.tte$eventtime[dt.tte$treatment=="T"])
 #'
-#' ## piecewise constant exponential distributed
+#' #### piecewise constant exponential distributed
 #' ## time [0;4]: scale parameter 10
 #' ## time [4;12]: scale parameter 13
 #' ## time [12;18.]: scale parameter 18
@@ -146,8 +159,10 @@
 #' if(require(prodlim)){
 #' plot(prodlim(Hist(eventtime,status)~treatment, data = dt.tte))
 #' }
-#' 
+#'
+#' #########################################################
 #' #### correlated categorical / time to event endpoint ####
+#' #########################################################
 #' ## WARNING: only for weibull distributed time to event endpoint
 #' args.bin <- list(p.T = list(c(low=0.1,moderate=0.5,high=0.4)), rho.T = 1)
 #' args.tte <- list(scale.T = 2, scale.censoring.T = 1)
@@ -159,7 +174,9 @@
 #' 
 #' boxplot(eventtime ~ toxicity, data = dt.corr)
 #' 
+#' #########################
 #' #### pre-computation ####
+#' #########################
 #' library(lava)
 #' mySimulator <- simBuyseTest(n, format = "function") ## creates lvm object once for all
 #' set.seed(1)
@@ -338,7 +355,19 @@ simBuyseTest <- function(n.T, n.C = NULL,
                     prefix.cluster = prefix.cluster)
         class(out) <- append("simBuyseTest", class(out))
     }else{
-        out <- do.call(format, args =  rbind(df.C, df.T))
+        if(NCOL(df.C)>NCOL(df.T)){
+            all.cols <- union(names(df.C), names(df.T))
+        }else{
+            all.cols <- union(names(df.T), names(df.C))
+        }
+        
+        if(any(all.cols %in% names(df.C) == FALSE)){ ## add missing columns if any
+            df.C[setdiff(all.cols, names(df.C))] <- NA
+        }
+        if(any(all.cols %in% names(df.T) == FALSE)){ ## add missing columns if any (e.g. frailty only for one arm)
+            df.T[setdiff(all.cols, names(df.T))] <- NA
+        }
+        out <- do.call(format, args = rbind(df.C, df.T))
         if(!is.null(prefix.cluster)){
             out[[name.cluster]] <- paste0(prefix.cluster,out[[name.cluster]])
         }
@@ -534,9 +563,11 @@ simBuyseTest_TTE <- function(modelT,
                              scale.T = 1/2,
                              shape.T = rep(1, length(scale.T)),
                              dist.T = rep("weibull", length(scale.T)),
+                             frailty.T = 0,
                              scale.C = NULL,
                              shape.C = NULL,
                              dist.C = NULL,
+                             frailty.C = 0,
                              scale.CR = NULL,
                              shape.CR = NULL,
                              dist.CR = NULL,
@@ -550,6 +581,9 @@ simBuyseTest_TTE <- function(modelT,
                              name.censoring = NULL,
                              check){
 
+
+    tol <- 1e-12
+    
     ## ** initialisation
     n.endpoints <- length(scale.T)
     if(is.null(name)){ 
@@ -565,7 +599,9 @@ simBuyseTest_TTE <- function(modelT,
     if(is.null(scale.CR)){scale.CR <- scale.T}
     if(is.null(shape.CR)){shape.CR <- shape.T}
     if(is.null(dist.CR)){dist.CR <- dist.T}
-    
+
+    if(identical(scale.censoring.T,FALSE)){scale.censoring.T <- rep(Inf, length(scale.T))}
+    if(identical(scale.censoring.C,FALSE)){scale.censoring.C <- rep(Inf, length(scale.C))}
     if(is.null(scale.censoring.C)){scale.censoring.C <- scale.censoring.T}
     if(is.null(shape.censoring.C)){shape.censoring.C <- shape.censoring.T}
     if(is.null(dist.censoring.C)){dist.censoring.C <- dist.censoring.T}
@@ -588,7 +624,11 @@ simBuyseTest_TTE <- function(modelT,
         validCharacter(dist.T,
                        valid.values = c("weibull", "uniform","piecewiseExp"),
                        valid.length = n.endpoints,
-                       method = "simBuyseTest")  
+                       method = "simBuyseTest")
+        validNumeric(frailty.T,
+                     valid.length = 1,
+                     min = 0,
+                     method = "simBuyseTest")
 
         validNumeric(scale.C,
                      valid.length = n.endpoints, unlist = is.list(scale.C),
@@ -602,6 +642,10 @@ simBuyseTest_TTE <- function(modelT,
                        valid.values = c("weibull","uniform","piecewiseExp"),
                        valid.length = n.endpoints,
                        method = "simBuyseTest")  
+        validNumeric(frailty.C,
+                     valid.length = 1,
+                     min = 0,
+                     method = "simBuyseTest")
 
         validLogical(CR,
                      valid.length = 1,
@@ -654,21 +698,65 @@ simBuyseTest_TTE <- function(modelT,
                        valid.length = n.endpoints,
                        method = "simBuyseTest")  
     }
+
+    if((frailty.T>tol || frailty.C>tol)){
+        if(n.endpoints==1){
+            message("Argument \'frailty.T\' ignored when simulating a single time to event variable. \n",
+                    "Only relevant to specify the association between multiple time to event variables. \n")
+        }else{
+            name.correlation <- "uLatentCor.TTE"
+            if(name.correlation %in% lava::vars(modelT)){
+                stop("simBuyseTest_TTE: variable already in the LVM \n",
+                     "variable: \"",name.correlation,"\"\n")
+            }
+        }
+        name00 <- paste0(name,"Latent")
+    }else{
+        name00 <- name0
+    }
+
     
     ## ** model
     for(iterE in 1:n.endpoints){
+        
         allvarE <- c(name[iterE], name0[iterE], nameC[iterE], name.censoring[iterE])
         if(any(allvarE %in% lava::vars(modelT))){
             stop("simBuyseTest_TTE: variable already in the LVM \n",
                  "variable: ",paste(allvarE[allvarE %in% lava::vars(modelT)], collapse = " "),"\n")
         }
-        if(dist.T[iterE]=="uniform"){
-            lava::distribution(modelT, name0[iterE]) <- lava::uniform.lvm(a = scale.T[[iterE]], b = shape.T[[iterE]])
-        }else if(dist.T[iterE]=="weibull"){
-            lava::distribution(modelT, name0[iterE]) <- lava::weibull.lvm(scale = scale.T[[iterE]], shape = 1/shape.T[[iterE]])
-        }else if(dist.T[iterE]=="piecewiseExp"){
-            lava::distribution(modelT, name0[iterE]) <- lava::coxExponential.lvm(scale = scale.T[[iterE]], timecut = shape.T[[iterE]])
+
+        ## *** time to event marginal distribution
+        if(n.endpoints>1 && frailty.T>tol){ ## latent variable generating some dependency between time to event variables
+            iName.T <- name00[iterE]
+            iFFT <- reformulate(response = name0[iterE], termlabels = c(name.correlation,name00[iterE]))
+            transform(modelT, iFFT) <- prod
+        }else{
+            iName.T <- name0[iterE]
         }
+        if(dist.T[iterE]=="uniform"){
+            lava::distribution(modelT, iName.T) <- lava::uniform.lvm(a = scale.T[[iterE]], b = shape.T[[iterE]])
+        }else if(dist.T[iterE]=="weibull"){
+            lava::distribution(modelT, iName.T) <- lava::weibull.lvm(scale = scale.T[[iterE]], shape = 1/shape.T[[iterE]])
+        }else if(dist.T[iterE]=="piecewiseExp"){
+            lava::distribution(modelT, iName.T) <- lava::coxExponential.lvm(scale = scale.T[[iterE]], timecut = shape.T[[iterE]])
+        }
+
+        if(n.endpoints>1 && frailty.C>tol){ ## latent variable generating some dependency between time to event variables
+            iName.C <- name00[iterE]
+            iFFC <- reformulate(response = name0[iterE], termlabels = c(name.correlation,name00[iterE]))
+            transform(modelC, iFFC) <- prod
+        }else{
+            iName.C <- name0[iterE]
+        }
+        if(dist.C[iterE]=="uniform"){
+            lava::distribution(modelC, iName.C) <- lava::uniform.lvm(a = scale.C[[iterE]], b = shape.C[[iterE]])
+        }else if(dist.C[iterE]=="weibull"){
+            lava::distribution(modelC, iName.C) <- lava::weibull.lvm(scale = scale.C[[iterE]], shape = 1/shape.C[[iterE]])
+        }else if(dist.C[iterE]=="piecewiseExp"){
+            lava::distribution(modelC, iName.C) <- lava::coxExponential.lvm(scale = scale.C[[iterE]], timecut = shape.C[[iterE]])
+        }
+
+        ## *** censoring marginal distribution
         if(dist.censoring.T[iterE]=="uniform"){
             lava::distribution(modelT, nameC[iterE]) <- lava::uniform.lvm(a = scale.censoring.T[[iterE]], b = shape.censoring.T[[iterE]])
         }else if(dist.censoring.T[iterE]=="weibull"){
@@ -677,6 +765,15 @@ simBuyseTest_TTE <- function(modelT,
             lava::distribution(modelT, nameC[iterE]) <- lava::coxExponential.lvm(scale = scale.censoring.T[[iterE]], timecut = shape.censoring.T[[iterE]])
         }
 
+        if(dist.censoring.C[iterE]=="uniform"){
+            lava::distribution(modelC, nameC[iterE]) <- lava::uniform.lvm(a = scale.censoring.C[[iterE]], b = shape.censoring.C[[iterE]])
+        }else if(dist.censoring.C[iterE]=="weibull"){
+            lava::distribution(modelC, nameC[iterE]) <- lava::weibull.lvm(scale = scale.censoring.C[[iterE]], shape = 1/shape.censoring.C[[iterE]])
+        }else if(dist.censoring.C[iterE]=="piecewiseExp"){
+            lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(scale = scale.censoring.C[[iterE]], timecut = shape.censoring.C[[iterE]])
+        }
+
+        ## *** competing risk marginal distribution
         if(CR){
             if(dist.CR[iterE]=="uniform"){
                 lava::distribution(modelT, nameCR[iterE]) <- lava::uniform.lvm(a = scale.CR[[iterE]], b = shape.CR[[iterE]])
@@ -688,23 +785,6 @@ simBuyseTest_TTE <- function(modelT,
             txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
-        }        
-        modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), name.censoring[iterE])
-
-        if(dist.C[iterE]=="uniform"){
-            lava::distribution(modelC, name0[iterE]) <- lava::uniform.lvm(a = scale.C[[iterE]], b = shape.C[[iterE]])
-        }else if(dist.C[iterE]=="weibull"){
-            lava::distribution(modelC, name0[iterE]) <- lava::weibull.lvm(scale = scale.C[[iterE]], shape = 1/shape.C[[iterE]])
-        }else if(dist.C[iterE]=="piecewiseExp"){
-            lava::distribution(modelC, name0[iterE]) <- lava::coxExponential.lvm(scale = scale.C[[iterE]], timecut = shape.C[[iterE]])
-        }
-                
-        if(dist.censoring.C[iterE]=="uniform"){
-            lava::distribution(modelC, nameC[iterE]) <- lava::uniform.lvm(a = scale.censoring.C[[iterE]], b = shape.censoring.C[[iterE]])
-        }else if(dist.censoring.C[iterE]=="weibull"){
-            lava::distribution(modelC, nameC[iterE]) <- lava::weibull.lvm(scale = scale.censoring.C[[iterE]], shape = 1/shape.censoring.C[[iterE]])
-        }else if(dist.censoring.C[iterE]=="piecewiseExp"){
-            lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(scale = scale.censoring.C[[iterE]], timecut = shape.censoring.C[[iterE]])
         }
 
         if(CR){
@@ -719,8 +799,12 @@ simBuyseTest_TTE <- function(modelT,
         }else{
             txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
         }
+
+        ## *** create time and censoring indicator
+        modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), name.censoring[iterE])
         modelC <- lava::eventTime(modelC, stats::as.formula(txtSurv), name.censoring[iterE])
 
+        ## *** keep track of the latent variables
         if(CR){
             formula.latent <- as.formula(paste0("~",name0[iterE],"+",nameC[iterE],"+",nameCR[iterE]))
         }else{
@@ -728,6 +812,16 @@ simBuyseTest_TTE <- function(modelT,
         }
         latent(modelT) <- formula.latent
         latent(modelC) <- formula.latent
+    }
+
+    ## ** correlation
+    if(n.endpoints>1 && frailty.T>tol){ 
+        distribution(modelT, reformulate(termlabels = name.correlation)) <-  Gamma.lvm(rate = 1/frailty.T, shape = 1/frailty.T)
+        latent(modelT) <- c(name00,name.correlation)
+    }
+    if(n.endpoints>1 && frailty.C>tol){ 
+        distribution(modelC, reformulate(termlabels = name.correlation)) <-  Gamma.lvm(rate = 1/frailty.C, shape = 1/frailty.C)
+        latent(modelC) <- c(name00,name.correlation)
     }
 
     ## ** export

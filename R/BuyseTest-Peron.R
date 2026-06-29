@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: okt 12 2020 (11:10) 
 ## Version: 
-## Last-Updated: May 31 2026 (00:52) 
+## Last-Updated: jun 12 2026 (11:16) 
 ##           By: Brice Ozenne
-##     Update #: 827
+##     Update #: 831
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -283,7 +283,7 @@ calcPeron <- function(data,
     ## ** pre-compute integrals 
     for(iEndpoint in 1:length(endpoint)){ ## iEndpoint <- 1
 
-        if(!precompute || method.score[iEndpoint] %in% c("continuous","gaussian")){next} ## only relevant for survival/ competing risk with Peron
+        if(!precompute || method.score[iEndpoint] %in% c("continuous","gaussian","TTEgehan","TTEgehan2")){next} ## only relevant for survival/ competing risk with Peron
         
         for(iStrata in 1:n.strata){  ## iStrata <- 1
 

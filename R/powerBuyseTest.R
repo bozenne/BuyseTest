@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: sep 26 2018 (12:57) 
 ## Version: 
-## Last-Updated: May 31 2026 (00:53) 
+## Last-Updated: jun 12 2026 (10:45) 
 ##           By: Brice Ozenne
-##     Update #: 1357
+##     Update #: 1358
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -632,6 +632,7 @@ powerBuyseTest <- function(formula,
                             Ustatus = envir$outArgs$Ustatus,
                             method.inference = envir$outArgs$method.inference,
                             censoring = envir$outArgs$censoring,
+                            restriction = envir$outArgs$restriction,
                             strata = envir$outArgs$strata,
                             pool.strata = envir$outArgs$pool.strata,
                             treatment = envir$outArgs$treatment,
@@ -725,6 +726,7 @@ powerBuyseTest <- function(formula,
                                                               Ustatus = envir$outArgs$Ustatus,
                                                               method.inference = envir$outArgs$method.inference,
                                                               censoring = envir$outArgs$censoring,
+                                                              restriction = envir$outArgs$restriction,
                                                               strata = envir$outArgs$strata,
                                                               pool.strata = envir$outArgs$pool.strata,
                                                               treatment = envir$outArgs$treatment,
