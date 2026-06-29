@@ -728,7 +728,7 @@ simBuyseTest_TTE <- function(modelT,
         ## *** time to event marginal distribution
         if(n.endpoints>1 && frailty.T>tol){ ## latent variable generating some dependency between time to event variables
             iName.T <- name00[iterE]
-            iFFT <- reformulate(response = name0[iterE], termlabels = c(name.correlation,name00[iterE]))
+            iFFT <- stats::reformulate(response = name0[iterE], termlabels = c(name.correlation,name00[iterE]))
             transform(modelT, iFFT) <- prod
         }else{
             iName.T <- name0[iterE]
@@ -743,7 +743,7 @@ simBuyseTest_TTE <- function(modelT,
 
         if(n.endpoints>1 && frailty.C>tol){ ## latent variable generating some dependency between time to event variables
             iName.C <- name00[iterE]
-            iFFC <- reformulate(response = name0[iterE], termlabels = c(name.correlation,name00[iterE]))
+            iFFC <- stats::reformulate(response = name0[iterE], termlabels = c(name.correlation,name00[iterE]))
             transform(modelC, iFFC) <- prod
         }else{
             iName.C <- name0[iterE]
@@ -816,11 +816,11 @@ simBuyseTest_TTE <- function(modelT,
 
     ## ** correlation
     if(n.endpoints>1 && frailty.T>tol){ 
-        distribution(modelT, reformulate(termlabels = name.correlation)) <-  Gamma.lvm(rate = 1/frailty.T, shape = 1/frailty.T)
+        distribution(modelT, stats::reformulate(termlabels = name.correlation)) <-  lava::Gamma.lvm(rate = 1/frailty.T, shape = 1/frailty.T)
         latent(modelT) <- c(name00,name.correlation)
     }
     if(n.endpoints>1 && frailty.C>tol){ 
-        distribution(modelC, reformulate(termlabels = name.correlation)) <-  Gamma.lvm(rate = 1/frailty.C, shape = 1/frailty.C)
+        distribution(modelC, stats::reformulate(termlabels = name.correlation)) <-  lava::Gamma.lvm(rate = 1/frailty.C, shape = 1/frailty.C)
         latent(modelC) <- c(name00,name.correlation)
     }
 

@@ -58,7 +58,7 @@
 #' @importFrom scales percent
 #' @importFrom ggplot2 autoplot
 #' @importFrom rlang .data
-#' @importFrom lava categorical coxExponential.lvm distribution eventTime iid lvm sim vars latent<-
+#' @importFrom lava categorical coxExponential.lvm distribution distribution<- eventTime iid latent<- lvm sim transform<- vars  
 #' @import methods
 #' @importFrom parallel detectCores
 #' @import Rcpp
