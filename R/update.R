@@ -1,11 +1,11 @@
-### S4-BuyseTest-nobs.R --- 
+### update.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
-## Created: Jul  3 2023 (10:00) 
+## Created: jul  3 2026 (14:44) 
 ## Version: 
-## Last-Updated: Jul  7 2025 (12:11) 
+## Last-Updated: jul  3 2026 (14:44) 
 ##           By: Brice Ozenne
-##     Update #: 52
+##     Update #: 1
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,7 @@
 ## 
 ### Code:
 
-## * Documentation - update
+## * update S4BuyseTest
 #' @docType methods
 #' @name S4BuyseTest-update
 #' @title Re-run two-group GPC
@@ -31,9 +31,6 @@
 #' 
 #' @keywords methods
 #' @author Brice Ozenne
-
-## * Method - print
-#' @rdname S4BuyseTest-update
 #' @exportMethod update
 setMethod(f = "update",
           signature = "S4BuyseTest",
@@ -57,5 +54,7 @@ setMethod(f = "update",
           )
 
 
+
+
 ##----------------------------------------------------------------------
-### S4-BuyseTest-nobs.R ends here
+### update.R ends here

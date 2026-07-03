@@ -1,11 +1,11 @@
-### S4BuyseTest-coef.R --- 
+### coef.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
-## Created: apr 12 2019 (10:45) 
+## Created: jul  3 2026 (14:30) 
 ## Version: 
-## Last-Updated: mar 25 2026 (11:25) 
+## Last-Updated: jul  3 2026 (14:38) 
 ##           By: Brice Ozenne
-##     Update #: 427
+##     Update #: 3
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,42 @@
 ## 
 ### Code:
 
-## * Documentation - coef
+## * coef.auc
+#' @title Extract the AUC Value
+#'
+#' @description Extract the AUC value.
+#' 
+#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
+#' @param ... not used. For compatibility with the generic function.
+#'
+#' @return Estimated value for the AUC (numeric).  
+#' 
+#' @method coef BuyseTestAuc
+#' 
+#' @export
+coef.BuyseTestAuc <- function(object,...){
+    object[object$fold=="global","estimate"]
+}
+
+## * coef.BuyseTestBrier
+##' @title Extract the Brier Score
+##'
+##' @description Extract the Brier score.
+##' 
+##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
+##' @param ... not used. For compatibility with the generic function.
+##'
+##' @return Estimated value for Brier score (numeric).  
+##' 
+##' @method coef BuyseTestBrier
+##' @keywords methods
+##' 
+##' @export
+coef.BuyseTestBrier <- function(object,...){
+    object[,"estimate"]
+}
+
+## * coef S4BuyseTest
 #' @docType methods
 #' @name S4BuyseTest-coef
 #' @title Extract Summary Statistics from GPC
@@ -69,9 +104,6 @@
 #' 
 #' @keywords method
 #' @author Brice Ozenne
-
-## * method - coef
-#' @rdname S4BuyseTest-coef
 #' @exportMethod coef
 setMethod(f = "coef",
           signature = "S4BuyseTest",
@@ -352,5 +384,5 @@ setMethod(f = "coef",
 
           })
 
-######################################################################
-### S4BuyseTest-coef.R ends here
+##----------------------------------------------------------------------
+### coef.R ends here

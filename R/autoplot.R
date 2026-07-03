@@ -1,11 +1,11 @@
-### autoplot-S4BuyseTest.R --- 
+### autoplot.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: Jun 29 2023 (09:27) 
 ## Version: 
-## Last-Updated: jun  4 2024 (10:34) 
+## Last-Updated: jul  3 2026 (14:31) 
 ##           By: Brice Ozenne
-##     Update #: 26
+##     Update #: 27
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,7 @@
 ## 
 ### Code:
 
-## * autoplot (documentation)
+## * autoplot.S4BuyseTest (documentation)
 #' @title Graphical Display for GPC
 #' @description Graphical display of the percentage of favorable, unfavorable, neutral, and uninformative pairs per endpoint.
 #' @rdname autoplot-S4BuyseTest
@@ -168,4 +168,4 @@ autoplot.S4BuyseTest <- function(object, type = "hist", strata = "global", endpo
 }
 
 ##----------------------------------------------------------------------
-### autoplot-S4BuyseTest.R ends here
+### autoplot.R ends here

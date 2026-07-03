@@ -1,3 +1,10 @@
+* Version 3.4.0.
+** User visible change
+- NEW FEATURE: prodlimConditional to evaluate the time to an event (e.g. toxicity) conditionnally on another event (e.g. survivalf)
+
+** Internal change
+- re-organize R files
+
 * Version 3.3.9
 ** User visible change
 - NEW FEATURE: add Weibull, exponential, ... scoring rules instead of having to specify the survreg survival model via model.tte.

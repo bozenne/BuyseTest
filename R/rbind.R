@@ -1,11 +1,11 @@
-### rbind.performanceResample.R --- 
+### rbind.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: apr 21 2022 (10:05) 
 ## Version: 
-## Last-Updated: apr 22 2022 (10:08) 
+## Last-Updated: jul  3 2026 (14:33) 
 ##           By: Brice Ozenne
-##     Update #: 34
+##     Update #: 35
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -110,4 +110,4 @@ rbind.performance <- function(..., tolerance = 1e-5){
 }
 
 ##----------------------------------------------------------------------
-### rbind.performance.R ends here
+### rbind.R ends here

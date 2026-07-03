@@ -1,11 +1,11 @@
-### S4-BuyseTest-nobs.R --- 
+### nobs.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
-## Created: Jul  3 2023 (10:00) 
+## Created: jul  3 2026 (14:34) 
 ## Version: 
-## Last-Updated: Jul  7 2025 (12:05) 
+## Last-Updated: jul  3 2026 (14:40) 
 ##           By: Brice Ozenne
-##     Update #: 48
+##     Update #: 2
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,33 @@
 ## 
 ### Code:
 
-## * Documentation - nobs
+## * nobs S4BuysePower
+#' @docType methods
+#' @name S4BuysePower-nobs
+#' @title Sample Size for Class "S4BuysePower"
+#' @aliases nobs,S4BuysePower-method
+#' @include S4-BuysePower.R
+#' 
+#' @description Display the sample size in each treatmnet arm as well as the number of pairs.
+#' 
+#' @param object an \R object of class \code{S4BuysePower}, i.e., output of \code{\link{powerBuyseTest}}
+#' @param ... no used, for compatibility with the generic method.
+#' 
+#' @return A data.frame with two colunms, one for each treatment group, and as many rows as sample sizes used for the simulation.
+#' 
+#' @keywords methods
+#' @author Brice Ozenne
+#' @exportMethod nobs
+setMethod(f = "nobs",
+          signature = "S4BuysePower",
+          definition = function(object, ...){
+
+              return(object@sample.size)
+          }
+)
+
+
+## * nobs S4BuyseTest
 #' @docType methods
 #' @name S4BuyseTest-nobs
 #' @title Sample Size for Class "S4BuyseTest"
@@ -36,9 +62,6 @@
 #' 
 #' @keywords methods
 #' @author Brice Ozenne
-
-## * Method - print
-#' @rdname S4BuyseTest-nobs
 #' @exportMethod nobs
 setMethod(f = "nobs",
           signature = "S4BuyseTest",
@@ -145,5 +168,6 @@ setMethod(f = "nobs",
           )
 
 
+
 ##----------------------------------------------------------------------
-### S4-BuyseTest-nobs.R ends here
+### nobs.R ends here

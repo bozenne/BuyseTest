@@ -1,11 +1,11 @@
-### S4BuyseTest-coef.R --- 
+### vcov.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
-## Created: apr 12 2019 (10:45) 
+## Created: jul  3 2026 (14:26) 
 ## Version: 
-## Last-Updated: jul 23 2025 (16:54) 
+## Last-Updated: jul  3 2026 (14:44) 
 ##           By: Brice Ozenne
-##     Update #: 448
+##     Update #: 2
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -15,7 +15,43 @@
 ## 
 ### Code:
 
-## * Documentation - vcov
+## * .vcov.wglm
+#' @title Variance-covariance matrix for Logistic Regressions
+#' @description Compute the variance covariance matrix (i.e. inverse of the information) for logistic regressions.
+#' @noRd
+#'
+#' @param object a glm object corresponding to a logistic regression.
+#' @param indiv [logical] should the individual contribution be output instead of the total variance-covariance?
+#' @param center [logical] should the individual contribution be centered around the average?
+#' 
+.vcov.logit <- function(object, indiv, center){
+    X <- stats::model.matrix(object)
+    n.obs <- NROW(X)
+    n.param <- NCOL(X)
+    pi <- stats::predict(object, type = "response")
+    W <- object$prior.weights
+    tXWpi <- t(.colMultiply_cpp(X, scale = W*pi*(1-pi)))
+    Sigma <- solve(tXWpi %*% X)
+    
+    if(indiv){
+        if(center){
+            out <- array(unlist(lapply(1:n.obs, function(i){Sigma %*% tXWpi[,i,drop=FALSE] %*% X[i,,drop=FALSE] %*% Sigma - Sigma/n.obs})),
+                         dim = c(n.param,n.param,n.obs), dimnames = list(colnames(X),colnames(X),NULL))
+        }else{
+            out <- array(unlist(lapply(1:n.obs, function(i){Sigma %*% tXWpi[,i,drop=FALSE] %*% X[i,,drop=FALSE] %*% Sigma})),
+                         dim = c(n.param,n.param,n.obs), dimnames = list(colnames(X),colnames(X),NULL))
+        }
+        return(out)
+        ## apply(out, MARGIN = 1:2, FUN = sum) - tXWpi %*% X
+        
+    }else{
+        out <- Sigma
+        rownames(out) <- colnames(out)
+        return(out)
+    }
+}
+
+## * vcov S4BuyseTest
 #' @docType methods
 #' @name S4BuyseTest-vcov
 #' @title Extract Uncertainty from GPC
@@ -42,9 +78,6 @@
 #' 
 #' @keywords method
 #' @author Brice Ozenne
-
-## * method - vcov
-#' @rdname S4BuyseTest-vcov
 #' @exportMethod vcov
 setMethod(f = "vcov",
           signature = "S4BuyseTest",
@@ -102,5 +135,5 @@ setMethod(f = "vcov",
 
           })
 
-######################################################################
-### S4BuyseTest-coef.R ends here
+##----------------------------------------------------------------------
+### vcov.R ends here

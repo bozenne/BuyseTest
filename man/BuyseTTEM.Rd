@@ -78,9 +78,9 @@ last.survKM.Ta
 changeKM.Ta <- predict(eKM.TTEM, type = "change", treatment = "T", strata = "a")
 last.survKM.Ta-sum(changeKM.Ta$survival) ## sum to 1
 ## prediction
-predict(eKM.TTEM, time = tau, treatment = "T", strata = "a")
+predict(eKM.TTEM, times = tau, treatment = "T", strata = "a")
 ## same as prodlim: predict(eKM.prodlim, times = tau, newdata = df.Ta)
-predict(eKM.TTEM, time = tau, treatment = "C", strata = "a")
+predict(eKM.TTEM, times = tau, treatment = "C", strata = "a")
 ## fix bug in prodlim: predict(eKM.prodlim, times = tau, newdata = df.Ca)
 ## survival should be 0 if the last observation is an event
 
@@ -112,7 +112,7 @@ last.survWei.Ta
 changeWei.Ta <- predict(eWei.TTEM, type = "change", treatment = "T", strata = "a")
 last.survWei.Ta-sum(changeWei.Ta$survival) ## sum to 1
 ## prediction
-predWei.Ta <- predict(eWei.TTEM, time = tau, treatment = "T", strata = "a")
+predWei.Ta <- predict(eWei.TTEM, times = tau, treatment = "T", strata = "a")
 predWei.Ta
 ## survreg: predict(eWei.survreg, newdata = df.Ta, type = "quantile", p = 1-predWei.Ta$survival)-tau
 ## approximate retrieve tau, up to the grid resolution
@@ -139,10 +139,10 @@ last.cifAJ.Ta
 changeAJ.Ta <- predict(eAJ.TTEM, type = "change", treatment = "T", strata = "a")
 last.cifAJ.Ta-sum(changeAJ.Ta$cif) ## sum to 0
 ## prediction
-predict(eAJ.TTEM, time = tau, treatment = "T", strata = "a")
+predict(eAJ.TTEM, times = tau, treatment = "T", strata = "a")
 ## same as prodlim: predict(eAJ.prodlim, times = tau, newdata = df.Ta, cause = 1)
 
-predict(eAJ.TTEM, time = tau, treatment = "C", strata = "a")
+predict(eAJ.TTEM, times = tau, treatment = "C", strata = "a")
 ## same as prodlim: predict(eAJ.prodlim, times = tau, newdata = df.Ca, cause = 1)
 }
 \keyword{models}

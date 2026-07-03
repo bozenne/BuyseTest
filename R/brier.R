@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: aug  5 2021 (13:44) 
 ## Version: 
-## Last-Updated: jun 27 2023 (10:04) 
+## Last-Updated: jul  3 2026 (14:31) 
 ##           By: Brice Ozenne
-##     Update #: 192
+##     Update #: 195
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -145,7 +145,7 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
                 ## sqrt(crossprod(iidAverage)) - stats::sd(iBrier)/sqrt(n.obs)
                 iidNuisance <-  rowMeans(.rowMultiply_cpp(iid, 2*predictions - labels.num))
                 if(external){
-                    browser()
+                    ## browser()
                     attr(out,"iid") <- c(iidNuisance, iidAverage)
                 }else{                    
                     attr(out,"iid") <- iidAverage + iidNuisance
@@ -235,67 +235,6 @@ brier <- function(labels, predictions, iid = NULL, fold = NULL, observation = NU
     attr(out, "contrast") <- levels(labels.factor)
     ## attr(out, "n.fold") <- n.fold
     return(out)
-}
-
-## * Utilitites
-## ** print.BuyseTestBrier
-##' @exportMethod print
-print.BuyseTestBrier <- function(x, ...){
-    print.data.frame(x)
-}
-## ** coef.BuyseTestBrier
-##' @title Extract the Brier Score
-##'
-##' @description Extract the Brier score.
-##' 
-##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
-##' @param ... not used. For compatibility with the generic function.
-##'
-##' @return Estimated value for Brier score (numeric).  
-##' 
-##' @method coef BuyseTestBrier
-##' @keywords methods
-##' 
-##' @export
-coef.BuyseTestBrier <- function(object,...){
-    object[,"estimate"]
-}
-## ** confint.BuyseTestBrier
-##' @title Extract the Brier Score with its Confidence Interval
-##'
-##' @description Extract the Brier score with its Confidence Interval and possibly a p-value.
-##' 
-##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
-##' @param ... not used. For compatibility with the generic function.
-##'
-##' @return Estimated value for the brier score, its standard error, the lower and upper bound of the confidence interval and the p-value.
-##' 
-##' @method confint BuyseTestBrier
-##' @keywords methods
-##' 
-##' @export
-confint.BuyseTestBrier <- function(object,...){
-    out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
-    rownames(out) <- NULL
-    return(out)
-}
-## ** iid.BuyseTestBrier
-##' @title Extract the idd Decomposition for the Brier Score
-##'
-##' @description Extract the iid decompotion relative to Brier score estimate.
-##' 
-##' @param x object of class \code{BuyseTestBrier} (output of the \code{brier} function).
-##' @param ... not used. For compatibility with the generic function.
-##'
-##' @return A column vector.
-##' 
-##' @method iid BuyseTestBrier
-##' @keywords methods
-##' 
-##' @export
-iid.BuyseTestBrier <- function(x,...){
-    object <- x
-    return(attr(object,"iid"))
 }
 
 ##----------------------------------------------------------------------

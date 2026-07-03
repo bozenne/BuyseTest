@@ -1,11 +1,11 @@
-### as.data.table.performance.R --- 
+### as.data.table.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: dec  9 2021 (10:04) 
 ## Version: 
-## Last-Updated: jun 27 2023 (09:55) 
+## Last-Updated: jul  3 2026 (14:32) 
 ##           By: Brice Ozenne
-##     Update #: 95
+##     Update #: 96
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -138,4 +138,4 @@ as.data.table.performanceResample <- function(x, ...){
 }
 
 ##----------------------------------------------------------------------
-### as.data.table.performance.R ends here
+### as.data.table.R ends here

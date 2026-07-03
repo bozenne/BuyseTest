@@ -1,11 +1,11 @@
-### sim.simBuyseTest.R --- 
+### sim.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
 ## Created: Sep  1 2024 (18:53) 
 ## Version: 
-## Last-Updated: Sep  1 2024 (18:55) 
+## Last-Updated: jul  3 2026 (14:45) 
 ##           By: Brice Ozenne
-##     Update #: 5
+##     Update #: 6
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -30,4 +30,4 @@ sim.simBuyseTest <- function(x, ...){
 }
 
 ##----------------------------------------------------------------------
-### sim.simBuyseTest.R ends here
+### sim.R ends here

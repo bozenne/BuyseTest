@@ -88,10 +88,10 @@ Arguments in the list \code{argsTTE}:
      the event of interest in the treatment group,
      the event of interest in the control group,
      the competing event in both groups,
-     the censoring mechanism in the treatment group,
-     the censoring mechanism in the control group.
+     the censoring mechanism in the treatment group (same censoring variable for all events if of length 1),
+     the censoring mechanism in the control group (same censoring variable for all events if of length 1).
      For uniform distributions 'scale' encodes the support (min) of the distribution.
-     For piecewise exponetial distributions, 'scale' should be a list containing a numeric vector (see examples).
+     For piecewise exponetial distributions, 'scale' should be a list containing a numeric vector (see examples). 
     \item\code{shape.T,shape.C,shape.CR,shape.censoring.T,shape.censoring.C} shape parameter of the Weibull distribution for, respectively,
      the event of interest in the treatment group,
      the event of interest in the control group,
@@ -152,8 +152,9 @@ c(sd(dt.cont$score1), sd(dt.cont$score2), sd(dt.cont$score3))
 #### only TTE endpoints ####
 ############################
 
-#### weibull distributed
-args <- list(scale.T = c(3:5/10), scale.censoring.T = rep(1,3))
+#### several weibull distributed variables
+## independent and distinct censoring mechanisms
+args <- list(scale.T = c(3:5/10), scale.censoring.T = rep(1.2,3))
 dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 1/c(sum(dt.tte$eventtime1)/sum(dt.tte$status1),
   sum(dt.tte$eventtime2)/sum(dt.tte$status2),
@@ -165,9 +166,15 @@ dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 
 hist(dt.tte$eventtime1)
 
-#### use a frailty to add correlation
+## independent with single censoring mechanism
+## (some observations have same time and status for both endpoints)
+args1C <- list(scale.T = c(3:5/10), scale.censoring.T = 1.2)
+dt.tte1C <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args1C) 
+table(dt.tte1C$eventtime2 == dt.tte1C$eventtime1, dt.tte1C$status1)
+
+## related by a frailty with single censoring mechanism
 dt.tteCor <- simBuyseTest(n, argsBin = NULL, argsCont = NULL,
-                          argsTTE = list(scale.T = c(1,1),
+                          argsTTE = list(scale.T = c(1,1), scale.censoring.T = 1.2,
                                          frailty.T = 2, frailty.C = 0.0001))
 dt.tteCor[, cor(eventtime1,eventtime2), by = "treatment"]
 

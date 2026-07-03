@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: dec  2 2019 (16:29) 
 ## Version: 
-## Last-Updated: jun 19 2024 (12:22) 
+## Last-Updated: jul  3 2026 (14:32) 
 ##           By: Brice Ozenne
-##     Update #: 471
+##     Update #: 472
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -325,71 +325,6 @@ auc <- function(labels, predictions, fold = NULL, observation = NULL,
  
 }
 
-## * Utilitites
-## ** print.auc
-#' @exportMethod print
-print.BuyseTestAuc <- function(x, ...){
-    ##    if(attr(x,"n.fold")==0){
-        print.data.frame(x, ...)
-    ## }else{
-    ##     label.upper <- paste0(attr(x,"contrast")[2],">",attr(x,"contrast")[1])
-    ##     label.lower <- paste0(attr(x,"contrast")[1],">",attr(x,"contrast")[2])
-    ##     x$direction <- sapply(x$direction, function(iD){
-    ##         if(iD==">"){return(label.upper)}else if(iD=="<"){return(label.lower)}else{return(iD)}
-    ##     })
-    ##     print.data.frame(x[x$fold == "global",c("direction","estimate","se","lower","upper","p.value")], row.names = FALSE)
-    ## }
-}
-
-## ** coef.auc
-#' @title Extract the AUC Value
-#'
-#' @description Extract the AUC value.
-#' 
-#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
-#' @param ... not used. For compatibility with the generic function.
-#'
-#' @return Estimated value for the AUC (numeric).  
-#' 
-#' @method coef BuyseTestAuc
-#' 
-#' @export
-coef.BuyseTestAuc <- function(object,...){
-    object[object$fold=="global","estimate"]
-}
-## ** confint.auc
-#' @title Extract the AUC value with its Confidence Interval
-#'
-#' @description Extract the AUC value with its Confidence Interval and p-value testing whether the AUC equals 0.5.
-#' 
-#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
-#' @param ... not used. For compatibility with the generic function.
-#'
-#' @return Estimated value for the AUC, its standard error, the lower and upper bound of the confidence interval and the p-value.
-#' 
-#' @method confint BuyseTestAuc
-#' @export
-confint.BuyseTestAuc <- function(object,...){
-    out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
-    rownames(out) <- NULL
-    return(out)
-}
-## ** iid.auc
-#' @title Extract the idd Decomposition for the AUC
-#'
-#' @description Extract the iid decompotion relative to AUC estimate.
-#' 
-#' @param x object of class \code{BuyseTestAUC} (output of the \code{auc} function).
-#' @param ... not used. For compatibility with the generic function.
-#'
-#' @return A column vector.
-#' 
-#' @method iid BuyseTestAuc
-#' @export
-iid.BuyseTestAuc <- function(x,...){
-    object <- x
-    return(attr(object,"iid")[,"global",drop=FALSE])
-}
 
 
 ######################################################################

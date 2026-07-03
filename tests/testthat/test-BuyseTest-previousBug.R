@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: apr 17 2018 (16:46) 
 ## Version: 
-## Last-Updated: feb 26 2026 (18:42) 
+## Last-Updated: jun 30 2026 (10:02) 
 ##           By: Brice Ozenne
-##     Update #: 256
+##     Update #: 257
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -396,8 +396,8 @@ test_that("simBuyseTest - rate vs. scale", {
     expect_equal(scale,mean(test[treatment == "C", mean(eventtimeUncensored)]), tol = 1e-2)
     expect_equal(scale,mean(test[treatment == "T", mean(eventtimeUncensored)]), tol = 1e-2)
 
-    expect_equal(scale+1,mean(test[treatment == "C", mean(eventtimeCensoring)]), tol = 1e-1)
-    expect_equal(scale+1,mean(test[treatment == "T", mean(eventtimeCensoring)]), tol = 1e-1)
+    expect_equal(scale+1,mean(test[treatment == "C", mean(censoring)]), tol = 1e-1)
+    expect_equal(scale+1,mean(test[treatment == "T", mean(censoring)]), tol = 1e-1)
 })
 
 ## * graemeleehickey (issue #6 on Github): 15 march 2020 powerBuyseTest

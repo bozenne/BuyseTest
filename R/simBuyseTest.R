@@ -51,10 +51,10 @@
 #'      the event of interest in the treatment group,
 #'      the event of interest in the control group,
 #'      the competing event in both groups,
-#'      the censoring mechanism in the treatment group,
-#'      the censoring mechanism in the control group.
+#'      the censoring mechanism in the treatment group (same censoring variable for all events if of length 1),
+#'      the censoring mechanism in the control group (same censoring variable for all events if of length 1).
 #'      For uniform distributions 'scale' encodes the support (min) of the distribution.
-#'      For piecewise exponetial distributions, 'scale' should be a list containing a numeric vector (see examples).
+#'      For piecewise exponetial distributions, 'scale' should be a list containing a numeric vector (see examples). 
 #'     \item\code{shape.T,shape.C,shape.CR,shape.censoring.T,shape.censoring.C} shape parameter of the Weibull distribution for, respectively,
 #'      the event of interest in the treatment group,
 #'      the event of interest in the control group,
@@ -74,6 +74,8 @@
 #'     \item\code{name.censoring} names of the event type indicators.       
 #'     }
 #'     
+
+## * Examples - simBuyseTest
 #' @examples
 #' library(data.table)
 #' 
@@ -115,8 +117,9 @@
 #' #### only TTE endpoints ####
 #' ############################
 #' 
-#' #### weibull distributed
-#' args <- list(scale.T = c(3:5/10), scale.censoring.T = rep(1,3))
+#' #### several weibull distributed variables
+#' ## independent and distinct censoring mechanisms
+#' args <- list(scale.T = c(3:5/10), scale.censoring.T = rep(1.2,3))
 #' dt.tte <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args)
 #' 1/c(sum(dt.tte$eventtime1)/sum(dt.tte$status1),
 #'   sum(dt.tte$eventtime2)/sum(dt.tte$status2),
@@ -128,9 +131,15 @@
 #'
 #' hist(dt.tte$eventtime1)
 #' 
-#' #### use a frailty to add correlation
+#' ## independent with single censoring mechanism
+#' ## (some observations have same time and status for both endpoints)
+#' args1C <- list(scale.T = c(3:5/10), scale.censoring.T = 1.2)
+#' dt.tte1C <- simBuyseTest(n, argsBin = NULL, argsCont = NULL, argsTTE = args1C) 
+#' table(dt.tte1C$eventtime2 == dt.tte1C$eventtime1, dt.tte1C$status1)
+#' 
+#' ## related by a frailty with single censoring mechanism
 #' dt.tteCor <- simBuyseTest(n, argsBin = NULL, argsCont = NULL,
-#'                           argsTTE = list(scale.T = c(1,1),
+#'                           argsTTE = list(scale.T = c(1,1), scale.censoring.T = 1.2,
 #'                                          frailty.T = 2, frailty.C = 0.0001))
 #' dt.tteCor[, cor(eventtime1,eventtime2), by = "treatment"]
 #' 
@@ -572,8 +581,8 @@ simBuyseTest_TTE <- function(modelT,
                              shape.CR = NULL,
                              dist.CR = NULL,
                              scale.censoring.T = rep(1, length(scale.T)),
-                             shape.censoring.T = rep(1, length(scale.T)),
-                             dist.censoring.T = rep("weibull", length(scale.T)),
+                             shape.censoring.T = NULL,
+                             dist.censoring.T = NULL,
                              scale.censoring.C = NULL,
                              shape.censoring.C = NULL,
                              dist.censoring.C = NULL,
@@ -600,8 +609,10 @@ simBuyseTest_TTE <- function(modelT,
     if(is.null(shape.CR)){shape.CR <- shape.T}
     if(is.null(dist.CR)){dist.CR <- dist.T}
 
-    if(identical(scale.censoring.T,FALSE)){scale.censoring.T <- rep(Inf, length(scale.T))}
-    if(identical(scale.censoring.C,FALSE)){scale.censoring.C <- rep(Inf, length(scale.C))}
+    if(identical(scale.censoring.T,FALSE)){scale.censoring.T <- Inf}
+    if(identical(scale.censoring.C,FALSE)){scale.censoring.C <- Inf}
+    if(is.null(shape.censoring.T)){shape.censoring.T <- rep(1, length(scale.censoring.T))}
+    if(is.null(dist.censoring.T)){dist.censoring.T <- rep("weibull", length(scale.censoring.T))}
     if(is.null(scale.censoring.C)){scale.censoring.C <- scale.censoring.T}
     if(is.null(shape.censoring.C)){shape.censoring.C <- shape.censoring.T}
     if(is.null(dist.censoring.C)){dist.censoring.C <- dist.censoring.T}
@@ -610,7 +621,11 @@ simBuyseTest_TTE <- function(modelT,
     if(CR){
         nameCR <- paste0(name,"CompetingRisk")
     }
-    nameC <- paste0(name,"Censoring")
+    if(n.endpoints > 1 && length(scale.censoring.T) > 1 && length(scale.censoring.C) > 1){
+        nameC <- paste0(name,"Censoring")
+    }else{
+        nameC <- "censoring"
+    }
 
     ## ** tests
     if(check){
@@ -665,30 +680,32 @@ simBuyseTest_TTE <- function(modelT,
                            method = "simBuyseTest")  
         }
 
+        n.censoring.T <- ifelse(length(scale.censoring.T)==1, 1, n.endpoints)
         validNumeric(scale.censoring.T,
-                     valid.length = n.endpoints, unlist = is.list(scale.censoring.T),
+                     valid.length = n.censoring.T, unlist = is.list(scale.censoring.T),
                      min = 0,
                      method = "simBuyseTest")
         validNumeric(shape.censoring.T,
-                     valid.length = n.endpoints, unlist = is.list(shape.censoring.T),
+                     valid.length = n.censoring.T, unlist = is.list(shape.censoring.T),
                      min = 0,
                      method = "simBuyseTest")
         validCharacter(dist.censoring.T,
                        valid.values = c("weibull","uniform","piecewiseExp"),
-                       valid.length = n.endpoints,
+                       valid.length = n.censoring.T,
                        method = "simBuyseTest")  
 
+        n.censoring.C <- ifelse(length(scale.censoring.C)==1, 1, n.endpoints)
         validNumeric(scale.censoring.C,
-                     valid.length = n.endpoints, unlist = is.list(scale.censoring.C),
+                     valid.length = n.censoring.C, unlist = is.list(scale.censoring.C),
                      min = 0,
                      method = "simBuyseTest")
         validNumeric(shape.censoring.C,
-                     valid.length = n.endpoints, unlist = is.list(shape.censoring.C),
+                     valid.length = n.censoring.C, unlist = is.list(shape.censoring.C),
                      min = 0,
                      method = "simBuyseTest")
         validCharacter(dist.censoring.C,
                        valid.values = c("weibull","uniform","piecewiseExp"),
-                       valid.length = n.endpoints,
+                       valid.length = n.censoring.C,
                        method = "simBuyseTest")  
 
         validCharacter(name,
@@ -755,22 +772,32 @@ simBuyseTest_TTE <- function(modelT,
         }else if(dist.C[iterE]=="piecewiseExp"){
             lava::distribution(modelC, iName.C) <- lava::coxExponential.lvm(scale = scale.C[[iterE]], timecut = shape.C[[iterE]])
         }
-
+        
         ## *** censoring marginal distribution
-        if(dist.censoring.T[iterE]=="uniform"){
-            lava::distribution(modelT, nameC[iterE]) <- lava::uniform.lvm(a = scale.censoring.T[[iterE]], b = shape.censoring.T[[iterE]])
-        }else if(dist.censoring.T[iterE]=="weibull"){
-            lava::distribution(modelT, nameC[iterE]) <- lava::weibull.lvm(scale = scale.censoring.T[[iterE]], shape = 1/shape.censoring.T[[iterE]])
-        }else if(dist.censoring.T[iterE]=="piecewiseExp"){
-            lava::distribution(modelT, nameC[iterE]) <- lava::coxExponential.lvm(scale = scale.censoring.T[[iterE]], timecut = shape.censoring.T[[iterE]])
+        if(length(scale.censoring.T)>=iterE){ ## skip when common censoring at later endpoint
+            iNameC.T <- nameC[iterE]
+            if(dist.censoring.T[iterE]=="uniform"){
+                lava::distribution(modelT, iNameC.T) <- lava::uniform.lvm(a = scale.censoring.T[[iterE]], b = shape.censoring.T[[iterE]])
+            }else if(dist.censoring.T[iterE]=="weibull"){
+                lava::distribution(modelT, iNameC.T) <- lava::weibull.lvm(scale = scale.censoring.T[[iterE]], shape = 1/shape.censoring.T[[iterE]])
+            }else if(dist.censoring.T[iterE]=="piecewiseExp"){
+                lava::distribution(modelT, iNameC.T) <- lava::coxExponential.lvm(scale = scale.censoring.T[[iterE]], timecut = shape.censoring.T[[iterE]])
+            }
+        }else{
+            iNameC.T <- nameC[1]
         }
 
-        if(dist.censoring.C[iterE]=="uniform"){
-            lava::distribution(modelC, nameC[iterE]) <- lava::uniform.lvm(a = scale.censoring.C[[iterE]], b = shape.censoring.C[[iterE]])
-        }else if(dist.censoring.C[iterE]=="weibull"){
-            lava::distribution(modelC, nameC[iterE]) <- lava::weibull.lvm(scale = scale.censoring.C[[iterE]], shape = 1/shape.censoring.C[[iterE]])
-        }else if(dist.censoring.C[iterE]=="piecewiseExp"){
-            lava::distribution(modelC, nameC[iterE]) <- lava::coxExponential.lvm(scale = scale.censoring.C[[iterE]], timecut = shape.censoring.C[[iterE]])
+        if(length(scale.censoring.C)>=iterE){ ## skip when common censoring at later endpoint
+            iNameC.C <- nameC[iterE]
+            if(dist.censoring.C[iterE]=="uniform"){
+                lava::distribution(modelC, iNameC.C) <- lava::uniform.lvm(a = scale.censoring.C[[iterE]], b = shape.censoring.C[[iterE]])
+            }else if(dist.censoring.C[iterE]=="weibull"){
+                lava::distribution(modelC, iNameC.C) <- lava::weibull.lvm(scale = scale.censoring.C[[iterE]], shape = 1/shape.censoring.C[[iterE]])
+            }else if(dist.censoring.C[iterE]=="piecewiseExp"){
+                lava::distribution(modelC, iNameC.C) <- lava::coxExponential.lvm(scale = scale.censoring.C[[iterE]], timecut = shape.censoring.C[[iterE]])
+            }
+        }else{
+            iNameC.C <- nameC[1]
         }
 
         ## *** competing risk marginal distribution
@@ -782,9 +809,9 @@ simBuyseTest_TTE <- function(modelT,
             }else if(dist.CR[iterE]=="piecewiseExp"){
                 lava::distribution(modelT, nameCR[iterE]) <- lava::coxExponential.lvm(scale = scale.CR[[iterE]], timecut = shape.CR[[iterE]])
             }
-            txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
+            txtSurv.T <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",iNameC.T,"=0)")
         }else{
-            txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
+            txtSurv.T <- paste0(name[iterE], "~min(",name0[iterE],"=1,",iNameC.T,"=0)")
         }
 
         if(CR){
@@ -795,20 +822,20 @@ simBuyseTest_TTE <- function(modelT,
             }else if(dist.CR[iterE]=="piecewiseExp"){
                 lava::distribution(modelC, nameCR[iterE]) <- lava::coxExponential.lvm(scale = scale.CR[[iterE]], timecut = shape.CR[[iterE]])
             }
-            txtSurv <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",nameC[iterE],"=0)")
+            txtSurv.C <- paste0(name[iterE], "~min(",nameCR[iterE],"=2,",name0[iterE],"=1,",iNameC.C,"=0)")
         }else{
-            txtSurv <- paste0(name[iterE], "~min(",name0[iterE],"=1,",nameC[iterE],"=0)")
+            txtSurv.C <- paste0(name[iterE], "~min(",name0[iterE],"=1,",iNameC.C,"=0)")
         }
 
         ## *** create time and censoring indicator
-        modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv), name.censoring[iterE])
-        modelC <- lava::eventTime(modelC, stats::as.formula(txtSurv), name.censoring[iterE])
+        modelT <- lava::eventTime(modelT, stats::as.formula(txtSurv.T), name.censoring[iterE])
+        modelC <- lava::eventTime(modelC, stats::as.formula(txtSurv.C), name.censoring[iterE])
 
         ## *** keep track of the latent variables
         if(CR){
-            formula.latent <- as.formula(paste0("~",name0[iterE],"+",nameC[iterE],"+",nameCR[iterE]))
+            formula.latent <- as.formula(paste0("~",name0[iterE],"+",iNameC.T,"+",nameCR[iterE]))
         }else{
-            formula.latent <- as.formula(paste0("~",name0[iterE],"+",nameC[iterE]))
+            formula.latent <- as.formula(paste0("~",name0[iterE],"+",iNameC.C))
         }
         latent(modelT) <- formula.latent
         latent(modelC) <- formula.latent

@@ -1,10 +1,11 @@
-### BuyseTest-confint.R --- 
+### confint.R --- 
 ##----------------------------------------------------------------------
 ## Author: Brice Ozenne
-## Created: maj 19 2018 (23:37) 
+## Created: jul  3 2026 (14:31) 
 ## Version: 
+## Last-Updated: jul  3 2026 (14:39) 
 ##           By: Brice Ozenne
-##     Update #: 1278
+##     Update #: 3
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -14,7 +15,45 @@
 ## 
 ### Code:
 
-## * Documentation - confint
+## * confint.auc
+#' @title Extract the AUC value with its Confidence Interval
+#'
+#' @description Extract the AUC value with its Confidence Interval and p-value testing whether the AUC equals 0.5.
+#' 
+#' @param object object of class \code{BuyseTestAUC} (output of the \code{auc} function).
+#' @param ... not used. For compatibility with the generic function.
+#'
+#' @return Estimated value for the AUC, its standard error, the lower and upper bound of the confidence interval and the p-value.
+#' 
+#' @method confint BuyseTestAuc
+#' @export
+confint.BuyseTestAuc <- function(object,...){
+    out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
+    rownames(out) <- NULL
+    return(out)
+}
+
+## * confint.BuyseTestBrier
+##' @title Extract the Brier Score with its Confidence Interval
+##'
+##' @description Extract the Brier score with its Confidence Interval and possibly a p-value.
+##' 
+##' @param object object of class \code{BuyseTestBrier} (output of the \code{brier} function).
+##' @param ... not used. For compatibility with the generic function.
+##'
+##' @return Estimated value for the brier score, its standard error, the lower and upper bound of the confidence interval and the p-value.
+##' 
+##' @method confint BuyseTestBrier
+##' @keywords methods
+##' 
+##' @export
+confint.BuyseTestBrier <- function(object,...){
+    out <- object[object$fold=="global",c("estimate","se","lower","upper","p.value")]
+    rownames(out) <- NULL
+    return(out)
+}
+
+## * confint S4BuyseTest
 #' @docType methods
 #' @name S4BuyseTest-confint
 #' @title Extract Confidence Interval from GPC
@@ -90,9 +129,6 @@
 #' 
 #' @keywords method
 #' @author Brice Ozenne
-
-## * Method - confint
-#' @rdname S4BuyseTest-confint
 #' @exportMethod confint
 setMethod(f = "confint",
           signature = "S4BuyseTest",
@@ -622,7 +658,7 @@ setMethod(f = "confint",
               
           })
 
-## * confint_percentilePermutation (called by confint)
+## ** confint_percentilePermutation (called by confint)
 confint_percentilePermutation <- function(Delta, Delta.resampling,
                                           null, alternative, alpha,
                                           endpoint, backtransform.delta, ...){
@@ -689,7 +725,7 @@ confint_percentilePermutation <- function(Delta, Delta.resampling,
     return(outTable)
 }
 
-## * confint_percentileBootstrap (called by confint)
+## ** confint_percentileBootstrap (called by confint)
 confint_percentileBootstrap <- function(Delta, Delta.resampling,
                                         null, alternative, alpha,
                                         endpoint, backtransform.delta, ...){
@@ -740,7 +776,7 @@ confint_percentileBootstrap <- function(Delta, Delta.resampling,
 }
 
 
-## * confint_gaussian (called by confint)
+## ** confint_gaussian (called by confint)
 confint_gaussian <- function(Delta, Delta.resampling,
                              null, alternative, alpha,
                              endpoint, backtransform.delta, ...){
@@ -804,7 +840,7 @@ confint_gaussian <- function(Delta, Delta.resampling,
     return(outTable)
 }
 
-## * confint_studentPermutation (called by confint)
+## ** confint_studentPermutation (called by confint)
 confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampling,
                                        null, alternative, alpha,
                                        endpoint, backtransform.delta, backtransform.se, ...){
@@ -890,7 +926,7 @@ confint_studentPermutation <- function(Delta, Delta.se, Delta.resampling, Delta.
 
 
 }
-## * confint_studentBootstrap (called by confint)
+## ** confint_studentBootstrap (called by confint)
 confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se.resampling,
                                      null, alternative, alpha,
                                      endpoint, backtransform.delta, backtransform.se, ...){
@@ -972,7 +1008,7 @@ confint_studentBootstrap <- function(Delta, Delta.se, Delta.resampling, Delta.se
 }
 
 
-## * confint_varexactPermutation (called by confint)
+## ** confint_varexactPermutation (called by confint)
 confint_varexactPermutation <- function(Delta, Delta.se, null,
                                         alternative, alpha,
                                         endpoint, ...){
@@ -1008,7 +1044,7 @@ confint_varexactPermutation <- function(Delta, Delta.se, null,
     return(outTable)
 }
 
-## * confint_Ustatistic (called by confint)
+## ** confint_Ustatistic (called by confint)
 confint_Ustatistic <- function(Delta, Delta.se, null,
                                alternative, alpha,
                                endpoint, backtransform.delta, backtransform.se, ...){
@@ -1055,7 +1091,7 @@ confint_Ustatistic <- function(Delta, Delta.se, null,
     return(outTable)
 }
 
-## * confint_none (called by confint)
+## ** confint_none (called by confint)
 confint_none <- function(Delta, endpoint, ...){
 
     n.endpoint <- length(endpoint)
@@ -1071,5 +1107,6 @@ confint_none <- function(Delta, endpoint, ...){
     
 }
 
+
 ##----------------------------------------------------------------------
-### S4BuyseTest-confint.R ends here
+### confint.R ends here

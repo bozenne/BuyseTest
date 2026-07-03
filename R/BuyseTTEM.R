@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: May 31 2026 (00:50) 
+## Last-Updated: jul  3 2026 (14:30) 
 ##           By: Brice Ozenne
-##     Update #: 1019
+##     Update #: 1165
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -72,9 +72,9 @@
 #' changeKM.Ta <- predict(eKM.TTEM, type = "change", treatment = "T", strata = "a")
 #' last.survKM.Ta-sum(changeKM.Ta$survival) ## sum to 1
 #' ## prediction
-#' predict(eKM.TTEM, time = tau, treatment = "T", strata = "a")
+#' predict(eKM.TTEM, times = tau, treatment = "T", strata = "a")
 #' ## same as prodlim: predict(eKM.prodlim, times = tau, newdata = df.Ta)
-#' predict(eKM.TTEM, time = tau, treatment = "C", strata = "a")
+#' predict(eKM.TTEM, times = tau, treatment = "C", strata = "a")
 #' ## fix bug in prodlim: predict(eKM.prodlim, times = tau, newdata = df.Ca)
 #' ## survival should be 0 if the last observation is an event
 #' 
@@ -106,7 +106,7 @@
 #' changeWei.Ta <- predict(eWei.TTEM, type = "change", treatment = "T", strata = "a")
 #' last.survWei.Ta-sum(changeWei.Ta$survival) ## sum to 1
 #' ## prediction
-#' predWei.Ta <- predict(eWei.TTEM, time = tau, treatment = "T", strata = "a")
+#' predWei.Ta <- predict(eWei.TTEM, times = tau, treatment = "T", strata = "a")
 #' predWei.Ta
 #' ## survreg: predict(eWei.survreg, newdata = df.Ta, type = "quantile", p = 1-predWei.Ta$survival)-tau
 #' ## approximate retrieve tau, up to the grid resolution
@@ -133,10 +133,10 @@
 #' changeAJ.Ta <- predict(eAJ.TTEM, type = "change", treatment = "T", strata = "a")
 #' last.cifAJ.Ta-sum(changeAJ.Ta$cif) ## sum to 0
 #' ## prediction
-#' predict(eAJ.TTEM, time = tau, treatment = "T", strata = "a")
+#' predict(eAJ.TTEM, times = tau, treatment = "T", strata = "a")
 #' ## same as prodlim: predict(eAJ.prodlim, times = tau, newdata = df.Ta, cause = 1)
 #' 
-#' predict(eAJ.TTEM, time = tau, treatment = "C", strata = "a")
+#' predict(eAJ.TTEM, times = tau, treatment = "C", strata = "a")
 #' ## same as prodlim: predict(eAJ.prodlim, times = tau, newdata = df.Ca, cause = 1)
 #' @export
 `BuyseTTEM` <-
@@ -695,7 +695,7 @@ BuyseTTEM.BuyseTTEM <- function(object, ...){
         }
 
         ## create the unique strata variable
-        UX.strata <- interaction(X[,strata.var,drop=FALSE])
+        UX.strata <- interaction(X[,strata.var,drop=FALSE], drop=TRUE)
         if(is.null(level.strata)){level.strata <- levels(UX.strata)}
         
         X <- cbind(X, "..strata.." = as.numeric(factor(UX.strata, levels = level.strata)))
@@ -724,289 +724,6 @@ BuyseTTEM.BuyseTTEM <- function(object, ...){
 
 }
 
-## * predict.BuyseTTEM
-#' @title Prediction with Time to Event Model
-#' @name predict.BuyseTTEM
-#' 
-#' @description Evaluate the cumulative incidence function (cif) / survival in one of the treatment groups. 
-#' 
-#' @param object time to event model. 
-#' @param time [numeric vector] time at which to evaluate the cif/survival.
-#' @param treatment [character/integer] Treatment or index of the treatment group.
-#' @param strata  [character/integer] Strata or index of the strata.
-#' @param cause [integer] The cause relative to which the cif will be evaluated.
-#' @param se [logical] Should the standard errors associated with the cif/survival be output? 
-#' @param iid [logical] Should the influence function associated with the cif/survival be output? 
-#' @param type [character] by default (\code{NULL}), output the cif (competing risks) or survival (no competing risks) at the timepoints specified by argument times.
-#' Otherwise, when argument times is missing, output the discretisation times for the survival (\code{"jump"}),
-#' or the survival at the last observation time (\code{"last"}),
-#' or the last observation time (\code{"last.time"}),
-#' or the change in cif or survival between discretisation times (\code{"change"}).
-#' @param ... not used, for compatibility with the generic method.
-#'
-#' @return a list containing the survival (element \code{survival}) or the cumulative incidence function (element \code{cif}),
-#' and possible standard errors (element \code{.se}) and influence function (element \code{.iid}).
-#' 
-#' @keywords methods
-#' 
-#' @export
-predict.BuyseTTEM <- function(object, time, treatment, strata, cause = 1, type = NULL,
-                              se = NULL, iid = FALSE, ...){
-
-    ## ** normalize input
-    ## *** treatment
-    if(!is.numeric(treatment)){
-        treatment <- which(treatment == object$peron$level.treatment)
-    }
-
-    ## *** strata
-    if(missing(strata)){
-        if(object$peron$n.strata == 1){
-            strata <- 1
-        }else{
-            stop("Argument \'strata\' argument is missing. \n",
-                 "Needed when the time to event model contains covariates. \n")
-        }
-    }else{
-        if(inherits(strata,"data.frame")){
-
-            if(NROW(strata)!=1){
-                stop("Argument \'strata\' should have a single row when being a data.frame. \n")
-            }
-            if(any(attr(object$peron$strata.var,"original") %in% names(strata) == FALSE)){
-                stop("Missing column(s) \"",paste(setdiff(attr(object$peron$strata.var,"original"), names(strata)), collapse = "\", \""),"\" in argument \'strata\'. \n")
-            }            
-            if(length(attr(object$peron$strata.var,"original"))==1){
-                strata <- strata[[attr(object$peron$strata.var,"original")]]
-            }else{
-                strata <- interaction(as.data.frame(strata)[attr(object$peron$strata.var,"original")], sep = ".")
-            }
-
-            if(is.numeric(strata)){
-                if(strata %in% 1:object$peron$n.strata == FALSE){
-                    stop("Unknown strata defined by argument \'strata\'. \n",
-                         "Should be one of ",paste(1:object$peron$n.strata, collapse = ", ")," \n")
-                }
-            }else if(strata %in% object$peron$level.strata == FALSE){
-                stop("Unknown strata defined by argument \'strata\'. \n",
-                     "Should be one of ",paste(object$peron$level.strata, collapse = ", ")," \n")
-            }else{
-                strata <- which(object$peron$level.strata==strata)
-            }
-        }else{
-
-            if(length(strata)!=1){
-                stop("Argument \'strata\' should either be a data.frame specifying the strata variables \n",
-                     "or have length 1, e.g. be an integer indexing the strata. \n")
-            }
-            
-            if(is.numeric(strata)){
-                if(strata %in% 1:object$peron$n.strata == FALSE){
-                    stop("When numeric argument \'strata\' should be one of ",paste(1:object$peron$n.strata, collapse = ", ")," \n")
-                }
-            }else if(is.character(strata) || is.factor(strata)){
-                if(strata %in% object$peron$level.strata == FALSE){
-                    stop("When character/factor argument \'strata\' should be one of ",paste(object$peron$level.strata, collapse = ", ")," \n")
-                }
-                strata <- which(object$peron$level.strata==strata)
-            }else{
-                stop("Unknown type for argument \'strata\': should be numeric/character/factor of length 1 or a data.frame. \n")
-            }
-        }
-    }
-
-    ## *** type
-    if(!is.null(type)){
-        type <- match.arg(type, c("jump","last","change","last.time"))
-        if(!missing(time)){
-            stop("Argument \'type\' cannot be \"",type,"\" unless argument \'time\' is missing. \n")
-        }
-        if(iid){
-            stop("Argument \'iid\' cannot be TRUE unless argument \'type\' is NULL. \n")
-        }
-        if(!is.null(se) && se){
-            stop("Argument \'se\' cannot be TRUE unless argument \'type\' is NULL. \n")
-        }
-        se <- FALSE
-    }else if(is.null(se)){
-        se <- any(lengths(object$peron$iid.cif[[1]][[1]])>0)
-    }
-    
-    ## ** output last cif estimate
-    type.CR <- ifelse(object$peron$n.CR==1,"survival","competing.risks")
-    if(!is.null(type) && type == "last.time"){        
-        return(object$peron$last.time[strata,treatment])
-    }else if(!is.null(type) && type == "last"){
-        if(type.CR=="survival"){
-            return(1-object$peron$last.estimate[strata,treatment,cause])
-        }else{
-            return(object$peron$last.estimate[strata,treatment,cause])
-        }
-    }else if(!is.null(type) && type == "jump"){
-        return(object$peron$jumpSurvHaz[[strata]][[treatment]]$time.jump)
-    }
-
-    ## ** evaluate the cif at the requested times
-    if(is.null(type)){
-        table.peron <- object$peron$cif[[strata]][[treatment]][[cause]]
-        index.table <- pmax(1,prodlim::sindex(jump.time = table.peron$time, eval.time = time)) ## pmin since 1 is taking care of negative times
-        if(iid || se){
-            tableIID.peron <- lava::iid(object, strata = strata, treatment = treatment, cause = cause)
-        }
-        
-    }else if(type == "change"){
-        if(type.CR=="survival"){ ## cif  = 1-survival
-            table.peron <- object$peron$jumpSurvHaz[[strata]][[treatment]]
-            table.peron$indexBefore.jump <- c(0,table.peron$index.jump[-NROW(table.peron)])
-            table.peron$cif <- (1-table.peron$survival[table.peron$index.jump]) - (1-c(1,table.peron$survival)[table.peron$indexBefore.jump+1])
-        }else{ ## competing risk case: can only be prodlim object
-            table.peron <- object$peron$cif[[strata]][[treatment]][[cause]][!is.na(object$peron$cif[[strata]][[treatment]][[cause]]$obs),c("obs","index","time","cif"),drop=FALSE]
-            names(table.peron)[1:3] <- c("index.obs", "index.jump", "time.jump")
-            table.peron$indexBefore.jump <- c(0,table.peron$index.jump[-NROW(table.peron)])
-            table.peron$cif <- table.peron$cif[table.peron$index.jump] - c(0,table.peron$cif)[table.peron$indexBefore.jump+1]
-        }
-        index.table <- 1:NROW(table.peron)
-    }
-
-    ## ** export
-    if(is.null(type)){
-        out <- list(time = table.peron[index.table,"time"],
-                    index = table.peron[index.table,"index"])
-    }else if(type == "change"){
-        out <- list(time = table.peron[index.table,"time.jump"],
-                    indexBefore = table.peron[index.table,"indexBefore.jump"],
-                    indexAfter = table.peron[index.table,"index.jump"])
-    }
-    if(type.CR=="survival"){
-        if(is.null(type)){
-            out$survival <- 1-table.peron[index.table,"cif"]
-        }else if(type == "change"){
-            out$survival <- -table.peron[index.table,"cif"]
-        }
-        if(se){ ## only when type is NULL
-            out$survival.se <- sqrt(colSums(tableIID.peron[,out$index+1,drop=FALSE]^2))
-        }
-        if(iid){ ## only when type is NULL
-            out$survival.iid <- tableIID.peron[,out$index+1,drop=FALSE]
-        }
-        
-    }else{
-        out$cif <- table.peron[index.table,"cif"]
-        if(se){## only when type is NULL
-            out$cif.se <- sqrt(colSums(tableIID.peron[,out$index+1,drop=FALSE]^2))
-        }
-        if(iid){ ## only when type is NULL
-            out$cif.iid <- tableIID.peron[,out$index+1,drop=FALSE]
-        }        
-    }
-    return(out)
-}
-
-## * iid.BuyseTTEM
-#' @export
-iid.BuyseTTEM <- function(x, treatment, strata, cause = 1, ...){
-
-    ## ** normalize input
-    object <- x
-
-    ## *** treatment
-    if(length(treatment)!=1){
-        stop("Argument \'treatment\' should have length 1. \n")
-    }
-    if(is.numeric(treatment)){
-        if(treatment %in% 1:2 == FALSE){
-            stop("Argument \'treatment\' should be 1 or 2 when numeric. \n")
-        }
-    }else if(is.character(treatment) || is.factor(treatment)){
-        if(treatment %in% object$peron$level.treatment == FALSE){
-            stop("Argument \'treatment\' should be \"",object$peron$level.treatment[1],"\" or \"",object$peron$level.treatment[2],"\" when character/factor. \n")
-        }
-        treatment <- which(treatment == object$peron$level.treatment)
-    }
-
-    ## *** strata
-    if(missing(strata)){
-        if(object$peron$n.strata == 1){
-            strata <- 1
-        }else{
-            stop("Argument \'strata\' argument is missing. \n",
-                 "Needed when the time to event model contains covariates. \n")
-        }
-    }else{
-        if(inherits(strata,"data.frame")){
-
-            if(NROW(strata)!=1){
-                stop("Argument \'strata\' should have a single row when being a data.frame. \n")
-            }
-            if(any(attr(object$peron$strata.var,"original") %in% names(strata) == FALSE)){
-                stop("Missing column(s) \"",paste(setdiff(attr(object$peron$strata.var,"original"), names(strata)), collapse = "\", \""),"\" in argument \'strata\'. \n")
-            }            
-            if(length(attr(object$peron$strata.var,"original"))==1){
-                strata <- strata[[attr(object$peron$strata.var,"original")]]
-            }else{
-                strata <- interaction(as.data.frame(strata)[attr(object$peron$strata.var,"original")], sep = ".")
-            }
-
-            if(is.numeric(strata)){
-                if(strata %in% 1:object$peron$n.strata == FALSE){
-                    stop("Unknown strata defined by argument \'strata\'. \n",
-                         "Should be one of ",paste(1:object$peron$n.strata, collapse = ", ")," \n")
-                }
-            }else if(strata %in% object$peron$level.strata == FALSE){
-                stop("Unknown strata defined by argument \'strata\'. \n",
-                     "Should be one of ",paste(object$peron$level.strata, collapse = ", ")," \n")
-            }else{
-                strata <- which(object$peron$level.strata==strata)
-            }
-        }else{
-
-            if(length(strata)!=1){
-                stop("Argument \'strata\' should either be a data.frame specifying the strata variables \n",
-                     "or have length 1, e.g. be an integer indexing the strata. \n")
-            }
-            
-            if(is.numeric(strata)){
-                if(strata %in% 1:object$peron$n.strata == FALSE){
-                    stop("When numeric argument \'strata\' should be one of ",paste(1:object$peron$n.strata, collapse = ", ")," \n")
-                }
-            }else if(is.character(strata) || is.factor(strata)){
-                if(strata %in% object$peron$level.strata == FALSE){
-                    stop("When character/factor argument \'strata\' should be one of ",paste(object$peron$level.strata, collapse = ", ")," \n")
-                }
-                strata <- which(object$peron$level.strata==strata)
-            }else{
-                stop("Unknown type for argument \'strata\': should be numeric/character/factor of length 1 or a data.frame. \n")
-            }
-        }
-    }
-
-    ## *** cause
-    if(length(cause)!=1){
-        stop("Argument \'cause\' should have length 1. \n")
-    }
-
-    if(is.numeric(cause)){
-        if(cause %in% 1:object$peron$n.CR == FALSE){
-            stop("Argument \'cause\' should be ",paste(1:object$peron$n.CR, collapse = ", "),". \n")
-        }
-    }else{
-        stop("Unknown type for argument \'cause\': should be numeric. \n")
-    }
-
-    ## ** extract iid
-    out <- object$peron$iid.cif[[strata]][[treatment]][[cause]]
-    if(is.null(out)){
-        stop("iid decomposition not available - consider setting the argument \'iid\' to TRUE when calling BuyseTTEM. \n")
-    }
-    type.CR <- ifelse(object$peron$n.CR==1,"survival","competing.risks")
-
-    ## ** export
-    if(type.CR=="survival"){
-        return(-out)
-    }else{
-        return(out)
-    }
-}
 
 ######################################################################
 ### BuyseTTEM.R ends here
