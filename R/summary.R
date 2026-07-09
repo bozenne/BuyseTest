@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul  3 2026 (14:27) 
 ## Version: 
-## Last-Updated: jul  3 2026 (14:53) 
+## Last-Updated: jul  6 2026 (12:33) 
 ##           By: Brice Ozenne
-##     Update #: 7
+##     Update #: 11
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -34,7 +34,7 @@ summary.BuyseTTEM <- function(object, times = NULL, iid = FALSE, ...){
     if(!inherits(object,"prodlim") & (iid || !is.null(times))){
         stop("Argument \'times\' and \'iid\' for the summary method of BuyseTTEM objects only developped when using prodlim. \n")
     }
-    if(iid && is.null(unlist(object$peron$iid.cif))){
+    if(iid && length(object$peron$iid.cif[[1]][[1]][[1]])==0){ ## iStrata iTreat iCause
         stop("Using argument \'iid\' equal to TRUE require that the iid decomposition has already been stored in the object. \n",
              "Consider setting the argument \'iid\' to TRUE when calling BuyseTTEM. \n")
     }

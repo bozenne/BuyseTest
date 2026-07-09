@@ -44,7 +44,6 @@ Suggests:
 LinkingTo: Rcpp, RcppArmadillo
 VignetteBuilder: R.rsp
 NeedsCompilation: yes
-RoxygenNote: 7.3.3
 Collate: 
     '0-onLoad.R'
     '1-setGeneric.R'
@@ -98,3 +97,5 @@ Collate:
     'update.R'
     'valid.R'
     'vcov.R'
+Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

@@ -29,7 +29,7 @@ The former is necessary when the survival model do not dependent on treatment.}
 \item{iid}{[logical] Should the iid decomposition of the predictions be output.}
 
 \item{iid.surv}{[character] Estimator of the survival used when computing the influence function.
-Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCoxPL}).}
+Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCox}).}
 
 \item{n.grid}{[integer, >0] Number of timepoints used to discretize the time scale. Not relevant for prodlim objects.}
 }

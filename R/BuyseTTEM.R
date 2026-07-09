@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: jul  3 2026 (14:30) 
+## Last-Updated: jul  9 2026 (15:17) 
 ##           By: Brice Ozenne
-##     Update #: 1165
+##     Update #: 1170
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -27,7 +27,7 @@
 #' The former is necessary when the survival model do not dependent on treatment.
 #' @param iid [logical] Should the iid decomposition of the predictions be output. 
 #' @param iid.surv [character] Estimator of the survival used when computing the influence function.
-#' Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCoxPL}).
+#' Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCox}).
 #' @param n.grid [integer, >0] Number of timepoints used to discretize the time scale. Not relevant for prodlim objects.
 #' @param ... For compatibility with the generic method.
 #'
@@ -353,7 +353,7 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
                 iHazard <- vector(mode = "list", length=n.CR)
                 iHazard.iid <- vector(mode = "list", length=n.CR)
                 object$peron$iid.cif[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
-
+                browser()
                 ## position of the subjects from the treatment group and strata in the dataset
                 if(treatment %in% names(object$model.matrix)){
                     iIndexObs.strata <- which(model.matrix[[treatment]]==level.treatment[iTreat])
