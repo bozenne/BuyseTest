@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 30 2026 (16:04) 
 ## Version: 
-## Last-Updated: jul  9 2026 (16:54) 
+## Last-Updated: jul 10 2026 (15:47) 
 ##           By: Brice Ozenne
-##     Update #: 735
+##     Update #: 1012
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -261,8 +261,9 @@
 
 ## * prodlimConditional (code)
 ##' @export
-prodlimConditional <- function(eventtime, status, strata, data, restriction, 
-                               method = "prodlim", iid = TRUE, iid.surv = "exp", type = "conditional"){
+prodlimConditional <- function(eventtime, status, data, restriction, strata = NULL, 
+                               method = "prodlim", iid = TRUE, iid.surv = "exp", type = "conditional",
+                               trim.jump =  TRUE){
 
     tol <- 1e-12
 
@@ -308,15 +309,17 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
     }
 
     ## *** strata
-    if(any(duplicated(strata))){
-        stop("Argument \'strata\' should not contain duplicated elements. \n")
-    }
-    if(any(is.na(strata))){
-        stop("Argument \'strata\' should not contain NAs. \n")
-    }
-    if(any(strata %in% names(data) == FALSE)){
-        stop("Mismatch between argument \'strata\' and argument \'data\'. \n",
-             "Cannot find element(s) \"",paste(strata[strata %in% names(data) == FALSE], collapse = "\", \""),"\" from \'strata\' in \'data\'. \n")
+    if(!is.null(strata)){
+        if(any(duplicated(strata))){
+            stop("Argument \'strata\' should not contain duplicated elements. \n")
+        }
+        if(any(is.na(strata))){
+            stop("Argument \'strata\' should not contain NAs. \n")
+        }
+        if(any(strata %in% names(data) == FALSE)){
+            stop("Mismatch between argument \'strata\' and argument \'data\'. \n",
+                 "Cannot find element(s) \"",paste(strata[strata %in% names(data) == FALSE], collapse = "\", \""),"\" from \'strata\' in \'data\'. \n")
+        }
     }
 
     ## *** restriction
@@ -366,7 +369,11 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
     ## ** create a normalized dataset
 
     ## *** normalize names of the variables and convert strata into factor
-    data2 <- cbind(data[eventtime], data[status], interaction(data[strata], sep = "..XX.."), 1:NROW(data))
+    if(is.null(strata)){
+        data2 <- cbind(data[eventtime], data[status], "A", 1:NROW(data))
+    }else{
+        data2 <- cbind(data[eventtime], data[status], interaction(data[strata], sep = "..XX.."), 1:NROW(data))
+    }
     names(data2) <- c(paste0("eventtime",1:n.endpoint),
                       paste0("status",1:n.endpoint),
                       "strata", "index")
@@ -416,14 +423,18 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
     }
 
     ## *** find jump times
-
     ## fit unconditional prodlim
-    data.out <- cbind(data[utils::tail(eventtime,1)], data[utils::tail(status,1)],data[strata])
+    if(is.null(strata)){
+        data.out <- cbind(data[utils::tail(eventtime,1)], data[utils::tail(status,1)])
+        ff.prodlim <- reformulate(termlabels = "1", response = paste0("Hist(",utils::tail(eventtime,1),",",utils::tail(status,1),"==1)"))
+    }else{
+        data.out <- cbind(data[utils::tail(eventtime,1)], data[utils::tail(status,1)],data[strata])
+        ff.prodlim <- reformulate(termlabels = strata, response = paste0("Hist(",utils::tail(eventtime,1),",",utils::tail(status,1),"==1)"))
+    }
     if(!is.null(restriction.endpoint)){
         data.out[[utils::tail(eventtime,1)]] <- pmin(data[[utils::tail(eventtime,1)]], restriction)
         data.out[[utils::tail(status,1)]] <- data[[utils::tail(status,1)]] * (data[[utils::tail(eventtime,1)]] <= restriction)
     }
-    ff.prodlim <- reformulate(termlabels = strata, response = paste0("Hist(",utils::tail(eventtime,1),",",utils::tail(status,1),"==1)"))
     out <- prodlim::prodlim(ff.prodlim, data = data.out)
     out$surv[] <- NA
     if(iid){
@@ -432,34 +443,54 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
 
     ## extract times
     times <- out$time
-    Utimes <- sort(unique(times))
-    n.times <- length(times)
+    Utimes.all <- sort(unique(times))
     
     ## *** trim jump times
-    ## first time at which the 'target' event is active:
-    ## eventtime(m)/times < min(eventtime(1)/restriction(m),...,eventtime(m-1)/restriction(m-1))
-    ## times > eventtime(m) / min(eventtime(1)/restriction(m),...,eventtime(m-1)/restriction(m-1))
-    first.times <- tapply(data2[[paste0("eventtime",n.endpoint)]]/data2$eventtime.minM1, data2$strata, min)
-    Utimes.first <- Utimes[Utimes < min(first.times)]
+    if(trim.jump){
+        
+        ## first time at which the 'target' event is active:
+        ## eventtime(m)/times < min(eventtime(1)/restriction(m),...,eventtime(m-1)/restriction(m-1))
+        ## times > eventtime(m) / min(eventtime(1)/restriction(m),...,eventtime(m-1)/restriction(m-1))
+        ratio.min <- tapply(data2[[paste0("eventtime",n.endpoint)]]/data2[["eventtime.minM1"]], data2$strata, min)
 
-    ## identify observations affected by each 'jump time'
-    datatime2jump <- match(data[[utils::tail(eventtime,1)]],times)
-    datatime2jump[is.na(datatime2jump)] <- length(times) ## when cannot be found it is because the timepoints is beyond the restriction time or censored
+        ## identify first jump
+        start <- which(Utimes.all >= min(ratio.min))[1]
 
-    ## remove plateaux
+        if(start>1){
+            Utimes.first <- Utimes.all[1:(start-1)]
+            out$plateau <- c(FALSE,rep(TRUE, length(Utimes.first)-1), rep(FALSE, length(Utimes.all) - length(Utimes.first)))
+        }else{
+            Utimes.first <- NULL
+            out$plateau <- rep(FALSE, length(Utimes.all))
+        }
+        Utimes <- Utimes.all[start:length(Utimes.all)]
+
+        ## identify observations affected by each 'jump time'
+        data2$Utimes <- match(data2[[paste0("eventtime",n.endpoint)]], Utimes)
+        data2$Utimes[is.na(data2$Utimes)] <- length(Utimes)
+                
+    }else{
+
+        Utimes.first <- NULL
+        Utimes <- Utimes.all
+
+    }
 
     ## *** reconstruct strata
     out.grid <- data.frame(times = out$time,
                            strata.index = do.call("c",lapply(1:length(out$size.strata), function(iS){rep(iS, length = out$size.strata[iS])})))
-    out.grid$strata <- interaction(out$X, sep = "..XX..")[out.grid$strata.index]
-
-    if(length(levels(out.grid$strata))!=length(level.strata)){
-        stop("Something went wrong when retrieve the strata levels from the prodlim object. \n",
-             "Mismatch in size. \n")
-    }
-    if(any(levels(out.grid$strata) %in% level.strata == FALSE) || any(level.strata %in% levels(out.grid$strata) == FALSE)){
-        stop("Something went wrong when retrieve the strata levels from the prodlim object. \n",
-             "Mismatch between the values. \n")
+    if(is.null(strata)){
+        out.grid$strata <- level.strata
+    }else{
+        out.grid$strata <- interaction(out$X, sep = "..XX..")[out.grid$strata.index]
+        if(length(levels(out.grid$strata))!=length(level.strata)){
+            stop("Something went wrong when retrieve the strata levels from the prodlim object. \n",
+                 "Mismatch in size. \n")
+        }
+        if(any(levels(out.grid$strata) %in% level.strata == FALSE) || any(level.strata %in% levels(out.grid$strata) == FALSE)){
+            stop("Something went wrong when retrieve the strata levels from the prodlim object. \n",
+                 "Mismatch between the values. \n")
+        }
     }
 
     ## ** marginal
@@ -479,7 +510,7 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
         if(type == "conditional" && length(Utimes.first)>0){
             ## a) Prob[X_2 > 0 | X_1 > \tau_1, strata]                 = 1
             ## b) Prob[X_3 > 0 | X_1 > \tau_1, X_2 > \tau_2, strata]   = 1
-            index0.out <- which(out.grid$times < min(first.times))
+            index0.out <- which(out.grid$times %in% Utimes.first)
             
             out$surv[index0.out] <- 1
             out$se.surv[index0.out] <- 0
@@ -503,7 +534,7 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
     ## ** joint
     ## a) Prob[X_1 > \tau_1, X_2 > t | strata]                 = Prob[min(X_1/tau_1, X_2 / t) > 1 | strata]
     ## b) Prob[X_1 > \tau_1, X_2 > \tau_2, X_3 > t | strata]   = Prob[min(X_1/tau_1, X_2/tau_2, X_3 / t) > 1 | strata]
-    if(all(Utimes < min(first.times))){return(out)}
+    if(length(Utimes)==0){return(out)}
 
     if((method == "IPCW")){
         data2$eventtimeIPCW <- apply(data2[paste0("eventtime",1:n.endpoint)],1,max)
@@ -519,50 +550,56 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
     }
 
     ## loop over times
-    eventtime.min.save <- rep(-1, NROW(data2))
-    status.min.save <- rep(-1, NROW(data2))
-    Utimes.N0 <- Utimes[Utimes >= min(first.times)]
+    ref.status <- NULL
+    nobs.strata <- table(data2$strata)
 
-    for(iT in 1:length(Utimes.N0)){ ## iT <- 1
+    for(iT in 1:length(Utimes)){ ## iT <- 1
 
         ## link to output
-        iIndex0.out <- which(out.grid$times==Utimes.N0[iT])
-        iIndex0.prevout <- which(out.grid$times == Utimes.N0[iT-1])
-        
+        iIndex0.out <- which(out.grid$times==Utimes[iT])
+        iIndex0.prevout <- which(out.grid$times == Utimes[iT-1])
+
         if(method == "prodlim"){
 
             ## *** create min time to event
-            data2$eventtimeN.target <- data2[[paste0("eventtime",n.endpoint)]]/Utimes.N0[iT]
+            data2$eventtimeN.target <- data2[[paste0("eventtime",n.endpoint)]]/Utimes[iT]
             data2$eventtime.min <- pmin(data2$eventtime.minM1, data2$eventtimeN.target)
-            
-            iIndex.changeTime <- which(data2$eventtime.min!=eventtime.min.save)
-            browser()
-            datatime2jump
-            data2[iIndex.changeTime,"status.min"] <- with(data2[iIndex.changeTime,,drop=FALSE],
-                                                          ifelse(eventtime.minM1 < eventtimeN.target, status.minM1, ## conditioning event occured first
-                                                          ifelse(eventtime.minM1 > eventtimeN.target, statusN.target, ## event of interest occured first
-                                                          ifelse((status.minM1==0) & (statusN.target==0), 0, pmin(status.minM1,statusN.target)))) ## same time: if both censored then censored
-                                                          ##            otherwise event of interest then death
-                                                          )
-            
 
-            ## *** check if something has changed since last time
-            iTest.status <- all(data2$status.min == status.min.save) 
-            iTest.time <- all((data2$eventtime.min<=1) == (eventtime.min.save<=1))
-            iTest.strata <- identical(out.grid$strata[iIndex0.out], out.grid$strata[iIndex0.prevout])
-            if(iTest.status & iTest.time & iTest.strata){
-                out$surv[iIndex0.out] <- out$surv[iIndex0.prevout]
-                if(iid){
-                    out$iid.surv[,iIndex0.out] <- out$iid.surv[,iIndex0.prevout]
-                }
-                next                
+            if(iT>1 && trim.jump){
+                ## iIndex.changeTime <- union(which(data2$Utimes == iT), which((data2$Utimes < iT) & (data2$status.minM1!=data2$statusN.target)))
+                iIndex.changeTime <- which(data2$Utimes <= iT)
+                data2[iIndex.changeTime,"status.min"] <- with(data2[iIndex.changeTime,c("eventtime.minM1","eventtimeN.target","status.minM1","statusN.target"),drop=FALSE],
+                                                              ifelse(eventtime.minM1 < eventtimeN.target, status.minM1, ## conditioning event occured first
+                                                              ifelse(eventtime.minM1 > eventtimeN.target, statusN.target, ## event of interest occured first
+                                                              ifelse((status.minM1==0) & (statusN.target==0), 0, pmin(status.minM1,statusN.target)))) ## same time: if both censored then censored
+                                                              ##            otherwise event of interest then death
+                                                              )
+            }else{
+                data2$status.min <- with(data2,
+                                         ifelse(eventtime.minM1 < eventtimeN.target, status.minM1, ## conditioning event occured first
+                                         ifelse(eventtime.minM1 > eventtimeN.target, statusN.target, ## event of interest occured first
+                                         ifelse((status.minM1==0) & (statusN.target==0), 0, pmin(status.minM1,statusN.target)))) ## same time: if both censored then censored
+                                         ##            otherwise event of interest then death
+                                         )
             }
-            eventtime.min.save <- data2$eventtime.min
-            status.min.save <- data2$status.min
             
+            ## *** check if something has changed since last time            
+            if(iT>1 && trim.jump){
+                current.status <- data2[iIndex.changeTime,"status.min"][order(data2[iIndex.changeTime,"eventtime.min"])]
+                if(identical(current.status,ref.status)){
+                    out$plateau[iT+length(Utimes.first)] <- TRUE
+                    out$surv[iIndex0.out] <- out$surv[iIndex0.prevout]
+                    if(iid){
+                        out$iid.surv[,iIndex0.out] <- out$iid.surv[,iIndex0.prevout]
+                    }
+                    next
+                }
+                ref.status <- current.status
+            }
+
             ## *** fit KM
-            iKMsurv.joint <- .prodlim2(eventtime = "eventtime.min", status = "status.min", strata = "strata",
-                                       data = transform(data2, status.min = status.min==1), time = 1, iid = iid, iid.surv = iid.surv)
+            iKMsurv.joint <- .prodlim2(eventtime = "eventtime.min", status = "status.min", strata = "strata", 
+                                       data = transform(data2, status.min = status.min==1), time = 1, nobs.strata = nobs.strata, iid = iid, iid.surv = iid.surv)
 
             ## link to output
             iIndex0.prodlim <- match(out.grid[iIndex0.out,"strata"],eKMsurv.marginal$strata)
@@ -577,7 +614,7 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
                     term2.iid <- - sweep(attr(eKMsurv.marginal,"iid"), MARGIN = 1, FUN = "*", STATS = (iKMsurv.joint$estimate != 1)*iKMsurv.joint$estimate/eKMsurv.marginal$estimate^2)
                     out$iid.surv[,iIndex0.out] <- (term1.iid + term2.iid)[,iIndex0.prodlim]
                     
-                }
+                }                
             }else if (type == "joint"){
                 out$surv[iIndex0.out] <- iKMsurv.joint[iIndex0.prodlim,"estimate"]
                 out$iid.surv[,iIndex0.out] <- attr(iKMsurv.joint,"iid")[,iIndex0.prodlim]
@@ -586,23 +623,23 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
         }else if(method == "IPCW"){
             
             ## number of events in the observed process
-            Ncount <- tapply((data2$eventtime.minM1>1) * (data2[[paste0("eventtime",n.endpoint)]]>Utimes.N0[iT]), interaction(data2[strata], drop=TRUE), mean)
+            Ncount <- tapply((data2$eventtime.minM1>1) * (data2[[paste0("eventtime",n.endpoint)]]>Utimes[iT]), interaction(data2[strata], drop=TRUE), mean)
             
             ## assemble
             eKMsurv.joint[[iT]] <- data.frame(eKMsurv.marginal[strata],
-                                              time = Utimes.N0[iT],
+                                              time = Utimes[iT],
                                               n.risk = NA,
                                               n.event = NA,
                                               n.lost = NA,
                                               surv = Ncount/eKMsurv.IPCW$surv)
             eKMsurv.conditional[[iT]] <- data.frame(eKMsurv.marginal[strata],
-                                                    time = Utimes.N0[iT],
+                                                    time = Utimes[iT],
                                                     surv = Ncount/(eKMsurv.IPCW$surv*eKMsurv.marginal$surv))
             if(iid){
                 denom.iid <- sweep(attr(eKMsurv.IPCW,"iid"), MARGIN = 1, FUN = "*", STATS = eKMsurv.marginal$surv) + sweep(attr(eKMsurv.marginal,"iid"), MARGIN = 1, FUN = "*", STATS = eKMsurv.IPCW$surv)
                 
                 Xstrata <- model.matrix(reformulate(termlabel = strata, intercept = FALSE), data2)
-                Xevent <- (data2$eventtime.minM1>1) * (data2[[paste0("eventtime",n.endpoint)]]>Utimes.N0[iT])
+                Xevent <- (data2$eventtime.minM1>1) * (data2[[paste0("eventtime",n.endpoint)]]>Utimes[iT])
                 Ncount.iid <- sweep(sweep(sweep(Xstrata, FUN = "*", MARGIN = 1, STATS = Xevent), FUN = "/", MARGIN = 2, STATS = colSums(Xstrata)), FUN = "-", MARGIN = 2, STATS = Ncount/NROW(data2))
 
                 term1.iid <- sweep(Ncount.iid, MARGIN = 2, FUN = "/", STATS = eKMsurv.IPCW$surv*eKMsurv.marginal$surv)
@@ -644,6 +681,7 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
 ##' @param status [character] name of the column containing the status variable (0/1).
 ##' @param data [data.frame] dataset.
 ##' @param time [numeric] timepoint of interest.
+##' @param nobs.strata [numeric vector] number of observations per strata. Optional but useful when argument data is a subset of all at risk observations.
 ##' @param iid [logical] should the influence function, se, CI of the survival be output.
 ##' @param iid.surv [character] survival estimator used when evaluating the influence function  (\code{"prodlim"}, \code{"exp"})
 ##' 
@@ -690,7 +728,7 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
 ##' ## 1         C    1      3       0      0 0.09396464 0.04212759 0.011396088 0.1765332
 ##' ## 2         T    1      3       0      0 0.07134397 0.03468403 0.003364515 0.1393234
 ##' range(attr(GS,"iid") - attr(testS,"iid"))
-.prodlim2 <- function(eventtime, status, strata = NULL, data, time, iid, iid.surv){
+.prodlim2 <- function(eventtime, status, strata = NULL, data, time, nobs.strata = NULL, iid, iid.surv){
 
     ## ** prepare
     ## *** only events before time are used in the KM estimator (along with the sample size)
@@ -700,6 +738,9 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
     if(is.null(strata)){
         n.strata <- 1
         survival <- data.frame(time = time, estimate = NA, se = NA, lower = NA, upper = NA)
+        if(is.null(nobs.strata)){
+            nobs.strata <- NROW(data)
+        }
     }else{
         if(is.factor(strata)){
             level.strata <- levels(data[[strata]])
@@ -708,14 +749,19 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
         }
         n.strata <- length(level.strata)
         survival <- data.frame(time = rep(time, n.strata), strata = level.strata, estimate = rep(NA, n.strata))
+        if(is.null(nobs.strata)){
+            nobs.strata <- table(data[[strata]])
+        }
     }
     
     if(iid){
-        attr(survival,"iid") <- matrix(0, ncol = n.strata, nrow = NROW(data))
+        attr(survival,"iid") <- matrix(0, ncol = n.strata, nrow = sum(nobs.strata))
         if(!is.null(strata)){
             colnames(attr(survival,"iid")) <- level.strata
         }
     }
+
+    
     
     ## ** loop over strata
     for(iS in 1:n.strata){
@@ -726,7 +772,7 @@ prodlimConditional <- function(eventtime, status, strata, data, restriction,
         }else{
             iIndex.strata <- which(data[[strata]]==level.strata[iS])
         }
-        iN.obs <- length(iIndex.strata)
+        iN.obs <- nobs.strata[iS]
 
         ## *** restrict data to strata and prediction time horizon
         iIndex.strataTime <- intersect(iIndex.strata, index.time)
