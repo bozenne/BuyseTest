@@ -1,5 +1,12 @@
+FIX: fix an unexpected error/incorrect software output or clarify an unclear error message/documentation.
+NEW FEATURE: substantial improvement, e.g. functionality, function, or argument added to the package.
+BREAK: internal modification possibly leading to different results compared to previous version or change in the user interface w.r.t. core functionalities.
+CHANGE: minor improvement, change in software architecture, or modification of experimental/minor functionalities, that should not impact results obtained with previous version.
+REMOVE: element or software dependency removed from the package. 
+
 * Version 3.4.0.
 ** User visible change
+- NEW FEATURE: add a weights function to facilitate the extraction of strata weights.
 - NEW FEATURE: prodlimConditional to evaluate the time to an event (e.g. toxicity) conditionnally on another event (e.g. survivalf)
 
 ** Internal change
@@ -330,3 +337,4 @@
   - unify the C++ code, add a threshold for considering a pair non-informative (w>1e-12). May induce differences with previous versions in the index of uniformative pairs.
   - uses prodlim instead of survival to compute the KM estimates.
   - Add a neutralAsUnif argument to the BuyseTest function to decide whether the analysis should continue on lower priority when a pair is classified as neutral
+

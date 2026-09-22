@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jul  3 2026 (14:30) 
 ## Version: 
-## Last-Updated: jul  3 2026 (14:38) 
+## Last-Updated: sep 22 2026 (16:09) 
 ##           By: Brice Ozenne
-##     Update #: 3
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -92,6 +92,12 @@ coef.BuyseTestBrier <- function(object,...){
 #' \item \code{"unfavorable"}: \eqn{P[Y \le X + \tau]} or \eqn{P[Y \le X + \tau]+0.5P[|Y - X|<\tau]}.
 #' }
 #' The value of the argument \code{add.halfNeutral} used when running \code{\link{BuyseTest}} decides whether \eqn{0.5P[|Y - X|<\tau]} is considered, e.g. whether the win ratio or win odds is output.
+#'
+#' When using the default weights to combine estimates across strata (argument \code{pool.strata} used when running \code{\link{BuyseTest}}), the output of \code{coef} and \code{summary} may look inconsistent for the global percentage of favorable, unfavorable, neutral, and uniformative pairs. This is because:\itemize{
+#' \item \code{summary} displays the sum across all strata of the number of favorable pairs divided by sum over all strata of the number of pairs
+#' \item \code{coef} pools the strata-specific percentage of favorable pairs.
+#' }
+#' The two will only be guarantee to match when setting \code{pool.strata} to \code{"Buyse"} - see example section.
 #' 
 #' @references 
 #' On the GPC procedure: Marc Buyse (2010). \bold{Generalized pairwise comparisons of prioritized endpoints in the two-sample problem}. \emph{Statistics in Medicine} 29:3245-3257 \cr
@@ -101,6 +107,29 @@ coef.BuyseTestBrier <- function(object,...){
 #' 
 #' @return When \code{resampling=FALSE} and \code{simplify=FALSE}, a matrix (strata, endpoint).
 #' When \code{resampling=FALSE} and \code{simplify=FALSE}, an array (sample, strata, endpoint).
+#'
+#' @examples
+#' set.seed(10)
+#' df.data <- simBuyseTest(1e2, n.strata = 2)
+#' df.data$female <- df.data$score > 1 ## artificial unbalanced covariate
+#' 
+#' ## Buyse weight: marginal percentage of pairs matches pooled percentage
+#' eB.GPC <- BuyseTest(treatment ~ cont(eventtime, 0.2) + female,
+#'                     pool.strata = "Buyse", data = df.data)
+#' coef(eB.GPC, statistic = "neutral")  
+#' model.tables(eB.GPC)[1,"neutral"]
+#'
+#' ## Default weight: discrepancy
+#' eMH.GPC <- BuyseTest(treatment ~ cont(eventtime, 0.2) + female, data = df.data)
+#' coef(eMH.GPC, statistic = "neutral")
+#' ## same as
+#' sum(coef(eMH.GPC, statistic = "neutral", strata = TRUE)*weights(eMH.GPC))
+#' ## but different from
+#' model.tables(eMH.GPC)[1,"neutral"]/100
+#' ## which is
+#' sum(coef(eMH.GPC, statistic = "neutral", strata = TRUE)*weights(eB.GPC))
+#' 
+#' 
 #' 
 #' @keywords method
 #' @author Brice Ozenne
@@ -227,7 +256,7 @@ setMethod(f = "coef",
                   weightStrataResampling <- slot(object, "weightStrataResampling")
 
               }
-        
+
               ## ** normalize element in object (add global or stratified result)
               if(statistic %in% type.count){
 
