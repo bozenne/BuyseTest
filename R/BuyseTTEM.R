@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: nov 18 2020 (12:15) 
 ## Version: 
-## Last-Updated: jul  9 2026 (15:17) 
+## Last-Updated: sep 25 2026 (11:33) 
 ##           By: Brice Ozenne
-##     Update #: 1170
+##     Update #: 1171
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -353,7 +353,7 @@ BuyseTTEM.prodlim <- function(object, treatment, iid, iid.surv = "exp", ...){
                 iHazard <- vector(mode = "list", length=n.CR)
                 iHazard.iid <- vector(mode = "list", length=n.CR)
                 object$peron$iid.cif[[iStrata]][[iTreat]] <- vector(mode = "list", length=n.CR)
-                browser()
+                
                 ## position of the subjects from the treatment group and strata in the dataset
                 if(treatment %in% names(object$model.matrix)){
                     iIndexObs.strata <- which(model.matrix[[treatment]]==level.treatment[iTreat])

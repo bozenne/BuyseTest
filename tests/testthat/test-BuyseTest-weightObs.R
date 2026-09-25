@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: Mar 20 2023 (12:17) 
 ## Version: 
-## Last-Updated: jul 17 2023 (14:24) 
+## Last-Updated: sep 25 2026 (11:22) 
 ##           By: Brice Ozenne
-##     Update #: 6
+##     Update #: 9
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -23,6 +23,7 @@ if(FALSE){
 }
 
 context("Check calculations with weighted observations")
+BuyseTest.options(engine = "GPC2_cpp")
 
 ## * same weight for all
 veteran$weight <- 2

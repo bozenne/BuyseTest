@@ -2,18 +2,19 @@
 % Please edit documentation in R/prodlimConditional.R
 \name{prodlimConditional}
 \alias{prodlimConditional}
-\title{Conditional survival estimator}
+\title{Conditional survival estimator (!! Experimental !!)}
 \usage{
 prodlimConditional(
   eventtime,
   status,
-  strata,
   data,
   restriction,
-  times,
-  method = "min",
+  strata = NULL,
+  method = "prodlim",
   iid = TRUE,
-  iid.surv = "exp"
+  iid.surv = "exp",
+  type = "conditional",
+  trim.jump = TRUE
 )
 }
 \arguments{
@@ -21,16 +22,14 @@ prodlimConditional(
 
 \item{status}{[character vector] name of the columns in argument \code{data} containing the type of event (0: censoring, 1: event of interest).}
 
-\item{strata}{[character vector] name of the columns in argument \code{data} indicating the groups for which a separate estimator should be used.}
-
 \item{data}{[data.frame] dataset.}
 
 \item{restriction}{[numeric vector] timepoints (\eqn{\tau_1,...,\tau_{m-1}}) used to condition all but the last time to event.}
 
-\item{times}{[numeric vector] timepoints at which to evaluate the survival. No length requirement.}
+\item{strata}{[character vector] name of the columns in argument \code{data} indicating the groups for which a separate estimator should be used.}
 
 \item{method}{[character] type of estimator for the joint survival distribution \eqn{\mathbb{P}\left[T_1>\tau_1,...,T_{m-1}>\tau_{m-1},T_m>t\right]}: \itemize{
-\item \code{"min"} Kaplan Meier estimators for the minimum normalized time to events \eqn{\frac{T_1}{\tau_1},...,\frac{T_{m-1}}{\tau_{m-1}},\frac{T_m}{t}}.
+\item \code{"prodlim"} Kaplan Meier estimators for the minimum normalized time to events \eqn{\frac{T_1}{\tau_1},...,\frac{T_{m-1}}{\tau_{m-1}},\frac{T_m}{t}}.
 \item \code{"IPCW"} Inverse Probability of Censoring Weights assuming same censoring process for all timepoints - see Parner et al. 2025.
 }}
 
@@ -38,6 +37,10 @@ prodlimConditional(
 
 \item{iid.surv}{[character] Estimator of the survival used when computing the influence function.
 Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCox}).}
+
+\item{type}{[character] should the survival that is output be the \code{"joint"} (\eqn{\mathbb{P}\left[T_1>\tau_1,...,T_{m-1}>\tau_{m-1},T_m\right]}) or the \code{"conditional"} survival (\eqn{\mathbb{P}\left[T_m>t|T_1>\tau_1,...,T_{m-1}>\tau_{m-1}\right]})?}
+
+\item{trim.jump}{[logical] should the survival be evaluated only at the observed jump times? Otherwise will be evaluated at each observed time (event or censoring).}
 }
 \value{
 A data.frame with an attribute \code{iid} if the argument \code{iid} was set to TRUE.
@@ -51,8 +54,6 @@ The conditional distribution is computed as a ratio between the full joint survi
 and the partial joint survival \eqn{\mathbb{P}\left[T_1>\tau_1,...,T_{m-1}>\tau_{m-1}\right]}.
 The later is computed as \eqn{\mathbb{P}\left[\min\left(\frac{T_1}{\tau_1},...,\frac{T_{m-1}}{\tau_{m-1}}\right)>1\right]},
 i.e., using a Kaplan-Meier estimator for the minimum normalized time to event.
-
-There is an extra method \code{"slowmin"} that is the same as \code{"min"} but with a different (and slower) implementation.
 }
 \examples{
 library(prodlim)
@@ -87,40 +88,39 @@ do.call(cbind,lapply(seqT, function(iT){
 ## min estimator
 \dontrun{
 eProdlim2 <- prodlimConditional(eventtime = paste0("eventtime",1:2,"Uncensored"),
-                             status = paste0("status",1:2,"Uncensored"),
-                             strata = "treatment", restriction = rep(0.75,2),
-                             data = d2TTE, times = seqT)
-eProdlim2
+                                status = paste0("status",1:2,"Uncensored"),
+                                strata = "treatment", restriction = rep(0.75,2),
+                                data = d2TTE)
+summary(eProdlim2, times = seqT)
 }
-##    treatment   time      surv    se.surv     lower     upper
-## 1          C 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
-## 2          T 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
-## 3          C 0.1875 0.8883721 0.04622803 0.7977668 0.9789774
-## 4          T 0.1875 0.8993506 0.05350114 0.7944903 1.0042110
-## 5          C 0.3750 0.8093023 0.04413190 0.7228054 0.8957993
-## 6          T 0.3750 0.7824675 0.05089930 0.6827067 0.8822283
-## 7          C 0.5625 0.7255814 0.04198691 0.6432886 0.8078742
-## 8          T 0.5625 0.6948052 0.04849389 0.5997589 0.7898515
-## 9          C 0.7500 0.6883721 0.04086851 0.6082713 0.7684729
-## 10         T 0.7500 0.6363636 0.04685719 0.5445252 0.7282020
+##    treatment  time n.risk n.event n.lost  surv se.surv lower upper
+## 1          C 0.000   1000       0      0 1.000  0.0000 1.000 1.000
+## 2          C 0.188    912       0      0 0.888  0.0185 0.852 0.925
+## 3          C 0.375    836       0      0 0.809  0.0233 0.764 0.855
+## 4          C 0.562    755       0      0 0.726  0.0262 0.674 0.777
+## 5          C 0.750    688       0    688 0.688  0.0272 0.635 0.742
+## 6          T 0.000   1000       0      0 1.000  0.0000 1.000 1.000
+## 7          T 0.188    569       0      0 0.899  0.0221 0.856 0.943
+## 8          T 0.375    432       0      0 0.782  0.0300 0.724 0.841
+## 9          T 0.562    359       0      0 0.695  0.0334 0.629 0.760
+## 10         T 0.750    311       0    311 0.636  0.0348 0.568 0.705
 
 ## Peron (ignores conditionning)
 \dontrun{
 e.peron <- prodlim(Hist(eventtime2Uncensored, status2Uncensored) ~ treatment,
                    data = d2TTE)
-eS.peron <- summary(e.peron, times = seqT)
-eS.peron[order(eS.peron$time),]
+summary(e.peron, times = seqT)
 }
 ##    treatment  time n.risk n.event n.lost  surv se.surv lower upper
 ## 1          C 0.000   1000       0      0 1.000 0.00000 1.000 1.000
-## 2          T 0.000   1000       0      0 1.000 0.00000 1.000 1.000
-## 3          C 0.188    912       0      0 0.912 0.00896 0.894 0.930
-## 4          T 0.188    569       0      0 0.569 0.01566 0.538 0.600
-## 5          C 0.375    836       0      0 0.836 0.01171 0.813 0.859
-## 6          T 0.375    432       0      0 0.432 0.01566 0.401 0.463
-## 7          C 0.562    755       0      0 0.755 0.01360 0.728 0.782
-## 8          T 0.562    359       0      0 0.359 0.01517 0.329 0.389
-## 9          C 0.750    688       0      0 0.688 0.01465 0.659 0.717
+## 2          C 0.188    912       0      0 0.912 0.00896 0.894 0.930
+## 3          C 0.375    836       0      0 0.836 0.01171 0.813 0.859
+## 4          C 0.562    755       0      0 0.755 0.01360 0.728 0.782
+## 5          C 0.750    688       0      0 0.688 0.01465 0.659 0.717
+## 6          T 0.000   1000       0      0 1.000 0.00000 1.000 1.000
+## 7          T 0.188    569       0      0 0.569 0.01566 0.538 0.600
+## 8          T 0.375    432       0      0 0.432 0.01566 0.401 0.463
+## 9          T 0.562    359       0      0 0.359 0.01517 0.329 0.389
 ## 10         T 0.750    311       0      0 0.311 0.01464 0.282 0.340
 ## ok for C but too low for T
 
@@ -128,26 +128,39 @@ eS.peron[order(eS.peron$time),]
 
 ## condition on staying at risk (inefficient, incorrect se?)
 d2TTEsurvC <- d2TTE[d2TTE$eventtime1>0.75,]
-summary(prodlim(Hist(eventtime2, status2) ~ treatment, data = d2TTEsurvC),
-        times = seqT)
+eNaiveC <- prodlim(Hist(eventtime2, status2) ~ treatment, data = d2TTEsurvC)
+summary(eNaiveC, times = seqT)
+
+##    treatment  time n.risk n.event n.lost  surv se.surv lower upper
+## 1          C 0.000    107       0      0 1.000  0.0000 1.000 1.000
+## 2          C 0.188     79       0      0 0.882  0.0322 0.819 0.945
+## 3          C 0.375     61       0      0 0.798  0.0420 0.716 0.880
+## 4          C 0.562     44       0      0 0.699  0.0507 0.600 0.799
+## 5          C 0.750     37       0      0 0.682  0.0524 0.579 0.785
+## 6          T 0.000    146       0      0 1.000  0.0000 1.000 1.000
+## 7          T 0.188    109       0      0 0.904  0.0253 0.855 0.954
+## 8          T 0.375     80       0      0 0.786  0.0378 0.711 0.860
+## 9          T 0.562     64       0      0 0.733  0.0419 0.651 0.816
+## 10         T 0.750     47       0      0 0.709  0.0440 0.622 0.795
 
 ## min estimator
 eProdlim2C <- prodlimConditional(eventtime = paste0("eventtime",1:2),
                              status = paste0("status",1:2),
                              strata = "treatment", restriction = rep(0.75,2),
-                             data = d2TTE, times = seqT)
-eProdlim2C
-##    treatment   time      surv    se.surv     lower     upper
-## 1          C 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
-## 2          T 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
-## 3          C 0.1875 0.9656701 0.06838695 0.8316342 1.0997061
-## 4          T 0.1875 0.8867831 0.06303572 0.7632354 1.0103308
-## 5          C 0.3750 0.8592152 0.06862112 0.7247203 0.9937101
-## 6          T 0.3750 0.7859406 0.06518644 0.6581776 0.9137037
-## 7          C 0.5625 0.7669355 0.07075982 0.6282488 0.9056223
-## 8          T 0.5625 0.7267865 0.06558515 0.5982419 0.8553310
-## 9          C 0.7500 0.7454226 0.07246591 0.6033920 0.8874532
-## 10         T 0.7500 0.6589528 0.06519537 0.5311722 0.7867333
+                             data = d2TTE)
+summary(eProdlim2C, times = seqT)
+
+##    treatment  time n.risk n.event n.lost  surv se.surv lower upper
+## 1          C 0.000   1000       0      0 1.000  0.0000 1.000 1.000
+## 2          C 0.188    751       0      0 0.959  0.0384 0.883 1.034
+## 3          C 0.375    576       0      0 0.860  0.0493 0.763 0.957
+## 4          C 0.562    438       0      0 0.763  0.0558 0.654 0.873
+## 5          C 0.750    336       0    336 0.745  0.0592 0.629 0.861
+## 6          T 0.000   1000       0      0 1.000  0.0000 1.000 1.000
+## 7          T 0.188    473       0      0 0.887  0.0324 0.823 0.950
+## 8          T 0.375    300       0      0 0.793  0.0463 0.703 0.884
+## 9          T 0.562    209       0      0 0.727  0.0509 0.627 0.827
+## 10         T 0.750    152       0    152 0.659  0.0532 0.555 0.763
 
 ##################################################
 ## Two time to events - One censoring mechanism ##
@@ -176,26 +189,26 @@ do.call(cbind,lapply(seqT, function(iT){
 eProdlim2.1C <- prodlimConditional(eventtime = paste0("eventtime",1:2,"Uncensored"),
                                    status = paste0("status",1:2,"Uncensored"),
                                    strata = "treatment", restriction = rep(0.75,2),
-                                   data = d2TTE.1C, times = seqT)
-eProdlim2.1C
-##   treatment   time      surv    se.surv     lower     upper
-## 1          C 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
-## 2          T 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
-## 3          C 0.1875 0.8983051 0.04688525 0.8064117 0.9901985
-## 4          T 0.1875 0.8978873 0.04965632 0.8005627 0.9952119
-## 5          C 0.3750 0.8093220 0.04485533 0.7214072 0.8972369
-## 6          T 0.3750 0.7957746 0.04730722 0.7030542 0.8884951
-## 7          C 0.5625 0.7415254 0.04309208 0.6570665 0.8259844
-## 8          T 0.5625 0.7183099 0.04530907 0.6295057 0.8071140
-## 9          C 0.7500 0.6864407 0.04148595 0.6051297 0.7677516
-## 10         T 0.7500 0.6478873 0.04334595 0.5629308 0.7328438
+                                   data = d2TTE.1C)
+summary(eProdlim2.1C, times = seqT)
+##    treatment  time n.risk n.event n.lost  surv se.surv lower upper
+## 1          C 0.000   1000       0      0 1.000  0.0000 1.000 1.000
+## 2          C 0.188    905       0      0 0.898  0.0178 0.863 0.933
+## 3          C 0.375    831       0      0 0.809  0.0233 0.764 0.855
+## 4          C 0.562    750       0      0 0.742  0.0261 0.690 0.793
+## 5          C 0.750    686       0    686 0.686  0.0278 0.632 0.741
+## 6          T 0.000   1000       0      0 1.000  0.0000 1.000 1.000
+## 7          T 0.188    564       0      0 0.898  0.0198 0.859 0.937
+## 8          T 0.375    435       0      0 0.796  0.0265 0.744 0.848
+## 9          T 0.562    362       0      0 0.718  0.0295 0.660 0.776
+## 10         T 0.750    308       0    308 0.648  0.0313 0.587 0.709
 
 ## IPCW estimator
 \dontrun{
 eIPCW2.1C <- prodlimConditional(eventtime = paste0("eventtime",1:2,"Uncensored"),
                                 status = paste0("status",1:2,"Uncensored"),
                                 strata = "treatment", restriction = rep(0.75,2),
-                                data = d2TTE.1C, times = seqT, method = "IPCW")
+                                data = d2TTE.1C, method = "IPCW")
 eIPCW2.1C
 }
 ##    treatment   time      surv    se.surv     lower     upper
@@ -220,8 +233,8 @@ summary(prodlim(Hist(eventtime2, status2) ~ treatment, data = d2TTEsurvC.1C),
 eProdlim2C.1C <- prodlimConditional(eventtime = paste0("eventtime",1:2),
                                    status = paste0("status",1:2),
                                    strata = "treatment", restriction = rep(0.75,2),
-                                   data = d2TTE.1C, times = seqT)
-eProdlim2C.1C
+                                   data = d2TTE.1C)
+summary(eProdlim2C.1C, times = seqT)
 ##    treatment   time      surv    se.surv     lower     upper
 ## 1          C 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
 ## 2          T 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
@@ -239,7 +252,7 @@ eProdlim2C.1C
 eIPCW2C.1C <- prodlimConditional(eventtime = paste0("eventtime",1:2),
                                 status = paste0("status",1:2),
                                 strata = "treatment", restriction = rep(0.75,2),
-                                data = d2TTE.1C, times = seqT, method = "IPCW")
+                                data = d2TTE.1C, method = "IPCW")
 eIPCW2C.1C
 }
 ##    treatment   time      surv    se.surv     lower     upper

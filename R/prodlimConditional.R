@@ -3,9 +3,9 @@
 ## Author: Brice Ozenne
 ## Created: jun 30 2026 (16:04) 
 ## Version: 
-## Last-Updated: jul 10 2026 (15:47) 
+## Last-Updated: sep 25 2026 (11:45) 
 ##           By: Brice Ozenne
-##     Update #: 1012
+##     Update #: 1027
 ##----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -16,7 +16,7 @@
 ### Code:
 
 ## * prodlimConditional (documentation)
-##' @title Conditional survival estimator
+##' @title Conditional survival estimator (!! Experimental !!)
 ##' @description Estimator of the survival of one time to event conditional on other time to events: \eqn{\mathbb{P}\left[T_m>t|T_1>\tau_1,...,T_{m-1}>\tau_{m-1}\right]}.
 ##' The last time to event (say \eqn{T_m}) is the one for which the survival is evaluated while the other ones (\eqn{T_1,...,T_{m-1}}) are use to condition.
 ##'
@@ -25,7 +25,6 @@
 ##' @param strata [character vector] name of the columns in argument \code{data} indicating the groups for which a separate estimator should be used.
 ##' @param data [data.frame] dataset.
 ##' @param restriction [numeric vector] timepoints (\eqn{\tau_1,...,\tau_{m-1}}) used to condition all but the last time to event.
-##' @param times [numeric vector] timepoints at which to evaluate the survival. No length requirement.
 ##' @param method [character] type of estimator for the joint survival distribution \eqn{\mathbb{P}\left[T_1>\tau_1,...,T_{m-1}>\tau_{m-1},T_m>t\right]}: \itemize{
 ##' \item \code{"prodlim"} Kaplan Meier estimators for the minimum normalized time to events \eqn{\frac{T_1}{\tau_1},...,\frac{T_{m-1}}{\tau_{m-1}},\frac{T_m}{t}}.
 ##' \item \code{"IPCW"} Inverse Probability of Censoring Weights assuming same censoring process for all timepoints - see Parner et al. 2025.
@@ -34,6 +33,7 @@
 ##' @param iid.surv [character] Estimator of the survival used when computing the influence function.
 ##' Can be the product limit estimator (\code{"prodlim"}) or an exponential approximation (\code{"exp"}, same as in \code{riskRegression::predictCox}).
 ##' @param type [character] should the survival that is output be the \code{"joint"} (\eqn{\mathbb{P}\left[T_1>\tau_1,...,T_{m-1}>\tau_{m-1},T_m\right]}) or the \code{"conditional"} survival (\eqn{\mathbb{P}\left[T_m>t|T_1>\tau_1,...,T_{m-1}>\tau_{m-1}\right]})?
+##' @param trim.jump [logical] should the survival be evaluated only at the observed jump times? Otherwise will be evaluated at each observed time (event or censoring).
 ##' 
 ##' @details The conditional distribution is computed as a ratio between the full joint survival \eqn{\mathbb{P}\left[T_1>\tau_1,...,T_{m-1}>\tau_{m-1},T_m>t\right]}
 ##' and the partial joint survival \eqn{\mathbb{P}\left[T_1>\tau_1,...,T_{m-1}>\tau_{m-1}\right]}.
@@ -199,7 +199,7 @@
 ##' eIPCW2.1C <- prodlimConditional(eventtime = paste0("eventtime",1:2,"Uncensored"),
 ##'                                 status = paste0("status",1:2,"Uncensored"),
 ##'                                 strata = "treatment", restriction = rep(0.75,2),
-##'                                 data = d2TTE.1C, times = seqT, method = "IPCW")
+##'                                 data = d2TTE.1C, method = "IPCW")
 ##' eIPCW2.1C
 ##' }
 ##' ##    treatment   time      surv    se.surv     lower     upper
@@ -224,8 +224,8 @@
 ##' eProdlim2C.1C <- prodlimConditional(eventtime = paste0("eventtime",1:2),
 ##'                                    status = paste0("status",1:2),
 ##'                                    strata = "treatment", restriction = rep(0.75,2),
-##'                                    data = d2TTE.1C, times = seqT)
-##' eProdlim2C.1C
+##'                                    data = d2TTE.1C)
+##' summary(eProdlim2C.1C, times = seqT)
 ##' ##    treatment   time      surv    se.surv     lower     upper
 ##' ## 1          C 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
 ##' ## 2          T 0.0000 1.0000000 0.00000000 1.0000000 1.0000000
@@ -243,7 +243,7 @@
 ##' eIPCW2C.1C <- prodlimConditional(eventtime = paste0("eventtime",1:2),
 ##'                                 status = paste0("status",1:2),
 ##'                                 strata = "treatment", restriction = rep(0.75,2),
-##'                                 data = d2TTE.1C, times = seqT, method = "IPCW")
+##'                                 data = d2TTE.1C, method = "IPCW")
 ##' eIPCW2C.1C
 ##' }
 ##' ##    treatment   time      surv    se.surv     lower     upper
@@ -426,10 +426,10 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
     ## fit unconditional prodlim
     if(is.null(strata)){
         data.out <- cbind(data[utils::tail(eventtime,1)], data[utils::tail(status,1)])
-        ff.prodlim <- reformulate(termlabels = "1", response = paste0("Hist(",utils::tail(eventtime,1),",",utils::tail(status,1),"==1)"))
+        ff.prodlim <- stats::reformulate(termlabels = "1", response = paste0("Hist(",utils::tail(eventtime,1),",",utils::tail(status,1),"==1)"))
     }else{
         data.out <- cbind(data[utils::tail(eventtime,1)], data[utils::tail(status,1)],data[strata])
-        ff.prodlim <- reformulate(termlabels = strata, response = paste0("Hist(",utils::tail(eventtime,1),",",utils::tail(status,1),"==1)"))
+        ff.prodlim <- stats::reformulate(termlabels = strata, response = paste0("Hist(",utils::tail(eventtime,1),",",utils::tail(status,1),"==1)"))
     }
     if(!is.null(restriction.endpoint)){
         data.out[[utils::tail(eventtime,1)]] <- pmin(data[[utils::tail(eventtime,1)]], restriction)
@@ -446,8 +446,7 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
     Utimes.all <- sort(unique(times))
     
     ## *** trim jump times
-    if(trim.jump){
-        
+    if(trim.jump){        
         ## first time at which the 'target' event is active:
         ## eventtime(m)/times < min(eventtime(1)/restriction(m),...,eventtime(m-1)/restriction(m-1))
         ## times > eventtime(m) / min(eventtime(1)/restriction(m),...,eventtime(m-1)/restriction(m-1))
@@ -470,10 +469,8 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
         data2$Utimes[is.na(data2$Utimes)] <- length(Utimes)
                 
     }else{
-
         Utimes.first <- NULL
         Utimes <- Utimes.all
-
     }
 
     ## *** reconstruct strata
@@ -500,7 +497,8 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
 
         ## *** fit marginal model
         eKMsurv.marginal <- .prodlim2(eventtime = "eventtime.minM1", status = "status.minM1", strata = "strata",
-                                      data = transform(data2, status.minM1 = status.minM1==1), time = 1, iid = iid, iid.surv = iid.surv)
+                                      data = data2,
+                                      time = 1, iid = iid, iid.surv = iid.surv)
 
         ## eKM.marginal <- prodlim::prodlim(Hist(eventtime.minM1, status.minM1) ~ strata, data = data2)
         ## eTTEM.marginal <- BuyseTTEM(eKM.marginal, treatment = "strata", iid = iid, iid.surv = iid.surv)
@@ -540,8 +538,8 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
         data2$eventtimeIPCW <- apply(data2[paste0("eventtime",1:n.endpoint)],1,max)
         data2$statusIPCW <- 1-apply(data2[paste0("status",1:n.endpoint)]>0,1,prod)
         data2$index <- 1:NROW(data2)
-        
-        ff.IPCW <- stats::reformulate(termlabels = strata, response = "Hist(eventtimeIPCW, statusIPCW)")
+
+        ff.IPCW <- stats::reformulate(termlabels = "strata", response = "Hist(eventtimeIPCW, statusIPCW)")
         eKM.IPCW <- prodlim(ff.IPCW, data = data2)
         eTTEM.IPCW <- BuyseTTEM(eKM.IPCW, treatment = strata[1], iid = iid, iid.surv = iid.surv)
         eKMsurv.IPCW <- summary(eTTEM.IPCW, times = pmax(times,max(restriction)), iid = iid)
@@ -599,7 +597,7 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
 
             ## *** fit KM
             iKMsurv.joint <- .prodlim2(eventtime = "eventtime.min", status = "status.min", strata = "strata", 
-                                       data = transform(data2, status.min = status.min==1), time = 1, nobs.strata = nobs.strata, iid = iid, iid.surv = iid.surv)
+                                       data = data2, time = 1, nobs.strata = nobs.strata, iid = iid, iid.surv = iid.surv)
 
             ## link to output
             iIndex0.prodlim <- match(out.grid[iIndex0.out,"strata"],eKMsurv.marginal$strata)
@@ -638,7 +636,7 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
             if(iid){
                 denom.iid <- sweep(attr(eKMsurv.IPCW,"iid"), MARGIN = 1, FUN = "*", STATS = eKMsurv.marginal$surv) + sweep(attr(eKMsurv.marginal,"iid"), MARGIN = 1, FUN = "*", STATS = eKMsurv.IPCW$surv)
                 
-                Xstrata <- model.matrix(reformulate(termlabel = strata, intercept = FALSE), data2)
+                Xstrata <- stats::model.matrix(stats::reformulate(termlabel = strata, intercept = FALSE), data2)
                 Xevent <- (data2$eventtime.minM1>1) * (data2[[paste0("eventtime",n.endpoint)]]>Utimes[iT])
                 Ncount.iid <- sweep(sweep(sweep(Xstrata, FUN = "*", MARGIN = 1, STATS = Xevent), FUN = "/", MARGIN = 2, STATS = colSums(Xstrata)), FUN = "-", MARGIN = 2, STATS = Ncount/NROW(data2))
 
@@ -733,7 +731,10 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
     ## ** prepare
     ## *** only events before time are used in the KM estimator (along with the sample size)
     index.time <- which(data[[eventtime]] <= time)
-    
+    if(!is.logical(data[[status]]) && (1 %in% data[[status]])){
+        data[[status]] <- (data[[status]]==1)
+    }
+
     ## *** find strata
     if(is.null(strata)){
         n.strata <- 1
@@ -806,8 +807,8 @@ prodlimConditional <- function(eventtime, status, data, restriction, strata = NU
             ## prepare
             iLambda <- cumsum(iDeath/iAtRisk^2)
             iSurv.for.iid <- switch(iid.surv,
-                                   "prodlim" = survival$estimate[iS],
-                                   "exp" = exp(-sum(iDeath/iAtRisk)))
+                                    "prodlim" = survival$estimate[iS],
+                                    "exp" = exp(-sum(iDeath/iAtRisk)))
 
             iCumhazard.iid <- rep(0, NROW(data))
 
